@@ -1,5 +1,5 @@
 use crate::domain::TextSpan;
-use crate::tokenizer::tokenize;
+use crate::tokenizer::words_from_covering;
 
 /// Bounded lexical marker classes. They are not legal-effect conclusions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -86,7 +86,7 @@ fn classify(word: &str) -> Option<LegalMarkerKind> {
 /// `negated` means only that the immediately preceding whitespace-separated
 /// token is `не`. It does not assign modality or legal effect.
 pub fn find_legal_markers(text: &str) -> Vec<MorphologyMatch> {
-    let tokens = tokenize(text);
+    let tokens = words_from_covering(text);
     let mut matches = Vec::new();
     for (index, token) in tokens.iter().enumerate() {
         let Some(kind) = classify(&token.normalized) else {

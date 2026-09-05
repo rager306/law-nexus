@@ -312,3 +312,79 @@ limitations section supports this boundary.
 Verdict: no changes to the N2 plan; two candidate tools recorded
 (LLM pre-annotation triage; tail-scale triage pattern) with explicit
 preconditions. Re-evaluate the second on tail-size trigger only.
+
+## 7. Addendum 2026-09-05 — Pullenti orientation and dual tokenizer
+
+Owner-directed pause of the LLM bake-off. Diagnostic artifacts stay under
+`/tmp/npa-judge-bakeoff/` (not tracked, not N2 evidence). Pullenti Lingvo
+4.34 was snapshotted from https://www.pullenti.ru/Download into
+`/root/vendor-source/pullenti` (C# SDK + HTML docs + Python SDK). GSD D380
+/ D381; ADR-0028 dual-tokenizer / Pullenti / identifying subsections.
+
+### 7.1 Pullenti (development orientation only)
+
+License: Non-Commercial Freeware / Commercial Software. **Not product
+runtime, not `lex()`, not CI, not a dual-coder, not Layer-2 gold.**
+Take the attribute alphabet: `DecreeReferent` slots TYPE / SOURCE / NUMBER
+/ DATE / NAME; `PartToken.ItemType` for structural units; `ThisDecree`
+(`HasThisRef` / `HasOtherRef`) for anaphora to the current act. Two
+contours: structural chain vs identifying act. After `PersonAnalyzer`
+init (required: `MailLine.parse` → `PersonItemToken.local_ontology`;
+without it Decree crashed on ФЗ lists / prikaz and undercounted cover F1
+0.56), diagnostic cover F1 0.82 P=0.99 R=0.70 on the same 40. That is a
+harness fix, not a new corpus. Agnes→sol identifying-prompt cover F1 0.95
+is still triage only.
+
+Do not port `DecreeAnalyzer` (6843 lines), `DecreeChange*`, MorphEngine,
+or lump prikaz+ukaz+rasporyazhenie into one `Order` kind. Take **slots**,
+not occurrence spans: Pullenti joins `ред.` + title + `(далее …)` into
+the Decree surface and prefixes DECREEPART with the clause chain.
+`SOURCE=город Челябинск` on «челябинского УФАС» is collapsed
+ORG+GEO — **split, do not drop GEO** (D382). GEO is jurisdiction of the
+issuing organ (subject/city/municipality), load-bearing for non-federal
+identity; STREET/ADDRESS is a location contour. `ORGANIZATION.GEO` is the
+honest pairing.
+
+### 7.2 Identifying spans and CurrentDocumentRequisites
+
+Metodrekomendatsii-2021 §19 and RusLawOD: an act is identified by type +
+date + number (+ issuer for agency documents). Score **cover**, not overlap.
+Do not expand the 180-fragment sample. Requisites of the *current* document
+feed capture/resolve and any LLM metaprompt; `lex(&str)` stays metadata-free.
+
+### 7.3 Dual tokenizer (living)
+
+`lex()` covering nine-kind stream is the LawRef text view. Private
+`tokenize()` remains alphabetic for references / temporal / unknown_forms
+(`ст. 5` → stem `ст`). Morphology reads covering **Word** tokens only so
+fullword markers (`статьи`, `пункта`) share the same scanner as LawRef
+without collapsing Abbrev stems. A 1:1 `tokenize`→`lex` Word projection
+is rejected until alphabetic consumers are rewritten over `TokenKind`.
+
+Russian code/data that informed the alphabet but is not shipped: RusLawOD
+(CC-BY-NC extras), Dedoc FOIV vs simple-law trees, RuLegalNER (PERSON/ORG,
+not requisites).
+
+### 7.4 Clip is the input, not the model (ident40 raw log, 2026-09-05)
+
+The 180 Layer-2 units are Consultant WordML **blocks**, not semantic
+windows. Amendment lists are split on commas across `source_block_index`:
+
+- npa-doc-020: 086 `(в ред. Постановлений Правительства РФ от 25.12.2014 N 1489,` + 087 `от 14.04.2017 N 446)` — same list, type only in 086; document head is 085 `Постановление Правительства РФ от 26.08.2013 N 728`.
+- npa-doc-022: 096 opening NP + 097/098/099 elliptical `от DATE N` tails.
+
+Feeding 087/099 to an LLM as a standalone document is asking it to invent
+type+issuer. Spark DROP on 087 is more honest than sol KEEP of a clipped
+date+N. Pullenti emits DATE only (no DECREE) — correct for that window,
+wrong if identity is supposed to inherit from the previous block / document
+head. Filename and `CurrentDocumentRequisites` already hold type+issuer+date+N
+of the *current* act; they never reached the model.
+
+Pullenti on **unclipped** hard cases is the better identifier: 050 four-
+ФЗ coordinating list (TYPE restored in slots, surface left elliptical);
+078 prikaz+issuer; 120 license+Rosgvardia; 128 Plenum+VS. Do not copy its
+spans. Next product join is not another bake-off: left-context / requisites
+sidecar into `capture_lawrefs` / resolve so elliptical `от DATE N` inherit
+TYPE+ORG+GEO from the opening NP or the document head (D382 cycle in
+`prd/architecture/npa-identifying-cycle.yaml`). `lex(&str)` stays
+fragment-local. GEO stays on the sidecar for regional/municipal keys.

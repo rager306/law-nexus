@@ -1,0 +1,142 @@
+# Contour-A direct-matcher / local-grammar arbitration (D387 M1).
+# Design-only. Inherited contour-B fields never participate.
+
+schema_version: law-nexus-npa-capture-arbitration/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_decision: D388
+related: [D381, D383, D384, D387, ADR-0028]
+
+scope:
+  phase: P3_literal_projection
+  input_origins: [direct_matcher, local_grammar_frame]
+  output: fragment-local literal ReferenceMention + closed LawRefSlots
+  forbidden_inputs: [SemanticFieldClaim, ContextView, IdentifyingAct, CurrentDocumentRequisites]
+
+closed_lawref_slots:
+  - marker_chain
+  - hier_nums
+  - date
+  - doc_no
+  - law_code
+  - anaphora
+  - range
+  - quoted_enum
+
+candidate:
+  key_fields:
+    - document_version_ref
+    - fragment_anchor
+    - start_byte
+    - end_byte
+    - pattern_id
+    - origin
+    - explicit_slot_fingerprint
+  origin: [direct_matcher, local_grammar_frame]
+  invariants:
+    - start_byte/end_byte are fragment-local half-open byte offsets
+    - written text is recovered from the source anchor, never normalized into identity
+    - explicit_slot_fingerprint covers exactly the eight closed LawRefSlots
+    - inherited type/org/geo/marker/owner claims cannot enter this record
+
+span_relation:
+  same_span: A.start == B.start and A.end == B.end
+  strictly_contains: A.start <= B.start and A.end >= B.end and not same_span
+  strictly_contained_by: inverse of strictly_contains
+  partial_overlap: spans intersect and neither contains the other
+  disjoint: spans do not intersect
+
+slot_relation:
+  identical: every closed slot is equal, including ordered vectors and absence
+  compatible_complementary: >
+    no slot has two unequal explicit values and every added value is anchored
+    inside the same literal span
+  incompatible: at least one closed slot has unequal explicit values
+  rule: absent is not evidence; it may be completed only by an allowed explicit merge rule
+
+# Pair policy is data. Source function order is never precedence.
+actions:
+  - when: same_span + identical
+    action: merge_evidence
+    result: one mention/capture with all pattern/origin evidence retained
+  - when: same_span + compatible_complementary + pair_policy=merge_explicit
+    action: merge_explicit_slots
+    result: one mention/capture; every merged slot keeps its token/source evidence
+  - when: same_span + incompatible
+    action: retain_conflict_set
+    result: competing proposed captures + diagnostic
+  - when: containment + pair_policy=subsumes
+    action: retain_wider_and_record_suppressed_evidence
+    guard: wider candidate represents the same mention role and explicitly contains all narrower slots
+  - when: containment + pair_policy=distinct_mentions
+    action: retain_both
+  - when: containment + no_pair_policy
+    action: retain_both_as_ambiguous
+  - when: partial_overlap
+    action: retain_conflict_set
+  - when: disjoint
+    action: retain_both
+
+pattern_ids:
+  - abbrev-hier-chain
+  - amendment-window
+  - date-docno
+  - fullword
+  - quoted-enum
+  - range
+  - anaphora
+  - coordinating-act-frame
+  - structural-designation-frame
+
+# Existing npa_lawref_precedence remains the matcher execution contract. This
+# table governs candidate relations after firing and must be pinned separately.
+pair_policies:
+  status: deferred-undefined
+  required_pairs:
+    - [range, fullword]
+    - [range, abbrev-hier-chain]
+    - [structural-designation-frame, range]
+    - [structural-designation-frame, fullword]
+    - [coordinating-act-frame, date-docno]
+    - [quoted-enum, range]
+    - [anaphora, range]
+    - [amendment-window, coordinating-act-frame]
+  default: retain candidates with ambiguous/conflict diagnostic; never silently suppress
+
+stable_order:
+  keys:
+    - fragment_anchor ascending
+    - start_byte ascending
+    - end_byte descending
+    - canonical pattern precedence index ascending
+    - origin direct_matcher before local_grammar_frame only as a display tiebreaker
+    - explicit_slot_fingerprint lexical ascending
+  note: ordering is deterministic presentation, not semantic winner selection
+
+diagnostics:
+  - duplicate_matcher_evidence_merged
+  - compatible_explicit_slots_merged
+  - exact_span_slot_conflict
+  - containment_without_pair_policy
+  - partial_overlap_conflict
+  - frame_direct_disagreement
+  - candidate_limit_reached
+
+required_pins:
+  - same span + identical slots from direct/frame becomes one mention with two evidence origins
+  - same span + incompatible doc_no remains a conflict set
+  - structural range frame and raw range never import marker/owner from context into contour A
+  - date-docno members inside an act-list frame do not become one glued mention
+  - quoted_enum adjacent to a range remains distinct unless a pair policy proves subsumption
+  - anaphora beside a range remains a separate literal role
+  - amendment-window containing cited-act requisites retains distinct mentions
+  - partial overlap never resolves by pattern execution order
+  - disjoint candidates retain stable source order
+  - removing all local grammar candidates leaves direct matcher output deterministic
+
+runtime_stop:
+  active: true
+  reasons:
+    - pair_policies are deferred-undefined
+    - candidate cardinality bound is deferred-undefined
+    - hostile/pin tests are not implemented or accepted

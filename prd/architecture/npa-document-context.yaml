@@ -1,0 +1,210 @@
+# Whole-document context contract for NPA semantic analysis (D385).
+# Design-only. No Rust types, runtime capability, corpus claim, or acceptance
+# status is minted from this file.
+
+schema_version: law-nexus-npa-document-context/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_decision: D385
+related: [D381, D382, D383, D384, D386, ADR-0016, ADR-0019, ADR-0028]
+
+purpose: >
+  Make information outside a fragment available through bounded structural
+  queries while preserving fragment-local source anchors, provenance, and
+  candidate-not-fact semantics.
+
+non_claims:
+  - not a full-document prompt or LLM context window
+  - not a cross-block TextAnchor
+  - not a replacement for CurrentDocumentRequisites
+  - not a Work identity or OfficialIdentityClaim
+  - not an authorization to copy nearest text as context
+  - not runtime-ready while bounds and hostile contracts are deferred-undefined
+  - no LLM, RLM runtime, prompt, REPL, or model call in product analysis
+
+principles:
+  complete_before_linking: decode and index the complete document version before cross-block semantic linking
+  local_mentions: every ReferenceMention and grammar frame keeps a fragment-local TextAnchor
+  typed_access: consumers request named structural relations or roles, never an unbounded raw-text window
+  provenance: every inherited field points to the source node/anchor or sidecar record that supplied it
+  ambiguity: conflicting context produces competing proposals or unresolved, never proximity-based overwrite
+  immutability: linking derives new records; it does not mutate covering tokens or source blocks
+
+# Bound to one source/document version. It is not a timeless Work graph.
+document_structure_index:
+  identity:
+    fields: [document_version_ref, source_revision, decoder_profile]
+    rule: all nodes and edges belong to exactly one decoded document version
+  nodes:
+    source_block:
+      fields: [block_id, order, block_kind, local_anchor, source_evidence]
+    structural_container:
+      fields: [container_id, role, designation, heading_anchor, parent_id, source_evidence]
+      roles: [document, division, section, chapter, article, clause, part, item, subitem, heading, amendment_block, requisites_block]
+  edges:
+    structural: [parent_of, child_of, immediately_precedes, immediately_follows, contained_in]
+    edge_fields: [from, to, relation, evidence, status]
+    edge_statuses: [proposed, accepted, conflicting, rejected]
+  invariant: source/structural evidence only; no alias, grammar frame, mention, or semantic claim node
+
+# Built only after every block has completed local analysis. This is a new
+# immutable projection over the base index, never mutation of it.
+document_analysis_overlay:
+  requires: [document_structure_index, all_local_grammar_frames, all_literal_mentions]
+  nodes:
+    declared_alias:
+      fields: [alias_id, wording, target_mention_ref, declaration_anchor, scope_container_id, status]
+    local_grammar_frame:
+      fields: [frame_ref, block_id, frame_kind, local_anchor, status]
+    literal_mention:
+      fields: [mention_ref, block_id, local_anchor, written_text, explicit_slots, status]
+  edges:
+    contextual: [opens_series, continues_series, closes_series, declares_alias, alias_in_scope, supplies_requisites, owns_designation]
+    edge_fields: [from, to, relation, evidence, confidence_class, status]
+    edge_statuses: [proposed, accepted, conflicting, rejected]
+  invariant: derived nodes retain base-index/source anchors and never replace them
+
+# A bounded projection for one local consumer. The index remains queryable as a
+# whole, but raw full-document text is not copied into this record.
+context_view:
+  fields:
+    - target_block_id
+    - target_local_anchor
+    - document_version_ref
+    - current_document_requisites_ref
+    - ancestor_path
+    - adjacent_blocks
+    - open_series_frames
+    - scoped_aliases
+    - explicit_anchor_hits
+    - context_claims
+    - sufficiency
+    - diagnostics
+  sufficiency_states: [sufficient, partial, conflicting, unavailable]
+
+recursive_context_pattern:
+  source: D386; externalized-context / decompose / query / reduce pattern only
+  execution: deterministic bounded worklist, not implementation-level stack recursion
+  context_environment: base DocumentStructureIndex + immutable DocumentAnalysisOverlay
+  decomposition_output: closed typed ContextRequest records
+  leaf_output: ContextResult with source anchors, derivation edges, status, and diagnostics
+  reduction: field-wise compatibility/conflict reducer deriving new records; never mutates source or parent frame
+  memo_key: [document_version_ref, request_kind, origin_frame_ref, explicit_key, structural_scope]
+  termination: visited-path cycle detection + operator fan-out + cardinality budgets
+  forbidden: [recursive_model_call, natural_language_summary_as_authority, open_ended_tool_choice]
+
+context_request:
+  fields: [request_kind, document_version_ref, origin_frame_ref, requested_roles_or_fields, structural_scope, explicit_key, path_so_far, budget_remaining, evidence_requirement]
+  request_kinds: [ancestor_path, adjacent_blocks, open_series_head, scoped_alias, current_document_requisites, explicit_anchor_lookup]
+  rule: no arbitrary relevance query; every request names a structural relation, role, or explicit key
+
+context_result:
+  fields: [request_ref, status, candidate_claims, source_anchors, derivation_edges, diagnostics]
+  statuses: [resolved, partial, conflicting, unavailable, cycle, limit]
+  rule: candidate claims pass the reducer before becoming SemanticFieldClaim records
+
+queries:
+  ancestor_path:
+    purpose: recover structural owner such as article/clause from hierarchy
+    result: ordered containers from nearest parent to document root
+  adjacent_blocks:
+    purpose: test punctuation/layout continuity without creating a cross-block span
+    result: bounded previous/next SourceBlockRecord references
+  open_series_head:
+    purpose: recover TYPE/ORG/GEO or marker/owner for an elliptical coordinating tail
+    requires: proven opens_series/continues_series path and role compatibility
+    result: zero, one, or conflicting candidate heads with evidence
+  scoped_alias:
+    purpose: resolve «далее — ...» only inside its declared structural scope
+    result: candidate declaration anchors; no binding when scope is ambiguous
+  current_document_requisites:
+    purpose: provide explicit sidecar claims for constructions authorized to refer to the current act
+    guard: ordinary cited-act tails cannot use this merely because the sidecar exists
+  explicit_anchor_lookup:
+    purpose: find a named/numbered structure or declaration elsewhere in the same document version
+    guard: requires an explicit designation/key; semantic nearest-neighbour lookup is insufficient
+
+pipeline:
+  pass_1_decode:
+    input: complete source document version
+    output: ordered SourceBlockRecord stream
+  pass_2_structure:
+    input: all decoded blocks + document head/catalog evidence
+    output: base DocumentStructureIndex + CurrentDocumentRequisites
+  pass_3_local_analysis:
+    input: one block covering tokens + MorphEvidenceSet
+    output: fragment-local grammar frame alternatives
+  pass_4_literal_projection:
+    input: covering tokens + local grammar frames
+    output: fragment-local ReferenceMention + contour A capture
+  pass_5_analysis_overlay:
+    input: base DocumentStructureIndex + all local frames + all literal mentions
+    output: immutable DocumentAnalysisOverlay
+  pass_6_context_linking:
+    input: base DocumentStructureIndex + DocumentAnalysisOverlay + CurrentDocumentRequisites
+    execution: deterministic ContextRequest worklist + memoization + cycle detection
+    output: ContextView + provenance-bearing SemanticFieldClaim alternatives
+  pass_7_semantic_projection:
+    input: local mentions/frames + compatible context claims
+    output: proposed contour B IdentifyingAct + ThisRef/structural target candidates
+  pass_8_identity_claim:
+    input: complete non-conflicting proposed IdentifyingAct
+    output: proposed OfficialIdentityClaim compatibility projection
+  pass_9_resolution:
+    input: frozen mentions/captures + target candidates + proposed identity claims + binding indexes
+    output: binding candidates, endpoint-pair candidates, or typed unresolved result
+
+inheritance:
+  precedence:
+    - explicit_member
+    - same_local_frame_head
+    - proven_series_head_elsewhere_in_document
+    - authorized_current_document_requisites
+  conflict_rule: retain alternatives; never choose by distance alone
+  no_source_rule: unresolved with missing-context diagnostic
+  composition: >
+    derived claims may participate in a bounded later hop only with the full
+    derivation path retained and a policy edge authorizing that role; inherited
+    never becomes explicit or an unbounded new series head
+
+whole_document_access:
+  allowed:
+    - traverse typed index edges
+    - query explicit designations and scoped declarations
+    - inspect bounded source blocks cited as evidence
+    - run a second linking pass after all local frames exist
+  forbidden:
+    - concatenate the document into every parser input
+    - send the whole document to an LLM as default recovery
+    - fabricate a single TextAnchor spanning multiple WordML blocks
+    - use vector similarity alone to authorize inheritance or binding
+    - mutate an earlier local mention after later context is found
+
+bounds:
+  adjacent_block_radius: deferred-undefined
+  max_series_hops: deferred-undefined
+  max_alias_candidates: deferred-undefined
+  max_context_claims_per_field: deferred-undefined
+  max_linking_passes: 1
+  on_limit: return partial/conflicting with diagnostic; never truncate into a false unique answer
+
+required_diagnostics:
+  - missing_document_structure
+  - missing_current_requisites
+  - open_series_without_head
+  - incompatible_series_head
+  - cross_block_continuation_ambiguous
+  - scoped_alias_ambiguous
+  - inherited_field_conflict
+  - context_query_limit_reached
+  - unresolved_after_document_pass
+
+hostile_contract_seeds:
+  - heading or paragraph boundary terminates an apparent comma list
+  - unrelated date and number in the previous block must not become act requisites
+  - two compatible-looking series heads in different sections remain ambiguous
+  - alias declaration outside structural scope must not bind
+  - current document requisites conflict with an explicit cited-act head
+  - information occurs later in the document and is found only by an explicit typed key
+  - WordML split preserves local anchors and evidence across a continues_series edge
+  - incomplete/corrupt document index fails closed

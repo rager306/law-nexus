@@ -1,0 +1,257 @@
+# Canonical NPA semantic-analysis process (D387).
+# Design-only orchestration and FSM contract. No runtime readiness, Rust types,
+# prompt authority, or requirement validation is implied.
+
+schema_version: law-nexus-npa-semantic-process/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_decision: D387
+related: [D380, D381, D382, D383, D384, D385, D386, D388, ADR-0016, ADR-0019, ADR-0028, R035, R070]
+contracts:
+  identifying_cycle: prd/architecture/npa-identifying-cycle.yaml
+  document_context: prd/architecture/npa-document-context.yaml
+  reference_binding: prd/architecture/reference-binding-contract.yaml
+  capture_arbitration: prd/architecture/npa-capture-arbitration.yaml
+  current_requisites: prd/architecture/current-document-requisites.yaml
+  bounds_hostile_plan: assessment/29-npa-bounds-hostile-plan.md
+
+non_claims:
+  - not a Rust implementation or runtime-ready FSM
+  - not N2 acceptance or human dual coding
+  - not R035 or R070 validation evidence
+  - not an LLM, RLM, prompt, or model execution plan
+  - not an authorization to mint WorkId from a grammar frame
+
+# ---------------------------------------------------------------------------
+# Authority planes
+# ---------------------------------------------------------------------------
+authority_planes:
+  product_fsm:
+    owns:
+      - lossless lexical evidence
+      - morphology alternatives
+      - local grammar frame derivation
+      - literal ReferenceMention projection
+      - typed document-context requests and deterministic reduction
+      - proposed identifying claims and reference bindings
+    cannot:
+      - promote a candidate to fact without the owning evidence gate
+      - rewrite source spans with inherited text
+      - use prompt/model output as a transition guard
+  meta_control:
+    owns:
+      - schema and closed-vocabulary validation
+      - lifecycle tags and promotion gates
+      - pattern precedence and compatibility policy
+      - resource bounds and hostile contracts
+      - evidence/diagnostic completeness
+      - unknown-pattern and drift reporting
+    cannot:
+      - fabricate legal semantics
+      - convert documentation into R035/R070 proof
+      - mutate a source mention or binding
+  prompt_annotation:
+    lifecycle: out-of-band only
+    input: exported annotation packet with local source + bounded ContextView + provenance
+    output: AnnotationSuggestion for a human workflow
+    cannot:
+      - participate in product FSM transitions
+      - create SemanticFieldClaim, ReferenceBinding, OfficialIdentityClaim, or WorkId
+      - count as a second human coder
+      - heal a type absent from both source and authorized context
+      - become gold without explicit human acceptance and coder provenance
+
+# ---------------------------------------------------------------------------
+# Canonical phase order
+# ---------------------------------------------------------------------------
+pipeline:
+  - id: P0_decode_complete_document
+    requires: [source_document_version]
+    produces: [ordered_source_blocks, fragment_local_anchors, decode_diagnostics]
+    gate: all retained bytes have source evidence; incomplete decode is explicit
+  - id: P1_build_base_context
+    requires: [ordered_source_blocks]
+    produces: [base_document_structure_index, current_document_requisites]
+    gate: >
+      base index contains only source/structural nodes; document-head,
+      filename, and catalog requisites remain independent source claims with
+      normalization and conflict state
+  - id: P2_local_analysis
+    foreach: source_block
+    requires: [fragment_local_anchor]
+    produces: [covering_tokens, morph_evidence_sets, local_grammar_frames]
+    gate: local frames contain explicit local roles/values only
+  - id: P3_literal_projection
+    requires: [covering_tokens, local_grammar_frames]
+    produces: [reference_mentions, contour_a_captures]
+    execution: data-driven direct-matcher / grammar-frame arbitration
+    gate: >
+      inherited fields cannot alter local anchor, surface wording, or the eight
+      explicit LawRefSlots; conflicts/overlaps follow the capture-arbitration contract
+  - id: P4_build_analysis_overlay
+    requires: [base_document_structure_index, local_grammar_frames, reference_mentions]
+    produces: [document_analysis_overlay]
+    gate: overlay is a new derived projection; base index remains immutable
+  - id: P5_close_document_context
+    requires: [document_analysis_overlay, current_document_requisites]
+    produces: [context_results, context_views, semantic_field_claims, context_diagnostics]
+    execution: deterministic bounded ContextRequest worklist to fixpoint
+    gate: every non-explicit field has a complete derivation path and policy authorization
+  - id: P6_semantic_projection
+    requires: [reference_mentions, contour_a_captures, semantic_field_claims]
+    produces: [proposed_identifying_acts, this_ref_candidates, structural_target_candidates]
+    gate: incompatible/conflicting fields do not form a complete identifying candidate
+  - id: P7_identity_claim_projection
+    requires: [proposed_identifying_acts]
+    produces: [proposed_official_identity_claims, incomplete_identity_diagnostics]
+    gate: class-specific required key fields are explicit or authorized, unique, and non-conflicting
+    cannot_produce: [WorkId, ComponentId]
+  - id: P8_resolve_bindings
+    requires:
+      - reference_mentions
+      - contour_a_captures
+      - structural_target_candidates
+      - proposed_official_identity_claims
+      - document_analysis_overlay
+      - external_binding_indexes
+    produces: [reference_binding_candidates, endpoint_pair_candidates, binding_diagnostics]
+    gate: source mention remains frozen; target/evidence/status are separate
+  - id: P9_emit_proposed_evidence
+    requires: [all_prior_outputs]
+    produces: [proposed_ledger_assertions, durable_diagnostics, audit_trace]
+    gate: unresolved/partial/conflicting results remain visible and cannot be smoothed to resolved
+
+order_invariants:
+  - P3_literal_projection precedes P5_close_document_context
+  - P4_build_analysis_overlay follows all local frame production
+  - P5_close_document_context starts only after the complete document local pass
+  - P7_identity_claim_projection precedes identity-based binding in P8
+  - no later phase mutates an earlier source-local record
+
+# ---------------------------------------------------------------------------
+# Orthogonal monotone FSMs
+# ---------------------------------------------------------------------------
+fsms:
+  document_readiness:
+    initial: raw
+    states: [raw, decoded, base_indexed, locally_analyzed, analysis_indexed, context_closed, projected, resolution_closed]
+    transitions:
+      - [raw, decoded, P0_gate_passed]
+      - [decoded, base_indexed, P1_gate_passed]
+      - [base_indexed, locally_analyzed, all_blocks_P2_terminal]
+      - [locally_analyzed, analysis_indexed, P3_and_P4_gate_passed]
+      - [analysis_indexed, context_closed, context_worklist_terminal]
+      - [context_closed, projected, P6_and_P7_terminal]
+      - [projected, resolution_closed, P8_terminal]
+    failure_terminal: [decode_failed, structure_failed, resource_limit]
+
+  mention:
+    initial: unseen
+    states: [unseen, proposed, captured, rejected]
+    transitions:
+      - [unseen, proposed, local_pattern_or_frame]
+      - [proposed, captured, literal_anchor_and_slot_contract_pass]
+      - [proposed, rejected, overlap_or_contract_rejection]
+    terminal: [captured, rejected]
+    invariant: context or binding failure cannot invalidate a captured literal mention
+
+  context_dependency:
+    initial: not_evaluated
+    states: [not_evaluated, not_required, requested, queued, resolving, sufficient, partial, conflicting, unavailable, cycle, limit]
+    transitions:
+      - [not_evaluated, not_required, no_context_dependency]
+      - [not_evaluated, requested, frame_declares_typed_dependency]
+      - [requested, queued, request_schema_and_budget_pass]
+      - [queued, resolving, worklist_dispatch]
+      - [resolving, sufficient, unique_compatible_authorized_derivation]
+      - [resolving, partial, worklist_closed_with_missing_fields]
+      - [resolving, conflicting, applicable_derivations_disagree]
+      - [resolving, unavailable, required_index_or_evidence_absent]
+      - [resolving, cycle, visited_path_repeats]
+      - [resolving, limit, declared_budget_reached]
+    terminal: [not_required, sufficient, partial, conflicting, unavailable, cycle, limit]
+    invariant: terminal context status does not rewrite mention status
+
+  binding:
+    initial: unattempted
+    states: [unattempted, candidate_ready, resolving, resolved, unresolved, conflicting, rejected]
+    transitions:
+      - [unattempted, candidate_ready, target_candidate_contract_pass]
+      - [candidate_ready, resolving, resolver_started]
+      - [resolving, resolved, unique_target_with_evidence]
+      - [resolving, unresolved, no_qualified_target]
+      - [resolving, conflicting, multiple_incompatible_targets]
+      - [candidate_ready, rejected, malformed_or_unauthorized_candidate]
+    terminal: [resolved, unresolved, conflicting, rejected]
+    invariant: binding target/status cannot alter source ReferenceMention
+
+# ---------------------------------------------------------------------------
+# Context and identity guards
+# ---------------------------------------------------------------------------
+current_requisites_policy:
+  this_document_reference:
+    allowed_fields: [type, org, geo, date, number, title, family]
+    requires: explicit_this_ref_grammar
+  coordinating_cited_act_tail:
+    allowed_fields: []
+    requires: proven_series_head_in_document
+    note: use the cited series head, not CurrentDocumentRequisites
+  document_head_ellipsis:
+    allowed_fields: [type, org, geo, date, number]
+    requires: explicit_document-self grammar + no competing cited-act head
+  structural_owner:
+    allowed_fields: []
+    requires: ancestor_path or explicit structural designation
+  conflict: no precedence winner; emit conflicting context result
+
+identity_claim_policy:
+  federal:
+    required: [type, number]
+  presidential_agency:
+    required: [type, org, date, number]
+  regional_municipal:
+    required: [type, org, geo, date, number]
+  common_guards:
+    - no required field is conflicting or unresolved
+    - every inherited field has an authorized provenance path
+    - claim is a compatibility projection, not opaque Work identity
+    - type classification is itself evidence-backed
+
+composition_policy:
+  allowed: >
+    a derived claim may depend on another derived claim only when every hop is
+    retained, each edge authorizes the propagated role, and the complete path
+    remains inside declared bounds
+  forbidden:
+    - treating inherited as explicit
+    - dropping intermediate provenance
+    - reusing an inherited claim as an unbounded new series head
+    - proximity-only propagation
+
+# ---------------------------------------------------------------------------
+# Runtime stop conditions and acceptance debt
+# ---------------------------------------------------------------------------
+runtime_stop:
+  active: true
+  reasons:
+    - capture pair policies and candidate cardinality bounds are deferred-undefined
+    - requisites source-authority policy and normalization profiles are deferred-undefined
+    - context/list/alias numeric bounds are deferred-undefined
+    - hostile contracts and full-corpus measurement are not yet accepted
+    - no runtime proof for full-document index and analysis overlay
+    - N2 human dual coding remains incomplete
+    - R035 and R070 remain active
+
+acceptance_gates_before_runtime:
+  - schema validation and closed vocabulary pin tests
+  - direct-matcher / grammar-frame arbitration and dedup pins
+  - per-source requisites normalization/conflict/authorization pins
+  - covering-token and source-anchor invariants
+  - literal mention survives every context terminal state
+  - same-series and cross-block continuation hostile tests
+  - CurrentDocumentRequisites authorization/denial tests
+  - cycle, conflict, unavailable, and limit diagnostics
+  - deterministic replay of worklist and reducer
+  - bounded fan-out and endpoint-pair expansion
+  - prompt isolation test proving zero product dependency
+  - provenance chain from every inherited field to tracked source evidence

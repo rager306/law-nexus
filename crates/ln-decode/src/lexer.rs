@@ -1,6 +1,7 @@
 //! Public covering lexer for decoded legal-act text (M197, ADR-0028 step 1).
 //!
-//! Complements the private alphabetic [`crate::tokenizer`] with a
+//! Complements the private alphabetic [`crate::tokenizer`] (`tokenize` vs
+//! covering-Word projection; ADR-0028 dual tokenizer) with a
 //! byte-span-preserving, infallible scanner over the closed S01 token set.
 //! Two invariants hold for every produced token stream:
 //!

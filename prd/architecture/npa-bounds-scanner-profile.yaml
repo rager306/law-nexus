@@ -1,0 +1,167 @@
+# Read-only full-corpus measurement profile for D388 bounds evidence.
+# The scanner must reuse product decode/lex/capture APIs; an XML replica is not
+# proof-bearing. This file defines measurements, not measured values.
+
+schema_version: law-nexus-npa-bounds-scanner-profile/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_decision: D388
+related: [D383, D384, D385, D387, ADR-0028, R035, R070]
+plan: assessment/29-npa-bounds-hostile-plan.md
+
+input:
+  corpus_root: consru_export/consru_export/exports
+  file_glob: "**/*.xml"
+  expected_inventory_note: 43785 XML observed during profile preparation; scanner records its own count
+  order: repository-relative path bytewise ascending
+  read_only: true
+
+required_product_apis:
+  decoder:
+    type: ln_decode::adapters::ConsultantWordMlBlockDecoder
+    contract: ln_decode::ports::BlockDecoderPort
+    operation: decode_blocks
+    rule: invoke product decoder; do not reproduce XML event, whitespace, span, or malformed semantics
+  lexer:
+    operation: ln_decode::lexer::lex
+    rule: covering nine-kind stream only
+  contour_a:
+    operation: ln_decode::lawref::capture_lawrefs
+    rule: current seven production matchers; future frame candidates are unavailable in this profile
+
+forbidden:
+  - strip XML tags and measure synthetic text
+  - use legacy WordMLStreamingDecoder as a substitute
+  - load the full corpus or all documents into memory
+  - mutate source XML, fixtures, manifest, or N2 annotations
+  - persist raw legal text in durable output
+  - treat a lexical proxy as a semantic frame or accepted bound
+  - use LLM/model/prompt output
+
+modes:
+  fixture_gate:
+    input: decoder contract fixtures + selected NPA fixtures
+    purpose: verify API wiring, anchors, pattern IDs, deterministic output, and malformed atomic failure
+  corpus_scan:
+    input: every XML under corpus_root
+    purpose: direct metric distributions + explicitly labelled lexical proxies
+
+measurements:
+  direct:
+    document_decode:
+      metrics: [files_attempted, files_decoded, malformed, unreadable, bytes_observed, blocks_per_document]
+    covering_lexer:
+      metrics: [tokens_per_block, token_kind_histogram]
+      token_kinds: [Word, Abbrev, HierNum, Date, DocNo, EnumMarker, LawCode, Punct, Space]
+    contour_a:
+      metrics: [candidates_per_block, candidates_per_document, candidates_by_pattern, exact_span_pairs, containment_pairs, partial_overlap_pairs, disjoint_pairs]
+      patterns: [abbrev-hier-chain, amendment-window, date-docno, fullword, quoted-enum, range, anaphora]
+      note: pattern names are normalized report labels mapped to current production pattern IDs
+  lexical_proxy:
+    coordinating_act_list:
+      observable: >
+        block-local or adjacent-block sequence containing an explicit act-type
+        surface candidate followed by two or more Date+DocNo lexical pairs
+        connected by comma/conjunction/parenthesis punctuation
+      metrics: [date_docno_members, block_distance, punctuation_shape, open_close_shape]
+      caveat: metadata/case/address dates and numbers may be false positives; not an IdentifyingAct count
+    structural_range:
+      observable: >
+        current range capture plus explicit marker/fullword evidence in the
+        same local block and optional following structural owner candidate
+      metrics: [endpoint_shape, marker_present, owner_proxy_present, overlap_relations]
+      caveat: not a StructuralDesignationFrame and cannot prove owner inheritance
+    cross_block_tail:
+      observable: >
+        block beginning or continuing with Date+DocNo and a preceding bounded
+        block carrying an act-type/list-opening surface proxy
+      metrics: [candidate_block_distance, intervening_block_kinds, punctuation_continuity]
+      caveat: cannot prove continues_series without local grammar/context policy
+    alias_surface:
+      observable: explicit «далее» surface and candidate alias wording inside one block
+      metrics: [aliases_per_document, repeated_alias_key_count, block_distance_to_explicit_key_use]
+      caveat: cannot prove structural scope or alias binding
+  unavailable_until_runtime:
+    - true CoordinatingFrame member count
+    - true Cartesian frame expansion cardinality
+    - accepted continues_series hop count
+    - scoped alias candidate count
+    - ContextRequest count and fan-out
+    - memo hit rate and derivation depth
+    - SemanticFieldClaim count per field
+    - context sufficient/partial/conflicting/cycle/limit distributions
+
+anchor_record:
+  fields:
+    - document_relative_path
+    - document_content_hash
+    - source_revision
+    - block_index
+    - fragment_local_start_byte
+    - fragment_local_end_byte
+    - source_span_start_byte
+    - source_span_end_byte
+    - metric_kind
+    - compact_shape
+  raw_text: forbidden
+
+aggregation:
+  per_metric:
+    - count
+    - minimum
+    - maximum
+    - bounded_histogram
+    - quantiles
+    - top_k_outlier_anchors
+  quantiles: [p50, p90, p95, p99, p99_9]
+  top_k: deferred-undefined
+  memory_rule: retain aggregations + bounded top-K only, never all observations
+
+run_manifest:
+  fields:
+    - schema_version
+    - lifecycle
+    - started_at
+    - ended_at
+    - source_revision
+    - scanner_source_hash
+    - scanner_build_profile
+    - rust_toolchain
+    - corpus_root
+    - observed_file_count
+    - observed_bytes
+    - success_count
+    - malformed_count
+    - unreadable_count
+    - measurement_definitions_hash
+    - command
+    - environment_non_secret
+    - output_artifact
+    - limitations
+  lifecycle: "[bounded] only after complete successful run and review; otherwise [diagnostic]"
+
+fixture_acceptance:
+  - scanner invokes ConsultantWordMlBlockDecoder through the product port
+  - decoded block count/anchors equal decoder contract oracle
+  - malformed fixture produces atomic error and zero partial measurements
+  - covering token concatenation equals every decoded block text
+  - contour-A pattern IDs/counts equal direct library calls
+  - repeated fixture run produces byte-identical normalized JSON
+  - lexical proxies are namespaced proxy_* and never counted as semantic frames
+  - output contains no raw legal text
+
+corpus_acceptance:
+  - observed inventory is recorded rather than assumed
+  - every discovered file is attempted exactly once
+  - success + malformed + unreadable equals files_attempted
+  - interruption produces an incomplete diagnostic manifest, never bounded evidence
+  - all maxima/top-K anchors are reviewed before selecting any bound
+  - direct and proxy metrics are separated in schema and report
+
+runtime_stop:
+  active: true
+  reasons:
+    - scanner implementation and fixture gate do not yet exist
+    - top_k and operational resource budget are deferred-undefined
+    - proxy metrics cannot select unavailable-until-runtime bounds
+    - complete corpus measurement and outlier review have not run

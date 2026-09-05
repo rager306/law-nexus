@@ -175,7 +175,7 @@ fn chains_four_hierarchical_markers_in_source_order_with_exact_spans() {
 fn keeps_yo_and_ye_doublets_distinct_without_folding() {
     // T02 regression table: every doublet pair (ё/е stems and instrumental
     // -ой/-ою forms) maps both variants to one kind; spans reproduce the
-    // source slice and nothing folds ё→е (MEM1283: tokenize never folds).
+    // source slice and nothing folds ё→е (MEM1283: covering Word projection never folds).
     let cases = [
         ("статьёй", LegalMarkerKind::Statya),
         ("статьей", LegalMarkerKind::Statya),
@@ -205,7 +205,7 @@ fn rejects_stem_overlap_prefix_nouns_and_bogus_yo_whole_tokens() {
     // Hostile unmatched surface (T02): stem overlap (глав-/част-/раздел-),
     // prefix nouns (подстатья, пунктуация), a bogus stem ё (частёю must not
     // fold onto the live form частею), and a whole-token lookalike (воглаве
-    // is never split by the tokenizer) all yield exactly zero markers.
+    // is never split by the covering Word projection) all yield exactly zero markers.
     for word in [
         "главный",
         "главенство",

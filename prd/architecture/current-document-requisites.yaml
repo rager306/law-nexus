@@ -1,0 +1,156 @@
+# CurrentDocumentRequisites provenance and conflict contract (D381/D387 M3).
+# Design-only sidecar. Never an argument to lex(&str).
+
+schema_version: law-nexus-current-document-requisites/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_decision: D388
+related: [D381, D382, D385, D387, ADR-0016, ADR-0019, ADR-0028, R070]
+
+purpose: >
+  Preserve document-head, filename, and catalog evidence as independent field
+  claims; normalize without erasing source; expose agreement/conflict to typed
+  context policy; never mint identity or temporal-edition truth.
+
+fields: [type, org, geo, date, number, title, family]
+sources: [document_head, source_filename, source_catalog]
+
+raw_evidence_claim:
+  fields:
+    - claim_id
+    - document_version_ref
+    - field
+    - raw_value
+    - source_kind
+    - source_anchor
+    - extractor_profile
+    - extraction_status
+  extraction_statuses: [observed, missing, malformed, wrong_document, unavailable]
+  invariants:
+    - source streams remain separate
+    - document_head anchor is fragment-local source evidence
+    - filename anchor identifies the exact source path/name evidence
+    - catalog anchor identifies provider/catalog row and association evidence
+    - a wrong_document claim cannot participate in compatibility or selection
+
+normalized_candidate:
+  fields:
+    - raw_claim_ref
+    - normalized_value
+    - normalizer_profile
+    - normalization_steps
+    - value_status
+  value_statuses: [normalized, unchanged, ambiguous, invalid]
+  rules:
+    - normalization never changes raw evidence
+    - number normalization preserves meaningful alphabetic/hyphen suffixes and б/н state
+    - title alias normalization does not imply act identity
+    - org and geo remain separate fields
+    - federal GEO default is an explicit derived claim, not source text
+
+compatibility_group:
+  fields: [field, candidate_refs, relation, basis, diagnostics]
+  relations: [equal, compatible_variant, incompatible, insufficient]
+  rules:
+    - equality is field-specific and profile-versioned
+    - compatible_variant may group presentation variants but retains every raw claim
+    - title similarity alone cannot establish equality of type/number/org/geo/date
+    - number alone cannot establish Work identity
+
+field_resolution:
+  statuses: [agreed, single_source, conflicting, missing, invalid, association_failed]
+  output_fields:
+    - field
+    - status
+    - compatible_candidate_refs
+    - competing_candidate_refs
+    - selected_normalized_value
+    - selection_policy_ref
+    - diagnostics
+  rules:
+    - selected_normalized_value is allowed for agreed compatible claims
+    - single_source remains visibly single_source even when usable by a policy
+    - conflicting has no selected value without a tracked field/source authority policy
+    - missing/invalid/association_failed cannot be silently filled from another document
+    - no global source precedence exists
+
+source_authority_policy:
+  status: deferred-undefined
+  requirement: >
+    any preference among document_head, source_filename, and source_catalog must
+    be field-specific, tracked, evidence-backed, and named by selection_policy_ref
+  default: no winner; expose conflict
+
+sidecar_record:
+  fields:
+    - document_version_ref
+    - raw_claims
+    - normalized_candidates
+    - compatibility_groups
+    - field_resolutions
+    - completeness
+    - diagnostics
+  completeness_states: [complete_agreed, usable_partial, conflicting, unavailable]
+  identity_rule: not IdentifyingAct, OfficialIdentityClaim, WorkId, CTV, or temporal state
+
+context_authorization:
+  this_document_reference:
+    allowed: true
+    requires: explicit ThisRef grammar + non-conflicting required fields
+  document_head_ellipsis:
+    allowed: true
+    requires: explicit document-self grammar + no competing cited-act series head
+  coordinating_cited_act_tail:
+    allowed: false
+    source: proven cited series head in DocumentAnalysisOverlay
+  structural_owner:
+    allowed: false
+    source: ancestor path or explicit structural designation
+  rule: authorization selects admissible claims; it never rewrites the literal mention
+
+identity_projection:
+  input: compatible field resolutions + authorized SemanticFieldClaim paths
+  output: proposed OfficialIdentityClaim only when class-specific key guard passes
+  cannot_output: [WorkId, ComponentId, CTV, consolidated_edition]
+
+# R070 provenance is downstream and orthogonal. Requisites identify an act
+# candidate; they do not prove the legal edition effective at a time.
+temporal_separation:
+  not_proven_by_sidecar:
+    - amending_act_provenance
+    - affected_provisions
+    - commencement_rules
+    - transitional_rules
+    - edition_delta
+  requirement: R070 remains active until those evidence chains pass independently
+
+diagnostics:
+  - head_filename_conflict
+  - head_catalog_conflict
+  - filename_catalog_conflict
+  - regional_geo_conflict
+  - org_geo_role_collapse
+  - number_normalization_ambiguous
+  - title_alias_only
+  - wrong_document_association
+  - required_field_missing
+  - source_authority_policy_missing
+
+hostile_contract_seeds:
+  - document head and filename contain different act numbers
+  - catalog row points to another document with a plausible title
+  - regional head and catalog disagree on GEO while ORG names are similar
+  - filename drops the alphabetic suffix from a document number
+  - one source says б/н and another supplies a number
+  - title aliases agree while type/date/number disagree
+  - only one source is available and its single-source status remains visible
+  - federal GEO default is derived without pretending it was written
+  - explicit cited series head conflicts with current document requisites
+  - sidecar is complete for identity but has no R070 edition provenance
+
+runtime_stop:
+  active: true
+  reasons:
+    - source_authority_policy is deferred-undefined
+    - field-specific normalization profiles are not pinned
+    - hostile contracts are not implemented or accepted

@@ -1,0 +1,244 @@
+# Identifying-act semantic cycle — design-only data (D382-D386 / ADR-0028).
+#
+# Pullenti Lingvo 4.34 is the FSM/slot alphabet (D380), not a runtime.
+# CurrentDocumentRequisites is a sidecar (D381), never lex() input.
+# GEO is first-class jurisdiction for non-federal acts; it is not discarded
+# and it is not a substitute for ORG (issuer). Pullenti SOURCE=город is a
+# collapsed ORG+GEO, not a reason to drop GEO.
+#
+# No Rust types are minted from this file (D216 / D098). No eighth S01
+# protocol slot. TokenKind stays the closed nine-kind set.
+
+schema_version: law-nexus-npa-identifying-cycle/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_adr: ADR-0028
+related: [D380, D381, D382, D383, D384, D385, D386, ADR-0016, ADR-0019]
+non_claims:
+  - not product runtime / not lex() backend / not CI
+  - not Layer-2 gold / not N2 / not alpha
+  - Pullenti NC/commercial — vendor-source orientation only
+  - no S01 schema_version bump; LawRefSlots stays eight protocol slots
+  - local grammar records are not Rust types, identities, or ledger facts
+  - no mutable token replacement or global analyzer registry
+  - STREET/ADDRESS is a location contour, not jurisdiction
+
+# ---------------------------------------------------------------------------
+# Cycle (one complete document, bounded multi-pass; lex stays fragment-local)
+# ---------------------------------------------------------------------------
+cycle:
+  - id: decode
+    owner: ln-decode ConsultantWordMlBlockDecoder / Garant adapter
+    input: source XML/ODT
+    output: ordered SourceBlockRecord stream (WordML blocks, not semantic windows)
+  - id: document_structure
+    owner: design-only DocumentStructureIndex (D385)
+    input: complete ordered SourceBlockRecord stream for one document version
+    output: fragment-local nodes + hierarchy/order/context edges; never one cross-block TextAnchor
+    contract: prd/architecture/npa-document-context.yaml
+  - id: current_requisites
+    owner: sidecar CurrentDocumentRequisites (D381)
+    input: document head + filename + catalog as independent source claims
+    output: provenance-bearing field resolutions with agreement/conflict status
+    contract: prd/architecture/current-document-requisites.yaml
+    note: never an argument of lex(&str); no global source precedence
+  - id: lex
+    owner: ln_decode::lexer::lex
+    input: fragment &str only
+    output: covering nine-kind token stream
+  - id: morph_evidence
+    owner: morphology projection above covering tokens
+    input: covering Word tokens
+    output: MorphEvidenceSet alternatives; unavailable and ambiguous are valid states
+    note: constrains local grammar only; cannot authorize inheritance or identity
+  - id: local_reference_grammar
+    owner: design-only reference grammar / transducer
+    input: one fragment covering tokens + MorphEvidenceSet
+    output: fragment-local CoordinatingFrame alternatives with explicit roles/values
+    note: immutable projection; incomplete frames are valid; no global context or cross-block TextAnchor
+  - id: contour_a
+    owner: ln_decode::lawref::capture_lawrefs
+    input: covering tokens + optional local grammar frames
+    output: literal ReferenceMention + seven matcher captures / frame projections in the same closed LawRefSlots protocol
+    arbitration: prd/architecture/npa-capture-arbitration.yaml
+    note: structural frame ≈ Pullenti PartToken role/value split; inherited fields never alter literal anchor, wording, or explicit slots
+    enumeration_gap: >
+      Seven matchers see one Date+DocNo or one HierNum-HierNum. They do not
+      walk a comma list. Pullenti does: coordinating DECREE (050) and
+      DECREEPART endpoints (005/032/166). That walk belongs to local grammar,
+      not an eighth S01 slot and not an LLM job.
+  - id: document_context_linking
+    owner: design-only bounded second pass (D385/D386)
+    input: all local frames + literal mentions + DocumentStructureIndex + CurrentDocumentRequisites
+    execution: deterministic typed ContextRequest worklist + memo + cycle detection; no model calls
+    output: ContextView + provenance-bearing SemanticFieldClaim alternatives
+    example: npa-frag-086 opening frame continues to local mention npa-frag-087 «от 14.04.2017 N 446)»
+    note: externalized-context / decompose / query / reduce pattern; conflict stays unresolved and mention stays captured
+  - id: contour_b
+    owner: identifying sidecar (not a TokenKind, not an S01 slot)
+    input: compatible SemanticFieldClaim records + contour_a literal date/doc_no
+    output: proposed IdentifyingAct {type, org, geo, date, number, title?}; never grammar-frame identity
+    slots_from_pullenti_alphabet: [TYPE, SOURCE_as_ORG, GEO, DATE, NUMBER, NAME]
+  - id: this_ref
+    owner: semantic projection (Pullenti ThisDecree / HasThisRef as blueprint)
+    input: literal «настоящего Кодекса» / «настоящей статьи» + authorized CurrentDocumentRequisites claims
+    output: proposed ThisRef target candidate; no binding yet
+  - id: identity_claim
+    owner: ADR-0016 OfficialIdentityClaim compatibility projection, not Work identity
+    input: complete non-conflicting proposed IdentifyingAct
+    output: proposed OfficialIdentityClaim for resolver lookup
+    federal: [type, number]          # ФЗ / кодекс; GEO=РФ is default, not a distinguisher
+    presidential_agency: [type, org, date, number]
+    regional_municipal: [type, org, geo, date, number]  # GEO is load-bearing
+    guard: every required field has explicit or authorized provenance; type classification is evidence-backed
+  - id: resolve
+    owner: ln_decode::lawref_resolve
+    input: frozen mentions/captures + structural/ThisRef candidates + proposed OfficialIdentityClaim + binding indexes
+    output: ReferenceBinding candidates + CanonicalAnchor / endpoint-pair candidates + diagnostics
+    note: resolver never rewrites source mention and never mints WorkId
+
+# ---------------------------------------------------------------------------
+# Closed TYPE lemmas (covering Word after lex; data, not hardcoded in src)
+# ---------------------------------------------------------------------------
+act_type_lemmas:
+  federal: [закон, федерального, федеральным, кодекс, основы]
+  presidential: [указ]
+  government: [постановление, постановлений, распоряжение, распоряжения]
+  agency: [приказ, приказа, письмо, письмом, указание]
+  court: [постановления]  # Пленум — type+issuer (суд), not agency
+  instrument: [доверенность, лицензии, лицензия, протокол, протоколом, жалоба, жалобу, соглашение, контракт, контракту]
+  named: [положение, положением, правил, правилами]
+  skip_as_type: [извещение, лот, заявка]  # not identifying acts (ident40 protocol)
+
+# ---------------------------------------------------------------------------
+# GEO is kept. Levels from the ident40 Pullenti dump (PersonAnalyzer init).
+# STREET/ADDRESS (площадка АО «С», станция) is NOT this list.
+# ---------------------------------------------------------------------------
+geo_levels:
+  - state          # Россия / РФ / Российская Федерация — default for federal TYPE
+  - subject        # область Челябинская, Магаданская, Брянская, Воронежская, Белгородская, Смоленская, Курганская
+  - city           # город Челябинск, Магадан, Белгород, Старый Оскол
+  - municipality   # муниципальное образование «ТБ»
+
+geo_policy:
+  keep: true
+  role: jurisdiction of the issuing organ, load-bearing for non-federal identity
+  not_a_replacement_for: org
+  pullenti_source_city:
+    meaning: collapsed ORG+GEO (Челябинского УФАС → SOURCE=город Челябинск)
+    repair: split — ORG from the agency NP (УФАС / минстрой / МТУ), GEO from the toponym
+    do_not: drop the GEO half
+  org_geo_slot: >
+    Pullenti ORGANIZATION.GEO (Управление, область Воронежская) is the honest
+    pairing: issuer + jurisdiction. Reconstruct SOURCE from ORG; keep GEO beside it.
+  federal_default: state=РФ is implied for TYPE in {закон, кодекс, указ президента, постановление правительства РФ}; do not mint a second identity on GEO=Россия
+  street_address: location of an event (торги, площадка), never jurisdiction of an act
+
+# ---------------------------------------------------------------------------
+# Local reference grammar (D384): Pullenti concept synthesis, not a port
+# ---------------------------------------------------------------------------
+local_reference_grammar:
+  morph_evidence_set:
+    fields: [token_ref, alternatives, origin, status, evidence]
+    statuses: [available, ambiguous, unavailable]
+    authority: compatibility evidence only; cannot assert inheritance, binding, or identity
+  coordinating_frame:
+    fields: [frame_kind, local_anchor, head_roles, members, separators, continuation, alternatives, bounds, status]
+    frame_kinds: [act_requisites, structural_designation]
+    anchor_rule: one fragment-local TextAnchor; WordML blocks connect through continues edges, never one cross-block span
+    statuses: [proposed, ambiguous, rejected]
+  semantic_field_claim:
+    fields: [field, value, source, source_anchor, compatibility_basis, status]
+    sources: [explicit_member, same_series_head, prior_frame, current_document_requisites]
+    statuses: [explicit, inherited, conflicting, unresolved]
+    identity_rule: not an IdentifyingAct, OfficialIdentityClaim, WorkId, or ledger fact
+  structural_designation_frame:
+    fields: [local_anchor, marker, values, owner_path, expansion_policy]
+    expansion_policy: endpoint_pair
+    note: one written ReferenceMention may yield multiple endpoint binding candidates
+  inheritance:
+    precedence: [explicit_member, same_series_head, proven_prior_frame, authorized_current_document_requisites]
+    conflict: retain competing proposed frames; do not choose by proximity
+    absent: unresolved; do not invent TYPE ORG GEO marker or owner
+    current_document_guard: ordinary cited-act tails do not become the current act merely because the sidecar exists
+  bounds:
+    max_members: deferred-undefined
+    max_expanded_candidates: deferred-undefined
+    continuation_hops: one unless a block coordinator materializes a proven longer chain
+    on_limit: reject expansion with diagnostic; never truncate silently
+  forbidden:
+    - mutable replacement of covering tokens
+    - global analyzer initialization order
+    - morphology as inheritance authority
+    - arithmetic expansion of decimal legal designations
+
+# ---------------------------------------------------------------------------
+# What we take / leave from Pullenti (orientation, D380)
+# ---------------------------------------------------------------------------
+pullenti:
+  take:
+    - TYPE SOURCE NUMBER DATE NAME as separate slots, not as one occurrence span
+    - coordinating-list inheritance (050: TYPE restored in slots, surface stays elliptical)
+    - two contours DECREE vs DECREEPART vs ThisDecree
+    - GEO entity + ORGANIZATION.GEO
+    - PersonAnalyzer init is required or Decree crashes on ФЗ lists
+    - >
+      coordinating enumeration: one TYPE/CLAUSE on the opening NP, each
+      comma- or hyphen-member a separate slot-row with inherited TYPE/OWNER;
+      surface of later members stays elliptical («от DATE N», «7.32»)
+  leave:
+    - DecreeAnalyzer port / MorphEngine / m_ru.dat / Instrument tree as LawRef
+    - occurrence spans that join ред. + title quotes + (далее …)
+    - DECREEPART spans that swallow the clause prefix + the act
+    - SOURCE=город as the issuer (repair, do not copy)
+    - STREET typed as GEO (станция АО «С»)
+    - Order lumping of prikaz+ukaz+rasporyazhenie
+
+# ---------------------------------------------------------------------------
+# Enumeration (the ident40 weak link; D383)
+# ---------------------------------------------------------------------------
+# Two shapes, same local-grammar principle. A frame records roles and values;
+# contour A preserves the written mention, contour B assembles compatible field
+# claims, and resolve owns endpoint-pair expansion. Never integer-enumerate.
+enumeration:
+  act_list:
+    written: "федеральных законов от D1 N N1, от D2 N N2, от D3 N N3"
+    example_fragment: npa-frag-050
+    inherit: [type, org, geo]
+    members: >
+      each «от DATE N» is one local member with explicit DATE+NUMBER;
+      contour B may assemble one proposed IdentifyingAct per compatible field bundle
+    pullenti: >
+      one DecreeToken dts list is cut by DecreeAnalyzer into four DECREE;
+      TYPE=ФЕДЕРАЛЬНЫЙ ЗАКОН is restored on the elliptical tails
+    models: >
+      sol glues N1-N3 into one span; spark writes TYPE onto tails that
+      do not carry it; Agnes often empty-parse on the fenced JSON
+    our_gap: date-docno-window matches one Date+DocNo, no comma walk
+  part_range:
+    written: >
+      статьями 7.29 - 7.32 / частями 2.1 - 2.3 статьи 19 / пунктами 4.1 - 4.4
+    example_fragment: [npa-frag-005, npa-frag-032, npa-frag-166, npa-frag-014]
+    inherit: [marker, owner_clause]
+    members: >
+      one local StructuralDesignationFrame with multiple values; resolve expands
+      the endpoint pair, never 7.29,7.30,7.31,7.32
+    pullenti: >
+      one multi-valued PartToken is expanded by DecreeAnalyzer into two
+      DECREEPART; 032 puts CLAUSE=19 onto both PART 2.1 and 2.3
+    models: >
+      drop the lemma («статьями» -> «7.29 - 7.32»); glue marker+range+anaphora;
+      miss «часть 4» next to a quoted digit range
+    our_gap: >
+      range_candidate is HierNum Space - Space HierNum only; no
+      leading fullword/abbrev, no attachment to the following «статьи 19»
+  do_not:
+    - ask an LLM to split or invent TYPE on list members
+    - >
+      copy Pullenti two-span split as the user-reference (keep the written
+      range as one capture; put endpoints in slots.range)
+    - integer-enumerate a hyphen range
+    - create one cross-block surface span for a WordML-split list (096-099)
+    - >
+      treat a WordML-split list (096-099) as three unrelated unknown acts:
+      keep local anchors and connect them to the proven opening frame
