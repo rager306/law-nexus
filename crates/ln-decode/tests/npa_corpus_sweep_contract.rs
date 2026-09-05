@@ -1557,3 +1557,84 @@ fn t06_tracked_c3_numerically_equal_c2_except_header_cycle() {
         "census table must match across C2→C3"
     );
 }
+
+// ---------------------------------------------------------------------------
+// M200-8s4kwq S01/T01: measurement-vocabulary drift pins. The 17-id canon has
+// one read-only source (`lexer::NPA_ABBREV_IDS`); `src` aliases it at compile
+// time, while `tests/npa_support` keeps test-side oracles (the frozen goldens
+// rule and the D330 lexeme pairs) that must match it exactly. The D329-nine
+// copy in `npa_sweep` cannot alias a `tests/` module, so its exact match with
+// the goldens rule owner is pinned by equality here.
+// ---------------------------------------------------------------------------
+
+// Only the vocabulary oracles are used by this target; the loader machinery
+// stays shared with the golden-fixture targets, so silence its dead-code
+// analysis here instead of deleting shared helpers.
+#[allow(dead_code)]
+mod npa_support;
+
+/// T01 drift pin: the sweep vocabulary is the lexer canon — same ids in the
+/// same order — and the goldens-support canon matches the same source. A
+/// hand-copy regression on either side (missing, extra, or duplicated id)
+/// fails here instead of drifting into the rendered census keys.
+#[test]
+fn t01_drift_pin_abbrev_tables_are_the_single_lexer_canon() {
+    assert_eq!(
+        npa_sweep::SWEEP_ABBREV_IDS,
+        lexer::NPA_ABBREV_IDS,
+        "sweep table must alias the lexer canon exactly (ids and order)"
+    );
+    assert_eq!(
+        npa_support::ABBREV_IDS,
+        lexer::NPA_ABBREV_IDS,
+        "goldens-support canon must match the lexer canon exactly"
+    );
+    let mut sorted = npa_sweep::SWEEP_ABBREV_IDS.to_vec();
+    sorted.sort_unstable();
+    sorted.dedup();
+    assert_eq!(sorted.len(), 17, "the canon must not repeat an id");
+}
+
+/// T01 drift pin: the D329-nine in `npa_sweep` equals the frozen goldens rule
+/// owner exactly and stays a subset of the 17-id canon.
+#[test]
+fn t01_drift_pin_d329_nine_matches_the_golden_rule_owner() {
+    assert_eq!(
+        npa_sweep::D329_NINE_IDS,
+        npa_support::CORPUS_FORBIDDEN_ABBREV_IDS,
+        "the sweep D329 table is a frozen copy of the goldens rule"
+    );
+    for id in npa_sweep::D329_NINE_IDS {
+        assert!(
+            npa_sweep::SWEEP_ABBREV_IDS.contains(&id),
+            "D329 id `{id}` must stay inside the 17-id canon"
+        );
+    }
+}
+
+/// T01 drift pin: every canon id mints from its D330 canonical lexeme, so
+/// the measurement tables stay tied to what the production lexer can
+/// actually recognize (no stale or unreachable measurement ids).
+#[test]
+fn t01_drift_pin_every_canon_id_lexes_from_its_d330_lexeme() {
+    let mut minted: Vec<&str> = Vec::new();
+    for (id, lexeme) in npa_support::ABBREV_CANONICAL_LEXEMES {
+        let tokens = lexer::lex(lexeme);
+        assert_eq!(tokens.len(), 1, "`{lexeme}` must be one token");
+        assert_eq!(tokens[0].kind, TokenKind::Abbrev, "`{lexeme}`");
+        assert_eq!(
+            tokens[0].abbrev_id.map(lexer::AbbrevId::as_str),
+            Some(id),
+            "`{lexeme}` must mint the canon id `{id}`"
+        );
+        minted.push(id);
+    }
+    assert_eq!(
+        minted.len(),
+        npa_sweep::SWEEP_ABBREV_IDS.len(),
+        "every canon id must be exercised exactly once"
+    );
+    for id in npa_sweep::SWEEP_ABBREV_IDS {
+        assert!(minted.contains(&id), "canon id `{id}` was never lexed");
+    }
+}

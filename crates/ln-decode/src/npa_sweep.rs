@@ -13,9 +13,11 @@
 //! ([`ingest_file`]), and the library-level runner ([`run_sweep`]) that the
 //! thin `src/bin/npa-corpus-sweep.rs` shell (argv + printing only) wires up.
 //! The tracked full-corpus evidence artifact stays downstream (T03).
-//! `lexer.rs`, the YAML lexicon, and `morphology.rs` are read-only; the 17/9
-//! id tables are exact copies (D354) so this module never needs to export
-//! lexer internals. R070 stays open and ADR-0028 stays `[proposed]`.
+//! `lexer.rs`, the YAML lexicon, and `morphology.rs` are read-only; the
+//! 17-id table is a compile-time alias of the single `lexer::NPA_ABBREV_IDS`
+//! canon, and the 9-id D329 table stays a hand-frozen copy of the goldens
+//! rule pinned exactly by contract tests (M200-8s4kwq S01/T01). R070 stays
+//! open and ADR-0028 stays `[proposed]`.
 
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write as _;
@@ -30,17 +32,21 @@ use crate::lexer::{self, TokenKind};
 use crate::morphology;
 use crate::ports::BlockDecoderPort;
 
-/// Closed allowlist of canonical legal-drafting abbreviation ids — an exact
-/// copy of the private `lexer::NPA_ABBREV_IDS` (D354: ids only, lexemes stay
-/// YAML data, no second runtime lexeme table, no lexer export).
-pub const SWEEP_ABBREV_IDS: [&str; 17] = [
-    "st", "stst", "ch", "p", "pp", "podp", "abz", "gl", "razd", "pril", "prim", "red", "izm",
-    "utv", "sm", "sr", "g",
-];
+/// Closed allowlist of canonical legal-drafting abbreviation ids — a
+/// compile-time alias of the single read-only canon source
+/// [`crate::lexer::NPA_ABBREV_IDS`] (M200-8s4kwq S01/T01; narrows the D354
+/// "no lexer export" clause to lexeme data). The public sweep name stays
+/// stable, and any canon length or content drift fails this build instead of
+/// silently diverging. Lexemes stay YAML data.
+pub const SWEEP_ABBREV_IDS: [&str; 17] = lexer::NPA_ABBREV_IDS;
 
 /// The D329-nine: abbreviation ids that never occur in the tracked 44-ФЗ
-/// corpus — an exact copy of `npa_support::CORPUS_FORBIDDEN_ABBREV_IDS`.
-/// `№` is not an Abbrev id and never appears here.
+/// corpus — a hand-frozen copy of the goldens rule owner
+/// (`tests/npa_support::CORPUS_FORBIDDEN_ABBREV_IDS`): a `tests/` module
+/// cannot be aliased from `src`, so the exact match is enforced by the
+/// `t01_drift_pin_*` contract tests (M200-8s4kwq S01/T01). The list stays
+/// frozen: never narrow it, never extend it. `№` is not an Abbrev id and
+/// never appears here.
 pub const D329_NINE_IDS: [&str; 9] = [
     "gl", "razd", "podp", "abz", "pril", "prim", "stst", "utv", "sr",
 ];

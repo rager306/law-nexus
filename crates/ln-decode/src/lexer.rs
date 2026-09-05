@@ -87,7 +87,13 @@ impl NpaToken {
 /// S01 canon, D329/D334). Ids only: the lexemes themselves are data and come
 /// from the `npa_abbrev_lexicon` map of the embedded ontology YAML — there is
 /// deliberately no second runtime lexeme table (ADR-0028 decision 2).
-const NPA_ABBREV_IDS: [&str; 17] = [
+///
+/// Single read-only id source for measurement vocabularies (M200-8s4kwq
+/// S01/T01): consumers compile-time alias this table instead of hand-copying
+/// it, so canon drift breaks the consumer build. Narrowly read-only — ids
+/// only, `TokenKind` stays closed, lexical behavior untouched (this narrows
+/// the D354 "no lexer export" clause to lexeme data only).
+pub const NPA_ABBREV_IDS: [&str; 17] = [
     "st", "stst", "ch", "p", "pp", "podp", "abz", "gl", "razd", "pril", "prim", "red", "izm",
     "utv", "sm", "sr", "g",
 ];
