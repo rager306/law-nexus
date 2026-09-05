@@ -1,0 +1,113 @@
+{
+  "schema": "m200-s02-corpus-smoke-rate/v1",
+  "schema_version": 1,
+  "milestone": "M200-8s4kwq",
+  "slice": "S02",
+  "task": "T02",
+  "lifecycle": "[diagnostic]",
+  "generated_utc": "2026-09-05T13:14:32Z",
+  "purpose": "timed live smoke (exactly 200 files) over the Consultant export; supplies measured throughput, terminal counts, max observed candidate load, hashes, and the T03 driver/timeout policy. Diagnostic only: no numeric bound is selected here (runtime_stop persists).",
+  "non_claims": ["bound-decision", "corpus-scope", "official-publication", "R070", "LawRef", "N2-gate", "semantic-frame"],
+  "corpus": {
+    "root": "consru_export/consru_export/exports",
+    "selection": "first 200 files in scanner walk order (--limit 200)",
+    "law_source_used": false,
+    "avg_bytes_per_file_observed": 86246,
+    "corpus_avg_bytes_per_file_check": 84504,
+    "sample_note": "walk-order prefix sample; observed avg size is within ~2% of the full-corpus mean (3.7 GB / 43,785 files), so the time-based projection is treated as order-of-magnitude with a 4x safety factor"
+  },
+  "build": {
+    "command": "cargo build -p ln-decode --offline --release --bin npa-bounds-scan",
+    "profile": "release",
+    "exit_code": 0,
+    "rust_toolchain": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "binary": "target/release/npa-bounds-scan",
+    "binary_sha256": "d12bb7ffaa888bd41028a90c84af54d5ad9dbc0ce14f55eb794ee8441d4f4dd1",
+    "scanner_source_hash": "fnv1a64:ee015b5f2f79c4e3",
+    "measurement_definitions_hash": "fnv1a64:6fa01374f8c3ad65"
+  },
+  "smoke_run": {
+    "command": "target/release/npa-bounds-scan --root consru_export/consru_export/exports --limit 200 --out target/m200-s02-corpus-smoke.jsonl --label corpus-smoke --source-revision operator-smoke",
+    "exit_code": 0,
+    "run_status": "complete",
+    "wall_ms_measured": 4426,
+    "manifest_started_at": "2026-09-05T13:12:28Z",
+    "manifest_ended_at": "2026-09-05T13:12:33Z",
+    "stderr_terminal_counts": "npa-bounds-scan: files_attempted=200 files_decoded=200 malformed=0 unreadable=0 blocks=18747 candidates=7582",
+    "raw_jsonl": "target/m200-s02-corpus-smoke.jsonl (git-ignored)",
+    "raw_jsonl_sha256": "58681539b395a33866c540a0346c77d144b4943c00272c466f23a550a09bf8f9"
+  },
+  "terminal_counts": {
+    "files_attempted": 200,
+    "files_decoded": 200,
+    "malformed": 0,
+    "unreadable": 0,
+    "documents": 200,
+    "blocks": 18747,
+    "tokens": 1506303,
+    "candidates": 7582,
+    "bytes_observed": 17249176,
+    "coverage_failures": 0,
+    "pattern_unmapped": 0
+  },
+  "max_observed_load": {
+    "blocks_per_document": 182,
+    "tokens_per_block": 962,
+    "candidates_per_block": 14,
+    "candidates_per_document": 130,
+    "proxy_date_docno_members_per_block": 0,
+    "proxy_structural_range_blocks_per_block": 1,
+    "proxy_alias_surfaces_per_document": 32,
+    "proxy_cross_block_tails_per_document": 0,
+    "note": "max fields of the closed per-metric records (count/min/max/histogram); direct metrics separated from namespaced proxy_* metrics"
+  },
+  "derived_rates": {
+    "files_per_second": 45.19,
+    "bytes_per_second": 3897238,
+    "blocks_per_second": 4236,
+    "tokens_per_second": 340331,
+    "candidates_per_second": 1713,
+    "basis": "wall_ms_measured=4426 over exactly 200 files; derived via python (gsd_exec af245efa)"
+  },
+  "progress_probe": {
+    "command": "target/release/npa-bounds-scan --root consru_export/consru_export/exports --limit 200 --out target/m200-s02-corpus-smoke-progress.jsonl --label corpus-smoke-progress --source-revision operator-smoke --progress 10",
+    "exit_code": 0,
+    "wall_ms": 4181,
+    "heartbeat_lines_stderr": 21,
+    "heartbeat_format": "count-only 'npa-bounds-scan: scanned=<n>' (no paths, no payload)",
+    "terminal_counts_identical_to_plain_run": true,
+    "raw_jsonl_sha256": "87f8e937fc3716de26a85061d6feadab839a3f9ad32b3f0196e0afdbc06ea9ed",
+    "conclusion": "periodic atomic rewrite + heartbeat overhead is within run-to-run noise at N=10 over 200 files; at the full corpus with N=500 the rewrite cost stays negligible"
+  },
+  "driver_policy_for_t03": {
+    "projected_files": 43785,
+    "projected_wall_seconds": 969,
+    "projected_wall_minutes": 16.1,
+    "driver": "exactly one release-mode run launched as a single background process (async launch; stdout+stderr redirected under git-ignored target/), because the projected wall (16.1 min) exceeds the 10-minute gsd_exec invocation cap",
+    "progress_flag": "--progress 500 (heartbeats every ~11 s; ~88 atomic partial rewrites of the tracked --out JSONL over the full corpus)",
+    "hard_timeout_seconds": 3600,
+    "hard_timeout_rationale": "3.7x the 969 s projection; covers a 2x corpus-heterogeneity slowdown with margin",
+    "interruption_contract": "on kill/abort the --out JSONL remains a valid closed-schema run_status:\"incomplete\" diagnostic (ended_at:null, atomic tmp+rename, no torn file); reconcile via re-run, never hand-edit",
+    "supervision_checks": [
+      "stderr heartbeat lines are count-only",
+      "exit code is checked alongside the terminal manifest counts (never exit code alone)",
+      "success + malformed + unreadable == files_attempted reconciliation at terminal"
+    ]
+  },
+  "limitations": [
+    "200-file walk-order prefix sample, not a stratified corpus sample; projection carries a 4x safety factor",
+    "npa-bounds-scan/v1 is a [proposed] scaffold (D388): numeric bounds remain deferred-undefined; this card selects no bound",
+    "NPA 916-vs-799 reconciliation is T03/T04 scope; this smoke counts documents/blocks/candidates only",
+    "manifest ended_at granularity is 1 s (RFC3339); wall_ms_measured wraps the process with nanosecond shell timestamps",
+    "raw smoke JSONLs stay under git-ignored target/; only this compact card is tracked"
+  ],
+  "evidence_refs": {
+    "gsd_exec_build": "35d6722a-e881-4a68-a3e2-2a3c0255b1ef",
+    "gsd_exec_smoke": "0e57cdbb-8228-4865-86ac-15a38ae4e890",
+    "gsd_exec_probe": "e6854cb0-6bab-42d9-9ab7-04c452fb74d4",
+    "gsd_exec_hashes": "84ac72b7-64eb-457b-928f-4c6a535db739",
+    "gsd_exec_extraction": "d5b90b14-2535-41dd-9cb0-6699d1194a6b",
+    "gsd_exec_derivation": "af245efa-d3b1-417c-9e93-1a4021138648",
+    "gsd_exec_contract_tests": "b2790e4e-653b-4714-83db-cd42bf919c6f"
+  }
+}
