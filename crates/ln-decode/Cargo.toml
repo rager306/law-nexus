@@ -11,3 +11,7 @@ zip = { version = "=8.6.0", default-features = false, features = ["deflate-flate
 [[bin]]
 name = "npa-corpus-sweep"
 path = "src/bin/npa-corpus-sweep.rs"
+
+[[bin]]
+name = "npa-bounds-scan"
+path = "src/bin/npa-bounds-scan.rs"

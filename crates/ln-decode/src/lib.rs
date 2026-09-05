@@ -18,6 +18,7 @@ pub mod lawref;
 pub mod lawref_resolve;
 pub mod lexer;
 pub mod morphology;
+pub mod npa_bounds;
 pub mod npa_sweep;
 pub mod ports;
 pub mod prefix_catalog;
