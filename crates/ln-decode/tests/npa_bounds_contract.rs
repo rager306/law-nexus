@@ -1,6 +1,13 @@
 //! T03 contract (M200-8s4kwq S01): the `npa-bounds-scan/v1` sibling
 //! measurement profile accumulated over the T02 observation seam.
 //!
+//! T04 (S02) pins the tracked full-corpus artifact: the persisted
+//! `npa-bounds-scan/v1` JSONL must keep validating against the closed
+//! schema reader with terminal completeness against the independent walk,
+//! direct/proxy separation, deterministic hashes, ASCII-only redaction,
+//! honest clock/progress metadata, bounded top-K anchors, and
+//! diagnostic-only non-claims (tests never open consru_export).
+//!
 //! Pinned here (profile `fixture_acceptance`): production-API reuse through
 //! the seam (decoder / lexer / capture oracles), span-relation oracle
 //! equality, malformed atomicity with zero partial measurement, the
@@ -21,9 +28,9 @@ use ln_decode::lexer::{self, TokenKind};
 use ln_decode::npa_bounds::{
     block_opens_list_surface, block_opens_with_date_docno, count_date_docno_pairs,
     count_word_surfaces, normalized_pattern_label, run_bounds_scan, span_relation,
-    validate_bounds_jsonl, BoundsAcc, BoundsCli, BoundsRunMeta, MetricStat, SpanRelation,
-    ALIAS_SURFACE_WORD, DEFERRED_PROXY_SUBMETRICS, PATTERN_LABELS, TOP_K_SCAFFOLD_CAP,
-    UNAVAILABLE_METRICS,
+    tracked_profile_hash, validate_bounds_jsonl, BoundsAcc, BoundsCli, BoundsRunMeta, MetricStat,
+    SpanRelation, ALIAS_SURFACE_WORD, DEFERRED_PROXY_SUBMETRICS, PATTERN_LABELS,
+    TOP_K_SCAFFOLD_CAP, UNAVAILABLE_METRICS,
 };
 use ln_decode::npa_sweep::{payload_ref_for_path, walk_and_observe, EXIT_OK, EXIT_ROOT_MISSING};
 use ln_decode::ports::BlockDecoderPort;
@@ -781,4 +788,258 @@ fn t01_run_status_complete_and_incomplete_stay_closed() {
     );
 
     fs::remove_dir_all(&root).ok();
+}
+
+/// T04 (S02): path of the tracked full-corpus artifact (persisted by the
+/// T03 operator run and tracked in git; contract tests never open
+/// consru_export).
+fn tracked_corpus_artifact_path() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("..")
+        .join("prd")
+        .join("migration")
+        .join("rust-evidence")
+        .join("m200-s02-npa-bounds-scan.jsonl")
+}
+
+fn tracked_corpus_artifact() -> String {
+    fs::read_to_string(tracked_corpus_artifact_path())
+        .expect("tracked full-corpus artifact readable")
+}
+
+/// T04: the tracked corpus artifact validates against the closed schema
+/// reader and keeps its exact 15-record canonical order.
+#[test]
+fn t04_tracked_corpus_artifact_validates_closed_schema() {
+    let jsonl = tracked_corpus_artifact();
+    validate_bounds_jsonl(&jsonl)
+        .expect("the tracked full-corpus artifact validates against the closed schema");
+
+    assert_eq!(
+        jsonl.lines().count(),
+        15,
+        "the closed schema stays exactly 15 records"
+    );
+    const RECORD_ORDER: [&str; 15] = [
+        "header",
+        "totals",
+        "token_kind_histogram",
+        "candidates_by_pattern",
+        "span_relations",
+        "metric",
+        "metric",
+        "metric",
+        "metric",
+        "metric",
+        "metric",
+        "metric",
+        "metric",
+        "unavailable",
+        "run_manifest",
+    ];
+    for (line, kind) in jsonl.lines().zip(RECORD_ORDER) {
+        let marker = format!("\"record_kind\":\"{kind}\"");
+        assert!(
+            line.contains(&marker),
+            "record order drifted: expected {marker}"
+        );
+    }
+    assert!(jsonl.contains("\"label\":\"corpus-scan\""));
+    assert!(jsonl.contains("\"corpus_root\":\"consru_export/consru_export/exports\""));
+    assert!(jsonl.contains(
+        "\"output_artifact\":\"prd/migration/rust-evidence/m200-s02-npa-bounds-scan.jsonl\""
+    ));
+}
+
+/// T04: terminal completeness — every discovered XML was attempted exactly
+/// once and classified (pins the accepted observed inventory 43785 that the
+/// companion corpus-acceptance evidence reconciled against an independent
+/// walk).
+#[test]
+fn t04_tracked_corpus_terminal_completeness_reconciles_walk() {
+    let jsonl = tracked_corpus_artifact();
+    assert!(jsonl.contains(
+        "\"record_kind\":\"totals\",\"files_attempted\":43785,\"files_decoded\":43785,\"malformed\":0,\"unreadable\":0,\"bytes_observed\":3789431364,\"documents\":43785"
+    ));
+    assert!(jsonl.contains(
+        "\"observed_file_count\":43785,\"observed_bytes\":3789431364,\"success_count\":43785,\"malformed_count\":0,\"unreadable_count\":0"
+    ));
+    assert!(jsonl.contains("\"coverage_failures\":0,\"pattern_unmapped\":0"));
+    assert!(jsonl.contains("\"run_status\":\"complete\""));
+    // 43785 success + 0 malformed + 0 unreadable == 43785 attempted == the
+    // independent walk count; both sides of the identity are pinned by the
+    // contains assertions above, so any drift breaks this test.
+}
+
+/// T04: direct and proxy metrics stay separated in the tracked artifact —
+/// exactly four `direct` and four `proxy` metric records in fixed slots,
+/// and the non-claims array is intact.
+#[test]
+fn t04_tracked_corpus_direct_proxy_separation() {
+    let jsonl = tracked_corpus_artifact();
+    const METRIC_SLOTS: [(&str, &str); 8] = [
+        ("blocks_per_document", "direct"),
+        ("tokens_per_block", "direct"),
+        ("candidates_per_block", "direct"),
+        ("candidates_per_document", "direct"),
+        ("proxy_date_docno_members_per_block", "proxy"),
+        ("proxy_structural_range_blocks_per_block", "proxy"),
+        ("proxy_alias_surfaces_per_document", "proxy"),
+        ("proxy_cross_block_tails_per_document", "proxy"),
+    ];
+    for (kind, namespace) in METRIC_SLOTS {
+        let marker = format!("\"metric_kind\":\"{kind}\",\"namespace\":\"{namespace}\"");
+        assert!(jsonl.contains(&marker), "missing {marker}");
+    }
+    assert_eq!(
+        jsonl.matches("\"namespace\":\"direct\"").count(),
+        4,
+        "exactly four direct metric records"
+    );
+    assert_eq!(
+        jsonl.matches("\"namespace\":\"proxy\"").count(),
+        4,
+        "exactly four proxy metric records"
+    );
+    assert!(jsonl.contains(
+        "\"non_claims\":[\"official-publication\",\"R070\",\"LawRef\",\"N2-gate\",\"semantic-frame\",\"bound-decision\"]"
+    ));
+}
+
+/// T04: the accepted run's hashes are pinned — scanner source, measurement
+/// definitions, and the scan-time profile fingerprint — and the tracked
+/// profile stays fingerprintable. The T04 runtime-note edit moves the live
+/// fingerprint by design (documentation only), so the exact live value is
+/// also pinned as a conscious-update drift guard.
+#[test]
+fn t04_tracked_corpus_hashes_are_deterministic() {
+    let jsonl = tracked_corpus_artifact();
+    assert!(
+        jsonl.contains("\"profile_hash\":\"fnv1a64:bcf61bc0940f3cb9\""),
+        "the artifact pins the profile bytes it read at scan time"
+    );
+    assert!(
+        jsonl.contains("\"scanner_source_hash\":\"fnv1a64:ee015b5f2f79c4e3\""),
+        "scanner source unchanged since the accepted run"
+    );
+    assert!(
+        jsonl.contains("\"measurement_definitions_hash\":\"fnv1a64:6fa01374f8c3ad65\""),
+        "measurement definitions unchanged since the accepted run"
+    );
+    assert_eq!(
+        tracked_profile_hash(),
+        "fnv1a64:9851c247f0722faf",
+        "the live tracked profile fingerprint moved only by the T04 runtime-note edit; \
+         any further profile change is a conscious acceptance update"
+    );
+}
+
+/// T04: redaction on the accepted artifact — the tracked bytes are pure
+/// ASCII, so no Cyrillic legal text can be present, and anchors stay
+/// metadata-only (relative paths, FNV content hashes, byte spans).
+#[test]
+fn t04_tracked_corpus_redaction_is_pure_ascii() {
+    let bytes = fs::read(tracked_corpus_artifact_path()).expect("tracked artifact readable");
+    assert!(
+        bytes.iter().all(|byte| byte.is_ascii()),
+        "pure-ASCII artifact: no raw Cyrillic legal text can be present"
+    );
+    let jsonl = tracked_corpus_artifact();
+    assert!(jsonl.contains("\"document_content_hash\":\"fnv1a64:"));
+    assert!(jsonl.contains("\"compact_shape\":\"document-block-count\""));
+    assert!(jsonl.contains(
+        "document_content_hash anchors are fingerprinted at render time with a bounded probe read of anchor files"
+    ));
+}
+
+/// T04: clock honesty on the accepted run — ended_at is after started_at
+/// (captured after the walk, 678 s wall), the count-only progress policy is
+/// recorded, and the incomplete-diagnostic contract is declared on the
+/// artifact itself (fixture behavior pinned by the t01 tests here and in
+/// the CLI contract suite).
+#[test]
+fn t04_tracked_corpus_clock_and_progress_are_honest() {
+    let jsonl = tracked_corpus_artifact();
+    assert!(jsonl.contains("\"run_status\":\"complete\""));
+    assert!(
+        jsonl.contains(
+            "\"started_at\":\"2026-09-05T13:21:35Z\",\"ended_at\":\"2026-09-05T13:32:53Z\""
+        ),
+        "ended_at is a real post-walk timestamp, not the injected started_at constant"
+    );
+    assert!(jsonl.contains(
+        "ended_at is captured after the walk completes; periodic --out rewrites during a run carry run_status incomplete"
+    ));
+    assert!(
+        jsonl.contains("--progress 500"),
+        "the accepted run used count-only heartbeats every 500 files"
+    );
+}
+
+/// T04: the top-K scaffold stays bounded on the full corpus — at most the
+/// cap anchors per metric record, every anchor bound to its record's metric
+/// kind, and top-K selection still deferred-undefined.
+#[test]
+fn t04_tracked_corpus_topk_bounded_and_anchored() {
+    let jsonl = tracked_corpus_artifact();
+    let mut metric_records = 0usize;
+    let mut anchors_total = 0usize;
+    for line in jsonl
+        .lines()
+        .filter(|line| line.contains("\"record_kind\":\"metric\""))
+    {
+        metric_records += 1;
+        let kind = line
+            .split("\"metric_kind\":\"")
+            .nth(1)
+            .and_then(|rest| rest.split('"').next())
+            .expect("metric record carries its kind");
+        let anchors = line.matches("\"document_relative_path\"").count();
+        anchors_total += anchors;
+        assert!(
+            anchors <= TOP_K_SCAFFOLD_CAP,
+            "top-K cap exceeded for {kind}: {anchors} anchors"
+        );
+        let bound_backs = line.matches(&format!("\"metric_kind\":\"{kind}\"")).count();
+        assert_eq!(
+            bound_backs,
+            anchors + 1,
+            "every anchor in {kind} binds back to the record's metric kind"
+        );
+    }
+    assert_eq!(
+        metric_records, 8,
+        "closed schema: exactly eight metric records"
+    );
+    assert_eq!(
+        anchors_total,
+        8 * TOP_K_SCAFFOLD_CAP,
+        "the full corpus retained the cap on every metric"
+    );
+    assert!(jsonl.contains("\"top_k\":\"deferred-undefined\""));
+}
+
+/// T04: the accepted artifact stays diagnostic-only — both lifecycle
+/// records are `[diagnostic]`, no `[bounded]` promotion happened, the
+/// scaffold's `[proposed]` status is declared, and top-K selection stays
+/// deferred-undefined.
+#[test]
+fn t04_tracked_corpus_stays_diagnostic_with_non_claims() {
+    let jsonl = tracked_corpus_artifact();
+    assert_eq!(
+        jsonl.matches("\"lifecycle\":\"[diagnostic]\"").count(),
+        2,
+        "header and run_manifest stay [diagnostic]"
+    );
+    assert!(
+        !jsonl.contains("[bounded]"),
+        "no bounded promotion without the S03 outlier review"
+    );
+    assert!(jsonl.contains(
+        "\"npa-bounds-scan/v1 is a [proposed] scaffold (D388): numeric bounds decisions are deferred-undefined\""
+    ));
+    assert!(jsonl.contains("\"top_k\":\"deferred-undefined\""));
+    assert!(jsonl.contains("\"semantic-frame\""));
+    assert!(jsonl.contains("\"bound-decision\""));
 }

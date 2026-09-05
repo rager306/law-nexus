@@ -12,7 +12,7 @@ plan: assessment/29-npa-bounds-hostile-plan.md
 input:
   corpus_root: consru_export/consru_export/exports
   file_glob: "**/*.xml"
-  expected_inventory_note: 43785 XML observed during profile preparation; scanner records its own count
+  expected_inventory_note: 43785 XML observed during profile preparation, reconciled by the accepted M200 S02 full run and an independent walk; scanner records its own count
   order: repository-relative path bytewise ascending
   read_only: true
 
@@ -46,6 +46,8 @@ modes:
   corpus_scan:
     input: every XML under corpus_root
     purpose: direct metric distributions + explicitly labelled lexical proxies
+    evidence: prd/migration/rust-evidence/m200-s02-npa-bounds-scan.jsonl
+    acceptance: prd/migration/rust-evidence/m200-s02-corpus-acceptance.json
 
 measurements:
   direct:
@@ -164,4 +166,4 @@ runtime_stop:
   reasons:
     - numeric bounds decisions remain deferred-undefined (top_k and operational resource budget)
     - proxy metrics cannot select unavailable-until-runtime bounds
-    - complete corpus measurement and outlier review have not run (S01 covers the fixture gate only)
+    - full-corpus [diagnostic] measurement has run (M200 S02: 43785 files attempted, 0 malformed/unreadable, terminal manifest complete); outlier review of maxima/top-K anchors is S03 scope and numeric bound selection stays deferred-undefined

@@ -1,0 +1,133 @@
+{
+  "schema": "m200-s02-corpus-acceptance/v1",
+  "lifecycle": "[diagnostic]",
+  "milestone": "M200-8s4kwq",
+  "slice": "S02",
+  "task": "T04",
+  "owner_decision": "D388",
+  "generated_utc": "2026-09-05T13:46:19Z",
+  "profile_schema": "law-nexus-npa-bounds-scanner-profile/v1",
+  "non_claims": [
+    "no numeric bound is selected by this acceptance; runtime_stop persists and R035/R070 stay open",
+    "lexical proxies are not semantic frames and never select bounds",
+    "outlier review of maxima/top-K anchors is S03 scope; the recorded anchors are its input, not conclusions",
+    "lifecycle stays [diagnostic]; [bounded] would require the S03 review on top of this complete run"
+  ],
+  "artifact_under_acceptance": {
+    "path": "prd/migration/rust-evidence/m200-s02-npa-bounds-scan.jsonl",
+    "sha256": "3c76b3feb610adc5169d67aeb43a77dbecbd30fb1cac118918eff2a7f1863f6c",
+    "line_count": 15,
+    "closed_schema_reader": "ln_decode::npa_bounds::validate_bounds_jsonl",
+    "record_order": [
+      "header",
+      "totals",
+      "token_kind_histogram",
+      "candidates_by_pattern",
+      "span_relations",
+      "metric x8 (4 direct + 4 proxy)",
+      "unavailable",
+      "run_manifest"
+    ],
+    "label": "corpus-scan",
+    "source_revision": "operator-full-corpus"
+  },
+  "scan_command": "target/release/npa-bounds-scan --root consru_export/consru_export/exports --out prd/migration/rust-evidence/m200-s02-npa-bounds-scan.jsonl --label corpus-scan --progress 500 --source-revision operator-full-corpus --rust-toolchain \"rustc 1.98.0 (88d9e12ae 2026-08-18)\"",
+  "independent_walk": {
+    "method": "find consru_export/consru_export/exports -type f -name '*.xml' (count and byte sum), independent of the scanner walker collect_xml_files",
+    "observed_utc": "2026-09-05T13:43:57Z",
+    "observed_file_count": 43785,
+    "observed_bytes": 3789431364
+  },
+  "reconciliation": {
+    "files_attempted": 43785,
+    "files_decoded": 43785,
+    "malformed": 0,
+    "unreadable": 0,
+    "success_plus_malformed_plus_unreadable": 43785,
+    "equals_files_attempted": true,
+    "equals_independent_walk": true,
+    "run_status": "complete",
+    "wall_seconds": 678,
+    "verdict": "pass"
+  },
+  "npa_family_drift": {
+    "historical_top_level_dirents": 799,
+    "live_recursive_xml": 916,
+    "delta": 117,
+    "explanation": "edition subdirectories (e.g. npa/law_2013-04-05_44-fz/) hold additional XML revisions beyond the historical top-level inventory",
+    "note": "both numbers observed by walk; neither is hardcoded in the scanner; formal drift review is S03 scope",
+    "verdict": "recorded"
+  },
+  "direct_proxy_separation": {
+    "direct_metric_records": 4,
+    "proxy_metric_records": 4,
+    "direct_kinds": [
+      "blocks_per_document",
+      "tokens_per_block",
+      "candidates_per_block",
+      "candidates_per_document"
+    ],
+    "proxy_kinds": [
+      "proxy_date_docno_members_per_block",
+      "proxy_structural_range_blocks_per_block",
+      "proxy_alias_surfaces_per_document",
+      "proxy_cross_block_tails_per_document"
+    ],
+    "verdict": "pass"
+  },
+  "terminal_completeness": {
+    "run_status": "complete",
+    "ended_at": "2026-09-05T13:32:53Z",
+    "coverage_failures": 0,
+    "pattern_unmapped": 0,
+    "documents": 43785,
+    "blocks": 4855839,
+    "tokens": 243405486,
+    "candidates": 1926143,
+    "bytes_observed": 3789431364,
+    "verdict": "pass"
+  },
+  "deterministic_hashes": {
+    "profile_hash_at_scan": "fnv1a64:bcf61bc0940f3cb9",
+    "profile_hash_after_t04_runtime_note": "fnv1a64:9851c247f0722faf",
+    "scanner_source_hash": "fnv1a64:ee015b5f2f79c4e3",
+    "measurement_definitions_hash": "fnv1a64:6fa01374f8c3ad65",
+    "note": "the T04 profile edit is a runtime-note documentation update only: measurement definitions are unchanged, so measurement_definitions_hash still matches the accepted run; the artifact pins the scan-time profile fingerprint while the live fingerprint moves by design"
+  },
+  "redaction": {
+    "method": "R022-style audit on tracked artifact bytes: pure ASCII, so no Cyrillic word >= 8 or decoded sentence can be present; anchors carry relative paths, FNV content hashes and byte spans only",
+    "non_ascii_lines": 0,
+    "verdict": "pass"
+  },
+  "clock_and_progress": {
+    "started_at": "2026-09-05T13:21:35Z",
+    "ended_at": "2026-09-05T13:32:53Z",
+    "ended_after_walk": true,
+    "progress_interval_files": 500,
+    "heartbeat_lines_count_only": 87,
+    "terminal_stderr_lines": 1,
+    "non_conforming_stderr_lines": 0,
+    "verdict": "pass"
+  },
+  "bounded_top_k": {
+    "cap": 8,
+    "metric_records": 8,
+    "anchors_total": 64,
+    "top_k_selection": "deferred-undefined",
+    "verdict": "pass"
+  },
+  "gate_passed": true,
+  "verify": [
+    "cargo test -p ln-decode --offline --test npa_corpus_sweep_contract --test npa_bounds_observer_contract --test npa_bounds_contract --test npa_bounds_cli_contract",
+    "cargo fmt --all --check",
+    "cargo check --workspace --offline",
+    "uv run python scripts/verify-adr-conformance.py"
+  ],
+  "evidence_refs": [
+    "prd/migration/rust-evidence/m200-s02-npa-bounds-scan.jsonl (accepted full-run manifest)",
+    "prd/migration/rust-evidence/m200-s02-corpus-smoke-rate.json (T02 rate card / driver policy)",
+    "target/m200-s02-corpus-run.stderr (git-ignored raw run log: 87 count-only heartbeats + 1 terminal line)",
+    "gsd_exec f785ec00 (independent walk + hash/ASCII reconciliation, 2026-09-05T13:43:57Z)",
+    "gsd_exec 70596a52 (post-edit profile fingerprint fnv1a64:9851c247f0722faf)"
+  ]
+}
