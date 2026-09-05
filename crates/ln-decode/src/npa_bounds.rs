@@ -387,6 +387,66 @@ pub fn arbitrate_pair(a: (usize, usize), b: (usize, usize), slots_equal: bool) -
     }
 }
 
+/// Proposed contour-A candidate safety ceiling (D388 review gate
+/// `contour-a-candidates-per-block-ceiling`, review
+/// `m200-s03-outlier-review/v1`): a revisable `[proposed]` safety ceiling
+/// with headroom over the observed per-block maximum 504 — never a claim
+/// that larger legal structures do not exist, never a legal-universe
+/// maximum, never the observed max or a histogram bucket edge. Raising it
+/// requires a new review row. Product-path wiring stays deferred (profile
+/// `runtime_stop`); this constant only backs the pure enforcement surface
+/// below.
+pub const PROPOSED_CANDIDATE_CEILING: u64 = 1024;
+
+/// Pinned refusal diagnostic for the ceiling (the arbitration contract's
+/// `diagnostics` id verbatim): produced when a capture candidate arrives
+/// after a block already holds [`PROPOSED_CANDIDATE_CEILING`] accepted
+/// candidates. Never minted ad hoc at a call site.
+pub const CANDIDATE_LIMIT_REACHED: &str = "candidate_limit_reached";
+
+/// Closed categorical result of one [`on_candidate_limit`] decision.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CandidateLimitOutcome {
+    /// The incoming candidate is admitted; every earlier capture is
+    /// untouched.
+    Accepted,
+    /// The incoming candidate is refused with [`CANDIDATE_LIMIT_REACHED`];
+    /// refusal never truncates what the block already holds.
+    LimitReached,
+}
+
+impl CandidateLimitOutcome {
+    /// `true` only for [`CandidateLimitOutcome::Accepted`].
+    pub const fn is_accepted(self) -> bool {
+        matches!(self, CandidateLimitOutcome::Accepted)
+    }
+
+    /// Explicit diagnostic carried by the outcome: `None` while accepting,
+    /// the pinned id on refusal — a refusal is never silent.
+    pub const fn diagnostic(self) -> Option<&'static str> {
+        match self {
+            CandidateLimitOutcome::Accepted => None,
+            CandidateLimitOutcome::LimitReached => Some(CANDIDATE_LIMIT_REACHED),
+        }
+    }
+}
+
+/// Pure `on_limit` enforcement of the `[proposed]` contour-A safety
+/// ceiling. `accepted_count` is how many capture candidates the block
+/// already holds; the incoming candidate is admitted exactly while
+/// `accepted_count < PROPOSED_CANDIDATE_CEILING`, so the ceiling-th
+/// candidate is accepted and the ceiling+1-th is refused. Stateless and
+/// total: it decides, it never mutates, truncates, or silently drops
+/// earlier captures — callers keep what they already accepted and surface
+/// [`CandidateLimitOutcome::diagnostic`] verbatim on refusal.
+pub const fn on_candidate_limit(accepted_count: u64) -> CandidateLimitOutcome {
+    if accepted_count < PROPOSED_CANDIDATE_CEILING {
+        CandidateLimitOutcome::Accepted
+    } else {
+        CandidateLimitOutcome::LimitReached
+    }
+}
+
 /// Lexical proxy: number of Date+DocNo adjacency pairs in a token stream —
 /// a `Date` token with a `DocNo` token at most two positions ahead,
 /// skipping at most one intervening `Space`. Profile

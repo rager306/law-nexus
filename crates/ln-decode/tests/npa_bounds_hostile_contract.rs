@@ -1,10 +1,11 @@
-//! S03 T01+T02+T03 hostile contracts (M200-8s4kwq): tracked review `m200-s03-outlier-review/v1`
+//! S03 T01+T02+T03+T04 hostile contracts (M200-8s4kwq): tracked review `m200-s03-outlier-review/v1`
 //! over the accepted S02 `[diagnostic]` JSONL (D388 select-or-defer).
 //! Reader: `npa_support`'s D328 closed parser (exact booleans via raw markers).
 //! Source binding: structured pins + acceptance cross-chain (digests: S02 UAT).
 //! Fail-closed (ADR-0015/R038): closed key allowlists; ASCII count-only redaction (R022);
 //! only metric maxima reconstructed (first anchor, descending insertion; tails never rank);
-//! `[proposed]` lifecycle, R035/R070/N2 open, 1024 ceiling only numeric select.
+//! `[proposed]` lifecycle, R035/R070/N2 open, 1024 ceiling only numeric select; T04 pins
+//! the pure `on_candidate_limit` enforcement surface to the reviewed G02 row.
 
 #[allow(dead_code)]
 mod npa_support;
@@ -15,8 +16,9 @@ use std::path::PathBuf;
 use ln_decode::lawref::{capture_lawrefs, LawRef};
 use ln_decode::lexer::lex;
 use ln_decode::npa_bounds::{
-    arbitrate_pair, span_relation, validate_bounds_jsonl, PairDiagnostic, PairOutcome,
-    SpanRelation, UNAVAILABLE_METRICS,
+    arbitrate_pair, on_candidate_limit, span_relation, validate_bounds_jsonl,
+    CandidateLimitOutcome, PairDiagnostic, PairOutcome, SpanRelation, CANDIDATE_LIMIT_REACHED,
+    PROPOSED_CANDIDATE_CEILING, UNAVAILABLE_METRICS,
 };
 use ln_decode::unknown_forms::collect_unknown_forms_from_text;
 use npa_support::{parse_json, Json};
@@ -44,7 +46,6 @@ const MARKERS: [&str; 7] = [
 ];
 
 const OBSERVED_CANDIDATES_PER_BLOCK_MAX: u64 = 504;
-const PROPOSED_CANDIDATE_CEILING: u64 = 1024;
 const P999_CANDIDATES_PER_BLOCK_BUCKET_EDGE: u64 = 14;
 
 // T02: tracked design sources + observed S02 pair-class distribution (G14).
@@ -1857,4 +1858,135 @@ fn t14_deferred_families_record_refusal_contract() {
             "deferred family surface must stay unavailable-until-runtime: {metric}"
         );
     }
+}
+
+// T04: the reviewed G02 ceiling becomes the smallest pure enforcement
+// surface; no other D388 value is minted and no runtime is invented.
+
+/// T04: the product ceiling constant and pinned refusal diagnostic bind
+/// exactly to the reviewed G02 row and the closed arbitration vocabulary —
+/// the enforcement surface cannot drift from the tracked review artifact,
+/// and every other D388 gate stays deferred-undefined.
+#[test]
+fn t15_ceiling_helper_binds_reviewed_g02_row() {
+    let review = read_text(REVIEW_RELATIVE_PATH);
+    let root = parse_json(&review).expect("review parses");
+    validate_review(&review).expect("review still closed-schema");
+    assert_eq!(PROPOSED_CANDIDATE_CEILING, 1024);
+    assert_eq!(CANDIDATE_LIMIT_REACHED, "candidate_limit_reached");
+    let gates = root.get("gate_decisions").unwrap().as_arr().unwrap();
+    let ceiling = find_row(
+        gates,
+        "gate_decisions",
+        "gate",
+        "contour-a-candidates-per-block-ceiling",
+    )
+    .unwrap();
+    assert_eq!(
+        int_or_null(ceiling, "proposed_value", "ceiling")
+            .unwrap()
+            .expect("G02 carries the proposed value"),
+        PROPOSED_CANDIDATE_CEILING,
+        "product ceiling drifted from the reviewed proposed value"
+    );
+    assert_eq!(
+        anchor_str(ceiling, "refusal_diagnostic"),
+        CANDIDATE_LIMIT_REACHED,
+        "pinned refusal diagnostic drifted from the review row"
+    );
+    let observed_max = int_or_null(ceiling, "observed_max", "ceiling")
+        .unwrap()
+        .expect("G02 cites the observed maximum");
+    assert_eq!(observed_max, OBSERVED_CANDIDATES_PER_BLOCK_MAX);
+    // Safety ceiling, not a legal-universe maximum: revisable headroom over
+    // the observed max, distinct from the p999 bucket edge.
+    assert!(PROPOSED_CANDIDATE_CEILING >= 2 * observed_max);
+    assert_ne!(PROPOSED_CANDIDATE_CEILING, observed_max);
+    assert_ne!(
+        PROPOSED_CANDIDATE_CEILING,
+        P999_CANDIDATES_PER_BLOCK_BUCKET_EDGE
+    );
+    // The minted id stays inside the contract's closed diagnostics
+    // vocabulary; the pair reducer (t10) still never mints it.
+    let yaml = read_text(ARBITRATION_RELATIVE_PATH);
+    assert!(
+        yaml.contains(&format!("- {CANDIDATE_LIMIT_REACHED}")),
+        "ceiling diagnostic left the closed arbitration vocabulary"
+    );
+    // Every other D388 gate stays deferred-undefined: still exactly one
+    // numeric proposal, one non-null refusal diagnostic, one select-ceiling.
+    assert_eq!(
+        review
+            .matches("\"verdict\": \"deferred-undefined\"")
+            .count(),
+        13
+    );
+    assert_eq!(
+        review.matches("\"verdict\": \"select\"").count(),
+        3,
+        "no gate beyond G01/G02/G14 was promoted to select"
+    );
+    assert_eq!(review.matches("\"refusal_diagnostic\": null").count(), 15);
+}
+
+/// T04: exactly-at-limit acceptance, limit+1 refusal with the pinned
+/// diagnostic, and no silent truncation — the refusal observes and decides
+/// but never drops captures the block already accepted.
+#[test]
+fn t16_on_candidate_limit_exact_boundaries_no_truncation() {
+    // An empty block admits its first candidate.
+    assert_eq!(on_candidate_limit(0), CandidateLimitOutcome::Accepted);
+    // Exactly at the limit: the ceiling-th arrival is accepted.
+    let at_limit = on_candidate_limit(PROPOSED_CANDIDATE_CEILING - 1);
+    assert_eq!(at_limit, CandidateLimitOutcome::Accepted);
+    assert!(at_limit.is_accepted());
+    assert_eq!(at_limit.diagnostic(), None, "acceptance is never diagnosed");
+    // Limit + 1: refused with the pinned explicit diagnostic, never silent.
+    let refused = on_candidate_limit(PROPOSED_CANDIDATE_CEILING);
+    assert_eq!(refused, CandidateLimitOutcome::LimitReached);
+    assert!(!refused.is_accepted());
+    assert_eq!(refused.diagnostic(), Some(CANDIDATE_LIMIT_REACHED));
+    assert_eq!(refused.diagnostic(), Some("candidate_limit_reached"));
+
+    // Count-only synthetic sweep (no corpus text): admit arrivals 1..=1024,
+    // refuse 1025; every earlier capture is still held afterwards.
+    let mut held: Vec<u64> = Vec::new();
+    let arrivals = PROPOSED_CANDIDATE_CEILING + 2;
+    let mut refusals = 0u64;
+    for arrival in 1..=arrivals {
+        match on_candidate_limit(held.len() as u64) {
+            CandidateLimitOutcome::Accepted => held.push(arrival),
+            CandidateLimitOutcome::LimitReached => {
+                refusals += 1;
+                assert_eq!(
+                    on_candidate_limit(held.len() as u64),
+                    refused,
+                    "the pure helper is call-order independent"
+                );
+            }
+        }
+    }
+    assert_eq!(
+        refusals, 2,
+        "exactly arrivals limit+1 and limit+2 are refused; arrivals 1..=limit all accepted"
+    );
+    assert_eq!(held.len() as u64, PROPOSED_CANDIDATE_CEILING);
+    assert_eq!(held[0], 1, "the first accepted capture is intact");
+    assert_eq!(
+        held[(PROPOSED_CANDIDATE_CEILING - 1) as usize],
+        PROPOSED_CANDIDATE_CEILING,
+        "the exactly-at-limit capture is intact"
+    );
+    // Refusals remain total past the ceiling and mutate nothing.
+    for extra in 0..4u64 {
+        assert_eq!(
+            on_candidate_limit(held.len() as u64 + extra),
+            CandidateLimitOutcome::LimitReached
+        );
+    }
+    assert_eq!(
+        held.len() as u64,
+        PROPOSED_CANDIDATE_CEILING,
+        "refusals never truncate earlier captures"
+    );
 }
