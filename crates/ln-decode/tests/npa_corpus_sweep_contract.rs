@@ -22,8 +22,8 @@ use ln_decode::domain::{
 };
 use ln_decode::lexer::{self, TokenKind};
 use ln_decode::npa_sweep::{
-    self, parse_args, run_sweep, walk_xml_files, SweepAcc, SweepCli, EXIT_OK, EXIT_OUT_UNWRITABLE,
-    EXIT_ROOT_MISSING,
+    self, parse_args, run_sweep, run_sweep_observed, walk_xml_files, FileTerminal, SweepAcc,
+    SweepCli, SweepObserver, EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING,
 };
 use ln_decode::ports::BlockDecoderPort;
 
@@ -564,6 +564,69 @@ fn t02_run_sweep_default_root_absent_is_skip_mode() {
         run.stderr
     );
     assert!(run.to_stdout);
+}
+
+/// Test sink for the T02 seam: records walked files (path, decoded bool)
+/// and discards the handed-off blocks — the corpus-sweep contract itself
+/// has no observer surface, so the sink must be transparent.
+struct DiscardSink {
+    seen: Vec<(String, bool)>,
+}
+
+impl SweepObserver for DiscardSink {
+    fn observe_file(&mut self, path: &Path, terminal: FileTerminal, _blocks: &[ParsedBlock]) {
+        self.seen.push((
+            path.to_string_lossy().into_owned(),
+            terminal == FileTerminal::Decoded,
+        ));
+    }
+}
+
+/// T02 (M200-8s4kwq S01): the observation seam is transparent to the v1
+/// contract — a sink sees the walked files while `run_sweep_observed`
+/// produces the byte-identical `SweepRun` (aggregate, exit code, stderr)
+/// that `run_sweep` produces, and the closed-key reader still accepts the
+/// rendered aggregate; the sink sees exactly the walked `*.xml` leaves, in
+/// sorted full-path order, with the decoded/failed split intact.
+#[test]
+fn t02_observation_seam_keeps_v1_byte_stable() {
+    let root = temp_root("seam");
+    let ok = write_xml(&root, "exports/npa/a.xml", "ст. 8");
+    let broken = root.join("exports/fas/broken.XML");
+    fs::create_dir_all(broken.parent().expect("fas dir")).expect("fixture dir");
+    fs::write(&broken, r#"<w:wordDocument xmlns:w="urn:word"><w:p>"#).expect("broken fixture");
+    fs::write(root.join("notes.txt"), b"not xml").expect("txt fixture");
+
+    let cli = SweepCli {
+        root: Some(root.to_string_lossy().into_owned()),
+        ..SweepCli::default()
+    };
+    let plain = run_sweep(&cli, Path::new(ABSENT));
+    let mut sink = DiscardSink { seen: Vec::new() };
+    let with_sink = run_sweep_observed(&cli, Path::new(ABSENT), &mut sink);
+
+    assert_eq!(plain, with_sink, "the sink cannot alter the v1 run");
+    let jsonl = with_sink.jsonl.expect("aggregate rendered");
+    npa_sweep::validate_jsonl(&jsonl).expect("closed reader still accepts the aggregate");
+    assert!(jsonl.contains("\"npa\":{\"seen\":1,\"decoded\":1,\"failed\":0}"));
+    assert!(jsonl.contains("\"fas\":{\"seen\":1,\"decoded\":0,\"failed\":1}"));
+    assert!(
+        with_sink
+            .stderr
+            .contains("files_seen=2 files_decoded=1 files_failed=1"),
+        "counts line unchanged: {}",
+        with_sink.stderr
+    );
+    assert_eq!(
+        sink.seen,
+        vec![
+            (broken.to_string_lossy().into_owned(), false),
+            (ok.to_string_lossy().into_owned(), true),
+        ],
+        "exactly the walked xml files, in sorted full-path order"
+    );
+
+    fs::remove_dir_all(&root).ok();
 }
 
 /// T02: `--out` receives `render_jsonl` (nothing on stdout); an unwritable

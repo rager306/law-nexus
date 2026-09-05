@@ -12,6 +12,12 @@
 //! payload identity ([`payload_ref_for_path`]), per-file decode+ingest
 //! ([`ingest_file`]), and the library-level runner ([`run_sweep`]) that the
 //! thin `src/bin/npa-corpus-sweep.rs` shell (argv + printing only) wires up.
+//! M200-8s4kwq S01/T02 adds the read-only observation seam over the same
+//! walker and the production Consultant decode path ([`SweepObserver`],
+//! [`walk_and_observe`], [`run_sweep_observed`]): a sibling measurement
+//! profile (`npa-bounds-scan/v1`) inspects per-file terminal outcome and
+//! decoded fragment-local blocks without copying walk/decode logic, while
+//! `run_sweep` and the `npa-corpus-sweep/v1` rendering stay byte-stable.
 //! The tracked full-corpus evidence artifact stays downstream (T03).
 //! `lexer.rs`, the YAML lexicon, and `morphology.rs` are read-only; the
 //! 17-id table is a compile-time alias of the single `lexer::NPA_ABBREV_IDS`
@@ -760,6 +766,10 @@ fn scan_jsonl_line(line: &str) -> Result<LineKeys, String> {
 // Stdlib only: no walkdir, no rayon, no clap, no serde. The binary itself is
 // argv + printing; everything observable lives here so contract tests
 // exercise library functions instead of shelling out as their only contour.
+// M200-8s4kwq S01/T02: the same walk+decode path is observed through the
+// read-only `SweepObserver` seam — the sibling `npa-bounds-scan/v1`
+// profile drives [`walk_and_observe`] / [`run_sweep_observed`] instead of
+// copying walker or decoder logic.
 // ---------------------------------------------------------------------------
 
 /// Exit code: walk completed. Per-file read/decode failures are counted in
@@ -932,21 +942,92 @@ fn is_ref_stem_byte(byte: u8) -> bool {
     byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b':' | b'.')
 }
 
-/// Decode one corpus file and feed the accumulator. A read failure and a
-/// decode failure are the same accounting — `note_file(family, false)` —
-/// and the walk continues: one broken file never aborts the corpus and
-/// never puts payload bytes or block text into the aggregate or stderr
-/// (Q3/Q7). Garant ODT is outside the sweep universe by construction: the
-/// walker only takes `*.xml`, and the decoder is pinned to
-/// `family:consultant-wordml`, so a wrong family never reaches
+/// Terminal outcome of one corpus file through the production read+decode
+/// path (M200-8s4kwq S01/T02).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FileTerminal {
+    /// File read and decoded; the handed-off `blocks` slice carries the
+    /// fragment-local decoded blocks (possibly empty for a valid document
+    /// with no paragraph text).
+    Decoded,
+    /// Atomic failure: the file could not be read OR could not be decoded.
+    /// Zero blocks are handed off — a failed file contributes no partial
+    /// measurement (Q5/Q7).
+    Failed,
+}
+
+/// Read-only observation sink over the deterministic walker and the
+/// production Consultant decode path (M200-8s4kwq S01/T02): the seam a
+/// sibling measurement profile (`npa-bounds-scan/v1`) drives instead of
+/// copying walk/decode logic. Exactly one call per discovered file, in the
+/// walker's deterministic sorted order, at the file's terminal outcome.
+/// Implementations must stay read-only over the corpus and must not retain
+/// the borrowed blocks beyond the call.
+pub trait SweepObserver {
+    /// One file reached its terminal outcome; `blocks` is empty iff
+    /// `terminal` is [`FileTerminal::Failed`].
+    fn observe_file(&mut self, path: &Path, terminal: FileTerminal, blocks: &[ParsedBlock]);
+}
+
+/// No-op sink backing [`run_sweep`]: the corpus-sweep contract has no
+/// observer surface, so its runner delegates through the seam silently.
+struct NoopObserver;
+
+impl SweepObserver for NoopObserver {
+    fn observe_file(&mut self, _path: &Path, _terminal: FileTerminal, _blocks: &[ParsedBlock]) {}
+}
+
+/// Internal fan-out sink: one walk+decode pass, two sinks — the caller's
+/// observer first, then the corpus-sweep accumulator adapter — so
+/// [`run_sweep_observed`] forwards exactly the events it ingests.
+struct TeeObserver<'a> {
+    observer: &'a mut dyn SweepObserver,
+    adapter: &'a mut dyn SweepObserver,
+}
+
+impl SweepObserver for TeeObserver<'_> {
+    fn observe_file(&mut self, path: &Path, terminal: FileTerminal, blocks: &[ParsedBlock]) {
+        self.observer.observe_file(path, terminal, blocks);
+        self.adapter.observe_file(path, terminal, blocks);
+    }
+}
+
+/// Internal adapter feeding the corpus-sweep accumulator from the seam, so
+/// [`run_sweep_observed`] and any sibling profile share one walk+decode
+/// path with identical per-file accounting.
+struct SweepAccAdapter<'a> {
+    acc: &'a mut SweepAcc,
+}
+
+impl SweepObserver for SweepAccAdapter<'_> {
+    fn observe_file(&mut self, path: &Path, terminal: FileTerminal, blocks: &[ParsedBlock]) {
+        let family = family_from_path(path);
+        match terminal {
+            FileTerminal::Decoded => {
+                self.acc.note_file(family, true);
+                self.acc.ingest_blocks(family, blocks);
+            }
+            FileTerminal::Failed => self.acc.note_file(family, false),
+        }
+    }
+}
+
+/// Production read+decode of one corpus file, reported to `observer`: read
+/// the bytes, then decode through [`ConsultantWordMlBlockDecoder`] pinned
+/// to `family:consultant-wordml`. The observer sees the file exactly once,
+/// at its terminal outcome. A read failure and a decode failure are the
+/// same atomic [`FileTerminal::Failed`] — one broken file never aborts the
+/// corpus and never puts payload bytes or block text into the aggregate or
+/// stderr (Q3/Q7). Garant ODT is outside the sweep universe by
+/// construction: the walker only takes `*.xml`, and the decoder is pinned
+/// to `family:consultant-wordml`, so a wrong family never reaches
 /// [`ConsultantWordMlBlockDecoder`].
-pub fn ingest_file(acc: &mut SweepAcc, path: &Path) {
-    let family = family_from_path(path);
+fn observe_one_file(path: &Path, observer: &mut dyn SweepObserver) -> FileTerminal {
     let bytes = match fs::read(path) {
         Ok(bytes) => bytes,
         Err(_) => {
-            acc.note_file(family, false);
-            return;
+            observer.observe_file(path, FileTerminal::Failed, &[]);
+            return FileTerminal::Failed;
         }
     };
     let request = DecodeRequest::new(
@@ -956,11 +1037,47 @@ pub fn ingest_file(acc: &mut SweepAcc, path: &Path) {
     );
     match ConsultantWordMlBlockDecoder.decode_blocks(&request) {
         Ok(blocks) => {
-            acc.note_file(family, true);
-            acc.ingest_blocks(family, &blocks);
+            observer.observe_file(path, FileTerminal::Decoded, &blocks);
+            FileTerminal::Decoded
         }
-        Err(_) => acc.note_file(family, false),
+        Err(_) => {
+            observer.observe_file(path, FileTerminal::Failed, &[]);
+            FileTerminal::Failed
+        }
     }
+}
+
+/// Deterministic walk + production decode, observed: the seam around
+/// [`walk_xml_files`] and [`observe_one_file`] that both
+/// [`run_sweep_observed`] and the sibling `npa-bounds-scan/v1` profile
+/// drive. Every `*.xml` under `root` is reported to `observer` exactly
+/// once, in the walker's sorted order, at its terminal outcome; `limit`
+/// cuts after the sort. Per-file read/decode failures are
+/// [`FileTerminal::Failed`] events, never errors; a walk-level filesystem
+/// failure (missing or unreadable root directory) propagates as `Err` —
+/// the caller owns the exit-code mapping. Returns the number of files
+/// observed.
+pub fn walk_and_observe(
+    root: &Path,
+    limit: Option<u64>,
+    observer: &mut dyn SweepObserver,
+) -> std::io::Result<usize> {
+    let files = walk_xml_files(root, limit)?;
+    for path in &files {
+        observe_one_file(path, observer);
+    }
+    Ok(files.len())
+}
+
+/// Decode one corpus file and feed the accumulator through the observation
+/// seam (the [`SweepAccAdapter`] sink, no observer). A read failure and a
+/// decode failure are the same accounting — `note_file(family, false)` —
+/// and the walk continues: one broken file never aborts the corpus and
+/// never puts payload bytes or block text into the aggregate or stderr
+/// (Q3/Q7).
+pub fn ingest_file(acc: &mut SweepAcc, path: &Path) {
+    let mut adapter = SweepAccAdapter { acc };
+    observe_one_file(path, &mut adapter);
 }
 
 /// Everything the thin binary prints and exits with after one run.
@@ -979,7 +1096,22 @@ pub struct SweepRun {
 /// Library-level sweep runner: exactly what the binary does after argv
 /// parsing. `default_root` is injected so tests never touch the live
 /// `consru_export` corpus; the binary passes [`default_sweep_root`].
+/// Routes through the observation seam with a no-op sink, so `run_sweep`
+/// and any observed sibling run share one walk+decode path.
 pub fn run_sweep(cli: &SweepCli, default_root: &Path) -> SweepRun {
+    run_sweep_observed(cli, default_root, &mut NoopObserver)
+}
+
+/// [`run_sweep`] with an observation sink (M200-8s4kwq S01/T02): identical
+/// walk, decode, accounting, rendering, exit codes, and stderr — `observer`
+/// additionally sees every discovered file exactly once, at its terminal
+/// outcome, in the deterministic walk order. The `npa-corpus-sweep/v1`
+/// output stays byte-stable in the observer.
+pub fn run_sweep_observed(
+    cli: &SweepCli,
+    default_root: &Path,
+    observer: &mut dyn SweepObserver,
+) -> SweepRun {
     let explicit = cli.root.is_some();
     let root = cli
         .root
@@ -1006,21 +1138,22 @@ pub fn run_sweep(cli: &SweepCli, default_root: &Path) -> SweepRun {
         };
     }
 
-    let files = match walk_xml_files(&root, cli.limit) {
-        Ok(files) => files,
-        Err(err) => {
-            return SweepRun {
-                exit_code: EXIT_WALK_FAILED,
-                jsonl: None,
-                to_stdout: false,
-                stderr: format!("walk failed: {err}"),
-            };
-        }
-    };
-
     let mut acc = SweepAcc::new(cli.cycle.as_str());
-    for path in &files {
-        ingest_file(&mut acc, path);
+    let observed = {
+        let mut adapter = SweepAccAdapter { acc: &mut acc };
+        let mut tee = TeeObserver {
+            observer,
+            adapter: &mut adapter,
+        };
+        walk_and_observe(&root, cli.limit, &mut tee)
+    };
+    if let Err(err) = observed {
+        return SweepRun {
+            exit_code: EXIT_WALK_FAILED,
+            jsonl: None,
+            to_stdout: false,
+            stderr: format!("walk failed: {err}"),
+        };
     }
     let stderr = format!(
         "files_seen={} files_decoded={} files_failed={} word_tokens={} marker_hits={}",
