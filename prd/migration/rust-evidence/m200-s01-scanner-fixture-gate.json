@@ -1,0 +1,299 @@
+{
+  "schema": "m200-s01-scanner-fixture-gate/v1",
+  "schema_version": 1,
+  "milestone": "M200-8s4kwq",
+  "slice": "S01",
+  "task": "T04",
+  "lifecycle": "[diagnostic]",
+  "profile_schema": "law-nexus-npa-bounds-scanner-profile/v1",
+  "profile_hash": "fnv1a64:bcf61bc0940f3cb9",
+  "profile_quantiles_declared": "p50, p90, p95, p99, p999",
+  "generated_utc": "2026-09-05T11:41:23Z",
+  "corpus": {
+    "recipe": "generated at gate time under target/m200-s01-gate/work/corpus from git-tracked fixtures; each source fragment wrapped losslessly as one Consultant WordML paragraph (single w:t run, XML-escaped); decoder-contract docs mirror the inline WordML shapes of npa_bounds_contract",
+    "corpus_scope": "fixture gate only; full corpus NOT scanned in S01 (plan prohibition)",
+    "file_count": 14,
+    "files": [
+      {
+        "path": "contract-docs/doc-001.xml",
+        "source": "inline decoder-contract WordML shape (npa_bounds_contract t03)",
+        "bytes": 146,
+        "sha256": "6e91d1a7949b5802207f985efc50c0b1804b590e466c4d8736a2fdff6d0d1e51",
+        "fnv1a64": "fnv1a64:9ff816145856f714"
+      },
+      {
+        "path": "contract-docs/doc-002.xml",
+        "source": "inline decoder-contract WordML shape (npa_bounds_contract t03)",
+        "bytes": 129,
+        "sha256": "034eae2f9ba045d594a0b9ccc9b9f65d3ccf23ee9d6daf54595c3dadd9f53098",
+        "fnv1a64": "fnv1a64:3c43311b872db662"
+      },
+      {
+        "path": "contract-docs/doc-003.xml",
+        "source": "inline decoder-contract WordML shape (npa_bounds_contract t03)",
+        "bytes": 154,
+        "sha256": "1acbed58f6e9236debf2261dfb52580a1db617620be9e0f46d931fffbaf94ea1",
+        "fnv1a64": "fnv1a64:8df9d23c6c8f00c1"
+      },
+      {
+        "path": "npa-selected/npa-frag-001.xml",
+        "source": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-001.txt",
+        "bytes": 959,
+        "sha256": "0761c978c3125b7677e16464d8b0f37036353735cd39ca14e1b435ef1577d36e",
+        "fnv1a64": "fnv1a64:11cbda9954ca82cb"
+      },
+      {
+        "path": "npa-selected/npa-frag-002.xml",
+        "source": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-002.txt",
+        "bytes": 824,
+        "sha256": "e73cef7ee201b7d8d2dc072b9873c5969edb0fa6180ad51364137a63333d9a43",
+        "fnv1a64": "fnv1a64:40f1d50b15d1db03"
+      },
+      {
+        "path": "npa-selected/npa-frag-003.xml",
+        "source": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-003.txt",
+        "bytes": 175,
+        "sha256": "ead92c8bb144da180999b38dba284bc11a701f108acbcf44431267d34247084e",
+        "fnv1a64": "fnv1a64:3ccc21e65b8e9358"
+      },
+      {
+        "path": "npa-selected/npa-frag-004.xml",
+        "source": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-004.txt",
+        "bytes": 959,
+        "sha256": "0761c978c3125b7677e16464d8b0f37036353735cd39ca14e1b435ef1577d36e",
+        "fnv1a64": "fnv1a64:11cbda9954ca82cb"
+      },
+      {
+        "path": "npa-selected/npa-frag-005.xml",
+        "source": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-005.txt",
+        "bytes": 824,
+        "sha256": "e73cef7ee201b7d8d2dc072b9873c5969edb0fa6180ad51364137a63333d9a43",
+        "fnv1a64": "fnv1a64:40f1d50b15d1db03"
+      },
+      {
+        "path": "npa-selected/npa-frag-006.xml",
+        "source": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-006.txt",
+        "bytes": 175,
+        "sha256": "ead92c8bb144da180999b38dba284bc11a701f108acbcf44431267d34247084e",
+        "fnv1a64": "fnv1a64:3ccc21e65b8e9358"
+      },
+      {
+        "path": "npa-selected/npa-frag-007.xml",
+        "source": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-007.txt",
+        "bytes": 1647,
+        "sha256": "22d2706688d1a3f95f87426ad565411ab353e9dcbc241fdaffcd3efcd1cc1621",
+        "fnv1a64": "fnv1a64:87a36c90d6315804"
+      },
+      {
+        "path": "npa-selected/npa-frag-008.xml",
+        "source": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-008.txt",
+        "bytes": 896,
+        "sha256": "4c6230cad13f2a4bd55bbdb525de38f15b2744c402ee0b1f47e790dc7fd5d77e",
+        "fnv1a64": "fnv1a64:106d2e2ee02fe1ff"
+      },
+      {
+        "path": "npa-golden/fz44-001.xml",
+        "source": "crates/ln-decode/tests/fixtures/npa/fz44-001.txt",
+        "bytes": 523,
+        "sha256": "66344095e2013ef47def8588f84cb14aa8f3774f7ec4761b863ccd668a550717",
+        "fnv1a64": "fnv1a64:bbf11ff1063d0a72"
+      },
+      {
+        "path": "npa-golden/syn-001.xml",
+        "source": "crates/ln-decode/tests/fixtures/npa/syn-001.txt",
+        "bytes": 181,
+        "sha256": "1de7be6e087b41dc4cc5ce061f97608d76a6ed9eb21aa11b0c3f4e9bd38346f9",
+        "fnv1a64": "fnv1a64:8db0bbf9f4f3e786"
+      },
+      {
+        "path": "malformed/broken-truncated.xml",
+        "source": "inline truncated-WordML malformed fixture",
+        "bytes": 60,
+        "sha256": "731b0ab13005d80d948bf23acbbf76c91c964ff6e3130759bad458d2d8dccf58",
+        "fnv1a64": "fnv1a64:d63faf215f5afcd3"
+      }
+    ],
+    "note_duplicate_sources": "npa-frag-001/004, 002/005, 003/006 are byte-identical in the tracked fixture set itself (cmp-verified); seed counts treat them as separate fragments and the parity total 22 remains consistent"
+  },
+  "run": {
+    "binary": "target/debug/npa-bounds-scan (cargo build -p ln-decode --offline)",
+    "argv_template": "npa-bounds-scan --root <corpus> --out <out> --label <label> --source-revision m200-s01-fixture-gate --rust-toolchain <rustc --version>",
+    "rust_toolchain": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "exit_codes": {
+      "npa-parity": 0,
+      "full-1": 0,
+      "full-2": 0
+    },
+    "stderr_counts": {
+      "full-1": "npa-bounds-scan: files_attempted=14 files_decoded=13 malformed=1 unreadable=0 blocks=15 candidates=28"
+    },
+    "scanner_source_hash": "fnv1a64:6c86808d9a97090d",
+    "scanner_build_profile": "unknown",
+    "measurement_definitions_hash": "fnv1a64:6fa01374f8c3ad65",
+    "corpus_root_recorded": "/root/law-nexus/target/m200-s01-gate/work/corpus",
+    "totals": {
+      "files_attempted": 14,
+      "files_decoded": 13,
+      "malformed": 1,
+      "unreadable": 0,
+      "bytes_observed": 7592,
+      "documents": 13,
+      "blocks": 15,
+      "tokens": 994,
+      "candidates": 28,
+      "coverage_failures": 0,
+      "pattern_unmapped": 0
+    },
+    "limitations_declared": [
+      "npa-bounds-scan/v1 is a [proposed] scaffold (D388): numeric bounds decisions are deferred-undefined",
+      "top_k outlier retention is a bounded scaffold cap; top_k selection is deferred-undefined",
+      "quantiles are bounded-histogram estimates (containing bucket lower edge), not exact order statistics",
+      "fragment-local offsets normalize a document fragment as the plain concatenation of decoded block texts",
+      "malformed/unreadable classification probes a second read of failed files only",
+      "cross-block tail proxy distance is fixed to the adjacent block (distance=1)",
+      "declared proxy sub-metrics listed in the unavailable record are not implemented in this scaffold",
+      "started_at/ended_at record the CLI invocation window captured immediately before the scan call",
+      "document_content_hash anchors are fingerprinted at render time with a bounded probe read of anchor files"
+    ]
+  },
+  "acceptance": [
+    {
+      "id": "A1-production-api-reuse",
+      "criterion": "scanner invokes ConsultantWordMlBlockDecoder through the product port (plus lexer::lex and capture_lawrefs)",
+      "result": "pass",
+      "evidence": [
+        "gate header record pins decoder/lexer/contour_a/crate",
+        "profile required_product_apis names the same APIs",
+        "npa_bounds_contract::t03_direct_metrics_match_production_oracle re-derives metrics from the production decoder/lexer/capture oracle"
+      ]
+    },
+    {
+      "id": "A2-anchors-match-oracle",
+      "criterion": "decoded block count/anchors equal the decoder contract oracle and bind to exact file bytes",
+      "result": "pass",
+      "evidence": [
+        "totals: documents=13 blocks=15 tokens=994",
+        "anchors checked=64; document_content_hash recomputed independently (FNV-1a-64): all match",
+        "anchor key order equals profile anchor_record.fields (10 fields): True; source_revision pinned: True",
+        "npa_bounds_contract::t03_direct_metrics_match_production_oracle pins exact oracle equality at library level"
+      ]
+    },
+    {
+      "id": "A3-malformed-atomicity",
+      "criterion": "malformed fixture produces atomic error and zero partial measurements",
+      "result": "pass",
+      "evidence": [
+        "files_attempted=14 files_decoded=13 malformed=1 unreadable=0",
+        "success + malformed + unreadable == files_attempted holds in totals and run_manifest",
+        "npa_bounds_contract::t03_malformed_file_adds_zero_partial_measurement pins zero partial blocks/candidates/metric observations"
+      ]
+    },
+    {
+      "id": "A4-covering-concatenation",
+      "criterion": "covering token concatenation equals every decoded block text",
+      "result": "pass",
+      "evidence": [
+        "coverage_failures=0 over 15 decoded blocks",
+        "the accumulator re-concatenates token lexemes per block and fails closed on any gap; npa_bounds_contract pins oracle equality"
+      ]
+    },
+    {
+      "id": "A5-capture-parity",
+      "criterion": "contour-A pattern IDs/counts equal direct library calls (M199 rule-seed provenance, 159/159 library match)",
+      "result": "pass",
+      "evidence": [
+        "seed captures over npa-frag-001..008: {\"anaphora\": 8, \"fullword\": 6, \"range\": 8} total=22",
+        "gate candidates_by_pattern: {\"anaphora\": 8, \"fullword\": 6, \"range\": 8}",
+        "pattern_unmapped=0; candidates total=22"
+      ]
+    },
+    {
+      "id": "A6-direct-proxy-separation",
+      "criterion": "lexical proxies are namespaced proxy_* and never counted as semantic frames",
+      "result": "pass",
+      "evidence": [
+        "direct=['blocks_per_document', 'tokens_per_block', 'candidates_per_block', 'candidates_per_document']",
+        "proxy=['proxy_date_docno_members_per_block', 'proxy_structural_range_blocks_per_block', 'proxy_alias_surfaces_per_document', 'proxy_cross_block_tails_per_document']",
+        "header non_claims: official-publication, R070, LawRef, N2-gate, semantic-frame, bound-decision",
+        "npa_bounds_contract::t03_proxy_metrics_namespaced_and_separated pins the markers"
+      ]
+    },
+    {
+      "id": "A7-byte-identical-repeats",
+      "criterion": "repeated fixture run produces byte-identical normalized JSON",
+      "result": "pass",
+      "evidence": [
+        "raw byte-identical CLI repeats: False (manifest started_at/ended_at pin the invocation window and command/output_artifact echo the --out path — invocation identity by design, manifest limitations 8; measurement records are byte-identical)",
+        "normalized (invocation identity only) sha256 equal: True (e4414137ecd6683d...)",
+        "npa_bounds_contract::t03_repeated_fixture_run_is_byte_identical proves full byte-identity with fixed run metadata"
+      ]
+    },
+    {
+      "id": "A8-no-raw-legal-text",
+      "criterion": "output contains no raw legal text",
+      "result": "pass",
+      "evidence": [
+        "probes: 128 (every source fragment text + every >=8-char word) scanned against 3 gate JSONL outputs",
+        "leaks: 0; CLI stderr carries counts/paths only (no Cyrillic): True",
+        "npa_bounds_contract::t03_output_contains_no_raw_legal_text pins the redaction boundary (R022)"
+      ]
+    },
+    {
+      "id": "A9-closed-schema-shape",
+      "criterion": "aggregate stays inside the closed npa-bounds-scan/v1 record set",
+      "result": "pass",
+      "evidence": [
+        "record order: ['header', 'totals', 'token_kind_histogram', 'candidates_by_pattern', 'span_relations']... + 8 metric + unavailable + run_manifest",
+        "npa_bounds_contract::t03_output_stays_closed_schema pins the closed-key allowlist via validate_bounds_jsonl"
+      ]
+    }
+  ],
+  "gate_passed": true,
+  "non_claims": [
+    "official-publication",
+    "R070",
+    "LawRef",
+    "N2-gate",
+    "semantic-frame",
+    "bound-decision",
+    "corpus-scope",
+    "R035-validation"
+  ],
+  "verify": [
+    {
+      "command": "python3 target/m200-s01-gate/run_gate.py",
+      "what": "fixture gate: corpus generation + 3 production CLI runs + 9 acceptance checks + redaction audit",
+      "exit_code": 0,
+      "verdict": "pass",
+      "gsd_exec": "5dd14ccb-08b2-4c16-9182-7a96ddda2640"
+    },
+    {
+      "command": "cargo test -p ln-decode --offline --test npa_corpus_sweep_contract --test npa_bounds_observer_contract --test npa_bounds_contract --test npa_bounds_cli_contract",
+      "what": "63 passed / 0 failed across the four contract suites",
+      "exit_code": 0,
+      "verdict": "pass",
+      "gsd_exec": "8bb96397-b307-486e-8046-399fcf8edcfd"
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "what": "formatting clean",
+      "exit_code": 0,
+      "verdict": "pass",
+      "gsd_exec": "253fd926-f8ba-4c20-ab8d-21aa3d7e4060"
+    },
+    {
+      "command": "cargo check --workspace --offline",
+      "what": "workspace compiles",
+      "exit_code": 0,
+      "verdict": "pass",
+      "gsd_exec": "c040be31-b524-4cd0-8502-992cc94cd212"
+    },
+    {
+      "command": "uv run python scripts/verify-adr-conformance.py",
+      "what": "ADR conformance ok, 0 findings, 26 files scanned",
+      "exit_code": 0,
+      "verdict": "pass",
+      "gsd_exec": "c6e2b39a-4c03-411d-af78-3620f2b3f265"
+    }
+  ]
+}

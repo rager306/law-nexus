@@ -42,6 +42,7 @@ modes:
   fixture_gate:
     input: decoder contract fixtures + selected NPA fixtures
     purpose: verify API wiring, anchors, pattern IDs, deterministic output, and malformed atomic failure
+    evidence: prd/migration/rust-evidence/m200-s01-scanner-fixture-gate.json
   corpus_scan:
     input: every XML under corpus_root
     purpose: direct metric distributions + explicitly labelled lexical proxies
@@ -113,7 +114,7 @@ aggregation:
     - bounded_histogram
     - quantiles
     - top_k_outlier_anchors
-  quantiles: [p50, p90, p95, p99, p99_9]
+  quantiles: [p50, p90, p95, p99, p999]
   top_k: deferred-undefined
   memory_rule: retain aggregations + bounded top-K only, never all observations
 
@@ -161,7 +162,6 @@ corpus_acceptance:
 runtime_stop:
   active: true
   reasons:
-    - scanner implementation and fixture gate do not yet exist
-    - top_k and operational resource budget are deferred-undefined
+    - numeric bounds decisions remain deferred-undefined (top_k and operational resource budget)
     - proxy metrics cannot select unavailable-until-runtime bounds
-    - complete corpus measurement and outlier review have not run
+    - complete corpus measurement and outlier review have not run (S01 covers the fixture gate only)
