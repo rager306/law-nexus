@@ -1,0 +1,452 @@
+{
+  "schema": "m200-s03-outlier-review/v1",
+  "schema_version": 1,
+  "lifecycle": "[proposed]",
+  "milestone": "M200-8s4kwq",
+  "slice": "S03",
+  "task": "T01",
+  "owner_decision": "D388",
+  "generated_utc": "2026-09-05T16:00:11Z",
+  "count_only": true,
+  "non_claims": [
+    "lifecycle stays [proposed]: no runtime readiness, no architecture YAML lifecycle flip, and no contour-B runtime is claimed",
+    "S02 stays [diagnostic]: this review is a decision layer over the accepted scan, not a promotion of measurement to validated bounds",
+    "S02 top_k_outlier_anchors omit per-anchor values: only the metric maximum is reconstructed, from the metric record max plus the first-anchor identity plus the descending insertion ordering contract",
+    "per-anchor values and rankings are not claimed for binary or all-zero tails: their top-K retention is walk-order first-seen, not outlier ranking",
+    "direct maxima are never derived from proxy_* evidence: the two namespaces stay separate",
+    "no numeric bound is selected except the proposed candidates_per_block safety ceiling (1024); every other runtime/member/expansion/context/alias/fan-out/source-authority value stays deferred-undefined",
+    "the ceiling 1024 is a safety ceiling with headroom over the observed max 504, not a claim that larger legal structures do not exist and not a limit of the legal universe",
+    "exact_span/containment zero counts are post-matcher-suppression observations, not proof those relations never occur",
+    "proxy_cross_block_tails zero-fire is a distance=1 proxy limitation, not a bound of zero",
+    "count-only review: no raw legal text; anchors are relative paths plus FNV content hashes plus block indices only",
+    "R035, R070 and the N2-gate stay open; this review does not close them"
+  ],
+  "source_binding": {
+    "scan_artifact": {
+      "path": "prd/migration/rust-evidence/m200-s02-npa-bounds-scan.jsonl",
+      "sha256": "3c76b3feb610adc5169d67aeb43a77dbecbd30fb1cac118918eff2a7f1863f6c",
+      "line_count": 15,
+      "lifecycle": "[diagnostic]"
+    },
+    "acceptance_artifact": {
+      "path": "prd/migration/rust-evidence/m200-s02-corpus-acceptance.json",
+      "sha256": "028335b6b3b8b50b5941fae7258408827ed44356bbbaee4eff060a12456a268f"
+    },
+    "profile_schema": "law-nexus-npa-bounds-scanner-profile/v1",
+    "profile_hash_at_scan": "fnv1a64:bcf61bc0940f3cb9",
+    "measurement_definitions_hash": "fnv1a64:6fa01374f8c3ad65",
+    "corpus_opened_by_this_review": false
+  },
+  "top_k_reconstruction": {
+    "anchors_store_values": false,
+    "statement": "S02 top_k_outlier_anchors store identity only (relative path, FNV content hash, block index, byte spans); they omit the observed value of every anchor. This review therefore reconstructs exactly one number per metric record: the observed metric maximum, taken from the metric record max field and bound to the first anchor in the record top_k list. The binding is justified by the descending insertion ordering contract (MetricAgg::observe retains an anchor only while value > last retained value; ties do not enter; the first retained anchor is therefore the maximum holder).",
+    "max_identification_rule": "observed_max = metric record max; max_anchor = first top_k_outlier_anchors entry; every later anchor keeps identity only with reconstructed_value null (strictly below the previously retained value; exact value unknown).",
+    "binary_and_zero_tails": "proxy_structural_range_blocks_per_block (binary presence, max=1) and proxy_cross_block_tails_per_document (all-zero, max=0) have no outlier to identify: max_identifies_outlier is false for them and their retained anchors are walk-order first-seen, never ranked.",
+    "non_claims": [
+      "no independently stored per-anchor values exist in S02 or in this review",
+      "no ranking of binary/zero tails is claimed",
+      "secondary anchors are identity-only: their values are strictly below the previously retained value and are never numerically claimed"
+    ]
+  },
+  "direct_metric_review": [
+    {
+      "metric_kind": "blocks_per_document",
+      "namespace": "direct",
+      "observed_max": 86937,
+      "max_identifies_outlier": true,
+      "max_anchor": {
+        "document_relative_path": "xml/law/143149/edition-c723d4f701b0eb8512688917.xml",
+        "document_content_hash": "fnv1a64:1fabd914dfb168e6",
+        "block_index": null,
+        "reconstructed_value": 86937
+      },
+      "secondary_anchors": [
+        {
+          "document_relative_path": "xml/law/297837/edition-cdddfc8997fcc1e82ebf7195.xml",
+          "document_content_hash": "fnv1a64:a81aa00a22044f15",
+          "block_index": null,
+          "reconstructed_value": null,
+          "note": "identity-only second anchor; value strictly below the maximum, never numerically claimed"
+        }
+      ],
+      "reconstruction_basis": "metric record max + first top_k anchor + descending insertion ordering contract",
+      "compact_shape": "document-block-count",
+      "review_note": "resource tail on one large edition, not a grammar bound; gate G04 defers the operational resource budget"
+    },
+    {
+      "metric_kind": "tokens_per_block",
+      "namespace": "direct",
+      "observed_max": 6389,
+      "max_identifies_outlier": true,
+      "max_anchor": {
+        "document_relative_path": "fas/decision_2026-03-31_078-06-105-1133-2026_rev-unknown_c4221c6c.xml",
+        "document_content_hash": "fnv1a64:d85180c40c716a30",
+        "block_index": 71,
+        "reconstructed_value": 6389
+      },
+      "secondary_anchors": [
+        {
+          "document_relative_path": "npa/document_2001-12-30_195-fz_rev-2026-07-04_efdcaadb.xml",
+          "document_content_hash": "fnv1a64:fec98440b4f3ae75",
+          "block_index": 542,
+          "reconstructed_value": null,
+          "note": "identity-only: same block that holds the candidates_per_block maximum; token value never numerically claimed"
+        }
+      ],
+      "reconstruction_basis": "metric record max + first top_k anchor + descending insertion ordering contract",
+      "compact_shape": "block-token-count",
+      "review_note": "resource tail in a court-adjacent decision document; gate G05 defers the operational resource budget"
+    },
+    {
+      "metric_kind": "candidates_per_block",
+      "namespace": "direct",
+      "observed_max": 504,
+      "max_identifies_outlier": true,
+      "max_anchor": {
+        "document_relative_path": "npa/document_2001-12-30_195-fz_rev-2026-07-04_efdcaadb.xml",
+        "document_content_hash": "fnv1a64:fec98440b4f3ae75",
+        "block_index": 542,
+        "reconstructed_value": 504
+      },
+      "secondary_anchors": [
+        {
+          "document_relative_path": "xml/law/534915/edition-5a01e02ec1e44ab3be1f20af.xml",
+          "document_content_hash": "fnv1a64:405e6e36bbad2c48",
+          "block_index": 14,
+          "reconstructed_value": null,
+          "note": "identity-only: edition-cluster anchor (same content hash re-observed across sibling editions); value never numerically claimed"
+        }
+      ],
+      "reconstruction_basis": "metric record max + first top_k anchor + descending insertion ordering contract",
+      "compact_shape": "block-candidate-count",
+      "review_note": "the load-bearing contour-A cardinality outlier (KoAP-scale block); gate G02 selects the proposed safety ceiling 1024 over this observed max 504"
+    },
+    {
+      "metric_kind": "candidates_per_document",
+      "namespace": "direct",
+      "observed_max": 12526,
+      "max_identifies_outlier": true,
+      "max_anchor": {
+        "document_relative_path": "npa/document_2001-12-30_195-fz_rev-2026-07-04_efdcaadb.xml",
+        "document_content_hash": "fnv1a64:fec98440b4f3ae75",
+        "block_index": null,
+        "reconstructed_value": 12526
+      },
+      "secondary_anchors": [
+        {
+          "document_relative_path": "xml/law/141352/edition-50ccd06067d89c6195d63184.xml",
+          "document_content_hash": "fnv1a64:58e918362f6e893e",
+          "block_index": null,
+          "reconstructed_value": null,
+          "note": "identity-only: also a proxy_alias_surfaces_per_document top-K hit; value never numerically claimed"
+        }
+      ],
+      "reconstruction_basis": "metric record max + first top_k anchor + descending insertion ordering contract",
+      "compact_shape": "document-candidate-count",
+      "review_note": "operational document aggregate, not a fragment-level bound; gate G03 defers it as operational"
+    }
+  ],
+  "proxy_metric_review": [
+    {
+      "metric_kind": "proxy_date_docno_members_per_block",
+      "namespace": "proxy",
+      "observed_max": 2,
+      "max_identifies_outlier": true,
+      "max_anchor": {
+        "document_relative_path": "courts/marb/003054946-edition-eb5050ab9e863add184344e6.xml",
+        "document_content_hash": "fnv1a64:f26a8db9c6ba1d71",
+        "block_index": 27,
+        "reconstructed_value": 2
+      },
+      "secondary_anchors": [
+        {
+          "document_relative_path": "courts/raps015/000295699-edition-f9576dd77d57a558a25e02e9.xml",
+          "document_content_hash": "fnv1a64:f15af23e42f7181b",
+          "block_index": 55,
+          "reconstructed_value": null,
+          "note": "identity-only: the second of the two max=2 blocks; reviewed as case/address-date false-positive risk"
+        }
+      ],
+      "reconstruction_basis": "metric record max + first top_k anchor + descending insertion ordering contract",
+      "compact_shape": "block-date-docno-pair-count",
+      "proxy_honesty": "Date+DocNo adjacency within two tokens on court documents, not a CoordinatingFrame member count; 4,855,779 zeros, 58 ones, 2 twos",
+      "review_note": "gate G06 stays deferred-undefined: adjacency proxy never measures frame members"
+    },
+    {
+      "metric_kind": "proxy_structural_range_blocks_per_block",
+      "namespace": "proxy",
+      "observed_max": 1,
+      "max_identifies_outlier": false,
+      "max_anchor": {
+        "document_relative_path": "courts/acn/000166350-edition-2f79e06db707d34dc23a1beb.xml",
+        "document_content_hash": "fnv1a64:1158c483d6ea3237",
+        "block_index": 112,
+        "reconstructed_value": null
+      },
+      "secondary_anchors": [],
+      "reconstruction_basis": "binary presence metric: no outlier exists to identify; retained anchors are walk-order first-seen, never ranked",
+      "compact_shape": "block-range-presence",
+      "proxy_honesty": "binary 0/1 presence bit (5,209 ones of 4,855,839 blocks), not endpoint-pair cardinality and not Cartesian expansion",
+      "review_note": "gate G07 stays deferred-undefined: presence bit never measures expansion cardinality"
+    },
+    {
+      "metric_kind": "proxy_alias_surfaces_per_document",
+      "namespace": "proxy",
+      "observed_max": 92,
+      "max_identifies_outlier": true,
+      "max_anchor": {
+        "document_relative_path": "xml/law/141352/edition-50ccd06067d89c6195d63184.xml",
+        "document_content_hash": "fnv1a64:58e918362f6e893e",
+        "block_index": null,
+        "reconstructed_value": 92
+      },
+      "secondary_anchors": [
+        {
+          "document_relative_path": "npa/resolution_2022-01-27_60_rev-2026-05-23_6d4b1dcc.xml",
+          "document_content_hash": "fnv1a64:991fb67d1d9182ee",
+          "block_index": null,
+          "reconstructed_value": null,
+          "note": "identity-only anchor; value never numerically claimed"
+        }
+      ],
+      "reconstruction_basis": "metric record max + first top_k anchor + descending insertion ordering contract",
+      "compact_shape": "document-alias-surface-count",
+      "proxy_honesty": "counts one single-Word lexeme surface per document, not scoped alias candidates",
+      "review_note": "gate G10 stays deferred-undefined: a Word-lexeme frequency is not an alias bound"
+    },
+    {
+      "metric_kind": "proxy_cross_block_tails_per_document",
+      "namespace": "proxy",
+      "observed_max": 0,
+      "max_identifies_outlier": false,
+      "max_anchor": {
+        "document_relative_path": "courts/acn/000166280-edition-84232bdf5e80b4c2d012dbae.xml",
+        "document_content_hash": "fnv1a64:6626719b723b6550",
+        "block_index": null,
+        "reconstructed_value": null
+      },
+      "secondary_anchors": [],
+      "reconstruction_basis": "all-zero metric: no outlier exists to identify; retained anchors are walk-order first-seen zeros, never ranked",
+      "compact_shape": "document-cross-block-tail-count",
+      "proxy_honesty": "the distance=1 adjacent-block proxy never fired on any document; zero-fire is a proxy limitation, not a bound of zero",
+      "review_note": "gates G08/G09 stay deferred-undefined: zero-fire cannot bound radius or hop counts"
+    }
+  ],
+  "gate_decisions": [
+    {
+      "gate_id": "G01",
+      "gate": "grammar-hard-invariants",
+      "source": "assessment/29-npa-bounds-hostile-plan.md s2; D388",
+      "evidence_basis": "categorical",
+      "observed_max": null,
+      "verdict": "select",
+      "selection_kind": "categorical-invariants",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "covering span never crosses blocks; structural range yields endpoint_pair=2 exactly; no arithmetic range enumeration; ContextRequest kinds closed; one worklist run; zero source mutation; zero prompt; provenance hops recorded. Enforced as fixture hostile contracts in the S03 hostile suite; no numeric runtime bound is introduced."
+    },
+    {
+      "gate_id": "G02",
+      "gate": "contour-a-candidates-per-block-ceiling",
+      "source": "prd/architecture/npa-capture-arbitration.yaml; D388",
+      "evidence_basis": "direct",
+      "observed_max": 504,
+      "verdict": "select",
+      "selection_kind": "numeric-safety-ceiling",
+      "proposed_value": 1024,
+      "refusal_diagnostic": "candidate_limit_reached",
+      "rationale": "the observed maximum 504 lives in the KoAP-scale block npa/document_2001-12-30_195-fz block 542; the proposed 1024 keeps at least 2x headroom over the observed max and stays far below the quadratic pair-check danger zone. It is a revisable [proposed] safety ceiling with headroom, not a claim that larger legal structures do not exist; it is neither the observed max (504) nor a p999 histogram bucket edge (14). Raising it later requires a new review row; it is never lowered to an observed max or a bucket edge."
+    },
+    {
+      "gate_id": "G03",
+      "gate": "candidates-per-document-bound",
+      "source": "prd/architecture/npa-bounds-scanner-profile.yaml; D388",
+      "evidence_basis": "direct",
+      "observed_max": 12526,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: a document-level aggregate is an operational resource axis, not a fragment-level cardinality bound; selecting it would couple the document resource axis with the block cardinality axis. Stays deferred under the active runtime_stop resource budget."
+    },
+    {
+      "gate_id": "G04",
+      "gate": "blocks-per-document-resource-budget",
+      "source": "prd/architecture/npa-bounds-scanner-profile.yaml runtime_stop; D387/D388",
+      "evidence_basis": "direct",
+      "observed_max": 86937,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: the 86937-block edition is an operational resource tail (xml/law/143149), not a grammar bound; the resource budget stays deferred under runtime_stop and is never coupled with candidate cardinality."
+    },
+    {
+      "gate_id": "G05",
+      "gate": "tokens-per-block-resource-budget",
+      "source": "prd/architecture/npa-bounds-scanner-profile.yaml runtime_stop; D387/D388",
+      "evidence_basis": "direct",
+      "observed_max": 6389,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: the 6389-token block (fas decision block 71) is an operational resource tail, not a grammar bound; the resource budget stays deferred under runtime_stop."
+    },
+    {
+      "gate_id": "G06",
+      "gate": "max-members-coordinating-frame",
+      "source": "prd/architecture/npa-identifying-cycle.yaml; D388",
+      "evidence_basis": "proxy",
+      "observed_max": 2,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: proxy_date_docno_members_per_block max=2 is Date+DocNo adjacency within two tokens on court documents (case/address date false-positive risk), not a CoordinatingFrame member count; the true member count is unavailable until runtime, so the value stays deferred-undefined."
+    },
+    {
+      "gate_id": "G07",
+      "gate": "max-expanded-candidates",
+      "source": "prd/architecture/npa-identifying-cycle.yaml; D388",
+      "evidence_basis": "proxy",
+      "observed_max": 1,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: proxy_structural_range_blocks_per_block is a binary presence bit (5,209 ones of 4,855,839 blocks), not endpoint-pair cardinality; the true Cartesian expansion cardinality is unavailable until runtime, so the value stays deferred-undefined."
+    },
+    {
+      "gate_id": "G08",
+      "gate": "adjacent-block-radius",
+      "source": "prd/architecture/npa-document-context.yaml; D388",
+      "evidence_basis": "proxy",
+      "observed_max": 0,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: proxy_cross_block_tails_per_document never fired (max=0 on every document) at the fixed distance=1; zero-fire is a proxy limitation, not a bound of zero, so the radius stays deferred-undefined."
+    },
+    {
+      "gate_id": "G09",
+      "gate": "max-series-hops",
+      "source": "prd/architecture/npa-document-context.yaml; prd/architecture/npa-identifying-cycle.yaml; D388",
+      "evidence_basis": "unavailable",
+      "observed_max": null,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: accepted continues_series hop count is unavailable until runtime; the identifying-cycle continuation_hops rule stays one-unless-proven, so the hop bound stays deferred-undefined."
+    },
+    {
+      "gate_id": "G10",
+      "gate": "max-alias-candidates",
+      "source": "prd/architecture/npa-document-context.yaml; D388",
+      "evidence_basis": "proxy",
+      "observed_max": 92,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: proxy_alias_surfaces_per_document counts one single-Word lexeme surface per document, not scoped alias candidates; a Word-lexeme frequency is not an alias bound, so the value stays deferred-undefined."
+    },
+    {
+      "gate_id": "G11",
+      "gate": "context-claims-fanout-memo-depth",
+      "source": "prd/architecture/npa-document-context.yaml; prd/architecture/npa-bounds-scanner-profile.yaml unavailable_until_runtime; D388",
+      "evidence_basis": "unavailable",
+      "observed_max": null,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: ContextRequest count and fan-out, memo hit rate and derivation depth, SemanticFieldClaim count per field, and the sufficient/partial/conflicting/cycle/limit distributions are all unavailable until runtime (profile unavailable_until_runtime list), so every value in this family stays deferred-undefined."
+    },
+    {
+      "gate_id": "G12",
+      "gate": "pair-policies-frame-pairs",
+      "source": "prd/architecture/npa-capture-arbitration.yaml; D388",
+      "evidence_basis": "unavailable",
+      "observed_max": null,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: coordinating-act-frame and structural-designation-frame are design-only pattern ids outside the seven production capture patterns; no executable arbitration surface exists for them in S03, so those pair policies stay deferred-undefined."
+    },
+    {
+      "gate_id": "G13",
+      "gate": "pair-policies-same-span-containment",
+      "source": "prd/architecture/npa-capture-arbitration.yaml; D388",
+      "evidence_basis": "direct",
+      "observed_max": null,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: exact_span_pairs=0 and containment_pairs=0 are post-matcher-suppression observations (capture_lawrefs already suppresses containments before span relations are counted), not proof those relations never occur; the policy value stays deferred-undefined while the categorical default (same-span incompatible slots stay a conflict set; containment without a policy stays conflicted) is test-enforced and never a silent winner."
+    },
+    {
+      "gate_id": "G14",
+      "gate": "arbitration-default-actions",
+      "source": "prd/architecture/npa-capture-arbitration.yaml; D388",
+      "evidence_basis": "direct",
+      "observed_max": null,
+      "verdict": "select",
+      "selection_kind": "categorical-defaults",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "disjoint pairs retain both claims (10,962,245 observed), partial_overlap pairs retain a conflict set (539 observed), same-span incompatible slots stay a conflict set, and no source-function-order winner and no silent truncation is ever invented; test-enforced by the S03 hostile suite over the production span_relation classifier. Categorical defaults only; no numeric bound."
+    },
+    {
+      "gate_id": "G15",
+      "gate": "source-authority-policy",
+      "source": "prd/architecture/current-document-requisites.yaml; D396/D388",
+      "evidence_basis": "unavailable",
+      "observed_max": null,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: no requisites extractor exists, so no authority ranking is measurable; the default stays no-winner and hostile seeds must expose competing claims without minting edition provenance; R070 stays open."
+    },
+    {
+      "gate_id": "G16",
+      "gate": "top-k-aggregation-policy",
+      "source": "prd/architecture/npa-bounds-scanner-profile.yaml aggregation; D388",
+      "evidence_basis": "categorical",
+      "observed_max": null,
+      "verdict": "deferred-undefined",
+      "selection_kind": null,
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "rationale": "blocking reason: TOP_K_SCAFFOLD_CAP=8 is a bounded-memory scaffold rule, not the aggregation.top_k policy; binary and all-zero tails retain walk-order first-seen anchors rather than ranked outliers, so the top-K selection policy stays deferred-undefined."
+    }
+  ],
+  "npa_family_drift": {
+    "historical_top_level_dirents": 799,
+    "live_recursive_xml": 916,
+    "delta": 117,
+    "authority_note": "the recursive walker is the inventory authority; edition subdirectories (for example the 44-FZ cluster) hold additional XML revisions beyond the historical top-level inventory; neither number is hardcoded in the scanner and neither is a bound (D397 recorded)."
+  },
+  "runtime_stop": {
+    "active": true,
+    "remaining_reasons": [
+      "design-only frame pair policies (coordinating-act-frame, structural-designation-frame) have no executable surface",
+      "requisites source_authority_policy stays deferred-undefined and no requisites extractor exists",
+      "context, alias and fan-out limits (adjacent_block_radius, max_series_hops, max_alias_candidates, max_context_claims_per_field, memo, derivation depth) are unavailable until runtime",
+      "the identifying-cycle gate N2 stays open",
+      "R035 numeric-bound validation and R070 source-authority validation stay open",
+      "no local grammar runtime is implemented in S03; the proposed ceiling has no product-path wiring yet"
+    ],
+    "note": "S04 updates the runtime_stop sentence after this evidence exists; selecting one safety ceiling does not remove the remaining stop reasons."
+  },
+  "non_closures": {
+    "requirements": ["R035", "R070"],
+    "gates": ["N2-gate"],
+    "note": "this review executes the R038 standing gate (independent review without a second corpus walk) but does not close it; R035, R070 and N2 remain open after S03."
+  }
+}

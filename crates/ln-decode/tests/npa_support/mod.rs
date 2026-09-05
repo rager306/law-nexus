@@ -362,6 +362,20 @@ impl<'a> JsonParser<'a> {
     }
 }
 
+/// Minimal entry point for integration tests that reuse the single D328
+/// parser (M200 S03/T01 rework F1: no second `Json` implementation lives in
+/// test files). Literal parsing is unchanged: `Json::Bool` stays
+/// unit-valued, so exact booleans are asserted with narrow raw-text markers
+/// after the structured parse, never through a boolean accessor.
+///
+/// This shared module is compiled by integration-test targets that do not
+/// parse arbitrary JSON, so the optional entry point is intentionally unused
+/// in those targets.
+#[allow(dead_code)]
+pub(crate) fn parse_json(text: &str) -> Result<Json, String> {
+    JsonParser::new(text).parse_document()
+}
+
 impl Json {
     fn obj(&self) -> Result<&[(String, Json)], String> {
         match self {
@@ -370,7 +384,7 @@ impl Json {
         }
     }
 
-    fn get(&self, key: &str) -> Result<&Json, String> {
+    pub(crate) fn get(&self, key: &str) -> Result<&Json, String> {
         self.obj()?
             .iter()
             .find(|(existing, _)| existing == key)
@@ -378,7 +392,7 @@ impl Json {
             .ok_or_else(|| format!("missing JSON field '{key}'"))
     }
 
-    fn get_opt(&self, key: &str) -> Result<Option<&Json>, String> {
+    pub(crate) fn get_opt(&self, key: &str) -> Result<Option<&Json>, String> {
         Ok(self
             .obj()?
             .iter()
@@ -386,7 +400,7 @@ impl Json {
             .map(|(_, value)| value))
     }
 
-    fn require_keys(&self, allowed: &[&str], context: &str) -> Result<(), String> {
+    pub(crate) fn require_keys(&self, allowed: &[&str], context: &str) -> Result<(), String> {
         for (key, _) in self.obj()? {
             if !allowed.contains(&key.as_str()) {
                 return Err(format!("{context}: unexpected JSON key '{key}'"));
@@ -395,21 +409,21 @@ impl Json {
         Ok(())
     }
 
-    fn as_str(&self) -> Result<&str, String> {
+    pub(crate) fn as_str(&self) -> Result<&str, String> {
         match self {
             Json::Str(value) => Ok(value),
             other => Err(format!("expected JSON string, found {other:?}")),
         }
     }
 
-    fn as_arr(&self) -> Result<&[Json], String> {
+    pub(crate) fn as_arr(&self) -> Result<&[Json], String> {
         match self {
             Json::Arr(items) => Ok(items),
             other => Err(format!("expected JSON array, found {other:?}")),
         }
     }
 
-    fn as_usize(&self) -> Result<usize, String> {
+    pub(crate) fn as_usize(&self) -> Result<usize, String> {
         match self {
             Json::Num(raw) => raw
                 .parse::<usize>()
