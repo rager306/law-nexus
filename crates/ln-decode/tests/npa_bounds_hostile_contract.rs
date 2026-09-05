@@ -1,4 +1,4 @@
-//! S03 T01 hostile contract (M200-8s4kwq): tracked review `m200-s03-outlier-review/v1`
+//! S03 T01+T02 hostile contracts (M200-8s4kwq): tracked review `m200-s03-outlier-review/v1`
 //! over the accepted S02 `[diagnostic]` JSONL (D388 select-or-defer).
 //! Reader: `npa_support`'s D328 closed parser (exact booleans via raw markers).
 //! Source binding: structured pins + acceptance cross-chain (digests: S02 UAT).
@@ -12,7 +12,10 @@ mod npa_support;
 use std::fs;
 use std::path::PathBuf;
 
-use ln_decode::npa_bounds::validate_bounds_jsonl;
+use ln_decode::npa_bounds::{
+    arbitrate_pair, span_relation, validate_bounds_jsonl, PairDiagnostic, PairOutcome,
+    SpanRelation, UNAVAILABLE_METRICS,
+};
 use npa_support::{parse_json, Json};
 
 // Pinned values (accepted S02 evidence chain).
@@ -40,6 +43,12 @@ const MARKERS: [&str; 7] = [
 const OBSERVED_CANDIDATES_PER_BLOCK_MAX: u64 = 504;
 const PROPOSED_CANDIDATE_CEILING: u64 = 1024;
 const P999_CANDIDATES_PER_BLOCK_BUCKET_EDGE: u64 = 14;
+
+// T02: tracked design sources + observed S02 pair-class distribution (G14).
+const ASSESSMENT_RELATIVE_PATH: &str = "assessment/29-npa-bounds-hostile-plan.md";
+const ARBITRATION_RELATIVE_PATH: &str = "prd/architecture/npa-capture-arbitration.yaml";
+const OBSERVED_PARTIAL_OVERLAP_PAIRS: u64 = 539;
+const OBSERVED_DISJOINT_PAIRS: u64 = 10_962_245;
 
 #[rustfmt::skip]
 const DIRECT_KINDS: [&str; 4] = [
@@ -849,4 +858,234 @@ fn t08_review_reader_refuses_tampering() {
     assert_ne!(invented_value, review, "tamper fixture must differ");
     let err = check_secondary_identity_only(&invented_value, "blocks_per_document").unwrap_err();
     assert!(err.contains("identity-only"), "names the rule: {err}");
+}
+
+// ==== T02: grammar-hard invariants + arbitration defaults (no numeric bound) ====
+
+/// Section between two markdown headers (both headers exclusive; the end
+/// header is searched after the start header).
+fn section_between<'a>(text: &'a str, start: &str, end: &str) -> &'a str {
+    let from = must_find(text, start, "section header missing").expect("section header");
+    let to = must_find(&text[from..], end, "section end missing").expect("section end") + from;
+    &text[from + start.len()..to]
+}
+
+/// Assessment §2 grammar-hard invariants stay categorical: each bound cell is
+/// digit-free (a number would be a measured maximum, deferred to G02+), every
+/// invariant is echoed in the review G01 rationale, §2 closes without minting
+/// ceilings, and surfaces with no scanner form stay deferred-unavailable.
+#[test]
+fn t09_grammar_hard_invariants_categorical() {
+    let assessment = read_text(ASSESSMENT_RELATIVE_PATH);
+    let review = read_text(REVIEW_RELATIVE_PATH);
+    let section = section_between(&assessment, "## 2. Grammar-hard invariants", "## 3.");
+    assert!(
+        section.contains("categorical constraints rather than measured maxima"),
+        "§2 must state its categorical basis"
+    );
+    // (invariant, assessment §2 phrase, review G01 rationale echo)
+    #[rustfmt::skip]
+    let rows: [(&str, &str, &str); 8] = [
+        ("covering span", "one fragment-local TextAnchor; never cross-block", "span never crosses blocks"),
+        ("endpoint pair", "exactly two endpoint candidates under `endpoint_pair`", "endpoint_pair=2 exactly"),
+        ("range semantics", "no arithmetic enumeration of intermediate decimal designations", "no arithmetic range enumeration"),
+        ("request vocabulary", "closed to the contract's named ContextRequest kinds", "ContextRequest kinds closed"),
+        ("context closure", "one deterministic worklist-to-fixpoint run per document version", "one worklist run"),
+        ("source mutation", "zero mutation of covering tokens, mentions, or base index", "zero source mutation"),
+        ("prompt dependency", "zero product dependencies", "zero prompt"),
+        ("provenance", "every derived field retains every authorized hop", "provenance hops recorded"),
+    ];
+    let g01 = gate_row_slice(&review, "grammar-hard-invariants").unwrap();
+    for (name, in_assessment, in_review) in rows {
+        assert!(
+            section.contains(in_assessment),
+            "{name}: §2 phrase drifted: {in_assessment}"
+        );
+        assert!(
+            g01.contains(in_review),
+            "{name}: review G01 echo drifted: {in_review}"
+        );
+    }
+    assert!(
+        section.contains("These do not determine safe memory/time/cardinality ceilings."),
+        "§2 must close without minting ceilings"
+    );
+    // Hostile: a digit inside a §2 bound cell would mint a measured maximum.
+    for line in section.lines().filter(|l| l.starts_with('|')) {
+        if line.contains("---") {
+            continue;
+        }
+        let cells: Vec<&str> = line.split('|').collect();
+        assert!(cells.len() >= 4, "malformed §2 row: {line}");
+        if cells[1].trim() == "Invariant" {
+            continue;
+        }
+        assert!(
+            !cells[2].bytes().any(|byte| byte.is_ascii_digit()),
+            "§2 bound carries a digit (measured maxima are deferred): {line}"
+        );
+    }
+    // Surfaces with no scanner form stay deferred-unavailable, never invented.
+    for deferred in [
+        "ContextRequest count and fan-out",
+        "accepted continues_series hop count",
+    ] {
+        assert!(
+            UNAVAILABLE_METRICS.contains(&deferred),
+            "grammar surface must stay unavailable-until-runtime: {deferred}"
+        );
+    }
+    assert!(g01.contains("no numeric runtime bound is introduced"));
+}
+
+/// Executable categorical arbitration defaults (G14): the production
+/// classifier and the pure pair reducer refuse to invent winners. Tables pin
+/// half-open classification, one default per pair class, swap symmetry, and
+/// diagnostics equal to the arbitration contract's ids verbatim.
+type SpanCase = (&'static str, (usize, usize), (usize, usize), SpanRelation);
+type ArbitrationCase = (
+    &'static str,
+    (usize, usize),
+    (usize, usize),
+    bool,
+    PairOutcome,
+);
+
+#[test]
+fn t10_arbitration_defaults_table_driven() {
+    // (name, a, b, relation) — half-open byte-span classification.
+    #[rustfmt::skip]
+    let spans: [SpanCase; 6] = [
+        ("exact", (5, 25), (5, 25), SpanRelation::Exact),
+        ("containment wider first", (0, 100), (10, 20), SpanRelation::Containment),
+        ("containment narrower first", (10, 20), (0, 100), SpanRelation::Containment),
+        ("partial overlap", (0, 15), (10, 25), SpanRelation::PartialOverlap),
+        ("half-open adjacency is disjoint", (0, 10), (10, 20), SpanRelation::Disjoint),
+        ("degenerate empty span stays total", (5, 5), (5, 10), SpanRelation::Containment),
+    ];
+    for (name, a, b, want) in spans {
+        assert_eq!(span_relation(a, b), want, "{name}");
+        assert_eq!(
+            span_relation(b, a),
+            want,
+            "{name}: classifier is order-independent"
+        );
+    }
+    // (name, a, b, slots_equal, outcome) — one categorical default per class.
+    #[rustfmt::skip]
+    let rows: [ArbitrationCase; 7] = [
+        ("disjoint retains both without invented ambiguity", (0, 10), (20, 30), true, PairOutcome::RetainBoth(None)),
+        ("half-open adjacency retains both", (0, 10), (10, 20), false, PairOutcome::RetainBoth(None)),
+        ("partial overlap becomes a conflict set", (0, 15), (10, 25), true, PairOutcome::ConflictSet(PairDiagnostic::PartialOverlapConflict)),
+        ("same span + incompatible slots is a conflict set", (5, 25), (5, 25), false, PairOutcome::ConflictSet(PairDiagnostic::ExactSpanSlotConflict)),
+        ("same span + identical slots merges evidence", (5, 25), (5, 25), true, PairOutcome::MergeEvidence(PairDiagnostic::DuplicateMatcherEvidenceMerged)),
+        ("containment stays ambiguous (no pair policy)", (0, 100), (10, 20), true, PairOutcome::RetainBoth(Some(PairDiagnostic::ContainmentWithoutPairPolicy))),
+        ("containment reversed stays ambiguous", (10, 20), (0, 100), false, PairOutcome::RetainBoth(Some(PairDiagnostic::ContainmentWithoutPairPolicy))),
+    ];
+    for (name, a, b, slots_equal, want) in rows {
+        assert_eq!(arbitrate_pair(a, b, slots_equal), want, "{name}");
+        assert_eq!(
+            arbitrate_pair(b, a, slots_equal),
+            want,
+            "{name}: swapped order must not invent a winner"
+        );
+    }
+    // No silent winner invention: merging needs identical slots; containment
+    // never subsumes while every pair policy is deferred-undefined.
+    assert!(matches!(
+        arbitrate_pair((5, 25), (5, 25), false),
+        PairOutcome::ConflictSet(_)
+    ));
+    assert!(!matches!(
+        arbitrate_pair((0, 100), (10, 20), true),
+        PairOutcome::MergeEvidence(_)
+    ));
+    // Diagnostics are the contract's ids verbatim; exactly four are reachable
+    // from pure pair facts and none of the unreachable ones is minted.
+    let yaml = read_text(ARBITRATION_RELATIVE_PATH);
+    let reached = [
+        PairDiagnostic::DuplicateMatcherEvidenceMerged,
+        PairDiagnostic::ExactSpanSlotConflict,
+        PairDiagnostic::ContainmentWithoutPairPolicy,
+        PairDiagnostic::PartialOverlapConflict,
+    ];
+    let mut seen: Vec<&str> = Vec::new();
+    for diagnostic in reached {
+        let id = diagnostic.as_str();
+        assert!(
+            yaml.contains(&format!("- {id}")),
+            "reducer diagnostic absent from the contract: {id}"
+        );
+        assert!(!seen.contains(&id), "duplicate diagnostic id: {id}");
+        seen.push(id);
+    }
+    for unminted in [
+        "compatible_explicit_slots_merged",
+        "frame_direct_disagreement",
+        "candidate_limit_reached",
+    ] {
+        assert!(
+            !seen.contains(&unminted),
+            "pair reducer must not mint '{unminted}'"
+        );
+    }
+    // Structural contract pins: policies deferred, defaults never suppress.
+    #[rustfmt::skip]
+    let pins = [
+        "pair_policies:\n  status: deferred-undefined",
+        "default: retain candidates with ambiguous/conflict diagnostic; never silently suppress",
+        "# Pair policy is data. Source function order is never precedence.",
+        "note: ordering is deterministic presentation, not semantic winner selection",
+        "- when: same_span + incompatible\n    action: retain_conflict_set",
+        "- when: containment + no_pair_policy\n    action: retain_both_as_ambiguous",
+        "- when: partial_overlap\n    action: retain_conflict_set",
+        "- when: disjoint\n    action: retain_both",
+        "- same span + incompatible doc_no remains a conflict set",
+        "- partial overlap never resolves by pattern execution order",
+        "- disjoint candidates retain stable source order",
+        "- start_byte/end_byte are fragment-local half-open byte offsets",
+    ];
+    for pin in pins {
+        assert!(yaml.contains(pin), "arbitration contract drifted: {pin:?}");
+    }
+}
+
+/// Arbitration defaults bind to the observed S02 distribution: the scan's
+/// closed `span_relations` record (exact 0 / containment 0 / partial 539 /
+/// disjoint 10,962,245) matches the review G14 rationale citations — the
+/// categorical defaults stay anchored to count-only corpus evidence.
+#[test]
+fn t11_arbitration_defaults_bind_observed_distribution() {
+    let scan = read_text(SCAN_RELATIVE_PATH);
+    let line = scan
+        .lines()
+        .find(|l| l.contains("\"record_kind\":\"span_relations\""))
+        .expect("S02 span_relations record present");
+    let read = |marker: &str| leading_uint(line, marker, "span_relations").unwrap();
+    assert_eq!(read("\"exact_span_pairs\":"), 0);
+    assert_eq!(read("\"containment_pairs\":"), 0);
+    assert_eq!(
+        read("\"partial_overlap_pairs\":"),
+        OBSERVED_PARTIAL_OVERLAP_PAIRS
+    );
+    assert_eq!(read("\"disjoint_pairs\":"), OBSERVED_DISJOINT_PAIRS);
+    let review = read_text(REVIEW_RELATIVE_PATH);
+    let g14 = gate_row_slice(&review, "arbitration-default-actions").unwrap();
+    assert!(
+        g14.contains("(10,962,245 observed)"),
+        "G14 disjoint citation drifted"
+    );
+    assert!(
+        g14.contains("(539 observed)"),
+        "G14 partial-overlap citation drifted"
+    );
+    for required in [
+        "same-span incompatible slots stay a conflict set",
+        "no source-function-order winner",
+        "no silent truncation",
+        "Categorical defaults only; no numeric bound",
+        "production span_relation classifier",
+    ] {
+        assert!(g14.contains(required), "G14 rationale drifted: {required}");
+    }
 }

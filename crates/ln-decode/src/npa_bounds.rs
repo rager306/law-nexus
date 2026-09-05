@@ -318,6 +318,75 @@ pub fn span_relation(a: (usize, usize), b: (usize, usize)) -> SpanRelation {
     }
 }
 
+/// Closed categorical diagnostic for one arbitration pair outcome. `as_str`
+/// values are the `npa-capture-arbitration/v1` `diagnostics` ids verbatim
+/// (D388): stable explicit text, never invented at a call site.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PairDiagnostic {
+    /// Same span + identical explicit slots collapsed to one mention.
+    DuplicateMatcherEvidenceMerged,
+    /// Same span + non-identical slots: conflict set, no winner invented.
+    ExactSpanSlotConflict,
+    /// Containment with no pair policy (every policy is deferred-undefined).
+    ContainmentWithoutPairPolicy,
+    /// Partial overlap: conflict set, never execution-order resolution.
+    PartialOverlapConflict,
+}
+
+impl PairDiagnostic {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            PairDiagnostic::DuplicateMatcherEvidenceMerged => "duplicate_matcher_evidence_merged",
+            PairDiagnostic::ExactSpanSlotConflict => "exact_span_slot_conflict",
+            PairDiagnostic::ContainmentWithoutPairPolicy => "containment_without_pair_policy",
+            PairDiagnostic::PartialOverlapConflict => "partial_overlap_conflict",
+        }
+    }
+}
+
+/// Closed categorical outcome for one candidate pair (D388
+/// `npa-capture-arbitration/v1` defaults). Pair policies are
+/// deferred-undefined, so every outcome either retains both candidates or
+/// refuses into a conflict set — never a silently invented winner.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PairOutcome {
+    /// Both candidates retained: disjoint (no diagnostic), or containment
+    /// left ambiguous because no pair policy is selected.
+    RetainBoth(Option<PairDiagnostic>),
+    /// One mention; all pattern/origin evidence merged (same span +
+    /// identical explicit slots).
+    MergeEvidence(PairDiagnostic),
+    /// Conflict set; arbitration is deferred downstream with this explicit
+    /// diagnostic.
+    ConflictSet(PairDiagnostic),
+}
+
+/// Pure categorical pair reducer over the production [`span_relation`]
+/// classifier. `slots_equal`: every closed LawRefSlot holds an equal
+/// explicit value (absence is not evidence). Fragment-local by construction
+/// — callers pair candidates only inside one block, so no cross-block
+/// arbitration exists to invent. No numeric threshold, no score, no
+/// source-function-order precedence. Same span with any non-identical slot
+/// fingerprint stays a conflict set: merging without a selected pair policy
+/// would invent a winner.
+pub fn arbitrate_pair(a: (usize, usize), b: (usize, usize), slots_equal: bool) -> PairOutcome {
+    match span_relation(a, b) {
+        SpanRelation::Exact if slots_equal => {
+            PairOutcome::MergeEvidence(PairDiagnostic::DuplicateMatcherEvidenceMerged)
+        }
+        SpanRelation::Exact => PairOutcome::ConflictSet(PairDiagnostic::ExactSpanSlotConflict),
+        SpanRelation::Containment => {
+            // `subsumes`/`distinct_mentions` are deferred-undefined, so
+            // containment stays ambiguous: both retained + explicit diagnostic.
+            PairOutcome::RetainBoth(Some(PairDiagnostic::ContainmentWithoutPairPolicy))
+        }
+        SpanRelation::PartialOverlap => {
+            PairOutcome::ConflictSet(PairDiagnostic::PartialOverlapConflict)
+        }
+        SpanRelation::Disjoint => PairOutcome::RetainBoth(None),
+    }
+}
+
 /// Lexical proxy: number of Date+DocNo adjacency pairs in a token stream —
 /// a `Date` token with a `DocNo` token at most two positions ahead,
 /// skipping at most one intervening `Space`. Profile
