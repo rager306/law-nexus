@@ -7,15 +7,21 @@
 //! editor-shaped commencement hint is a typed refusal, never a partial
 //! envelope (INV-08 / INV-10).
 //!
-//! This module does not wire provenance into `edition_delta` (that seam is
-//! owned by the next slice), does not resolve transitional rules, does not
-//! mint runtime selectors, and does not close R070 — see
-//! [`PROVENANCE_NON_CLAIMS`].
+//! The gated `edition_delta` seam lives here (D409): [`ProvenanceAdmission`]
+//! is the caller-supplied commencement + transitional packet for one kept
+//! target, and [`EditionDeltaError`] is the whole-edition typed refusal
+//! surfaced by `domain::edition_delta`. Per D410 the admission stores the
+//! raw commencement fields, so the commencement refusal surfaces at the
+//! seam, not at admission construction. The module still does not resolve
+//! transitional rules, does not mint runtime selectors, and does not close
+//! R070 — see [`PROVENANCE_NON_CLAIMS`].
 
 use std::error::Error;
 use std::fmt;
 
-use crate::domain::{AmendingActId, CanonRecordId, ComponentConceptId, EvidenceClass, IdError};
+use crate::domain::{
+    AmendingActId, CanonRecordId, ComponentConceptId, EvidenceClass, IdError, ThreeCanonLogError,
+};
 
 /// Honesty surface carried by every [`EditionProvenanceEnvelope`].
 ///
@@ -97,6 +103,62 @@ impl fmt::Display for ProvenanceConstructionError {
 
 impl Error for ProvenanceConstructionError {}
 
+/// Whole-edition typed refusal of the gated `edition_delta` seam (D409).
+///
+/// Deliberately a new error, not a widened `ThreeCanonLogError`: the D326
+/// window stays its own failure class, a kept target without an admission is
+/// a caller packet gap, and an admission or window that cannot complete the
+/// packet carries the S01 construction cause. Any variant means the caller
+/// receives **no** edition — never a partial delta.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EditionDeltaError {
+    /// The `(from, to]` window failed (inverted range, unordered log, …).
+    Window(ThreeCanonLogError),
+    /// A kept target's packet cannot be completed; the whole call is refused.
+    Unresolved {
+        target: ComponentConceptId,
+        cause: ProvenanceConstructionError,
+    },
+    /// A kept target has no caller-supplied admission.
+    MissingAdmission { target: ComponentConceptId },
+}
+
+impl fmt::Display for EditionDeltaError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Window(error) => {
+                write!(formatter, "edition delta window failed: {error}")
+            }
+            Self::Unresolved { target, cause } => write!(
+                formatter,
+                "edition delta unresolved for {}: {cause}",
+                target.as_str()
+            ),
+            Self::MissingAdmission { target } => write!(
+                formatter,
+                "kept edition target {} has no provenance admission",
+                target.as_str()
+            ),
+        }
+    }
+}
+
+impl Error for EditionDeltaError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::Window(error) => Some(error),
+            Self::Unresolved { cause, .. } => Some(cause),
+            Self::MissingAdmission { .. } => None,
+        }
+    }
+}
+
+impl From<ThreeCanonLogError> for EditionDeltaError {
+    fn from(value: ThreeCanonLogError) -> Self {
+        Self::Window(value)
+    }
+}
+
 /// Opaque commencement evidence leg: one governing rule reference plus the
 /// effect day it pins.
 ///
@@ -177,6 +239,72 @@ impl TransitionalEvidence {
         let rule_ref =
             CanonRecordId::parse(trimmed).map_err(ProvenanceConstructionError::InvalidId)?;
         Ok(Self::Declared(rule_ref))
+    }
+}
+
+/// Caller-supplied provenance admission for one kept `edition_delta` target
+/// (D409).
+///
+/// The caller owns the commencement and transitional slots; the seam never
+/// infers them (D289/D308/ADR-0021). Per D410 slot discipline the admission
+/// stores the **raw** commencement fields — effect day, evidence class, and
+/// the rule reference string — so an `EditorialHint` admission is storable
+/// data and the `CommencementEvidence` refusal surfaces at the
+/// `edition_delta` seam as [`EditionDeltaError::Unresolved`], never here.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProvenanceAdmission {
+    target: ComponentConceptId,
+    effect_day: i64,
+    evidence_class: EvidenceClass,
+    rule_ref: String,
+    transitional: TransitionalEvidence,
+}
+
+impl ProvenanceAdmission {
+    /// Admits one target with its raw commencement fields.
+    ///
+    /// Fail-closed empty before parse: a whitespace-only rule reference is
+    /// refused as [`ProvenanceConstructionError::MissingCommencement`] at
+    /// admission time; every other commencement refusal (editorial hints,
+    /// malformed references) is deferred to the seam, so the caller learns
+    /// which kept target is unresolved.
+    pub fn try_new(
+        target: ComponentConceptId,
+        effect_day: i64,
+        evidence_class: EvidenceClass,
+        rule_ref: &str,
+        transitional: TransitionalEvidence,
+    ) -> Result<Self, ProvenanceConstructionError> {
+        if rule_ref.trim().is_empty() {
+            return Err(ProvenanceConstructionError::MissingCommencement);
+        }
+        Ok(Self {
+            target,
+            effect_day,
+            evidence_class,
+            rule_ref: rule_ref.to_owned(),
+            transitional,
+        })
+    }
+
+    pub fn target(&self) -> &ComponentConceptId {
+        &self.target
+    }
+
+    pub fn effect_day(&self) -> i64 {
+        self.effect_day
+    }
+
+    pub fn evidence_class(&self) -> EvidenceClass {
+        self.evidence_class
+    }
+
+    pub fn rule_ref(&self) -> &str {
+        &self.rule_ref
+    }
+
+    pub fn transitional(&self) -> &TransitionalEvidence {
+        &self.transitional
     }
 }
 

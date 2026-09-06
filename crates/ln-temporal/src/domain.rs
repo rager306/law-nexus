@@ -2,6 +2,11 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
+use crate::provenance::{
+    CommencementEvidence, EditionDeltaError, EditionProvenanceEnvelope, ProvenanceAdmission,
+    ProvenanceConstructionError,
+};
+
 const MAX_ID_LEN: usize = 64;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -2443,7 +2448,8 @@ pub fn checkout_projection_at(
 // read through the same S01 `checkout_projection_at` (no second fold, no
 // readout copy). A delta line carries only the window events as evidence
 // plus the per-target force readouts at both boundaries. The root carries
-// no aggregate force readout (D325).
+// no aggregate force readout (D325). D409: every kept line additionally
+// carries a full provenance envelope or the whole call is refused.
 
 /// Non-claims carried by every edition delta.
 pub const EDITION_DELTA_NON_CLAIMS: &[&str] = &[
@@ -2452,11 +2458,14 @@ pub const EDITION_DELTA_NON_CLAIMS: &[&str] = &[
     "Not interval algebra (D228)",
     "Not R070 amending-act text evidence; synthetic act ids are not G1/G2 corpus (D179)",
     "D-03 remains open-bounded: this is a log-computable read-model, not the crystal compiler",
+    "Gated provenance envelope: every kept line carries a full EditionProvenanceEnvelope or the whole edition_delta call is refused (D409); wiring is evidence bookkeeping, not provenance coverage — R070 stays open",
 ];
 
 /// One component concept's change line in an edition delta window: the
 /// window canon evidence plus the per-target force readouts at both
-/// boundaries, conflict flags included (D326).
+/// boundaries, conflict flags included (D326). Since D409 every kept line
+/// also carries its full `EditionProvenanceEnvelope` — `edition_delta`
+/// never returns a line without one.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProvisionDelta {
     target: ComponentConceptId,
@@ -2465,6 +2474,7 @@ pub struct ProvisionDelta {
     force_conflict_from: bool,
     force_conflict_to: bool,
     events: Vec<ThreeCanonRecord>,
+    provenance: EditionProvenanceEnvelope,
 }
 
 impl ProvisionDelta {
@@ -2490,6 +2500,11 @@ impl ProvisionDelta {
 
     pub fn force_conflict_to(&self) -> bool {
         self.force_conflict_to
+    }
+
+    /// Full provenance packet of this line (D409); never absent.
+    pub fn provenance(&self) -> &EditionProvenanceEnvelope {
+        &self.provenance
     }
 }
 
@@ -2523,26 +2538,89 @@ impl EditionDelta {
     }
 }
 
+/// Pre-gate kept line: the D326 boundary readouts plus the window canon
+/// evidence, before the D409 provenance gate attaches the envelope.
+struct KeptProvisionLine {
+    target: ComponentConceptId,
+    force_from: NormativeState,
+    force_to: NormativeState,
+    force_conflict_from: bool,
+    force_conflict_to: bool,
+    events: Vec<ThreeCanonRecord>,
+}
+
+/// Builds one kept line's full provenance packet (D409): amending acts are
+/// set-extracted from the window `AmendmentEvent`s (two records of one act
+/// are one act, not a duplicate packet), the line's target is the affected
+/// provision, and delta evidence is the unique-sorted window canon record
+/// ids. Commencement and transitional slots come from the admission
+/// verbatim — never inferred, never defaulted (D289/D308/ADR-0021).
+fn edition_delta_envelope(
+    target: &ComponentConceptId,
+    events: &[ThreeCanonRecord],
+    admission: &ProvenanceAdmission,
+) -> Result<EditionProvenanceEnvelope, ProvenanceConstructionError> {
+    let mut acts: Vec<AmendingActId> = events
+        .iter()
+        .filter_map(|record| match record {
+            ThreeCanonRecord::Amendment(event) => Some(event.provenance().clone()),
+            _ => None,
+        })
+        .collect();
+    acts.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    acts.dedup_by(|left, right| left.as_str() == right.as_str());
+
+    let mut delta_evidence: Vec<CanonRecordId> = events
+        .iter()
+        .map(ThreeCanonRecord::record_id)
+        .cloned()
+        .collect();
+    delta_evidence.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    delta_evidence.dedup_by(|left, right| left.as_str() == right.as_str());
+
+    let commencement = CommencementEvidence::try_new(
+        admission.effect_day(),
+        admission.evidence_class(),
+        admission.rule_ref(),
+    )?;
+
+    EditionProvenanceEnvelope::try_new(
+        acts,
+        vec![target.clone()],
+        commencement,
+        admission.transitional().clone(),
+        delta_evidence,
+    )
+}
+
 /// Log-computable `(from, to]` diff of two point per-target checkouts of
 /// the recorded three-canon log (M196-bwvrj7 S02, D326). Not bitemporal
 /// checkout, not the WALK-T compiler: both boundary readouts come from the
 /// same S01 `checkout_projection_at` (same `effect_day <= t` cut, same
 /// readout, same defense-in-depth ordering loop), never from a second fold.
+///
+/// D409 gate: every kept line must resolve a full
+/// [`EditionProvenanceEnvelope`] from its caller-supplied
+/// [`ProvenanceAdmission`] plus the window canon evidence, or the **whole**
+/// call fails with an [`EditionDeltaError`] — the caller never receives a
+/// partial edition, and no commencement or transitional slot is inferred.
 pub fn edition_delta(
     log: &ThreeCanonEventLog,
     from_day: i64,
     to_day: i64,
-) -> Result<EditionDelta, ThreeCanonLogError> {
+    admissions: &[ProvenanceAdmission],
+) -> Result<EditionDelta, EditionDeltaError> {
     // D326 window shape: exclusive-from, inclusive-to. An inverted window is
-    // a caller error and fails closed; boundaries are never swapped (not an
-    // OrderingConflict — that error is about log append order, not windows).
+    // a caller error and fails closed before the admission gate (D409);
+    // boundaries are never swapped (not an OrderingConflict — that error is
+    // about log append order, not windows).
     if from_day > to_day {
-        return Err(ThreeCanonLogError::InvertedRange);
+        return Err(EditionDeltaError::Window(ThreeCanonLogError::InvertedRange));
     }
 
     // Two point checkouts carry all boundary semantics: the `effect_day <= t`
     // cut, the shared `force_readout` per target, and the fail-closed
-    // unordered-log refusal (OrderingConflict propagates as-is).
+    // unordered-log refusal (OrderingConflict propagates wrapped as Window).
     let checkout_from = checkout_projection_at(log, from_day)?;
     let checkout_to = checkout_projection_at(log, to_day)?;
 
@@ -2591,7 +2669,7 @@ pub fn edition_delta(
     // differs across the window OR the window carries canon evidence for it.
     // Conflict flags ride on the line but are not a keep criterion by
     // themselves, and the root carries no aggregate force at all (D325).
-    let mut provisions: Vec<ProvisionDelta> = targets
+    let mut kept: Vec<KeptProvisionLine> = targets
         .into_iter()
         .filter_map(|target| {
             let boundary = |checkout: &CheckoutProjection| {
@@ -2608,7 +2686,7 @@ pub fn edition_delta(
             if force_from == force_to && events.is_empty() {
                 return None;
             }
-            Some(ProvisionDelta {
+            Some(KeptProvisionLine {
                 target,
                 force_from,
                 force_to,
@@ -2620,7 +2698,40 @@ pub fn edition_delta(
         .collect();
     // Deterministic read model: HashMap order is not observable because the
     // provisions are sorted by target string (no Ord on the id type).
-    provisions.sort_by(|left, right| left.target.as_str().cmp(right.target.as_str()));
+    kept.sort_by(|left, right| left.target.as_str().cmp(right.target.as_str()));
+
+    // D409 provenance gate: every kept line completes its packet from the
+    // caller-supplied admission plus the window canon evidence. The first
+    // failure refuses the whole call in deterministic (target-sorted) order —
+    // never a partial edition, never a silently dropped line, never an
+    // inferred slot. A kept line may also lack window events entirely
+    // (force-change-only): the packet constructor then refuses with
+    // MissingAmendingAct — no act is synthesized from readouts (D289/D308).
+    let provisions: Vec<ProvisionDelta> = kept
+        .into_iter()
+        .map(|line| {
+            let admission = admissions
+                .iter()
+                .find(|candidate| candidate.target() == &line.target)
+                .ok_or(EditionDeltaError::MissingAdmission {
+                    target: line.target.clone(),
+                })?;
+            let provenance = edition_delta_envelope(&line.target, &line.events, admission)
+                .map_err(|cause| EditionDeltaError::Unresolved {
+                    target: line.target.clone(),
+                    cause,
+                })?;
+            Ok(ProvisionDelta {
+                target: line.target,
+                force_from: line.force_from,
+                force_to: line.force_to,
+                force_conflict_from: line.force_conflict_from,
+                force_conflict_to: line.force_conflict_to,
+                events: line.events,
+                provenance,
+            })
+        })
+        .collect::<Result<Vec<_>, EditionDeltaError>>()?;
 
     Ok(EditionDelta {
         from_day,
