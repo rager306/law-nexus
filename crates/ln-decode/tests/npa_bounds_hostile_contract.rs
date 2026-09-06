@@ -1106,7 +1106,8 @@ fn t11_arbitration_defaults_bind_observed_distribution() {
 // overlaid runtime. The fixture stays synthetic, count-only and
 // source-independent; unknown family/seed labels fail the reader closed.
 
-const FIXTURE_RELATIVE_PATH: &str = "crates/ln-decode/tests/fixtures/npa/hostile-bounds.txt";
+const FIXTURE_RELATIVE_PATH: &str =
+    "crates/ln-decode/tests/fixtures/npa-hostile/hostile-bounds.txt";
 const CONTEXT_YAML_RELATIVE_PATH: &str = "prd/architecture/npa-document-context.yaml";
 const REQUISITES_YAML_RELATIVE_PATH: &str = "prd/architecture/current-document-requisites.yaml";
 const CYCLE_YAML_RELATIVE_PATH: &str = "prd/architecture/npa-identifying-cycle.yaml";

@@ -164,8 +164,12 @@ fn num_or_null(value: &Json, key: &str, context: &str) -> Option<u64> {
     }
 }
 
+fn first_non_ascii_offset(bytes: &[u8]) -> Option<usize> {
+    bytes.iter().position(|&byte| byte >= 0x80)
+}
+
 fn assert_ascii(bytes: &[u8], label: &str) {
-    if let Some(offset) = bytes.iter().position(|&byte| byte >= 0x80) {
+    if let Some(offset) = first_non_ascii_offset(bytes) {
         panic!("{label} carries a non-ASCII byte at offset {offset}");
     }
 }
@@ -756,5 +760,451 @@ fn t03_sixteen_gate_actions_match_s03_verdicts() {
     assert_eq!(
         expect_str(&actions[15], "yaml_path", "G16"),
         "prd/architecture/npa-bounds-scanner-profile.yaml"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T03 transition pins (t04..t11). Everything here is read-only over tracked
+// bytes: all 16 gate rows bound to the six YAML contracts, runtime_stop kept
+// active with the stale reasons gone, the unwired product path, the
+// diagnostic/proposed lifecycles, the R035/R070/N2 non-closures, the
+// load-bearing deferred literals, the P0..P9 pipeline order, and fail-closed
+// tampering of the closeout bytes.
+// ---------------------------------------------------------------------------
+
+/// Loads a tracked repo file as UTF-8 text, failing closed with its path.
+fn repo_text(relative: &str) -> String {
+    String::from_utf8(read_repo_bytes(relative))
+        .unwrap_or_else(|_| panic!("{relative} is not valid UTF-8"))
+}
+
+/// The architecture YAML each gate row must cite (the D402 closeout table).
+fn gate_yaml_path(gate_id: &str) -> &'static str {
+    match gate_id {
+        "G01" | "G08" | "G09" | "G10" | "G11" => "prd/architecture/npa-document-context.yaml",
+        "G02" | "G12" | "G13" | "G14" => "prd/architecture/npa-capture-arbitration.yaml",
+        "G03" | "G04" | "G05" | "G16" => "prd/architecture/npa-bounds-scanner-profile.yaml",
+        "G06" | "G07" => "prd/architecture/npa-identifying-cycle.yaml",
+        "G15" => "prd/architecture/current-document-requisites.yaml",
+        other => panic!("unexpected gate id '{other}' outside G01..G16"),
+    }
+}
+
+/// Load-bearing literals each gate row must still find in its cited YAML
+/// (the T02 evidence-linked edits; every needle was grep-verified).
+fn gate_yaml_needles(gate_id: &str) -> Vec<&'static str> {
+    match gate_id {
+        "G01" => vec![
+            "request_kinds: [ancestor_path, adjacent_blocks, open_series_head, scoped_alias,",
+            "current_document_requisites, explicit_anchor_lookup]",
+        ],
+        "G02" => vec![
+            "G02 safety ceiling is [proposed] at 1024 candidates per block",
+            G02_REFUSAL_DIAGNOSTIC_PIN,
+            "observed max 504",
+            G02_BLOCK_HASH_PIN,
+            "never lowered to the observed max or the p999 bucket edge 14",
+            "product path unwired in capture_lawrefs",
+        ],
+        "G03" | "G04" | "G05" => vec!["G03-G05, G16"],
+        "G06" => vec![
+            "G06 (max-members-coordinating-frame)",
+            "not a members bound",
+        ],
+        "G07" => vec!["G07 (max-expanded-candidates)", "0/1 bit"],
+        "G08" => vec!["adjacent_block_radius: deferred-undefined"],
+        "G09" => vec!["max_series_hops: deferred-undefined"],
+        "G10" => vec!["max_alias_candidates: deferred-undefined"],
+        "G11" => vec!["max_context_claims_per_field: deferred-undefined"],
+        "G12" | "G13" => vec!["pair_policies:\n  status: deferred-undefined"],
+        "G14" => vec![
+            "- when: partial_overlap\n    action: retain_conflict_set",
+            "- when: disjoint\n    action: retain_both",
+        ],
+        "G15" => vec![
+            "source_authority_policy:\n  status: deferred-undefined",
+            "default: no winner; expose conflict",
+        ],
+        "G16" => vec!["top_k: deferred-undefined"],
+        other => panic!("unexpected gate id '{other}' outside G01..G16"),
+    }
+}
+
+#[test]
+fn t04_sixteen_gate_actions_bind_yaml_literals() {
+    let closeout = parse_repo_json(CLOSEOUT_REL);
+    let actions = field(&closeout, "gate_actions", "closeout")
+        .as_arr()
+        .expect("gate_actions array");
+    assert_eq!(actions.len(), 16, "the closeout table must keep 16 rows");
+
+    let mut yaml_cache: std::collections::BTreeMap<String, String> = Default::default();
+    for (index, row) in actions.iter().enumerate() {
+        let gate_id = expect_str(row, "gate_id", "gate row");
+        let context = format!("gate_actions[{index}] ({gate_id})");
+        let cited = expect_str(row, "yaml_path", &context);
+        assert_eq!(
+            cited,
+            gate_yaml_path(gate_id),
+            "{context}: cited yaml_path drifted from the D402 table"
+        );
+        let text = yaml_cache
+            .entry(cited.to_owned())
+            .or_insert_with(|| repo_text(cited));
+        for needle in gate_yaml_needles(gate_id) {
+            assert!(
+                text.contains(needle),
+                "{context}: the cited YAML lost the load-bearing literal '{needle}'"
+            );
+        }
+    }
+
+    // G01's citation spans three contracts: endpoint-pair expansion lives in
+    // the cycle contract, the closed covering-span relations in arbitration.
+    let cycle = repo_text("prd/architecture/npa-identifying-cycle.yaml");
+    assert!(
+        cycle.contains("expansion_policy: endpoint_pair"),
+        "G01 sibling invariant 'expansion_policy: endpoint_pair' is missing"
+    );
+    let arbitration = repo_text("prd/architecture/npa-capture-arbitration.yaml");
+    for needle in [
+        "same_span:",
+        "strictly_contains:",
+        "strictly_contained_by:",
+        "partial_overlap:",
+        "disjoint:",
+    ] {
+        assert!(
+            arbitration.contains(needle),
+            "G01 sibling covering-span relation '{needle}' is missing"
+        );
+    }
+}
+
+#[test]
+fn t05_runtime_stop_stays_active_and_stale_reasons_are_absent() {
+    for path in [
+        "prd/architecture/npa-capture-arbitration.yaml",
+        "prd/architecture/npa-semantic-process.yaml",
+        "prd/architecture/npa-bounds-scanner-profile.yaml",
+        "prd/architecture/current-document-requisites.yaml",
+    ] {
+        let text = repo_text(path);
+        assert!(
+            text.contains("runtime_stop:\n  active: true"),
+            "{path}: runtime_stop must stay active for open runtime work"
+        );
+    }
+    let closeout_raw = repo_text(CLOSEOUT_REL);
+    assert!(
+        closeout_raw.contains("\"active\": true"),
+        "closeout runtime_stop.active must stay true (D403)"
+    );
+
+    // The four pre-S03 stale phrases recorded in the T01 yaml_mutations table
+    // must be gone from every architecture contract (T02 replacements).
+    const STALE: [&str; 5] = [
+        "candidate cardinality bound is deferred-undefined",
+        "hostile/pin tests are not implemented or accepted",
+        "hostile contracts and full-corpus measurement are not yet accepted",
+        "outlier review of maxima/top-K anchors is S03 scope and numeric bound selection stays deferred-undefined",
+        "hostile contracts are not implemented or accepted",
+    ];
+    for path in ARCHITECTURE_YAML_PATHS {
+        let text = repo_text(path);
+        for stale in STALE {
+            assert!(
+                !text.contains(stale),
+                "{path}: stale runtime_stop reason is still present: '{stale}'"
+            );
+        }
+    }
+
+    // The replacements are evidence-linked, not silent deletions.
+    let arbitration = repo_text("prd/architecture/npa-capture-arbitration.yaml");
+    assert!(
+        arbitration.contains("hostile/pin contracts are accepted"),
+        "arbitration must cite the accepted S03 hostile suite"
+    );
+    let process = repo_text("prd/architecture/npa-semantic-process.yaml");
+    assert!(
+        process.contains("hostile contracts are accepted (S03 suite 16/16)"),
+        "semantic-process must cite the accepted S03 hostile suite"
+    );
+    let requisites = repo_text("prd/architecture/current-document-requisites.yaml");
+    assert!(
+        requisites.contains("S03 test-contract seeds exist"),
+        "requisites must cite the S03 test-contract seeds"
+    );
+}
+
+#[test]
+fn t06_lawref_capture_path_stays_unwired() {
+    // D403: the G02 [proposed] ceiling and the pair-policy helpers stay out
+    // of the product path until the runtime stop clears (assessment/29 step
+    // 8+); the ceiling number must not appear in capture_lawrefs.
+    let lawref = repo_text("crates/ln-decode/src/lawref.rs");
+    assert!(
+        lawref.contains("pub fn capture_lawrefs"),
+        "expected the capture_lawrefs surface to still exist"
+    );
+    for forbidden in [
+        "PROPOSED_CANDIDATE_CEILING",
+        "on_candidate_limit",
+        "arbitrate_pair",
+        "candidate_limit_reached",
+    ] {
+        assert!(
+            !lawref.contains(forbidden),
+            "lawref.rs must not reference '{forbidden}' (G02 ceiling stays unwired)"
+        );
+    }
+    // The reviewed helpers still live in npa_bounds.rs (hostile t15 pins
+    // their values); they are simply never called from the product path.
+    let bounds = repo_text("crates/ln-decode/src/npa_bounds.rs");
+    assert!(
+        bounds.contains("PROPOSED_CANDIDATE_CEILING"),
+        "the reviewed ceiling helper must stay defined in npa_bounds.rs"
+    );
+}
+
+#[test]
+fn t07_lifecycles_stay_diagnostic_and_proposed() {
+    // S02 JSONL stays [diagnostic]: measurement evidence, never a bound proof.
+    let scan_header_line = repo_text(SCAN_REL)
+        .lines()
+        .next()
+        .expect("scan JSONL header line")
+        .to_owned();
+    let scan_header = npa_support::parse_json(&scan_header_line).expect("scan header parses");
+    assert_eq!(
+        expect_str(&scan_header, "lifecycle", "scan header"),
+        SCAN_LIFECYCLE_PIN
+    );
+
+    // The review and the closeout stay [proposed].
+    assert_eq!(
+        expect_str(&parse_repo_json(REVIEW_REL), "lifecycle", "review"),
+        REVIEW_LIFECYCLE_PIN
+    );
+    assert_eq!(
+        expect_str(&parse_repo_json(CLOSEOUT_REL), "lifecycle", "closeout"),
+        CLOSEOUT_LIFECYCLE
+    );
+
+    // No architecture contract was promoted past [proposed].
+    for path in ARCHITECTURE_YAML_PATHS {
+        let text = repo_text(path);
+        assert!(
+            text.contains("lifecycle: \"[proposed]\""),
+            "{path}: lifecycle must stay [proposed]"
+        );
+    }
+}
+
+#[test]
+fn t08_non_closures_r035_r070_n2_stay_open() {
+    let closeout = parse_repo_json(CLOSEOUT_REL);
+    let non_closures = field(&closeout, "non_closures", "closeout");
+    let requirements = field(non_closures, "requirements", "non_closures")
+        .as_arr()
+        .expect("requirements array");
+    let ids: Vec<&str> = requirements
+        .iter()
+        .filter_map(|value| value.as_str().ok())
+        .collect();
+    assert_eq!(
+        ids,
+        vec!["R035", "R070"],
+        "only R035 and R070 are non-closed requirements"
+    );
+    let gates = field(non_closures, "gates", "non_closures")
+        .as_arr()
+        .expect("gates array");
+    let gate_ids: Vec<&str> = gates
+        .iter()
+        .filter_map(|value| value.as_str().ok())
+        .collect();
+    assert_eq!(
+        gate_ids,
+        vec!["N2-gate"],
+        "only N2-gate is a non-closed gate"
+    );
+    let note = expect_str(non_closures, "note", "non_closures");
+    assert!(
+        note.contains("R038"),
+        "the R038 standing-gate note (executed in S03) must survive"
+    );
+
+    // The runtime contracts still name the open items.
+    let process = repo_text("prd/architecture/npa-semantic-process.yaml");
+    assert!(
+        process.contains("R035 and R070 remain active"),
+        "semantic-process runtime_stop must keep R035/R070 open"
+    );
+    assert!(
+        process.contains("N2 human dual coding remains incomplete"),
+        "semantic-process runtime_stop must keep N2 open"
+    );
+    let profile = repo_text("prd/architecture/npa-bounds-scanner-profile.yaml");
+    assert!(
+        profile.contains("related: [D383, D384, D385, D387, ADR-0028, R035, R070]"),
+        "profile must still list R035/R070 as related-open"
+    );
+}
+
+#[test]
+fn t09_load_bearing_deferred_literals_stay_byte_exact() {
+    let pins: [(&str, &[&str]); 5] = [
+        (
+            "prd/architecture/npa-capture-arbitration.yaml",
+            &[
+                "pair_policies:\n  status: deferred-undefined",
+                "default: retain candidates with ambiguous/conflict diagnostic; never silently suppress",
+                "# Pair policy is data. Source function order is never precedence.",
+                "- candidate_limit_reached",
+            ],
+        ),
+        (
+            "prd/architecture/current-document-requisites.yaml",
+            &[
+                "source_authority_policy:\n  status: deferred-undefined",
+                "default: no winner; expose conflict",
+            ],
+        ),
+        (
+            "prd/architecture/npa-bounds-scanner-profile.yaml",
+            &[
+                "top_k: deferred-undefined",
+                "- true CoordinatingFrame member count",
+                "- true Cartesian frame expansion cardinality",
+            ],
+        ),
+        (
+            "prd/architecture/npa-document-context.yaml",
+            &[
+                "adjacent_block_radius: deferred-undefined",
+                "max_series_hops: deferred-undefined",
+                "max_alias_candidates: deferred-undefined",
+                "max_context_claims_per_field: deferred-undefined",
+                "max_linking_passes: 1",
+            ],
+        ),
+        (
+            "prd/architecture/npa-identifying-cycle.yaml",
+            &[
+                "max_members: deferred-undefined",
+                "max_expanded_candidates: deferred-undefined",
+                "continuation_hops: one unless a block coordinator materializes a proven longer chain",
+            ],
+        ),
+    ];
+    for (path, needles) in pins {
+        let text = repo_text(path);
+        for needle in needles.iter() {
+            assert!(
+                text.contains(needle),
+                "{path}: load-bearing deferred literal drifted: '{needle}'"
+            );
+        }
+    }
+}
+
+#[test]
+fn t10_p0_p9_pipeline_order_stays_agreed() {
+    let process = repo_text("prd/architecture/npa-semantic-process.yaml");
+    const PHASES: [&str; 10] = [
+        "id: P0_decode_complete_document",
+        "id: P1_build_base_context",
+        "id: P2_local_analysis",
+        "id: P3_literal_projection",
+        "id: P4_build_analysis_overlay",
+        "id: P5_close_document_context",
+        "id: P6_semantic_projection",
+        "id: P7_identity_claim_projection",
+        "id: P8_resolve_bindings",
+        "id: P9_emit_proposed_evidence",
+    ];
+    let mut cursor = 0usize;
+    for phase in PHASES {
+        let at = process[cursor..]
+            .find(phase)
+            .unwrap_or_else(|| panic!("pipeline phase '{phase}' missing or out of order"));
+        cursor += at + phase.len();
+    }
+    assert!(
+        process.contains("P3_literal_projection precedes P5_close_document_context"),
+        "order_invariants must keep P3 before P5"
+    );
+    let closeout_raw = repo_text(CLOSEOUT_REL);
+    assert_raw_marker(&closeout_raw, "\"order_agreed\": true");
+}
+
+#[test]
+fn t11_closeout_tampering_fails_closed() {
+    let raw = repo_text(CLOSEOUT_REL);
+
+    // An unknown top-level key must fail the closed-schema check.
+    let brace = raw.find('{').expect("closeout is a JSON object");
+    let mut injected = String::with_capacity(raw.len() + 40);
+    injected.push_str(&raw[..=brace]);
+    injected.push_str("\n  \"injected_key\": 1,");
+    injected.push_str(&raw[brace + 1..]);
+    let injected_json = npa_support::parse_json(&injected)
+        .expect("injected copy must still be valid JSON before the schema check");
+    let schema_err = injected_json
+        .require_keys(&CLOSEOUT_TOP_LEVEL_KEYS, "closeout")
+        .expect_err("an unknown top-level key must fail the closed schema");
+    assert!(
+        schema_err.contains("unexpected JSON key"),
+        "closed-schema rejection must name the unknown key, got: {schema_err}"
+    );
+
+    // A duplicated key must be refused by the D328 parser, not last-wins.
+    let duplicated = raw.replace(
+        "\"order_agreed\": true",
+        "\"order_agreed\": true, \"order_agreed\": true",
+    );
+    assert_ne!(
+        duplicated, raw,
+        "duplicate-key tamper must change the bytes"
+    );
+    let duplicate_err = npa_support::parse_json(&duplicated)
+        .expect_err("a duplicated JSON key must fail closed at parse time");
+    assert!(
+        duplicate_err.contains("duplicate JSON object key"),
+        "parser must reject duplicate keys, got: {duplicate_err}"
+    );
+
+    // One non-ASCII byte must be localized by the ASCII gate.
+    let mut bytes = read_repo_bytes(CLOSEOUT_REL);
+    let clean_len = bytes.len();
+    bytes.push(0xD0);
+    assert_eq!(
+        first_non_ascii_offset(&bytes),
+        Some(clean_len),
+        "appended high byte must be localized"
+    );
+    assert_eq!(
+        first_non_ascii_offset(&read_repo_bytes(CLOSEOUT_REL)),
+        None,
+        "the tracked closeout must stay pure ASCII"
+    );
+
+    // A lowered ceiling (the forbidden observed max) must miss the pin.
+    let lowered = raw.replace("\"proposed_value\": 1024", "\"proposed_value\": 504");
+    assert_ne!(lowered, raw, "ceiling tamper must change the bytes");
+    let lowered_json = npa_support::parse_json(&lowered).expect("lowered copy parses");
+    let lowered_actions = field(&lowered_json, "gate_actions", "lowered")
+        .as_arr()
+        .expect("gate_actions array");
+    let tampered = expect_num(&lowered_actions[1], "proposed_value", "G02");
+    assert_ne!(
+        tampered, G02_CEILING_PIN,
+        "the pin must reject the lowered ceiling"
+    );
+    assert_eq!(
+        tampered, G02_OBSERVED_MAX_PIN,
+        "the tamper must land exactly on the forbidden observed max"
     );
 }
