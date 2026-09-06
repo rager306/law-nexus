@@ -325,8 +325,9 @@ fn rendered_artifact_key_order_is_fixed() {
         ],
     );
     assert_ascending(&golden, &["\"duplicate_key_count\"", "\"duplicate_keys\""]);
+    let candidates = &golden[position_of(&golden, "\"candidates\": [")..];
     assert_ascending(
-        &golden,
+        candidates,
         &[
             "\"catalog_token\"",
             "\"number\"",
