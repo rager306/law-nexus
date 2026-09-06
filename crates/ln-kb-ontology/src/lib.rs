@@ -6,3 +6,4 @@
 pub mod catalog;
 pub mod domain;
 pub mod registry;
+pub mod registry_admission;
