@@ -14,6 +14,7 @@ pub mod domain;
 pub mod evaluator;
 pub mod golden;
 pub mod hierarchy;
+pub mod hierarchy_artifact;
 pub mod lawref;
 pub mod lawref_resolve;
 pub mod lexer;

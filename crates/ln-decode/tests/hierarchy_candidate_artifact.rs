@@ -154,23 +154,21 @@ fn canonical_identity_stream(report: &HierarchyCandidateReport) -> String {
         stream.push('\n');
     }
     for diagnostic in report.diagnostics() {
-        if let HierarchyExtractDiagnostic::DuplicateKey {
+        let HierarchyExtractDiagnostic::DuplicateKey {
             level,
             key_path,
             first_index,
             later_index,
-        } = diagnostic
-        {
-            stream.push_str("dup\0");
-            stream.push_str(catalog_token(*level));
-            stream.push('\0');
-            stream.push_str(key_path);
-            stream.push('\0');
-            stream.push_str(&first_index.to_string());
-            stream.push('\0');
-            stream.push_str(&later_index.to_string());
-            stream.push('\n');
-        }
+        } = diagnostic;
+        stream.push_str("dup\0");
+        stream.push_str(catalog_token(*level));
+        stream.push('\0');
+        stream.push_str(key_path);
+        stream.push('\0');
+        stream.push_str(&first_index.to_string());
+        stream.push('\0');
+        stream.push_str(&later_index.to_string());
+        stream.push('\n');
     }
     stream
 }

@@ -15,3 +15,7 @@ path = "src/bin/npa-corpus-sweep.rs"
 [[bin]]
 name = "npa-bounds-scan"
 path = "src/bin/npa-bounds-scan.rs"
+
+[[bin]]
+name = "hierarchy-candidate-artifact"
+path = "src/bin/hierarchy-candidate-artifact.rs"
