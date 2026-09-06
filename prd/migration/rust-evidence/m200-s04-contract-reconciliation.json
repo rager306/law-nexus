@@ -1,0 +1,269 @@
+{
+  "schema": "m200-s04-contract-reconciliation/v1",
+  "schema_version": 1,
+  "lifecycle": "[proposed]",
+  "milestone": "M200-8s4kwq",
+  "slice": "S04",
+  "task": "T01",
+  "owner_decision": "D402",
+  "generated_utc": "2026-09-05T20:23:49Z",
+  "count_only": true,
+  "ascii_only": true,
+  "non_claims": [
+    "the S02 npa-bounds-scan JSONL stays [diagnostic]; this closeout never promotes the measurement to [bounded]",
+    "all six architecture YAML lifecycles stay [proposed]; no runtime readiness is claimed by this closeout",
+    "the G02 safety ceiling 1024 is not a product-path bound: capture_lawrefs stays unwired and runtime_stop stays active",
+    "this slice is assessment/29 section 10 step 7 (pin YAML bounds and transition tests), not step 8 (re-run full measurement) and not step 9 (remove the D387 runtime stop)",
+    "no R035, R070 or N2 closure happens in this slice; the R038 standing gate stays active"
+  ],
+  "source_binding": {
+    "scan_artifact": {
+      "path": "prd/migration/rust-evidence/m200-s02-npa-bounds-scan.jsonl",
+      "sha256": "3c76b3feb610adc5169d67aeb43a77dbecbd30fb1cac118918eff2a7f1863f6c",
+      "line_count": 15,
+      "lifecycle": "[diagnostic]"
+    },
+    "acceptance_artifact": {
+      "path": "prd/migration/rust-evidence/m200-s02-corpus-acceptance.json",
+      "sha256": "028335b6b3b8b50b5941fae7258408827ed44356bbbaee4eff060a12456a268f"
+    },
+    "review_artifact": {
+      "path": "prd/migration/rust-evidence/m200-s03-outlier-review.json",
+      "schema": "m200-s03-outlier-review/v1",
+      "lifecycle": "[proposed]",
+      "sha256": "8e4da717d97fddcca92555c2491593ec60b0775adc576b5a2386a4084583f93d"
+    },
+    "profile_schema": "law-nexus-npa-bounds-scanner-profile/v1",
+    "profile_hash_at_scan": "fnv1a64:bcf61bc0940f3cb9",
+    "measurement_definitions_hash": "fnv1a64:6fa01374f8c3ad65",
+    "scanner_source_hash": "fnv1a64:ee015b5f2f79c4e3",
+    "corpus_opened_by_this_closeout": false
+  },
+  "order_agreed": true,
+  "gate_actions": [
+    {
+      "gate_id": "G01",
+      "gate": "grammar-hard-invariants",
+      "review_verdict": "select",
+      "selection_kind": "categorical-invariants",
+      "action": "keep-categorical",
+      "yaml_path": "prd/architecture/npa-document-context.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G01: categorical invariants stay test-enforced; npa-identifying-cycle.yaml structural_designation_frame.expansion_policy=endpoint_pair and npa-capture-arbitration.yaml covering-span span_relation invariants are pinned by the accepted S03 hostile suite; no numeric runtime bound is introduced"
+    },
+    {
+      "gate_id": "G02",
+      "gate": "contour-a-candidates-per-block-ceiling",
+      "review_verdict": "select",
+      "selection_kind": "numeric-safety-ceiling",
+      "action": "write-proposed",
+      "yaml_path": "prd/architecture/npa-capture-arbitration.yaml",
+      "proposed_value": 1024,
+      "refusal_diagnostic": "candidate_limit_reached",
+      "citation": "m200-s03-outlier-review.json gate_decisions G02: observed_max 504 lives in the KoAP-scale block 542 (document_content_hash fnv1a64:fec98440b4f3ae75); the proposed ceiling 1024 keeps 2x headroom over the observed max and is never lowered to the observed max 504 nor the p999 bucket edge 14; the arbitration record stays lifecycle [proposed] and the product path (capture_lawrefs) stays unwired"
+    },
+    {
+      "gate_id": "G03",
+      "gate": "candidates-per-document-bound",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-bounds-scanner-profile.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G03: the document-level aggregate (observed_max 12526) is an operational resource axis, not a fragment-level cardinality bound; the value stays deferred-undefined"
+    },
+    {
+      "gate_id": "G04",
+      "gate": "blocks-per-document-resource-budget",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-bounds-scanner-profile.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G04: the 86937-block edition is an operational resource tail, not a grammar bound; the resource budget stays deferred-undefined"
+    },
+    {
+      "gate_id": "G05",
+      "gate": "tokens-per-block-resource-budget",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-bounds-scanner-profile.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G05: the 6389-token block is an operational resource tail, not a grammar bound; the resource budget stays deferred-undefined"
+    },
+    {
+      "gate_id": "G06",
+      "gate": "max-members-coordinating-frame",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-identifying-cycle.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G06: the Date+DocNo adjacency proxy max=2 is co-occurrence with case/address false-positive risk, never a CoordinatingFrame member count; the value stays deferred-undefined"
+    },
+    {
+      "gate_id": "G07",
+      "gate": "max-expanded-candidates",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-identifying-cycle.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G07: the binary presence bit (5209 of 4855839 blocks) never measures Cartesian expansion cardinality; the value stays deferred-undefined"
+    },
+    {
+      "gate_id": "G08",
+      "gate": "adjacent-block-radius",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-document-context.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G08: the zero-fire of the distance=1 proxy is a proxy limitation, not a zero bound; adjacent_block_radius stays deferred-undefined"
+    },
+    {
+      "gate_id": "G09",
+      "gate": "max-series-hops",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-document-context.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G09: the accepted continues_series hop count is unavailable until runtime; continuation_hops stays one-unless-proven and the hop bound stays deferred-undefined"
+    },
+    {
+      "gate_id": "G10",
+      "gate": "max-alias-candidates",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-document-context.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G10: a single-Word lexeme surface frequency (observed_max 92) is not a scoped alias candidate bound; the value stays deferred-undefined"
+    },
+    {
+      "gate_id": "G11",
+      "gate": "context-claims-fanout-memo-depth",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-document-context.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G11: ContextRequest fan-out, memo hit rate, derivation depth and the per-field claim distributions are unavailable until runtime; every value in this family stays deferred-undefined"
+    },
+    {
+      "gate_id": "G12",
+      "gate": "pair-policies-frame-pairs",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-capture-arbitration.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G12: coordinating-act-frame and structural-designation-frame are design-only pattern ids with no executable arbitration surface; those pair policies stay deferred-undefined"
+    },
+    {
+      "gate_id": "G13",
+      "gate": "pair-policies-same-span-containment",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-capture-arbitration.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G13: exact_span_pairs=0 and containment_pairs=0 are post-matcher-suppression observations, not proof of absence; the categorical no-silent-winner default stays test-enforced and the policy value stays deferred-undefined"
+    },
+    {
+      "gate_id": "G14",
+      "gate": "arbitration-default-actions",
+      "review_verdict": "select",
+      "selection_kind": "categorical-defaults",
+      "action": "keep-categorical",
+      "yaml_path": "prd/architecture/npa-capture-arbitration.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G14: the categorical arbitration actions table stays test-enforced; S02 span_relations counts 539 partial_overlap conflict sets and 10962245 disjoint retain-both pairs; no source-function-order winner and no silent truncation is ever invented"
+    },
+    {
+      "gate_id": "G15",
+      "gate": "source-authority-policy",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/current-document-requisites.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G15: source_authority_policy.status stays deferred-undefined; no requisites extractor exists, the default stays no-winner and R070 stays open"
+    },
+    {
+      "gate_id": "G16",
+      "gate": "top-k-aggregation-policy",
+      "review_verdict": "deferred-undefined",
+      "selection_kind": null,
+      "action": "keep-deferred",
+      "yaml_path": "prd/architecture/npa-bounds-scanner-profile.yaml",
+      "proposed_value": null,
+      "refusal_diagnostic": null,
+      "citation": "m200-s03-outlier-review.json gate_decisions G16: the scaffold cap 8 is a bounded-memory rule, not the aggregation.top_k policy; binary and all-zero tails keep walk-order first-seen anchors; the selection policy stays deferred-undefined"
+    }
+  ],
+  "yaml_mutations": [
+    {
+      "yaml_path": "prd/architecture/npa-capture-arbitration.yaml",
+      "mutation_kind": "add-g02-cardinality-record",
+      "stale_reason": "candidate cardinality bound is deferred-undefined",
+      "note": "record the G02 proposed safety ceiling (value 1024, refusal candidate_limit_reached, lifecycle [proposed]); this record retires the stale reason; no numeric fills for G03-G16"
+    },
+    {
+      "yaml_path": "prd/architecture/npa-capture-arbitration.yaml",
+      "mutation_kind": "replace-stale-runtime-stop-reason",
+      "stale_reason": "hostile/pin tests are not implemented or accepted",
+      "note": "stale after the accepted S03 hostile suite and the S04 pin tests; T02 supplies the replacement wording; runtime_stop stays active"
+    },
+    {
+      "yaml_path": "prd/architecture/npa-semantic-process.yaml",
+      "mutation_kind": "replace-stale-runtime-stop-reason",
+      "stale_reason": "hostile contracts and full-corpus measurement are not yet accepted",
+      "note": "stale after the accepted S02 full-corpus walk (43785 files attempted, 0 malformed, 0 unreadable) and the accepted S03 review; T02 supplies the replacement wording; runtime_stop stays active"
+    },
+    {
+      "yaml_path": "prd/architecture/npa-bounds-scanner-profile.yaml",
+      "mutation_kind": "replace-stale-runtime-stop-reason",
+      "stale_reason": "outlier review of maxima/top-K anchors is S03 scope and numeric bound selection stays deferred-undefined",
+      "note": "stale after the accepted S03 outlier review and the single G02 [proposed] selection; T02 supplies the replacement wording; runtime_stop stays active"
+    },
+    {
+      "yaml_path": "prd/architecture/current-document-requisites.yaml",
+      "mutation_kind": "replace-stale-runtime-stop-reason",
+      "stale_reason": "hostile contracts are not implemented or accepted",
+      "note": "stale per the accepted S03 review while the requisites extractor and source_authority_policy stay absent; T02 supplies the replacement wording; runtime_stop stays active"
+    }
+  ],
+  "runtime_stop": {
+    "active": true,
+    "remaining_reasons": [
+      "design-only frame pair policies (coordinating-act-frame, structural-designation-frame) have no executable surface",
+      "the requisites extractor is absent and source_authority_policy stays deferred-undefined",
+      "context, alias and fan-out numeric bounds are unavailable_until_runtime",
+      "the identifying-cycle gate N2 stays open",
+      "R035 numeric-bound validation and R070 source-authority validation stay open",
+      "no local grammar runtime exists and the G02 proposed ceiling is unwired in capture_lawrefs"
+    ]
+  },
+  "non_closures": {
+    "requirements": ["R035", "R070"],
+    "gates": ["N2-gate"],
+    "note": "the R038 standing gate (independent review without a second corpus walk) was executed in S03 and stays active; no R035, R070 or N2 closure happens in this slice"
+  }
+}
