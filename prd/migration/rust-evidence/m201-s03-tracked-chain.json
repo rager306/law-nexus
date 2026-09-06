@@ -1,0 +1,63 @@
+{
+  "schema_version": "law-nexus/tracked-edition-chain-evidence/v1",
+  "kind": "m201-s03-tracked-chain",
+  "milestone": "M201-w8ljqx",
+  "slice": "S03",
+  "task": "T02",
+  "generated_at": "2026-09-06",
+  "lifecycle": "[bounded]",
+  "authoritative": false,
+  "suite_relative_path": "crates/ln-temporal/tests/fz44_tracked_provenance.rs",
+  "source_pin": {
+    "cited_from_relative_path": "prd/architecture/c1-484-fz-provenance.yaml",
+    "canon_relative_path": "consru_export/consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_1a599b98.xml",
+    "canon_bytes": 252478,
+    "canon_sha256": "67f781dbd6a7d03d6035e6a509c983b17fcc519213c493987cf8f71debc1a37d",
+    "executed_edge": {
+      "kind": "amends",
+      "from_cc": "cc:484-fz:statya-1",
+      "to_cc": "cc:44-fz:statya-93"
+    }
+  },
+  "work_snapshot": {
+    "relative_path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+    "bytes": 5262136,
+    "sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14",
+    "role": "audit citation only; never read by the suite; not a commencement source"
+  },
+  "work": {
+    "cc": "cc:44-fz",
+    "target": "cc:44-fz:statya-93"
+  },
+  "amending_acts": ["act:484-fz:2024-12-26"],
+  "delta_evidence_ids": ["rec:amend:484-93"],
+  "admissions": [
+    {
+      "target": "cc:44-fz:statya-93",
+      "effect_day": "2024-12-26",
+      "evidence_class": "hypothesized_from_oracle_diff",
+      "commencement_rule_ref": "rec:commencement:484-93:hypothesized",
+      "transitional": "explicitly_absent",
+      "supplied_by": "caller-supplied fixture, not inferred by runtime"
+    }
+  ],
+  "window": {
+    "from_iso": "2024-12-01",
+    "to_iso": "2024-12-26",
+    "rule": "exclusive-from inclusive-to"
+  },
+  "counts": {
+    "kept_lines": 1,
+    "admissions": 1,
+    "amending_acts": 1,
+    "delta_evidence_ids": 1
+  },
+  "non_claims": [
+    "not a legal commencement determination: enactment date, edition date, filename, C1 event, and effect_day are not legal commencement sources; commencement stays caller-supplied hypothesized evidence",
+    "no Legislative upgrade: hypothesized_from_oracle_diff is stored without upgrade by the runtime",
+    "R070 stays active: one bounded tracked chain is supporting evidence, not coverage validation; S04 owns the R070 disposition",
+    "not the 118-edition corpus: no consru_export I/O, no parser ingestion, no XML bytes in the suite",
+    "no new runtime vocabulary: no ActivationTrigger, no TransitionalResolver, no EvidenceAnchor, no EffectSelector",
+    "product code and edition_delta arity unchanged; the synthetic LAW3 walk remains the D326 regression, not replaced by this fixture"
+  ]
+}
