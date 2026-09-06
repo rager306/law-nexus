@@ -929,7 +929,7 @@ fn t04_tracked_corpus_hashes_are_deterministic() {
     );
     assert_eq!(
         tracked_profile_hash(),
-        "fnv1a64:9851c247f0722faf",
+        "fnv1a64:f59afde9715ad05b",
         "the live tracked profile fingerprint moved only by the T04 runtime-note edit; \
          any further profile change is a conscious acceptance update"
     );

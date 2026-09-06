@@ -19,7 +19,7 @@ non_claims:
   - not a replacement for CurrentDocumentRequisites
   - not a Work identity or OfficialIdentityClaim
   - not an authorization to copy nearest text as context
-  - not runtime-ready while bounds and hostile contracts are deferred-undefined
+  - not runtime-ready while numeric bounds stay deferred-undefined (hostile fixture contracts are accepted; runtime hostiles are not)
   - no LLM, RLM runtime, prompt, REPL, or model call in product analysis
 
 principles:

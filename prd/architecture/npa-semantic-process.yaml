@@ -234,10 +234,10 @@ composition_policy:
 runtime_stop:
   active: true
   reasons:
-    - capture pair policies and candidate cardinality bounds are deferred-undefined
+    - capture frame pair policies stay deferred-undefined; the candidate cardinality G02 safety ceiling is [proposed] at 1024 and stays unwired in capture_lawrefs
     - requisites source-authority policy and normalization profiles are deferred-undefined
     - context/list/alias numeric bounds are deferred-undefined
-    - hostile contracts and full-corpus measurement are not yet accepted
+    - hostile contracts are accepted (S03 suite 16/16) and the full-corpus [diagnostic] walk is accepted (43785 files attempted, 0 malformed, 0 unreadable); no runtime proof exists beyond capture surfaces
     - no runtime proof for full-document index and analysis overlay
     - N2 human dual coding remains incomplete
     - R035 and R070 remain active

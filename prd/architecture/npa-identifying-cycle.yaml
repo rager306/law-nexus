@@ -166,6 +166,7 @@ local_reference_grammar:
     max_expanded_candidates: deferred-undefined
     continuation_hops: one unless a block coordinator materializes a proven longer chain
     on_limit: reject expansion with diagnostic; never truncate silently
+    note: G06 (max-members-coordinating-frame) and G07 (max-expanded-candidates) stay deferred-undefined in the S03 review - the proxy max of 2 members is not a members bound and the range proxy is a 0/1 bit, not a cardinality
   forbidden:
     - mutable replacement of covering tokens
     - global analyzer initialization order

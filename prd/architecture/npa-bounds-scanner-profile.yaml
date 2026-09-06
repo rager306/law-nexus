@@ -166,4 +166,4 @@ runtime_stop:
   reasons:
     - numeric bounds decisions remain deferred-undefined (top_k and operational resource budget)
     - proxy metrics cannot select unavailable-until-runtime bounds
-    - full-corpus [diagnostic] measurement has run (M200 S02: 43785 files attempted, 0 malformed/unreadable, terminal manifest complete); outlier review of maxima/top-K anchors is S03 scope and numeric bound selection stays deferred-undefined
+    - full-corpus [diagnostic] measurement has run (M200 S02: 43785 files attempted, 0 malformed/unreadable, terminal manifest complete); outlier review executed and its only numeric selection is the G02 safety ceiling 1024 as [proposed]; top_k and the operational resource budget (G03-G05, G16) remain deferred-undefined

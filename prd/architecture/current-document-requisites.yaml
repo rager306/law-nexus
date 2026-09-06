@@ -153,4 +153,4 @@ runtime_stop:
   reasons:
     - source_authority_policy is deferred-undefined
     - field-specific normalization profiles are not pinned
-    - hostile contracts are not implemented or accepted
+    - S03 test-contract seeds exist (limit / conflicting / cycle / unsupported); the extractor, field-normalization profiles, and source_authority_policy are absent, not accepted product runtime

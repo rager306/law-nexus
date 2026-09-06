@@ -138,5 +138,5 @@ runtime_stop:
   active: true
   reasons:
     - pair_policies are deferred-undefined
-    - candidate cardinality bound is deferred-undefined
-    - hostile/pin tests are not implemented or accepted
+    - candidate cardinality: G02 safety ceiling is [proposed] at 1024 candidates per block, refusal diagnostic candidate_limit_reached; observed max 504 (KoAP npa/document_2001-12-30_195-fz block 542, hash fnv1a64:fec98440b4f3ae75); at least 2x headroom; not a legal-structure limit and never lowered to the observed max or the p999 bucket edge 14; product path unwired in capture_lawrefs
+    - hostile/pin contracts are accepted: S03 hostile suite 16/16 and the S04 fail-closed pin suite are green; runtime remains stopped on pair_policies and the unwired [proposed] ceiling
