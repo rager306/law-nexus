@@ -298,6 +298,39 @@ context, alias, candidate, and fan-out bounds remain `deferred-undefined`
 until a reproducible streaming scan of the full Consultant export and hostile
 contracts support them (`assessment/29-npa-bounds-hostile-plan.md`).
 
+### D388 closeout refinement (2026-09-05, M200 S04)
+
+The M200 S04 closeout artifact
+(`prd/migration/rust-evidence/m200-s04-contract-reconciliation.json`; D402
+select-or-defer, D403 runtime-stop/no-wiring, D404 closeout-pin placement)
+refines the D388 pre-runtime contract with closeout evidence; the accepted
+S03 outlier review
+(`prd/migration/rust-evidence/m200-s03-outlier-review.json`, `[proposed]`)
+is the only policy input, and the ADR decision status is unchanged:
+
+- **Full Consultant walk accepted `[diagnostic]`, not `[bounded]`.** The
+  complete streaming corpus scan is accepted at 43785 files attempted,
+  0 malformed, 0 unreadable; this measurement acceptance stays
+  `[diagnostic]` and is not `[bounded]` runtime evidence.
+- **S03 review is `[proposed]` select-or-defer (D402).** G01 keeps the
+  grammar-hard categorical invariants, G02 records a numeric safety ceiling
+  1024 with refusal diagnostic `candidate_limit_reached`, G14 keeps the
+  categorical arbitration default actions; the other 13 gates remain
+  `deferred-undefined`.
+- **1024 is a revisable `[proposed]` safety ceiling** with at least 2x
+  headroom over the observed maximum 504; it is not a legal-structure
+  limit, is never lowered to the observed maximum or a p999 bucket edge,
+  and the product path `capture_lawrefs` stays unwired (D403).
+- **`runtime_stop.active` remains true `[proposed]`** (D403) because frame
+  pair_policies, the requisites extractor, context/alias/fan-out numeric
+  bounds, the N2 gate, R035, R070, and a local grammar runtime are still
+  open; this is assessment/29 section 10 step 7, not step 8 (re-scan after
+  product-path wiring) or step 9 (clearing the stop).
+- **Architecture YAML files remain lifecycle `[proposed]`**; R035, R070,
+  and the N2 gate stay open; the R038 standing gate was executed in S03 and
+  stays active; closeout transition pins for all of the above live in the
+  dedicated `npa_bounds_closeout_contract.rs` suite (D404).
+
 ### Research refinements (2026-09-03, prior-art pass)
 
 Prior-art research (`assessment/25-npa-tokenizer-prior-art.md`; eyecite
