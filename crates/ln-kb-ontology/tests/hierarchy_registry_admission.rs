@@ -462,18 +462,18 @@ fn admit_rejects_digest_drift() {
 
 #[test]
 fn admit_rejects_authority_escalation() {
-    let evidence = evidence();
+    let candidate_evidence = evidence();
     let mut src = parsed_source();
     src.authoritative = true;
     assert!(matches!(
-        admit_candidates(&evidence, &src),
+        admit_candidates(&candidate_evidence, &src),
         Err(RegistryAdmissionError::AuthorityEscalation { .. })
     ));
 
     let mut src = parsed_source();
     src.lifecycle = "[active]".to_owned();
     assert!(matches!(
-        admit_candidates(&evidence, &src),
+        admit_candidates(&candidate_evidence, &src),
         Err(RegistryAdmissionError::AuthorityEscalation { .. })
     ));
 
