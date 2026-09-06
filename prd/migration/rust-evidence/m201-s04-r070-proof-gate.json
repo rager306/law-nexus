@@ -1,0 +1,133 @@
+{
+  "schema_version": "law-nexus/r070-proof-gate/v1",
+  "kind": "m201-s04-r070-proof-gate",
+  "milestone": "M201-w8ljqx",
+  "slice": "S04",
+  "task": "T02",
+  "generated_at": "2026-09-06",
+  "lifecycle": "[bounded]",
+  "authoritative": false,
+  "requirement_id": "R070",
+  "disposition": "active",
+  "disposition_decision": "D416",
+  "disposition_note": "R070 stays active; this closed proof gate inventories four-leg coverage and non-claims and refuses upgraded dispositions until every consolidated legal edition is proven",
+  "coverage_verdict": "incomplete-because-not-every-edition",
+  "coverage_verdict_note": "one bounded tracked chain is supporting evidence; the requirement quantor is every consolidated legal edition of 44-FZ (118 editions), which is not proven here",
+  "source_binding": {
+    "tracked_chain_json": {
+      "relative_path": "prd/migration/rust-evidence/m201-s03-tracked-chain.json",
+      "bytes": 2777,
+      "sha256": "9db7a0650ef8ba7054c620e97ec4bc6e037dbf80ef1349d1f0f6266d7bdc6531"
+    },
+    "tracked_chain_yaml": {
+      "relative_path": "prd/architecture/fz44-tracked-edition-chain.yaml",
+      "bytes": 4143,
+      "sha256": "5f7a7a17cb898f693bcb17f729286fb07d3d720c0726d9ced44caef10ab0a2e8"
+    },
+    "cited_canon_pin": {
+      "cited_from_relative_path": "prd/architecture/c1-484-fz-provenance.yaml",
+      "canon_relative_path": "consru_export/consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_1a599b98.xml",
+      "canon_bytes": 252478,
+      "canon_sha256": "67f781dbd6a7d03d6035e6a509c983b17fcc519213c493987cf8f71debc1a37d"
+    }
+  },
+  "tracked_chain_ref": {
+    "evidence_relative_path": "prd/migration/rust-evidence/m201-s03-tracked-chain.json",
+    "suite_relative_path": "crates/ln-temporal/tests/fz44_tracked_provenance.rs",
+    "chain": "act:484-fz:2024-12-26 amends cc:484-fz:statya-1 -> cc:44-fz:statya-93",
+    "window": {
+      "from_iso": "2024-12-01",
+      "to_iso": "2024-12-26",
+      "rule": "exclusive-from inclusive-to (D326)"
+    },
+    "counts": {
+      "kept_lines": 1,
+      "admissions": 1,
+      "amending_acts": 1,
+      "delta_evidence_ids": 1
+    }
+  },
+  "coverage_legs": [
+    {
+      "leg_id": "amending-acts",
+      "runtime_contract": "EditionProvenanceEnvelope requires at least one AmendingActId; empty is MissingAmendingAct, duplicate is DuplicateAmendingAct (S01, INV-08)",
+      "tracked_evidence": "act:484-fz:2024-12-26 executed as edge cc:484-fz:statya-1 amends cc:44-fz:statya-93, cited from prd/architecture/c1-484-fz-provenance.yaml; one act, one bounded chain (D179: a synthetic act inventory is not coverage)",
+      "leg_verdict": "bounded-supporting"
+    },
+    {
+      "leg_id": "affected-provisions",
+      "runtime_contract": "envelope requires at least one ComponentConceptId; duplicate is DuplicateProvision and empty slots are fail-closed (S01)",
+      "tracked_evidence": "single provision cc:44-fz:statya-93, already bound in prd/architecture/kb-hierarchy-registry.yaml (R081 one Work cc:44-fz); not an 18-article inventory",
+      "leg_verdict": "bounded-supporting"
+    },
+    {
+      "leg_id": "commencement-and-transitional",
+      "runtime_contract": "CommencementEvidence stays opaque caller-supplied evidence (D252); EditorialHint yields UnprovenCommencement, distinct from MissingCommencement (D406); transitional accepts Declared or affirmative ExplicitlyAbsent",
+      "tracked_evidence": "commencement class hypothesized_from_oracle_diff with ref rec:commencement:484-93:hypothesized (D415); transitional explicitly_absent; the frozen YAML pin carries authoritative: false",
+      "leg_verdict": "slot-filled-not-proven"
+    },
+    {
+      "leg_id": "edition-delta",
+      "runtime_contract": "public edition_delta(log, from, to, admissions) keeps only fully enveloped lines, else whole-call Unresolved or MissingAdmission (D409/D410); window rule D326",
+      "tracked_evidence": "one window (2024-12-01, 2024-12-26] through the public runtime with kept_lines 1 and delta_evidence_ids rec:amend:484-93; suite fz44_tracked_provenance 5/5",
+      "leg_verdict": "bounded-supporting"
+    }
+  ],
+  "commencement_boundary": {
+    "evidence_class": "hypothesized_from_oracle_diff",
+    "commencement_rule_ref": "rec:commencement:484-93:hypothesized",
+    "transitional": "explicitly_absent",
+    "authoritative": false,
+    "note": "the boundary stays hypothesized and non-authoritative: stored without Legislative upgrade (D415); C1-484 explicitly disclaims legal commencement, InForce, and Applicable; not a legal commencement determination"
+  },
+  "suites_cited": {
+    "r070_proof_gate": {
+      "relative_path": "crates/ln-temporal/tests/r070_proof_gate.rs",
+      "tests": 5,
+      "role": "always-on honesty pins of this gate (S04 T01)"
+    },
+    "provenance_envelope": {
+      "relative_path": "crates/ln-temporal/tests/provenance_envelope.rs",
+      "tests": 14,
+      "role": "envelope fail-closed slots (S01)"
+    },
+    "provenance_edition_delta": {
+      "relative_path": "crates/ln-temporal/tests/provenance_edition_delta.rs",
+      "tests": 11,
+      "role": "admissions and delta fail-closed paths (S02)"
+    },
+    "fz44_tracked_provenance": {
+      "relative_path": "crates/ln-temporal/tests/fz44_tracked_provenance.rs",
+      "tests": 5,
+      "role": "tracked chain through the public runtime (S03)"
+    },
+    "fz44_edition_delta": {
+      "relative_path": "crates/ln-temporal/tests/fz44_edition_delta.rs",
+      "tests": 14,
+      "role": "synthetic LAW3 walk, D326 regression only; not R070 coverage"
+    }
+  },
+  "product_scope": {
+    "src_files_edited": 0,
+    "cargo_toml_edited": 0,
+    "deps_added": 0
+  },
+  "non_claims": [
+    "not a legal commencement determination: enactment date, edition date, filename, effect_day, and the C1 event are not legal commencement sources; commencement stays caller-supplied hypothesized evidence (D289/D415)",
+    "no Legislative upgrade anywhere: hypothesized_from_oracle_diff is stored as-is; the D405 Legislative-only revisable remains open and was not exercised by this gate",
+    "transitional explicitly_absent is an affirmative fixture slot, not an ADR-0021 resolver; ADR-0021 stays [proposed] and no TransitionalResolver runtime exists (D216/D252/D307)",
+    "not the 118-edition corpus: one bounded 44-FZ chain is supporting evidence, not coverage; the 118 editions are not walked and no consru_export I/O, parser ingestion, or XML bytes occur in this gate",
+    "constructor-as-evidence does not close R070 (D289/D308/D405): four typed envelope slots plus one executed delta are not provenance coverage",
+    "no ActivationTrigger, no EffectSelector, no EvidenceAnchor, no TransitionalResolver is minted by this gate",
+    "the synthetic LAW3 edition_delta walk is the D326 regression, not tracked-chain coverage",
+    "no registry gate is minted and no derived registry projection is regenerated by this gate",
+    "product src/ and the edition_delta arity are unchanged; ln-temporal keeps zero Cargo dependencies",
+    "no requirement record is mutated by this gate; the disposition ruling lives in D416 and the rendered projection sync is closeout work",
+    "R070 stays active: the requirement may take the closed disposition only when every consolidated legal edition is proven with corpus-scale legislative commencement and transitional evidence (D416)"
+  ],
+  "revisable": {
+    "d405_legislative_only": "still open; not exercised by this gate",
+    "r070_closure_condition": "R070 may leave the active disposition only when every consolidated legal edition is proven",
+    "adr_0021": "stays [proposed]"
+  }
+}
