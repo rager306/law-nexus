@@ -630,3 +630,85 @@ fn non_claims_carry_gated_envelope_line_and_keep_r070_open() {
         "crystal-compiler non-claim survives"
     );
 }
+
+#[test]
+fn unused_admission_for_non_kept_target_is_ignored() {
+    let log = demo_log();
+    let mut admissions = demo_admissions().to_vec();
+    admissions.push(admission(
+        STATYA_93_1,
+        FROM_ISO,
+        "rec:commencement:unused-93-1",
+        TransitionalEvidence::ExplicitlyAbsent,
+    ));
+
+    let delta = edition_delta(&log, day(FROM_ISO), day(TO_ISO), &admissions)
+        .expect("an admission outside the keep-set is not a phantom row");
+    assert_eq!(
+        delta
+            .provisions()
+            .iter()
+            .map(|row| row.target().as_str())
+            .collect::<Vec<_>>(),
+        [STATYA_5, STATYA_93]
+    );
+}
+
+#[test]
+fn hypothesized_commencement_is_stored_not_upgraded() {
+    let admissions = [
+        admission_with_class(
+            STATYA_5,
+            LAW3_ISO,
+            EvidenceClass::HypothesizedFromOracleDiff,
+            "rec:commencement:hypothesized-5",
+            TransitionalEvidence::ExplicitlyAbsent,
+        ),
+        admission(
+            STATYA_93,
+            LAW3_ISO,
+            "rec:commencement:legislative-93",
+            TransitionalEvidence::ExplicitlyAbsent,
+        ),
+    ];
+
+    let delta = edition_delta(&demo_log(), day(FROM_ISO), day(TO_ISO), &admissions)
+        .expect("hypothesized evidence is data, not an upgraded claim");
+    assert_eq!(
+        provision(&delta, STATYA_5)
+            .provenance()
+            .commencement()
+            .evidence_class(),
+        EvidenceClass::HypothesizedFromOracleDiff
+    );
+}
+
+#[test]
+fn explicitly_absent_and_declared_transitional_roundtrip() {
+    let declared_ref = rid("rec:transition:declared-93");
+    let admissions = [
+        admission(
+            STATYA_5,
+            LAW3_ISO,
+            "rec:commencement:absent-5",
+            TransitionalEvidence::ExplicitlyAbsent,
+        ),
+        admission(
+            STATYA_93,
+            LAW3_ISO,
+            "rec:commencement:declared-93",
+            TransitionalEvidence::Declared(declared_ref.clone()),
+        ),
+    ];
+
+    let delta = edition_delta(&demo_log(), day(FROM_ISO), day(TO_ISO), &admissions)
+        .expect("both explicit transitional states are admitted");
+    assert_eq!(
+        provision(&delta, STATYA_5).provenance().transitional(),
+        &TransitionalEvidence::ExplicitlyAbsent
+    );
+    assert_eq!(
+        provision(&delta, STATYA_93).provenance().transitional(),
+        &TransitionalEvidence::Declared(declared_ref)
+    );
+}

@@ -45,6 +45,7 @@ use ln_temporal::domain::{
     CanonRecordId, ComponentConceptId, EditionDelta, EditionOracle, EvidenceClass, NormativeState,
     ProvisionDelta, ThreeCanonEventLog, ThreeCanonLogError, ThreeCanonRecord,
 };
+use ln_temporal::provenance::{EditionDeltaError, ProvenanceAdmission, TransitionalEvidence};
 
 // One stable Work (R081): every component concept lives in this namespace.
 const FZ44: &str = "cc:44-fz";
@@ -225,10 +226,39 @@ fn combined_log() -> ThreeCanonEventLog {
     combined
 }
 
-/// Point the edition delta at a `(from, to]` window of ISO days (the API
-/// T02 lands).
+fn legislative_admission(target: &str, effect_iso: &str, rule_ref: &str) -> ProvenanceAdmission {
+    ProvenanceAdmission::try_new(
+        cc(target),
+        day(effect_iso),
+        EvidenceClass::Legislative,
+        rule_ref,
+        TransitionalEvidence::ExplicitlyAbsent,
+    )
+    .expect("valid synthetic provenance admission")
+}
+
+/// Point the edition delta at a known `(from, to]` fixture window.
+///
+/// Admissions are explicit fixture data, not inferred from the event log.
 fn delta(log: &ThreeCanonEventLog, from_iso: &str, to_iso: &str) -> EditionDelta {
-    edition_delta(log, day(from_iso), day(to_iso)).expect("edition delta")
+    let admissions = match (from_iso, to_iso) {
+        ("2019-01-01", "2021-07-01") => vec![
+            legislative_admission(STATYA_5, "2021-03-01", "rec:commencement:law3-5"),
+            legislative_admission(STATYA_93, "2021-03-01", "rec:commencement:law3-93"),
+        ],
+        ("2018-12-31", "2019-01-01") => vec![
+            legislative_admission(STATYA_5, "2019-01-01", "rec:commencement:law2-5"),
+            legislative_admission(STATYA_93_1, "2019-01-01", "rec:commencement:law2-93-1"),
+        ],
+        ("2016-01-01", "2019-06-01") => vec![legislative_admission(
+            "cc:44-fz:statya-10",
+            "2019-01-01",
+            "rec:commencement:law2-10",
+        )],
+        _ => Vec::new(),
+    };
+
+    edition_delta(log, day(from_iso), day(to_iso), &admissions).expect("edition delta")
 }
 
 fn provision<'a>(delta: &'a EditionDelta, target: &str) -> &'a ProvisionDelta {
@@ -286,6 +316,24 @@ fn combined_delta_2019_to_2021_reports_statya_93_repealed_and_statya_5_touched()
     assert!(!statya_5.force_conflict_from());
     assert!(!statya_5.force_conflict_to());
     assert!(!statya_5.events().is_empty(), "the touch carries evidence");
+
+    for (line, target) in [(statya_5, STATYA_5), (statya_93, STATYA_93)] {
+        assert_eq!(
+            line.provenance().affected_provisions(),
+            &[cc(target)],
+            "each demo row carries target-scoped provenance"
+        );
+        assert_eq!(
+            line.provenance().amending_acts().len(),
+            1,
+            "law 3 records collapse to one unique amending act"
+        );
+        assert_eq!(line.provenance().amending_acts()[0].as_str(), LAW3_ACT);
+        assert!(
+            !line.provenance().delta_evidence().is_empty(),
+            "each row carries concrete window record ids"
+        );
+    }
 }
 
 #[test]
@@ -355,10 +403,10 @@ fn inverted_from_after_to_returns_inverted_range() {
     // two-line demo, so the error path never silently absorbs the window.
     let combined = combined_log();
 
-    let inverted = edition_delta(&combined, day("2021-07-01"), day("2019-01-01"));
+    let inverted = edition_delta(&combined, day("2021-07-01"), day("2019-01-01"), &[]);
     assert_eq!(
         inverted.expect_err("inverted range must be rejected"),
-        ThreeCanonLogError::InvertedRange
+        EditionDeltaError::Window(ThreeCanonLogError::InvertedRange)
     );
 
     let forward = delta(&combined, "2019-01-01", "2021-07-01");
