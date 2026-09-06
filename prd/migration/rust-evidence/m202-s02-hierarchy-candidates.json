@@ -1,0 +1,55 @@
+{
+  "schema": "law-nexus-hierarchy-candidate-artifact/v1",
+  "schema_version": 1,
+  "lifecycle": "[proposed]",
+  "count_only": true,
+  "ascii_only": true,
+  "authoritative": false,
+  "crate": "ln-decode",
+  "decoder": "ConsultantWordMlBlockDecoder",
+  "extractor": "ln_decode::hierarchy::extract_hierarchy_candidates",
+  "non_claims": [
+    "Candidates are not ComponentConcept and never mint ComponentConcept identifiers (Review 4).",
+    "Candidates are not kb-hierarchy-registry.yaml and are never auto-applied as YAML (D185).",
+    "Candidates are never admitted to the registry: admission is a separate human-gated step.",
+    "Candidates are not legal hierarchy truth: not InForce, not Applicable, not authority.",
+    "Artifact is not kb-hierarchy-registry.yaml.",
+    "Not R035 validation; corpus 8/94 is SKIP-capable sanity."
+  ],
+  "source_binding": {
+    "kind": "file",
+    "path": "crates/ln-decode/tests/fixtures/hierarchy_candidates.xml",
+    "payload_ref": "payload:m202-hierarchy-candidates",
+    "source_digest": "fnv1a64:5ec57029f2ff9d05"
+  },
+  "counts": {
+    "extracted": 7,
+    "unique": 6,
+    "duplicate": 1,
+    "nested": 3,
+    "by_level": {
+      "razdel": 0,
+      "glava": 1,
+      "paragraph": 0,
+      "statya": 2,
+      "chast": 0,
+      "punkt": 3,
+      "podpunkt": 0
+    }
+  },
+  "diagnostics": {
+    "duplicate_key_count": 1,
+    "duplicate_keys": [
+      {"catalog_token": "punkt", "key_path": "statya-4/punkt-1", "first_index": 2, "later_index": 4}
+    ]
+  },
+  "identity_digest": "fnv1a64:aff2a32522ccb77f",
+  "candidates": [
+    {"catalog_token": "glava", "number": "1", "path": null, "key_path": "1", "depth": 1, "marker_span": {"start": 0, "end": 13}},
+    {"catalog_token": "statya", "number": "4", "path": null, "key_path": "4", "depth": 1, "marker_span": {"start": 0, "end": 15}},
+    {"catalog_token": "punkt", "number": "1", "path": "statya-4/punkt-1", "key_path": "statya-4/punkt-1", "depth": 2, "marker_span": {"start": 0, "end": 2}},
+    {"catalog_token": "punkt", "number": "4.1", "path": "statya-4/punkt-4.1", "key_path": "statya-4/punkt-4.1", "depth": 2, "marker_span": {"start": 0, "end": 4}},
+    {"catalog_token": "statya", "number": "5", "path": null, "key_path": "5", "depth": 1, "marker_span": {"start": 0, "end": 15}},
+    {"catalog_token": "punkt", "number": "1", "path": "statya-5/punkt-1", "key_path": "statya-5/punkt-1", "depth": 2, "marker_span": {"start": 0, "end": 2}}
+  ]
+}
