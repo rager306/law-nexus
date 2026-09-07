@@ -440,6 +440,159 @@ pub fn admit_candidates(
     })
 }
 
+/// Header lines pinned for the header-only comment before `bindings:`.
+/// Kept as a single constant so the full-registry renderer and the
+/// binding-only T01/T03 projection share one definition.
+pub const REGISTRY_BINDINGS_HEADER: &str = "# Explicit marker -> ComponentConcept bindings (KBO-R013 / R041 companion)\n#\n# Lifecycle: [proposed]\n# Non-authority: not legal identity, not CTV text, not 44-FZ history,\n# not InForce, not Applicable. Bindings are human-admitted fixture keys.\n# A path that matches no needle gets an empty map (all markers Unknown).\n\n";
+
+/// Fixed metadata body between the header and `bindings:`: schema,
+/// lifecycle, non-authority, and boundary. Rendered complete registries
+/// preserve this text byte-for-byte so `parse_hierarchy_registry` keeps
+/// parsing and lifecycle pins keep holding.
+pub const REGISTRY_METADATA_BODY: &str = "schema_version: law-nexus-kb-hierarchy-registry/v1\nlifecycle: \"[proposed]\"\nauthoritative: false\nboundary: >\n  Scoped fixture registry only. Number+level still does not mint a CC\n  outside this table. Same-level articles form a forest. A fixture with\n  glava then statya drafts attach; it still does not write the membership log.\n\n";
+
+/// One preserved non-bindings section (`editions:` / `works:`) of the
+/// current tracked registry. The complete-registry renderer re-emits these
+/// verbatim; admission never invents edition or work identity.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RegistryTableSection {
+    pub heading: String,
+    pub body: String,
+}
+
+/// Preserved non-bindings tables of the current tracked registry plus the
+/// admitted bindings to render. Sections keep their exact tracked text
+/// (comment lines included); bindings render deterministically from
+/// [`AdmittedRegistry`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CompleteRegistryRenderInput<'a> {
+    pub admitted: &'a AdmittedRegistry,
+    pub sections: &'a [RegistryTableSection],
+    /// Verbatim comment block between the last binding row and the first
+    /// preserved table (the 44-FZ snapshot note), if any. No blank-line
+    /// normalization is applied to it.
+    pub interlude_comment: Option<&'a str>,
+}
+
+/// Rendered row text shared by the binding-only projection and the complete
+/// registry renderer. Rows sort by `(path_needle, level catalog order,
+/// key_path/number, cc)`; the byte output is input-order-independent.
+pub fn sorted_registry_binding_rows(admitted: &AdmittedRegistry) -> Vec<String> {
+    let mut rows: Vec<&AdmissionBinding> = admitted.bindings.iter().collect();
+    rows.sort_by_key(|row| registry_sort_key(row));
+    rows.iter().map(|row| render_row(row)).collect()
+}
+
+/// Split a tracked registry YAML into its preserved non-bindings sections.
+/// Returns the verbatim text of every top-level `editions:` / `works:`
+/// section (heading line plus body), plus the verbatim comment block
+/// between the last binding row and the first preserved table.
+/// Unknown section names fail closed; a missing `bindings:` heading fails
+/// closed as well. `bindings:` itself is consumed by admission, never
+/// preserved.
+pub fn parse_registry_tables(
+    text: &str,
+) -> Result<(Vec<RegistryTableSection>, Option<String>), RegistryAdmissionError> {
+    let lines: Vec<&str> = text.lines().collect();
+    let mut bindings_at: Option<usize> = None;
+    for (index, raw) in lines.iter().enumerate() {
+        if strip_comment(raw).trim() == "bindings:" {
+            bindings_at = Some(index);
+            break;
+        }
+    }
+    let bindings_at = bindings_at.ok_or_else(|| RegistryAdmissionError::MissingField {
+        field: "bindings".to_owned(),
+    })?;
+    let mut sections: Vec<RegistryTableSection> = Vec::new();
+    let mut current_heading: Option<String> = None;
+    let mut current_body: Vec<&str> = Vec::new();
+    let mut interlude: Vec<&str> = Vec::new();
+    let mut interlude_done = false;
+    for raw in &lines[bindings_at + 1..] {
+        let trimmed = strip_comment(raw).trim().to_owned();
+        let is_heading = !trimmed.is_empty()
+            && !trimmed.starts_with('-')
+            && trimmed.ends_with(':')
+            && raw.len() - raw.trim_start().len() == 0;
+        if is_heading {
+            if let Some(heading) = current_heading.take() {
+                sections.push(RegistryTableSection {
+                    heading,
+                    body: current_body.join("\n"),
+                });
+                current_body.clear();
+            }
+            let name = trimmed.trim_end_matches(':');
+            if !matches!(name, "editions" | "works") {
+                return Err(RegistryAdmissionError::UnknownKey {
+                    key: name.to_owned(),
+                });
+            }
+            interlude_done = true;
+            current_heading = Some((*raw).to_owned());
+            continue;
+        }
+        if current_heading.is_some() {
+            current_body.push(raw);
+        } else if !interlude_done {
+            // Binding rows are consumed by admission, never preserved:
+            // only comments and blank lines form the interlude.
+            if trimmed.starts_with('-') {
+                continue;
+            }
+            interlude.push(raw);
+        }
+    }
+    if let Some(heading) = current_heading.take() {
+        sections.push(RegistryTableSection {
+            heading,
+            body: current_body.join("\n"),
+        });
+    }
+    let interlude_text = interlude.join("\n");
+    let interlude_comment = if interlude_text.trim().is_empty() {
+        None
+    } else {
+        Some(interlude_text)
+    };
+    Ok((sections, interlude_comment))
+}
+
+/// Render the admitted bindings plus the preserved non-bindings tables as
+/// the deterministic complete registry YAML projection. The output is
+/// `header + metadata + sorted bindings + interlude comment (if any) +
+/// preserved tables (in tracked order)`, each preserved section re-emitted
+/// with a single trailing newline. Empty lines inside section bodies are
+/// re-emitted verbatim.
+pub fn render_complete_registry(input: &CompleteRegistryRenderInput<'_>) -> String {
+    let mut out = String::new();
+    out.push_str(REGISTRY_BINDINGS_HEADER);
+    out.push_str(REGISTRY_METADATA_BODY);
+    out.push_str("bindings:\n");
+    for row in sorted_registry_binding_rows(input.admitted) {
+        out.push_str(&row);
+        out.push('\n');
+    }
+    if let Some(interlude) = input.interlude_comment {
+        out.push_str(interlude);
+        if !interlude.ends_with('\n') {
+            out.push('\n');
+        }
+    }
+    for section in input.sections {
+        out.push_str(&section.heading);
+        out.push('\n');
+        if !section.body.is_empty() {
+            out.push_str(&section.body);
+            if !section.body.ends_with('\n') {
+                out.push('\n');
+            }
+        }
+    }
+    out
+}
+
 /// Render the admitted registry as the deterministic complete registry YAML
 /// projection. Rows sort by `(path_needle, level catalog order,
 /// key_path/number, cc)`; the byte output is input-order-independent and

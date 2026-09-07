@@ -8,6 +8,14 @@ publish = false
 name = "law-nexus-inspect"
 path = "src/main.rs"
 
+[[bin]]
+name = "hierarchy-registry-generator"
+path = "src/bin/hierarchy-registry-generator.rs"
+
+[lib]
+name = "ln_product_cli"
+path = "src/lib.rs"
+
 [dependencies]
 ln-consultant-parser = { path = "../ln-consultant-parser" }
 ln-decode = { path = "../ln-decode" }

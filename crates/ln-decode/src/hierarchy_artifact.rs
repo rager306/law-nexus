@@ -985,6 +985,107 @@ fn heartbeat_line(report: &HierarchyCandidateReport) -> String {
     )
 }
 
+/// One candidate identity from a closed v1 artifact (normalized view).
+/// Titles never enter: the artifact is count-only by construction.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CandidateArtifactIdentityView {
+    pub catalog_token: String,
+    pub number: String,
+    /// CC-path ladder when the identity is nested; `None` for flat keys.
+    pub path: Option<String>,
+    /// Stable key admission rows reference (`number` flat, ladder nested).
+    pub key_path: String,
+}
+
+/// Typed closed view of a v1 candidate artifact: bound digests plus the
+/// candidate identities, without titles or raw legal text. The artifact is
+/// first gated through [`validate_hierarchy_candidate_artifact`], so every
+/// returned view already satisfies the closed schema, pinned constants,
+/// count consistency, and (when identities are present) the identity
+/// digest. Cross-crate admission (D427) builds its normalized evidence
+/// from this view; the SHA-256 over the artifact file bytes stays with the
+/// caller, which owns the file read.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CandidateArtifactView {
+    pub artifact_schema: String,
+    pub lifecycle: String,
+    pub authoritative: bool,
+    /// Recorded `source_binding.path` the artifact was rendered from.
+    pub artifact_source_path: String,
+    pub source_digest: String,
+    pub identity_digest: String,
+    pub candidates: Vec<CandidateArtifactIdentityView>,
+}
+
+fn view_scalar<'a>(line: &'a str, prefix: &str, trailing: &str) -> Option<&'a str> {
+    let rest = line.strip_prefix(prefix)?;
+    let value = rest.strip_suffix(trailing)?;
+    if value.contains('"') || value.contains('\\') {
+        return None;
+    }
+    Some(value)
+}
+
+/// Parse a closed v1 artifact into its typed view. Fails closed with the
+/// same typed [`ArtifactError`] classes as the validator; anything the
+/// validator rejects never becomes a view.
+pub fn parse_candidate_artifact_view(
+    artifact: &str,
+) -> Result<CandidateArtifactView, ArtifactError> {
+    validate_hierarchy_candidate_artifact(artifact)?;
+    let mut schema: Option<String> = None;
+    let mut lifecycle: Option<String> = None;
+    let mut authoritative: Option<bool> = None;
+    let mut source_path: Option<String> = None;
+    let mut source_digest: Option<String> = None;
+    let mut identity_digest: Option<String> = None;
+    let mut candidates: Vec<CandidateArtifactIdentityView> = Vec::new();
+    for line in artifact.lines() {
+        if line.starts_with("    {\"catalog_token\": \"") {
+            let row = parse_candidate_row(line)?;
+            candidates.push(CandidateArtifactIdentityView {
+                catalog_token: row.token,
+                number: row.number,
+                path: row.path,
+                key_path: row.key_path,
+            });
+            continue;
+        }
+        if let Some(value) = view_scalar(line, "  \"schema\": \"", "\",") {
+            schema = Some(value.to_owned());
+        } else if let Some(value) = view_scalar(line, "  \"lifecycle\": \"", "\",") {
+            lifecycle = Some(value.to_owned());
+        } else if let Some(rest) = line.strip_prefix("  \"authoritative\": ") {
+            let value = rest.strip_suffix(',').unwrap_or(rest);
+            authoritative = Some(match value {
+                "true" => true,
+                "false" => false,
+                _ => {
+                    return Err(drift("authoritative must be a boolean"));
+                }
+            });
+        } else if let Some(value) = view_scalar(line, "    \"path\": \"", "\",") {
+            source_path = Some(value.to_owned());
+        } else if let Some(value) = view_scalar(line, "    \"source_digest\": \"", "\"") {
+            validate_digest(value)?;
+            source_digest = Some(value.to_owned());
+        } else if line.starts_with("  \"identity_digest\": \"") {
+            let (digest, _) = parse_identity_line(line)?;
+            identity_digest = Some(digest);
+        }
+    }
+    let missing = |field: &str| drift(format!("artifact view is missing {field:?}"));
+    Ok(CandidateArtifactView {
+        artifact_schema: schema.ok_or_else(|| missing("schema"))?,
+        lifecycle: lifecycle.ok_or_else(|| missing("lifecycle"))?,
+        authoritative: authoritative.ok_or_else(|| missing("authoritative"))?,
+        artifact_source_path: source_path.ok_or_else(|| missing("source_binding.path"))?,
+        source_digest: source_digest.ok_or_else(|| missing("source_digest"))?,
+        identity_digest: identity_digest.ok_or_else(|| missing("identity_digest"))?,
+        candidates,
+    })
+}
+
 /// Run one parsed CLI invocation. Source input is explicit (no implicit
 /// corpus walk); `--check` never writes and a missing expected file fails
 /// closed as hash drift without creating it.
