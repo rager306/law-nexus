@@ -1,0 +1,221 @@
+# Proposed control baseline for Review 27 NPA parsing program.
+# This is a repository-control contract, not product/runtime authority.
+schema_version: law-nexus-npa-parsing-program/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_review: doc/review/review-27-05-09-2026.md
+review_case: RC-2026-09-05-001
+assessment: assessment/30-npa-parsing-program-control-baseline.md
+owner_adr: ADR-0024
+related: [ADR-0016, ADR-0017, ADR-0019, ADR-0028, R035, R070]
+
+authority_boundary:
+  source_kind: immutable_non_authoritative_review
+  packet_status: draft_extracted
+  packet_finding_count: 0
+  packet_event_count: 1
+  required_human_disposition: true
+  registration_is_disposition: false
+  registration_is_readiness: false
+  registration_is_requirement_promotion: false
+  r035_status: active
+  r070_status: active
+  prohibited:
+    - mutate_review_source_or_registered_packet
+    - infer_human_disposition_from_cli_status
+    - promote_candidate_to_requirement_without_authority_workflow
+    - close_R035_or_R070_from_documentation_fixture_or_registration
+    - claim_parser_or_product_readiness
+    - copy_raw_corpus_text_to_control_artifacts
+
+source_integrity:
+  source_path: doc/review/review-27-05-09-2026.md
+  source_sha256: e343a075f384dd63f1e3fa8cf702e7d01cd982902c74e09f08b766a3772a39d5
+  reviewed_revision: 06fe544d3228f8f8314903e9a7b45162a0b0f9e8
+  packet_path: prd/architecture/review-cases/packets/RC-2026-09-05-001.json
+  packet_source_sha256: e343a075f384dd63f1e3fa8cf702e7d01cd982902c74e09f08b766a3772a39d5
+  verification:
+    - "uv run python -m law_nexus_harness review-case validate"
+    - "uv run python -m law_nexus_harness review-case status --packet-id RC-2026-09-05-001"
+    - "uv run python -m law_nexus_harness review-case inventory --packet-id RC-2026-09-05-001"
+    - "uv run python -m law_nexus_harness governor --only semantic"
+  mismatch_action: new_source_revision_and_packet
+
+proof_classes: [docs, design, implementation, evidence, process]
+disposition_options:
+  - accept_candidate
+  - defer_pending_human_review
+  - reject_with_human_rationale
+acceptance_rule: human_disposition_event_plus_owner_surface_plus_class_matched_evidence
+
+findings:
+  - id: RC27-F01
+    title: semantic_bridge_absent
+    severity: blocking
+    source_anchor: review_27.section_2_and_3
+    owning_surfaces: [prd/architecture/npa-semantic-process.yaml, doc/adr/0028-typed-lexer-legal-marker-lexicon.md, doc/adr/0019-normative-hierarchy-and-conflict.md]
+    existing_requirements: []
+    proposed_requirement_candidates: [PARSE-P2D, PARSE-P5, PARSE-P6]
+    proof_classes: [design, implementation]
+    lifecycle_scope: [design, bounded_runtime]
+    default_disposition: defer_pending_human_review
+    decision_point: staged_bridge_owner_review
+  - id: RC27-F02
+    title: capture_bounds_helpers_unwired
+    severity: blocking
+    source_anchor: review_27.section_2_and_10
+    owning_surfaces: [prd/architecture/npa-capture-arbitration.yaml, doc/adr/0028-typed-lexer-legal-marker-lexicon.md]
+    existing_requirements: []
+    proposed_requirement_candidates: [PARSE-BOUNDS, OPER]
+    proof_classes: [implementation, evidence]
+    lifecycle_scope: [bounded_runtime]
+    default_disposition: defer_pending_human_review
+    decision_point: wire_capture_with_terminal_diagnostics
+  - id: RC27-F03
+    title: dual_token_views_untyped_seam
+    severity: high
+    source_anchor: review_27.section_3_and_12
+    owning_surfaces: [doc/adr/0028-typed-lexer-legal-marker-lexicon.md, prd/architecture/npa-identifying-cycle.yaml]
+    existing_requirements: [PARSE-P2B]
+    proposed_requirement_candidates: [PARSE-P2B]
+    proof_classes: [design, implementation]
+    lifecycle_scope: [bounded_runtime]
+    default_disposition: defer_pending_human_review
+    decision_point: incompatible_views_or_consumer_migration
+  - id: RC27-F04
+    title: local_grammar_absent
+    severity: high
+    source_anchor: review_27.section_3_and_12
+    owning_surfaces: [prd/architecture/npa-identifying-cycle.yaml, doc/adr/0028-typed-lexer-legal-marker-lexicon.md]
+    existing_requirements: [PARSE-P2D]
+    proposed_requirement_candidates: [PARSE-P2D]
+    proof_classes: [design, implementation, evidence]
+    lifecycle_scope: [proposed, bounded_runtime]
+    default_disposition: defer_pending_human_review
+    decision_point: two_bounded_immutable_frame_families
+  - id: RC27-F05
+    title: bounded_document_context_absent
+    severity: high
+    source_anchor: review_27.section_3_and_12
+    owning_surfaces: [prd/architecture/npa-document-context.yaml, prd/architecture/npa-semantic-process.yaml]
+    existing_requirements: [PARSE-P5]
+    proposed_requirement_candidates: [PARSE-P5]
+    proof_classes: [design, implementation, evidence]
+    lifecycle_scope: [proposed, bounded_runtime]
+    default_disposition: defer_pending_human_review
+    decision_point: typed_worklist_with_terminal_failures
+  - id: RC27-F06
+    title: modality_scope_incomplete
+    severity: high
+    source_anchor: review_27.section_5_and_12
+    owning_surfaces: [prd/architecture/npa-semantic-process.yaml, doc/adr/0019-normative-hierarchy-and-conflict.md, prd/temporal-legal-model.md]
+    existing_requirements: [PARSE-P6]
+    proposed_requirement_candidates: [SEM-SCOPE]
+    proof_classes: [implementation, evidence]
+    lifecycle_scope: [semantic_candidate]
+    default_disposition: defer_pending_human_review
+    decision_point: zero_tolerance_scope_preservation
+  - id: RC27-F07
+    title: identity_and_binding_boundary_incomplete
+    severity: blocking
+    source_anchor: review_27.section_3_and_12
+    owning_surfaces: [doc/adr/0016-frbr-structural-legal-identity.md, doc/adr/0019-normative-hierarchy-and-conflict.md, prd/architecture/npa-identifying-cycle.yaml]
+    existing_requirements: [PARSE-P7, PARSE-P8]
+    proposed_requirement_candidates: [IDENT-BIND]
+    proof_classes: [implementation, evidence]
+    lifecycle_scope: [proposed, bounded_runtime]
+    default_disposition: defer_pending_human_review
+    decision_point: no_false_mint_and_candidate_fact_gate
+  - id: RC27-F08
+    title: provenance_one_edition_bounded
+    severity: blocking
+    source_anchor: review_27.section_2_and_12
+    owning_surfaces: [doc/adr/0017-component-temporal-versioning.md, prd/architecture/current-document-requisites.yaml]
+    existing_requirements: [R070]
+    proposed_requirement_candidates: [TEMP-PROV]
+    proof_classes: [evidence]
+    lifecycle_scope: [evidence]
+    default_disposition: defer_pending_human_review
+    decision_point: staged_edition_coverage
+  - id: RC27-F09
+    title: registry_mapping_fixture_sized
+    severity: blocking
+    source_anchor: review_27.section_2_and_12
+    owning_surfaces: [prd/architecture/model-crystal.md, doc/adr/0019-normative-hierarchy-and-conflict.md]
+    existing_requirements: [R035]
+    proposed_requirement_candidates: [REGISTRY]
+    proof_classes: [evidence, process]
+    lifecycle_scope: [evidence]
+    default_disposition: defer_pending_human_review
+    decision_point: named_r035_proof_gates
+  - id: RC27-F10
+    title: corpus_claims_need_manifests_and_gold
+    severity: high
+    source_anchor: review_27.section_7_and_12
+    owning_surfaces: [prd/architecture/npa-corpus-control.yaml]
+    existing_requirements: [CORPUS]
+    proposed_requirement_candidates: [CORPUS]
+    proof_classes: [design, evidence, process]
+    lifecycle_scope: [diagnostic, bounded, validated]
+    default_disposition: defer_pending_human_review
+    decision_point: c2_c3_manifest_and_c5_gold_policy
+  - id: RC27-F11
+    title: regression_and_correction_memory_not_durable
+    severity: high
+    source_anchor: review_27.section_8_and_12
+    owning_surfaces: [prd/architecture/npa-control-ledgers.yaml]
+    existing_requirements: [LEDGER, METRIC]
+    proposed_requirement_candidates: [METRIC-LEDGER]
+    proof_classes: [design, implementation]
+    lifecycle_scope: [control_plane]
+    default_disposition: defer_pending_human_review
+    decision_point: append_only_schema_compatibility_review
+  - id: RC27-F12
+    title: governor_enforcement_incomplete
+    severity: high
+    source_anchor: review_27.section_10_and_12
+    owning_surfaces: [src/law_nexus_harness/cli.py, src/law_nexus_harness/governor.py, prd/architecture/review-cases/README.md]
+    existing_requirements: [GOV, OPER]
+    proposed_requirement_candidates: [GOVERNOR]
+    proof_classes: [implementation, process]
+    lifecycle_scope: [repository_control]
+    default_disposition: defer_pending_human_review
+    decision_point: additive_checks_and_v1_report_compatibility
+
+matrix:
+  keys:
+    - {key: PARSE-P0, owner: P0_decode_complete_document, proof: contract_hostile_c2, lifecycle: bounded_runtime}
+    - {key: PARSE-P1, owner: P1_build_base_context, proof: roundtrip_hostile_c2, lifecycle: bounded_runtime}
+    - {key: PARSE-P2, owner: P2_local_analysis, proof: property_hostile, lifecycle: bounded_runtime}
+    - {key: PARSE-P2B, owner: dual_token_views, proof: compile_contracts, lifecycle: bounded_runtime}
+    - {key: PARSE-P2C, owner: morphology_evidence, proof: ambiguity_c3, lifecycle: bounded_runtime}
+    - {key: PARSE-P2D, owner: local_grammar, proof: exact_hostile_c2_c3, lifecycle: proposed}
+    - {key: PARSE-P3, owner: P3_literal_projection, proof: exact_containment_gold, lifecycle: bounded_runtime}
+    - {key: PARSE-P5, owner: P5_close_document_context, proof: cycle_limit_terminal, lifecycle: proposed}
+    - {key: PARSE-P6, owner: P6_semantic_projection, proof: hostile_gold_zero_critical_loss, lifecycle: proposed}
+    - {key: PARSE-P7, owner: P7_identity_claim_projection, proof: negative_contracts, lifecycle: proposed}
+    - {key: PARSE-P8, owner: P8_resolve_bindings, proof: integration_gold_false_link_floor, lifecycle: proposed}
+    - {key: NORM-IR, owner: normative_assembly, proof: algebra_trace_abstention, lifecycle: proposed}
+    - {key: TEMP-PROV, owner: temporal_provenance, proof: hostile_integration, lifecycle: evidence}
+    - {key: REGISTRY, owner: registry_projection, proof: r035_named_proof_gate, lifecycle: evidence}
+    - {key: LEDGER, owner: evidence_closure, proof: replay_conflict, lifecycle: control_plane}
+    - {key: CORPUS, owner: corpus_manifest, proof: governor_current_manifest, lifecycle: diagnostic}
+    - {key: METRIC, owner: comparable_regression, proof: ci_receipt_same_manifest, lifecycle: control_plane}
+    - {key: VENDOR, owner: vendor_boundary, proof: audit_governor, lifecycle: repository_control}
+    - {key: OPER, owner: runtime_bounds, proof: load_hostile, lifecycle: bounded_runtime}
+
+promotion_gates:
+  - human_disposition_recorded
+  - owning_adr_or_prd_surface_named
+  - source_anchor_preserved
+  - closure_ceiling_declared
+  - proof_class_matches_claim
+  - current_revision_bound_evidence
+  - no_r035_or_r070_status_change_from_this_contract
+
+non_claims:
+  - no_finding_is_accepted_or_closed_by_this_file
+  - no_candidate_name_is_a_requirement_id
+  - review_case_registration_is_not_disposition_or_readiness
+  - deferred_undefined_and_runtime_deferred_are_hard_stops
+  - python_is_repository_control_only_and_rust_owns_product_behavior

@@ -156,6 +156,27 @@ Measured S02–S06 shape under `src/law_nexus_harness/review_case/` and Governor
 Tracked JSON Schema remains the explicit wire contract. A generated schema may
 be checked against it; it must not silently become a second authority.
 
+## Review 27 control baseline
+
+Tracked proposed control projection:
+[`assessment/30-npa-parsing-program-control-baseline.md`](../../../assessment/30-npa-parsing-program-control-baseline.md)
+with its machine-readable contract at
+[`../npa-parsing-program.yaml`](../npa-parsing-program.yaml).
+
+Review 27 (`RC-2026-09-05-001`) remains an immutable, non-authoritative,
+`[diagnostic]` input. Its registered packet is `draft_extracted` with zero
+finding nodes and one registration event; this is not a disposition. The
+control projection reconstructs `RC27-F01..F12` and matrix keys as candidates
+only, maps them to owning ADR/PRD surfaces, proof classes and lifecycle scopes,
+and sets the next human decision to accept, defer, or reject. Candidate names
+are not requirement IDs. R035 and R070 remain active. No packet, assessment,
+CLI status, inventory, governor result, or documentation-only evidence may
+claim parser/product readiness or close either requirement.
+
+The source-bound SHA-256 is recorded in both the assessment and program
+contract. A source change requires a new packet/source revision rather than a
+silent projection rewrite.
+
 ## Two-review delta map
 
 Tracked inventory:
