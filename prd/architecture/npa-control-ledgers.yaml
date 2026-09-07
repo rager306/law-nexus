@@ -1,0 +1,55 @@
+# Append-only NPA control ledger schemas.
+# These ledgers record measurements and corrections, never legal facts.
+schema_version: law-nexus-npa-control-ledgers/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner: RC-2026-09-05-001
+
+common_envelope:
+  required: [event_id, sequence, recorded_at, parser_revision, corpus_snapshot_hash, manifest_id, provider_strata, environment, evidence_anchors, supersedes]
+  event_id: {pattern: "^NPA-[A-Z]+-[0-9]{8}-[0-9]{6}$"}
+  sequence: {type: integer, monotonic: true, unique: true}
+  evidence_anchors: {required: [document_relative_path, source_span], raw_text: forbidden}
+  supersedes: {type: [null, string], must_precede: event_id}
+  append_only: true
+  update_rule: append_superseding_event_only
+
+ledgers:
+  metrics_history:
+    record_schema: law-nexus-npa-metric-event/v1
+    required_payload: [metric_id, metric_family, value, classification, definition_hash, result]
+    classification: [exact, estimate, proxy]
+    result: [observed, unavailable, incomplete, quarantined]
+  regression:
+    record_schema: law-nexus-npa-regression-event/v1
+    required_payload: [metric_id, baseline_event_id, candidate_event_id, delta, comparability, disposition]
+    comparability: [comparable, incomparable, not_assessable]
+    disposition: [pass, fail, quarantine, deferred]
+    rule: incomparable_results_fail_closed
+  gaps:
+    record_schema: law-nexus-npa-gap-event/v1
+    required_payload: [gap_code, severity, observed, expected, remediation, lifecycle_scope]
+    gap_code: {pattern: "^NPA-GAP-[0-9]{3}$", stable: true}
+    severity: [info, warning, blocking]
+    lifecycle_scope: [diagnostic, bounded, validated, control_plane]
+    rule: source_safe_anchor_required
+  semantic_corrections:
+    record_schema: law-nexus-npa-correction-event/v1
+    required_payload: [correction_code, target_event_id, reason, evidence_anchors, disposition]
+    correction_code: {pattern: "^NPA-CORR-[0-9]{3}$", stable: true}
+    disposition: [proposed, accepted, rejected, deferred]
+    rule: accepted_requires_human_disposition_and_supersedes_target
+
+integrity:
+  - no_delete_or_in_place_update
+  - sequence_contiguous_per_ledger
+  - superseding_event_preserves_original_payload_identity
+  - every record has parser_revision_manifest_and_snapshot_binding
+  - proxy records remain namespaced and cannot replace exact records
+  - rejected_or_deferred corrections remain visible
+
+non_claims:
+  - not legal_assertion_ledger
+  - not product_runtime_state
+  - not human_disposition_without_explicit_event
+  - not readiness_or_requirement_validation

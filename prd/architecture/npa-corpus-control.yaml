@@ -1,0 +1,85 @@
+# NPA corpus strata and manifest contract (Review 27 control baseline).
+# YAML-as-data only: no raw corpus text, legal gold, or runtime authority.
+schema_version: law-nexus-npa-corpus-control/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner: RC-2026-09-05-001
+related: [R035, R070, ADR-0017, ADR-0028]
+
+source_authority:
+  full_corpus_root: consru_export/consru_export/exports
+  allowed_file_glob: "**/*.xml"
+  forbidden_corpus_roots: [law-source/consultant, law-source/garant]
+  raw_text_persistence: forbidden
+  source_anchor_fields: [document_relative_path, document_content_hash, source_span]
+
+strata:
+  - id: C0
+    name: fixtures
+    lifecycle: "[diagnostic]"
+    purpose: decoder and contract fixtures
+    admission: tracked_fixture_manifest
+    gold: false
+  - id: C1
+    name: hostile
+    lifecycle: "[diagnostic]"
+    purpose: malformed, ambiguous, conflicting and boundary inputs
+    admission: hostile_case_manifest
+    gold: false
+  - id: C2
+    name: bounded
+    lifecycle: "[bounded]"
+    purpose: named bounded NPA contour used for reproducible proof
+    admission: reviewed_manifest_and_snapshot
+    gold: false
+  - id: C3
+    name: holdout
+    lifecycle: "[diagnostic]"
+    purpose: unseen evaluation kept separate from tuning
+    admission: sealed_manifest_and_snapshot
+    gold: false
+  - id: C4
+    name: full_diagnostic
+    lifecycle: "[diagnostic]"
+    purpose: inventory and distribution diagnostics over the full export
+    admission: complete_walk_manifest
+    gold: false
+  - id: C5
+    name: double_coded_gold
+    lifecycle: "[proposed]"
+    purpose: independently coded acceptance material
+    admission: two_coder_agreement_and_human_acceptance
+    gold: true
+
+manifest_schema:
+  type: object
+  required: [schema_version, manifest_id, stratum, parser_revision, corpus_snapshot_hash, provider_strata, environment, entries, lifecycle]
+  properties:
+    schema_version: {type: string, const: law-nexus-npa-corpus-manifest/v1}
+    manifest_id: {type: string, pattern: "^NPA-MAN-[A-Z0-9-]+$"}
+    stratum: {type: string, enum: [C0, C1, C2, C3, C4, C5]}
+    parser_revision: {type: string, minLength: 1}
+    corpus_snapshot_hash: {type: string, pattern: "^(sha256|snapshot):"}
+    provider_strata: {type: array, minItems: 1}
+    environment: {type: object, required: [platform, rust_toolchain, command]}
+    entries: {type: array}
+    lifecycle: {type: string, enum: ["[diagnostic]", "[bounded]", "[proposed]", "[validated]"]}
+  entry_non_claims: [no_raw_text, no_unanchored_case, no_implicit_full_corpus_coverage]
+
+manifest_entry:
+  required: [entry_id, document_relative_path, content_hash, evidence_anchor, admission]
+  evidence_anchor_required: [document_relative_path, source_span]
+  admission_enum: [fixture, hostile, bounded_reviewed, holdout_sealed, full_walk, double_coded_accepted]
+
+admission_rules:
+  - "C4 is diagnostic even when the walk is complete; it cannot promote C2/C3/C5."
+  - "C5 requires independent coder identifiers and an explicit human acceptance event outside this contract."
+  - "Every measurement binds to exactly one manifest and corpus_snapshot_hash."
+  - "A partial or interrupted walk remains diagnostic and is never labelled validated."
+
+non_claims:
+  - not_product_corpus_authority
+  - not_legal_gold
+  - not_parser_readiness
+  - not_R035_or_R070_validation
+  - not_raw_corpus_storage

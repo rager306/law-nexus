@@ -24,6 +24,8 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal, cast
 
+import yaml
+
 from law_nexus_harness.adr_matrix import (
     DEFAULT_ADR_MATRIX_PATH,
     check_adr_matrix_output,
@@ -1973,6 +1975,75 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
             ),
             remediation="none",
             evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+        )
+    ]
+
+
+_NPA_CONTROL_ARTIFACTS: tuple[tuple[str, str], ...] = (
+    ("prd/architecture/npa-corpus-control.yaml", "law-nexus-npa-corpus-control/v1"),
+    ("prd/architecture/npa-metric-baselines.yaml", "law-nexus-npa-metric-baselines/v1"),
+    ("prd/architecture/npa-control-ledgers.yaml", "law-nexus-npa-control-ledgers/v1"),
+)
+
+
+def check_npa_control_artifacts(root: Path) -> list[GovernorFinding]:
+    """Validate the proposed NPA control artifacts without scanning corpus text.
+
+    This is a repository-control contract check only. It confirms that the three
+    versioned YAML surfaces remain parseable, proposed, and non-authoritative;
+    it does not execute measurements or promote parser/product readiness.
+    """
+
+    check_id = "npa-control-artifacts"
+    failures: list[str] = []
+    for relative_path, schema_version in _NPA_CONTROL_ARTIFACTS:
+        path = root / relative_path
+        if not path.is_file():
+            failures.append(f"{relative_path}:missing")
+            continue
+        try:
+            data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except (OSError, yaml.YAMLError) as error:
+            failures.append(f"{relative_path}:parse={type(error).__name__}")
+            continue
+        if not isinstance(data, dict):
+            failures.append(f"{relative_path}:root_not_mapping")
+            continue
+        if data.get("schema_version") != schema_version:
+            failures.append(f"{relative_path}:schema_version")
+        if data.get("lifecycle") != "[proposed]":
+            failures.append(f"{relative_path}:lifecycle")
+        if data.get("authoritative") is not False:
+            failures.append(f"{relative_path}:authoritative")
+
+    evidence = tuple(GovernorEvidence(path=path) for path, _ in _NPA_CONTROL_ARTIFACTS)
+    if failures:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="NPA control artifacts are missing or structurally invalid",
+                observed=f"failures={';'.join(failures)}",
+                remediation=(
+                    "Restore the versioned NPA control YAMLs with their proposed, "
+                    "non-authoritative contract headers."
+                ),
+                evidence=evidence,
+            )
+        ]
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="NPA control artifacts are parseable and remain non-authoritative",
+            observed=(
+                f"artifacts={len(_NPA_CONTROL_ARTIFACTS)}; lifecycle=[proposed]; "
+                "authoritative=false; corpus_scan=not_performed"
+            ),
+            remediation="none",
+            evidence=evidence,
         )
     ]
 
@@ -6795,6 +6866,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         check_document_groups_coverage,
         "Keep document_groups structural profiles covered by the token catalog and report the catalog version for binding-drift visibility.",
         ("prd/architecture/kb-ontology.yaml",),
+        "warn",
+    ),
+    _check_spec(
+        "npa-control-artifacts",
+        "corpus",
+        "deterministic",
+        check_npa_control_artifacts,
+        "Keep proposed NPA corpus, metric, and append-only ledger control artifacts parseable and non-authoritative.",
+        tuple(path for path, _ in _NPA_CONTROL_ARTIFACTS),
         "warn",
     ),
     _check_spec(

@@ -41,6 +41,7 @@ from law_nexus_harness.governor import (
     check_hostile_proof_chain,
     check_journal_retry_loops,
     check_model_crystal_anchors,
+    check_npa_control_artifacts,
     check_port_contract_coverage,
     check_published_trace_contract,
     check_roadmap_freshness,
@@ -162,6 +163,23 @@ def test_cli_governor_command_emits_report(capsys) -> None:
     assert code in {0, 1}
     expected_code = 0 if payload["status"] == "ok" else 1
     assert code == expected_code
+
+
+def test_npa_control_artifacts_fail_closed_when_missing(tmp_path: Path) -> None:
+    findings = check_npa_control_artifacts(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert "npa-corpus-control.yaml:missing" in findings[0].observed
+
+
+def test_cli_governor_supports_corpus_group_selection(capsys) -> None:
+    code = main(["governor", "--only", "corpus"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 0
+    assert [item["check_id"] for item in payload["findings"]] == ["npa-control-artifacts"]
+    assert payload["findings"][0]["status"] == "pass"
+    assert "corpus_scan=not_performed" in payload["findings"][0]["observed"]
 
 
 def test_cli_governor_supports_adr_group_selection(capsys) -> None:

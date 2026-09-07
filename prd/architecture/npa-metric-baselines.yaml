@@ -1,0 +1,61 @@
+# NPA metric semantics and provisional baseline contract.
+# Values are controls, not acceptance thresholds or readiness claims.
+schema_version: law-nexus-npa-metric-baselines/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner: RC-2026-09-05-001
+manifest_contract: prd/architecture/npa-corpus-control.yaml
+
+measurement_binding:
+  required: [measurement_id, parser_revision, corpus_snapshot_hash, manifest_id, provider_strata, environment, classification, evidence_anchors]
+  classification: [exact, estimate, proxy]
+  environment_required: [platform, rust_toolchain, command]
+  anchor_required: [document_relative_path, source_span]
+  raw_text: forbidden
+  comparability_requires: [same_metric_definition, same_manifest, same_snapshot_or_declared_delta, same_classification]
+
+metric_families:
+  - id: decode
+    measures: [files_attempted, files_decoded, malformed, unreadable, bytes_observed, blocks_per_document]
+    classification: exact
+    zero_tolerance: [unaccounted_files, partial_manifest]
+  - id: covering_lexer
+    measures: [tokens_per_block, token_kind_histogram]
+    classification: exact
+    token_kinds: [Word, Abbrev, HierNum, Date, DocNo, EnumMarker, LawCode, Punct, Space]
+  - id: contour_a
+    measures: [candidates_per_block, candidates_per_document, exact_span_pairs, containment_pairs, partial_overlap_pairs, disjoint_pairs]
+    classification: exact
+  - id: lexical_proxy
+    measures: [coordinating_act_list, structural_range, cross_block_tail, alias_surface]
+    classification: proxy
+    semantic_non_claim: proxies never count as semantic frames or accepted bounds
+  - id: operational
+    measures: [elapsed_ms, peak_memory_bytes, candidate_limit_events, cycle_limit_events]
+    classification: exact
+    threshold_status: provisional_non_authoritative
+
+provisional_thresholds:
+  status: provisional_non_authoritative
+  disposition_required: true
+  semantic_loss: {critical_field_loss: 0, source_span_loss: 0, false_fact_mint: 0}
+  accounting: {unaccounted_files: 0, raw_text_leaks: 0, manifest_mismatch: 0}
+  resource: {candidate_limit: deferred-undefined, memory_budget: deferred-undefined, top_k: deferred-undefined}
+  rule: "No threshold promotes parser, product, R035, or R070 readiness until human disposition and class-matched evidence."
+
+rollback_criteria:
+  conditions:
+    - critical_field_loss > 0
+    - source_span_loss > 0
+    - false_fact_mint > 0
+    - unaccounted_files > 0
+    - measurement_binding_mismatch
+    - semantic_proxy_counted_as_exact
+  action: quarantine_current_measurement_and_restore_last_comparable_revision
+
+non_claims:
+  - exact_does_not_mean_semantically_correct
+  - estimates_are_not_observations
+  - proxies_are_not_frames
+  - provisional_thresholds_are_not_acceptance
+  - metrics_do_not_close_R035_or_R070
