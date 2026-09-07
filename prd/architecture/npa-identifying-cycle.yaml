@@ -233,6 +233,26 @@ enumeration:
     our_gap: >
       range_candidate is HierNum Space - Space HierNum only; no
       leading fullword/abbrev, no attachment to the following «статьи 19»
+  fsm_contract:
+    initial: not_evaluated
+    states: [not_evaluated, candidate, compatible, conflicting, incomplete, rejected]
+    transitions:
+      - [not_evaluated, candidate, local_roles_and_values_captured]
+      - [candidate, compatible, authorized_field_claims_agree]
+      - [candidate, conflicting, explicit_or_inherited_claims_disagree]
+      - [candidate, incomplete, required_owner_or_value_missing]
+      - [candidate, rejected, grammar_or_bound_contract_refused]
+    terminal: [compatible, conflicting, incomplete, rejected]
+    invariant: field claims remain candidates; no transition mints WorkId or mutates the written mention
+
+  runtime_connectivity:
+    current_surfaces: [ln_decode::lexer::lex, ln_decode::lawref::capture_lawrefs, ln_decode::lawref_resolve::resolve_lawrefs]
+    proposed_surfaces: [MorphEvidenceSet, CoordinatingFrame, SemanticFieldClaim, IdentifyingAct, ThisRefCandidate, OfficialIdentityClaim]
+    lifecycle_gate: proposed
+    metrics: [field_provenance_completeness, continuation_conflict_rate, identity_false_mint_rate, endpoint_pair_accuracy]
+    terminal_failures: [grammar_rejected, missing_authorized_context, incompatible_identity_claim, expansion_limit]
+    known_gaps: [local_grammar_runtime, requisites_extractor, pair_policy_arbitration, numeric_bounds]
+
   do_not:
     - ask an LLM to split or invent TYPE on list members
     - >

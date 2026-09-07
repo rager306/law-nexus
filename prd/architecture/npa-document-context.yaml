@@ -199,6 +199,30 @@ required_diagnostics:
   - context_query_limit_reached
   - unresolved_after_document_pass
 
+fsm_contract:
+  initial: not_evaluated
+  states: [not_evaluated, requested, queued, resolving, resolved, partial, conflicting, unavailable, cycle, limit]
+  transitions:
+    - [not_evaluated, requested, typed_context_request_emitted]
+    - [requested, queued, request_schema_and_budget_pass]
+    - [queued, resolving, deterministic_worklist_dispatch]
+    - [resolving, resolved, unique_authorized_claim_set]
+    - [resolving, partial, missing_noncritical_context]
+    - [resolving, conflicting, incompatible_authorized_claims]
+    - [resolving, unavailable, index_or_sidecar_unavailable]
+    - [resolving, cycle, repeated_derivation_path]
+    - [resolving, limit, declared_budget_reached]
+  terminal: [resolved, partial, conflicting, unavailable, cycle, limit]
+  invariant: terminal context state never mutates a source block, frame, or literal mention
+
+runtime_connectivity:
+  current_surface: none
+  proposed_surfaces: [DocumentStructureIndex, DocumentAnalysisOverlay, ContextRequest, ContextResult, ContextView]
+  lifecycle_gate: proposed
+  metrics: [request_replay_identity, memo_hit_rate, context_terminal_distribution, provenance_path_completeness]
+  terminal_failures: [missing_document_structure, context_query_limit_reached, unresolved_after_document_pass]
+  known_gap: numeric bounds and local-grammar runtime remain deferred-undefined; no runtime readiness claim
+
 hostile_contract_seeds:
   - heading or paragraph boundary terminates an apparent comma list
   - unrelated date and number in the previous block must not become act requisites

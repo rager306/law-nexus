@@ -129,6 +129,85 @@ order_invariants:
   - no later phase mutates an earlier source-local record
 
 # ---------------------------------------------------------------------------
+# Runtime connectivity ledger (design boundary, not readiness evidence)
+# ---------------------------------------------------------------------------
+# Each row binds an observable contract to the current Rust surface when one
+# exists, otherwise to a proposed design record. `metric` names the future
+# acceptance measurement; `terminal_gap` prevents a design row from being
+# mistaken for implementation or readiness.
+runtime_connectivity:
+  - id: P0
+    current_surface: ln-decode::ConsultantWordMlBlockDecoder / Garant adapter
+    proposed_record: SourceBlockRecord
+    lifecycle_gate: bounded_runtime
+    metric: decode_byte_coverage_and_failure_counts
+    terminal_failure: decode_failed
+    terminal_gap: complete-document index proof absent
+  - id: P1
+    current_surface: none
+    proposed_record: DocumentStructureIndex + CurrentDocumentRequisites
+    lifecycle_gate: proposed
+    metric: structural_roundtrip_and_requisites_conflict_rate
+    terminal_failure: structure_failed
+    terminal_gap: design-only index and per-source sidecar
+  - id: P2
+    current_surface: ln-decode::lexer::lex + find_legal_markers
+    proposed_record: MorphEvidenceSet + CoordinatingFrame
+    lifecycle_gate: proposed
+    metric: token_cover_and_local-frame_hostile-contracts
+    terminal_failure: resource_limit
+    terminal_gap: local grammar runtime and numeric bounds deferred-undefined
+  - id: P3
+    current_surface: ln-decode::lawref::capture_lawrefs
+    proposed_record: ReferenceMention + LawRefSlots
+    lifecycle_gate: bounded_runtime
+    metric: span_exact_precision_recall_and_arbitration_conflicts
+    terminal_failure: capture_contract_rejected
+    terminal_gap: frame/direct pair policies deferred-undefined
+  - id: P4
+    current_surface: none
+    proposed_record: DocumentAnalysisOverlay
+    lifecycle_gate: proposed
+    metric: immutable_anchor_and_overlay_replay
+    terminal_failure: analysis_index_failed
+    terminal_gap: no runtime overlay implementation
+  - id: P5
+    current_surface: none
+    proposed_record: ContextRequest + ContextResult + ContextView
+    lifecycle_gate: proposed
+    metric: deterministic_replay_cycle_limit_and_conflict_rates
+    terminal_failure: context_unavailable_or_limit
+    terminal_gap: fan-out, alias, and continuation bounds deferred-undefined
+  - id: P6
+    current_surface: none
+    proposed_record: IdentifyingAct + ThisRefCandidate
+    lifecycle_gate: proposed
+    metric: zero_tolerance_semantic_loss_on_gold_and_hostiles
+    terminal_failure: semantic_conflict
+    terminal_gap: no semantic projection runtime
+  - id: P7
+    current_surface: none
+    proposed_record: OfficialIdentityClaim
+    lifecycle_gate: proposed
+    metric: identity_key_completeness_and_no-false-mint_rate
+    terminal_failure: identity_incomplete_or_conflicting
+    terminal_gap: R035/R070 and identity evidence gates remain open
+  - id: P8
+    current_surface: ln-decode::lawref_resolve::resolve_lawrefs
+    proposed_record: ReferenceBindingCandidate + endpoint_pair_candidate
+    lifecycle_gate: proposed
+    metric: resolution_accuracy_and_false-link_floor
+    terminal_failure: unresolved_or_conflicting_binding
+    terminal_gap: resolver is lexical/eId-only; external identity indexes absent
+  - id: P9
+    current_surface: none
+    proposed_record: ProposedEvidence + durable diagnostics
+    lifecycle_gate: proposed
+    metric: diagnostic_completeness_and_non_smoothing
+    terminal_failure: evidence_incomplete
+    terminal_gap: no ledger emission or readiness claim
+
+# ---------------------------------------------------------------------------
 # Orthogonal monotone FSMs
 # ---------------------------------------------------------------------------
 fsms:

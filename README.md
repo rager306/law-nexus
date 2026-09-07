@@ -88,6 +88,7 @@ completion and green repository checks are not product readiness.
   ADR-0021 [proposed] L6 transitional/risk
   ADR-0022 [proposed] L7 industry profiles
   ADR-0023 [proposed] applicability ownership boundary; runtime [deferred]
+  ADR-0028 [proposed] typed lexer, LawRef FSM, layered NPA process and explicit future local-grammar boundary
 
 [DOWNSTREAM — BLOCKED until parser data + RuVector/TEI ready]
   graph materialization → citation-safe retrieval → R035/R038 validation

@@ -322,5 +322,4 @@ parity or production graph readiness.
 - Documentation correction and publication gaps are tracked in [`documentation-semantic-control-plan.md`](architecture/documentation-semantic-control-plan.md) and [`assessment/08-known-defects.md`](../assessment/08-known-defects.md); both are process evidence, not architecture authority.
 - **Mandatory update** at every milestone closeout (D098 enforcement #2).
 - One page. If it grows, split detail into tracked focused PRD sub-docs; do not restore retired pre-Rust filenames as active truth.
-- Truth over optimism. If a claim has no cited evidence + proof gate, it is
-  `[bounded]` or `[smoke]`, never `[validated]`.
+- Truth over optimism. If a claim has no cited evidence + proof gate, it is `[bounded]` or `[smoke]`, never `[validated]`.

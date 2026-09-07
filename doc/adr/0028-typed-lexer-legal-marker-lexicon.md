@@ -285,6 +285,45 @@ out-of-band annotation only: `AnnotationSuggestion` cannot drive transitions,
 create claims/bindings/identity, count as a second human coder, or validate
 R035/R070. Audit: `assessment/28-npa-process-fsm-meta-prompt-audit.md`.
 
+### Layered process and future local-grammar boundary (D387/T02)
+
+The proposed NPA process is a phased document pipeline with orthogonal,
+monotone lifecycles, not a single `captured -> resolved` state chain:
+
+```text
+P0 decode -> P1 structure -> P2 local analysis -> P3 literal mention
+-> P4 immutable overlay -> P5 bounded context -> P6 semantic projection
+-> P7 identity claim -> P8 binding -> P9 proposed evidence
+```
+
+The proven current boundary is `lex` -> frozen `LawRef` capture -> lexical
+resolution. `lex` remains a closed nine-kind, metadata-free covering view;
+`LawRef` remains an eight-slot literal capture; `lawref_resolve` consumes
+frozen captures and may return an honestly unresolved result. These surfaces do
+not establish document-wide structure, identity, temporal provenance, or
+readiness.
+
+A future `local_reference_grammar` is explicitly bounded to an immutable
+projection above covering tokens and morphology evidence. Its proposed
+`CoordinatingFrame` and `StructuralDesignationFrame` retain fragment-local
+anchors, explicit roles, alternatives, separators, continuation evidence, and
+bounded endpoint expansion. It must not widen `TokenKind`, mutate source
+mentions, copy Pullenti code/data, mint WorkId, or let inherited claims become
+explicit. Contour-A direct matcher and grammar candidates require a separate
+pair-policy table; source-function order is never semantic precedence.
+
+Document context is a separate proposed layer: a version-bound structural
+index and immutable analysis overlay feed typed ContextRequest worklists.
+Context outcomes are `resolved`, `partial`, `conflicting`, `unavailable`,
+`cycle`, or `limit`; every terminal outcome remains observable and cannot
+rewrite a literal mention. P7 projects a proposed OfficialIdentityClaim once;
+P8 consumes it and owns binding candidates. R035, R070, and N2 remain open.
+
+This section records a future local-grammar boundary only; it does not mint
+Rust types or authorize runtime wiring. Numeric bounds, arbitration policies,
+requisites extraction, and hostile continuation proof remain deferred-undefined
+where the companion contracts say so, and `runtime_stop.active` remains true.
+
 ### Pre-runtime contracts (D388)
 
 Three open D387 gates are explicit data/contracts. Contour-A direct/frame
@@ -381,3 +420,7 @@ compat-marker quarantine blast radius -> open-gsd/gsd-pi#2130; evidence
 comments added to #2127 (coordination-claim redispatch loop) and #1491
 (pre-commit-hook closeout swallow, reopen requested).
 radius, (c) headless coordination-claim finalize errors.
+
+## Non-claims
+
+This proposed ADR does not establish parser readiness, legal correctness, corpus completeness, or a public temporal model. It does not authorize LLM/RLM runtime, whole-document recursion, cross-block anchors, or promotion of candidate findings; those boundaries remain evidence-gated and source-bound.
