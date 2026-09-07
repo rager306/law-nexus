@@ -1,0 +1,81 @@
+{
+  "schema": "law-nexus-m202-registry-regeneration-evidence/v1",
+  "schema_version": 1,
+  "lifecycle": "[proposed]",
+  "authoritative": false,
+  "milestone": "M202-9qf3ta",
+  "slice": "S03",
+  "task": "T05",
+  "generator": {
+    "binary": "crates/ln-product-cli/src/bin/hierarchy-registry-generator.rs",
+    "orchestration": "crates/ln-product-cli/src/hierarchy_registry_generation.rs",
+    "canonical_output_path": "prd/architecture/kb-hierarchy-registry.yaml"
+  },
+  "inputs": {
+    "candidate_artifact": {
+      "path": "prd/migration/rust-evidence/m202-s02-hierarchy-candidates.json",
+      "schema": "law-nexus-hierarchy-candidate-artifact/v1",
+      "sha256": "50946d813412315632214bdfe6f6300e5d5fa8372ab14900002ade2ded5adef6",
+      "source_digest": "fnv1a64:5ec57029f2ff9d05",
+      "identity_digest": "fnv1a64:aff2a32522ccb77f",
+      "candidates_extracted": 7,
+      "candidates_unique": 6,
+      "candidates_duplicate": 1
+    },
+    "admission_source": {
+      "path": "prd/architecture/kb-hierarchy-registry-admissions.yaml",
+      "schema": "law-nexus-kb-hierarchy-admission/v1",
+      "sha256": "1707330b202d336046deaf4e94c3836bf8194d16b0f8b9e2fea3bd317ab94b19",
+      "rows_total": 166,
+      "rows_legacy_human": 163,
+      "rows_m202_candidate_backed": 3
+    }
+  },
+  "output": {
+    "path": "prd/architecture/kb-hierarchy-registry.yaml",
+    "schema": "law-nexus-kb-hierarchy-registry/v1",
+    "lifecycle": "[proposed]",
+    "authoritative": false,
+    "sha256_before_regeneration": "b1c8e61513bbe931a9494e379d909b126632d209e37c8f1a73586c05a46483b3",
+    "sha256_after_write": "6d7952b716b60d3b15ce302833323375e4964b70bb36b20a608331cfa3193c38",
+    "sha256_after_check": "6d7952b716b60d3b15ce302833323375e4964b70bb36b20a608331cfa3193c38",
+    "binding_rows_total": 166,
+    "binding_rows_legacy": 163,
+    "binding_rows_m202_candidate_backed": 3,
+    "m202_candidate_backed_cc": [
+      "cc:44-fz:glava-1",
+      "cc:44-fz:statya-4",
+      "cc:44-fz:statya-5"
+    ],
+    "punkt_rows_admitted": 0,
+    "editions_rows": 5,
+    "works_rows": 5,
+    "conflicts": 0,
+    "drift": 0
+  },
+  "modes": {
+    "write": {
+      "exit": 0,
+      "atomic_strategy": "sibling temp file plus rename",
+      "bytes_changed": true
+    },
+    "check": {
+      "exit": 0,
+      "bytes_unchanged": true,
+      "non_mutating": true
+    }
+  },
+  "normalization_applied": [
+    "header comment unicode arrow replaced by ASCII arrow",
+    "binding rows rendered without indentation in deterministic sorted order (path_needle, level, number)",
+    "preserved M169 interlude comment relocated after the contiguous bindings block",
+    "blank-line normalization between sections"
+  ],
+  "non_claims": [
+    "Registry remains [proposed] and authoritative:false; bindings are not legal identity, not InForce, not Applicable.",
+    "No ComponentConcept was minted or derived; only already-existing CC identifiers are bound (D426).",
+    "Punkt candidates stay unadmitted; key_path stays admission-source-only and is not rendered into the registry.",
+    "Regeneration is not R035 validation; R035 stays active for S04.",
+    "Registry is not candidate evidence and is never auto-applied from decoder output (D185)."
+  ]
+}
