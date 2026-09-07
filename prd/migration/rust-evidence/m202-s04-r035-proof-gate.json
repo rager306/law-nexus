@@ -1,0 +1,148 @@
+{
+  "schema_version": "law-nexus/r035-proof-gate/v1",
+  "kind": "m202-s04-r035-proof-gate",
+  "milestone": "M202-9qf3ta",
+  "slice": "S04",
+  "task": "T02",
+  "lifecycle": "[bounded]",
+  "authoritative": false,
+  "requirement_id": "R035",
+  "disposition": "active",
+  "disposition_decision": "D430",
+  "disposition_note": "R035 stays active; this closed proof gate inventories four-leg coverage and non-claims and refuses upgraded dispositions until every named promotion gate carries its rule-specific proof package",
+  "coverage_verdict": "incomplete-because-promotion-gates-unsatisfied",
+  "coverage_verdict_note": "bounded hierarchy source mapping is supporting evidence only; the requirement quantor is before-any-promotion over ontology and external-standard claims, which is not proven here",
+  "mapping_counts": {
+    "candidates_extracted": 7,
+    "candidates_unique": 6,
+    "candidates_duplicate": 1,
+    "admitted_candidate_backed": 3,
+    "punkt_admitted": 0,
+    "legacy_human": 163,
+    "registry_rows": 166,
+    "fz44_glava": 8,
+    "fz44_statya": 94
+  },
+  "admitted_cc": [
+    "cc:44-fz:glava-1",
+    "cc:44-fz:statya-4",
+    "cc:44-fz:statya-5"
+  ],
+  "source_binding": {
+    "candidate_artifact": {
+      "relative_path": "prd/migration/rust-evidence/m202-s02-hierarchy-candidates.json",
+      "bytes": 2443,
+      "sha256": "50946d813412315632214bdfe6f6300e5d5fa8372ab14900002ade2ded5adef6"
+    },
+    "regeneration_evidence": {
+      "relative_path": "prd/migration/rust-evidence/m202-s03-registry-regeneration.json",
+      "bytes": 3210,
+      "sha256": "7d27652eafb410cab1b394830a2458aaa10815236e090e45badd8058e6049b0e"
+    },
+    "admission_source": {
+      "relative_path": "prd/architecture/kb-hierarchy-registry-admissions.yaml",
+      "bytes": 19982,
+      "sha256": "1707330b202d336046deaf4e94c3836bf8194d16b0f8b9e2fea3bd317ab94b19"
+    },
+    "registry_projection": {
+      "relative_path": "prd/architecture/kb-hierarchy-registry.yaml",
+      "bytes": 16699,
+      "sha256": "6d7952b716b60d3b15ce302833323375e4964b70bb36b20a608331cfa3193c38"
+    }
+  },
+  "coverage_legs": [
+    {
+      "leg_id": "extractor-integration",
+      "runtime_contract": "public ln_decode::hierarchy::extract_hierarchy_candidates; catalog-token ladder; first-wins (level, key_path); typed DuplicateKey; no CC minted, no YAML written (D417/D418)",
+      "tracked_evidence": "fixture decode yields extracted 7, unique 6, duplicate 1, nested 3; suite hierarchy_candidates 8",
+      "leg_verdict": "bounded-supporting"
+    },
+    {
+      "leg_id": "closed-candidate-artifact",
+      "runtime_contract": "renderer hierarchy_artifact.rs under schema law-nexus-hierarchy-candidate-artifact/v1; CLI hierarchy-candidate-artifact; --check byte-compare; PathDrift and HashDrift fail-closed (D421/D425)",
+      "tracked_evidence": "closed artifact pinned in source_binding (2443 bytes); suite hierarchy_candidate_artifact 37",
+      "leg_verdict": "bounded-supporting"
+    },
+    {
+      "leg_id": "registry-source-mappings",
+      "runtime_contract": "admission registry_admission.rs under schema law-nexus-kb-hierarchy-admission/v1; generator hierarchy-registry-generator; --check is non-mutating and exits 6 on stale (D426/D427); only already-existing CC identifiers are bound",
+      "tracked_evidence": "166 registry rows: 163 legacy-human plus 3 candidate-backed; punkt rows admitted 0; suites hierarchy_registry_admission 20 and hierarchy_registry_generator 12",
+      "leg_verdict": "bounded-supporting"
+    },
+    {
+      "leg_id": "named-promotion-gates",
+      "runtime_contract": "README R035 table maps trigger term to GATE-* to minimum proof level; verifier rule ontology-promotion-gate requires a bounded source mapping plus owner and edge proof on each trigger-matched claim",
+      "tracked_evidence": "M202 produced zero proof packages for any named gate; the architecture JSONL extractor is gone so no GATE-* row could be minted here",
+      "leg_verdict": "unsatisfied"
+    }
+  ],
+  "promotion_gates": [
+    {
+      "gate_id": "GATE-AKOMA-FRBR-NORMALIZATION",
+      "gate_note": "no Akoma Ntoso or FRBR normalization proof package was produced in M202",
+      "gate_verdict": "unsatisfied"
+    },
+    {
+      "gate_id": "GATE-LKIF-DEONTIC-BENCHMARK",
+      "gate_note": "no LKIF deontic benchmark was run in M202",
+      "gate_verdict": "unsatisfied"
+    },
+    {
+      "gate_id": "GATE-RUSLEGALCORE-SCOPE",
+      "gate_note": "no RusLegalCore scope conformance was shown in M202",
+      "gate_verdict": "unsatisfied"
+    },
+    {
+      "gate_id": "GATE-BFO-GOST-ALIGNMENT",
+      "gate_note": "no BFO or GOST alignment was proven; no OWL or Common Logic rendering was produced in M202",
+      "gate_verdict": "unsatisfied"
+    },
+    {
+      "gate_id": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "gate_note": "no ontology GraphRAG integration over the registry was built in M202",
+      "gate_verdict": "unsatisfied"
+    },
+    {
+      "gate_id": "GATE-G015",
+      "gate_note": "graph-vector claim untouched by this slice; no architecture-JSONL row minted",
+      "gate_verdict": "unsatisfied"
+    },
+    {
+      "gate_id": "GATE-PILOT-SCALE-READINESS",
+      "gate_note": "fixture XML only, not corpus; pilot-scale readiness not demonstrated in M202",
+      "gate_verdict": "unsatisfied"
+    }
+  ],
+  "suites_cited": {
+    "hierarchy_candidates": 8,
+    "hierarchy_candidate_artifact": 37,
+    "hierarchy_registry_admission": 20,
+    "hierarchy_registry_generator": 12,
+    "hierarchy_registry": 20
+  },
+  "proof_commands": [
+    "cargo test -p ln-kb-ontology --offline --test r035_proof_gate",
+    "cargo test -p ln-kb-ontology --offline --test hierarchy_registry_admission",
+    "cargo test -p ln-kb-ontology --offline --test hierarchy_registry",
+    "cargo test -p ln-decode --offline --test hierarchy_candidates",
+    "cargo test -p ln-decode --offline --test hierarchy_candidate_artifact",
+    "cargo test -p ln-product-cli --offline --test hierarchy_registry_generator",
+    "cargo fmt --all --check",
+    "cargo check --workspace --offline"
+  ],
+  "non_claims": [
+    "Akoma Ntoso and FRBR normalization is not proven by hierarchy mapping; GATE-AKOMA-FRBR-NORMALIZATION stays unsatisfied.",
+    "LKIF deontic benchmark is not run; GATE-LKIF-DEONTIC-BENCHMARK stays unsatisfied.",
+    "RusLegalCore scope conformance is not shown; GATE-RUSLEGALCORE-SCOPE stays unsatisfied.",
+    "BFO and GOST alignment, including OWL and Common Logic rendering, is not proven; GATE-BFO-GOST-ALIGNMENT stays unsatisfied.",
+    "Ontology GraphRAG integration over the registry, including graph-vector retrieval, is not built; GATE-ONTOLOGY-GRAPHRAG-INTEGRATION stays unsatisfied.",
+    "GATE-G015 graph-vector claim is untouched by this slice; no architecture-JSONL row was minted and the architecture JSONL projection was not regenerated.",
+    "pilot-scale readiness is not demonstrated; evidence is fixture-sized, not corpus; GATE-PILOT-SCALE-READINESS stays unsatisfied.",
+    "Punkt candidates stay unadmitted: punkt_admitted is 0 and no ComponentConcept was minted (D426).",
+    "Decoder output is never auto-applied as registry YAML; the registry stays [proposed] with authoritative:false (D185).",
+    "Corpus 8 glava and 94 statya SKIP-capable sanity is not R035 evidence (D418).",
+    "Two registries: kb-hierarchy-registry.yaml is not architecture_items.jsonl; no GATE-R035 was minted and no architecture-JSONL mint happened in this slice.",
+    "Regeneration is not R035 validation; R035 stays active until every named promotion gate is proven."
+  ],
+  "revisable": "D430 closure condition: each named promotion gate carries its rule-specific proof package per the README R035 table; D426 punkt identity still open; D185 never auto-apply"
+}
