@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-09-04T11:47:06Z",
+  "generated_at": "2026-09-05T00:00:00Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -501,18 +501,24 @@
       "theme": "First durable effect ledger on the log path (CID-A-23 census honesty), crystal ledger compiler checkout sketch, G2-vs-P2 human gate disposition; M197 NPA engine step 1 (golden fixtures, typed lexer, morphology per ADR-0028); M198 corpus sweep and lexicon calibration (C1-C3, D329 flip, N2 gate PASS); M199 LawRef capture+resolution closed with honest NOT-PASS acceptance (alpha HOLD, no second annotator)",
       "status": "complete",
       "boundary": "M192-79ij5m landed the durable JsonlEffectLedger behind the ln-replay EffectLedgerPort (append-only JSONL per D102, canonical record D310, fail-closed EFFECT_LEDGER_PATH, D311) with shared ln-testkit port contracts and census honesty (CID-A-23 addressed-in-draft against frozen revision 0c16de3f; durable bytes are not R070); M193-tyy108 proved MC-CHECKOUT is a deterministic fold of the three-canon log, not a second source of truth (D312); M194-p7aqjv resolved the G2-vs-P2 fork (D313): G2 references corpus GC-026..034 selected as the next evidential wave, P2 Mention/Binding resolver deferred design-only [proposed] (commit fd62eb3). Not R070 closure, not the P2 resolver, not the remaining Class A durable adapters, not G1. GSD completion is not product readiness. M195-mdvctn closed the post-queue process debt: two new governor checks (journal-retry-loops, compat-marker-hygiene, TDD), session-log census 49 findings dispositioned (5 accepted / 44 declined), GitNexus dead-code audit with an Empty Tier-0 set (300 rows corroborated, 0 removed). Process evidence only; GSD completion is not product readiness. M196-bwvrj7 added the per-provision checkout projection and the edition delta read-model (TDD, honesty negatives), closing the aggregate-conflict limitation surfaced by the fz44 walk. M197 classified глава/часть/подпункт inflections (D347) and closed the morphology unknown_forms gap; bounded step 1, no product readiness. M198 calibrated the M197 lexer on the full 43,785-file corpus (C1-C3 convergence, numerically stable); bounded step 2, no product readiness. M199 closed N2 work code-complete but NOT accepted as a reference resolver; no ADR-0028 promotion, R070/R035 open."
+    },
+    {
+      "range": "M200-M202",
+      "theme": "NPA bounds, edition provenance and hierarchy registry source mapping",
+      "status": "complete",
+      "boundary": "M200 measured 43,785 Consultant XML files and introduced diagnostic/bounded sweep evidence, but arbitration and the 1024 candidate ceiling remain unwired to capture_lawrefs. M201 proved one evidence-backed edition provenance chain out of 118; R070 remains active. M202 admitted 3 of 6 fixture hierarchy candidates into a generated registry while 163 of 166 rows remain legacy; R035 remains active. These milestones do not establish parser, temporal, registry or ontology readiness."
     }
   ],
   "current_milestone": {
-    "id": "M199-3q54bv",
-    "status": "complete",
-    "title": "NPA engine step 3: LawRef FSM and resolution layer",
-    "goal": "LawRef capture (7 raised matchers over frozen lexer, YAML-driven layer B) + resolution (CanonicalAnchor per ELI 5.4.1, context stack, ranges, dedup) in ln-decode (commits c49fd76, aca1167; lawref.rs + lawref_resolve.rs; 402 tests green). S04 acceptance: N2 verdict NOT PASS honestly recorded (Layer-1 corpus convergence PASS cited D363; Layer-2 dual-annotation alpha HOLD - no second annotator, seed not gold per DS-noise 46.7%/8.3%; Layer-3 INCONCLUSIVE vs gold / DIAGNOSTIC vs seed, resolution_accuracy null). N2 NOT authorized: R070/R035 open, no ADR-0028 lifecycle flip, product readiness not claimed."
+    "id": "M203-cx1j7t",
+    "status": "active",
+    "title": "Canonical NPA parsing program",
+    "goal": "Disposition Review 27 into a controlled P0-P9 plus orthogonal-FSM program, then close the typed token/bounds seam before staged local grammar, context, semantic scope, identity, temporal provenance, gold-corpus and promotion slices. Review Case RC-2026-09-05-001 remains authoritative:false; R035/R070 remain active."
   },
   "recommended_next": {
-    "title": "GSD queue drained (200/200). N2 acceptance verdict NOT PASS (S04 report, D378): next product wave is annotation-first dual-coding (second human annotator) to close Layer-2 alpha, then N2 re-entry per ADR-0028. Alternative: annotate the 180-fragment gold sample with LLM pre-annotation triage (assessment/25 O-RAG proof-required pattern). Process follow-ups: gsd-pi #2129/#2130 filed (+evidence on #2127/#1491).",
-    "priority": 1,
-    "why": "D313 resolved the G2-vs-P2 fork; the model wave M196 added the checkout and edition-delta read-models on the three-canon log. R070 named-open; census Class A rows open; SHACL/SPARQL anti-runtime."
+    "title": "Execute M203 S01 Review disposition and control baseline",
+    "why": "Establish the authority map, machine-readable layered FSM, corpus/metric/ledger schemas and governor enforcement before adding new parser semantics.",
+    "constraint": "Do not promote Review 27, full-corpus diagnostics, fixture hierarchy evidence or one-edition provenance into product readiness; refine every sketch before execution."
   },
   "downstream_blocked": [
     {
@@ -750,6 +756,11 @@
       "id": "roadmap-sync-20260830-m192-current-milestone",
       "lifecycle": "proposed",
       "text": "M192-79ij5m S02 projection sync (2026-08-30): current_milestone advanced to the active M192 (first durable effect ledger on the log path); completed_milestone_groups extended with M189-M191 (projection sync, durable three-canon event log, C1 legislative overlay admission); prd/project-state/roadmap.md workflow marker rewritten to M191-latest-completed / M192-active. Clears the pre-existing governor roadmap-current-tracks-gsd and roadmap-range-coverage errors that blocked the S02 verify path (slice-plan flag-concern #1); the lag itself predates S02 and was recorded in the S02 closeout as bookkeeping debt from M190/M191 landing without a sync wave. CID-A-23 is addressed-in-draft against frozen revision 0c16de3f with tracked evidence; non-claims preserved (durable bytes are not R070; remaining CID-A rows stay open)."
+    },
+    {
+      "id": "roadmap-sync-20260905-m203-active",
+      "lifecycle": "proposed",
+      "text": "GSD sync: M200-8s4kwq, M201-w8ljqx and M202-9qf3ta completed with bounded/diagnostic ceilings preserved; M203-cx1j7t is active with S01/S02 concrete and S03-S09 sketch-gated. Review Case RC-2026-09-05-001 is registered authoritative:false against Review 27. R035 and R070 remain active. Projection synchronization is not parser readiness or lifecycle promotion."
     }
   ]
 }
