@@ -959,8 +959,9 @@ fn t06_lawref_capture_path_stays_unwired() {
             "lawref.rs must not reference '{forbidden}' (G02 ceiling stays unwired)"
         );
     }
-    // The reviewed helpers still live in npa_bounds.rs (hostile t15 pins
-    // their values); they are simply never called from the product path.
+    // The reviewed helpers now live in capture_bounds.rs and are explicitly
+    // re-exported from npa_bounds.rs (hostile t15 pins their values); they
+    // are simply never called from the product path.
     let bounds = repo_text("crates/ln-decode/src/npa_bounds.rs");
     assert!(
         bounds.contains("PROPOSED_CANDIDATE_CEILING"),

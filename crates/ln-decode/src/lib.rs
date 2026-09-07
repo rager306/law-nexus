@@ -9,6 +9,7 @@
 pub mod adapters;
 pub mod application;
 pub mod article_body;
+pub mod capture_bounds;
 pub mod deontic;
 pub mod domain;
 pub mod evaluator;
