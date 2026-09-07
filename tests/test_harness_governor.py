@@ -42,6 +42,10 @@ from law_nexus_harness.governor import (
     check_journal_retry_loops,
     check_model_crystal_anchors,
     check_npa_control_artifacts,
+    check_npa_fsm_completeness,
+    check_npa_lifecycle_boundaries,
+    check_npa_metric_semantics,
+    check_npa_vendor_registry_authority,
     check_port_contract_coverage,
     check_published_trace_contract,
     check_roadmap_freshness,
@@ -180,6 +184,40 @@ def test_cli_governor_supports_corpus_group_selection(capsys) -> None:
     assert [item["check_id"] for item in payload["findings"]] == ["npa-control-artifacts"]
     assert payload["findings"][0]["status"] == "pass"
     assert "corpus_scan=not_performed" in payload["findings"][0]["observed"]
+
+
+def test_npa_control_group_enforces_fsm_lifecycle_metrics_and_authority() -> None:
+    assert check_npa_fsm_completeness(ROOT)[0].status == "pass"
+    assert check_npa_lifecycle_boundaries(ROOT)[0].status == "pass"
+    assert check_npa_metric_semantics(ROOT)[0].status == "pass"
+    assert check_npa_vendor_registry_authority(ROOT)[0].status == "pass"
+
+
+def test_npa_fsm_check_fails_closed_on_incomplete_contract(tmp_path: Path) -> None:
+    path = tmp_path / "prd" / "architecture"
+    path.mkdir(parents=True)
+    (path / "npa-semantic-process.yaml").write_text(
+        "pipeline: [{id: P0_decode_complete_document}]\n", encoding="utf-8"
+    )
+    findings = check_npa_fsm_completeness(tmp_path)
+    assert findings[0].status == "fail"
+    assert "pipeline_P0_P9" in findings[0].observed
+
+
+def test_dotted_governor_module_delegates_to_canonical_cli() -> None:
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "-m", "law_nexus_harness.governor", "--only", "corpus"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert payload["schema_version"] == GOVERNOR_SCHEMA_VERSION
+    assert payload["findings"][0]["check_id"] == "npa-control-artifacts"
 
 
 def test_cli_governor_supports_adr_group_selection(capsys) -> None:

@@ -1986,6 +1986,39 @@ _NPA_CONTROL_ARTIFACTS: tuple[tuple[str, str], ...] = (
 )
 
 
+def _npa_yaml_inputs(root: Path) -> tuple[dict[str, Any], ...]:
+    """Load the bounded NPA control YAMLs; never walk or parse corpus content."""
+
+    loaded: list[dict[str, Any]] = []
+    for relative_path, _ in _NPA_CONTROL_ARTIFACTS:
+        data = yaml.safe_load((root / relative_path).read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError(f"{relative_path}: root is not a mapping")
+        loaded.append(data)
+    return tuple(loaded)
+
+
+def _npa_finding(
+    check_id: str,
+    message: str,
+    observed: str,
+    remediation: str,
+    *,
+    status: CheckStatus = "fail",
+    severity: Severity = "warn",
+    evidence: tuple[GovernorEvidence, ...] = (),
+) -> GovernorFinding:
+    return GovernorFinding(
+        check_id=check_id,
+        status=status,
+        severity=severity if status == "fail" else "ok",
+        message=message,
+        observed=observed,
+        remediation=remediation,
+        evidence=evidence,
+    )
+
+
 def check_npa_control_artifacts(root: Path) -> list[GovernorFinding]:
     """Validate the proposed NPA control artifacts without scanning corpus text.
 
@@ -2043,6 +2076,206 @@ def check_npa_control_artifacts(root: Path) -> list[GovernorFinding]:
                 "authoritative=false; corpus_scan=not_performed"
             ),
             remediation="none",
+            evidence=evidence,
+        )
+    ]
+
+
+def check_npa_fsm_completeness(root: Path) -> list[GovernorFinding]:
+    """Check the design-only P0-P9 order and orthogonal FSM catalog."""
+    check_id = "npa-fsm-completeness"
+    relative = "prd/architecture/npa-semantic-process.yaml"
+    path = root / relative
+    evidence = (GovernorEvidence(path=relative),)
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        pipeline = data["pipeline"]
+        phases = [item["id"] for item in pipeline]
+        fsm = data.get("fsms") or data.get("fsm")
+        violations: list[str] = []
+        if len(phases) != 10 or [phase.split("_", 1)[0] for phase in phases] != [
+            f"P{i}" for i in range(10)
+        ]:
+            violations.append("pipeline_P0_P9")
+        if not fsm:
+            violations.append("orthogonal_fsm_missing")
+        if violations:
+            return [
+                _npa_finding(
+                    check_id,
+                    "NPA FSM contract is incomplete",
+                    ";".join(violations),
+                    "Restore ordered P0-P9 and the orthogonal FSM catalog.",
+                    evidence=evidence,
+                )
+            ]
+    except (OSError, KeyError, TypeError, ValueError, yaml.YAMLError) as error:
+        return [
+            _npa_finding(
+                check_id,
+                "NPA FSM contract cannot be read",
+                type(error).__name__,
+                "Repair the design YAML and rerun the governor.",
+                evidence=evidence,
+            )
+        ]
+    return [
+        _npa_finding(
+            check_id,
+            "NPA P0-P9 and orthogonal FSM catalog are structurally present",
+            "phases=10; runtime_readiness=not_claimed",
+            "none",
+            status="pass",
+            evidence=evidence,
+        )
+    ]
+
+
+def check_npa_lifecycle_boundaries(root: Path) -> list[GovernorFinding]:
+    """Reject accidental promotion of NPA design/control artifacts."""
+    paths = tuple(path for path, _ in _NPA_CONTROL_ARTIFACTS) + (
+        "prd/architecture/npa-semantic-process.yaml",
+        "prd/architecture/npa-parsing-program.yaml",
+    )
+    violations: list[str] = []
+    for relative in paths:
+        try:
+            text = (root / relative).read_text(encoding="utf-8")
+        except OSError:
+            violations.append(f"{relative}:missing")
+            continue
+        if "authoritative: true" in text or 'lifecycle: "[validated]"' in text:
+            violations.append(f"{relative}:promoted")
+    evidence = tuple(GovernorEvidence(path=relative) for relative in paths)
+    if violations:
+        return [
+            _npa_finding(
+                "npa-lifecycle-boundaries",
+                "NPA design/control surface is promoted without disposition",
+                ";".join(violations),
+                "Keep these artifacts proposed/non-authoritative until explicit lifecycle evidence exists.",
+                evidence=evidence,
+            )
+        ]
+    return [
+        _npa_finding(
+            "npa-lifecycle-boundaries",
+            "NPA lifecycle remains non-promoted",
+            "authoritative_true=0; validated_headers=0",
+            "none",
+            status="pass",
+            evidence=evidence,
+        )
+    ]
+
+
+def check_npa_metric_semantics(root: Path) -> list[GovernorFinding]:
+    """Check metric comparability, regression fail-closed semantics, and ledgers."""
+    metric = "prd/architecture/npa-metric-baselines.yaml"
+    ledger = "prd/architecture/npa-control-ledgers.yaml"
+    process = "prd/architecture/npa-semantic-process.yaml"
+    evidence = (
+        GovernorEvidence(path=metric),
+        GovernorEvidence(path=ledger),
+        GovernorEvidence(path=process),
+    )
+    try:
+        metrics = yaml.safe_load((root / metric).read_text(encoding="utf-8"))
+        ledgers = yaml.safe_load((root / ledger).read_text(encoding="utf-8"))
+        process_text = (root / process).read_text(encoding="utf-8").lower()
+        required = {
+            "same_metric_definition",
+            "same_manifest",
+            "same_snapshot_or_declared_delta",
+            "same_classification",
+        }
+        binding = metrics.get("measurement_binding", {})
+        actual = set(binding.get("comparability_requires", []))
+        encoded = json.dumps({"metrics": metrics, "ledgers": ledgers}, sort_keys=True).lower()
+        violations = []
+        if not required <= actual:
+            violations.append("comparability_requirements")
+        if "incomparable_results_fail_closed" not in encoded:
+            violations.append("regression_fail_closed")
+        if (
+            "cannot be smoothed" not in process_text
+            and "non-smoothing" not in encoded
+            and "non_smoothing" not in encoded
+        ):
+            violations.append("semantic_non_smoothing")
+        if violations:
+            return [
+                _npa_finding(
+                    "npa-metric-semantics",
+                    "NPA metric semantics are incomplete",
+                    ";".join(violations),
+                    "Restore comparability, fail-closed regression, and non-smoothing declarations.",
+                    evidence=evidence,
+                )
+            ]
+    except (OSError, KeyError, TypeError, ValueError, yaml.YAMLError) as error:
+        return [
+            _npa_finding(
+                "npa-metric-semantics",
+                "NPA metric contracts cannot be read",
+                type(error).__name__,
+                "Repair metric/ledger YAML contracts and rerun.",
+                evidence=evidence,
+            )
+        ]
+    return [
+        _npa_finding(
+            "npa-metric-semantics",
+            "NPA metric and ledger semantics remain fail-closed",
+            "comparability=declared; regression=incomparable_fail_closed; raw_corpus=not_read",
+            "none",
+            status="pass",
+            evidence=evidence,
+        )
+    ]
+
+
+def check_npa_vendor_registry_authority(root: Path) -> list[GovernorFinding]:
+    """Ensure vendor names and generated registries remain non-authoritative."""
+    paths = (
+        "prd/architecture/npa-parsing-program.yaml",
+        "prd/architecture/kb-hierarchy-registry.yaml",
+    )
+    evidence = tuple(GovernorEvidence(path=path) for path in paths)
+    try:
+        text = "\n".join((root / path).read_text(encoding="utf-8") for path in paths)
+    except OSError as error:
+        return [
+            _npa_finding(
+                "npa-vendor-registry-authority",
+                "NPA authority inputs cannot be read",
+                type(error).__name__,
+                "Restore the tracked authority-boundary inputs.",
+                evidence=evidence,
+            )
+        ]
+    violations = []
+    if "vendor" not in text.lower() or "repository_control" not in text:
+        violations.append("vendor_boundary_missing")
+    if "authoritative: true" in text or "generated" not in text.lower():
+        violations.append("registry_authority_boundary")
+    if violations:
+        return [
+            _npa_finding(
+                "npa-vendor-registry-authority",
+                "NPA vendor or generated-registry boundary is incomplete",
+                ";".join(violations),
+                "Declare vendor audit and generated-registry authority boundaries without promoting fixtures to product authority.",
+                evidence=evidence,
+            )
+        ]
+    return [
+        _npa_finding(
+            "npa-vendor-registry-authority",
+            "NPA vendor and generated-registry boundaries remain explicit",
+            "vendor_authority=repository_control; generated_registry=derived",
+            "none",
+            status="pass",
             evidence=evidence,
         )
     ]
@@ -6878,6 +7111,49 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "warn",
     ),
     _check_spec(
+        "npa-fsm-completeness",
+        "npa-control",
+        "deterministic",
+        check_npa_fsm_completeness,
+        "Keep canonical P0-P9 and orthogonal FSM design contracts structurally complete.",
+        ("prd/architecture/npa-semantic-process.yaml",),
+        "warn",
+    ),
+    _check_spec(
+        "npa-lifecycle-boundaries",
+        "npa-control",
+        "deterministic",
+        check_npa_lifecycle_boundaries,
+        "Prevent proposed NPA design/control artifacts from silently becoming product authority.",
+        tuple(path for path, _ in _NPA_CONTROL_ARTIFACTS)
+        + (
+            "prd/architecture/npa-semantic-process.yaml",
+            "prd/architecture/npa-parsing-program.yaml",
+        ),
+        "error",
+    ),
+    _check_spec(
+        "npa-metric-semantics",
+        "npa-control",
+        "deterministic",
+        check_npa_metric_semantics,
+        "Keep metric comparability, regression, and semantic non-smoothing fail-closed.",
+        ("prd/architecture/npa-metric-baselines.yaml", "prd/architecture/npa-control-ledgers.yaml"),
+        "warn",
+    ),
+    _check_spec(
+        "npa-vendor-registry-authority",
+        "npa-control",
+        "deterministic",
+        check_npa_vendor_registry_authority,
+        "Keep vendor licensing and generated registry authority boundaries explicit.",
+        (
+            "prd/architecture/npa-parsing-program.yaml",
+            "prd/architecture/kb-hierarchy-registry.yaml",
+        ),
+        "warn",
+    ),
+    _check_spec(
         "corpus-grounding",
         "verification",
         "deterministic",
@@ -7322,3 +7598,11 @@ def run_governor(
         pass_count=pass_count,
         tool_error_count=tool_error_count,
     )
+
+
+if __name__ == "__main__":
+    # ``python -m law_nexus_harness.governor`` is a compatibility alias, not a
+    # silent no-op. Delegate to the canonical CLI and preserve its exit class.
+    from law_nexus_harness.cli import main as _cli_main
+
+    raise SystemExit(_cli_main(["governor", *sys.argv[1:]]))
