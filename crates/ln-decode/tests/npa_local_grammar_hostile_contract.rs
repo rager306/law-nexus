@@ -2,10 +2,11 @@
 //! Synthetic inputs only; no vendor code/data (rutokenizer, Pullenti, razdel).
 //! These tests make no C2/C3 accuracy claim and exercise only local spans/FSM.
 
+use ln_decode::lawref::capture_lawrefs;
 use ln_decode::lexer::lex;
 use ln_decode::local_grammar::{
-    extract_structural_frames, DerivationSource, FrameDiagnostic, FrameStatus,
-    PROPOSED_MAX_FRAME_MEMBERS,
+    extract_act_list_frames, extract_structural_frames, DerivationSource, FrameDiagnostic,
+    FrameKind, FrameStatus, PROPOSED_MAX_FRAME_MEMBERS,
 };
 use ln_decode::morphology::find_legal_markers;
 
@@ -13,6 +14,33 @@ fn extract(src: &str) -> Vec<ln_decode::local_grammar::StructuralDesignationFram
     let tokens = lex(src);
     let markers = find_legal_markers(src);
     extract_structural_frames(&tokens, src, &markers)
+}
+
+fn extract_act(src: &str) -> Vec<ln_decode::local_grammar::CoordinatingFrame> {
+    extract_act_list_frames(src, &capture_lawrefs(src))
+}
+
+#[test]
+fn empty_batch_and_malformed_tails_are_panic_free() {
+    assert!(extract_act("").is_empty());
+    assert!(extract_act("законов от 01.01.2020").is_empty());
+    let trailing_comma = extract_act("законов от 01.01.2020 N 1-ФЗ,");
+    assert_eq!(trailing_comma.len(), 1);
+    assert_eq!(trailing_comma[0].members.len(), 1);
+    let trailing_and = extract_act("законов от 01.01.2020 N 1-ФЗ и");
+    assert_eq!(trailing_and.len(), 1);
+    assert_eq!(trailing_and[0].members.len(), 1);
+}
+
+#[test]
+fn refused_or_incomplete_captures_never_become_members() {
+    let frames = extract_act("от 01.01.2020 N 1-ФЗ");
+    assert_eq!(frames.len(), 1);
+    assert!(frames[0]
+        .members
+        .iter()
+        .all(|member| member.date.is_some() && member.doc_no.is_some()));
+    assert_eq!(frames[0].frame_kind, FrameKind::ActRequisites);
 }
 
 #[test]

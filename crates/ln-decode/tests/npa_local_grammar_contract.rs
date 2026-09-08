@@ -1,9 +1,11 @@
 //! D384 structural designation contract tests.
 //! Fixtures are synthetic, span-exact strings; no vendor corpus or parser is used.
 
+use ln_decode::lawref::capture_lawrefs;
 use ln_decode::lexer::lex;
 use ln_decode::local_grammar::{
-    extract_structural_frames, DerivationSource, FrameDiagnostic, FrameStatus, OwnerPathState,
+    extract_act_list_frames, extract_structural_frames, DerivationSource, FrameDiagnostic,
+    FrameKind, FrameStatus, OwnerPathState, PROPOSED_MAX_FRAME_MEMBERS,
 };
 use ln_decode::morphology::find_legal_markers;
 
@@ -11,6 +13,69 @@ fn extract(src: &str) -> Vec<ln_decode::local_grammar::StructuralDesignationFram
     let tokens = lex(src);
     let markers = find_legal_markers(src);
     extract_structural_frames(&tokens, src, &markers)
+}
+
+fn extract_act(src: &str) -> Vec<ln_decode::local_grammar::CoordinatingFrame> {
+    let batch = capture_lawrefs(src);
+    extract_act_list_frames(src, &batch)
+}
+
+#[test]
+fn act_list_has_three_explicit_date_number_members() {
+    let frames = extract_act(
+        "федеральных законов от 01.01.2020 N 1-ФЗ, от 02.02.2021 N 2-ФЗ и от 03.03.2022 N 3-ФЗ",
+    );
+    assert_eq!(frames.len(), 1);
+    let frame = &frames[0];
+    assert_eq!(frame.frame_kind, FrameKind::ActRequisites);
+    assert_eq!(frame.status, FrameStatus::Proposed);
+    assert_eq!(frame.members.len(), 3);
+    assert_eq!(frame.members[0].date.as_deref(), Some("01.01.2020"));
+    assert_eq!(frame.members[0].doc_no.as_deref(), Some("1-ФЗ"));
+    assert!(frame
+        .members
+        .iter()
+        .all(|member| member.value_span.start() < member.value_span.end()));
+}
+
+#[test]
+fn act_list_ellipsis_inherits_type_with_head_evidence() {
+    let frames = extract_act("федеральных законов от 01.01.2020 N 1-ФЗ, от 02.02.2021 N 2-ФЗ");
+    assert_eq!(frames.len(), 1);
+    assert_eq!(
+        frames[0].members[1].derivation,
+        DerivationSource::SameSeriesHead
+    );
+    assert!(!frames[0].members[1].evidence.is_empty());
+}
+
+#[test]
+fn act_list_without_doc_number_is_incomplete_and_not_minted() {
+    assert!(extract_act("федеральных законов от 01.01.2020").is_empty());
+}
+
+#[test]
+fn act_list_without_type_retains_members_as_unresolved() {
+    let frames = extract_act("от 01.01.2020 N 1-ФЗ, от 02.02.2021 N 2-ФЗ");
+    assert_eq!(frames.len(), 1);
+    assert_eq!(frames[0].status, FrameStatus::Ambiguous);
+    assert_eq!(frames[0].diagnostic, Some(FrameDiagnostic::TypeUnresolved));
+    assert!(frames[0].head_roles.is_empty());
+}
+
+#[test]
+fn act_list_bound_refuses_without_truncation() {
+    let members = (0..PROPOSED_MAX_FRAME_MEMBERS + 1)
+        .map(|index| format!("от 01.01.2020 N {index}-ФЗ"))
+        .collect::<Vec<_>>();
+    let frames = extract_act(&format!("законов {}", members.join(", ")));
+    assert_eq!(frames.len(), 1);
+    assert_eq!(frames[0].status, FrameStatus::Rejected);
+    assert_eq!(
+        frames[0].diagnostic,
+        Some(FrameDiagnostic::FrameMemberLimitReached)
+    );
+    assert_eq!(frames[0].members.len(), PROPOSED_MAX_FRAME_MEMBERS + 1);
 }
 
 #[test]

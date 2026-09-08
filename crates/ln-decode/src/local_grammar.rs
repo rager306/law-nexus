@@ -98,6 +98,7 @@ pub enum FrameDiagnostic {
     ConflictingFramesRetained,
     OwnerUnresolved,
     GrammarContractRefused,
+    TypeUnresolved,
 }
 
 impl FrameDiagnostic {
@@ -107,6 +108,7 @@ impl FrameDiagnostic {
             Self::ConflictingFramesRetained => "conflicting_frames_retained",
             Self::OwnerUnresolved => "owner_unresolved",
             Self::GrammarContractRefused => "grammar_contract_refused",
+            Self::TypeUnresolved => "type_unresolved",
         }
     }
 }
@@ -116,6 +118,12 @@ impl FrameDiagnostic {
 pub struct FrameMember {
     pub value: String,
     pub value_span: TextSpan,
+    /// Act-list slot values when this member came from a LawRef capture.
+    /// Structural members leave these fields absent.
+    pub date: Option<String>,
+    pub date_span: Option<TextSpan>,
+    pub doc_no: Option<String>,
+    pub doc_no_span: Option<TextSpan>,
     pub derivation: DerivationSource,
     pub evidence: Vec<TextSpan>,
     pub state: EnumerationState,
@@ -132,6 +140,10 @@ impl FrameMember {
         Self {
             value,
             value_span,
+            date: None,
+            date_span: None,
+            doc_no: None,
+            doc_no_span: None,
             derivation,
             evidence,
             state,
@@ -222,6 +234,199 @@ pub enum ExpansionPolicy {
 pub const PROPOSED_MAX_FRAME_MEMBERS: usize = 64;
 /// [proposed] G07 resolve-side candidate bound. S03 only declares it.
 pub const PROPOSED_MAX_EXPANDED_CANDIDATES: usize = 64;
+
+/// Data-only vocabulary for the act-type head. Matchers do not carry a
+/// second law-reference vocabulary: these lemmas only classify an already
+/// admitted capture window.
+pub const ACT_TYPE_LEMMAS: &[&str] = &[
+    "закон",
+    "законов",
+    "кодекс",
+    "кодексов",
+    "основы",
+    "указ",
+    "указов",
+    "постановление",
+    "постановлений",
+    "распоряжение",
+    "распоряжений",
+    "приказ",
+    "приказов",
+    "письмо",
+    "писем",
+    "указание",
+    "указаний",
+];
+
+/// Extract coordinating act-requisite frames from admitted capture output.
+///
+/// This function never calls `capture_lawrefs` and never sees refused captures:
+/// its only candidate inputs are `batch.captures()`. A member is emitted only
+/// when the admitted LawRef has both date and document-number slots and is
+/// preceded by the local `от` grammar marker. Type inheritance is represented
+/// by `SameSeriesHead` and the head span in `evidence`; it is not a document
+/// context lookup.
+pub fn extract_act_list_frames(
+    src: &str,
+    batch: &crate::lawref::LawRefCaptureBatch,
+) -> Vec<CoordinatingFrame> {
+    let tokens = crate::lexer::lex(src);
+    let mut groups: Vec<(Option<usize>, Vec<&crate::lawref::LawRef>)> = Vec::new();
+    for capture in batch.captures() {
+        // A capture with neither slot cannot be an act-list member. A DATE
+        // without NUMBER is retained as an incomplete member when the local
+        // `от` grammar admits it; inventing a number is prohibited.
+        if capture.slots.date.is_none() && capture.slots.doc_no.is_none() {
+            continue;
+        }
+        let Some(date_text) = capture.slots.date.as_deref() else {
+            continue;
+        };
+        let Some(date_start) =
+            find_subspan(src, capture.span.start(), capture.span.end(), date_text)
+        else {
+            continue;
+        };
+        if !has_local_ot(&tokens, src, date_start) {
+            continue;
+        }
+        let head = find_act_head(&tokens, src, date_start);
+        if let Some((existing, members)) = groups.iter_mut().find(|(key, _)| *key == head) {
+            let _ = existing;
+            members.push(capture);
+        } else {
+            groups.push((head, vec![capture]));
+        }
+    }
+    groups
+        .into_iter()
+        .filter_map(|(head, captures)| {
+            let first = captures.first()?;
+            let mut members = Vec::with_capacity(captures.len());
+            for (index, capture) in captures.iter().enumerate() {
+                let date = capture.slots.date.clone();
+                let date_span = date.as_deref().and_then(|value| {
+                    find_subspan(src, capture.span.start(), capture.span.end(), value)
+                });
+                let doc_no = capture.slots.doc_no.clone();
+                let doc_no_span = doc_no.as_deref().and_then(|value| {
+                    find_subspan(src, capture.span.start(), capture.span.end(), value)
+                });
+                let value = doc_no.clone().unwrap_or_default();
+                let derivation = if index == 0 {
+                    DerivationSource::ExplicitMember
+                } else {
+                    DerivationSource::SameSeriesHead
+                };
+                let evidence = if derivation == DerivationSource::SameSeriesHead {
+                    head.and_then(|i| tokens.get(i).map(|t| vec![t.span]))
+                        .unwrap_or_default()
+                } else {
+                    vec![capture.span]
+                };
+                members.push(FrameMember {
+                    value,
+                    value_span: capture.span,
+                    date,
+                    date_span,
+                    doc_no,
+                    doc_no_span,
+                    derivation,
+                    evidence,
+                    state: if capture.slots.date.is_some() && capture.slots.doc_no.is_some() {
+                        EnumerationState::Candidate
+                    } else {
+                        EnumerationState::Incomplete
+                    },
+                });
+            }
+            let type_alternatives = head
+                .map(|i| act_heads_at(&tokens, src, i))
+                .unwrap_or_default();
+            let unresolved = head.is_none();
+            let ambiguous = type_alternatives.len() > 1;
+            let too_many = members.len() > PROPOSED_MAX_FRAME_MEMBERS;
+            let status = if too_many {
+                FrameStatus::Rejected
+            } else if unresolved || ambiguous {
+                FrameStatus::Ambiguous
+            } else {
+                FrameStatus::Proposed
+            };
+            let diagnostic = if too_many {
+                Some(FrameDiagnostic::FrameMemberLimitReached)
+            } else if unresolved {
+                Some(FrameDiagnostic::TypeUnresolved)
+            } else if ambiguous {
+                Some(FrameDiagnostic::ConflictingFramesRetained)
+            } else {
+                None
+            };
+            let start = head
+                .and_then(|i| tokens.get(i).map(|t| t.span.start()))
+                .unwrap_or(first.span.start());
+            let end = captures
+                .last()
+                .map(|c| c.span.end())
+                .unwrap_or(first.span.end());
+            Some(CoordinatingFrame {
+                frame_kind: FrameKind::ActRequisites,
+                local_anchor: TextSpan::try_new(start, end).ok()?,
+                head_roles: type_alternatives,
+                members,
+                separators: Vec::new(),
+                continuation: captures.len() > 1,
+                alternatives: Vec::new(),
+                bounds: FrameBounds {
+                    max_members: PROPOSED_MAX_FRAME_MEMBERS,
+                    max_expanded_candidates: PROPOSED_MAX_EXPANDED_CANDIDATES,
+                },
+                status,
+                diagnostic,
+            })
+        })
+        .collect()
+}
+
+fn find_subspan(src: &str, start: usize, end: usize, needle: &str) -> Option<TextSpan> {
+    let offset = src.get(start..end)?.find(needle)? + start;
+    TextSpan::try_new(offset, offset + needle.len()).ok()
+}
+
+fn has_local_ot(tokens: &[NpaToken], src: &str, date: TextSpan) -> bool {
+    let date_index = tokens.iter().position(|t| t.span == date);
+    let Some(index) = date_index else {
+        return false;
+    };
+    (0..index)
+        .rev()
+        .find(|i| tokens[*i].kind != TokenKind::Space)
+        .is_some_and(|i| tokens[i].lexeme(src).eq_ignore_ascii_case("от"))
+}
+
+fn find_act_head(tokens: &[NpaToken], src: &str, date: TextSpan) -> Option<usize> {
+    let date_index = tokens.iter().position(|t| t.span == date)?;
+    (0..date_index).rev().find(|i| {
+        tokens[*i].kind == TokenKind::Word
+            && ACT_TYPE_LEMMAS.contains(&tokens[*i].lexeme(src).to_lowercase().as_str())
+    })
+}
+
+fn act_heads_at(tokens: &[NpaToken], src: &str, head: usize) -> Vec<String> {
+    let mut result = vec![tokens[head].lexeme(src).to_owned()];
+    let mut i = head;
+    while i > 0 && head - i < 4 {
+        i -= 1;
+        if tokens[i].kind == TokenKind::Word
+            && ACT_TYPE_LEMMAS.contains(&tokens[i].lexeme(src).to_lowercase().as_str())
+        {
+            result.push(tokens[i].lexeme(src).to_owned());
+        }
+    }
+    result.sort();
+    result.dedup();
+    result
+}
 
 /// Extract structural designation frames from the immutable covering stream.
 ///
