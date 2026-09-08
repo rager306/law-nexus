@@ -19,6 +19,7 @@ pub mod hierarchy_artifact;
 pub mod lawref;
 pub mod lawref_resolve;
 pub mod lexer;
+pub mod local_grammar;
 pub mod morphology;
 pub mod npa_bounds;
 pub mod npa_sweep;
