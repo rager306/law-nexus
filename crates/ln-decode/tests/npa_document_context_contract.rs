@@ -1,7 +1,8 @@
 use ln_decode::document_context::{
-    build_document_structure_index, BlockId, ContainerRole, ContextPhase, ContextRequestKind,
-    ContextStatus, ContextTransition, DocumentVersionRef, IndexBuildError, MAX_LINKING_PASSES,
-    PROPOSED_MAX_ADJACENT_RADIUS,
+    build_document_analysis_overlay, build_document_structure_index, reduce_context_results,
+    BlockId, ContainerRole, ContextBudgets, ContextEnvironment, ContextPhase, ContextRequest,
+    ContextRequestKind, ContextStatus, ContextTransition, ContextWorklist, DocumentVersionRef,
+    IndexBuildError, MAX_LINKING_PASSES, PROPOSED_MAX_ADJACENT_RADIUS,
 };
 use ln_decode::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
@@ -186,6 +187,154 @@ fn aliases_use_closed_markers_and_preserve_scope() {
         aliases[0].scope_container_id.clone(),
     )
     .is_empty());
+}
+
+#[test]
+fn worklist_is_deterministic_and_replays_memoized_results_without_mutating_inputs() {
+    let version =
+        DocumentVersionRef::try_new("doc-v1".into(), "rev-1".into(), "profile-1".into()).unwrap();
+    let index = build_document_structure_index(version, &fixture()).unwrap();
+    let overlay = build_document_analysis_overlay(&index, &[], &[]).unwrap();
+    let before_index = index.clone();
+    let before_overlay = overlay.clone();
+    let requests = vec![
+        ContextRequest::new(
+            ContextRequestKind::AdjacentBlocks,
+            "doc-v1".into(),
+            ln_decode::document_context::FrameRef::parse("block-3").unwrap(),
+            vec!["adjacent".into()],
+            None,
+            None,
+            vec![],
+            2,
+            "structural".into(),
+        ),
+        ContextRequest::new(
+            ContextRequestKind::AncestorPath,
+            "doc-v1".into(),
+            ln_decode::document_context::FrameRef::parse("block-3").unwrap(),
+            vec!["article".into()],
+            None,
+            None,
+            vec![],
+            2,
+            "structural".into(),
+        ),
+    ];
+    let environment = ContextEnvironment {
+        index: &index,
+        overlay: &overlay,
+        requisites: None,
+    };
+    let mut worklist = ContextWorklist::new(ContextBudgets::default());
+    let first = worklist.run(environment, &requests);
+    let second = worklist.run(environment, &requests);
+    assert_eq!(first.results, second.results);
+    assert_eq!(
+        first.results.keys().collect::<Vec<_>>(),
+        second.results.keys().collect::<Vec<_>>()
+    );
+    assert_eq!(second.stats.memo_hits, requests.len());
+    assert_eq!(index, before_index);
+    assert_eq!(overlay, before_overlay);
+    assert_eq!(
+        first.stats.terminal_distribution[&ContextStatus::Resolved],
+        2
+    );
+}
+
+#[test]
+fn worklist_cycle_and_global_limit_are_typed_and_bounded() {
+    let version =
+        DocumentVersionRef::try_new("doc-v1".into(), "rev-1".into(), "profile-1".into()).unwrap();
+    let index = build_document_structure_index(version, &fixture()).unwrap();
+    let overlay = build_document_analysis_overlay(&index, &[], &[]).unwrap();
+    let cycle = ContextRequest::new(
+        ContextRequestKind::AncestorPath,
+        "doc-v1".into(),
+        ln_decode::document_context::FrameRef::parse("block-3").unwrap(),
+        vec![],
+        None,
+        None,
+        vec!["AncestorPath:block-3:".into()],
+        1,
+        "structural".into(),
+    );
+    let limited = ContextRequest::new(
+        ContextRequestKind::AdjacentBlocks,
+        "doc-v1".into(),
+        ln_decode::document_context::FrameRef::parse("block-3").unwrap(),
+        vec![],
+        None,
+        None,
+        vec![],
+        1,
+        "structural".into(),
+    );
+    let environment = ContextEnvironment {
+        index: &index,
+        overlay: &overlay,
+        requisites: None,
+    };
+    let mut cycle_worklist = ContextWorklist::new(ContextBudgets {
+        worklist_steps: 4,
+        ..Default::default()
+    });
+    let cycle_report = cycle_worklist.run(environment, &[cycle]);
+    assert_eq!(
+        cycle_report.results.values().next().unwrap().status,
+        ContextStatus::Cycle
+    );
+    let mut limited_worklist = ContextWorklist::new(ContextBudgets {
+        worklist_steps: 0,
+        ..Default::default()
+    });
+    let limited_report = limited_worklist.run(environment, &[limited]);
+    let limited_result = limited_report.results.values().next().unwrap();
+    assert_eq!(limited_result.status, ContextStatus::Limit);
+    assert!(limited_result
+        .diagnostics
+        .contains(&ln_decode::document_context::ContextDiagnostic::ContextQueryLimitReached));
+}
+
+#[test]
+fn reducer_collapses_equal_claims_and_retains_conflicting_alternatives() {
+    use ln_decode::document_context::{ContextClaim, ContextClaimStatus, ContextResult};
+    use ln_decode::local_grammar::DerivationSource;
+    let claim = ContextClaim {
+        field: "type".into(),
+        derivation: DerivationSource::SameSeriesHead,
+        source_node_ref: "head-a".into(),
+        claim_status: ContextClaimStatus::Inherited,
+    };
+    let equal = ContextResult {
+        request_ref: "a".into(),
+        status: ContextStatus::Resolved,
+        candidate_claims: vec![claim.clone()],
+        source_anchors: vec![],
+        derivation_edges: vec![],
+        diagnostics: vec![],
+    };
+    assert_eq!(
+        reduce_context_results(&[equal.clone(), equal.clone()]).status,
+        ContextStatus::Resolved
+    );
+    let conflict = ContextResult {
+        request_ref: "b".into(),
+        status: ContextStatus::Resolved,
+        candidate_claims: vec![ContextClaim {
+            source_node_ref: "head-b".into(),
+            ..claim
+        }],
+        source_anchors: vec![],
+        derivation_edges: vec![],
+        diagnostics: vec![],
+    };
+    let reduced = reduce_context_results(std::slice::from_ref(&conflict));
+    assert_eq!(reduced.status, ContextStatus::Resolved);
+    let reduced = reduce_context_results(&[equal, conflict]);
+    assert_eq!(reduced.status, ContextStatus::Conflicting);
+    assert_eq!(reduced.candidate_claims.len(), 2);
 }
 
 #[test]

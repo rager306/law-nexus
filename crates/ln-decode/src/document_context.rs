@@ -3,7 +3,7 @@
 //! This module deliberately exposes a closed structural vocabulary.  It does
 //! not create semantic claims, aliases, or cross-block text spans.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use crate::current_requisites::ThisRefGrammarEvidence;
@@ -479,7 +479,7 @@ impl ContextPhase {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ContextRequestKind {
     AncestorPath,
     AdjacentBlocks,
@@ -504,6 +504,34 @@ impl ContextRequest {
     pub fn kind(&self) -> ContextRequestKind {
         self.kind
     }
+
+    /// Creates a request with an explicit, bounded key. Empty keys are allowed
+    /// only for operators which do not need one (for example ancestor_path).
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        kind: ContextRequestKind,
+        document_version_ref: String,
+        origin_frame_ref: FrameRef,
+        requested_roles_or_fields: Vec<String>,
+        structural_scope: Option<ContainerId>,
+        explicit_key: Option<String>,
+        path_so_far: Vec<String>,
+        budget_remaining: usize,
+        evidence_requirement: String,
+    ) -> Self {
+        Self {
+            kind,
+            document_version_ref,
+            origin_frame_ref,
+            requested_roles_or_fields,
+            structural_scope,
+            explicit_key,
+            path_so_far,
+            budget_remaining,
+            evidence_requirement,
+        }
+    }
+
     pub fn current_document_requisites(origin: FrameRef, evidence: ThisRefGrammarEvidence) -> Self {
         Self {
             kind: ContextRequestKind::CurrentDocumentRequisites,
@@ -523,8 +551,18 @@ impl ContextRequest {
             },
         }
     }
+
+    pub fn memo_key(&self) -> MemoKey {
+        MemoKey {
+            document_version_ref: self.document_version_ref.clone(),
+            request_kind: self.kind,
+            origin_frame_ref: self.origin_frame_ref.clone(),
+            explicit_key: self.explicit_key.clone(),
+            structural_scope: self.structural_scope.clone(),
+        }
+    }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ContextStatus {
     Resolved,
     Partial,
@@ -595,6 +633,352 @@ pub struct ContextResult {
     pub source_anchors: Vec<TextSpan>,
     pub derivation_edges: Vec<DerivationEdge>,
     pub diagnostics: Vec<ContextDiagnostic>,
+}
+
+/// The stable identity used by the context memo table.  Budget counters and
+/// traversal history are intentionally excluded: replaying the same typed
+/// query in one document version must hit the same memo entry.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct MemoKey {
+    pub document_version_ref: String,
+    pub request_kind: ContextRequestKind,
+    pub origin_frame_ref: FrameRef,
+    pub explicit_key: Option<String>,
+    pub structural_scope: Option<ContainerId>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ContextBudgets {
+    pub adjacent_radius: usize,
+    pub series_hops: usize,
+    pub alias_candidates: usize,
+    pub claims_per_field: usize,
+    pub worklist_steps: usize,
+}
+impl Default for ContextBudgets {
+    fn default() -> Self {
+        Self {
+            adjacent_radius: PROPOSED_MAX_ADJACENT_RADIUS,
+            series_hops: PROPOSED_MAX_SERIES_HOPS,
+            alias_candidates: PROPOSED_MAX_ALIAS_CANDIDATES,
+            claims_per_field: PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD,
+            worklist_steps: PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ContextEnvironment<'a> {
+    pub index: &'a DocumentStructureIndex,
+    pub overlay: &'a DocumentAnalysisOverlay,
+    pub requisites: Option<&'a crate::current_requisites::CurrentDocumentRequisites>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct ContextRunStats {
+    pub memo_hits: usize,
+    pub steps_used: usize,
+    pub terminal_distribution: BTreeMap<ContextStatus, usize>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ContextView {
+    pub target_block_id: Option<BlockId>,
+    pub target_local_anchor: Option<TextSpan>,
+    pub document_version_ref: String,
+    pub current_document_requisites_ref: Option<String>,
+    pub ancestor_path: Vec<String>,
+    pub adjacent_blocks: Vec<String>,
+    pub open_series_frames: Vec<String>,
+    pub scoped_aliases: Vec<String>,
+    pub explicit_anchor_hits: Vec<String>,
+    pub context_claims: Vec<ContextClaim>,
+    pub sufficiency: ContextStatus,
+    pub diagnostics: Vec<ContextDiagnostic>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ContextRunReport {
+    pub results: BTreeMap<MemoKey, ContextResult>,
+    pub views: Vec<ContextView>,
+    pub stats: ContextRunStats,
+}
+
+/// Stateful only with respect to immutable memoized results.  The source
+/// index, overlay and requisites are borrowed and are never altered.
+pub struct ContextWorklist {
+    budgets: ContextBudgets,
+    memo: BTreeMap<MemoKey, ContextResult>,
+}
+impl ContextWorklist {
+    pub fn new(budgets: ContextBudgets) -> Self {
+        Self {
+            budgets,
+            memo: BTreeMap::new(),
+        }
+    }
+
+    pub fn run<'a>(
+        &mut self,
+        environment: ContextEnvironment<'a>,
+        requests: &[ContextRequest],
+    ) -> ContextRunReport {
+        let mut results = BTreeMap::new();
+        let mut views = Vec::new();
+        let mut stats = ContextRunStats::default();
+        let mut ordered: Vec<&ContextRequest> = requests.iter().collect();
+        ordered.sort_by_key(|request| request.memo_key());
+        for request in ordered {
+            let key = request.memo_key();
+            let result = if let Some(cached) = self.memo.get(&key) {
+                stats.memo_hits += 1;
+                cached.clone()
+            } else if stats.steps_used >= self.budgets.worklist_steps {
+                limit_result(&key)
+            } else if request
+                .path_so_far
+                .iter()
+                .any(|part| part == &memo_label(&key))
+                || request.path_so_far.len() > self.budgets.series_hops
+                || request.path_so_far.len() > MAX_LINKING_PASSES
+            {
+                cycle_or_limit_result(&key, request.path_so_far.len() > MAX_LINKING_PASSES)
+            } else {
+                stats.steps_used += 1;
+                let result = dispatch_leaf(&environment, request, &self.budgets, &key);
+                self.memo.insert(key.clone(), result.clone());
+                result
+            };
+            *stats
+                .terminal_distribution
+                .entry(result.status)
+                .or_default() += 1;
+            views.push(view_for(request, &environment, &result));
+            results.insert(key, result);
+        }
+        ContextRunReport {
+            results,
+            views,
+            stats,
+        }
+    }
+}
+
+fn memo_label(key: &MemoKey) -> String {
+    format!(
+        "{:?}:{}:{}",
+        key.request_kind,
+        key.origin_frame_ref.as_str(),
+        key.explicit_key.as_deref().unwrap_or("")
+    )
+}
+fn limit_result(key: &MemoKey) -> ContextResult {
+    ContextResult {
+        request_ref: memo_label(key),
+        status: ContextStatus::Limit,
+        candidate_claims: Vec::new(),
+        source_anchors: Vec::new(),
+        derivation_edges: Vec::new(),
+        diagnostics: vec![ContextDiagnostic::ContextQueryLimitReached],
+    }
+}
+fn cycle_or_limit_result(key: &MemoKey, linking_limit: bool) -> ContextResult {
+    ContextResult {
+        request_ref: memo_label(key),
+        status: if linking_limit {
+            ContextStatus::Limit
+        } else {
+            ContextStatus::Cycle
+        },
+        candidate_claims: Vec::new(),
+        source_anchors: Vec::new(),
+        derivation_edges: Vec::new(),
+        diagnostics: vec![if linking_limit {
+            ContextDiagnostic::ContextQueryLimitReached
+        } else {
+            ContextDiagnostic::UnresolvedAfterDocumentPass
+        }],
+    }
+}
+
+fn dispatch_leaf(
+    environment: &ContextEnvironment<'_>,
+    request: &ContextRequest,
+    budgets: &ContextBudgets,
+    key: &MemoKey,
+) -> ContextResult {
+    let outcome = match request.kind {
+        ContextRequestKind::AncestorPath => BlockId::parse(request.origin_frame_ref.as_str())
+            .ok()
+            .map(|b| {
+                environment
+                    .index
+                    .ancestor_path(&b)
+                    .map(|path| LeafOutcome {
+                        status: ContextStatus::Resolved,
+                        candidates: path
+                            .into_iter()
+                            .map(|node| LeafCandidate {
+                                node_ref: node.container_id().as_str().to_owned(),
+                                evidence: node.heading_anchor().into_iter().collect(),
+                                claims: Vec::new(),
+                            })
+                            .collect(),
+                        diagnostics: Vec::new(),
+                    })
+                    .unwrap_or_else(|s| {
+                        LeafOutcome::unavailable(if s == ContextStatus::Partial {
+                            ContextDiagnostic::ContextQueryLimitReached
+                        } else {
+                            ContextDiagnostic::MissingDocumentStructure
+                        })
+                    })
+            })
+            .unwrap_or_else(|| {
+                LeafOutcome::unavailable(ContextDiagnostic::MissingDocumentStructure)
+            }),
+        ContextRequestKind::AdjacentBlocks => BlockId::parse(request.origin_frame_ref.as_str())
+            .ok()
+            .map(|b| LeafOutcome {
+                status: ContextStatus::Resolved,
+                candidates: environment
+                    .index
+                    .adjacent_blocks(&b, budgets.adjacent_radius)
+                    .into_iter()
+                    .map(|node| LeafCandidate {
+                        node_ref: node.block_id().as_str().to_owned(),
+                        evidence: vec![node.local_anchor()],
+                        claims: Vec::new(),
+                    })
+                    .collect(),
+                diagnostics: Vec::new(),
+            })
+            .unwrap_or_else(|| {
+                LeafOutcome::unavailable(ContextDiagnostic::MissingDocumentStructure)
+            }),
+        ContextRequestKind::OpenSeriesHead => FrameRef::parse(request.origin_frame_ref.as_str())
+            .ok()
+            .map(|f| open_series_head(environment.overlay, &f))
+            .unwrap_or_else(|| {
+                LeafOutcome::unavailable(ContextDiagnostic::UnresolvedAfterDocumentPass)
+            }),
+        ContextRequestKind::ScopedAlias => request
+            .structural_scope
+            .as_ref()
+            .zip(request.explicit_key.as_deref())
+            .map(|(scope, alias)| scoped_alias(environment.overlay, alias, scope))
+            .unwrap_or_else(|| {
+                LeafOutcome::unavailable(ContextDiagnostic::UnresolvedAfterDocumentPass)
+            }),
+        ContextRequestKind::CurrentDocumentRequisites => current_document_requisites(
+            environment.requisites,
+            ThisRefGrammarEvidence::new([]),
+            &request.origin_frame_ref,
+        ),
+        ContextRequestKind::ExplicitAnchorLookup => request
+            .explicit_key
+            .as_deref()
+            .and_then(|key| FrameRef::parse(key).ok())
+            .map(|f| explicit_anchor_lookup(environment.overlay, f.as_str()))
+            .unwrap_or_else(|| {
+                LeafOutcome::unavailable(ContextDiagnostic::UnresolvedAfterDocumentPass)
+            }),
+    };
+    let mut claims = Vec::new();
+    for candidate in &outcome.candidates {
+        claims.extend(candidate.claims.clone());
+    }
+    claims.sort_by(|a, b| (&a.field, &a.source_node_ref).cmp(&(&b.field, &b.source_node_ref)));
+    let mut diagnostics = outcome.diagnostics;
+    if claims.len() > budgets.claims_per_field {
+        claims.truncate(budgets.claims_per_field);
+        diagnostics.push(ContextDiagnostic::ContextQueryLimitReached);
+    }
+    ContextResult {
+        request_ref: memo_label(key),
+        status: outcome.status,
+        candidate_claims: claims,
+        source_anchors: outcome
+            .candidates
+            .into_iter()
+            .flat_map(|c| c.evidence)
+            .collect(),
+        derivation_edges: Vec::new(),
+        diagnostics,
+    }
+}
+
+/// Field-wise reducer: equal claims collapse, incompatible sources remain
+/// visible and never become a proximity-selected winner.
+pub fn reduce_context_results(results: &[ContextResult]) -> ContextResult {
+    let mut claims = BTreeMap::<String, Vec<ContextClaim>>::new();
+    let mut conflicting = false;
+    let mut anchors = Vec::new();
+    let mut diagnostics = Vec::new();
+    for result in results {
+        anchors.extend(result.source_anchors.iter().copied());
+        diagnostics.extend(result.diagnostics.iter().copied());
+        for claim in &result.candidate_claims {
+            let field_claims = claims.entry(claim.field.clone()).or_default();
+            if field_claims
+                .iter()
+                .any(|previous| previous.source_node_ref != claim.source_node_ref)
+            {
+                conflicting = true;
+            }
+            if !field_claims.iter().any(|previous| previous == claim) {
+                field_claims.push(claim.clone());
+                field_claims.sort_by(|a, b| a.source_node_ref.cmp(&b.source_node_ref));
+            }
+        }
+    }
+    let flattened_claims: Vec<ContextClaim> = claims.into_values().flatten().collect();
+    let status = if conflicting {
+        ContextStatus::Conflicting
+    } else if flattened_claims.is_empty() {
+        ContextStatus::Unavailable
+    } else {
+        ContextStatus::Resolved
+    };
+    ContextResult {
+        request_ref: "reduced".to_owned(),
+        status,
+        candidate_claims: flattened_claims,
+        source_anchors: anchors,
+        derivation_edges: Vec::new(),
+        diagnostics,
+    }
+}
+
+fn view_for(
+    request: &ContextRequest,
+    environment: &ContextEnvironment<'_>,
+    result: &ContextResult,
+) -> ContextView {
+    ContextView {
+        target_block_id: BlockId::parse(request.origin_frame_ref.as_str()).ok(),
+        target_local_anchor: None,
+        document_version_ref: environment
+            .index
+            .version()
+            .document_version_ref()
+            .to_owned(),
+        current_document_requisites_ref: environment
+            .requisites
+            .map(|r| r.document_version_ref().to_owned()),
+        ancestor_path: Vec::new(),
+        adjacent_blocks: Vec::new(),
+        open_series_frames: result
+            .candidate_claims
+            .iter()
+            .map(|c| c.source_node_ref.clone())
+            .collect(),
+        scoped_aliases: Vec::new(),
+        explicit_anchor_hits: Vec::new(),
+        context_claims: result.candidate_claims.clone(),
+        sufficiency: result.status,
+        diagnostics: result.diagnostics.clone(),
+    }
 }
 
 pub const PROPOSED_MAX_ADJACENT_RADIUS: usize = 2;
