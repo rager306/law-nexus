@@ -28,6 +28,7 @@
 pub mod adapters;
 pub mod application;
 pub mod calendar;
+pub mod document_context;
 pub mod domain;
 pub mod ports;
 pub mod provenance;

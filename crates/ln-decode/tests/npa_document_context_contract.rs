@@ -75,7 +75,11 @@ fn ancestor_path_is_nearest_first_and_adjacent_is_bounded() {
         &BlockId::parse("block-3").unwrap(),
         PROPOSED_MAX_ADJACENT_RADIUS,
     );
-    assert_eq!(adjacent.len(), 2);
+    assert_eq!(
+        adjacent.len(),
+        3usize.min(PROPOSED_MAX_ADJACENT_RADIUS),
+        "fixture cardinality is bounded by the proposed radius"
+    );
     assert!(adjacent.iter().all(|b| b.order() < 3));
 }
 

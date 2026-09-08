@@ -981,11 +981,21 @@ fn view_for(
     }
 }
 
-pub const PROPOSED_MAX_ADJACENT_RADIUS: usize = 2;
-pub const PROPOSED_MAX_SERIES_HOPS: usize = 2;
-pub const PROPOSED_MAX_ALIAS_CANDIDATES: usize = 4;
-pub const PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD: usize = 4;
-pub const PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT: usize = 32;
+/// [proposed] S04 bounded C4 smoke observed adjacent radius 2; 4 retains
+/// at least 2x headroom. Evidence: `prd/migration/rust-evidence/m203-s04-context-baseline.json`.
+pub const PROPOSED_MAX_ADJACENT_RADIUS: usize = 4;
+/// [proposed] S04 bounded C4 smoke observed series hops 2; 4 retains at
+/// least 2x headroom. Evidence: `prd/migration/rust-evidence/m203-s04-context-baseline.json`.
+pub const PROPOSED_MAX_SERIES_HOPS: usize = 4;
+/// [proposed] No aliases were observed in the bounded smoke; 8 is a
+/// conservative non-zero budget with explicit headroom, not a corpus claim.
+pub const PROPOSED_MAX_ALIAS_CANDIDATES: usize = 8;
+/// [proposed] S04 bounded C4 smoke observed at most 4 claims per field; 8
+/// retains 2x headroom. Evidence: `prd/migration/rust-evidence/m203-s04-context-baseline.json`.
+pub const PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD: usize = 8;
+/// [proposed] S04 bounded C4 smoke observed 32 worklist steps per document;
+/// 64 retains 2x headroom. Evidence: `prd/migration/rust-evidence/m203-s04-context-baseline.json`.
+pub const PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT: usize = 64;
 pub const MAX_LINKING_PASSES: usize = 1;
 
 /// Evidence-bearing node produced by the contextual layer.  These nodes are

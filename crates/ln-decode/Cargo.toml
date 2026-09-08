@@ -17,5 +17,9 @@ name = "npa-bounds-scan"
 path = "src/bin/npa-bounds-scan.rs"
 
 [[bin]]
+name = "npa-context-baseline"
+path = "src/bin/npa-context-baseline.rs"
+
+[[bin]]
 name = "hierarchy-candidate-artifact"
 path = "src/bin/hierarchy-candidate-artifact.rs"

@@ -144,12 +144,12 @@ runtime_connectivity:
     terminal_failure: decode_failed
     terminal_gap: complete-document index proof absent
   - id: P1
-    current_surface: none
+    current_surface: ln_decode::document_context::DocumentStructureIndex + ln_decode::current_requisites [proposed]
     proposed_record: DocumentStructureIndex + CurrentDocumentRequisites
     lifecycle_gate: proposed
     metric: structural_roundtrip_and_requisites_conflict_rate
     terminal_failure: structure_failed
-    terminal_gap: design-only index and per-source sidecar
+    terminal_gap: extractor completeness, normalization, and source_authority_policy remain deferred
   - id: P2
     current_surface: ln-decode::lexer::lex + find_legal_markers + ln_decode::local_grammar
     proposed_record: MorphEvidenceSet + CoordinatingFrame + StructuralDesignationFrame
@@ -165,19 +165,19 @@ runtime_connectivity:
     terminal_failure: capture_contract_rejected
     terminal_gap: frame/direct pair policies deferred-undefined
   - id: P4
-    current_surface: none
+    current_surface: ln_decode::document_context::DocumentAnalysisOverlay [proposed]
     proposed_record: DocumentAnalysisOverlay
     lifecycle_gate: proposed
     metric: immutable_anchor_and_overlay_replay
     terminal_failure: analysis_index_failed
-    terminal_gap: no runtime overlay implementation
+    terminal_gap: extractor completeness and source_authority_policy remain deferred
   - id: P5
-    current_surface: none
+    current_surface: ln_decode::document_context + ln_decode::npa_context_baseline [proposed]
     proposed_record: ContextRequest + ContextResult + ContextView
     lifecycle_gate: proposed
     metric: deterministic_replay_cycle_limit_and_conflict_rates
     terminal_failure: context_unavailable_or_limit
-    terminal_gap: fan-out, alias, and continuation bounds deferred-undefined
+    terminal_gap: extractor completeness, normalization, and source_authority_policy remain deferred; proposed bounds are measured in prd/migration/rust-evidence/m203-s04-context-baseline.json
   - id: P6
     current_surface: none
     proposed_record: IdentifyingAct + ThisRefCandidate
@@ -315,7 +315,7 @@ runtime_stop:
   reasons:
     - capture frame pair policies stay deferred-undefined; the candidate cardinality G02 safety ceiling is [proposed] at 1024 and is wired in capture_lawrefs with defaults-only arbitration and refusal diagnostics
     - requisites source-authority policy and normalization profiles are deferred-undefined
-    - context/list/alias numeric bounds are deferred-undefined
+    - context/list/alias bounds are [proposed] measured S04 diagnostics (evidence: prd/migration/rust-evidence/m203-s04-context-baseline.json); normalization and source_authority_policy remain deferred
     - hostile contracts are accepted (S03 suite 16/16) and the full-corpus [diagnostic] walk is accepted (43785 files attempted, 0 malformed, 0 unreadable); bounded capture wiring is proven, but no runtime proof exists beyond capture surfaces
     - no runtime proof for full-document index and analysis overlay
     - N2 human dual coding remains incomplete

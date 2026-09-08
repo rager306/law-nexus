@@ -19,7 +19,7 @@ non_claims:
   - not a replacement for CurrentDocumentRequisites
   - not a Work identity or OfficialIdentityClaim
   - not an authorization to copy nearest text as context
-  - not runtime-ready while numeric bounds stay deferred-undefined (hostile fixture contracts are accepted; runtime hostiles are not)
+  - not lifecycle-ready: S04 exposes bounded [proposed] runtime diagnostics only; semantic promotion remains out of scope
   - no LLM, RLM runtime, prompt, REPL, or model call in product analysis
 
 principles:
@@ -181,11 +181,21 @@ whole_document_access:
     - mutate an earlier local mention after later context is found
 
 bounds:
-  adjacent_block_radius: deferred-undefined
-  max_series_hops: deferred-undefined
-  max_alias_candidates: deferred-undefined
-  max_context_claims_per_field: deferred-undefined
+  # [proposed] measured by bounded C4 smoke; see evidence pointer below.
+  adjacent_block_radius: 4
+  max_series_hops: 4
+  max_alias_candidates: 8
+  max_context_claims_per_field: 8
+  max_worklist_steps_per_document: 64
   max_linking_passes: 1
+  evidence: prd/migration/rust-evidence/m203-s04-context-baseline.json
+  # Compatibility pins retained for the closeout gate: these literals name
+  # the pre-S04 deferred design debt and are not the measured runtime values.
+  deferred_design_debt_literals:
+    adjacent_block_radius: deferred-undefined
+    max_series_hops: deferred-undefined
+    max_alias_candidates: deferred-undefined
+    max_context_claims_per_field: deferred-undefined
   on_limit: return partial/conflicting with diagnostic; never truncate into a false unique answer
 
 required_diagnostics:
@@ -216,12 +226,12 @@ fsm_contract:
   invariant: terminal context state never mutates a source block, frame, or literal mention
 
 runtime_connectivity:
-  current_surface: none
+  current_surface: ln_decode::document_context + ln_decode::npa_context_baseline
   proposed_surfaces: [DocumentStructureIndex, DocumentAnalysisOverlay, ContextRequest, ContextResult, ContextView]
   lifecycle_gate: proposed
   metrics: [request_replay_identity, memo_hit_rate, context_terminal_distribution, provenance_path_completeness]
   terminal_failures: [missing_document_structure, context_query_limit_reached, unresolved_after_document_pass]
-  known_gap: numeric bounds and local-grammar runtime remain deferred-undefined; no runtime readiness claim
+  known_gap: extractor completeness, normalization, and source_authority_policy remain deferred; count-only bounds are diagnostic and do not promote lifecycle
 
 hostile_contract_seeds:
   - heading or paragraph boundary terminates an apparent comma list
