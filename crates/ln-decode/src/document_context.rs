@@ -9,7 +9,10 @@ use std::fmt;
 use crate::current_requisites::ThisRefGrammarEvidence;
 use crate::domain::{ParagraphStyle, ParsedBlock, SourceLocation, TextSpan};
 use crate::hierarchy::extract_hierarchy;
-use crate::local_grammar::DerivationSource;
+use crate::lawref::LawRef;
+use crate::local_grammar::{
+    CoordinatingFrame, DerivationSource, FrameKind, FrameStatus, StructuralDesignationFrame,
+};
 use crate::morphology::{find_legal_markers, LegalMarkerKind};
 
 const MAX_ID_LEN: usize = 64;
@@ -600,3 +603,515 @@ pub const PROPOSED_MAX_ALIAS_CANDIDATES: usize = 4;
 pub const PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD: usize = 4;
 pub const PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT: usize = 32;
 pub const MAX_LINKING_PASSES: usize = 1;
+
+/// Evidence-bearing node produced by the contextual layer.  These nodes are
+/// additive: the source block, frame, and capture remain addressable in the
+/// structure index and are never replaced by an overlay node.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DeclaredAliasNode {
+    pub alias_id: AliasId,
+    pub wording: String,
+    pub target_mention_ref: MentionRef,
+    pub declaration_anchor: TextSpan,
+    pub scope_container_id: ContainerId,
+    pub status: StructureEdgeStatus,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LocalGrammarFrameNode {
+    pub frame_ref: FrameRef,
+    pub block_id: BlockId,
+    pub frame_kind: FrameKind,
+    pub local_anchor: TextSpan,
+    pub status: FrameStatus,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LiteralMentionNode {
+    pub mention_ref: MentionRef,
+    pub block_id: BlockId,
+    pub local_anchor: TextSpan,
+    pub written_text: String,
+    pub explicit_slots: Vec<String>,
+    pub status: StructureEdgeStatus,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ContextualEdgeKind {
+    OpensSeries,
+    ContinuesSeries,
+    ClosesSeries,
+    DeclaresAlias,
+    AliasInScope,
+    SuppliesRequisites,
+    OwnsDesignation,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ContextualEdge {
+    pub from: String,
+    pub to: String,
+    pub relation: ContextualEdgeKind,
+    pub evidence: Vec<TextSpan>,
+    pub confidence_class: ConfidenceClass,
+    pub status: StructureEdgeStatus,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ConfidenceClass {
+    ExplicitEvidence,
+    DerivedPath,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DocumentAnalysisOverlay {
+    version: DocumentVersionRef,
+    aliases: Vec<DeclaredAliasNode>,
+    frames: Vec<LocalGrammarFrameNode>,
+    mentions: Vec<LiteralMentionNode>,
+    edges: Vec<ContextualEdge>,
+}
+impl DocumentAnalysisOverlay {
+    pub fn version(&self) -> &DocumentVersionRef {
+        &self.version
+    }
+    pub fn aliases(&self) -> &[DeclaredAliasNode] {
+        &self.aliases
+    }
+    pub fn frames(&self) -> &[LocalGrammarFrameNode] {
+        &self.frames
+    }
+    pub fn mentions(&self) -> &[LiteralMentionNode] {
+        &self.mentions
+    }
+    pub fn edges(&self) -> &[ContextualEdge] {
+        &self.edges
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OverlayBuildError {
+    UnknownBlock,
+    MissingScope,
+    InvalidCaptureSpan,
+}
+impl fmt::Display for OverlayBuildError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "document analysis overlay build failed: {:?}", self)
+    }
+}
+impl std::error::Error for OverlayBuildError {}
+
+/// Builds only derived, source-local nodes and edges.  In particular, no
+/// node may contain a cross-block TextSpan; continuation edges carry the two
+/// separate local frame anchors instead.
+pub fn build_document_analysis_overlay(
+    index: &DocumentStructureIndex,
+    frames_per_block: &[(
+        BlockId,
+        Vec<CoordinatingFrame>,
+        Vec<StructuralDesignationFrame>,
+    )],
+    captures_per_block: &[(BlockId, Vec<LawRef>)],
+) -> Result<DocumentAnalysisOverlay, OverlayBuildError> {
+    let mut overlay = DocumentAnalysisOverlay {
+        version: index.version.clone(),
+        aliases: Vec::new(),
+        frames: Vec::new(),
+        mentions: Vec::new(),
+        edges: Vec::new(),
+    };
+    for (block_id, frames, designations) in frames_per_block {
+        let source = index
+            .source_blocks
+            .iter()
+            .find(|b| b.block_id == *block_id)
+            .ok_or(OverlayBuildError::UnknownBlock)?;
+        let scope = index
+            .ancestor_path(block_id)
+            .map_err(|_| OverlayBuildError::MissingScope)?;
+        let scope_id = scope
+            .first()
+            .map(|c| c.container_id.clone())
+            .ok_or(OverlayBuildError::MissingScope)?;
+        for (n, frame) in frames.iter().enumerate() {
+            let frame_ref = FrameRef::parse(&format!("{}-frame-{n}", block_id.as_str()))
+                .map_err(|_| OverlayBuildError::InvalidCaptureSpan)?;
+            overlay.frames.push(LocalGrammarFrameNode {
+                frame_ref: frame_ref.clone(),
+                block_id: block_id.clone(),
+                frame_kind: frame.frame_kind,
+                local_anchor: frame.local_anchor,
+                status: frame.status,
+            });
+            let frame_node = frame_ref.as_str().to_owned();
+            let relation = if frame.continuation {
+                ContextualEdgeKind::ContinuesSeries
+            } else {
+                ContextualEdgeKind::OpensSeries
+            };
+            overlay.edges.push(ContextualEdge {
+                from: frame_node,
+                to: block_id.as_str().to_owned(),
+                relation,
+                evidence: vec![frame.local_anchor],
+                confidence_class: ConfidenceClass::ExplicitEvidence,
+                status: if frame.status == FrameStatus::Ambiguous {
+                    StructureEdgeStatus::Conflicting
+                } else {
+                    StructureEdgeStatus::Proposed
+                },
+            });
+        }
+        for (n, frame) in designations.iter().enumerate() {
+            let frame_ref = FrameRef::parse(&format!("{}-designation-{n}", block_id.as_str()))
+                .map_err(|_| OverlayBuildError::InvalidCaptureSpan)?;
+            overlay.frames.push(LocalGrammarFrameNode {
+                frame_ref: frame_ref.clone(),
+                block_id: block_id.clone(),
+                frame_kind: FrameKind::StructuralDesignation,
+                local_anchor: frame.local_anchor,
+                status: frame.status,
+            });
+            overlay.edges.push(ContextualEdge {
+                from: frame_ref.as_str().to_owned(),
+                to: scope_id.as_str().to_owned(),
+                relation: ContextualEdgeKind::OwnsDesignation,
+                evidence: vec![frame.local_anchor],
+                confidence_class: ConfidenceClass::DerivedPath,
+                status: StructureEdgeStatus::Proposed,
+            });
+        }
+        let _ = source;
+    }
+    for (block_id, captures) in captures_per_block {
+        if index.source_blocks.iter().all(|b| b.block_id != *block_id) {
+            return Err(OverlayBuildError::UnknownBlock);
+        }
+        for (n, capture) in captures.iter().enumerate() {
+            let mention_ref = MentionRef::parse(&format!("{}-mention-{n}", block_id.as_str()))
+                .map_err(|_| OverlayBuildError::InvalidCaptureSpan)?;
+            overlay.mentions.push(LiteralMentionNode {
+                mention_ref: mention_ref.clone(),
+                block_id: block_id.clone(),
+                local_anchor: capture.span,
+                written_text: capture.pattern_id.clone(),
+                explicit_slots: capture_slots(capture),
+                status: StructureEdgeStatus::Proposed,
+            });
+        }
+    }
+    // A head is accepted only when there is exactly one candidate.  No
+    // proximity tie-break is applied; competing candidates stay visible.
+    let act_frames: Vec<_> = overlay
+        .frames
+        .iter()
+        .filter(|f| f.frame_kind == FrameKind::ActRequisites)
+        .collect();
+    for tail in act_frames
+        .iter()
+        .filter(|f| f.status != FrameStatus::Rejected)
+    {
+        let candidates: Vec<_> = act_frames
+            .iter()
+            .filter(|head| head.frame_ref != tail.frame_ref && head.block_id != tail.block_id)
+            .collect();
+        if candidates.len() == 1 && tail.local_anchor.start() > candidates[0].local_anchor.start() {
+            overlay.edges.push(ContextualEdge {
+                from: candidates[0].frame_ref.as_str().to_owned(),
+                to: tail.frame_ref.as_str().to_owned(),
+                relation: ContextualEdgeKind::ContinuesSeries,
+                evidence: vec![candidates[0].local_anchor, tail.local_anchor],
+                confidence_class: ConfidenceClass::DerivedPath,
+                status: StructureEdgeStatus::Proposed,
+            });
+        } else if candidates.len() > 1 {
+            for head in candidates {
+                overlay.edges.push(ContextualEdge {
+                    from: head.frame_ref.as_str().to_owned(),
+                    to: tail.frame_ref.as_str().to_owned(),
+                    relation: ContextualEdgeKind::ContinuesSeries,
+                    evidence: vec![head.local_anchor, tail.local_anchor],
+                    confidence_class: ConfidenceClass::DerivedPath,
+                    status: StructureEdgeStatus::Conflicting,
+                });
+            }
+        }
+    }
+    Ok(overlay)
+}
+
+fn capture_slots(capture: &LawRef) -> Vec<String> {
+    let mut slots = Vec::new();
+    if capture.slots.date.is_some() {
+        slots.push("date".to_owned());
+    }
+    if capture.slots.doc_no.is_some() {
+        slots.push("doc_no".to_owned());
+    }
+    if capture.slots.law_code.is_some() {
+        slots.push("law_code".to_owned());
+    }
+    slots
+}
+
+/// Detects the deliberately closed Russian declaration surface.  The caller
+/// supplies the containing scope; the parser never performs similarity search.
+pub fn detect_declared_aliases(text: &str, scope: ContainerId) -> Vec<DeclaredAliasNode> {
+    let mut out = Vec::new();
+    for marker in ["(далее — ", "(далее - "] {
+        let mut from = 0;
+        while let Some(relative) = text[from..].find(marker) {
+            let start = from + relative;
+            let value_start = start + marker.len();
+            let Some(end_rel) = text[value_start..].find(')') else {
+                break;
+            };
+            let end = value_start + end_rel;
+            let wording = text[value_start..end].trim();
+            if !wording.is_empty() {
+                if let (Ok(anchor), Ok(alias_id), Ok(mention)) = (
+                    TextSpan::try_new(start, end + 1),
+                    AliasId::parse(&format!("alias-{start}")),
+                    MentionRef::parse(&format!("alias-target-{start}")),
+                ) {
+                    out.push(DeclaredAliasNode {
+                        alias_id,
+                        wording: wording.to_owned(),
+                        target_mention_ref: mention,
+                        declaration_anchor: anchor,
+                        scope_container_id: scope.clone(),
+                        status: StructureEdgeStatus::Accepted,
+                    });
+                }
+            }
+            from = end + 1;
+        }
+    }
+    out
+}
+
+/// Detect the closed ThisRef surface and return exact local spans. The
+/// sidecar proof itself remains `current_requisites::ThisRefGrammarEvidence`.
+pub fn detect_this_ref_grammar(text: &str) -> Vec<TextSpan> {
+    [
+        "настоящего Федерального закона",
+        "настоящего Закона",
+        "настоящего приказа",
+        "настоящего Порядка",
+        "настоящего положения",
+        "настоящей статьи",
+    ]
+    .iter()
+    .flat_map(|surface| {
+        text.match_indices(surface)
+            .filter_map(move |(start, _)| TextSpan::try_new(start, start + surface.len()).ok())
+    })
+    .collect()
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LeafCandidate {
+    pub node_ref: String,
+    pub evidence: Vec<TextSpan>,
+    pub claims: Vec<ContextClaim>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LeafOutcome {
+    pub status: ContextStatus,
+    pub candidates: Vec<LeafCandidate>,
+    pub diagnostics: Vec<ContextDiagnostic>,
+}
+impl LeafOutcome {
+    fn unavailable(diagnostic: ContextDiagnostic) -> Self {
+        Self {
+            status: ContextStatus::Unavailable,
+            candidates: Vec::new(),
+            diagnostics: vec![diagnostic],
+        }
+    }
+    fn partial(diagnostic: ContextDiagnostic) -> Self {
+        Self {
+            status: ContextStatus::Partial,
+            candidates: Vec::new(),
+            diagnostics: vec![diagnostic],
+        }
+    }
+}
+
+/// Resolve a series head only when the overlay proves one unique candidate.
+pub fn open_series_head(overlay: &DocumentAnalysisOverlay, frame_ref: &FrameRef) -> LeafOutcome {
+    let candidates: Vec<_> = overlay
+        .edges
+        .iter()
+        .filter(|edge| {
+            edge.relation == ContextualEdgeKind::ContinuesSeries
+                && edge.to == frame_ref.as_str()
+                && edge.status != StructureEdgeStatus::Rejected
+        })
+        .collect();
+    if candidates.is_empty() {
+        return LeafOutcome::partial(ContextDiagnostic::OpenSeriesWithoutHead);
+    }
+    if candidates
+        .iter()
+        .any(|e| e.status == StructureEdgeStatus::Conflicting)
+    {
+        return LeafOutcome {
+            status: ContextStatus::Conflicting,
+            candidates: candidates
+                .into_iter()
+                .map(|e| LeafCandidate {
+                    node_ref: e.from.clone(),
+                    evidence: e.evidence.clone(),
+                    claims: Vec::new(),
+                })
+                .collect(),
+            diagnostics: vec![ContextDiagnostic::IncompatibleSeriesHead],
+        };
+    }
+    if candidates.len() != 1 {
+        return LeafOutcome::partial(ContextDiagnostic::OpenSeriesWithoutHead);
+    }
+    let edge = candidates[0];
+    LeafOutcome {
+        status: ContextStatus::Resolved,
+        candidates: vec![LeafCandidate {
+            node_ref: edge.from.clone(),
+            evidence: edge.evidence.clone(),
+            claims: Vec::new(),
+        }],
+        diagnostics: Vec::new(),
+    }
+}
+
+/// Keep aliases confined to the container in which they were declared.
+pub fn scoped_alias(
+    overlay: &DocumentAnalysisOverlay,
+    alias_key: &str,
+    scope: &ContainerId,
+) -> LeafOutcome {
+    let candidates: Vec<_> = overlay
+        .aliases
+        .iter()
+        .filter(|a| a.wording == alias_key && a.scope_container_id == *scope)
+        .collect();
+    if candidates.is_empty() {
+        return LeafOutcome::unavailable(ContextDiagnostic::UnresolvedAfterDocumentPass);
+    }
+    if candidates.len() > 1 {
+        return LeafOutcome::partial(ContextDiagnostic::ScopedAliasAmbiguous);
+    }
+    let alias = candidates[0];
+    LeafOutcome {
+        status: ContextStatus::Resolved,
+        candidates: vec![LeafCandidate {
+            node_ref: alias.target_mention_ref.as_str().to_owned(),
+            evidence: vec![alias.declaration_anchor],
+            claims: Vec::new(),
+        }],
+        diagnostics: Vec::new(),
+    }
+}
+
+/// Exact designation lookup; wording equality is intentional and forward
+/// references are not discarded by block order.
+pub fn explicit_anchor_lookup(
+    overlay: &DocumentAnalysisOverlay,
+    explicit_key: &str,
+) -> LeafOutcome {
+    let candidates: Vec<_> = overlay
+        .frames
+        .iter()
+        .filter(|f| f.frame_ref.as_str() == explicit_key)
+        .collect();
+    if candidates.is_empty() {
+        return LeafOutcome::unavailable(ContextDiagnostic::UnresolvedAfterDocumentPass);
+    }
+    LeafOutcome {
+        status: ContextStatus::Resolved,
+        candidates: candidates
+            .into_iter()
+            .map(|f| LeafCandidate {
+                node_ref: f.frame_ref.as_str().to_owned(),
+                evidence: vec![f.local_anchor],
+                claims: Vec::new(),
+            })
+            .collect(),
+        diagnostics: Vec::new(),
+    }
+}
+
+/// Authorize current-document requisites through the sidecar guard.  No
+/// sidecar means unavailable; a present but incomplete sidecar is partial.
+pub fn current_document_requisites(
+    requisites: Option<&crate::current_requisites::CurrentDocumentRequisites>,
+    evidence: ThisRefGrammarEvidence,
+    origin: &FrameRef,
+) -> LeafOutcome {
+    let Some(sidecar) = requisites else {
+        return LeafOutcome::unavailable(ContextDiagnostic::MissingCurrentRequisites);
+    };
+    if !sidecar.authorize_this_document_reference(evidence) {
+        return LeafOutcome::partial(ContextDiagnostic::InheritedFieldConflict);
+    }
+    LeafOutcome {
+        status: ContextStatus::Resolved,
+        candidates: vec![LeafCandidate {
+            node_ref: origin.as_str().to_owned(),
+            evidence: Vec::new(),
+            claims: vec![ContextClaim {
+                field: "current_document_requisites".to_owned(),
+                derivation: DerivationSource::AuthorizedCurrentDocumentRequisites,
+                source_node_ref: origin.as_str().to_owned(),
+                claim_status: ContextClaimStatus::Inherited,
+            }],
+        }],
+        diagnostics: Vec::new(),
+    }
+}
+
+pub fn supplies_requisites(index: &DocumentStructureIndex, container: &ContainerId) -> LeafOutcome {
+    let Some(node) = index
+        .containers
+        .iter()
+        .find(|c| c.container_id == *container && c.role == ContainerRole::RequisitesBlock)
+    else {
+        return LeafOutcome::unavailable(ContextDiagnostic::MissingCurrentRequisites);
+    };
+    LeafOutcome {
+        status: ContextStatus::Resolved,
+        candidates: vec![LeafCandidate {
+            node_ref: node.container_id.as_str().to_owned(),
+            evidence: node.heading_anchor.into_iter().collect(),
+            claims: Vec::new(),
+        }],
+        diagnostics: Vec::new(),
+    }
+}
+
+pub fn owns_designation(overlay: &DocumentAnalysisOverlay, frame_ref: &FrameRef) -> LeafOutcome {
+    let candidates: Vec<_> = overlay
+        .edges
+        .iter()
+        .filter(|e| {
+            e.from == frame_ref.as_str() && e.relation == ContextualEdgeKind::OwnsDesignation
+        })
+        .collect();
+    if candidates.is_empty() {
+        return LeafOutcome::unavailable(ContextDiagnostic::UnresolvedAfterDocumentPass);
+    }
+    LeafOutcome {
+        status: ContextStatus::Resolved,
+        candidates: candidates
+            .into_iter()
+            .map(|e| LeafCandidate {
+                node_ref: e.to.clone(),
+                evidence: e.evidence.clone(),
+                claims: Vec::new(),
+            })
+            .collect(),
+        diagnostics: Vec::new(),
+    }
+}

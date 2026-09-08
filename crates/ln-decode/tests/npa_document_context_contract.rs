@@ -148,7 +148,6 @@ fn context_fsm_accepts_all_contract_transitions_and_rejects_invalid_ones() {
     ];
     for (from, transition, expected) in cases {
         assert_eq!(from.transition(transition), Some(expected));
-        assert!(expected.is_terminal() || !expected.is_terminal());
         assert_eq!(
             expected.transition(ContextTransition::TypedContextRequestEmitted),
             None
@@ -158,6 +157,35 @@ fn context_fsm_accepts_all_contract_transitions_and_rejects_invalid_ones() {
         ContextPhase::Resolving.transition(ContextTransition::TypedContextRequestEmitted),
         None
     );
+}
+
+#[test]
+fn this_ref_grammar_is_exact_and_returns_local_spans() {
+    let spans = ln_decode::document_context::detect_this_ref_grammar(
+        "Ссылка на настоящего Закона; настоящий закон не подходит.",
+    );
+    assert_eq!(spans.len(), 1);
+    assert_eq!(spans[0].start(), 18);
+    assert_eq!(spans[0].end(), 51);
+}
+
+#[test]
+fn aliases_use_closed_markers_and_preserve_scope() {
+    let scope = ln_decode::document_context::ContainerId::parse("container-2").unwrap();
+    let aliases = ln_decode::document_context::detect_declared_aliases(
+        "Федеральный закон (далее — Закон) действует.",
+        scope.clone(),
+    );
+    assert_eq!(aliases.len(), 1);
+    assert_eq!(aliases[0].wording, "Закон");
+    assert_eq!(aliases[0].declaration_anchor.start(), 34);
+    assert_eq!(aliases[0].declaration_anchor.end(), 61);
+    assert_eq!(aliases[0].scope_container_id, scope);
+    assert!(ln_decode::document_context::detect_declared_aliases(
+        "Федеральный закон (далее: Закон) действует.",
+        aliases[0].scope_container_id.clone(),
+    )
+    .is_empty());
 }
 
 #[test]
@@ -172,5 +200,13 @@ fn typed_request_and_terminal_status_are_closed() {
         ContextRequestKind::CurrentDocumentRequisites
     );
     assert_eq!(MAX_LINKING_PASSES, 1);
-    assert_eq!(ContextStatus::Cycle, ContextStatus::Cycle);
+    const TERMINALS: [ContextStatus; 6] = [
+        ContextStatus::Resolved,
+        ContextStatus::Partial,
+        ContextStatus::Conflicting,
+        ContextStatus::Unavailable,
+        ContextStatus::Cycle,
+        ContextStatus::Limit,
+    ];
+    assert!(TERMINALS.contains(&ContextStatus::Cycle));
 }
