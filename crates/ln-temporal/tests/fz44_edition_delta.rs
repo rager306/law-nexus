@@ -232,7 +232,10 @@ fn legislative_admission(target: &str, effect_iso: &str, rule_ref: &str) -> Prov
         day(effect_iso),
         EvidenceClass::Legislative,
         rule_ref,
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
     )
     .expect("valid synthetic provenance admission")
 }

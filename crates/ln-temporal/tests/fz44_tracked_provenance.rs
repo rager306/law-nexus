@@ -64,7 +64,10 @@ fn admission_with_class(class: EvidenceClass) -> ProvenanceAdmission {
         day(EFFECT_ISO),
         class,
         COMMENCEMENT_RULE_REF,
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
     )
     .expect("bounded caller-supplied admission")
 }
@@ -96,7 +99,10 @@ fn tracked_484_statya_93_window_carries_bounded_hypothesized_envelope() {
     );
     assert_eq!(
         row.provenance().transitional(),
-        &TransitionalEvidence::ExplicitlyAbsent
+        &TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification")
     );
     assert_eq!(row.provenance().delta_evidence(), &[rid(AMENDMENT_RECORD)]);
 }

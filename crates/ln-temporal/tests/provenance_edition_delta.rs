@@ -291,7 +291,10 @@ fn demo_admissions() -> [ProvenanceAdmission; 2] {
             STATYA_5,
             LAW3_ISO,
             "rec:commencement:law3-5",
-            TransitionalEvidence::ExplicitlyAbsent,
+            TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
         ),
         admission(
             STATYA_93,
@@ -395,7 +398,10 @@ fn two_line_window_with_legislative_admissions_carries_full_envelope() {
     // ExplicitlyAbsent is the admission's affirmative choice, never a default.
     assert_eq!(
         envelope_5.transitional(),
-        &TransitionalEvidence::ExplicitlyAbsent
+        &TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification")
     );
 
     // Deterministic read model: the same window computes an equal delta.
@@ -417,7 +423,10 @@ fn missing_admission_on_kept_target_refuses_whole_edition() {
         STATYA_5,
         LAW3_ISO,
         "rec:commencement:law3-5",
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
     )];
     assert_eq!(
         edition_delta(&log, from, to, &only_statya_5),
@@ -465,13 +474,19 @@ fn editorial_hint_commencement_is_unresolved_unproven() {
         LAW3_ISO,
         EvidenceClass::EditorialHint,
         "rec:commencement:hint-93",
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
     );
     let legislative_5 = admission(
         STATYA_5,
         LAW3_ISO,
         "rec:commencement:law3-5",
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
     );
     assert_eq!(
         edition_delta(&log, from, to, &[legislative_5, hint_93]),
@@ -554,7 +569,10 @@ fn assertion_or_effect_only_window_is_unresolved_missing_amending_act() {
         STATYA_93,
         LAW3_ISO,
         "rec:commencement:assert-93",
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
     )];
     assert_eq!(
         edition_delta(&log, day(FROM_ISO), day(TO_ISO), &admissions),
@@ -639,7 +657,10 @@ fn unused_admission_for_non_kept_target_is_ignored() {
         STATYA_93_1,
         FROM_ISO,
         "rec:commencement:unused-93-1",
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
     ));
 
     let delta = edition_delta(&log, day(FROM_ISO), day(TO_ISO), &admissions)
@@ -662,13 +683,19 @@ fn hypothesized_commencement_is_stored_not_upgraded() {
             LAW3_ISO,
             EvidenceClass::HypothesizedFromOracleDiff,
             "rec:commencement:hypothesized-5",
-            TransitionalEvidence::ExplicitlyAbsent,
+            TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
         ),
         admission(
             STATYA_93,
             LAW3_ISO,
             "rec:commencement:legislative-93",
-            TransitionalEvidence::ExplicitlyAbsent,
+            TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
         ),
     ];
 
@@ -691,7 +718,10 @@ fn explicitly_absent_and_declared_transitional_roundtrip() {
             STATYA_5,
             LAW3_ISO,
             "rec:commencement:absent-5",
-            TransitionalEvidence::ExplicitlyAbsent,
+            TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
         ),
         admission(
             STATYA_93,
@@ -705,7 +735,10 @@ fn explicitly_absent_and_declared_transitional_roundtrip() {
         .expect("both explicit transitional states are admitted");
     assert_eq!(
         provision(&delta, STATYA_5).provenance().transitional(),
-        &TransitionalEvidence::ExplicitlyAbsent
+        &TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification")
     );
     assert_eq!(
         provision(&delta, STATYA_93).provenance().transitional(),

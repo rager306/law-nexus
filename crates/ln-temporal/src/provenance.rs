@@ -63,6 +63,8 @@ pub enum ProvenanceConstructionError {
     DuplicateProvision,
     /// The same delta evidence record appears twice — ambiguous packet, fail closed.
     DuplicateDeltaEvidence,
+    /// Explicitly absent transitional evidence has no source-bound justification.
+    MissingTransitionalJustification,
     /// An id in the packet violates the runtime id grammar.
     InvalidId(IdError),
 }
@@ -99,6 +101,12 @@ impl fmt::Display for ProvenanceConstructionError {
             }
             Self::DuplicateDeltaEvidence => {
                 write!(formatter, "packet repeats delta evidence")
+            }
+            Self::MissingTransitionalJustification => {
+                write!(
+                    formatter,
+                    "explicitly absent transitional evidence has no justification"
+                )
             }
             Self::InvalidId(error) => {
                 write!(formatter, "packet has an invalid id: {error}")
@@ -230,11 +238,30 @@ impl CommencementEvidence {
 pub enum TransitionalEvidence {
     /// The packet names the governing transitional rule reference.
     Declared(CanonRecordId),
-    /// The packet affirmatively records that no transitional rule applies.
-    ExplicitlyAbsent,
+    /// The packet affirmatively records that no transitional rule applies,
+    /// together with the source-bound justification for that claim.
+    ExplicitlyAbsent { justification: String },
 }
 
 impl TransitionalEvidence {
+    /// Constructs an affirmative absence claim with a source-bound justification.
+    pub fn try_explicitly_absent(justification: &str) -> Result<Self, ProvenanceConstructionError> {
+        if justification.trim().is_empty() {
+            return Err(ProvenanceConstructionError::MissingTransitionalJustification);
+        }
+        Ok(Self::ExplicitlyAbsent {
+            justification: justification.to_owned(),
+        })
+    }
+
+    /// Returns the source-bound justification for an explicit absence claim.
+    pub fn justification(&self) -> Option<&str> {
+        match self {
+            Self::Declared(_) => None,
+            Self::ExplicitlyAbsent { justification } => Some(justification),
+        }
+    }
+
     /// Declares a transitional rule reference; a missing reference is refused
     /// as [`ProvenanceConstructionError::MissingTransitional`].
     pub fn try_declared(rule_ref: &str) -> Result<Self, ProvenanceConstructionError> {
@@ -480,7 +507,10 @@ mod tests {
             &["   "],
             &["cc:work/statya-1"],
             legislative_commencement(),
-            TransitionalEvidence::ExplicitlyAbsent,
+            TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
             &["rec:edition-delta:1"],
         )
         .expect_err("whitespace-only act id is a missing act, not a charset error");
@@ -506,7 +536,10 @@ mod tests {
             &["act:2020-99-fz", "act:2019-11-fz"],
             &["cc:koap/statya-20", "cc:koap/statya-19"],
             legislative_commencement(),
-            TransitionalEvidence::ExplicitlyAbsent,
+            TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
             &["rec:edition-delta:2", "rec:edition-delta:1"],
         )
         .expect("raw packet");
@@ -536,7 +569,10 @@ mod tests {
         );
         assert_eq!(
             envelope.transitional(),
-            &TransitionalEvidence::ExplicitlyAbsent
+            &TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification")
         );
     }
 }

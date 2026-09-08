@@ -35,7 +35,10 @@ fn admission(target: &str) -> ProvenanceAdmission {
         20,
         EvidenceClass::Legislative,
         "rec:commencement",
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
     )
     .expect("valid admission")
 }
@@ -61,7 +64,10 @@ fn packet_duplicate_delta_evidence_is_typed_refusal() {
         &["act:amend"],
         &["cc:44-fz:statya-93"],
         commencement(),
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
         &["rec:delta", "rec:delta"],
     )
     .expect_err("duplicate packet evidence must fail closed");

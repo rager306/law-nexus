@@ -186,7 +186,10 @@ fn empty_vecs_are_missing_slots() {
         vec![],
         vec![provision("cc:work/statya-1")],
         commencement(EvidenceClass::HypothesizedFromOracleDiff).unwrap(),
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
         vec![record("rec:delta:1")],
     )
     .expect_err("empty acts must fail closed");
@@ -194,7 +197,10 @@ fn empty_vecs_are_missing_slots() {
         vec![act("act:a")],
         vec![],
         commencement(EvidenceClass::HypothesizedFromOracleDiff).unwrap(),
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
         vec![record("rec:delta:1")],
     )
     .expect_err("empty provisions must fail closed");
@@ -202,7 +208,10 @@ fn empty_vecs_are_missing_slots() {
         vec![act("act:a")],
         vec![provision("cc:work/statya-1")],
         commencement(EvidenceClass::HypothesizedFromOracleDiff).unwrap(),
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
         vec![],
     )
     .expect_err("empty delta evidence must fail closed");
@@ -224,14 +233,20 @@ fn explicitly_absent_transitional_is_ok() {
         vec![act("act:a")],
         vec![provision("cc:work/statya-1")],
         commencement(EvidenceClass::Legislative).unwrap(),
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
         vec![record("rec:delta:1")],
     )
     .expect("an affirmative no-transitional claim is a typed choice, not a default");
 
     assert_eq!(
         envelope.transitional(),
-        &TransitionalEvidence::ExplicitlyAbsent
+        &TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification")
     );
 }
 
@@ -283,7 +298,10 @@ fn envelope_compare_by_value_is_deterministic() {
         vec![act("act:a"), act("act:b")],
         vec![provision("cc:work/statya-1"), provision("cc:work/statya-2")],
         commencement(EvidenceClass::Legislative).unwrap(),
-        TransitionalEvidence::ExplicitlyAbsent,
+        TransitionalEvidence::try_explicitly_absent(
+    "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).",
+)
+.expect("source-bound absence justification"),
         vec![record("rec:delta:1"), record("rec:delta:2")],
     )
     .expect("same packet except the transitional slot");
