@@ -1501,7 +1501,7 @@ fn t13_executable_families_exercise_production_surfaces() {
                 capture_lawrefs(line),
                 "{ctx}: capture is not deterministic"
             );
-            for capture in &captures {
+            for capture in captures.captures() {
                 assert!(
                     capture.span.start() < capture.span.end(),
                     "{ctx}: empty capture span"
@@ -1553,6 +1553,7 @@ fn t13_executable_families_exercise_production_surfaces() {
                     }
                     if line.starts_with("статьи 3") {
                         let ids: Vec<&str> = captures
+                            .captures()
                             .iter()
                             .map(|capture| capture.pattern_id.as_str())
                             .collect();
@@ -1573,6 +1574,7 @@ fn t13_executable_families_exercise_production_surfaces() {
                 }
                 "mixed-type-chain" => {
                     let date_docno = captures
+                        .captures()
                         .iter()
                         .filter(|capture| capture.pattern_id == "date-docno-window")
                         .count();
@@ -1584,6 +1586,7 @@ fn t13_executable_families_exercise_production_surfaces() {
                 }
                 "repeated-comma-empty-member" => {
                     let fullword = captures
+                        .captures()
                         .iter()
                         .filter(|capture| capture.pattern_id == "fullword-ref")
                         .count();
@@ -1594,6 +1597,7 @@ fn t13_executable_families_exercise_production_surfaces() {
                 }
                 "descending-range" => {
                     let ranges: Vec<_> = captures
+                        .captures()
                         .iter()
                         .filter(|capture| capture.pattern_id == "range_candidate")
                         .collect();
@@ -1612,6 +1616,7 @@ fn t13_executable_families_exercise_production_surfaces() {
                         "{ctx}: endpoints must stay as written (descending stays descending)"
                     );
                     let joined: String = captures
+                        .captures()
                         .iter()
                         .map(|capture| capture.user_text(line))
                         .collect();
@@ -1623,12 +1628,13 @@ fn t13_executable_families_exercise_production_surfaces() {
                 "non-comparable-paths" => {
                     assert!(
                         !captures
+                            .captures()
                             .iter()
                             .any(|capture| capture.pattern_id == "range_candidate"),
                         "{ctx}: cross-level path must not become a range"
                     );
                     assert_eq!(
-                        digit_groups(line, &captures),
+                        digit_groups(line, captures.captures()),
                         std::collections::BTreeSet::from(["3", "5"]),
                         "{ctx}: captured numbers drifted beyond the written endpoints"
                     );
@@ -1646,12 +1652,13 @@ fn t13_executable_families_exercise_production_surfaces() {
                 "quoted-digit-near-chast" => {
                     assert!(
                         !captures
+                            .captures()
                             .iter()
                             .any(|capture| capture.pattern_id == "range_candidate"),
                         "{ctx}: quoted digits must not become a HierNum range"
                     );
                     assert!(
-                        !digit_groups(line, &captures).contains("3"),
+                        !digit_groups(line, captures.captures()).contains("3"),
                         "{ctx}: quoted range enumerated an intermediate value"
                     );
                 }

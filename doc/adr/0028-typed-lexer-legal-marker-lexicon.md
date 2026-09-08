@@ -359,16 +359,24 @@ is the only policy input, and the ADR decision status is unchanged:
 - **1024 is a revisable `[proposed]` safety ceiling** with at least 2x
   headroom over the observed maximum 504; it is not a legal-structure
   limit, is never lowered to the observed maximum or a p999 bucket edge,
-  and the product path `capture_lawrefs` stays unwired (D403).
+  and the product path `capture_lawrefs` is wired with defaults-only arbitration and refusal diagnostics (M203/S02 step 8); runtime stop remains active for step 9.
 - **`runtime_stop.active` remains true `[proposed]`** (D403) because frame
   pair_policies, the requisites extractor, context/alias/fan-out numeric
   bounds, the N2 gate, R035, R070, and a local grammar runtime are still
-  open; this is assessment/29 section 10 step 7, not step 8 (re-scan after
-  product-path wiring) or step 9 (clearing the stop).
+  open; M203/S02 wires bounded defaults-only capture admission as step 8,
+  while step 9 (clearing the stop) remains separate.
 - **Architecture YAML files remain lifecycle `[proposed]`**; R035, R070,
   and the N2 gate stay open; the R038 standing gate was executed in S03 and
   stays active; closeout transition pins for all of the above live in the
   dedicated `npa_bounds_closeout_contract.rs` suite (D404).
+
+### M203/S02 bounded wiring closeout (2026-09-07)
+
+The capture product path now consumes `capture_bounds`: fire-all matcher output
+is layer-B filtered, pairwise defaults-only arbitration retains conflicts and
+containment ambiguity, and the 1024 ceiling refuses only later candidates
+without truncating admitted captures. `runtime_stop.active` remains true;
+pair policies, lifecycle promotion, R035/R070, and N2 are unchanged.
 
 ### Research refinements (2026-09-03, prior-art pass)
 

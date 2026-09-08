@@ -119,9 +119,8 @@ pub fn arbitrate_pair(a: (usize, usize), b: (usize, usize), slots_equal: bool) -
 /// with headroom over the observed per-block maximum 504 — never a claim
 /// that larger legal structures do not exist, never a legal-universe
 /// maximum, never the observed max or a histogram bucket edge. Raising it
-/// requires a new review row. Product-path wiring stays deferred (profile
-/// `runtime_stop`); this constant only backs the pure enforcement surface
-/// below.
+/// requires a new review row. Product-path wiring is bounded defaults-only
+/// admission in `capture_lawrefs`; pair policies remain deferred-undefined.
 pub const PROPOSED_CANDIDATE_CEILING: u64 = 1024;
 
 /// Pinned refusal diagnostic for the ceiling (the arbitration contract's

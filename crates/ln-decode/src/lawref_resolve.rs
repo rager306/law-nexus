@@ -128,7 +128,8 @@ pub struct ResolvedLawRef {
 /// no prior frame in the same src. The library path never unwinds and
 /// `src` is never logged.
 pub fn resolve_lawrefs(src: &str) -> Vec<ResolvedLawRef> {
-    let captures = crate::lawref::capture_lawrefs(src);
+    let batch = crate::lawref::capture_lawrefs(src);
+    let captures = batch.captures();
     if captures.is_empty() {
         return Vec::new();
     }
@@ -142,7 +143,7 @@ pub fn resolve_lawrefs(src: &str) -> Vec<ResolvedLawRef> {
         let outcome = resolve_capture(
             capture,
             index,
-            &captures,
+            captures,
             src,
             &tokens,
             &resolution,

@@ -245,6 +245,7 @@ fn t03_span_relations_match_pairwise_oracle() {
     let mut expected = [0u64; 4];
     for text in oracle_block_texts(&a) {
         let candidates = capture_lawrefs(&text);
+        let candidates = candidates.captures();
         for left in 0..candidates.len() {
             for right in (left + 1)..candidates.len() {
                 let l = candidates[left].span;
@@ -319,6 +320,7 @@ fn t03_candidates_by_pattern_match_oracle() {
         let mut expected = 0u64;
         for text in &texts {
             expected += capture_lawrefs(text)
+                .captures()
                 .iter()
                 .filter(|candidate| normalized_pattern_label(&candidate.pattern_id) == Some(label))
                 .count() as u64;
@@ -363,6 +365,7 @@ fn t03_lexical_proxies_measure_declared_surfaces() {
         for text in &texts {
             let tokens = lexer::lex(text);
             let candidates = capture_lawrefs(text);
+            let candidates = candidates.captures();
             pair_values.push(count_date_docno_pairs(&tokens));
             range_values.push(u64::from(
                 candidates
@@ -373,7 +376,7 @@ fn t03_lexical_proxies_measure_declared_surfaces() {
             if prev_opens_list && block_opens_with_date_docno(&tokens) {
                 doc_tails += 1;
             }
-            prev_opens_list = block_opens_list_surface(&candidates);
+            prev_opens_list = block_opens_list_surface(candidates);
         }
         alias_per_doc.push(doc_alias);
         tails_per_doc.push(doc_tails);
@@ -430,7 +433,7 @@ fn t03_malformed_file_adds_zero_partial_measurement() {
     let expected_blocks = oracle_block_texts(&ok).len() as u64;
     let expected_candidates: u64 = oracle_block_texts(&ok)
         .iter()
-        .map(|text| capture_lawrefs(text).len() as u64)
+        .map(|text| capture_lawrefs(text).captures().len() as u64)
         .sum();
     assert_eq!(
         acc.blocks_total(),

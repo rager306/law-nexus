@@ -804,7 +804,7 @@ fn gate_yaml_needles(gate_id: &str) -> Vec<&'static str> {
             "observed max 504",
             G02_BLOCK_HASH_PIN,
             "never lowered to the observed max or the p999 bucket edge 14",
-            "product path unwired in capture_lawrefs",
+            "product path wired in capture_lawrefs with defaults-only arbitration and refusal ceiling",
         ],
         "G03" | "G04" | "G05" => vec!["G03-G05, G16"],
         "G06" => vec![
@@ -939,34 +939,27 @@ fn t05_runtime_stop_stays_active_and_stale_reasons_are_absent() {
 }
 
 #[test]
-fn t06_lawref_capture_path_stays_unwired() {
-    // D403: the G02 [proposed] ceiling and the pair-policy helpers stay out
-    // of the product path until the runtime stop clears (assessment/29 step
-    // 8+); the ceiling number must not appear in capture_lawrefs.
+fn t06_lawref_capture_path_is_wired_with_defaults_only() {
+    // M203/S02 step 8: capture_lawrefs wires defaults-only arbitration and
+    // the proposed ceiling; runtime_stop remains active for later step 9.
     let lawref = repo_text("crates/ln-decode/src/lawref.rs");
     assert!(
         lawref.contains("pub fn capture_lawrefs"),
         "expected the capture_lawrefs surface to still exist"
     );
-    for forbidden in [
+    for required in [
         "PROPOSED_CANDIDATE_CEILING",
         "on_candidate_limit",
         "arbitrate_pair",
-        "candidate_limit_reached",
+        "CandidateLimitOutcome",
     ] {
         assert!(
-            !lawref.contains(forbidden),
-            "lawref.rs must not reference '{forbidden}' (G02 ceiling stays unwired)"
+            lawref.contains(required),
+            "lawref.rs must wire '{required}' on the product path"
         );
     }
-    // The reviewed helpers now live in capture_bounds.rs and are explicitly
-    // re-exported from npa_bounds.rs (hostile t15 pins their values); they
-    // are simply never called from the product path.
-    let bounds = repo_text("crates/ln-decode/src/npa_bounds.rs");
-    assert!(
-        bounds.contains("PROPOSED_CANDIDATE_CEILING"),
-        "the reviewed ceiling helper must stay defined in npa_bounds.rs"
-    );
+    assert!(lawref.contains("LawRefCaptureBatch"));
+    assert!(lawref.contains("pub fn captures"));
 }
 
 #[test]

@@ -15,6 +15,9 @@
 //! [`LawRefPrecedence`], never a src-side copy of the allowlists. Errors
 //! name keys and headings only, never captured source text.
 
+use crate::capture_bounds::{
+    arbitrate_pair, on_candidate_limit, CandidateLimitOutcome, PairDiagnostic, PairOutcome,
+};
 use crate::domain::{ParserDomainError, TextSpan};
 use crate::lexer::{NpaToken, TokenKind};
 
@@ -94,28 +97,61 @@ const PATTERN_QUOTED_ENUM: &str = "quoted-enum";
 const PATTERN_RANGE: &str = "range_candidate";
 const PATTERN_ANAPHORA: &str = "anaphora_candidate";
 
-/// Captures reference candidates over `src` through the frozen covering
-/// lexer ([`crate::lexer::lex`]).
-///
-/// The covering token stream is the only text view capture may scan: no
-/// regex over raw text, no digit rescan (layer A documents the frozen lexer
-/// first-match order; it never reclassifies). Seven matchers fire over every
-/// token index - the same seven pattern ids as the S01 seed, no eighth - and
-/// the YAML layer-B overlap policies adjudicate the fire-all set. Candidates
-/// then order by the frozen `(start, end, pattern_id)` sort key and mint via
-/// the fail-closed [`LawRef::try_new`].
-pub fn capture_lawrefs(src: &str) -> Vec<LawRef> {
+/// One bounded result of a `capture_lawrefs` call. This covering-lexer
+/// product surface is intentionally distinct from transitional `tokenize`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LawRefCaptureBatch {
+    admitted: Vec<LawRef>,
+    pair_diagnostics: Vec<PairDiagnostic>,
+    limit: CandidateLimitOutcome,
+    refused_after_limit: u64,
+}
+
+impl LawRefCaptureBatch {
+    fn empty() -> Self {
+        Self {
+            admitted: Vec::new(),
+            pair_diagnostics: Vec::new(),
+            limit: CandidateLimitOutcome::Accepted,
+            refused_after_limit: 0,
+        }
+    }
+    pub fn captures(&self) -> &[LawRef] {
+        &self.admitted
+    }
+    pub fn is_empty(&self) -> bool {
+        self.admitted.is_empty()
+    }
+    pub fn len(&self) -> usize {
+        self.admitted.len()
+    }
+    pub fn limit(&self) -> CandidateLimitOutcome {
+        self.limit
+    }
+    pub fn diagnostics(&self) -> &[PairDiagnostic] {
+        &self.pair_diagnostics
+    }
+    pub fn refused_after_limit(&self) -> u64 {
+        self.refused_after_limit
+    }
+    pub fn limit_diagnostic(&self) -> Option<&'static str> {
+        self.limit.diagnostic()
+    }
+}
+
+/// Captures through the covering lexer. The load-bearing order is: fire all
+/// seven matchers, apply YAML layer-B drops, sort, apply defaults-only pair
+/// arbitration, then enforce [`crate::capture_bounds::PROPOSED_CANDIDATE_CEILING`]
+/// (1024) through `on_candidate_limit`. Layer-B remains authoritative for its
+/// drops before arbitration; one call yields one batch.
+pub fn capture_lawrefs(src: &str) -> LawRefCaptureBatch {
     let tokens = crate::lexer::lex(src);
     if tokens.is_empty() {
-        return Vec::new();
+        return LawRefCaptureBatch::empty();
     }
-    // Fail-closed library path: the embedded table is pinned green by the
-    // precedence tests, so a parse failure here is a build-data defect that
-    // must degrade to "no candidates", never panic a caller.
     let Ok(precedence) = LawRefPrecedence::embedded() else {
-        return Vec::new();
+        return LawRefCaptureBatch::empty();
     };
-
     let mut raw: Vec<RawCapture> = Vec::new();
     for index in 0..tokens.len() {
         match_abbrev_hier_chain(&tokens, index, &precedence, src, &mut raw);
@@ -126,13 +162,47 @@ pub fn capture_lawrefs(src: &str) -> Vec<LawRef> {
         match_range_candidate(&tokens, index, src, &mut raw);
         match_anaphora_candidate(&tokens, index, &precedence, src, &mut raw);
     }
-
     apply_overlap_precedence(&mut raw, &precedence);
-
     raw.sort_by(|left, right| {
         (left.start, left.end, left.pattern_id).cmp(&(right.start, right.end, right.pattern_id))
     });
-    raw.into_iter().filter_map(RawCapture::mint).collect()
+    let mut batch = LawRefCaptureBatch::empty();
+    for candidate in raw {
+        let mut merged = false;
+        for prior in &batch.admitted {
+            match arbitrate_pair(
+                (prior.span.start(), prior.span.end()),
+                (candidate.start, candidate.end),
+                prior.slots == candidate.slots,
+            ) {
+                PairOutcome::MergeEvidence(diagnostic) => {
+                    batch.pair_diagnostics.push(diagnostic);
+                    merged = true;
+                    break;
+                }
+                PairOutcome::ConflictSet(diagnostic)
+                | PairOutcome::RetainBoth(Some(diagnostic)) => {
+                    batch.pair_diagnostics.push(diagnostic)
+                }
+                PairOutcome::RetainBoth(None) => {}
+            }
+        }
+        if merged {
+            continue;
+        }
+        match on_candidate_limit(batch.admitted.len() as u64) {
+            CandidateLimitOutcome::Accepted => {
+                if let Some(capture) = candidate.mint() {
+                    batch.admitted.push(capture);
+                }
+            }
+            CandidateLimitOutcome::LimitReached => {
+                batch.limit = CandidateLimitOutcome::LimitReached;
+                batch.refused_after_limit += 1;
+            }
+        }
+    }
+    batch
 }
 
 /// One un-adjudicated capture candidate: the data a `LawRef` is minted from.

@@ -902,9 +902,10 @@ impl SweepObserver for BoundsAcc {
                     self.observe_metric(M_TOKENS_PER_BLOCK, tokens.len() as u64, &core);
                     // Contour-A captures through the production API.
                     let candidates = capture_lawrefs(text);
+                    let candidates = candidates.captures();
                     self.candidates_total += candidates.len() as u64;
                     doc_candidates += candidates.len() as u64;
-                    for candidate in &candidates {
+                    for candidate in candidates {
                         match normalized_pattern_label_or_unmapped(&candidate.pattern_id) {
                             Some(label) => self.pattern_counts[pattern_index(label)] += 1,
                             None => self.pattern_unmapped += 1,
@@ -931,7 +932,7 @@ impl SweepObserver for BoundsAcc {
                     if prev_block_opens_list && block_opens_with_date_docno(&tokens) {
                         cross_block_tails += 1;
                     }
-                    prev_block_opens_list = block_opens_list_surface(&candidates);
+                    prev_block_opens_list = block_opens_list_surface(candidates);
                     self.blocks_total += 1;
                 }
                 let doc_core = AnchorCore {

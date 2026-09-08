@@ -1795,7 +1795,7 @@ fn predicted_keys_and_heads(sample: &LiveSample) -> Vec<(MatchKey, String)> {
     for (fragment_id, file) in &sample.fragments {
         let src = fs::read_to_string(fixture_dir().join(file))
             .unwrap_or_else(|err| panic!("read fragment {fragment_id} ({file}): {err}"));
-        for capture in capture_lawrefs(&src) {
+        for capture in capture_lawrefs(&src).captures() {
             let head_kind = capture
                 .token_kind_seq
                 .split(',')
@@ -1994,7 +1994,7 @@ fn compute_coverage(sample: &LiveSample) -> CoverageView {
             resolved.len(),
             "{fragment_id}: the resolver consumes the frozen captures one-for-one"
         );
-        for (capture, resolution) in captures.iter().zip(resolved.iter()) {
+        for (capture, resolution) in captures.captures().iter().zip(resolved.iter()) {
             // Alignment contract: the resolver's capture IS this capture.
             assert_eq!(resolution.capture.span.start(), capture.span.start());
             assert_eq!(resolution.capture.span.end(), capture.span.end());
@@ -2084,6 +2084,7 @@ fn compute_coverage(sample: &LiveSample) -> CoverageView {
         fs::read_to_string(fixture_dir().join("npa-frag-009.txt")).expect("read npa-frag-009");
     let captures = capture_lawrefs(&frag009);
     let position = captures
+        .captures()
         .iter()
         .position(|capture| {
             capture.pattern_id == "range_candidate"
@@ -2478,6 +2479,7 @@ fn npa_frag_009_false_range_is_unresolved_and_never_a_false_negative() {
     );
     let captures = capture_lawrefs(&src);
     let position = captures
+        .captures()
         .iter()
         .position(|capture| {
             capture.pattern_id == "range_candidate"

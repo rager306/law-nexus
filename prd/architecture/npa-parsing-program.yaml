@@ -61,7 +61,7 @@ findings:
     default_disposition: defer_pending_human_review
     decision_point: staged_bridge_owner_review
   - id: RC27-F02
-    title: capture_bounds_helpers_unwired
+    title: capture_bounds_helpers_wired_defaults_only_2026_09_07
     severity: blocking
     source_anchor: review_27.section_2_and_10
     owning_surfaces: [prd/architecture/npa-capture-arbitration.yaml, doc/adr/0028-typed-lexer-legal-marker-lexicon.md]
@@ -70,7 +70,7 @@ findings:
     proof_classes: [implementation, evidence]
     lifecycle_scope: [bounded_runtime]
     default_disposition: defer_pending_human_review
-    decision_point: wire_capture_with_terminal_diagnostics
+    decision_point: retain_defaults_only_arbitration_and_terminal_diagnostics
   - id: RC27-F03
     title: dual_token_views_untyped_seam
     severity: high

@@ -374,6 +374,7 @@ fn first_proof_chain_and_hostile_initial() {
     // First proof: the chained abbrev-hier-chain capture.
     let refs = capture_lawrefs("ч. 2 ст. 15");
     assert_eq!(refs.len(), 1, "chained markers collapse into one candidate");
+    let refs = refs.captures();
     assert_eq!(refs[0].pattern_id, "abbrev-hier-chain");
     assert_eq!(refs[0].slots.marker_chain, ["ch", "st"]);
     assert_eq!(refs[0].slots.hier_nums, ["2", "15"]);
@@ -383,9 +384,12 @@ fn first_proof_chain_and_hostile_initial() {
     // by it; the lowercase `ст. 33` chain behind it may still fire.
     let refs = capture_lawrefs("Ч. 1.1 ст. 33");
     assert!(
-        refs.iter().all(|law_ref| law_ref.span.start() != 0),
+        refs.captures()
+            .iter()
+            .all(|law_ref| law_ref.span.start() != 0),
         "the hostile initial must not become a reference head: {:?}",
-        refs.iter()
+        refs.captures()
+            .iter()
             .map(|law_ref| (law_ref.pattern_id.as_str(), law_ref.span.start()))
             .collect::<Vec<_>>()
     );
@@ -656,11 +660,11 @@ fn sample_capture_matches_rule_seed_record_for_record_and_is_deterministic() {
                 .collect::<Vec<_>>()
         };
         assert_eq!(
-            spans(&first),
-            spans(&second),
+            spans(first.captures()),
+            spans(second.captures()),
             "capture of {fragment_id} must be deterministic"
         );
-        produced.extend(first.into_iter().map(|law_ref| CaptureRecord {
+        produced.extend(first.captures().iter().map(|law_ref| CaptureRecord {
             fragment_id: fragment_id.clone(),
             start: law_ref.span.start(),
             end: law_ref.span.end(),
@@ -728,7 +732,7 @@ fn hostile_capitalized_one_letter_initials_never_head_lawrefs() {
         let tokens = lex(src);
         assert_eq!(tokens[0].kind, TokenKind::Word, "{src}: head lexeme");
         assert_eq!(tokens[1].kind, TokenKind::Punct, "{src}: head dot");
-        for law_ref in capture_lawrefs(src) {
+        for law_ref in capture_lawrefs(src).captures() {
             assert!(
                 law_ref.span.start() >= 3,
                 "{src}: {} covers the hostile initial at {}..{}",
@@ -744,6 +748,7 @@ fn hostile_capitalized_one_letter_initials_never_head_lawrefs() {
     // a 2-byte cyrillic capital plus the dot).
     let refs = capture_lawrefs("Ч. 1.1 ст. 33");
     assert_eq!(refs.len(), 1);
+    let refs = refs.captures();
     assert_eq!(refs[0].pattern_id, "abbrev-hier-chain");
     assert_eq!(refs[0].span.start(), 8, "`ст.` starts past the initial");
     assert_eq!(refs[0].slots.marker_chain, ["st"]);
@@ -751,6 +756,7 @@ fn hostile_capitalized_one_letter_initials_never_head_lawrefs() {
 
     let refs = capture_lawrefs("А. 2 п. 3");
     assert_eq!(refs.len(), 1);
+    let refs = refs.captures();
     assert_eq!(refs[0].span.start(), 6, "`п.` starts past the initial");
     assert_eq!(refs[0].slots.marker_chain, ["p"]);
     assert_eq!(refs[0].slots.hier_nums, ["3"]);
@@ -787,12 +793,14 @@ fn pp_is_one_abbrev_and_may_start_a_chain_capture() {
 
     let refs = capture_lawrefs("пп. 1");
     assert_eq!(refs.len(), 1);
+    let refs = refs.captures();
     assert_eq!(refs[0].pattern_id, "abbrev-hier-chain");
     assert_eq!(refs[0].slots.marker_chain, ["pp"]);
     assert_eq!(refs[0].slots.hier_nums, ["1"]);
 
     let refs = capture_lawrefs("пп. 1 ст. 2");
     assert_eq!(refs.len(), 1, "a pp-led chain collapses into one candidate");
+    let refs = refs.captures();
     assert_eq!(refs[0].slots.marker_chain, ["pp", "st"]);
     assert_eq!(refs[0].slots.hier_nums, ["1", "2"]);
 }
@@ -819,8 +827,9 @@ fn date_beats_hier_num_in_lex_and_never_lands_in_hier_nums() {
     // Inside a wider line the date stays out of every capture slot.
     let refs = capture_lawrefs("ч. 2 от 01.01.2028");
     assert_eq!(refs.len(), 1, "only the abbrev-hier chain fires");
+    let refs = refs.captures();
     assert_eq!(refs[0].slots.hier_nums, ["2"]);
-    for law_ref in &refs {
+    for law_ref in refs.iter() {
         assert!(
             !law_ref
                 .slots
