@@ -8,7 +8,8 @@
 //! supplied from one decoded fragment on character boundaries.
 
 use crate::domain::TextSpan;
-use crate::morphology::LegalMarkerKind;
+use crate::lexer::{NpaToken, TokenKind};
+use crate::morphology::{LegalMarkerKind, MorphologyMatch};
 
 /// The only two frame families admitted by D384.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -140,11 +141,18 @@ impl FrameMember {
 
 /// One step in a fragment-local owner path. Every step has independent proof
 /// evidence; no step is an identity or a document-wide context reference.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum OwnerPathState {
+    Resolved,
+    Unresolved,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OwnerPathStep {
     pub value: String,
     pub span: TextSpan,
     pub evidence: Vec<TextSpan>,
+    pub state: OwnerPathState,
 }
 
 impl OwnerPathStep {
@@ -153,6 +161,16 @@ impl OwnerPathStep {
             value,
             span,
             evidence,
+            state: OwnerPathState::Resolved,
+        }
+    }
+
+    pub fn unresolved(span: TextSpan, evidence: Vec<TextSpan>) -> Self {
+        Self {
+            value: String::new(),
+            span,
+            evidence,
+            state: OwnerPathState::Unresolved,
         }
     }
 }
@@ -204,6 +222,266 @@ pub enum ExpansionPolicy {
 pub const PROPOSED_MAX_FRAME_MEMBERS: usize = 64;
 /// [proposed] G07 resolve-side candidate bound. S03 only declares it.
 pub const PROPOSED_MAX_EXPANDED_CANDIDATES: usize = 64;
+
+/// Extract structural designation frames from the immutable covering stream.
+///
+/// This is deliberately a local grammar: marker morphology narrows the
+/// marker alphabet, but every member and owner claim is proved by source
+/// spans. Ranges remain endpoint pairs and are never arithmetically expanded.
+pub fn extract_structural_frames(
+    tokens: &[NpaToken],
+    src: &str,
+    markers: &[MorphologyMatch],
+) -> Vec<StructuralDesignationFrame> {
+    let structural = |kind: LegalMarkerKind| {
+        matches!(
+            kind,
+            LegalMarkerKind::Statya
+                | LegalMarkerKind::Punkt
+                | LegalMarkerKind::Glava
+                | LegalMarkerKind::Chast
+                | LegalMarkerKind::Podpunkt
+                | LegalMarkerKind::Razdel
+        )
+    };
+    let marker_at = |marker: MorphologyMatch| {
+        tokens
+            .iter()
+            .position(|token| token.span == marker.text_span())
+    };
+    let mut frames = Vec::new();
+    for marker in markers.iter().copied().filter(|m| structural(m.kind())) {
+        let Some(head) = marker_at(marker) else {
+            continue;
+        };
+        // A trailing `статьи N` is the owner of an already-started local
+        // designation, not a second designation candidate. The leading form
+        // `статьи N части M` remains a candidate for the later frame.
+        if marker.kind() == LegalMarkerKind::Statya
+            && is_trailing_owner_marker(tokens, src, head, markers, marker.text_span())
+        {
+            continue;
+        }
+        let mut cursor = head + 1;
+        let mut value_indices = Vec::new();
+        let mut separators = Vec::new();
+        let mut saw_dash = false;
+        let mut expect_value = true;
+        while cursor < tokens.len() {
+            let token = tokens[cursor];
+            if token.kind == TokenKind::Space {
+                cursor += 1;
+                continue;
+            }
+            if token.kind == TokenKind::HierNum || is_bare_number(token, src) {
+                if !expect_value && !saw_dash {
+                    break;
+                }
+                value_indices.push(cursor);
+                expect_value = false;
+                cursor += 1;
+                continue;
+            }
+            let lexeme = token.lexeme(src);
+            if token.kind == TokenKind::Punct && (lexeme == "," || is_dash(lexeme)) {
+                separators.push(token.span);
+                saw_dash |= is_dash(lexeme);
+                expect_value = true;
+                cursor += 1;
+                continue;
+            }
+            if token.kind == TokenKind::Word && lexeme == "и" {
+                separators.push(token.span);
+                expect_value = true;
+                cursor += 1;
+                continue;
+            }
+            break;
+        }
+        if value_indices.is_empty() || expect_value {
+            continue;
+        }
+        let mut values = Vec::new();
+        for (position, index) in value_indices.iter().copied().enumerate() {
+            let token = tokens[index];
+            let derivation = if position == 0 || !saw_dash {
+                DerivationSource::ExplicitMember
+            } else {
+                DerivationSource::SameSeriesHead
+            };
+            let evidence = if derivation == DerivationSource::SameSeriesHead {
+                vec![marker.text_span()]
+            } else {
+                vec![token.span]
+            };
+            values.push(FrameMember::new(
+                token.lexeme(src).to_owned(),
+                token.span,
+                derivation,
+                evidence,
+                EnumerationState::Candidate,
+            ));
+        }
+        let mut owner_path = owner_before(tokens, src, head, markers, marker.text_span());
+        let end = value_indices
+            .last()
+            .map(|index| tokens[*index].span.end())
+            .unwrap_or(marker.end());
+        if let Some(owner) = owner_after(tokens, src, cursor, markers) {
+            owner_path.push(owner);
+        }
+        if owner_path.is_empty() {
+            owner_path.push(OwnerPathStep::unresolved(
+                marker.text_span(),
+                vec![marker.text_span()],
+            ));
+        }
+        let too_many = values.len() > PROPOSED_MAX_FRAME_MEMBERS;
+        let status = if too_many {
+            FrameStatus::Rejected
+        } else if owner_path
+            .iter()
+            .any(|step| step.state == OwnerPathState::Unresolved)
+        {
+            FrameStatus::Ambiguous
+        } else {
+            FrameStatus::Proposed
+        };
+        let diagnostic = if too_many {
+            Some(FrameDiagnostic::FrameMemberLimitReached)
+        } else if owner_path
+            .iter()
+            .any(|step| step.state == OwnerPathState::Unresolved)
+        {
+            Some(FrameDiagnostic::OwnerUnresolved)
+        } else {
+            None
+        };
+        let anchor = TextSpan::try_new(marker.start(), end).expect("local grammar span is bounded");
+        frames.push(StructuralDesignationFrame {
+            local_anchor: anchor,
+            marker: marker.kind(),
+            values,
+            owner_path,
+            expansion_policy: ExpansionPolicy::EndpointPair,
+            status,
+            diagnostic,
+        });
+    }
+    let overlap = frames.len() > 1;
+    if overlap {
+        for frame in &mut frames {
+            if frame.diagnostic.is_none() {
+                frame.status = FrameStatus::Ambiguous;
+                frame.diagnostic = Some(FrameDiagnostic::ConflictingFramesRetained);
+            }
+        }
+    }
+    frames
+}
+
+fn is_bare_number(token: NpaToken, src: &str) -> bool {
+    token.kind == TokenKind::Word && token.lexeme(src).bytes().all(|byte| byte.is_ascii_digit())
+}
+
+fn is_dash(lexeme: &str) -> bool {
+    matches!(lexeme, "-" | "–" | "—")
+}
+
+fn is_trailing_owner_marker(
+    tokens: &[NpaToken],
+    src: &str,
+    head: usize,
+    markers: &[MorphologyMatch],
+    current: TextSpan,
+) -> bool {
+    let Some(number) = (0..head)
+        .rev()
+        .find(|index| tokens[*index].kind != TokenKind::Space)
+    else {
+        return false;
+    };
+    if tokens[number].kind != TokenKind::HierNum && !is_bare_number(tokens[number], src) {
+        return false;
+    }
+    let Some(previous_marker) = (0..number).rev().find_map(|index| {
+        markers
+            .iter()
+            .copied()
+            .find(|marker| marker.text_span() == tokens[index].span)
+    }) else {
+        return false;
+    };
+    previous_marker.text_span() != current
+}
+
+fn owner_before(
+    tokens: &[NpaToken],
+    src: &str,
+    head: usize,
+    markers: &[MorphologyMatch],
+    current: TextSpan,
+) -> Vec<OwnerPathStep> {
+    let Some(previous) = (0..head).rev().find(|index| {
+        tokens[*index].kind == TokenKind::Word
+            && markers
+                .iter()
+                .any(|marker| marker.text_span() == tokens[*index].span)
+    }) else {
+        return Vec::new();
+    };
+    let marker = markers
+        .iter()
+        .find(|marker| marker.text_span() == tokens[previous].span);
+    if marker.is_none() || marker.is_some_and(|marker| marker.text_span() == current) {
+        return Vec::new();
+    }
+    let mut number = previous + 1;
+    while number < head && tokens[number].kind == TokenKind::Space {
+        number += 1;
+    }
+    if number < head
+        && (tokens[number].kind == TokenKind::HierNum || is_bare_number(tokens[number], src))
+    {
+        return vec![OwnerPathStep::new(
+            tokens[number].lexeme(src).to_owned(),
+            tokens[number].span,
+            vec![tokens[previous].span, tokens[number].span],
+        )];
+    }
+    Vec::new()
+}
+
+fn owner_after(
+    tokens: &[NpaToken],
+    src: &str,
+    mut cursor: usize,
+    markers: &[MorphologyMatch],
+) -> Option<OwnerPathStep> {
+    while cursor < tokens.len() && tokens[cursor].kind == TokenKind::Space {
+        cursor += 1;
+    }
+    let marker = tokens.get(cursor)?;
+    let marker_match = markers
+        .iter()
+        .find(|item| item.text_span() == marker.span)?;
+    if !matches!(marker_match.kind(), LegalMarkerKind::Statya) {
+        return None;
+    }
+    cursor += 1;
+    while cursor < tokens.len() && tokens[cursor].kind == TokenKind::Space {
+        cursor += 1;
+    }
+    let value = tokens.get(cursor)?;
+    if value.kind != TokenKind::HierNum && !is_bare_number(*value, src) {
+        return None;
+    }
+    Some(OwnerPathStep::new(
+        value.lexeme(src).to_owned(),
+        value.span,
+        vec![marker.span, value.span],
+    ))
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FrameLimitOutcome {
