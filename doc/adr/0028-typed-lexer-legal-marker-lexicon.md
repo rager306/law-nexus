@@ -101,7 +101,10 @@ is deferred until links/structure are stable.
 
 ### Dual tokenizer (living, 2026-09-05, D380/D381)
 
-Two scanners remain in `ln-decode` on purpose. They are not aliases:
+Two scanners remain in `ln-decode` on purpose. They are not aliases. As of
+2026-09-08, their private consumer views are typed as `AlphabeticToken` and
+`CoveringWord`; this boundary is an implementation seam, not a readiness
+claim, and does not change the ADR status.
 
 - **`lex(&str)`** — public covering lexer, closed nine-kind set, byte-span
   invariant (`text == concat(lexemes)`). LawRef capture/resolve and the

@@ -1,5 +1,5 @@
 use crate::domain::{ParagraphStyle, ParsedBlock, TextSpan};
-use crate::tokenizer::tokenize;
+use crate::tokenizer::{tokenize, AlphabeticToken};
 
 /// Bounded lexical temporal phrase classes. They do not assign a legal clock.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -27,11 +27,7 @@ impl TemporalPhrase {
     }
 }
 
-fn is_horizontal_gap(
-    text: &str,
-    left: &crate::tokenizer::WordToken,
-    right: &crate::tokenizer::WordToken,
-) -> bool {
+fn is_horizontal_gap(text: &str, left: &AlphabeticToken, right: &AlphabeticToken) -> bool {
     let gap = &text[left.end..right.start];
     !gap.is_empty()
         && gap
