@@ -306,8 +306,8 @@ frozen captures and may return an honestly unresolved result. These surfaces do
 not establish document-wide structure, identity, temporal provenance, or
 readiness.
 
-A future `local_reference_grammar` is explicitly bounded to an immutable
-projection above covering tokens and morphology evidence. Its proposed
+The `local_reference_grammar` is bounded to an immutable projection above
+covering tokens and morphology evidence. Its proposed
 `CoordinatingFrame` and `StructuralDesignationFrame` retain fragment-local
 anchors, explicit roles, alternatives, separators, continuation evidence, and
 bounded endpoint expansion. It must not widen `TokenKind`, mutate source
@@ -322,10 +322,23 @@ Context outcomes are `resolved`, `partial`, `conflicting`, `unavailable`,
 rewrite a literal mention. P7 projects a proposed OfficialIdentityClaim once;
 P8 consumes it and owns binding candidates. R035, R070, and N2 remain open.
 
-This section records a future local-grammar boundary only; it does not mint
-Rust types or authorize runtime wiring. Numeric bounds, arbitration policies,
-requisites extraction, and hostile continuation proof remain deferred-undefined
-where the companion contracts say so, and `runtime_stop.active` remains true.
+This section records the bounded S03 local-grammar implementation boundary;
+it does not authorize lifecycle promotion or identity/runtime closure. G06/G07
+are `[proposed]` measured bounds from the bounded C4 diagnostic baseline;
+arbitration policies, requisites extraction, and hostile continuation proof
+remain open where the companion contracts say so, and `runtime_stop.active`
+remains true.
+
+### S03 local-grammar implementation note (2026-09-08)
+
+S03 now provides two immutable bounded frame families above the lexer in
+`ln_decode::local_grammar`: `CoordinatingFrame` for act requisites and
+`StructuralDesignationFrame` for structural designation ranges. The bounded C4
+baseline is diagnostic only; G06/G07 are `[proposed]` measured safety bounds
+(`64` each), not C2/C3 calibration, lifecycle promotion, identity minting, or
+vendor-boundary changes. Endpoint expansion remains resolve-side; requisites
+sidecar integration, pair policies, R035, R070, N2, and `runtime_stop.active`
+remain unchanged.
 
 ### Pre-runtime contracts (D388)
 

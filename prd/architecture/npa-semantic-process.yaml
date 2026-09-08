@@ -151,12 +151,12 @@ runtime_connectivity:
     terminal_failure: structure_failed
     terminal_gap: design-only index and per-source sidecar
   - id: P2
-    current_surface: ln-decode::lexer::lex + find_legal_markers
-    proposed_record: MorphEvidenceSet + CoordinatingFrame
-    lifecycle_gate: proposed
+    current_surface: ln-decode::lexer::lex + find_legal_markers + ln_decode::local_grammar
+    proposed_record: MorphEvidenceSet + CoordinatingFrame + StructuralDesignationFrame
+    lifecycle_gate: bounded_runtime
     metric: token_cover_and_local-frame_hostile-contracts
     terminal_failure: resource_limit
-    terminal_gap: local grammar runtime and numeric bounds deferred-undefined
+    terminal_gap: C2/C3 calibration frames and requisites sidecar integration remain open
   - id: P3
     current_surface: ln-decode::lawref::capture_lawrefs
     proposed_record: ReferenceMention + LawRefSlots

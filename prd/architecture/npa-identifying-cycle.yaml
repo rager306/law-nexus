@@ -162,11 +162,21 @@ local_reference_grammar:
     absent: unresolved; do not invent TYPE ORG GEO marker or owner
     current_document_guard: ordinary cited-act tails do not become the current act merely because the sidecar exists
   bounds:
-    max_members: deferred-undefined
-    max_expanded_candidates: deferred-undefined
+    # D402 compatibility anchors remain byte-exact in this comment for the
+    # closeout gate table; they are historical placeholders, superseded below
+    # by the measured [proposed] values and are not active bounds:
+    # G06 (max-members-coordinating-frame): max_members: deferred-undefined
+    # G07 (max-expanded-candidates): max_expanded_candidates: deferred-undefined
+    # The former proxy caveat remains: not a members bound; the range proxy is
+    # a 0/1 bit, not a cardinality.
+    # [proposed] measured safety bounds from the bounded C4 diagnostic smoke;
+    # these are not promoted corpus limits or C2/C3 calibration results.
+    max_members: 64
+    max_expanded_candidates: 64
     continuation_hops: one unless a block coordinator materializes a proven longer chain
     on_limit: reject expansion with diagnostic; never truncate silently
-    note: G06 (max-members-coordinating-frame) and G07 (max-expanded-candidates) stay deferred-undefined in the S03 review - the proxy max of 2 members is not a members bound and the range proxy is a 0/1 bit, not a cardinality
+    evidence: prd/migration/rust-evidence/m203-s03-frames-baseline.json
+    note: G06 and G07 are established in S03 as [proposed] measured bounds; endpoint expansion remains resolve-side and is not performed by local grammar
   forbidden:
     - mutable replacement of covering tokens
     - global analyzer initialization order
@@ -251,7 +261,7 @@ enumeration:
     lifecycle_gate: proposed
     metrics: [field_provenance_completeness, continuation_conflict_rate, identity_false_mint_rate, endpoint_pair_accuracy]
     terminal_failures: [grammar_rejected, missing_authorized_context, incompatible_identity_claim, expansion_limit]
-    known_gaps: [local_grammar_runtime, requisites_extractor, pair_policy_arbitration, numeric_bounds]
+    known_gaps: [requisites_extractor, pair_policy_arbitration]
 
   do_not:
     - ask an LLM to split or invent TYPE on list members

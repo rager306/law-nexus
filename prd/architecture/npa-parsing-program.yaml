@@ -93,6 +93,7 @@ findings:
     lifecycle_scope: [proposed, bounded_runtime]
     default_disposition: defer_pending_human_review
     decision_point: two_bounded_immutable_frame_families
+    s03_status: two bounded immutable frame families implemented in S03 (design, Rust implementation, and [diagnostic] bounded C4 baseline); PARSE-P2D remains proposed
   - id: RC27-F05
     title: bounded_document_context_absent
     severity: high
