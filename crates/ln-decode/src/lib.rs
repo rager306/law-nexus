@@ -12,6 +12,7 @@ pub mod article_body;
 pub mod capture_bounds;
 pub mod current_requisites;
 pub mod deontic;
+pub mod document_context;
 pub mod domain;
 pub mod evaluator;
 pub mod golden;
