@@ -556,3 +556,189 @@ fn is_regional(v: &str) -> bool {
         || v.to_lowercase().contains("муницип")
         || v.to_lowercase().contains("субъект")
 }
+
+/// Resolve-side endpoint budget from the identifying-cycle contract.
+pub const MAX_EXPANDED_CANDIDATES: usize = 64;
+
+/// One written endpoint of a reference.  The value is kept as a candidate
+/// label and its span remains the source of truth; no integer range is
+/// enumerated here.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ReferenceEndpoint {
+    value: String,
+    anchor: TextSpan,
+}
+
+impl ReferenceEndpoint {
+    pub fn new(value: impl Into<String>, anchor: TextSpan) -> Result<Self, BindingError> {
+        if anchor.start() == anchor.end() {
+            return Err(BindingError::EmptyAnchor);
+        }
+        let value = value.into();
+        if value.is_empty() {
+            return Err(BindingError::EmptyEndpoint);
+        }
+        Ok(Self { value, anchor })
+    }
+
+    pub fn value(&self) -> &str {
+        &self.value
+    }
+    pub const fn anchor(&self) -> TextSpan {
+        self.anchor
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct EndpointPair {
+    lower: ReferenceEndpoint,
+    upper: ReferenceEndpoint,
+}
+
+impl EndpointPair {
+    pub fn new(lower: ReferenceEndpoint, upper: ReferenceEndpoint) -> Self {
+        Self { lower, upper }
+    }
+    pub fn lower(&self) -> &ReferenceEndpoint {
+        &self.lower
+    }
+    pub fn upper(&self) -> &ReferenceEndpoint {
+        &self.upper
+    }
+    pub const fn len(&self) -> usize {
+        2
+    }
+    pub const fn is_empty(&self) -> bool {
+        false
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum BindingEndpoints {
+    Single(ReferenceEndpoint),
+    Pair(EndpointPair),
+}
+
+impl BindingEndpoints {
+    pub const fn len(&self) -> usize {
+        match self {
+            Self::Single(_) => 1,
+            Self::Pair(_) => 2,
+        }
+    }
+    pub const fn is_empty(&self) -> bool {
+        false
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BindingError {
+    EmptyAnchor,
+    EmptyEndpoint,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ExpansionLimit {
+    requested: usize,
+    limit: usize,
+}
+
+impl ExpansionLimit {
+    pub const fn requested(self) -> usize {
+        self.requested
+    }
+    pub const fn limit(self) -> usize {
+        self.limit
+    }
+}
+
+/// Expand a range to its two written endpoints, never to every integer in
+/// the interval.  `requested` models the bounded upstream extraction count
+/// and makes overflow observable rather than silently truncating it.
+pub fn expand_range_to_endpoints(
+    lower: ReferenceEndpoint,
+    upper: ReferenceEndpoint,
+    requested: usize,
+) -> Result<EndpointPair, ExpansionLimit> {
+    if requested > MAX_EXPANDED_CANDIDATES {
+        return Err(ExpansionLimit {
+            requested,
+            limit: MAX_EXPANDED_CANDIDATES,
+        });
+    }
+    Ok(EndpointPair::new(lower, upper))
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BoundTarget {
+    Claim(String),
+    Unresolved,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BindingStatus {
+    Proposed,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReferenceBindingCandidate {
+    mention_anchor: TextSpan,
+    source_ref: String,
+    target: BoundTarget,
+    endpoints: BindingEndpoints,
+    status: BindingStatus,
+}
+
+impl ReferenceBindingCandidate {
+    pub fn new(
+        mention_anchor: TextSpan,
+        source_ref: impl Into<String>,
+        target: BoundTarget,
+        endpoints: BindingEndpoints,
+    ) -> Result<Self, BindingError> {
+        if mention_anchor.start() == mention_anchor.end() {
+            return Err(BindingError::EmptyAnchor);
+        }
+        Ok(Self {
+            mention_anchor,
+            source_ref: source_ref.into(),
+            target,
+            endpoints,
+            status: BindingStatus::Proposed,
+        })
+    }
+    pub const fn mention_anchor(&self) -> TextSpan {
+        self.mention_anchor
+    }
+    pub fn source_ref(&self) -> &str {
+        &self.source_ref
+    }
+    pub fn target(&self) -> &BoundTarget {
+        &self.target
+    }
+    pub fn endpoints(&self) -> &BindingEndpoints {
+        &self.endpoints
+    }
+    pub const fn status(&self) -> BindingStatus {
+        self.status
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BindingUnresolvedReason {
+    MissingTargetClaim,
+    IncompatibleIdentityClaim,
+    ContextTerminal(Terminal),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BindingOutcome {
+    Candidate(ReferenceBindingCandidate),
+    Unresolved {
+        reason: BindingUnresolvedReason,
+    },
+    Conflicting {
+        retained: Vec<ReferenceBindingCandidate>,
+    },
+    ExpansionLimit(ExpansionLimit),
+}
