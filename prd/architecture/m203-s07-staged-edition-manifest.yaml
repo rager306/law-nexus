@@ -1,0 +1,117 @@
+# Staged evidence-backed edition manifest for the M203 S07 vertical.
+# NOT parsed by product code (D216/D252): no YAML codegen and no runtime authority.
+# This bounded manifest is a caller-facing evidence boundary, not legal coverage.
+
+schema_version: law-nexus/staged-edition-manifest/v1
+lifecycle: "[bounded]"
+authoritative: false
+milestone: M203-cx1j7t
+slice: S07
+
+work:
+  cc: cc:44-fz
+  registry_note: >-
+    One Work namespace is retained for the 44-FZ corpus (R081); the 484-FZ
+    amending act does not mint a parallel Work.
+
+editions:
+  - edition_id: edition-2013
+    role: initial_canon
+    canon_relative_path: consru_export/consru_export/exports/npa/law_2013-04-05_44-fz/edition-0001_rev-initial_from-unknown_19d3c051.xml
+    canon_bytes: 2215572
+    canon_sha256: 2dd7e87efa4968c23857f4355537f0a1a21ca9d55ef4fabc1d5db0b06a4276d5
+    work: cc:44-fz
+    act_type: federal_law
+    status: evidence_backed
+    evidence_note: >-
+      Initial 44-FZ XML selected from the canonical consru_export NPA
+      directory; bytes and SHA-256 are pinned from the repository file.
+  - edition_id: edition-2024
+    role: amending_act
+    canon_relative_path: consru_export/consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_1a599b98.xml
+    canon_bytes: 252478
+    canon_sha256: 67f781dbd6a7d03d6035e6a509c983b17fcc519213c493987cf8f71debc1a37d
+    twin_excluded:
+      canon_relative_path: consru_export/consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_49a92fbb.xml
+      reason: non-canon twin; the 1a599b98 file is the pinned canon.
+    work: cc:44-fz
+    act_type: federal_law
+    status: evidence_backed
+    evidence_note: >-
+      Canonical 484-FZ amending-act XML, matching the frozen M201 pin and
+      the executed amends edge to cc:44-fz:statya-93.
+
+  - edition_id: unresolved-regional-law
+    role: bounded_absence
+    canon_relative_path: null
+    canon_bytes: null
+    canon_sha256: null
+    work: cc:44-fz
+    act_type: regional_law
+    status: explicit_unresolved
+    justification: >-
+      No evidence chain for regional_law was executed in M203 S07; expansion
+      is deferred to S08 staged manifests.
+  - edition_id: unresolved-subordinate-act
+    role: bounded_absence
+    canon_relative_path: null
+    canon_bytes: null
+    canon_sha256: null
+    work: cc:44-fz
+    act_type: subordinate_act
+    status: explicit_unresolved
+    justification: >-
+      No evidence chain for subordinate_act was executed in M203 S07; expansion
+      is deferred to S08 staged manifests.
+  - edition_id: unresolved-other-act
+    role: bounded_absence
+    canon_relative_path: null
+    canon_bytes: null
+    canon_sha256: null
+    work: cc:44-fz
+    act_type: other
+    status: explicit_unresolved
+    justification: >-
+      No evidence chain for other act types was executed in M203 S07; expansion
+      is deferred to S08 staged manifests.
+
+admission_packet:
+  edition_id: edition-2024
+  supplied_by: caller-supplied staged fixture; runtime does not infer admissions
+  target: cc:44-fz:statya-93
+  effect_day: "2024-12-26"
+  effect_day_note: >-
+    Fixture input day bounding the window; NOT derived from XML text and NOT a
+    legal commencement determination.
+  evidence_class: hypothesized_from_oracle_diff
+  evidence_class_note: >-
+    EvidenceClass::HypothesizedFromOracleDiff is carried as-is; no Legislative
+    upgrade is asserted.
+  commencement_rule_ref: rec:commencement:484-93:hypothesized
+  transitional:
+    variant: explicitly_absent
+    note: >-
+      affirmative fixture declaration that no transitional rule is evidenced in
+      this bounded packet; not a product default and not a chronology guess
+      (D406 / ADR-0021 TSG-009).
+  delta_records:
+    - rec:amend:484-93
+
+counts:
+  editions_total: 5
+  evidence_backed: 2
+  explicit_unresolved: 3
+  works: 1
+
+non_claims:
+  - >-
+    R070 remains active (D416); this bounded manifest has incomplete-because-not-
+    every-edition coverage and does not validate R070.
+  - Not the 118-edition 44-FZ coverage corpus; no every-edition claim is made.
+  - Constructor-as-evidence is not accepted (D289); pins and fixture admissions
+    remain non-authoritative.
+  - No YAML codegen: product code does not parse this manifest (D216/D252).
+  - No legal commencement, InForce, or Applicable determination is made from
+    edition dates, filenames, XML, or effect_day.
+  - Explicitly unresolved entries are typed absence claims with source-bound
+    justification, not silently dropped act types.
