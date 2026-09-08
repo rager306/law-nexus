@@ -32,6 +32,7 @@ pub const PROVENANCE_NON_CLAIMS: &[&str] = &[
     "Not ActivationTrigger: the D252 effect_selector_modes vocabulary stays YAML-only (D216); the commencement slot is opaque evidence, not a runtime selector",
     "Not TransitionalResolver: ADR-0021 stays [proposed]; no chronology-only default (TSG-009); ExplicitlyAbsent is an affirmative claim, not unknown-as-success",
     "D326 (from, to] window and the edition_delta keep-rule are untouched: the envelope stores no canon events and computes no delta",
+    "Packet-level duplicates are refused; fold-level deduplication is counted and reported, never silent",
     "Not a bitemporal checkout and not the model-crystal compiler: INV-08 / INV-10 are cited as constraints, not re-implemented here",
     "Not a split-commencement algebra: one packet carries one CommencementEvidence; split commencement means multiple envelopes, not a list",
 ];
@@ -60,6 +61,8 @@ pub enum ProvenanceConstructionError {
     DuplicateAmendingAct,
     /// The same affected provision appears twice — ambiguous packet, fail closed.
     DuplicateProvision,
+    /// The same delta evidence record appears twice — ambiguous packet, fail closed.
+    DuplicateDeltaEvidence,
     /// An id in the packet violates the runtime id grammar.
     InvalidId(IdError),
 }
@@ -93,6 +96,9 @@ impl fmt::Display for ProvenanceConstructionError {
             }
             Self::DuplicateProvision => {
                 write!(formatter, "packet repeats an affected provision")
+            }
+            Self::DuplicateDeltaEvidence => {
+                write!(formatter, "packet repeats delta evidence")
             }
             Self::InvalidId(error) => {
                 write!(formatter, "packet has an invalid id: {error}")
@@ -328,8 +334,9 @@ impl EditionProvenanceEnvelope {
     ///
     /// Fail-closed, in this deterministic order: every list slot must be
     /// non-empty (`Missing*`), duplicates are refused after sorting (no
-    /// silent dedup), and the stored lists are deterministically sorted by id
-    /// string so two equal packets compare equal.
+    /// silent dedup) across all three repeated packet slots, and the stored
+    /// lists are deterministically sorted by id string so two equal packets
+    /// compare equal.
     pub fn try_new(
         amending_acts: Vec<AmendingActId>,
         affected_provisions: Vec<ComponentConceptId>,
@@ -364,6 +371,12 @@ impl EditionProvenanceEnvelope {
         }
         let mut delta_evidence = delta_evidence;
         delta_evidence.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+        if delta_evidence
+            .windows(2)
+            .any(|pair| pair[0].as_str() == pair[1].as_str())
+        {
+            return Err(ProvenanceConstructionError::DuplicateDeltaEvidence);
+        }
         Ok(Self {
             amending_acts,
             affected_provisions,

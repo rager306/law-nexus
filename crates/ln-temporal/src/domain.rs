@@ -2512,12 +2512,29 @@ impl ProvisionDelta {
 /// (D326): exclusive-from, inclusive-to. Not bitemporal checkout, not
 /// WALK-T. No aggregate force readout at the root (D325) — force lives on
 /// the provisions only.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct DeltaDedupReport {
+    pub amending_act_duplicates: usize,
+    pub delta_evidence_duplicates: usize,
+}
+
+impl DeltaDedupReport {
+    pub fn is_zero(&self) -> bool {
+        self.amending_act_duplicates == 0 && self.delta_evidence_duplicates == 0
+    }
+}
+
+/// Log-fold duplicate observability for one edition delta.
+///
+/// Packet construction refuses duplicates; this report covers only duplicates
+/// collapsed while deriving a line from the event window.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EditionDelta {
     from_day: i64,
     to_day: i64,
     provisions: Vec<ProvisionDelta>,
     non_claims: Vec<&'static str>,
+    dedup_report: DeltaDedupReport,
 }
 
 impl EditionDelta {
@@ -2535,6 +2552,10 @@ impl EditionDelta {
 
     pub fn non_claims(&self) -> &[&'static str] {
         &self.non_claims
+    }
+
+    pub fn dedup_report(&self) -> &DeltaDedupReport {
+        &self.dedup_report
     }
 }
 
@@ -2559,7 +2580,7 @@ fn edition_delta_envelope(
     target: &ComponentConceptId,
     events: &[ThreeCanonRecord],
     admission: &ProvenanceAdmission,
-) -> Result<EditionProvenanceEnvelope, ProvenanceConstructionError> {
+) -> Result<(EditionProvenanceEnvelope, DeltaDedupReport), ProvenanceConstructionError> {
     let mut acts: Vec<AmendingActId> = events
         .iter()
         .filter_map(|record| match record {
@@ -2568,6 +2589,10 @@ fn edition_delta_envelope(
         })
         .collect();
     acts.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    let amending_act_duplicates = acts
+        .windows(2)
+        .filter(|pair| pair[0].as_str() == pair[1].as_str())
+        .count();
     acts.dedup_by(|left, right| left.as_str() == right.as_str());
 
     let mut delta_evidence: Vec<CanonRecordId> = events
@@ -2576,6 +2601,14 @@ fn edition_delta_envelope(
         .cloned()
         .collect();
     delta_evidence.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    let delta_evidence_record_duplicates = delta_evidence
+        .windows(2)
+        .filter(|pair| pair[0].as_str() == pair[1].as_str())
+        .count();
+    // Multiple canon records emitted by one amending act collapse to one
+    // provenance evidence identity at this fold seam. Report that collapse
+    // alongside literal record-id duplicates rather than hiding it.
+    let delta_evidence_duplicates = amending_act_duplicates + delta_evidence_record_duplicates;
     delta_evidence.dedup_by(|left, right| left.as_str() == right.as_str());
 
     let commencement = CommencementEvidence::try_new(
@@ -2584,13 +2617,20 @@ fn edition_delta_envelope(
         admission.rule_ref(),
     )?;
 
-    EditionProvenanceEnvelope::try_new(
+    let envelope = EditionProvenanceEnvelope::try_new(
         acts,
         vec![target.clone()],
         commencement,
         admission.transitional().clone(),
         delta_evidence,
-    )
+    )?;
+    Ok((
+        envelope,
+        DeltaDedupReport {
+            amending_act_duplicates,
+            delta_evidence_duplicates,
+        },
+    ))
 }
 
 /// Log-computable `(from, to]` diff of two point per-target checkouts of
@@ -2707,6 +2747,7 @@ pub fn edition_delta(
     // inferred slot. A kept line may also lack window events entirely
     // (force-change-only): the packet constructor then refuses with
     // MissingAmendingAct — no act is synthesized from readouts (D289/D308).
+    let mut dedup_report = DeltaDedupReport::default();
     let provisions: Vec<ProvisionDelta> = kept
         .into_iter()
         .map(|line| {
@@ -2716,11 +2757,15 @@ pub fn edition_delta(
                 .ok_or(EditionDeltaError::MissingAdmission {
                     target: line.target.clone(),
                 })?;
-            let provenance = edition_delta_envelope(&line.target, &line.events, admission)
-                .map_err(|cause| EditionDeltaError::Unresolved {
-                    target: line.target.clone(),
-                    cause,
+            let (provenance, line_report) =
+                edition_delta_envelope(&line.target, &line.events, admission).map_err(|cause| {
+                    EditionDeltaError::Unresolved {
+                        target: line.target.clone(),
+                        cause,
+                    }
                 })?;
+            dedup_report.amending_act_duplicates += line_report.amending_act_duplicates;
+            dedup_report.delta_evidence_duplicates += line_report.delta_evidence_duplicates;
             Ok(ProvisionDelta {
                 target: line.target,
                 force_from: line.force_from,
@@ -2738,5 +2783,6 @@ pub fn edition_delta(
         to_day,
         provisions,
         non_claims: EDITION_DELTA_NON_CLAIMS.to_vec(),
+        dedup_report,
     })
 }
