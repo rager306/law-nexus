@@ -7,6 +7,7 @@
 use crate::document_context::{
     AnalysisOverlay, BlockId, SourceBlock, Terminal, TextSpan, ThisRefEvidence,
 };
+use std::borrow::Borrow;
 use std::collections::BTreeSet;
 
 /// Closed role vocabulary for the semantic scope contour.
@@ -343,6 +344,139 @@ impl AbstentionRecord {
 pub enum ProjectionOutcome {
     Complete(Box<NormRuleCandidate>),
     Abstained(AbstentionRecord),
+}
+
+/// Zero-tolerance counters for one semantic projection run.
+///
+/// Counters are not inferred from strings or repaired after the fact. The run
+/// records only explicit events, while valid claims and projection outcomes
+/// make source-span loss and fact minting unavailable through this API.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct SemanticScopeCounters {
+    pub critical_field_loss: usize,
+    pub source_span_loss: usize,
+    pub false_fact_mint: usize,
+    pub unconditionalized_scope: usize,
+    pub unexplained_abstention: usize,
+    pub candidates_total: usize,
+    pub abstained_total: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SemanticScopeEvent {
+    CriticalFieldLoss,
+    SourceSpanLoss,
+    FalseFactMint,
+    UnconditionalizedScope,
+    UnexplainedAbstention,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SemanticScopeViolation {
+    CriticalFieldLoss,
+    SourceSpanLoss,
+    FalseFactMint,
+    UnconditionalizedScope,
+    UnexplainedAbstention,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct SemanticScopeRun {
+    counters: SemanticScopeCounters,
+}
+
+impl SemanticScopeRun {
+    pub const fn new() -> Self {
+        Self {
+            counters: SemanticScopeCounters {
+                critical_field_loss: 0,
+                source_span_loss: 0,
+                false_fact_mint: 0,
+                unconditionalized_scope: 0,
+                unexplained_abstention: 0,
+                candidates_total: 0,
+                abstained_total: 0,
+            },
+        }
+    }
+
+    pub const fn counters(&self) -> SemanticScopeCounters {
+        self.counters
+    }
+
+    /// Record one projection outcome without weakening or rewriting it.
+    pub fn record_projection(&mut self, outcome: &ProjectionOutcome) {
+        self.counters.candidates_total += 1;
+        if matches!(outcome, ProjectionOutcome::Abstained(_)) {
+            self.counters.abstained_total += 1;
+        }
+    }
+
+    /// Inject a diagnostic event for a hostile test or an upstream audit.
+    /// Production projection code does not call this implicitly.
+    pub fn record_event(&mut self, event: SemanticScopeEvent) {
+        match event {
+            SemanticScopeEvent::CriticalFieldLoss => self.counters.critical_field_loss += 1,
+            SemanticScopeEvent::SourceSpanLoss => self.counters.source_span_loss += 1,
+            SemanticScopeEvent::FalseFactMint => self.counters.false_fact_mint += 1,
+            SemanticScopeEvent::UnconditionalizedScope => {
+                self.counters.unconditionalized_scope += 1
+            }
+            SemanticScopeEvent::UnexplainedAbstention => self.counters.unexplained_abstention += 1,
+        }
+    }
+
+    pub fn record_batch<I>(&mut self, outcomes: I)
+    where
+        I: IntoIterator,
+        I::Item: Borrow<ProjectionOutcome>,
+    {
+        for outcome in outcomes {
+            self.record_projection(outcome.borrow());
+        }
+    }
+}
+
+/// Returns every non-zero zero-tolerance counter, in stable diagnostic order.
+pub fn verify_zero_tolerance(run: &SemanticScopeRun) -> Result<(), Vec<SemanticScopeViolation>> {
+    let c = run.counters;
+    let mut violations = Vec::new();
+    if c.critical_field_loss != 0 {
+        violations.push(SemanticScopeViolation::CriticalFieldLoss);
+    }
+    if c.source_span_loss != 0 {
+        violations.push(SemanticScopeViolation::SourceSpanLoss);
+    }
+    if c.false_fact_mint != 0 {
+        violations.push(SemanticScopeViolation::FalseFactMint);
+    }
+    if c.unconditionalized_scope != 0 {
+        violations.push(SemanticScopeViolation::UnconditionalizedScope);
+    }
+    if c.unexplained_abstention != 0 {
+        violations.push(SemanticScopeViolation::UnexplainedAbstention);
+    }
+    if violations.is_empty() {
+        Ok(())
+    } else {
+        Err(violations)
+    }
+}
+
+/// Render only diagnostic data. This is deliberately not a readiness or legal
+/// authority report, and its key order is fixed for byte-stable artifacts.
+pub fn render_scope_run_json(run: &SemanticScopeRun) -> String {
+    let c = run.counters;
+    format!(
+        "{{\"semantic_loss\":{{\"critical_field_loss\":{},\"source_span_loss\":{},\"false_fact_mint\":{},\"unconditionalized_scope\":{},\"unexplained_abstention\":{}}},\"candidates_total\":{},\"abstained_total\":{}}}",
+        c.critical_field_loss,
+        c.source_span_loss,
+        c.false_fact_mint,
+        c.unconditionalized_scope,
+        c.unexplained_abstention,
+        c.candidates_total,
+        c.abstained_total
+    )
 }
 
 fn id_for(claims: &[SemanticClaim]) -> String {
