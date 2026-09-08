@@ -32,3 +32,4 @@ pub mod document_context;
 pub mod domain;
 pub mod ports;
 pub mod provenance;
+pub mod semantic_scope;
