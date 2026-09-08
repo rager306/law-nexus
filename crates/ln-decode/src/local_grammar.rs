@@ -229,10 +229,15 @@ pub enum ExpansionPolicy {
     EndpointPair,
 }
 
-/// [proposed] G06 bound, with at least 2x headroom over the bounded smoke
-/// baseline; T04 may pin a reviewed final value.
+/// [proposed] G06 bound. The bounded C4 smoke baseline measured a maximum
+/// of 3 act-list members (`prd/migration/rust-evidence/m203-s03-frames-baseline.json`);
+/// 64 therefore retains more than 2x headroom. This is diagnostic sizing,
+/// not a promoted corpus limit.
 pub const PROPOSED_MAX_FRAME_MEMBERS: usize = 64;
-/// [proposed] G07 resolve-side candidate bound. S03 only declares it.
+/// [proposed] G07 resolve-side candidate bound. The same bounded C4 smoke
+/// measured 16 structural values at its maximum; 64 retains more than 2x
+/// headroom. S03 declares the endpoint-expansion ceiling only; expansion is
+/// not performed here (`prd/migration/rust-evidence/m203-s03-frames-baseline.json`).
 pub const PROPOSED_MAX_EXPANDED_CANDIDATES: usize = 64;
 
 /// Data-only vocabulary for the act-type head. Matchers do not carry a

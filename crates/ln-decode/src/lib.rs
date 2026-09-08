@@ -22,6 +22,7 @@ pub mod lexer;
 pub mod local_grammar;
 pub mod morphology;
 pub mod npa_bounds;
+pub mod npa_frames_baseline;
 pub mod npa_sweep;
 pub mod ports;
 pub mod prefix_catalog;
