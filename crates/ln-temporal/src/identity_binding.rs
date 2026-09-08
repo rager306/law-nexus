@@ -742,3 +742,139 @@ pub enum BindingOutcome {
     },
     ExpansionLimit(ExpansionLimit),
 }
+
+/// Zero-tolerance counters for one proposed identity/binding run.
+///
+/// These counters are event-derived: ordinary constructors cannot increment
+/// either hostile counter.  The two hostile events below are reserved for
+/// audit fixtures and upstream diagnostics, keeping a clean run honest.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct IdentityRunCounters {
+    pub false_identity_mint: usize,
+    pub false_link: usize,
+    pub claims_total: usize,
+    pub acts_total: usize,
+    pub identity_claims_total: usize,
+    pub bindings_total: usize,
+    pub endpoint_pairs_total: usize,
+    pub unresolved_total: usize,
+    pub conflicting_total: usize,
+    pub expansion_limit_total: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IdentityBindingEvent {
+    FalseIdentityMint,
+    FalseLink,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IdentityBindingViolation {
+    FalseIdentityMint,
+    FalseLink,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct IdentityBindingRun {
+    counters: IdentityRunCounters,
+}
+
+impl IdentityBindingRun {
+    pub const fn new() -> Self {
+        Self {
+            counters: IdentityRunCounters {
+                false_identity_mint: 0,
+                false_link: 0,
+                claims_total: 0,
+                acts_total: 0,
+                identity_claims_total: 0,
+                bindings_total: 0,
+                endpoint_pairs_total: 0,
+                unresolved_total: 0,
+                conflicting_total: 0,
+                expansion_limit_total: 0,
+            },
+        }
+    }
+
+    pub const fn counters(&self) -> IdentityRunCounters {
+        self.counters
+    }
+
+    /// Record all retained field claims and the act assembly result.
+    pub fn record_act_outcome(&mut self, outcome: &ActAssemblyOutcome) {
+        self.counters.acts_total += 1;
+        self.counters.claims_total += match outcome {
+            ActAssemblyOutcome::Compatible(act) => act.claims().len(),
+            ActAssemblyOutcome::Conflicting { retained }
+            | ActAssemblyOutcome::Incomplete { retained, .. }
+            | ActAssemblyOutcome::Rejected { retained, .. } => retained.len(),
+        };
+    }
+
+    pub fn record_identity_claim_outcome(&mut self, outcome: &IdentityClaimOutcome) {
+        self.counters.identity_claims_total += 1;
+        if matches!(outcome, IdentityClaimOutcome::Incomplete { .. }) {
+            self.counters.unresolved_total += 1;
+        }
+    }
+
+    pub fn record_binding_outcome(&mut self, outcome: &BindingOutcome) {
+        self.counters.bindings_total += 1;
+        match outcome {
+            BindingOutcome::Candidate(candidate) => {
+                if candidate.endpoints().len() == 2 {
+                    self.counters.endpoint_pairs_total += 1;
+                }
+            }
+            BindingOutcome::Unresolved { .. } => self.counters.unresolved_total += 1,
+            BindingOutcome::Conflicting { .. } => self.counters.conflicting_total += 1,
+            BindingOutcome::ExpansionLimit(_) => self.counters.expansion_limit_total += 1,
+        }
+    }
+
+    /// Inject a hostile audit event; production construction does not call it.
+    pub fn record_event(&mut self, event: IdentityBindingEvent) {
+        match event {
+            IdentityBindingEvent::FalseIdentityMint => self.counters.false_identity_mint += 1,
+            IdentityBindingEvent::FalseLink => self.counters.false_link += 1,
+        }
+    }
+}
+
+pub fn verify_identity_zero_tolerance(
+    run: &IdentityBindingRun,
+) -> Result<(), Vec<IdentityBindingViolation>> {
+    let counters = run.counters;
+    let mut violations = Vec::new();
+    if counters.false_identity_mint != 0 {
+        violations.push(IdentityBindingViolation::FalseIdentityMint);
+    }
+    if counters.false_link != 0 {
+        violations.push(IdentityBindingViolation::FalseLink);
+    }
+    if violations.is_empty() {
+        Ok(())
+    } else {
+        Err(violations)
+    }
+}
+
+/// Render diagnostic counters only.  This is intentionally not a lifecycle,
+/// readiness, promotion, or legal-authority report.
+pub fn render_identity_run_json(run: &IdentityBindingRun) -> String {
+    let c = run.counters;
+    format!(
+        "{{\"false_identity_mint\":{},\"false_link\":{},\"claims_total\":{},\"acts_total\":{},\"identity_claims_total\":{},\"bindings_total\":{},\"endpoint_pairs_total\":{},\"unresolved_total\":{},\"conflicting_total\":{},\"expansion_limit_total\":{}}}",
+        c.false_identity_mint,
+        c.false_link,
+        c.claims_total,
+        c.acts_total,
+        c.identity_claims_total,
+        c.bindings_total,
+        c.endpoint_pairs_total,
+        c.unresolved_total,
+        c.conflicting_total,
+        c.expansion_limit_total
+    )
+}
