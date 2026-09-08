@@ -103,6 +103,7 @@ pub enum ActType {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IdentifyingActCandidate {
     act_type: ActType,
+    type_claim: IdentityFieldClaim,
     org: Option<IdentityFieldClaim>,
     geo: Option<IdentityFieldClaim>,
     date: Option<IdentityFieldClaim>,
@@ -110,8 +111,33 @@ pub struct IdentifyingActCandidate {
     title: Option<IdentityFieldClaim>,
 }
 impl IdentifyingActCandidate {
+    /// Creates a candidate container; completeness is checked by the
+    /// downstream projection, never assumed by this constructor.
+    pub fn new(
+        act_type: ActType,
+        type_claim: IdentityFieldClaim,
+        org: Option<IdentityFieldClaim>,
+        geo: Option<IdentityFieldClaim>,
+        date: Option<IdentityFieldClaim>,
+        number: Option<IdentityFieldClaim>,
+        title: Option<IdentityFieldClaim>,
+    ) -> Self {
+        Self {
+            act_type,
+            type_claim,
+            org,
+            geo,
+            date,
+            number,
+            title,
+        }
+    }
+
     pub fn act_type(&self) -> &ActType {
         &self.act_type
+    }
+    pub fn type_claim(&self) -> &IdentityFieldClaim {
+        &self.type_claim
     }
     pub fn org(&self) -> Option<&IdentityFieldClaim> {
         self.org.as_ref()
@@ -130,6 +156,7 @@ impl IdentifyingActCandidate {
     }
     pub fn claims(&self) -> Vec<&IdentityFieldClaim> {
         [
+            Some(&self.type_claim),
             self.org.as_ref(),
             self.geo.as_ref(),
             self.date.as_ref(),
@@ -140,6 +167,207 @@ impl IdentifyingActCandidate {
         .flatten()
         .collect()
     }
+}
+
+/// The closed identity classes from the proposed identifying-cycle contract.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum IdentityClass {
+    Federal,
+    PresidentialAgency,
+    RegionalMunicipal,
+}
+
+/// Required natural-key fields for an [`IdentityClass`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RequiredIdentityKey {
+    Federal,
+    PresidentialAgency,
+    RegionalMunicipal,
+}
+impl RequiredIdentityKey {
+    pub const fn fields(self) -> &'static [FieldKind] {
+        match self {
+            Self::Federal => &[FieldKind::Type, FieldKind::Number],
+            Self::PresidentialAgency => &[
+                FieldKind::Type,
+                FieldKind::Org,
+                FieldKind::Date,
+                FieldKind::Number,
+            ],
+            Self::RegionalMunicipal => &[
+                FieldKind::Type,
+                FieldKind::Org,
+                FieldKind::Geo,
+                FieldKind::Date,
+                FieldKind::Number,
+            ],
+        }
+    }
+}
+impl From<IdentityClass> for RequiredIdentityKey {
+    fn from(value: IdentityClass) -> Self {
+        match value {
+            IdentityClass::Federal => Self::Federal,
+            IdentityClass::PresidentialAgency => Self::PresidentialAgency,
+            IdentityClass::RegionalMunicipal => Self::RegionalMunicipal,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OfficialIdentityClaimCandidate {
+    claim_id: String,
+    class: IdentityClass,
+    key: RequiredIdentityKey,
+    type_claim: IdentityFieldClaim,
+    org: Option<IdentityFieldClaim>,
+    geo: Option<IdentityFieldClaim>,
+    date: Option<IdentityFieldClaim>,
+    number: IdentityFieldClaim,
+    lifecycle: ProposedLifecycle,
+    geo_role: GeoRole,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProposedLifecycle {
+    Proposed,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GeoRole {
+    Default,
+    LoadBearing,
+    NotApplicable,
+}
+
+impl OfficialIdentityClaimCandidate {
+    pub fn claim_id(&self) -> &str {
+        &self.claim_id
+    }
+    pub const fn class(&self) -> IdentityClass {
+        self.class
+    }
+    pub const fn required_key(&self) -> RequiredIdentityKey {
+        self.key
+    }
+    pub fn type_claim(&self) -> &IdentityFieldClaim {
+        &self.type_claim
+    }
+    pub fn org(&self) -> Option<&IdentityFieldClaim> {
+        self.org.as_ref()
+    }
+    pub fn geo(&self) -> Option<&IdentityFieldClaim> {
+        self.geo.as_ref()
+    }
+    pub fn date(&self) -> Option<&IdentityFieldClaim> {
+        self.date.as_ref()
+    }
+    pub fn number(&self) -> &IdentityFieldClaim {
+        &self.number
+    }
+    pub const fn lifecycle(&self) -> ProposedLifecycle {
+        self.lifecycle
+    }
+    pub const fn geo_role(&self) -> GeoRole {
+        self.geo_role
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum IdentityClaimOutcome {
+    Proposed(Box<OfficialIdentityClaimCandidate>),
+    Incomplete {
+        missing: Vec<FieldKind>,
+        reason: String,
+    },
+}
+
+fn identity_class(act: &IdentifyingActCandidate) -> Option<IdentityClass> {
+    match act.act_type() {
+        ActType::Federal => Some(IdentityClass::Federal),
+        ActType::PresidentialAgency => Some(IdentityClass::PresidentialAgency),
+        ActType::RegionalMunicipal => Some(IdentityClass::RegionalMunicipal),
+        ActType::Other(_) => None,
+    }
+}
+
+fn claim_is_authorized(claim: Option<&IdentityFieldClaim>) -> bool {
+    claim.is_some_and(|c| matches!(c.status(), FieldStatus::Explicit | FieldStatus::Inherited))
+}
+
+fn anchor_part(claim: &IdentityFieldClaim) -> String {
+    format!(
+        "{}:{}-{}",
+        claim.block().get(),
+        claim.span().start(),
+        claim.span().end()
+    )
+}
+
+/// Projects a complete act candidate into a proposed resolver lookup claim.
+///
+/// This is deliberately not a conversion to `WorkId`: the result has only
+/// source claims and a deterministic anchor-derived label.
+pub fn build_official_identity_claim(act: &IdentifyingActCandidate) -> IdentityClaimOutcome {
+    let Some(class) = identity_class(act) else {
+        return IdentityClaimOutcome::Incomplete {
+            missing: vec![FieldKind::Type],
+            reason: "act type is not an evidence-backed identity class".into(),
+        };
+    };
+    let required = RequiredIdentityKey::from(class);
+    let mut missing = Vec::new();
+    for field in required.fields() {
+        let present = match field {
+            FieldKind::Type => claim_is_authorized(Some(act.type_claim())),
+            FieldKind::Org => claim_is_authorized(act.org()),
+            FieldKind::Geo => claim_is_authorized(act.geo()),
+            FieldKind::Date => claim_is_authorized(act.date()),
+            FieldKind::Number => claim_is_authorized(act.number()),
+            FieldKind::Name => true,
+        };
+        if !present {
+            missing.push(*field);
+        }
+    }
+    let Some(number) = act.number().cloned() else {
+        if !missing.contains(&FieldKind::Number) {
+            missing.push(FieldKind::Number);
+        }
+        return IdentityClaimOutcome::Incomplete {
+            missing,
+            reason: "number claim has no authorized provenance".into(),
+        };
+    };
+    if !missing.is_empty() {
+        return IdentityClaimOutcome::Incomplete {
+            missing,
+            reason: "required identity key claim is absent or unresolved".into(),
+        };
+    }
+    let mut anchors = act.claims();
+    anchors.sort_by_key(|c| (c.field(), c.block(), c.span()));
+    let claim_id = anchors
+        .iter()
+        .map(|c| anchor_part(c))
+        .collect::<Vec<_>>()
+        .join("|");
+    IdentityClaimOutcome::Proposed(Box::new(OfficialIdentityClaimCandidate {
+        claim_id,
+        class,
+        key: required,
+        type_claim: act.type_claim().clone(),
+        org: act.org().cloned(),
+        geo: act.geo().cloned(),
+        date: act.date().cloned(),
+        number,
+        lifecycle: ProposedLifecycle::Proposed,
+        geo_role: match class {
+            IdentityClass::Federal => GeoRole::Default,
+            IdentityClass::RegionalMunicipal => GeoRole::LoadBearing,
+            IdentityClass::PresidentialAgency => GeoRole::NotApplicable,
+        },
+    }))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -171,6 +399,7 @@ fn selected(claims: &[IdentityFieldClaim], field: FieldKind) -> Option<IdentityF
         .find(|c| c.field == field && c.status != FieldStatus::Unresolved)
         .cloned()
 }
+
 fn distinct_values(claims: &[IdentityFieldClaim], field: FieldKind) -> bool {
     let mut values = claims
         .iter()
@@ -258,6 +487,7 @@ pub fn assemble_identifying_act_with_limit(
     }
     ActAssemblyOutcome::Compatible(Box::new(IdentifyingActCandidate {
         act_type,
+        type_claim: type_claim.expect("type claim was checked above"),
         org: selected(&claims, FieldKind::Org),
         geo: selected(&claims, FieldKind::Geo),
         date: selected(&claims, FieldKind::Date),
