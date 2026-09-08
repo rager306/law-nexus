@@ -30,6 +30,7 @@ pub mod application;
 pub mod calendar;
 pub mod document_context;
 pub mod domain;
+pub mod identity_binding;
 pub mod ports;
 pub mod provenance;
 pub mod semantic_annotation;
