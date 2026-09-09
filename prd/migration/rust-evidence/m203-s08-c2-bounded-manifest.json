@@ -1,0 +1,434 @@
+{
+  "schema_version": "law-nexus-npa-corpus-manifest/v1",
+  "manifest_id": "NPA-MAN-C2-M203-S08",
+  "stratum": "C2",
+  "parser_revision": "m203-s08-corpus-manifest-v1",
+  "corpus_snapshot_hash": "sha256:35d7258cf4dd38a249ffe772ddb5d5e408e1c6263b48598b20059f6ff1d86c62",
+  "provider_strata": [
+    {
+      "provider": "consultant",
+      "year": "availability",
+      "document_type": "mixed",
+      "quota": 32,
+      "availability_cap": 43785
+    },
+    {
+      "provider": "garant",
+      "year": "availability",
+      "document_type": "mixed",
+      "quota": 8,
+      "availability_cap": 12
+    }
+  ],
+  "environment": {
+    "platform": "linux-x86_64",
+    "rust_toolchain": "rustc-1.94.1",
+    "command": "frozen deterministic draw seed 20308"
+  },
+  "entries": [
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-001",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166280-edition-84232bdf5e80b4c2d012dbae.xml",
+      "content_hash": "sha256:b4d95e445a01345c30baaef42667d2b6e0010b7a584d6042ec85f77ce63fbf8a",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166280-edition-84232bdf5e80b4c2d012dbae.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-002",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166305-edition-7e6e14131f3fab621a92f158.xml",
+      "content_hash": "sha256:8bd4a4448cfdf192ca6db3d016758e616d77addb326b2ed0a1945fb46332ae35",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166305-edition-7e6e14131f3fab621a92f158.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-003",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166335-edition-8efbaf609f51f899874f4bec.xml",
+      "content_hash": "sha256:009ce598a1da5cee5325eac9056004fb7826d3c2f3591f9ac095c1a55b067e4a",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166335-edition-8efbaf609f51f899874f4bec.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-004",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166339-edition-c0c8875a6b0619c4af077933.xml",
+      "content_hash": "sha256:897b8e49a34780dee86ac32dfd9f46f5c1ba7b6e441b0ad342984cb60e25b141",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166339-edition-c0c8875a6b0619c4af077933.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-005",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166340-edition-c6064cc3a67d9290c7bcc932.xml",
+      "content_hash": "sha256:0a745c21ea02a4f75dd00e1f649f38b47b0b0ba0a3a312efb3b3e55f3393c030",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166340-edition-c6064cc3a67d9290c7bcc932.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-006",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166350-edition-2f79e06db707d34dc23a1beb.xml",
+      "content_hash": "sha256:cb6726b8721f1bf5f23c811fd3d84126d85105be745670481143da4888e01efd",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166350-edition-2f79e06db707d34dc23a1beb.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-007",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166358-edition-688f2e5d88bf08587245a31f.xml",
+      "content_hash": "sha256:75dc8c56210d42e0949d6f97bf7ed3a67c9f30caa307fc92c50226502dad3ea8",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166358-edition-688f2e5d88bf08587245a31f.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-008",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166393-edition-662a0116a19f4551840f5124.xml",
+      "content_hash": "sha256:31dd9dac7e6106f22b3ab039681721fe35dc4788ef5fcae07c901a13a3520ca1",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166393-edition-662a0116a19f4551840f5124.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-009",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166411-edition-383df41774e1431afb38459f.xml",
+      "content_hash": "sha256:a36d74f19848fdf1ec0856b29503519d4f129cba7665a7dc2d28ce086bd0be55",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166411-edition-383df41774e1431afb38459f.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-010",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166416-edition-786a7f72c49213a130a30e35.xml",
+      "content_hash": "sha256:9b7cad544c3dfb2d3655c31368bb19f47c010b270b3fa368f827a46a54a62270",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166416-edition-786a7f72c49213a130a30e35.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-011",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166433-edition-74386d4f2b31a1d244cea6dc.xml",
+      "content_hash": "sha256:7a74e2cdf41c46aebfffc2174bdc5d3714b49099dd72492bab1655ed83c91817",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166433-edition-74386d4f2b31a1d244cea6dc.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-012",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166436-edition-ef669b8f50cf6df40e4afdf6.xml",
+      "content_hash": "sha256:06e4d738e4a4dbbddedebffa7ed822ec67d49d5238a41ff8234b701e1a35652f",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166436-edition-ef669b8f50cf6df40e4afdf6.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-013",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166461-edition-19f9af272643285cc75dfbd7.xml",
+      "content_hash": "sha256:efe0608a5311c7996fe59e91b45f950f293ad26e62c75f062a02ef26686cc478",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166461-edition-19f9af272643285cc75dfbd7.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-014",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166469-edition-107d09a87494cad0e060397f.xml",
+      "content_hash": "sha256:0ef0b54835ba61dc12391853641c8cdf690982e57aa5524e361fc4729c4d3ece",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166469-edition-107d09a87494cad0e060397f.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-015",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166475-edition-7e3c80d9a019ea4051831860.xml",
+      "content_hash": "sha256:201dcf740f96dfcb7681b21545b1a46b19ee9364f7d48726050bc556babbd9ae",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166475-edition-7e3c80d9a019ea4051831860.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-016",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166488-edition-994cfc2c002f0e410a38107d.xml",
+      "content_hash": "sha256:9366e264187c4a755b92a6ca92020f9b77df16c170e1caf7779d3377eff69be6",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166488-edition-994cfc2c002f0e410a38107d.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-017",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166496-edition-67bc80b10b789280e7503464.xml",
+      "content_hash": "sha256:6128edf5cc4fbf2a0c80e81b8e1ec499d5816cfa286cd2f8126fcb53aaaaf0a1",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166496-edition-67bc80b10b789280e7503464.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-018",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166502-edition-2ece623da12d3e50265ab59d.xml",
+      "content_hash": "sha256:0f6c2763db1a6df786773b1f255d4702d8c2106a7ca46664d1f4674ff1c829d9",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166502-edition-2ece623da12d3e50265ab59d.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-019",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166524-edition-dd7d465006734fe523e0df4a.xml",
+      "content_hash": "sha256:006ab3d36148292244872e938684a4bfe3ed13d2f0de8b528ef32e525580a4f2",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166524-edition-dd7d465006734fe523e0df4a.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-020",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166555-edition-ac7af068c512566f94843df6.xml",
+      "content_hash": "sha256:3f823058cf83fbf14800669ede61bb450191f17cc561fe85b559cdedadf22196",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166555-edition-ac7af068c512566f94843df6.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-021",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166562-edition-36ef7048a632f20da6578242.xml",
+      "content_hash": "sha256:bc16c1f1596016963d7f9d6571e1ef9b5e2d31293daf2be41095ab0d8645a1b0",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166562-edition-36ef7048a632f20da6578242.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-022",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166569-edition-eac77003fd6b0a9826b0d7f2.xml",
+      "content_hash": "sha256:4b82aace06fb0918b368b573af20272a77c377a076b487f01021f6bd61e7ca95",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166569-edition-eac77003fd6b0a9826b0d7f2.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-023",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166573-edition-7abd4d42502f499eca55ca52.xml",
+      "content_hash": "sha256:345bd47487772db21b043f340d50b8a08fdf42092088b14dbd2192abc4063a16",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166573-edition-7abd4d42502f499eca55ca52.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-024",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166590-edition-aa7f47e6e70a433da0b46604.xml",
+      "content_hash": "sha256:2a65224fd5410b4af1cbc78108c2831adb87ff713a5dcbe5e32d11ddec6e66bb",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166590-edition-aa7f47e6e70a433da0b46604.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-025",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166591-edition-5090774a1ed753ee4de98d13.xml",
+      "content_hash": "sha256:aebb15030b652737b4f3f70dd7f2dad06ac08f1e87f2ac58790cb6ec74bac66a",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166591-edition-5090774a1ed753ee4de98d13.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-026",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166604-edition-7aa95c865d9c25f193d5a75c.xml",
+      "content_hash": "sha256:2c04f7c2e301f03770ea5903652be9a89aaed823f236a51c18d2cc48fc27e32e",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166604-edition-7aa95c865d9c25f193d5a75c.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-027",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166611-edition-87487c59a8eedd4dc515384b.xml",
+      "content_hash": "sha256:5349018147d20f8aa8e63845812b04c406f1de64a68ad11cfa689b6f997286b6",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166611-edition-87487c59a8eedd4dc515384b.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-028",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166618-edition-b9699245d026209ff9aece0c.xml",
+      "content_hash": "sha256:c0af620dff88acb9a67525487bc13b468ee584301ad1eb7c77d22021a074edc0",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166618-edition-b9699245d026209ff9aece0c.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-029",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166636-edition-83c6e771a5367a904fb7039d.xml",
+      "content_hash": "sha256:0a40c70e778bc2648d248398c5b88b9c2de544980fe7ff3142b22851d06ee175",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166636-edition-83c6e771a5367a904fb7039d.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-030",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166637-edition-3dfce1752972b5182ac88723.xml",
+      "content_hash": "sha256:8725502093ecd1d6402ee17a2fede77f2018ddb3d0c661462217a7a50fa69716",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166637-edition-3dfce1752972b5182ac88723.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-031",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166659-edition-a6744a395f5c3508eb4aa745.xml",
+      "content_hash": "sha256:c6e849068fb6ac7d2e12199439cc167776c260099290e89710558981dd85f6ec",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166659-edition-a6744a395f5c3508eb4aa745.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-032",
+      "document_relative_path": "consru_export/consru_export/exports/courts/acn/000166661-edition-26af3cb5f1cdc12d67b518a4.xml",
+      "content_hash": "sha256:4f2edcaecf4f822e5d4e09044585dd307ebd2a6899db4f09badf64a297b285ec",
+      "evidence_anchor": "consru_export/consru_export/exports/courts/acn/000166661-edition-26af3cb5f1cdc12d67b518a4.xml#document",
+      "admission": "bounded_reviewed",
+      "provider": "consultant",
+      "year": "unknown",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-033",
+      "document_relative_path": "law-source/garant/44-fz.odt",
+      "content_hash": "sha256:73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+      "evidence_anchor": "law-source/garant/44-fz.odt#document",
+      "admission": "bounded_reviewed",
+      "provider": "garant",
+      "year": "unknown",
+      "document_type": "law"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-034",
+      "document_relative_path": "law-source/garant/PP_60_27-01-2022.odt",
+      "content_hash": "sha256:f083c903beadc243a842516e955471bc942d9a65a115694441876f1543335d4c",
+      "evidence_anchor": "law-source/garant/PP_60_27-01-2022.odt#document",
+      "admission": "bounded_reviewed",
+      "provider": "garant",
+      "year": "2022",
+      "document_type": "unknown"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-035",
+      "document_relative_path": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u0424 \u043e\u0442 15 \u043e\u043a\u0442\u044f\u0431\u0440\u044f 2022 \u0433 N 1838 \u041e\u0431 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0438 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0435.odt",
+      "content_hash": "sha256:124ebed6e8e5e557178c410c4db82de19c7bd46fba92da0e3c62f6688b41f414",
+      "evidence_anchor": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u0424 \u043e\u0442 15 \u043e\u043a\u0442\u044f\u0431\u0440\u044f 2022 \u0433 N 1838 \u041e\u0431 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0438 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0435.odt#document",
+      "admission": "bounded_reviewed",
+      "provider": "garant",
+      "year": "2022",
+      "document_type": "resolution"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-036",
+      "document_relative_path": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u0424 \u043e\u0442 23 \u044f\u043d\u0432\u0430\u0440\u044f 2024 \u0433 N 50 \u041e \u043f\u0440\u0438\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0438 \u0434\u0435\u0439\u0441\u0442\u0432.odt",
+      "content_hash": "sha256:e21dcb1414c12e02bde6b8fe16ec16d7ce5e928b7fb03b3bc0d7afeeb893257c",
+      "evidence_anchor": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u0424 \u043e\u0442 23 \u044f\u043d\u0432\u0430\u0440\u044f 2024 \u0433 N 50 \u041e \u043f\u0440\u0438\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0438 \u0434\u0435\u0439\u0441\u0442\u0432.odt#document",
+      "admission": "bounded_reviewed",
+      "provider": "garant",
+      "year": "2024",
+      "document_type": "resolution"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-037",
+      "document_relative_path": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u0424 \u043e\u0442 24 \u0434\u0435\u043a\u0430\u0431\u0440\u044f 2022 \u0433 N 2411 \u041e\u0431 \u0430\u0432\u0430\u043d\u0441\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0438 \u0434\u043e\u0433\u043e.odt",
+      "content_hash": "sha256:7e0a82dafe83b17bf0a5b6f834dffa23e741c764e2b5a8fda21958005fa37a9c",
+      "evidence_anchor": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u0424 \u043e\u0442 24 \u0434\u0435\u043a\u0430\u0431\u0440\u044f 2022 \u0433 N 2411 \u041e\u0431 \u0430\u0432\u0430\u043d\u0441\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0438 \u0434\u043e\u0433\u043e.odt#document",
+      "admission": "bounded_reviewed",
+      "provider": "garant",
+      "year": "2022",
+      "document_type": "resolution"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-038",
+      "document_relative_path": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u0424 \u043e\u0442 29 \u0434\u0435\u043a\u0430\u0431\u0440\u044f 2023 \u0433 N 2368 \u041e \u0432\u043d\u0435\u0441\u0435\u043d\u0438\u0438 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439 .odt",
+      "content_hash": "sha256:2b32e71ed0f77ad2c32efa280accd7c81dda853c9ceb3835b92d6cc04513880e",
+      "evidence_anchor": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u0424 \u043e\u0442 29 \u0434\u0435\u043a\u0430\u0431\u0440\u044f 2023 \u0433 N 2368 \u041e \u0432\u043d\u0435\u0441\u0435\u043d\u0438\u0438 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439 .odt#document",
+      "admission": "bounded_reviewed",
+      "provider": "garant",
+      "year": "2023",
+      "document_type": "resolution"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-039",
+      "document_relative_path": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u0424 \u043e\u0442 30 \u0441\u0435\u043d\u0442\u044f\u0431\u0440\u044f 2019 \u0433 N 1279 \u041e \u043f\u043b\u0430\u043d\u0430\u0445 \u0433\u0440\u0430\u0444\u0438\u043a\u0430\u0445 \u0437\u0430.odt",
+      "content_hash": "sha256:67627cf7557fc06de959e67dab5d01cf5e89a17e537e6f6805c93a3a097f881e",
+      "evidence_anchor": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u0424 \u043e\u0442 30 \u0441\u0435\u043d\u0442\u044f\u0431\u0440\u044f 2019 \u0433 N 1279 \u041e \u043f\u043b\u0430\u043d\u0430\u0445 \u0433\u0440\u0430\u0444\u0438\u043a\u0430\u0445 \u0437\u0430.odt#document",
+      "admission": "bounded_reviewed",
+      "provider": "garant",
+      "year": "2019",
+      "document_type": "resolution"
+    },
+    {
+      "entry_id": "NPA-MAN-C2-M203-S08-040",
+      "document_relative_path": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u043e\u0441\u0441\u0438\u0439\u0441\u043a\u043e\u0439 \u0424\u0435\u0434\u0435\u0440\u0430\u0446\u0438\u0438 \u043e\u0442 17 \u043c\u0430\u0440\u0442\u0430 2026 \u0433 277 \u041e\u0431 \u0443\u0442\u0432\u0435\u0440.odt",
+      "content_hash": "sha256:a132ce43d5ad9cbafe553713336c77973cba04ed342727e8e6ba4e97496bdc52",
+      "evidence_anchor": "law-source/garant/\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u041f\u0440\u0430\u0432\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u0430 \u0420\u043e\u0441\u0441\u0438\u0439\u0441\u043a\u043e\u0439 \u0424\u0435\u0434\u0435\u0440\u0430\u0446\u0438\u0438 \u043e\u0442 17 \u043c\u0430\u0440\u0442\u0430 2026 \u0433 277 \u041e\u0431 \u0443\u0442\u0432\u0435\u0440.odt#document",
+      "admission": "bounded_reviewed",
+      "provider": "garant",
+      "year": "2026",
+      "document_type": "resolution"
+    }
+  ],
+  "lifecycle": "[bounded]",
+  "sealed": false,
+  "draw_seed": 20308,
+  "nesting_rule": "C2 and C3 are disjoint; future T04 draws nest only within the named manifest."
+}

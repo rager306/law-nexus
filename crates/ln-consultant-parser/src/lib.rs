@@ -10,6 +10,7 @@ pub mod catalog;
 pub mod catalog_sqlite;
 pub mod classifier;
 pub mod contour_diagnostics;
+pub mod corpus_manifest;
 pub mod document_profile;
 pub mod edge_deriver;
 pub mod hyperlink;

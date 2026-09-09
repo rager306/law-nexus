@@ -8,6 +8,9 @@ related: [R035, R070, ADR-0017, ADR-0028]
 
 source_authority:
   full_corpus_root: consru_export/consru_export/exports
+  provider_source_roots:
+    consultant: consru_export/consru_export/exports
+    garant: law-source/garant
   allowed_file_glob: "**/*.xml"
   forbidden_corpus_roots: [law-source/consultant, law-source/garant]
   raw_text_persistence: forbidden
