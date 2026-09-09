@@ -7,6 +7,7 @@ publish = false
 [dependencies]
 ln-decode = { path = "../ln-decode" }
 ln-kb-ontology = { path = "../ln-kb-ontology" }
+ln-temporal = { path = "../ln-temporal" }
 rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"] }
 
 [[bin]]
@@ -14,4 +15,3 @@ name = "npa-contour-diagnostics"
 path = "src/bin/npa-contour-diagnostics.rs"
 
 [dev-dependencies]
-ln-temporal = { path = "../ln-temporal" }
