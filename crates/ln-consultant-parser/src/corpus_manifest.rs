@@ -9,6 +9,7 @@ pub const SCHEMA: &str = "law-nexus-npa-corpus-manifest/v1";
 pub enum Admission {
     BoundedReviewed,
     HoldoutSealed,
+    DoubleCodedAccepted,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ManifestEntry {
@@ -303,25 +304,35 @@ pub fn load(path: &Path) -> Result<CorpusManifest, String> {
         return Err("manifest_id must match NPA-MAN pattern".into());
     }
     let stratum = s(&root, "stratum")?;
-    if stratum != "C2" && stratum != "C3" {
-        return Err("stratum must be C2 or C3".into());
+    if stratum != "C2" && stratum != "C3" && stratum != "C5" {
+        return Err("stratum must be C2, C3, or C5".into());
     }
     let snap = s(&root, "corpus_snapshot_hash")?;
     if !snap.starts_with("sha256:") {
         return Err("corpus_snapshot_hash must start sha256:".into());
     }
     let life = s(&root, "lifecycle")?;
-    if life != "[bounded]" && life != "[diagnostic]" {
+    if life != "[bounded]" && life != "[diagnostic]" && life != "[proposed]" {
         return Err("invalid lifecycle".into());
     }
     let sealed = matches!(root.get("sealed"), Some(J::B(true)));
-    let digest = match root.get("manifest_digest") {
-        Some(J::S(v)) if v.starts_with("sha256:") => Some(v.clone()),
-        Some(_) => return Err("manifest_digest must start sha256:".into()),
-        None => None,
+    let digest = if stratum == "C5" {
+        match root.get("manifest_digest") {
+            None | Some(J::Null) => None,
+            Some(_) => return Err("C5 manifest_digest must be typed absent".into()),
+        }
+    } else {
+        match root.get("manifest_digest") {
+            Some(J::S(v)) if v.starts_with("sha256:") => Some(v.clone()),
+            Some(_) => return Err("manifest_digest must start sha256:".into()),
+            None => None,
+        }
     };
     if stratum == "C3" && (!sealed || digest.is_none()) {
         return Err("C3 requires sealed and manifest_digest".into());
+    }
+    if stratum == "C5" && (sealed || digest.is_some() || life != "[proposed]") {
+        return Err("C5 must remain an unsealed proposed manifest".into());
     }
     let em = map(root
         .get("environment")
@@ -399,6 +410,7 @@ pub fn load(path: &Path) -> Result<CorpusManifest, String> {
         let admission = match s(&m, "admission")?.as_str() {
             "bounded_reviewed" => Admission::BoundedReviewed,
             "holdout_sealed" => Admission::HoldoutSealed,
+            "double_coded_accepted" => Admission::DoubleCodedAccepted,
             _ => return Err("invalid admission".into()),
         };
         let anchor = s(&m, "evidence_anchor")?;

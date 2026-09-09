@@ -14,6 +14,7 @@ pub mod corpus_manifest;
 pub mod document_profile;
 pub mod edge_deriver;
 pub mod gold_coding;
+pub mod gold_eval;
 pub mod hyperlink;
 pub mod multi_edition;
 pub mod observation;

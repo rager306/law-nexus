@@ -1,0 +1,3 @@
+{"schema":"npa-c5-agreement/v1","manifest_id":"NPA-MAN-C5-M203-S08-100","rung":100,"percent":1.0,"alpha":1.0,"classification":"proxy","disagreements":0,"adjudication_count":0,"parser_revision":"m203-s08-c5-ladder-v1","corpus_snapshot_hash":"diagnostic-bound"}
+{"schema":"npa-c5-agreement/v1","manifest_id":"NPA-MAN-C5-M203-S08-400","rung":400,"percent":1.0,"alpha":1.0,"classification":"proxy","disagreements":0,"adjudication_count":0,"parser_revision":"m203-s08-c5-ladder-v1","corpus_snapshot_hash":"diagnostic-bound"}
+{"schema":"npa-c5-agreement/v1","manifest_id":"NPA-MAN-C5-M203-S08-800","rung":800,"percent":1.0,"alpha":1.0,"classification":"proxy","disagreements":0,"adjudication_count":0,"parser_revision":"m203-s08-c5-ladder-v1","corpus_snapshot_hash":"diagnostic-bound"}

@@ -1,0 +1,3 @@
+{"schema":"npa-c5-gold-coding/v1","manifest_id":"NPA-MAN-C5-M203-S08-100","rung":100,"coder_profiles":["evidence-forward","surface-forward"],"units":100,"raw_text":false}
+{"schema":"npa-c5-gold-coding/v1","manifest_id":"NPA-MAN-C5-M203-S08-400","rung":400,"coder_profiles":["evidence-forward","surface-forward"],"units":400,"raw_text":false}
+{"schema":"npa-c5-gold-coding/v1","manifest_id":"NPA-MAN-C5-M203-S08-800","rung":800,"coder_profiles":["evidence-forward","surface-forward"],"units":800,"raw_text":false}

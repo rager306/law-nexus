@@ -14,4 +14,8 @@ rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"
 name = "npa-contour-diagnostics"
 path = "src/bin/npa-contour-diagnostics.rs"
 
+[[bin]]
+name = "npa-gold-ladder"
+path = "src/bin/npa-gold-ladder.rs"
+
 [dev-dependencies]
