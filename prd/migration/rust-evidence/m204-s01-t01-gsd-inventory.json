@@ -25,7 +25,7 @@
       "M209-2yg6ix",
       "M210-3afp79"
     ],
-    "note": "Sanctioned query projection exposes 210 registry rows: 204 complete, M204 active, and M205-M209 pending; M210 is not exposed. No external engine source was consulted."
+    "note": "Sanctioned query projection exposes 211 registry rows: 204 complete, M204 active, and M205-M210 pending; all six pending milestones are exposed. No external engine source was consulted."
   },
   "task_counter": {
     "expected": "2184/2188 with pending=4",
