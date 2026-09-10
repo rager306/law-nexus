@@ -18,4 +18,8 @@ path = "src/bin/npa-contour-diagnostics.rs"
 name = "npa-gold-ladder"
 path = "src/bin/npa-gold-ladder.rs"
 
+[[bin]]
+name = "npa-promotion-eval"
+path = "src/bin/npa-promotion-eval.rs"
+
 [dev-dependencies]

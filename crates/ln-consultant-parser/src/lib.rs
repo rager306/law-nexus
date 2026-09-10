@@ -19,6 +19,7 @@ pub mod gold_eval;
 pub mod hyperlink;
 pub mod multi_edition;
 pub mod observation;
+pub mod promotion_gate;
 pub mod raw_link;
 
 pub use catalog::{
