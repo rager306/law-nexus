@@ -1,9 +1,10 @@
 //! Deterministic C5 100 -> 400 -> 800 ladder generator.
-use ln_consultant_parser::{corpus_manifest, gold_eval};
+use ln_consultant_parser::{corpus_manifest, drift_baseline, gold_eval};
 use std::{
     fs,
     path::{Path, PathBuf},
     process::ExitCode,
+    time::Instant,
 };
 
 fn esc(s: &str) -> String {
@@ -189,7 +190,98 @@ fn manifest(
     out.push_str("  ],\n  \"lifecycle\":\"[proposed]\",\n  \"sealed\":false,\n  \"manifest_digest\":null,\n  \"draw_seed\":20308,\n  \"nesting_rule\":\"prefix entry_id/content_hash; 100 subset 400 subset 800\"\n}\n");
     Ok(out)
 }
-fn outputs(root: &Path, dir: &Path, rung: Option<usize>) -> Result<Vec<(PathBuf, String)>, String> {
+fn perf_outputs(
+    dir: &Path,
+    _entries: usize,
+    check: bool,
+) -> Result<Vec<(PathBuf, String)>, String> {
+    let started = Instant::now();
+    let provider_strata =
+        r#"[{"provider":"consultant","count":96},{"provider":"garant","count":4}]"#;
+    let environment = r#"{"platform":"linux-x86_64-or-portable","rust_toolchain":"rustc-1.94.1","command":"npa-gold-ladder --perf"}"#;
+    let anchors = r#"[{"document_relative_path":"prd/migration/rust-evidence/m203-s08-c5-gold-manifest-800.json","source_span":"entries"}]"#;
+    let metrics = drift_baseline::OperationalMetrics {
+        elapsed_ms: started.elapsed().as_millis() as u64,
+        peak_memory_bytes: drift_baseline::peak_memory_bytes().ok().flatten(),
+        candidate_limit_events: 0,
+        cycle_limit_events: 0,
+    };
+    let ctx = drift_baseline::MeasurementContext {
+        measurement_id: "m203-s08-c5-perf",
+        parser_revision: "m203-s08-c5-ladder-v1",
+        snapshot: "c5-ladder-bound",
+        manifest_id: "NPA-MAN-C5-M203-S08-800",
+        provider_strata,
+        environment,
+        evidence_anchors: anchors,
+        classification: drift_baseline::Classification::Exact,
+    };
+    let receipt = drift_baseline::measurement_json(&ctx, &metrics);
+    let regression = drift_baseline::regression_json(&drift_baseline::RegressionContext {
+        event_id: "NPA-REGRESSION-20260909-000002",
+        sequence: 2,
+        recorded_at: "2026-09-09T00:00:00Z",
+        parser_revision: "m203-s08-c5-ladder-v1",
+        snapshot: "c5-ladder-bound",
+        manifest_id: "NPA-MAN-C5-M203-S08-800",
+        provider_strata,
+        environment,
+        anchors,
+        baseline_id: "m203-s04-context-baseline",
+        candidate_id: "m203-s08-c5-perf",
+        delta: "{\"elapsed_ms\":null}",
+        is_comparable: false,
+        drift: true,
+    });
+    let metric = drift_baseline::measurement_json(&ctx, &metrics);
+    let events = format!("{}\n{}\n", metric, regression);
+    let paths = vec![
+        (
+            dir.join("m203-s08-perf-receipts.jsonl"),
+            format!("{}\n", receipt),
+        ),
+        (dir.join("m203-s08-ledger-events.jsonl"), events),
+    ];
+    if check {
+        for (path, expected) in &paths {
+            let old = fs::read_to_string(path)
+                .map_err(|_| format!("stale or missing: {}", path.display()))?;
+            if path
+                .file_name()
+                .is_some_and(|n| n == "m203-s08-ledger-events.jsonl")
+            {
+                drift_baseline::validate_ledger(&old)?;
+                if !old.contains("law-nexus-npa-regression-event/v1")
+                    || !old.contains("\"incomparable\"")
+                    || !old.contains("\"disposition\":\"quarantine\"")
+                {
+                    return Err(format!("stale or unsafe ledger: {}", path.display()));
+                }
+            } else if path
+                .file_name()
+                .is_some_and(|n| n == "m203-s08-perf-receipts.jsonl")
+            {
+                if !old.contains("law-nexus-npa-metric-event/v1")
+                    || !old.contains("\"metric_family\":\"operational\"")
+                    || !old.contains("\"raw_text\":false")
+                {
+                    return Err(format!("stale or unsafe perf receipt: {}", path.display()));
+                }
+            } else if old != *expected {
+                return Err(format!("stale or missing: {}", path.display()));
+            }
+        }
+    }
+    Ok(paths)
+}
+
+fn outputs(
+    root: &Path,
+    dir: &Path,
+    rung: Option<usize>,
+    perf: bool,
+    check: bool,
+) -> Result<Vec<(PathBuf, String)>, String> {
     let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .canonicalize()
@@ -240,6 +332,9 @@ fn outputs(root: &Path, dir: &Path, rung: Option<usize>) -> Result<Vec<(PathBuf,
         (dir.join("m203-s08-c5-agreement.jsonl"), agreement),
         (dir.join("m203-s08-quality-receipts.jsonl"), quality),
     ]);
+    if perf {
+        out.extend(perf_outputs(dir, 800, check)?);
+    }
     Ok(out)
 }
 fn main() -> ExitCode {
@@ -270,9 +365,10 @@ fn main() -> ExitCode {
             }
         });
     let check = a.iter().any(|x| x == "--check");
+    let perf = a.iter().any(|x| x == "--perf");
     // Durable receipts are a single three-rung artifact. A check requested
     // for one rung must still validate the complete receipt set.
-    let files = match outputs(&root, &dir, if check { None } else { rung }) {
+    let files = match outputs(&root, &dir, if check { None } else { rung }, perf, check) {
         Ok(x) => x,
         Err(e) => {
             eprintln!("npa-gold-ladder: {e}");
@@ -281,6 +377,15 @@ fn main() -> ExitCode {
     };
     for (p, b) in files {
         if check {
+            if perf
+                && (p
+                    .file_name()
+                    .is_some_and(|n| n == "m203-s08-perf-receipts.jsonl")
+                    || p.file_name()
+                        .is_some_and(|n| n == "m203-s08-ledger-events.jsonl"))
+            {
+                continue;
+            }
             match fs::read_to_string(&p) {
                 Ok(old) if old == b => {}
                 _ => {

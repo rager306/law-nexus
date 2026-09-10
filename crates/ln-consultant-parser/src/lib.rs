@@ -12,6 +12,7 @@ pub mod classifier;
 pub mod contour_diagnostics;
 pub mod corpus_manifest;
 pub mod document_profile;
+pub mod drift_baseline;
 pub mod edge_deriver;
 pub mod gold_coding;
 pub mod gold_eval;
