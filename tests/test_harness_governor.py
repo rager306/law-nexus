@@ -2624,6 +2624,19 @@ def test_historical_test_debt_excludes_ci_process_suite_and_anti_era_controls(
     assert "test_skill_reject_pyo3.py" not in finding.observed
 
 
+def test_live_npa_promotion_control_is_registered_with_debt_inputs() -> None:
+    report = run_governor(ROOT)
+    finding = next(item for item in report.findings if item.check_id == "npa-promotion-control")
+    spec = next(item for item in GOVERNOR_CHECK_SPECS if item.check_id == "npa-promotion-control")
+
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert spec.default_severity == "error"
+    assert "prd/architecture/npa-promotion-gates.json" in spec.authority_inputs
+    assert "R035" in finding.observed
+    assert "R070" in finding.observed
+
+
 def test_live_governor_includes_adr_and_archive_checks() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}

@@ -1979,10 +1979,13 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
     ]
 
 
+_NPA_PROMOTION_GATES_REL = "prd/architecture/npa-promotion-gates.json"
+_NPA_PROMOTION_RECEIPTS_REL = "prd/migration/rust-evidence/m203-s09-promotion-receipts.jsonl"
 _NPA_CONTROL_ARTIFACTS: tuple[tuple[str, str], ...] = (
     ("prd/architecture/npa-corpus-control.yaml", "law-nexus-npa-corpus-control/v1"),
     ("prd/architecture/npa-metric-baselines.yaml", "law-nexus-npa-metric-baselines/v1"),
     ("prd/architecture/npa-control-ledgers.yaml", "law-nexus-npa-control-ledgers/v1"),
+    (_NPA_PROMOTION_GATES_REL, "law-nexus-npa-promotion-gates/v1"),
 )
 
 
@@ -2124,6 +2127,120 @@ def check_npa_fsm_completeness(root: Path) -> list[GovernorFinding]:
             check_id,
             "NPA P0-P9 and orthogonal FSM catalog are structurally present",
             "phases=10; runtime_readiness=not_claimed",
+            "none",
+            status="pass",
+            evidence=evidence,
+        )
+    ]
+
+
+def _npa_promotion_binding(root: Path, binding_inputs: list[str]) -> str:
+    """Return the deterministic sha256-over-sha256-lines binding."""
+
+    content_hashes = []
+    for relative in sorted(binding_inputs):
+        path = root / relative
+        content_hashes.append(hashlib.sha256(path.read_bytes()).hexdigest())
+    return hashlib.sha256("".join(f"{digest}\n" for digest in content_hashes).encode()).hexdigest()
+
+
+def check_npa_promotion_control(root: Path) -> list[GovernorFinding]:
+    """Block stale, contradictory, or scope-smoothed NPA promotion claims."""
+
+    check_id = "npa-promotion-control"
+    gates_path = root / _NPA_PROMOTION_GATES_REL
+    receipts_path = root / _NPA_PROMOTION_RECEIPTS_REL
+    evidence = (
+        GovernorEvidence(path=_NPA_PROMOTION_GATES_REL),
+        GovernorEvidence(path=_NPA_PROMOTION_RECEIPTS_REL),
+    )
+    try:
+        gates = json.loads(gates_path.read_text(encoding="utf-8"))
+        binding_inputs = gates["revision_binding"]["binding_inputs"]
+        if not isinstance(binding_inputs, list) or not all(
+            isinstance(item, str) and item for item in binding_inputs
+        ):
+            raise ValueError("binding_inputs is not a non-empty string list")
+        expected_binding = _npa_promotion_binding(root, binding_inputs)
+        debt = gates["requirement_transitions"]["debt"]
+        debt_text = "; ".join(f"{item['requirement']}: {item['remaining']}" for item in debt)
+    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+        return [
+            _npa_finding(
+                check_id,
+                "NPA promotion gate contract cannot be read",
+                type(error).__name__,
+                "Repair the JSON gate contract and its revision binding inputs.",
+                severity="error",
+                evidence=evidence,
+            )
+        ]
+
+    if not receipts_path.is_file():
+        return [
+            _npa_finding(
+                check_id,
+                "No NPA promotion claims are present",
+                f"receipts=missing; remaining_debt={debt_text}",
+                "none",
+                status="pass",
+                evidence=evidence,
+            )
+        ]
+
+    violations: list[str] = []
+    try:
+        lines = receipts_path.read_text(encoding="utf-8").splitlines()
+        for line_number, line in enumerate(lines, start=1):
+            if not line.strip():
+                continue
+            try:
+                receipt = json.loads(line)
+            except json.JSONDecodeError:
+                violations.append(f"line={line_number}:malformed-json")
+                continue
+            if not isinstance(receipt, dict):
+                violations.append(f"line={line_number}:root-not-mapping")
+                continue
+            outcome = receipt.get("outcome")
+            if isinstance(outcome, str) and outcome.startswith("blocked-"):
+                continue
+            if outcome != "promoted":
+                continue
+            scope = receipt.get("corpus_scope")
+            capability = receipt.get("capability")
+            if capability in {"system", "all"} or not isinstance(scope, str) or not scope:
+                violations.append(f"line={line_number}:scope-smoothed")
+            if any(
+                item.get("scope") == scope and item.get("capability") in {None, capability}
+                for item in gates.get("forbidden_promotions", [])
+                if isinstance(item, dict)
+            ):
+                violations.append(f"line={line_number}:scope-smoothed")
+            acceptance = receipt.get("human_acceptance")
+            if not isinstance(acceptance, dict) or not acceptance.get("evidence_anchor"):
+                violations.append(f"line={line_number}:promoted-without-human-gate")
+            if receipt.get("revision_binding") != expected_binding:
+                violations.append(f"line={line_number}:stale-revision-binding")
+    except OSError as error:
+        violations.append(f"receipts={type(error).__name__}")
+
+    if violations:
+        return [
+            _npa_finding(
+                check_id,
+                "NPA promotion claims are blocked by control violations",
+                f"violations={';'.join(violations)}; remaining_debt={debt_text}",
+                "Quarantine the claim, restore a comparable revision, and obtain anchored legal-human acceptance.",
+                severity="error",
+                evidence=evidence,
+            )
+        ]
+    return [
+        _npa_finding(
+            check_id,
+            "NPA promotion control has no blocked claims",
+            f"promoted_claims=0; remaining_debt={debt_text}",
             "none",
             status="pass",
             evidence=evidence,
@@ -7130,6 +7247,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
             "prd/architecture/npa-semantic-process.yaml",
             "prd/architecture/npa-parsing-program.yaml",
         ),
+        "error",
+    ),
+    _check_spec(
+        "npa-promotion-control",
+        "npa-control",
+        "deterministic",
+        check_npa_promotion_control,
+        "Block stale, contradictory, or scope-smoothed NPA promotion claims and report remaining R035/R070 debt.",
+        (_NPA_PROMOTION_GATES_REL, _NPA_PROMOTION_RECEIPTS_REL),
         "error",
     ),
     _check_spec(
