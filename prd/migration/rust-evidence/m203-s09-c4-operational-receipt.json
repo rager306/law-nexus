@@ -1,0 +1,20 @@
+{
+  "schema": "npa-c4-operational-receipt/v1",
+  "command": "cargo run --offline --bin npa-contour-diagnostics -- --check",
+  "exit_code": 5,
+  "started_at": "2026-09-10T06:31:07Z",
+  "finished_at": "2026-09-10T06:46:56Z",
+  "duration_ms": 949000,
+  "budget_seconds": 3600,
+  "revision_binding": "2b6d8d9794487a25f4d6a6e764c7ccb6eb62ab1319eb9a6ba297339b7833b964",
+  "binding_inputs": [
+    "prd/architecture/npa-metric-baselines.yaml",
+    "prd/architecture/npa-promotion-gates.json",
+    "prd/migration/rust-evidence/m203-s08-c5-gold-manifest-100.json",
+    "prd/migration/rust-evidence/m203-s08-c5-gold-manifest-400.json",
+    "prd/migration/rust-evidence/m203-s08-c5-gold-manifest-800.json",
+    "prd/migration/rust-evidence/m203-s08-ledger-events.jsonl",
+    "prd/migration/rust-evidence/m203-s08-quality-receipts.jsonl"
+  ],
+  "outcome": "fail-stale"
+}
