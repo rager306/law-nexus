@@ -1,0 +1,142 @@
+{
+  "schema": "rc28-f05-gsd-failure-classes/v1",
+  "generated_at": "2026-09-11T00:00:00Z",
+  "scope": {
+    "milestone": "M204-w2ktfw",
+    "slice": "S01",
+    "task": "T02",
+    "project_root": ".",
+    "surfaces": [
+      ".gsd/journal/2026-09-*.jsonl",
+      ".gsd/activity/*.jsonl",
+      ".gsd/runtime/units/*.json",
+      "prd/migration/rust-evidence/m204-s01-t01-gsd-inventory.json"
+    ],
+    "external_paths_read": false,
+    "direct_database_access": false,
+    "upstream_filed": false
+  },
+  "classes": [
+    {
+      "id": "claim-dispatch-desync",
+      "name": "Task Attempt claim must activate exactly one matching coordination dispatch",
+      "count": 190,
+      "trigger": "A Task Attempt claim is processed while the coordination-dispatch projection does not contain exactly one matching active dispatch.",
+      "observed_symptom": "Auto-mode records iteration-error/unit-abandon and may hit the liveness backstop; repeated unchanged inputs produce a blocked auto-exit wedge.",
+      "scope": ["engine", "process"],
+      "product_impact": "none observed in the law-nexus product runtime; failure is in GSD lifecycle coordination.",
+      "sanctioned_lifecycle_recovery": {
+        "available": true,
+        "method": "Use the sanctioned diagnostic/repair path to reconcile the matching dispatch and resume the affected unit; do not mutate gsd.db directly.",
+        "limits": "The evidence identifies the defect but does not establish an in-project permanent engine fix."
+      },
+      "evidence_refs": [
+        {
+          "timestamp": "2026-09-01T05:58:40.978Z",
+          "unit_id": "M196-bwvrj7/S02/T01",
+          "source": ".gsd/journal/2026-09-01.jsonl:89",
+          "event": "iteration-end",
+          "detail": "Task Attempt claim must activate exactly one matching coordination dispatch"
+        },
+        {
+          "timestamp": "2026-09-10T13:01:20.232925Z",
+          "unit_id": "M204-w2ktfw/S01/T01",
+          "source": "prd/migration/rust-evidence/m204-s01-t01-gsd-inventory.json",
+          "event": "inventory-generated",
+          "detail": "Inventory records 190 occurrences and preserves the no-external-paths-read boundary."
+        }
+      ]
+    },
+    {
+      "id": "gate-completed-no-advance",
+      "name": "gate-evaluate completed-no-advance wedge",
+      "count": 12,
+      "trigger": "A gate-evaluate unit reports completion without changing any of its target rows.",
+      "observed_symptom": "The liveness backstop repeats completed-no-advance and stops auto-mode with a wedge; examples include M203/S02 and M203/S03 gate evaluations.",
+      "scope": ["engine", "process"],
+      "product_impact": "none observed in the law-nexus product runtime; gate persistence/advance is the affected lifecycle surface.",
+      "sanctioned_lifecycle_recovery": {
+        "available": true,
+        "method": "Inspect the unit summary and reconcile state through sanctioned GSD status/doctor/repair or resume paths, then rerun the gate unit.",
+        "limits": "Recovery can unblock a unit but does not prove the external advance guard is fixed."
+      },
+      "evidence_refs": [
+        {
+          "timestamp": "2026-09-07T14:11:16.558Z",
+          "unit_id": "M203-cx1j7t/S02/gates+Q3,Q4",
+          "source": ".gsd/journal/2026-09-07.jsonl:341",
+          "event": "orchestrator-guard-block",
+          "detail": "completed-no-advance recurred 2x with unchanged inputs"
+        },
+        {
+          "timestamp": "2026-09-10T13:01:20.232925Z",
+          "unit_id": "M204-w2ktfw/S01/T01",
+          "source": "prd/migration/rust-evidence/m204-s01-t01-gsd-inventory.json",
+          "event": "inventory-generated",
+          "detail": "Inventory records 12 occurrences."
+        }
+      ]
+    },
+    {
+      "id": "plan-slice-out-of-project-research-path",
+      "name": "plan-slice artifact-verification failure caused by research citing paths outside the project root",
+      "count": 1,
+      "trigger": "Research evidence supplied to plan-slice contains a path outside the active project root, so artifact verification cannot establish project-local provenance.",
+      "observed_symptom": "plan-slice artifact verification rejects the research-backed plan rather than accepting an out-of-project reference; the unit cannot advance until evidence is rewritten with project-local refs.",
+      "scope": ["engine", "process"],
+      "product_impact": "none observed in the law-nexus product runtime; this is a planning/evidence-boundary failure.",
+      "sanctioned_lifecycle_recovery": {
+        "available": true,
+        "method": "Replace the research citation with a project-local evidence ref, rerun sanctioned research/plan-slice verification, and resume the unit.",
+        "limits": "No external checkout or engine source may be read or edited from this project."
+      },
+      "evidence_refs": [
+        {
+          "timestamp": "2026-09-10T12:39:50.817Z",
+          "unit_id": "M204-w2ktfw/S01/research",
+          "source": ".gsd/activity/1870-research-slice-M204-w2ktfw-parallel-research.jsonl:11",
+          "event": "research-result",
+          "detail": "The local research result is the source-bound record used to diagnose the plan-slice artifact-verification/path-boundary failure; no external path was read."
+        }
+      ]
+    },
+    {
+      "id": "task-completion-escalation-rejected",
+      "name": "execute-task completion abort caused by passing the escalation field to gsd_task_complete",
+      "count": 13,
+      "trigger": "An execute-task closeout passes the escalation field to gsd_task_complete, although this build's durable adapter does not support that field.",
+      "observed_symptom": "The completion call aborts with `Canonical Task completion escalation is not yet supported by the durable completion adapter`; task closeout is not persisted by that invocation.",
+      "scope": ["engine", "process"],
+      "product_impact": "none observed in the law-nexus product runtime; the failure is in the durable GSD completion adapter contract.",
+      "sanctioned_lifecycle_recovery": {
+        "available": true,
+        "method": "Retry the same task closeout without the unsupported escalation field, preserving honest knownIssues/blocked information in supported fields.",
+        "limits": "This is a compatibility workaround, not an engine repair; do not claim the adapter defect is fixed."
+      },
+      "evidence_refs": [
+        {
+          "timestamp": "2026-09-10T13:02:16.812Z",
+          "unit_id": "M204-w2ktfw/S01/T01",
+          "source": ".gsd/activity/1874-execute-task-M204-w2ktfw-S01-T01.jsonl:toolResult",
+          "event": "gsd_task_complete-error",
+          "detail": "Canonical Task completion escalation is not yet supported by the durable completion adapter"
+        },
+        {
+          "timestamp": "2026-09-07T10:41:24.710Z",
+          "unit_id": "M203-cx1j7t/S01/T01",
+          "source": ".gsd/activity/1739-execute-task-M203-cx1j7t-S01-T01.jsonl:toolResult",
+          "event": "gsd_task_complete-error",
+          "detail": "Repeated historical occurrence of the same durable-adapter rejection."
+        }
+      ]
+    }
+  ],
+  "classification_summary": {
+    "product": 0,
+    "process": 4,
+    "engine": 4,
+    "recoverable_by_sanctioned_lifecycle": 4,
+    "permanent_in_project_fix": false
+  },
+  "negative_boundary": "This artifact uses only project-local inventory, journal, activity, and runtime surfaces. It does not read or modify an external GSD checkout, upstream source, or database file."
+}
