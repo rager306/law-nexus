@@ -1,5 +1,7 @@
 //! Deterministic C5 100 -> 400 -> 800 ladder generator.
-use ln_consultant_parser::{corpus_manifest, drift_baseline, gold_coding, gold_eval};
+use ln_consultant_parser::{
+    corpus_manifest, corpus_sample, drift_baseline, gold_coding, gold_eval,
+};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -20,33 +22,6 @@ fn walk(root: &Path, out: &mut Vec<PathBuf>) -> Result<(), String> {
         }
     }
     Ok(())
-}
-fn year(p: &Path) -> String {
-    p.to_string_lossy()
-        .split(|c: char| !c.is_ascii_digit())
-        .find(|x| x.len() == 4)
-        .unwrap_or("unknown")
-        .into()
-}
-fn kind(p: &Path) -> String {
-    let s = p.to_string_lossy().to_lowercase();
-    if s.contains("ukaz") {
-        "decree"
-    } else if s.contains("postan") {
-        "resolution"
-    } else if s.contains("fz") || s.contains("law") || s.contains("federal") {
-        "law"
-    } else {
-        "unknown"
-    }
-    .into()
-}
-fn provider(p: &Path) -> &'static str {
-    if p.to_string_lossy().to_lowercase().contains("garant") {
-        "garant"
-    } else {
-        "consultant"
-    }
 }
 fn snapshot(entries: &[corpus_manifest::ManifestEntry]) -> String {
     let s = entries
@@ -105,89 +80,43 @@ fn hash_paths(source: &[PathBuf]) -> Result<std::collections::BTreeMap<PathBuf, 
     Ok(hashes)
 }
 
-fn select_paths(
-    rung: usize,
-    source: &[PathBuf],
-    hashes: &std::collections::BTreeMap<PathBuf, String>,
-    excluded_hashes: &std::collections::BTreeSet<String>,
-) -> Vec<PathBuf> {
-    let mut sorted = source
-        .iter()
-        .filter(|p| hashes.get(*p).is_some_and(|h| !excluded_hashes.contains(h)))
-        .cloned()
-        .collect::<Vec<_>>();
-    sorted.sort();
-    let mut garant: Vec<_> = sorted
-        .iter()
-        .filter(|p| provider(p) == "garant")
-        .cloned()
-        .collect();
-    garant.truncate(4);
-    let mut consultant: Vec<_> = sorted
-        .iter()
-        .filter(|p| provider(p) == "consultant")
-        .cloned()
-        .collect();
-    consultant.truncate(800usize.saturating_sub(garant.len()));
-    // Build one canonical ladder order, then take prefixes. This makes
-    // 100 ⊂ 400 ⊂ 800 independent of whether each rung is generated alone.
-    let first_consultant = consultant.drain(..96.min(consultant.len()));
-    let mut paths: Vec<_> = first_consultant.collect();
-    paths.extend(garant);
-    paths.extend(consultant);
-    paths.truncate(rung);
-    paths
-}
-fn manifest(
-    rung: usize,
-    source: &[PathBuf],
-    hashes: &std::collections::BTreeMap<PathBuf, String>,
-    excluded_hashes: &std::collections::BTreeSet<String>,
-) -> Result<String, String> {
-    let paths = select_paths(rung, source, hashes, excluded_hashes);
+fn manifest(rung: usize, plan: &corpus_sample::DrawPlan) -> Result<String, String> {
     let mut entries = Vec::new();
-    for (i, p) in paths.iter().enumerate() {
-        let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .unwrap_or_else(|_| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."));
-        let canonical = p
-            .strip_prefix(&repo_root)
-            .map(Path::to_path_buf)
-            .unwrap_or_else(|_| p.clone());
-        let rel = canonical.to_string_lossy().replace('\\', "/");
-        let h = hashes
-            .get(p)
-            .cloned()
-            .ok_or_else(|| format!("missing inventory hash for {}", p.display()))?;
+    for (i, candidate) in plan.candidates.iter().enumerate() {
+        let rel = candidate.relative_path.clone();
+        let provider = match candidate.meta.provider {
+            corpus_sample::SourceRootKind::ConsultantExport => "consultant",
+            corpus_sample::SourceRootKind::Garant => "garant",
+        };
         entries.push(corpus_manifest::ManifestEntry {
             entry_id: format!("NPA-MAN-C5-M204-S02-{i:04}"),
             document_relative_path: rel.clone(),
-            content_hash: h,
+            content_hash: candidate.content_hash.clone(),
             evidence_anchor: format!("{rel}#document"),
             admission: corpus_manifest::Admission::BoundedReviewed,
-            provider: provider(p).into(),
-            year: year(p),
-            document_type: kind(p),
+            provider: provider.into(),
+            year: candidate
+                .meta
+                .year
+                .map_or_else(|| "unknown".into(), |y| y.to_string()),
+            document_type: candidate.meta.document_type.clone(),
         });
     }
-    let mut pc = std::collections::BTreeMap::new();
-    pc.insert(
-        "consultant".to_string(),
-        entries
-            .iter()
-            .filter(|e| e.provider == "consultant")
-            .count(),
+    let consultant = entries
+        .iter()
+        .filter(|e| e.provider == "consultant")
+        .count();
+    let garant = entries.iter().filter(|e| e.provider == "garant").count();
+    let mut out = format!(
+        "{{\n  \"schema_version\":\"{}\",\n  \"manifest_id\":\"NPA-MAN-C5-M204-S02-{rung}\",\n  \"stratum\":\"C5\",\n  \"parser_revision\":\"m204-s03-c5-ladder-v3\",\n  \"corpus_snapshot_hash\":\"{}\",\n  \"provider_strata\":[{{\"provider\":\"consultant\",\"year\":\"inventory\",\"document_type\":\"mixed\",\"quota\":{consultant},\"availability_cap\":{consultant}}},{{\"provider\":\"garant\",\"year\":\"inventory\",\"document_type\":\"mixed\",\"quota\":{garant},\"availability_cap\":4}}],\n  \"environment\":{{\"platform\":\"linux-x86_64\",\"rust_toolchain\":\"rustc-1.94.1\",\"command\":\"npa-gold-ladder --seed {}\"}},\n  \"entries\":[\n",
+        corpus_manifest::SCHEMA,
+        snapshot(&entries),
+        plan.seed,
     );
-    pc.insert(
-        "garant".to_string(),
-        entries.iter().filter(|e| e.provider == "garant").count(),
-    );
-    let mut out=format!("{{\n  \"schema_version\":\"{}\",\n  \"manifest_id\":\"NPA-MAN-C5-M204-S02-{rung}\",\n  \"stratum\":\"C5\",\n  \"parser_revision\":\"m204-s02-c5-ladder-v2\",\n  \"corpus_snapshot_hash\":\"{}\",\n  \"provider_strata\":[{{\"provider\":\"consultant\",\"year\":\"inventory\",\"document_type\":\"mixed\",\"quota\":{},\"availability_cap\":{}}},{{\"provider\":\"garant\",\"year\":\"inventory\",\"document_type\":\"mixed\",\"quota\":{},\"availability_cap\":{}}}],\n  \"environment\":{{\"platform\":\"linux-x86_64\",\"rust_toolchain\":\"rustc-1.94.1\",\"command\":\"seeded C5 inventory draw 20402\"}},\n  \"entries\":[\n", corpus_manifest::SCHEMA, snapshot(&entries), pc["consultant"],pc["consultant"],pc["garant"],pc["garant"]);
     for (i, e) in entries.iter().enumerate() {
-        out.push_str(&format!("    {{\"entry_id\":\"{}\",\"document_relative_path\":\"{}\",\"content_hash\":\"{}\",\"evidence_anchor\":\"{}\",\"admission\":\"bounded_reviewed\",\"provider\":\"{}\",\"year\":\"{}\",\"document_type\":\"{}\"}}{}\n",e.entry_id,esc(&e.document_relative_path),e.content_hash,esc(&e.evidence_anchor),e.provider,e.year,e.document_type,if i+1==entries.len(){""}else{","}));
+        out.push_str(&format!("    {{\"entry_id\":\"{}\",\"document_relative_path\":\"{}\",\"content_hash\":\"{}\",\"evidence_anchor\":\"{}\",\"admission\":\"bounded_reviewed\",\"provider\":\"{}\",\"year\":\"{}\",\"document_type\":\"{}\"}}{}\n", e.entry_id, esc(&e.document_relative_path), e.content_hash, esc(&e.evidence_anchor), e.provider, e.year, e.document_type, if i + 1 == entries.len() { "" } else { "," }));
     }
-    out.push_str("  ],\n  \"lifecycle\":\"[proposed]\",\n  \"sealed\":false,\n  \"manifest_digest\":null,\n  \"draw_seed\":20308,\n  \"nesting_rule\":\"prefix entry_id/content_hash; 100 subset 400 subset 800\"\n}\n");
+    out.push_str(&format!("  ],\n  \"lifecycle\":\"[proposed]\",\n  \"sealed\":false,\n  \"manifest_digest\":null,\n  \"draw_seed\":{},\n  \"nesting_rule\":\"prefix entry_id/content_hash; 100 subset 400 subset 800\"\n}}\n", plan.seed));
     Ok(out)
 }
 fn perf_outputs(
@@ -277,8 +206,10 @@ fn perf_outputs(
 
 fn outputs(
     root: &Path,
+    garant_root: &Path,
     dir: &Path,
     rung: Option<usize>,
+    seed: u64,
     perf: bool,
     check: bool,
 ) -> Result<Vec<(PathBuf, String)>, String> {
@@ -294,30 +225,75 @@ fn outputs(
     {
         let frozen = "prd/migration/rust-evidence/m203-s08-c3-holdout-manifest.json";
         let path = repo_root.join(frozen);
-        if path.is_file() {
-            let manifest = corpus_manifest::load(&path)?;
-            excluded_hashes.extend(manifest.entries.into_iter().map(|e| e.content_hash));
+        if !path.is_file() {
+            return Err(format!(
+                "required frozen C3 manifest is missing: {}",
+                path.display()
+            ));
         }
+        let manifest = corpus_manifest::load(&path)?;
+        excluded_hashes.extend(manifest.entries.into_iter().map(|e| e.content_hash));
     }
     walk(root, &mut files)?;
     // Garant is a separate provider contour; never infer it from Consultant XML.
-    let garant = repo_root.join("law-source/garant");
-    if garant.is_dir() && root != garant.as_path() {
-        walk(&garant, &mut files)?;
+    if garant_root.is_dir() && root != garant_root {
+        walk(garant_root, &mut files)?;
     }
     files.sort();
     if files.len() < 800 {
         return Err(format!("C5 inventory has {} files, need 800", files.len()));
     }
     let hashes = hash_paths(&files)?;
+    let consultant_source = corpus_sample::CorpusRoot::new(
+        root.to_path_buf(),
+        corpus_sample::SourceRootKind::ConsultantExport,
+    )?;
+    let garant_source = corpus_sample::CorpusRoot::new(
+        garant_root.to_path_buf(),
+        corpus_sample::SourceRootKind::Garant,
+    )?;
+    let inventory = files
+        .iter()
+        .map(|path| {
+            let meta = consultant_source
+                .classify(path)
+                .or_else(|_| garant_source.classify(path))?;
+            Ok(corpus_sample::SampleCandidate {
+                relative_path: meta.relative_path.clone(),
+                content_hash: hashes
+                    .get(path)
+                    .cloned()
+                    .ok_or_else(|| format!("missing inventory hash for {}", path.display()))?,
+                meta,
+            })
+        })
+        .collect::<Result<Vec<_>, String>>()?;
     let rungs: Vec<usize> = rung.map_or_else(|| vec![100, 400, 800], |n| vec![n]);
     let mut out = Vec::new();
     let mut coding = String::new();
     let mut agreement = String::new();
     let mut quality = String::new();
+    let mut leakage_rows = Vec::new();
     let status = gold_coding::MeasurementStatus::NotMeasured.as_str();
     for n in rungs {
-        let rendered = manifest(n, &files, &hashes, &excluded_hashes)?;
+        let plan = corpus_sample::draw(inventory.clone(), &excluded_hashes, n, seed)?;
+        let leakage = &plan.leakage;
+        leakage_rows.push(format!(
+            "{{\"rung\":{n},\"requested\":{},\"selected\":{},\"input_candidates\":{},\"exact_duplicate_hashes\":{},\"excluded_c3_hashes\":{},\"collapsed_editions\":{},\"collapsed_families\":{},\"c3_family_overlap\":{},\"garant_cap\":{},\"garant_selected\":{},\"consultant_selected\":{},\"not_year_type_stratified\":{}}}",
+            plan.requested,
+            plan.candidates.len(),
+            leakage.input_candidates,
+            leakage.exact_duplicate_hashes,
+            leakage.excluded_c3_hashes,
+            leakage.collapsed_editions,
+            leakage.collapsed_families,
+            leakage.c3_family_overlap,
+            leakage.garant_cap,
+            leakage.garant_selected,
+            leakage.consultant_selected,
+            leakage.not_year_type_stratified,
+        ));
+        let rendered = manifest(n, &plan)?;
         let marker = "\"corpus_snapshot_hash\":\"";
         let start = rendered
             .find(marker)
@@ -334,51 +310,115 @@ fn outputs(
         ));
         let id = format!("NPA-MAN-C5-M204-S02-{n}");
         coding.push_str(&format!("{{\"schema\":\"npa-c5-gold-coding/v2\",\"manifest_id\":\"{id}\",\"rung\":{n},\"measurement_status\":\"{status}\",\"coder_profiles\":[],\"units\":0,\"raw_text\":false,\"corpus_snapshot_hash\":\"{snapshot}\"}}\n"));
-        agreement.push_str(&format!("{{\"schema\":\"npa-c5-agreement/v2\",\"manifest_id\":\"{id}\",\"rung\":{n},\"measurement_status\":\"{status}\",\"percent\":null,\"alpha\":null,\"classification\":null,\"disagreements\":null,\"adjudication_count\":0,\"parser_revision\":\"m204-s02-c5-ladder-v2\",\"corpus_snapshot_hash\":\"{snapshot}\"}}\n"));
-        quality.push_str(&format!("{{\"schema\":\"{}\",\"evidence_id\":\"c5-{n}\",\"family\":\"c5-rung\",\"parser_revision\":\"m204-s02-c5-ladder-v2\",\"manifest_id\":\"{id}\",\"measurement_status\":\"{status}\",\"corpus_snapshot_hash\":\"{snapshot}\",\"layers\":{{}},\"zero_tolerance\":{{}},\"human_acceptance\":null,\"non_claims\":[\"not measured\",\"not accepted gold\",\"not R035/R070\"]}}\n",gold_eval::SCHEMA));
+        agreement.push_str(&format!("{{\"schema\":\"npa-c5-agreement/v2\",\"manifest_id\":\"{id}\",\"rung\":{n},\"measurement_status\":\"{status}\",\"percent\":null,\"alpha\":null,\"classification\":null,\"disagreements\":null,\"adjudication_count\":0,\"parser_revision\":\"m204-s03-c5-ladder-v3\",\"corpus_snapshot_hash\":\"{snapshot}\"}}\n"));
+        quality.push_str(&format!("{{\"schema\":\"{}\",\"evidence_id\":\"c5-{n}\",\"family\":\"c5-rung\",\"parser_revision\":\"m204-s03-c5-ladder-v3\",\"manifest_id\":\"{id}\",\"measurement_status\":\"{status}\",\"corpus_snapshot_hash\":\"{snapshot}\",\"layers\":{{}},\"zero_tolerance\":{{}},\"human_acceptance\":null,\"non_claims\":[\"not measured\",\"not accepted gold\",\"not R035/R070\"]}}\n",gold_eval::SCHEMA));
     }
     out.extend([
         (dir.join("m204-s02-c5-coding.jsonl"), coding),
         (dir.join("m204-s02-c5-agreement.jsonl"), agreement),
         (dir.join("m204-s02-c5-quality-receipts.jsonl"), quality),
+        (dir.join("m204-s03-sample-leakage.json"), format!("{{\"schema\":\"m204-s03-sample-leakage/v1\",\"seed\":{},\"non_claims\":[\"no raw text\",\"not a Work-family holdout\",\"C2 reuse is not independent evaluation\"],\"rungs\":[{}]}}\n", seed, leakage_rows.join(","))),
     ]);
     if perf {
         out.extend(perf_outputs(dir, 800, check)?);
     }
     Ok(out)
 }
+fn option_value(args: &[String], flag: &str) -> Result<Option<String>, String> {
+    let Some(index) = args.iter().position(|arg| arg == flag) else {
+        return Ok(None);
+    };
+    let value = args
+        .get(index + 1)
+        .ok_or_else(|| format!("{flag} requires a value"))?;
+    if value.starts_with("--") {
+        return Err(format!("{flag} requires a value"));
+    }
+    Ok(Some(value.clone()))
+}
+
 fn main() -> ExitCode {
     let a: Vec<String> = std::env::args().skip(1).collect();
-    let root = a
-        .windows(2)
-        .find(|x| x[0] == "--root")
-        .map(|x| PathBuf::from(&x[1]))
-        .unwrap_or_else(|| PathBuf::from("consru_export/consru_export/exports"));
-    let dir = a
-        .windows(2)
-        .find(|x| x[0] == "--out")
-        .map(|x| PathBuf::from(&x[1]))
-        .unwrap_or_else(|| PathBuf::from("prd/migration/rust-evidence"));
+    let seed_arg = match option_value(&a, "--seed") {
+        Ok(value) => value,
+        Err(error) => {
+            eprintln!("npa-gold-ladder: {error}");
+            return ExitCode::from(2);
+        }
+    };
+    let seed = match seed_arg {
+        Some(value) => match value.parse::<u64>() {
+            Ok(value) => value,
+            Err(_) => {
+                eprintln!("npa-gold-ladder: --seed expects an unsigned integer");
+                return ExitCode::from(2);
+            }
+        },
+        None => corpus_sample::DEFAULT_DRAW_SEED,
+    };
+    let root = match option_value(&a, "--root") {
+        Ok(Some(value)) => PathBuf::from(value),
+        Ok(None) => PathBuf::from("consru_export/consru_export/exports"),
+        Err(error) => {
+            eprintln!("npa-gold-ladder: {error}");
+            return ExitCode::from(2);
+        }
+    };
+    let dir = match option_value(&a, "--out") {
+        Ok(Some(value)) => PathBuf::from(value),
+        Ok(None) => PathBuf::from("prd/migration/rust-evidence"),
+        Err(error) => {
+            eprintln!("npa-gold-ladder: {error}");
+            return ExitCode::from(2);
+        }
+    };
     let dir = dir.canonicalize().unwrap_or(dir);
     let root = root.canonicalize().unwrap_or(root);
-    let rung = a
-        .windows(2)
-        .find(|x| x[0] == "--rung")
-        .and_then(|x| match x[1].as_str() {
+    let rung_arg = match option_value(&a, "--rung") {
+        Ok(value) => value,
+        Err(error) => {
+            eprintln!("npa-gold-ladder: {error}");
+            return ExitCode::from(2);
+        }
+    };
+    let rung = match rung_arg {
+        None => None,
+        Some(value) => match value.as_str() {
             "100" => Some(100),
             "400" => Some(400),
             "800" => Some(800),
-            "c2" | "c3" => None,
+            "c2" | "c3" => {
+                eprintln!("npa-gold-ladder: frozen {value} cannot be regenerated");
+                return ExitCode::from(2);
+            }
             _ => {
                 eprintln!("npa-gold-ladder: --rung expects 100, 400, 800, c2, or c3");
-                Some(0)
+                return ExitCode::from(2);
             }
-        });
+        },
+    };
     let check = a.iter().any(|x| x == "--check");
     let perf = a.iter().any(|x| x == "--perf");
+    let garant_root = match option_value(&a, "--garant-root") {
+        Ok(Some(value)) => PathBuf::from(value),
+        Ok(None) => PathBuf::from("law-source/garant"),
+        Err(error) => {
+            eprintln!("npa-gold-ladder: {error}");
+            return ExitCode::from(2);
+        }
+    };
+    let garant_root = garant_root.canonicalize().unwrap_or(garant_root);
     // Durable receipts are a single three-rung artifact. A check requested
     // for one rung must still validate the complete receipt set.
-    let files = match outputs(&root, &dir, if check { None } else { rung }, perf, check) {
+    let files = match outputs(
+        &root,
+        &garant_root,
+        &dir,
+        if check { None } else { rung },
+        seed,
+        perf,
+        check,
+    ) {
         Ok(x) => x,
         Err(e) => {
             eprintln!("npa-gold-ladder: {e}");

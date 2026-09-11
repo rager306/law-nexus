@@ -7,6 +7,8 @@ use std::{
     thread,
 };
 
+use crate::corpus_sample::{classify_path, SourceRootKind};
+
 use ln_decode::{
     adapters::garant_odt::GarantOdtBlockDecoder,
     adapters::ConsultantWordMlBlockDecoder,
@@ -116,6 +118,7 @@ pub struct Acc {
     stages: BTreeMap<String, BTreeMap<String, u64>>,
     inventory: BTreeMap<String, BTreeMap<String, u64>>,
     provider: String,
+    source_root: Option<PathBuf>,
 }
 impl Acc {
     fn hit(&mut self, stage: &str, outcome: &str) {
@@ -144,8 +147,25 @@ impl Acc {
         self.files += 1;
         let provider = self.provider.clone();
         self.inv("provider", &provider);
-        self.inv("year", &year(path));
-        self.inv("act_type", &act_type(path));
+        if let Some(root) = &self.source_root {
+            if let Ok(meta) = classify_path(
+                path,
+                root,
+                if self.provider == "garant" {
+                    SourceRootKind::Garant
+                } else {
+                    SourceRootKind::ConsultantExport
+                },
+            ) {
+                self.inv(
+                    "year",
+                    &meta
+                        .year
+                        .map_or_else(|| "unknown".into(), |y| y.to_string()),
+                );
+                self.inv("act_type", &meta.document_type);
+            }
+        }
         match terminal {
             FileTerminal::Failed => {
                 self.failed += 1;
@@ -258,26 +278,6 @@ fn map(m: &BTreeMap<String, BTreeMap<String, u64>>) -> String {
 fn q(s: &str) -> String {
     format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
 }
-fn year(p: &Path) -> String {
-    p.to_string_lossy()
-        .split(|c: char| !c.is_ascii_digit())
-        .find(|s| s.len() == 4)
-        .unwrap_or("unknown")
-        .into()
-}
-fn act_type(p: &Path) -> String {
-    let s = p.to_string_lossy().to_lowercase();
-    if s.contains("ukaz") {
-        "decree".into()
-    } else if s.contains("postan") {
-        "resolution".into()
-    } else if s.contains("fz") || s.contains("federal") || s.contains("law") {
-        "law".into()
-    } else {
-        "unknown".into()
-    }
-}
-
 struct Observer<'a> {
     acc: &'a mut Acc,
 }
@@ -326,6 +326,7 @@ pub fn run(cli: &Cli, default_root: &Path) -> (u8, Option<String>, String) {
     }
     let mut a = Acc {
         provider: "consultant".into(),
+        source_root: Some(root.clone()),
         ..Default::default()
     };
     let n = match observe_consultant_files(&root, cli.limit, resolve_jobs(cli.jobs), &mut a) {
@@ -339,6 +340,7 @@ pub fn run(cli: &Cli, default_root: &Path) -> (u8, Option<String>, String) {
         if g.is_dir() {
             let mut ga = Acc {
                 provider: "garant".into(),
+                source_root: Some(g.clone()),
                 ..Default::default()
             };
             for p in odts(&g)
@@ -346,8 +348,15 @@ pub fn run(cli: &Cli, default_root: &Path) -> (u8, Option<String>, String) {
                 .take(cli.limit.unwrap_or(u64::MAX) as usize)
             {
                 ga.inv("provider", "garant");
-                ga.inv("year", &year(&p));
-                ga.inv("act_type", &act_type(&p));
+                if let Ok(meta) = classify_path(&p, &g, SourceRootKind::Garant) {
+                    ga.inv(
+                        "year",
+                        &meta
+                            .year
+                            .map_or_else(|| "unknown".into(), |y| y.to_string()),
+                    );
+                    ga.inv("act_type", &meta.document_type);
+                }
                 ga.files += 1;
                 match fs::read(&p).ok().and_then(|bytes| {
                     let r = DecodeRequest::new(
@@ -425,13 +434,16 @@ fn observe_consultant_files(
     let jobs = jobs.min(n);
     let chunk = n.div_ceil(jobs);
     let provider = acc.provider.clone();
+    let source_root = root.to_path_buf();
     let mut handles = Vec::with_capacity(jobs);
     for shard in files.chunks(chunk) {
         let shard: Vec<PathBuf> = shard.to_vec();
         let provider = provider.clone();
+        let worker_root = source_root.clone();
         handles.push(thread::spawn(move || {
             let mut local = Acc {
                 provider,
+                source_root: Some(worker_root),
                 ..Default::default()
             };
             for path in &shard {
