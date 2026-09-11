@@ -80,6 +80,12 @@ admission_rules:
   - "Every measurement binds to exactly one manifest and corpus_snapshot_hash."
   - "A partial or interrupted walk remains diagnostic and is never labelled validated."
 
+bounded_sampling_diagnostics:
+  provider_cap: "The bounded C5 draw caps Garant availability at four selected entries; this is a sampling diagnostic, not a provider-representation claim."
+  not_year_type_stratified: "C5 ladder counts are not year/type stratified; honest unknown labels remain unknown and are not inferred from hashes or absolute paths."
+  work_family: "Path-derived provider-qualified family keys are bounded leakage diagnostics only; they are not legal identity or family holdout claims."
+  c2_reuse: "C2 members may participate in independently coded C5 material; reuse is declared and is not independent evaluation."
+
 non_claims:
   - not_product_corpus_authority
   - not_legal_gold

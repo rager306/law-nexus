@@ -51,6 +51,38 @@ fn ladder_is_nested_provider_stratified_and_proposed() {
     assert!(keys(&r100).is_subset(&keys(&r400)));
     assert!(keys(&r400).is_subset(&keys(&r800)));
     assert!(corpus_manifest::disjoint(&c3, &r800));
+
+    let leakage = fs::read_to_string(repo_path(
+        "prd/migration/rust-evidence/m204-s03-sample-leakage.json",
+    ))
+    .expect("live leakage sidecar");
+    assert!(leakage.contains("\"schema\":\"m204-s03-sample-leakage/v1\""));
+    assert!(leakage.contains("\"seed\":20308"));
+    assert!(leakage.contains("\"not_year_type_stratified\":true"));
+    assert!(leakage.contains("\"garant_cap\":4"));
+    assert!(leakage.contains("\"collapsed_editions\":30625"));
+    assert!(leakage.contains("\"collapsed_families\":123"));
+    assert!(leakage.contains("not a Work-family holdout"));
+    assert!(leakage.contains("C2 reuse is not independent evaluation"));
+}
+
+#[test]
+fn live_inventory_uses_honest_relative_labels_and_bindings() {
+    for rung in [100, 400, 800] {
+        let text = fs::read_to_string(repo_path(&format!(
+            "prd/migration/rust-evidence/m204-s02-c5-gold-manifest-{rung}.json"
+        )))
+        .expect("live manifest");
+        assert!(text.contains("\"parser_revision\":\"m204-s03-c5-ladder-v3\""));
+        assert!(text.contains("\"command\":\"npa-gold-ladder --seed 20308\""));
+        assert!(text.contains("\"provider\":\"consultant\""));
+        assert!(text.contains("\"provider\":\"garant\""));
+        assert!(text.contains("\"document_type\":\"unknown\""));
+        assert!(text.contains("\"year\":\"unknown\""));
+        assert!(!text.contains("/root/law-nexus/"));
+        assert!(!text.contains("raw_text"));
+        assert_eq!(text.matches("\"entry_id\"").count(), rung);
+    }
 }
 
 #[test]
@@ -84,11 +116,14 @@ fn durable_receipts_have_three_rungs_and_fail_closed_pins() {
 #[test]
 fn ladder_cli_check_detects_staleness() {
     let root = repo_path("consru_export/consru_export/exports");
+    let garant = repo_path("law-source/garant");
     let out = repo_path("prd/migration/rust-evidence");
     let status = std::process::Command::new(env!("CARGO_BIN_EXE_npa-gold-ladder"))
         .args([
             "--root",
             root.to_str().unwrap(),
+            "--garant-root",
+            garant.to_str().unwrap(),
             "--out",
             out.to_str().unwrap(),
             "--rung",
