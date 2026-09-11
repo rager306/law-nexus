@@ -8,19 +8,22 @@ bash scripts/m204_s05_t01_verify.sh
 bash scripts/m204_s05_t02_verify.sh
 bash scripts/m204_s04_verify.sh
 
-python3 - <<'PY'
-from hashlib import sha256
-from pathlib import Path
-pins = [
-    "prd/migration/rust-evidence/m203-s08-c4-full-diagnostics.jsonl",
-    "prd/migration/rust-evidence/m203-s09-c4-operational-receipt.json",
-]
-for rel in pins:
-    path = Path(rel)
-    if not path.is_file() or path.stat().st_size == 0:
-        raise SystemExit(f"missing frozen pin: {rel}")
-    digest = sha256(path.read_bytes()).hexdigest()
-    print(f"frozen {rel} sha256:{digest}")
-PY
+# Frozen M203 evidence is an immutable regression boundary, never a regeneration target.
+# Reuse the authoritative pin manifest owned by S03; this avoids a second, drifting hash list.
+pin_manifest="$(mktemp "${TMPDIR:-/tmp}/m204-s05-pins.XXXXXX")"
+trap 'rm -f "$pin_manifest"' EXIT
+awk '
+  /^expected_m203=/ { capture=1; sub(/^expected_m203="/, ""); }
+  capture { sub(/"$/, ""); print; }
+  capture && /perf-receipts\.jsonl"?$/ { exit }
+' scripts/m204_s03_verify.sh > "$pin_manifest"
+test -s "$pin_manifest"
+sha256sum --check --strict "$pin_manifest"
+
+# Explicitly reject zero-byte pins even if a future hash fixture is accidentally blank.
+while IFS= read -r entry; do
+  pin="${entry#*  }"
+  test -s "$pin"
+done < "$pin_manifest"
 
 echo S05_VERIFY_OK
