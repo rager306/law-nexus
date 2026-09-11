@@ -10,7 +10,7 @@ pub const DEFAULT_DRAW_SEED: u64 = 20_308;
 pub const MIN_CALENDAR_YEAR: u16 = 1991;
 pub const MAX_CALENDAR_YEAR: u16 = 2027;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum SourceRootKind {
     ConsultantExport,
     Garant,
@@ -31,14 +31,14 @@ pub struct SampleMeta {
     pub work_family: WorkFamilyKey,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct WorkFamilyKey {
     pub provider: SourceRootKind,
     pub key: String,
     pub provenance: WorkFamilyProvenance,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum WorkFamilyProvenance {
     NpaDirectory,
     NpaFilename,
@@ -285,6 +285,204 @@ fn work_family(parts: &[&str], filename: &str, provider: SourceRootKind) -> Work
         key,
         provenance,
     }
+}
+
+/// One inventory row after path metadata and content hashing have been validated.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SampleCandidate {
+    pub relative_path: String,
+    pub content_hash: String,
+    pub meta: SampleMeta,
+}
+
+/// A bounded, reproducible draw. `candidates` is in the canonical draw order.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DrawPlan {
+    pub seed: u64,
+    pub requested: usize,
+    pub candidates: Vec<SampleCandidate>,
+    pub leakage: LeakageReport,
+}
+
+/// Diagnostics are observations, not a Work-family holdout claim.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct LeakageReport {
+    pub input_candidates: usize,
+    pub exact_duplicate_hashes: usize,
+    pub excluded_c3_hashes: usize,
+    pub collapsed_editions: usize,
+    pub collapsed_families: usize,
+    pub c3_family_overlap: usize,
+    pub garant_available: usize,
+    pub garant_selected: usize,
+    pub consultant_available: usize,
+    pub consultant_selected: usize,
+    pub garant_cap: usize,
+    pub not_year_type_stratified: bool,
+}
+
+const GARANT_CAP: usize = 4;
+
+/// Select a canonical prefix after removing exact duplicates, C3 hashes, and
+/// additional editions of the same provider-qualified family.
+pub fn draw(
+    inventory: impl IntoIterator<Item = SampleCandidate>,
+    c3_hashes: &std::collections::BTreeSet<String>,
+    requested: usize,
+    seed: u64,
+) -> Result<DrawPlan, String> {
+    draw_with_c3_families(inventory, c3_hashes, &[], requested, seed)
+}
+
+/// Variant used by leakage diagnostics when frozen C3 metadata is available.
+/// Family overlap is deliberately reported, not treated as a family holdout.
+pub fn draw_with_c3_families(
+    inventory: impl IntoIterator<Item = SampleCandidate>,
+    c3_hashes: &std::collections::BTreeSet<String>,
+    c3_families: &[WorkFamilyKey],
+    requested: usize,
+    seed: u64,
+) -> Result<DrawPlan, String> {
+    if requested == 0 {
+        return Err("requested draw size must be positive".into());
+    }
+    let input: Vec<_> = inventory.into_iter().collect();
+    let mut report = LeakageReport {
+        input_candidates: input.len(),
+        garant_cap: GARANT_CAP,
+        not_year_type_stratified: true,
+        ..LeakageReport::default()
+    };
+    let mut seen = std::collections::BTreeSet::new();
+    let mut rows = Vec::new();
+    for candidate in input {
+        validate_candidate(&candidate)?;
+        if !seen.insert(candidate.content_hash.clone()) {
+            report.exact_duplicate_hashes += 1;
+            continue;
+        }
+        if c3_hashes.contains(&candidate.content_hash) {
+            report.excluded_c3_hashes += 1;
+            continue;
+        }
+        rows.push(candidate);
+    }
+    report.garant_available = rows
+        .iter()
+        .filter(|c| c.meta.provider == SourceRootKind::Garant)
+        .count();
+    report.consultant_available = rows
+        .iter()
+        .filter(|c| c.meta.provider == SourceRootKind::ConsultantExport)
+        .count();
+    report.c3_family_overlap = rows
+        .iter()
+        .filter(|c| c3_families.iter().any(|f| f == &c.meta.work_family))
+        .count();
+
+    rows.sort_by_key(|candidate| {
+        (
+            mixed_rank(seed, &candidate.content_hash).unwrap_or(u64::MAX),
+            candidate.content_hash.clone(),
+            candidate.relative_path.clone(),
+        )
+    });
+
+    // Pick one deterministic winner for every known family. Unknown families
+    // use their unique relative-path fallback and therefore never merge.
+    let mut families = std::collections::BTreeSet::new();
+    let mut collapsed_family_keys = std::collections::BTreeSet::new();
+    let mut collapsed = Vec::new();
+    for candidate in rows {
+        if !families.insert(candidate.meta.work_family.clone()) {
+            report.collapsed_editions += 1;
+            collapsed_family_keys.insert(candidate.meta.work_family.clone());
+            continue;
+        }
+        collapsed.push(candidate);
+    }
+    report.collapsed_families = collapsed_family_keys.len();
+
+    // Provider ordering is part of the canonical order: at most four Garant
+    // rows lead the draw, while consultant rows fill the remaining prefix.
+    let (mut garant, mut consultant): (Vec<_>, Vec<_>) = collapsed
+        .into_iter()
+        .partition(|c| c.meta.provider == SourceRootKind::Garant);
+    garant.truncate(GARANT_CAP);
+    let garant_exhausted = garant.len();
+    consultant.extend(garant);
+    // The partition order above is intentionally normalized below: Garant is
+    // capped, then placed first, and consultant rows retain their rank order.
+    let mut ordered = consultant;
+    ordered.sort_by_key(|candidate| {
+        (
+            if candidate.meta.provider == SourceRootKind::Garant {
+                0u8
+            } else {
+                1
+            },
+            mixed_rank(seed, &candidate.content_hash).unwrap_or(u64::MAX),
+            candidate.content_hash.clone(),
+            candidate.relative_path.clone(),
+        )
+    });
+    if ordered.len() < requested {
+        return Err(format!(
+            "insufficient inventory after exclusions/dedup/collapse: requested={requested}, available={}, c3_excluded={}, exact_duplicates={}, collapsed_editions={}",
+            ordered.len(), report.excluded_c3_hashes, report.exact_duplicate_hashes, report.collapsed_editions
+        ));
+    }
+    ordered.truncate(requested);
+    report.garant_selected = ordered
+        .iter()
+        .filter(|c| c.meta.provider == SourceRootKind::Garant)
+        .count();
+    report.consultant_selected = ordered.len() - report.garant_selected;
+    let _ = garant_exhausted;
+    Ok(DrawPlan {
+        seed,
+        requested,
+        candidates: ordered,
+        leakage: report,
+    })
+}
+
+fn validate_candidate(candidate: &SampleCandidate) -> Result<(), String> {
+    let normalized = normalized_relative(Path::new(&candidate.relative_path))?;
+    if normalized != candidate.relative_path || normalized != candidate.meta.relative_path {
+        return Err("candidate relative path is not normalized or disagrees with metadata".into());
+    }
+    let hash = candidate
+        .content_hash
+        .strip_prefix("sha256:")
+        .unwrap_or(&candidate.content_hash);
+    if hash.len() != 64 || !hash.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return Err(format!(
+            "invalid content hash for {}",
+            candidate.relative_path
+        ));
+    }
+    Ok(())
+}
+
+fn mixed_rank(seed: u64, hash: &str) -> Result<u64, String> {
+    let bytes = hash.strip_prefix("sha256:").unwrap_or(hash).as_bytes();
+    if bytes.len() != 64 || !bytes.iter().all(u8::is_ascii_hexdigit) {
+        return Err("content hash must be 64 hexadecimal digits".into());
+    }
+    let mut value = seed ^ 0x9e3779b97f4a7c15;
+    let (pairs, _) = bytes.as_chunks::<2>();
+    for pair in pairs {
+        let byte = u64::from(u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap());
+        value = value.rotate_left(7) ^ byte;
+        value = value.wrapping_mul(0x100000001b3);
+    }
+    // SplitMix-style integer mixing is stable, dependency-free, and does not
+    // use path order, process state, DefaultHasher, or a random generator.
+    let mut z = value;
+    z = (z ^ (z >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94d049bb133111eb);
+    Ok(z ^ (z >> 31))
 }
 
 #[cfg(test)]
