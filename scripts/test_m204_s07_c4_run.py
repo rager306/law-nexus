@@ -130,6 +130,25 @@ def test_attempt_collision_is_fail_closed() -> None:
         assert not second_receipt.exists()
 
 
+def test_verifier_replays_without_launch_identity_arguments() -> None:
+    with tempfile.TemporaryDirectory() as raw:
+        directory = Path(raw)
+        binary = fake_binary(directory, "exit 0")
+        receipt_path = directory / "replay.json"
+        invoke(binary, directory, attempt="replay")
+        original = directory / "replay.json"
+        original.rename(receipt_path)
+        result = subprocess.run(
+            [sys.executable, str(RUNNER), "--verify-receipt", str(receipt_path)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert result.returncode == 0, result.stderr
+        assert json.loads(result.stdout)["status"] == "pass"
+
+
 def test_verifier_rejects_forged_duration_and_bad_diagnostics_hash() -> None:
     with tempfile.TemporaryDirectory() as raw:
         directory = Path(raw)
@@ -161,6 +180,7 @@ def main() -> int:
         test_success_records_atomic_diagnostics_argv_and_hashes,
         test_nonzero_and_timeout_are_never_operational_pass,
         test_attempt_collision_is_fail_closed,
+        test_verifier_replays_without_launch_identity_arguments,
         test_verifier_rejects_forged_duration_and_bad_diagnostics_hash,
     ]
     for test in tests:

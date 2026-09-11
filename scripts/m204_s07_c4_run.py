@@ -378,8 +378,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--out", type=Path)
     parser.add_argument("--diagnostics-out", type=Path)
-    parser.add_argument("--source-revision", required=True)
-    parser.add_argument("--attempt-id", required=True)
+    # Receipt replay is intentionally independent of launch-time identity.  Keep
+    # these fields mandatory for a new process attempt, but do not make an
+    # artifact verifier supply values it will never use.
+    parser.add_argument("--source-revision")
+    parser.add_argument("--attempt-id")
     parser.add_argument("--profile", default="contour")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--jobs", type=int, default=0)
@@ -388,6 +391,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--verify-receipt", type=Path)
     parser.add_argument("--require-operational-pass", action="store_true")
     args = parser.parse_args(argv)
+    if not args.verify_receipt and (not args.source_revision or not args.attempt_id):
+        parser.error("--source-revision and --attempt-id are required for a new attempt")
     try:
         return (
             verify(args.verify_receipt, args.require_operational_pass)

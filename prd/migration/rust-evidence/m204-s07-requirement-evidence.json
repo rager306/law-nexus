@@ -1,0 +1,60 @@
+{
+  "schema": "m204-s07-requirement-evidence/v1",
+  "classification": "supporting-only",
+  "source": "prd/migration/rust-evidence/m204-s07-c4-operational-receipt.json",
+  "predecessor": {
+    "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+    "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+  },
+  "attempt": {
+    "attempt_id": "full-walk-001",
+    "terminal_outcome": "complete",
+    "exit_code": 0,
+    "duration_ms": 213166,
+    "duration_floor_ms": 3600000,
+    "operational_acceptance": "non-pass",
+    "source_revision": "m204-s07-c4-caller-pin-2026-09-11",
+    "consultant_xml_count": 43785,
+    "garant_file_count": 12,
+    "jobs": 0,
+    "limit": null,
+    "diagnostics_jsonl_valid": true,
+    "inventory_digest": "sha256:0a5f8346dce46ec12247856ebc06dfb79747644bcfa1ed8af10ef115b332a086"
+  },
+  "status_effect": "unchanged",
+  "requirements": [
+    {
+      "requirement": "R038",
+      "evidence_class": "source-bound criterion plus terminal operational attempt",
+      "observed_outcome": "The owned full-corpus process completed with exit 0, but actual duration was 213166ms, below the mandatory 3600000ms floor; strict verifier rejected operational pass.",
+      "disposition": "supporting-only",
+      "status_effect": "unchanged"
+    },
+    {
+      "requirement": "R063",
+      "evidence_class": "immutable identity, process provenance, and complete binding",
+      "observed_outcome": "Receipt records complete argv, attempt identity, binary/contract/parser hashes, Rust toolchain, caller source pin, corpus roots, output hashes, and owned logs.",
+      "disposition": "supporting-only",
+      "status_effect": "unchanged"
+    },
+    {
+      "requirement": "R064",
+      "evidence_class": "controlled diagnostics and negative operational classification",
+      "observed_outcome": "Diagnostics JSONL is valid and inventory-bound, while the recorder preserves non-pass acceptance rather than relabeling a short run as success.",
+      "disposition": "supporting-only",
+      "status_effect": "unchanged"
+    },
+    {
+      "requirement": "R081",
+      "evidence_class": "documentation-only residue and governor repeat classification",
+      "observed_outcome": "The fresh governor repeat is structurally passing with advisory open inventory; no review finding or lifecycle state was mutated. C4 remains non-pass.",
+      "disposition": "supporting-only",
+      "status_effect": "unchanged"
+    }
+  ],
+  "non_claims": [
+    "This classification does not close R038, R063, R064, R081, R035, R070, R066, or R073.",
+    "A terminal exit 0 and valid diagnostics do not satisfy the duration floor.",
+    "No S06 or M203 receipt was overwritten and no review finding was promoted or closed."
+  ]
+}
