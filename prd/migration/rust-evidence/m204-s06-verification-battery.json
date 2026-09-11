@@ -1,0 +1,23 @@
+{
+  "schema": "m204-s06-verification-battery/v1",
+  "verification": "S06_VERIFY_OK",
+  "operational_acceptance": "non-pass",
+  "checks": {
+    "governor": "pass",
+    "c4_receipt": "pass",
+    "requirements": "pass",
+    "frozen_waiver": "pass"
+  },
+  "bounded": true,
+  "corpus_walk_repeated": false,
+  "source_artifacts": {
+    "m204-s06-governor-sanctioned-outcome.json": "sha256:045af376b182aeb649497639f002adb5f875794063cb4ae8891f2273172e165e",
+    "m204-s06-c4-operational-receipt.json": "sha256:04e41f896f2bded096061d7caef2ec4abdaaf37cebf88c387d1dd011943b797c",
+    "m204-s06-requirement-evidence.json": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3",
+    "m204-s05-m073-residue-waiver.json": "sha256:f5be4f8bda567fd4363b76a6b89243a76327d071a9833e80b65e0fd83077827f"
+  },
+  "non_claims": [
+    "Evidence integrity is not product acceptance",
+    "No requirement or finding lifecycle was changed"
+  ]
+}
