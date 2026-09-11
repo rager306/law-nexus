@@ -1,6 +1,8 @@
 use std::{fs, path::PathBuf};
 
-use ln_consultant_parser::contour_diagnostics::{self, Cli, EXIT_ROOT_MISSING};
+use ln_consultant_parser::contour_diagnostics::{
+    self, Cli, Comparison, EXIT_INCOMPARABLE, EXIT_MISSING, EXIT_ROOT_MISSING,
+};
 
 fn fixture() -> PathBuf {
     let path = std::env::temp_dir().join(format!(
@@ -76,6 +78,63 @@ fn jobs_two_matches_sequential_on_fixture() {
 }
 
 #[test]
+fn canonical_payload_and_comparison_are_fail_closed() {
+    let root = fixture();
+    let cli = Cli {
+        root: Some(root.display().to_string()),
+        limit: Some(1),
+        ..Cli::default()
+    };
+    let report = contour_diagnostics::run(&cli, &root).1.unwrap();
+    assert!(report.contains("npa-contour-diagnostics/v2"));
+    assert!(report.contains("block_presence"));
+    assert!(report.contains("identity_binding_not_measured"));
+    assert_eq!(
+        contour_diagnostics::compare_reports(&report, None),
+        Comparison::MissingBaseline
+    );
+    assert_eq!(
+        contour_diagnostics::compare_reports(&report, Some("{}")),
+        Comparison::IncomparableInput
+    );
+    let forged = report.replace("inventory_digest", "forged_digest");
+    assert_eq!(
+        contour_diagnostics::compare_reports(&report, Some(&forged)),
+        Comparison::IncomparableInput
+    );
+    let drift = report.replace("\"files\":1", "\"files\":2");
+    assert_eq!(
+        contour_diagnostics::compare_reports(&report, Some(&drift)),
+        Comparison::SemanticDrift
+    );
+    let operational = report.replace("\"label\":\"fixture-gate\"", "\"label\":\"other\"");
+    assert_eq!(
+        contour_diagnostics::compare_reports(&report, Some(&operational)),
+        Comparison::OperationalOnly
+    );
+    let _ = fs::remove_dir_all(root);
+}
+
+#[test]
+fn check_codes_distinguish_missing_and_incomparable_baselines() {
+    let root = fixture();
+    let out = root.join("receipt.jsonl");
+    let base = Cli {
+        root: Some(root.display().to_string()),
+        out: Some(out.display().to_string()),
+        ..Cli::default()
+    };
+    assert_eq!(contour_diagnostics::run(&base, &root).0, 0);
+    fs::write(&out, "{}").unwrap();
+    let mut check = base.clone();
+    check.check = true;
+    assert_eq!(contour_diagnostics::run(&check, &root).0, EXIT_INCOMPARABLE);
+    fs::remove_file(&out).unwrap();
+    assert_eq!(contour_diagnostics::run(&check, &root).0, EXIT_MISSING);
+    let _ = fs::remove_dir_all(root);
+}
+
+#[test]
 fn check_rejects_stale_receipt() {
     let root = fixture();
     let out = root.join("receipt.jsonl");
@@ -91,6 +150,6 @@ fn check_rejects_stale_receipt() {
     check.check = true;
     assert_eq!(contour_diagnostics::run(&check, &root).0, 0);
     check.label = "changed-label".into();
-    assert_ne!(contour_diagnostics::run(&check, &root).0, 0);
+    assert_eq!(contour_diagnostics::run(&check, &root).0, 0);
     let _ = fs::remove_dir_all(root);
 }
