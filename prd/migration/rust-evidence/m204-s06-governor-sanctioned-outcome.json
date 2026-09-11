@@ -1,0 +1,343 @@
+{
+  "schema_version": "m204-s06-governor-sanctioned-outcome/v1",
+  "captured_at_utc": "2026-09-11T12:01:40.927726Z",
+  "scope": "review-case integrity and RC-2026-09-10-001 status only",
+  "non_claims": [
+    "Supporting evidence for R081 only; no requirement closure",
+    "Open findings are not automatically advisory or accepted; severity/check semantics are retained",
+    "No findings, packet, ledger, requirement, or lifecycle mutation"
+  ],
+  "commands": [
+    {
+      "argv": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "law_nexus_harness",
+        "governor",
+        "--check",
+        "review-case-integrity",
+        "--format",
+        "json"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"error_count\":0,\"findings\":[{\"check_id\":\"review-case-integrity\",\"evidence\":[{\"line\":null,\"path\":\"prd/architecture/review-cases/fixtures/**/*.json\"},{\"line\":null,\"path\":\"prd/architecture/review-cases/packets/**/*.json\"},{\"line\":null,\"path\":\"prd/architecture/review-case.schema.json\"}],\"expected\":\"Detect Review Case authority laundering, hash drift, orphan promotion, class-mismatched closure, and ledger chain defects; open findings stay advisory.\",\"message\":\"Review Case packets/ledgers satisfy structural integrity\",\"observed\":\"packet_count=4, scanned=5, open_count=19, open_source=packets_store+ledger (lifecycle [bounded]; process integrity only; open findings are advisory, not failures).\",\"remediation\":\"none\",\"rule_id\":\"review-case-integrity.contract\",\"severity\":\"ok\",\"status\":\"pass\"},{\"check_id\":\"review-case-integrity.open-findings\",\"evidence\":[{\"line\":null,\"path\":\"prd/architecture/review-cases/fixtures/**/*.json\"},{\"line\":null,\"path\":\"prd/architecture/review-cases/packets/**/*.json\"},{\"line\":null,\"path\":\"prd/architecture/review-case.schema.json\"}],\"expected\":\"Detect Review Case authority laundering, hash drift, orphan promotion, class-mismatched closure, and ledger chain defects; open findings stay advisory.\",\"message\":\"undispositioned Review Case findings remain open\",\"observed\":\"open_count=19, packet_count=4, open_source=packets_store+ledger (lifecycle [bounded]; advisory inventory only; human disposition required before acceptance).\",\"remediation\":\"Record explicit human disposition events on the packets store ledger; do not auto-accept or promote findings from open inventory.\",\"rule_id\":\"review-case-integrity.open-findings.contract\",\"severity\":\"warn\",\"status\":\"fail\"}],\"pass_count\":1,\"root\":\"/root/law-nexus\",\"schema_version\":\"law-nexus-governor-report/v1\",\"status\":\"ok\",\"tool_error_count\":0,\"warn_count\":1}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "law_nexus_harness",
+        "review-case",
+        "status",
+        "--packet-id",
+        "RC-2026-09-10-001"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"authoritative\":false,\"authority_required\":true,\"non_claims\":[\"Non-authoritative review projection\",\"Does not promote requirements, ADRs, roadmap, or lifecycle\",\"Does not create GSD milestones or product claims\",\"CLI success is not semantic acceptance or product readiness\"],\"operation\":\"review-case.status\",\"result\":{\"authoritative\":false,\"authority_required\":true,\"non_claims\":[\"Non-authoritative review projection\",\"Does not promote requirements, ADRs, roadmap, or lifecycle\",\"Does not create GSD milestones or product claims\"],\"open_blockers\":[],\"packets\":[[\"RC-2026-09-10-001\",\"doc/review/review-28-10-09-2026.md\",\"6f1a27537a659f291e0147e0fbd8be6ca199261c\",\"baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1\",[[\"RC28-F01\",\"open\"],[\"RC28-F02\",\"open\"],[\"RC28-F03\",\"open\"],[\"RC28-F04\",\"open\"],[\"RC28-F05\",\"open\"],[\"RC28-F06\",\"open\"],[\"RC28-F07\",\"open\"],[\"RC28-F08\",\"open\"],[\"RC28-F09\",\"open\"],[\"RC28-F10\",\"open\"],[\"RC28-F11\",\"open\"],[\"RC28-F12\",\"open\"],[\"RC28-F13\",\"open\"],[\"RC28-F14\",\"open\"],[\"RC28-F15\",\"open\"],[\"RC28-F16\",\"open\"],[\"RC28-F17\",\"open\"],[\"RC28-F18\",\"open\"],[\"RC28-F19\",\"open\"]]]],\"schema_version\":\"review-case-application-report/v1\"},\"schema_version\":\"review-case-cli-report/v1\",\"status\":\"ok\"}\n",
+      "stderr": ""
+    }
+  ],
+  "governor": {
+    "summary": {
+      "status": "sanctioned_integrity_pass",
+      "check_id": "review-case-integrity",
+      "observed": {
+        "exit_code": 0,
+        "report_status": "ok",
+        "error_count": 0,
+        "pass_count": 1,
+        "warn_count": 1,
+        "open_count": 19,
+        "finding_count": 2
+      },
+      "findings": [
+        {
+          "check_id": "review-case-integrity",
+          "status": "pass",
+          "severity": "ok",
+          "message": "Review Case packets/ledgers satisfy structural integrity",
+          "observed": "packet_count=4, scanned=5, open_count=19, open_source=packets_store+ledger (lifecycle [bounded]; process integrity only; open findings are advisory, not failures).",
+          "remediation": "none",
+          "rule_id": "review-case-integrity.contract"
+        },
+        {
+          "check_id": "review-case-integrity.open-findings",
+          "status": "fail",
+          "severity": "warn",
+          "message": "undispositioned Review Case findings remain open",
+          "observed": "open_count=19, packet_count=4, open_source=packets_store+ledger (lifecycle [bounded]; advisory inventory only; human disposition required before acceptance).",
+          "remediation": "Record explicit human disposition events on the packets store ledger; do not auto-accept or promote findings from open inventory.",
+          "rule_id": "review-case-integrity.open-findings.contract"
+        }
+      ],
+      "remediation": "none; open findings remain advisory inventory and require human disposition"
+    },
+    "raw_report": {
+      "error_count": 0,
+      "findings": [
+        {
+          "check_id": "review-case-integrity",
+          "evidence": [
+            {
+              "line": null,
+              "path": "prd/architecture/review-cases/fixtures/**/*.json"
+            },
+            {
+              "line": null,
+              "path": "prd/architecture/review-cases/packets/**/*.json"
+            },
+            {
+              "line": null,
+              "path": "prd/architecture/review-case.schema.json"
+            }
+          ],
+          "expected": "Detect Review Case authority laundering, hash drift, orphan promotion, class-mismatched closure, and ledger chain defects; open findings stay advisory.",
+          "message": "Review Case packets/ledgers satisfy structural integrity",
+          "observed": "packet_count=4, scanned=5, open_count=19, open_source=packets_store+ledger (lifecycle [bounded]; process integrity only; open findings are advisory, not failures).",
+          "remediation": "none",
+          "rule_id": "review-case-integrity.contract",
+          "severity": "ok",
+          "status": "pass"
+        },
+        {
+          "check_id": "review-case-integrity.open-findings",
+          "evidence": [
+            {
+              "line": null,
+              "path": "prd/architecture/review-cases/fixtures/**/*.json"
+            },
+            {
+              "line": null,
+              "path": "prd/architecture/review-cases/packets/**/*.json"
+            },
+            {
+              "line": null,
+              "path": "prd/architecture/review-case.schema.json"
+            }
+          ],
+          "expected": "Detect Review Case authority laundering, hash drift, orphan promotion, class-mismatched closure, and ledger chain defects; open findings stay advisory.",
+          "message": "undispositioned Review Case findings remain open",
+          "observed": "open_count=19, packet_count=4, open_source=packets_store+ledger (lifecycle [bounded]; advisory inventory only; human disposition required before acceptance).",
+          "remediation": "Record explicit human disposition events on the packets store ledger; do not auto-accept or promote findings from open inventory.",
+          "rule_id": "review-case-integrity.open-findings.contract",
+          "severity": "warn",
+          "status": "fail"
+        }
+      ],
+      "pass_count": 1,
+      "root": "/root/law-nexus",
+      "schema_version": "law-nexus-governor-report/v1",
+      "status": "ok",
+      "tool_error_count": 0,
+      "warn_count": 1
+    }
+  },
+  "review_case_status": {
+    "summary": {
+      "status": "status_observed",
+      "packet_id": "RC-2026-09-10-001",
+      "observed": {
+        "exit_code": 0,
+        "report_status": "ok",
+        "open_blockers": [],
+        "finding_count": 19,
+        "open_count": 19
+      },
+      "findings": [
+        {
+          "finding_id": "RC28-F01",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F02",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F03",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F04",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F05",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F06",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F07",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F08",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F09",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F10",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F11",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F12",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F13",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F14",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F15",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F16",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F17",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F18",
+          "status": "open"
+        },
+        {
+          "finding_id": "RC28-F19",
+          "status": "open"
+        }
+      ],
+      "remediation": "none"
+    },
+    "raw_report": {
+      "authoritative": false,
+      "authority_required": true,
+      "non_claims": [
+        "Non-authoritative review projection",
+        "Does not promote requirements, ADRs, roadmap, or lifecycle",
+        "Does not create GSD milestones or product claims",
+        "CLI success is not semantic acceptance or product readiness"
+      ],
+      "operation": "review-case.status",
+      "result": {
+        "authoritative": false,
+        "authority_required": true,
+        "non_claims": [
+          "Non-authoritative review projection",
+          "Does not promote requirements, ADRs, roadmap, or lifecycle",
+          "Does not create GSD milestones or product claims"
+        ],
+        "open_blockers": [],
+        "packets": [
+          [
+            "RC-2026-09-10-001",
+            "doc/review/review-28-10-09-2026.md",
+            "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+            "baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1",
+            [
+              [
+                "RC28-F01",
+                "open"
+              ],
+              [
+                "RC28-F02",
+                "open"
+              ],
+              [
+                "RC28-F03",
+                "open"
+              ],
+              [
+                "RC28-F04",
+                "open"
+              ],
+              [
+                "RC28-F05",
+                "open"
+              ],
+              [
+                "RC28-F06",
+                "open"
+              ],
+              [
+                "RC28-F07",
+                "open"
+              ],
+              [
+                "RC28-F08",
+                "open"
+              ],
+              [
+                "RC28-F09",
+                "open"
+              ],
+              [
+                "RC28-F10",
+                "open"
+              ],
+              [
+                "RC28-F11",
+                "open"
+              ],
+              [
+                "RC28-F12",
+                "open"
+              ],
+              [
+                "RC28-F13",
+                "open"
+              ],
+              [
+                "RC28-F14",
+                "open"
+              ],
+              [
+                "RC28-F15",
+                "open"
+              ],
+              [
+                "RC28-F16",
+                "open"
+              ],
+              [
+                "RC28-F17",
+                "open"
+              ],
+              [
+                "RC28-F18",
+                "open"
+              ],
+              [
+                "RC28-F19",
+                "open"
+              ]
+            ]
+          ]
+        ],
+        "schema_version": "review-case-application-report/v1"
+      },
+      "schema_version": "review-case-cli-report/v1",
+      "status": "ok"
+    }
+  },
+  "overall": "sanctioned_outcome"
+}
