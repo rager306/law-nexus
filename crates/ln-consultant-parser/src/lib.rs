@@ -11,6 +11,7 @@ pub mod catalog_sqlite;
 pub mod classifier;
 pub mod contour_diagnostics;
 pub mod corpus_manifest;
+pub mod corpus_sample;
 pub mod document_profile;
 pub mod drift_baseline;
 pub mod edge_deriver;
