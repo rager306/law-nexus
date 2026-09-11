@@ -73,3 +73,16 @@ The following statuses are intentionally unchanged by this remediation program:
 - The 13 D388 gates remain individually gated; no aggregate count, packet completion, or milestone completion adopts them implicitly.
 - `RC28-F01` through `RC28-F19` remain `awaiting_disposition` until their owning evidence and authority requirements are satisfied.
 - This document does not close the packet, relabel M203 as readiness, bump the S04 `parser_revision` without a schema change, or create legal/runtime authority from documentation alone.
+
+## M204 S06 requirement evidence classification
+
+This section is additive classification only. It does not mutate requirement status, Review Case lifecycle, GSD state, or any finding disposition. The machine-readable source is `prd/migration/rust-evidence/m204-s06-requirement-evidence.json`.
+
+| Requirement | Evidence class | Concrete evidence | Observed outcome | Supporting-only disposition and limitations |
+|---|---|---|---|---|
+| R038 | source-bound criterion plus operational attempt | S05 C4 tests/contract and `prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json` | T02 is `timeout` with `SIGTERM`, `duration_ms=1009`, `budget_seconds=3600`, and no terminal exit code; therefore operational acceptance is non-pass | Supporting only; actual duration was not 3600 seconds and the receipt cannot close the standing gate. T04 must reject any false terminalization. |
+| R063 | immutable identity, retry, and process provenance | T02 receipt `immutable_attempt_identity`, complete `argv`, binary/contract/parser hashes, toolchain, caller source pin, and owned attempt logs | Attempt identity and provenance are recorded for the timed-out process; no successful runtime result is claimed | Supporting only; caller `source_revision` is not the GSD aggregate, and PATH/label/symlink TOCTOU remains a limitation. |
+| R064 | controlled diagnostics and S04 regression support | S04 diagnostic/contract evidence referenced by the T02 receipt plus `prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json` | The external recorder preserves a non-pass timeout outcome without changing Rust `operational_envelope.run_status`; verification remains pending T04 | Supporting only; D444 external receipt does not repair hardcoded Rust `run_status`, and engine `not_fixed`/`not_filed` residue remains unresolved. |
+| R081 | documentation-only residue classification | `prd/migration/rust-evidence/m204-s06-governor-sanctioned-outcome.json` and `prd/migration/rust-evidence/m204-s05-m073-residue-waiver.json` | Governor integrity report is structurally passing with 19 open findings; M073 residue is documented-only and blocked-in-scope | Supporting only; this is not product acceptance, an engine waiver, or a lifecycle mutation. Human disposition and fresh sanctioned status remain required. |
+
+The T02 timeout is an operational non-pass even though artifact tests and receipt integrity can pass. No row asserts `actual duration >= 3600`; no row closes R038, R063, R064, R081, R035, R070, or R066. Historical M203 evidence and the S05 waiver remain read-only. Any missing link, unknown outcome, or attempted success after timeout/nonzero is a fail-closed condition for T04.

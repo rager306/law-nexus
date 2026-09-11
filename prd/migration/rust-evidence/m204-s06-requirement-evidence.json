@@ -1,0 +1,118 @@
+{
+  "schema": "m204-s06-requirement-evidence/v1",
+  "captured_at_utc": "2026-09-11T12:30:08Z",
+  "scope": "M204/S06 additive requirement evidence classification; no lifecycle mutation",
+  "source_bindings": {
+    "governor": "prd/migration/rust-evidence/m204-s06-governor-sanctioned-outcome.json",
+    "c4_operational_receipt": "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+    "historical_waiver": "prd/migration/rust-evidence/m204-s05-m073-residue-waiver.json",
+    "program": "prd/architecture/review-cases/rc28-remediation-program.md"
+  },
+  "non_claims": [
+    "No requirement status was changed or closed",
+    "No Review Case finding was dispositioned",
+    "Supporting evidence is not product acceptance, legal acceptance, or runtime readiness",
+    "The T02 budget_seconds value is not evidence that actual duration reached the budget"
+  ],
+  "requirements": [
+    {
+      "requirement_id": "R038",
+      "evidence_class": "source-bound criterion plus operational attempt",
+      "concrete_paths": [
+        "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+        "prd/architecture/npa-acceptance-contract.yaml"
+      ],
+      "observed_outcome": {
+        "attempt_id": "full-walk-timeout-001",
+        "terminal_outcome": "timeout",
+        "signal": "SIGTERM",
+        "exit_code": null,
+        "duration_ms": 1009,
+        "budget_seconds": 3600,
+        "operational_acceptance": "non-pass"
+      },
+      "limitations": [
+        "Actual duration did not reach 3600 seconds",
+        "No terminal exit code or successful runtime result was observed",
+        "The timeout receipt cannot close the standing R038 gate"
+      ],
+      "disposition": "supporting-only",
+      "status_effect": "unchanged-active"
+    },
+    {
+      "requirement_id": "R063",
+      "evidence_class": "immutable identity, retry, and process provenance",
+      "concrete_paths": [
+        "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+        "prd/migration/rust-evidence/m204-s06-c4-attempts/full-walk-timeout-001/stdout.log",
+        "prd/migration/rust-evidence/m204-s06-c4-attempts/full-walk-timeout-001/stderr.log"
+      ],
+      "observed_outcome": {
+        "attempt_identity": "full-walk-timeout-001",
+        "argv_recorded": true,
+        "binary_contract_parser_hashes_recorded": true,
+        "toolchain_recorded": true,
+        "caller_source_pin_recorded": true,
+        "process_provenance": "recorded-for-timeout"
+      },
+      "limitations": [
+        "Caller source_revision is not the GSD aggregate source revision",
+        "PATH/label/symlink TOCTOU remains unresolved",
+        "No successful or retry-equivalent operational result is claimed"
+      ],
+      "disposition": "supporting-only",
+      "status_effect": "unchanged-active"
+    },
+    {
+      "requirement_id": "R064",
+      "evidence_class": "controlled diagnostics and S04 regression support",
+      "concrete_paths": [
+        "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+        "prd/migration/rust-evidence/m204-s06-c4-calibration-1000.json"
+      ],
+      "observed_outcome": {
+        "recorder_result": "timeout-preserved-as-non-pass",
+        "rust_operational_envelope_modified": false,
+        "verification_state": "pending-T04"
+      },
+      "limitations": [
+        "D444 external receipt does not repair hardcoded Rust operational_envelope.run_status",
+        "Engine not_fixed/not_filed residue remains unresolved",
+        "The external recorder is not semantic acceptance"
+      ],
+      "disposition": "supporting-only",
+      "status_effect": "unchanged-active"
+    },
+    {
+      "requirement_id": "R081",
+      "evidence_class": "documentation-only residue classification",
+      "concrete_paths": [
+        "prd/migration/rust-evidence/m204-s06-governor-sanctioned-outcome.json",
+        "prd/migration/rust-evidence/m204-s05-m073-residue-waiver.json",
+        "prd/architecture/review-cases/rc28-remediation-program.md"
+      ],
+      "observed_outcome": {
+        "governor_status": "ok",
+        "governor_integrity_check": "pass",
+        "governor_open_findings_check": "fail",
+        "open_finding_count": 19,
+        "m073_residue_scope": "blocked-in-scope",
+        "waiver_kind": "documentation-only-waiver"
+      },
+      "limitations": [
+        "Open findings remain open and require human disposition",
+        "The M073 artifact is not an engine waiver or lifecycle mutation",
+        "Fresh sanctioned status is required before any reopen decision"
+      ],
+      "disposition": "supporting-only",
+      "status_effect": "unchanged-awaiting-disposition"
+    }
+  ],
+  "fail_closed_rules": [
+    "Missing source link, unknown outcome, timeout, or nonzero terminal result cannot be classified as operational pass",
+    "Do not infer actual duration >= 3600 from budget_seconds",
+    "Do not close R038, R063, R064, R081, R035, R070, or R066 from this artifact",
+    "Historical M203 evidence and the S05 waiver remain read-only"
+  ],
+  "overall_disposition": "supporting-only; operational-acceptance-non-pass; requirements-unchanged"
+}
