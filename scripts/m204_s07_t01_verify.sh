@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Host-safe S07 T01 verifier. Single command, no nested quotes in the PLAN field.
+# Host-safe S07 T01 verifier. Single executable, no && chaining.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 uv run python scripts/test_m204_s07_governor_repeat.py
