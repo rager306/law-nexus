@@ -79,6 +79,22 @@ admission_rules:
   - "C5 requires independent coder identifiers and an explicit human acceptance event outside this contract."
   - "Every measurement binds to exactly one manifest and corpus_snapshot_hash."
   - "A partial or interrupted walk remains diagnostic and is never labelled validated."
+  - "Receipt presence is evidence that an attempt was recorded; it is not evidence of runtime freshness or successful admission."
+  - "Acceptance admission must cite the npa-acceptance-contract/v1 contract_version and the complete source binding; a receipt cannot substitute for a source revision pin."
+
+acceptance_retry_rules:
+  contract_version: npa-acceptance-contract/v1
+  receipt_presence_is_not_freshness: true
+  retry_requires:
+    - equivalent_binding
+    - preserved_predecessor_hash
+    - unique_attempt_id
+  retry_must_cite: contract_version
+  forbidden:
+    - silent_criterion_substitution
+    - baseline_receipt_overwrite
+    - promotion_from_receipt_presence_alone
+  supersession_requires: explicit_from_to_reason_authorization_and_preserved_hash
 
 bounded_sampling_diagnostics:
   provider_cap: "The bounded C5 draw caps Garant availability at four selected entries; this is a sampling diagnostic, not a provider-representation claim."

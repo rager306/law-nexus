@@ -62,3 +62,14 @@ The existing register CLI creates empty findings; this packet was created with t
 ## Non-goals and hard stops
 
 Rust-only product. No Pullenti code/dictionaries/generated tables/threshold port, no external NLP runtime, no RuVector/TEI adoption, no Applicable runtime, no new clock. No R035/R070 promotion from milestone completion or counts. No historical M203 metric relabeling; corrected evidence explicitly supersedes. Preserve frozen M201 code and pins. Thirteen D388 gates individually adopted or remain stopped; G02 is already wired and only residual resource behavior should be assessed. Real human legal acceptance remains mandatory where specified.
+
+## Acceptance-version and disposition non-claims
+
+The C4 acceptance path is governed by `npa-acceptance-contract/v1`; every admission or retry record must cite `contract_version` and its complete source binding. Receipt presence proves only that an attempt was recorded: it does not prove runtime freshness, successful admission, parser readiness, or legal acceptance. Equivalent retries preserve the predecessor chain and receipt history; they must not silently substitute criteria or overwrite a baseline receipt. Any supersession remains explicit and requires from/to identifiers, reason, authorization, and the preserved hash.
+
+The following statuses are intentionally unchanged by this remediation program:
+
+- G02 is already wired; this program does not relabel that wiring as broader readiness or adopt residual resource behavior without its own evidence.
+- The 13 D388 gates remain individually gated; no aggregate count, packet completion, or milestone completion adopts them implicitly.
+- `RC28-F01` through `RC28-F19` remain `awaiting_disposition` until their owning evidence and authority requirements are satisfied.
+- This document does not close the packet, relabel M203 as readiness, bump the S04 `parser_revision` without a schema change, or create legal/runtime authority from documentation alone.
