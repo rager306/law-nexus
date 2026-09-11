@@ -1,7 +1,8 @@
 # GSD headless supervisor — law-nexus
 
-**Status:** local process helper, `[bounded]` to the current GSD milestone
-loop (M203-cx1j7t as of 2026-09-10). Not product runtime. Not GSD engine.
+**Status:** local process helper, `[bounded]` to the active GSD milestone
+watcher (default `WATCH_UNIT_GLOB=M20*`, covering M204-w2ktfw through
+M210-3afp79 per D442). Not product runtime. Not GSD engine.
 **Lifecycle:** keep `gsd headless auto` alive until a **real** product
 HARD BLOCK. Agent repairs closeout / hung LLM; the supervisor is a rule
 FSM, not a second planner.
@@ -9,7 +10,10 @@ FSM, not a second planner.
 Scripts live under the gitignored `.gsd/` overlay (symlink to
 `/root/.gsd/projects/3495c0714df3/`). This file is the **tracked**
 operator contract. The local playbook
-(`.gsd/m203-supervisor-playbook.md`) is a short sensor cheat-sheet.
+(`.gsd/m203-supervisor-playbook.md`) is a short sensor cheat-sheet. The
+watcher selection is generalized by `WATCH_UNIT_GLOB`; M203 references in
+this document remain names of the existing local helper files and historical
+examples, not a milestone-only scope.
 
 ## Authority (fail-closed)
 
@@ -44,6 +48,14 @@ operator contract. The local playbook
 - Resume only a wedge the DB still reports open.
 - Stop on a real `query.blocked`, disk &lt; 5G, max crash restarts, or
   genuine idle (see below).
+
+## Watcher scope
+
+`WATCH_UNIT_GLOB` defaults to `M20*`. The active-unit guard therefore covers
+M204-w2ktfw through M210-3afp79 (and later M20x units) without changing the
+FSM's fail-closed rules. A deployment may narrow the glob for a controlled
+run, but must not use a milestone-specific idle exemption as a substitute for
+checking the queried unit.
 
 What it is **not**: a second auto, a clippy fixer, a `gsd rebuild
 markdown` loop, or a reason to `pkill -f 'gsd headless'`.
@@ -122,7 +134,10 @@ Do this in order. Do not skip to a second `gsd auto`.
 6. **Idle stop** only when **all** hold: `action=stop` AND no
    `activeTask` AND phase not a work phase
    (`executing|evaluating-gates|planning|refining|summarizing|researching|discussing`)
-   AND unit is not `M203-*`. `stop` + `active=T01` is wait, not idle.
+   AND unit does not match `WATCH_UNIT_GLOB` (default `M20*`). `stop` +
+   `active=T01` is wait, not idle. Units matched by the watcher remain
+   supervised even when their milestone differs from the historical M203
+   helper filenames.
 
 ## Sensors (authoritative)
 
@@ -201,6 +216,8 @@ the next boot. Do not rewrite the live inode while a task is executing.
 | Closeout ruff format | `ruff format --check` Failed, check Passed | `uv run ruff format` staged py → `node /tmp/gsd-closeout.mjs retry` |
 | `finalize-retry` after repair | snapshot still shows W-… until resume recheck | closeout n=0 → recheck not blocking; wedge acks |
 | Stale `RESUME_WEDGE_ID` | every restart passes a gone wedge | resume only DB-open id |
+| Plan-slice artifact verification | research cites a path outside the project root | rewrite the citation with project-local evidence and rerun sanctioned verification; do not read the external path |
+| Execute-task completion abort | `gsd_task_complete` receives unsupported `escalation`; durable adapter rejects it | retry without `escalation`, preserving supported closeout fields; this is a compatibility workaround, not an engine fix |
 | Second auto | pidfile live | do not start |
 | `pkill -f 'gsd headless'` | kills the launcher | kill by pidfile |
 | `query.wedge` | always null | snapshot |
@@ -209,7 +226,8 @@ the next boot. Do not rewrite the live inode while a task is executing.
 
 - This runbook (tracked): [`doc/gsd-headless-supervisor.md`](gsd-headless-supervisor.md)
 - Local overlay pointer: `AGENTS.md` (gitignored)
-- Local FSM: `.gsd/m203-gsd-supervisor.sh`
+- Local FSM: `.gsd/m203-gsd-supervisor.sh` (selected active units use
+  `WATCH_UNIT_GLOB`, default `M20*`)
 - Living oracle: [`prd/ARCHITECTURE.md`](../prd/ARCHITECTURE.md)
 - ADR index: [`doc/adr/README.md`](adr/README.md)
 - GSD tool contract: `AGENTS.md` § GSD tool contract
@@ -219,7 +237,8 @@ the next boot. Do not rewrite the live inode while a task is executing.
 
 Adopting this runbook does **not** claim:
 
-- that M203 / S09 is `[validated]`;
+- that any watched milestone (including historical M203 / S09) is
+  `[validated]`;
 - that R035 / R070 are closed;
 - that the supervisor is part of the Rust product or the harness
   governor;

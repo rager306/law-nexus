@@ -1,0 +1,57 @@
+{
+  "schema": "rc28-f05-gsd-upstream-debt/v1",
+  "generated_at": "2026-09-11T00:00:00Z",
+  "scope": {
+    "milestone": "M204-w2ktfw",
+    "slice": "S01",
+    "task": "T03",
+    "project_root": ".",
+    "external_paths_read": false,
+    "direct_database_access": false,
+    "upstream_filed": false
+  },
+  "status": {
+    "claim_dispatch_desync": "not_fixed",
+    "gate_completed_no_advance": "not_fixed",
+    "upstream_issue": "not_filed"
+  },
+  "defects": [
+    {
+      "id": "claim-dispatch-desync",
+      "description": "Task Attempt claim must activate exactly one matching coordination dispatch.",
+      "location": "external GSD engine lifecycle coordination",
+      "law_nexus_fixable": false,
+      "status": "not_fixed",
+      "evidence_refs": [
+        "prd/migration/rust-evidence/m204-s01-gsd-failure-classes.json#classes[0]",
+        ".gsd/journal/2026-09-01.jsonl:89"
+      ]
+    },
+    {
+      "id": "gate-completed-no-advance",
+      "description": "gate-evaluate can report completion without changing target rows, producing a completed-no-advance wedge.",
+      "location": "external GSD engine gate persistence/advance guard",
+      "law_nexus_fixable": false,
+      "status": "not_fixed",
+      "evidence_refs": [
+        "prd/migration/rust-evidence/m204-s01-gsd-failure-classes.json#classes[1]",
+        ".gsd/journal/2026-09-07.jsonl:341"
+      ]
+    }
+  ],
+  "upstream_report": {
+    "status": "not_filed",
+    "recommended_content": {
+      "title": "GSD auto-mode claim-dispatch desync and completed-no-advance wedges",
+      "reproduction": [
+        "Run auto-mode through an execute-task or gate-evaluate transition using the affected durable lifecycle adapter.",
+        "Observe that a Task Attempt claim does not activate exactly one matching coordination dispatch, or that gate completion leaves target rows unchanged.",
+        "Observe the resulting blocked auto-exit/liveness wedge and record the unit journal and activity references."
+      ],
+      "expected": "The claim has exactly one matching active coordination dispatch, and a successful gate-evaluate completion advances or durably changes its target rows.",
+      "actual": "The claim/dispatch invariant or row-advance invariant can fail, leaving auto-mode blocked.",
+      "requested_fix": "Repair the external engine's dispatch activation and gate completion advance guards, and add regression coverage for both invariants without requiring law-nexus-local mutations."
+    }
+  },
+  "boundary": "This note records typed upstream debt only. It does not file an issue, modify the external GSD engine, or claim either defect is fixed."
+}
