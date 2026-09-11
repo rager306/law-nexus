@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, process::Command};
 
 use ln_consultant_parser::contour_diagnostics::{
     self, Cli, Comparison, EXIT_INCOMPARABLE, EXIT_MISSING, EXIT_ROOT_MISSING,
@@ -13,6 +13,13 @@ fn fixture() -> PathBuf {
     let _ = fs::create_dir_all(&path);
     fs::write(path.join("law_2024-01.xml"), b"<not-wordml/>").unwrap();
     path
+}
+
+fn run_cli(args: &[&str]) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_npa-contour-diagnostics"))
+        .args(args)
+        .output()
+        .expect("contour diagnostics CLI should be available to integration tests")
 }
 
 #[test]
@@ -131,6 +138,60 @@ fn check_codes_distinguish_missing_and_incomparable_baselines() {
     assert_eq!(contour_diagnostics::run(&check, &root).0, EXIT_INCOMPARABLE);
     fs::remove_file(&out).unwrap();
     assert_eq!(contour_diagnostics::run(&check, &root).0, EXIT_MISSING);
+    let _ = fs::remove_dir_all(root);
+}
+
+#[test]
+fn cli_receipt_battery_is_bounded_and_fail_closed() {
+    let root = fixture();
+    let garant = root.join("garant");
+    fs::create_dir_all(&garant).unwrap();
+    let out = root.join("receipt.jsonl");
+    let root_arg = root.to_str().unwrap();
+    let garant_arg = garant.to_str().unwrap();
+    let out_arg = out.to_str().unwrap();
+    let args = [
+        "--root",
+        root_arg,
+        "--garant-root",
+        garant_arg,
+        "--out",
+        out_arg,
+        "--limit",
+        "2",
+        "--jobs",
+        "2",
+        "--label",
+        "s04-cli-battery",
+    ];
+
+    let generated = run_cli(&args);
+    assert!(generated.status.success(), "stderr: {:?}", generated.stderr);
+    let report = fs::read_to_string(&out).unwrap();
+    contour_diagnostics::validate_jsonl(&report).unwrap();
+    for marker in [
+        "\"schema\":\"npa-contour-diagnostics/v2\"",
+        "\"inventory_digest\":\"sha256:",
+        "\"record_kind\":\"canonical_payload\"",
+        "\"record_kind\":\"operational_envelope\"",
+        "\"block_presence\"",
+        "\"lawref_capture_presence\"",
+        "\"identity_binding_not_measured\"",
+        "\"legal_marker_presence\"",
+    ] {
+        assert!(report.contains(marker), "missing receipt marker {marker}");
+    }
+
+    let checked = run_cli(&[&args[..], &["--check"]].concat());
+    assert!(checked.status.success(), "stderr: {:?}", checked.stderr);
+
+    fs::write(root.join("law_2024-01.xml"), b"<changed/>\n").unwrap();
+    let drift = run_cli(&[&args[..], &["--check"]].concat());
+    assert_eq!(drift.status.code(), Some(EXIT_INCOMPARABLE as i32));
+
+    fs::remove_file(&out).unwrap();
+    let missing = run_cli(&[&args[..], &["--check"]].concat());
+    assert_eq!(missing.status.code(), Some(EXIT_MISSING as i32));
     let _ = fs::remove_dir_all(root);
 }
 
