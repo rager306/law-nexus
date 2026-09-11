@@ -1,0 +1,25 @@
+{
+  "schema": "m204-s07-verification-battery/v1",
+  "verification": "S07_VERIFY_OK",
+  "operational_acceptance": "non-pass",
+  "classification": "supporting-only",
+  "checks": {
+    "governor_repeat": "pass",
+    "c4_receipt": "pass",
+    "requirements": "pass",
+    "classification": "supporting-only"
+  },
+  "corpus_walk_repeated": false,
+  "false_operational_pass_blocked": true,
+  "source_artifacts": {
+    "m204-s07-governor-repeat.json": "sha256:da97019bc7ee197dfbcbb462b23541b8af44595904b7a6a010f6bbb34406465e",
+    "m204-s07-c4-operational-receipt.json": "sha256:f515e76bf757fb4e1143fc558b00ba7033ec383f586506085a9d2748ac5fbdab",
+    "m204-s07-requirement-evidence.json": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203",
+    "m204-s06-requirement-evidence.json": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+  },
+  "non_claims": [
+    "S07_VERIFY_OK is evidence integrity, not operational acceptance",
+    "A terminal exit 0 and valid diagnostics do not satisfy the duration floor",
+    "No requirement, finding, or lifecycle state was changed"
+  ]
+}
