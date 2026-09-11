@@ -1,0 +1,94 @@
+{
+  "schema": "m204-s06-c4-operational-receipt/v1",
+  "attempt_id": "calibration-1000",
+  "immutable_attempt_identity": {
+    "attempt_id": "calibration-1000",
+    "argv_sha256": "sha256:6107b88cdadbce653e255c4024b415fa20439918976a9326afae4e6b66675419"
+  },
+  "argv": [
+    "/root/law-nexus/target/release/npa-contour-diagnostics",
+    "--root",
+    "/root/law-nexus/consru_export/consru_export/exports",
+    "--garant-root",
+    "/root/law-nexus/law-source/garant",
+    "--profile",
+    "contour",
+    "--jobs",
+    "0",
+    "--acceptance-contract",
+    "/root/law-nexus/prd/architecture/npa-acceptance-contract.yaml",
+    "--source-revision",
+    "m204-s06-c4-caller-pin-2026-09-11",
+    "--limit",
+    "1000"
+  ],
+  "binary": {
+    "path": "target/release/npa-contour-diagnostics",
+    "sha256": "sha256:4a7ea7962f0880010b852c7fe7f9406e9ba35e52c77e180d0003fb1e5144b3b2"
+  },
+  "build_inputs": {
+    "binary_sha256": "sha256:4a7ea7962f0880010b852c7fe7f9406e9ba35e52c77e180d0003fb1e5144b3b2",
+    "contract_sha256": "sha256:34e8a38a4bd7619d35e8bc2c1294e3a9bc77179b3385d9b5d9161157220d51e3",
+    "parser_source_sha256": "sha256:e53a0961c8ecfaf8fcc133da1b37efcbca9dcbd41ffba28e842fa6d7de34d3a4"
+  },
+  "toolchain": {
+    "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+    "commands_exit_code": {
+      "rustc": 0,
+      "cargo": 0
+    }
+  },
+  "parser_revision": "m204-s04-c4-contour-v1",
+  "source_revision": "m204-s06-c4-caller-pin-2026-09-11",
+  "contract": {
+    "path": "prd/architecture/npa-acceptance-contract.yaml",
+    "sha256": "sha256:34e8a38a4bd7619d35e8bc2c1294e3a9bc77179b3385d9b5d9161157220d51e3",
+    "version": "npa-acceptance-contract/v1",
+    "check_id": "c4-live-check",
+    "mode": "runtime"
+  },
+  "corpus": {
+    "consultant_xml_count": 43785,
+    "consultant_root": "consru_export/consru_export/exports",
+    "garant_file_count": 12,
+    "garant_root": "law-source/garant"
+  },
+  "observed_output": {
+    "stdout_sha256": "sha256:929e702c4ebb4962e9e15300fd4533d80ea3884c78cd96fbdaf04b57f30028f2",
+    "inventory_digest": "sha256:d1a39edb074c63985a5f7231ed1d58d70d990e11578e4fb7a1f9958f1cbbc000"
+  },
+  "c4_binding": {
+    "profile": "contour",
+    "limit": 1000,
+    "jobs": 0,
+    "inventory_scope": "consultant XML plus separate Garant files",
+    "baseline_sha256": null
+  },
+  "started_at": "2026-09-11T12:28:20Z",
+  "finished_at": "2026-09-11T12:28:27Z",
+  "duration_ms": 6921,
+  "budget_seconds": 3600,
+  "terminal": {
+    "outcome": "complete",
+    "exit_code": 0,
+    "signal": null,
+    "timeout": false
+  },
+  "logs": {
+    "stdout": "prd/migration/rust-evidence/m204-s06-c4-attempts/calibration-1000/stdout.log",
+    "stderr": "prd/migration/rust-evidence/m204-s06-c4-attempts/calibration-1000/stderr.log",
+    "stdout_sha256": "sha256:929e702c4ebb4962e9e15300fd4533d80ea3884c78cd96fbdaf04b57f30028f2",
+    "stderr_sha256": "sha256:0f28b22674b349bbc2a37577a5d36396a80af75e83fe95e31da8bae5bbc09fb0",
+    "inventory_digest": "sha256:d1a39edb074c63985a5f7231ed1d58d70d990e11578e4fb7a1f9958f1cbbc000"
+  },
+  "claims": {
+    "operational_acceptance": "non-pass",
+    "receipt_is_runtime_attempt": true
+  },
+  "non_claims": [
+    "receipt presence is not freshness",
+    "source_revision is caller pin, not GSD aggregate",
+    "semantic acceptance remains in Rust JSONL"
+  ]
+}
