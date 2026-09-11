@@ -1,0 +1,48 @@
+{
+  "schema": "m204-s05-m073-residue-waiver/v1",
+  "kind": "documentation-only-waiver",
+  "generated_at": "2026-09-11T00:00:00Z",
+  "observation": {
+    "observed_at": "2026-09-10T13:01:20.232925Z",
+    "source": "prd/migration/rust-evidence/m204-s01-t01-gsd-inventory.json and prd/migration/rust-evidence/m204-s01-gsd-upstream-debt.json",
+    "source_is_fresh_db_query": false,
+    "source_is_tracked_snapshot": true,
+    "external_paths_read": false,
+    "direct_database_access": false
+  },
+  "residue": {
+    "milestone": "M073-68ysz1",
+    "slice": "S01",
+    "tasks": ["T01", "T02", "T03", "T04"],
+    "archive_surface": "python_archive/product/LegalDomain",
+    "parent_status": "complete",
+    "delivery": "none",
+    "review_finding": "DT-orphan-gsd",
+    "scope": "blocked-in-scope",
+    "upstream_filed": false,
+    "defects": {
+      "claim_dispatch_desync": "not_fixed",
+      "gate_completed_no_advance": "not_fixed"
+    }
+  },
+  "disposition": {
+    "status": "documented-only",
+    "engine_waiver": false,
+    "product_claim": false,
+    "lifecycle_mutation": false,
+    "reopen_authorized": false,
+    "human_decision_required": true,
+    "required_before_reopen": "fresh sanctioned status for the terminal parent and an explicit human decision"
+  },
+  "prohibited_actions": [
+    "Do not treat this document as a GSD engine waiver.",
+    "Do not query or mutate gsd.db directly.",
+    "Do not call gsd_skip_slice, gsd_slice_reopen, gsd_task_reopen, or gsd_task_complete for other tasks.",
+    "Do not implement or revive archive Python LegalDomain as product runtime."
+  ],
+  "evidence_refs": [
+    "prd/migration/rust-evidence/m204-s01-t01-gsd-inventory.json",
+    "prd/migration/rust-evidence/m204-s01-gsd-failure-classes.json",
+    "prd/migration/rust-evidence/m204-s01-gsd-upstream-debt.json"
+  ]
+}

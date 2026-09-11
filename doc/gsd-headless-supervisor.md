@@ -206,6 +206,37 @@ A supervisor process that was started **before** this predicate was
 added still runs the old script in memory. Disk edit ≠ live FSM until
 the next boot. Do not rewrite the live inode while a task is executing.
 
+## M073 residue: documented-only operator recipe
+
+`prd/migration/rust-evidence/m204-s05-m073-residue-waiver.json` records a
+project-local snapshot of the blocked-in-scope `DT-orphan-gsd` residue for
+`M073-68ysz1/S01/T01..T04`. It is documentation only: it is not an engine
+waiver, does not change lifecycle state, and does not claim delivery of the
+archived Python `LegalDomain` surface. The snapshot must not be presented as
+a fresh database query; its observation timestamp and source artifacts are
+part of the evidence boundary.
+
+If this residue is ever reconsidered, use a **separate human-gated operator
+unit** and perform the following recipe only after the operator explicitly
+chooses to proceed:
+
+1. Obtain fresh status through sanctioned GSD status/query surfaces for the
+   terminal parent `M073-68ysz1`; do not infer current state from this
+   snapshot.
+2. Record the fresh status and the operator's explicit decision in the
+   authorized workflow before any lifecycle action.
+3. Confirm the operator has authority to reopen the terminal parent and that
+   the intended scope is limited to the named residue.
+4. Only the authorized GSD lifecycle workflow may perform a reopen; this
+   document and `scripts/m204_s05_process_verify.py` must never perform it.
+5. If authority, fresh status, or the human decision is missing, stop
+   fail-closed. Do not call `gsd_skip_slice`, `gsd_slice_reopen`,
+   `gsd_task_reopen`, or `gsd_task_complete` for these historical tasks.
+
+This recipe is not executed by the S05 verifier or supervisor. Direct
+`gsd.db` access, upstream filing claims, and implementation or revival of
+archive Python `LegalDomain` remain prohibited.
+
 ## Failure classes already paid for (2026-09-10)
 
 | Class | Symptom | Correct move |
