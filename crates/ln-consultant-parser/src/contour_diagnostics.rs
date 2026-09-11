@@ -7,9 +7,13 @@ use std::{
     path::{Path, PathBuf},
     process::{Command, Stdio},
     thread,
+    time::Instant,
 };
 
-use crate::corpus_sample::{classify_path, SourceRootKind};
+use crate::{
+    acceptance_retry_contract::AcceptanceContract,
+    corpus_sample::{classify_path, SourceRootKind},
+};
 
 use ln_decode::{
     adapters::garant_odt::GarantOdtBlockDecoder,
@@ -62,6 +66,12 @@ pub struct Cli {
     /// Worker count for consultant XML observe. `0` = all cores. Tests keep `1`
     /// (sequential `walk_and_observe`). The CLI parser defaults to `0`.
     pub jobs: usize,
+    /// Explicit caller pin for acceptance runs; never inferred from GSD or git.
+    pub source_revision: Option<String>,
+    pub acceptance_contract: Option<String>,
+    pub acceptance_mode: Option<String>,
+    /// Actual argv captured by the thin binary shell.
+    pub argv: Vec<String>,
 }
 impl Default for Cli {
     fn default() -> Self {
@@ -74,6 +84,10 @@ impl Default for Cli {
             check: false,
             label: "fixture-gate".into(),
             jobs: 1,
+            source_revision: None,
+            acceptance_contract: None,
+            acceptance_mode: None,
+            argv: Vec::new(),
         }
     }
 }
@@ -88,11 +102,13 @@ fn resolve_jobs(jobs: usize) -> usize {
 }
 
 pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Cli, String> {
+    let argv: Vec<String> = args.into_iter().collect();
     let mut c = Cli {
         jobs: 0,
+        argv: argv.clone(),
         ..Cli::default()
     };
-    let mut it = args.into_iter();
+    let mut it = argv.into_iter();
     while let Some(a) = it.next() {
         match a.as_str() {
             "--root" => c.root = Some(next(&mut it, &a)?),
@@ -113,6 +129,15 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Cli, String
                 )
             }
             "--check" => c.check = true,
+            "--source-revision" => c.source_revision = Some(next(&mut it, &a)?),
+            "--acceptance-contract" => c.acceptance_contract = Some(next(&mut it, &a)?),
+            "--acceptance-mode" => {
+                let mode = next(&mut it, &a)?;
+                if mode != "runtime" && mode != "artifact" {
+                    return Err("--acceptance-mode expects runtime or artifact".into());
+                }
+                c.acceptance_mode = Some(mode);
+            }
             "--jobs" => {
                 c.jobs = next(&mut it, &a)?.parse().map_err(|_| {
                     "--jobs expects a non-negative integer (0 = all cores)".to_string()
@@ -121,10 +146,30 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Cli, String
             x => return Err(format!("unexpected argument '{x}'")),
         }
     }
+    if c.acceptance_contract.is_some() && c.source_revision.is_none() {
+        return Err("--acceptance-contract requires --source-revision caller pin".into());
+    }
+    if c.acceptance_mode.is_some() && c.acceptance_contract.is_none() {
+        return Err("--acceptance-mode requires --acceptance-contract".into());
+    }
     Ok(c)
 }
 fn next(it: &mut impl Iterator<Item = String>, flag: &str) -> Result<String, String> {
     it.next().ok_or_else(|| format!("missing value for {flag}"))
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct RenderOpts<'a> {
+    pub label: &'a str,
+    pub limit: Option<u64>,
+    pub profile: &'a str,
+    pub source_revision: Option<&'a str>,
+    pub acceptance_contract: Option<&'a str>,
+    pub acceptance_check_id: Option<&'a str>,
+    pub acceptance_mode: Option<&'a str>,
+    pub acceptance_command_template: Option<&'a str>,
+    pub argv: &'a [String],
+    pub duration_ms: u128,
 }
 
 #[derive(Debug, Default)]
@@ -266,7 +311,19 @@ impl Acc {
         }
     }
 
-    pub fn render(&self, label: &str, _root: &Path, limit: Option<u64>, profile: &str) -> String {
+    pub fn render(&self, _root: &Path, opts: &RenderOpts<'_>) -> String {
+        let RenderOpts {
+            label,
+            limit,
+            profile,
+            source_revision,
+            acceptance_contract,
+            acceptance_check_id,
+            acceptance_mode,
+            acceptance_command_template,
+            argv,
+            duration_ms,
+        } = *opts;
         let mut o = String::new();
         let mut tuples = self.inventory.clone();
         tuples.sort();
@@ -290,8 +347,15 @@ impl Acc {
             q("all-contours"),
             map(&self.dimensions)
         );
-        let _=writeln!(o,"{{\"record_kind\":\"canonical_payload\",\"schema\":\"{SCHEMA}\",\"parser_revision\":\"{PARSER_REVISION}\",\"inventory_digest\":{},\"semantic_digest\":{},\"profile\":{},\"limit\":{},\"files\":{},\"decoded\":{},\"failed\":{},\"stages\":{},\"inventory\":{}}}",q(&inventory_digest),q(&semantic_digest),q(profile),limit.map_or_else(|| "null".into(), |n| n.to_string()),self.files,self.decoded,self.failed,map(&self.stages),map(&self.dimensions));
-        let _=writeln!(o,"{{\"record_kind\":\"operational_envelope\",\"label\":{},\"observed_file_count\":{},\"run_status\":\"complete\"}}",q(label),self.files);
+        let _=writeln!(o,"{{\"record_kind\":\"canonical_payload\",\"schema\":\"{SCHEMA}\",\"parser_revision\":\"{PARSER_REVISION}\",\"inventory_digest\":{},\"semantic_digest\":{},\"profile\":{},\"limit\":{},\"source_revision\":{},\"acceptance_contract_version\":{},\"acceptance_check_id\":{},\"acceptance_mode\":{},\"acceptance_command_template\":{},\"files\":{},\"decoded\":{},\"failed\":{},\"stages\":{},\"inventory\":{}}}",q(&inventory_digest),q(&semantic_digest),q(profile),limit.map_or_else(|| "null".into(), |n| n.to_string()),q(source_revision.unwrap_or("unavailable")),q(acceptance_contract.unwrap_or("unavailable")),q(acceptance_check_id.unwrap_or("unavailable")),q(acceptance_mode.unwrap_or("unavailable")),q(acceptance_command_template.unwrap_or("unavailable")),self.files,self.decoded,self.failed,map(&self.stages),map(&self.dimensions));
+        let toolchain = observed_toolchain();
+        let argv_json = format!(
+            "[{}]",
+            argv.iter().map(|a| q(a)).collect::<Vec<_>>().join(",")
+        );
+        let source = source_revision.unwrap_or("unavailable");
+        let contract = acceptance_contract.unwrap_or("unavailable");
+        let _=writeln!(o,"{{\"record_kind\":\"operational_envelope\",\"label\":{},\"observed_file_count\":{},\"run_status\":\"complete\",\"acceptance_contract_version\":{},\"source_revision\":{},\"argv\":{},\"observed_rustc_version\":{},\"duration_ms\":{}}}",q(label),self.files,q(contract),q(source),argv_json,q(&toolchain),duration_ms);
         o
     }
 }
@@ -320,6 +384,62 @@ fn write(path: &Path, body: &str) -> Result<(), String> {
         .and_then(|_| fs::rename(&tmp, path))
         .map_err(|e| e.to_string())
 }
+fn acceptance_identity(
+    cli: &Cli,
+) -> (
+    Option<String>,
+    Option<String>,
+    Option<String>,
+    Option<String>,
+) {
+    let Some(path) = cli.acceptance_contract.as_deref() else {
+        return (None, None, None, None);
+    };
+    let Ok(contract) = AcceptanceContract::parse_file(path) else {
+        return (None, None, None, None);
+    };
+    let mode = cli.acceptance_mode.as_deref().unwrap_or("runtime");
+    let check = contract.checks.iter().find(|check| {
+        matches!(
+            (&check.mode, mode),
+            (
+                crate::acceptance_retry_contract::CheckMode::Runtime,
+                "runtime"
+            ) | (
+                crate::acceptance_retry_contract::CheckMode::Artifact,
+                "artifact"
+            )
+        )
+    });
+    check.map_or(
+        (
+            Some(contract.contract_version.clone()),
+            None,
+            Some(mode.to_string()),
+            None,
+        ),
+        |check| {
+            (
+                Some(contract.contract_version.clone()),
+                Some(check.check_id.clone()),
+                Some(mode.to_string()),
+                Some(check.command_template.clone()),
+            )
+        },
+    )
+}
+
+fn observed_toolchain() -> String {
+    Command::new("rustc")
+        .arg("--version")
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "unavailable".into())
+}
+
 fn digest_bytes(bytes: &[u8]) -> Result<String, String> {
     let mut child = Command::new("sha256sum")
         .arg("-")
@@ -358,6 +478,23 @@ pub fn validate_jsonl(s: &str) -> Result<(), String> {
 }
 
 pub fn run(cli: &Cli, default_root: &Path) -> (u8, Option<String>, String) {
+    if let Some(path) = &cli.acceptance_contract {
+        if let Err(error) = AcceptanceContract::parse_file(path) {
+            return (
+                EXIT_USAGE,
+                None,
+                format!("acceptance contract invalid: {error}"),
+            );
+        }
+        if cli.source_revision.as_deref().is_none_or(str::is_empty) {
+            return (
+                EXIT_USAGE,
+                None,
+                "acceptance path requires source revision caller pin".into(),
+            );
+        }
+    }
+    let started = Instant::now();
     let explicit = cli.root.is_some();
     let root = cli
         .root
@@ -374,7 +511,24 @@ pub fn run(cli: &Cli, default_root: &Path) -> (u8, Option<String>, String) {
         } else {
             (
                 EXIT_OK,
-                Some(Acc::default().render(&cli.label, &root, cli.limit, &cli.profile)),
+                Some({
+                    let (version, check_id, mode, command) = acceptance_identity(cli);
+                    Acc::default().render(
+                        &root,
+                        &RenderOpts {
+                            label: &cli.label,
+                            limit: cli.limit,
+                            profile: &cli.profile,
+                            source_revision: cli.source_revision.as_deref(),
+                            acceptance_contract: version.as_deref(),
+                            acceptance_check_id: check_id.as_deref(),
+                            acceptance_mode: mode.as_deref(),
+                            acceptance_command_template: command.as_deref(),
+                            argv: &cli.argv,
+                            duration_ms: started.elapsed().as_millis(),
+                        },
+                    )
+                }),
                 "default root absent; skipped".into(),
             )
         };
@@ -410,7 +564,22 @@ pub fn run(cli: &Cli, default_root: &Path) -> (u8, Option<String>, String) {
         }
         a.merge(ga);
     }
-    let body = a.render(&cli.label, &root, cli.limit, &cli.profile);
+    let (version, check_id, mode, command) = acceptance_identity(cli);
+    let body = a.render(
+        &root,
+        &RenderOpts {
+            label: &cli.label,
+            limit: cli.limit,
+            profile: &cli.profile,
+            source_revision: cli.source_revision.as_deref(),
+            acceptance_contract: version.as_deref(),
+            acceptance_check_id: check_id.as_deref(),
+            acceptance_mode: mode.as_deref(),
+            acceptance_command_template: command.as_deref(),
+            argv: &cli.argv,
+            duration_ms: started.elapsed().as_millis(),
+        },
+    );
     if cli.check {
         let Some(path) = cli.out.as_ref() else {
             return (EXIT_USAGE, None, "--check requires --out baseline".into());
@@ -431,7 +600,18 @@ pub fn run(cli: &Cli, default_root: &Path) -> (u8, Option<String>, String) {
             Comparison::MissingBaseline => (EXIT_MISSING, None, "baseline receipt missing".into()),
         }
     } else if let Some(out) = &cli.out {
-        match write(Path::new(out), &body) {
+        let path = Path::new(out);
+        if let Ok(old) = fs::read_to_string(path) {
+            match compare_reports(&body, Some(&old)) {
+                Comparison::Match | Comparison::OperationalOnly => {
+                    return (EXIT_OK, None, format!("observed={n}; receipt=reused"));
+                }
+                Comparison::SemanticDrift
+                | Comparison::IncomparableInput
+                | Comparison::MissingBaseline => {}
+            }
+        }
+        match write(path, &body) {
             Ok(()) => (EXIT_OK, None, format!("observed={n}")),
             Err(e) => (EXIT_OUT_UNWRITABLE, None, e),
         }
@@ -456,6 +636,13 @@ pub fn compare_reports(current: &str, baseline: Option<&str>) -> Comparison {
         || current_payload.profile != baseline_payload.profile
         || current_payload.limit != baseline_payload.limit
         || current_payload.inventory_digest != baseline_payload.inventory_digest
+        || current_payload.source_revision != baseline_payload.source_revision
+        || current_payload.acceptance_contract_version
+            != baseline_payload.acceptance_contract_version
+        || current_payload.acceptance_check_id != baseline_payload.acceptance_check_id
+        || current_payload.acceptance_mode != baseline_payload.acceptance_mode
+        || current_payload.acceptance_command_template
+            != baseline_payload.acceptance_command_template
     {
         return Comparison::IncomparableInput;
     }
@@ -476,6 +663,11 @@ struct CanonicalPayload {
     profile: String,
     limit: String,
     inventory_digest: String,
+    source_revision: String,
+    acceptance_contract_version: String,
+    acceptance_check_id: String,
+    acceptance_mode: String,
+    acceptance_command_template: String,
     semantic_digest: String,
     semantic: String,
     operational: String,
@@ -575,6 +767,16 @@ fn canonical_payload(report: &str) -> Option<CanonicalPayload> {
         profile: json_field(payload, "profile")?,
         limit: json_field(payload, "limit")?,
         inventory_digest: json_field(payload, "inventory_digest")?,
+        source_revision: json_field(payload, "source_revision")
+            .unwrap_or_else(|| "unavailable".into()),
+        acceptance_contract_version: json_field(payload, "acceptance_contract_version")
+            .unwrap_or_else(|| "unavailable".into()),
+        acceptance_check_id: json_field(payload, "acceptance_check_id")
+            .unwrap_or_else(|| "unavailable".into()),
+        acceptance_mode: json_field(payload, "acceptance_mode")
+            .unwrap_or_else(|| "unavailable".into()),
+        acceptance_command_template: json_field(payload, "acceptance_command_template")
+            .unwrap_or_else(|| "unavailable".into()),
         semantic_digest,
         semantic,
         operational: ["label", "observed_file_count", "run_status"]

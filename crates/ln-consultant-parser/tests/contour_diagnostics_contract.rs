@@ -34,7 +34,13 @@ fn bounded_run_is_closed_and_deterministic() {
     let first = contour_diagnostics::run(&cli, &root);
     let second = contour_diagnostics::run(&cli, &root);
     assert_eq!(first.0, 0);
-    assert_eq!(first.1, second.1);
+    assert_eq!(
+        contour_diagnostics::compare_reports(
+            first.1.as_deref().unwrap(),
+            Some(second.1.as_deref().unwrap())
+        ),
+        Comparison::Match
+    );
     let report = first.1.unwrap();
     contour_diagnostics::validate_jsonl(&report).unwrap();
     assert!(report.contains("non_claims"));
@@ -80,7 +86,13 @@ fn jobs_two_matches_sequential_on_fixture() {
     let second = contour_diagnostics::run(&parallel, &root);
     assert_eq!(first.0, 0);
     assert_eq!(first.0, second.0);
-    assert_eq!(first.1, second.1);
+    assert_eq!(
+        contour_diagnostics::compare_reports(
+            first.1.as_deref().unwrap(),
+            Some(second.1.as_deref().unwrap())
+        ),
+        Comparison::Match
+    );
     let _ = fs::remove_dir_all(root);
 }
 

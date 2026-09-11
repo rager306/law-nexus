@@ -1,0 +1,20 @@
+schema: npa-acceptance-contract/v1
+lifecycle: proposed
+contract_version: npa-acceptance-contract/v1
+checks:
+  - check_id: c4-live-check
+    mode: runtime
+    command_template: npa-contour-diagnostics --check
+    binding_fields: [parser_revision, inventory_digest, profile, limit, source_revision]
+    reuse_policy: equivalent-retry-preserves-receipt
+    supersession_policy: explicit-from-to-reason-authorization-preserved-hash
+  - check_id: c4-artifact-replay
+    mode: artifact
+    command_template: saved C4 receipt replay
+    binding_fields: [parser_revision, inventory_digest, profile, limit, source_revision]
+    reuse_policy: receipt-presence-is-not-freshness
+    supersession_policy: explicit-from-to-reason-authorization-preserved-hash
+non_claims:
+  - receipt presence does not prove runtime freshness
+  - GSD aggregate source revision is not a product receipt source pin
+  - this contract does not close RC28 findings or authorize supersession by itself
