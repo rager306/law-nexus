@@ -272,6 +272,16 @@ impl Acc {
         tuples.sort();
         let inventory_digest = digest_bytes(tuples.join("\n").as_bytes())
             .unwrap_or_else(|_| "sha256:unavailable".into());
+        let semantic = format!(
+            "files={};decoded={};failed={};stages={};inventory={}",
+            self.files,
+            self.decoded,
+            self.failed,
+            map(&self.stages),
+            map(&self.dimensions)
+        );
+        let semantic_digest =
+            digest_bytes(semantic.as_bytes()).unwrap_or_else(|_| "sha256:unavailable".into());
         let _=writeln!(o,"{{\"record_kind\":\"header\",\"schema\":\"{SCHEMA}\",\"schema_version\":2,\"label\":{},\"lifecycle\":\"diagnostic\",\"parser_revision\":\"{PARSER_REVISION}\",\"inventory_digest\":{},\"profile\":{},\"limit\":{},\"non_claims\":[\"C4 does not advance C2/C3/C5\",\"not gold\",\"not R035/R070\",\"product document_context/semantic_scope/identity_binding are not executed\",\"ln-temporal runtime is not used\"],\"provider_roots\":[\"consultant\",\"garant\"]}}",q(label),q(&inventory_digest),q(profile),limit.map_or_else(|| "null".into(), |n| n.to_string()));
         let _=writeln!(o,"{{\"record_kind\":\"aggregate\",\"provider\":{},\"files\":{},\"decoded\":{},\"failed\":{},\"stages\":{}}}",q("all-contours"),self.files,self.decoded,self.failed,map(&self.stages));
         let _ = writeln!(
@@ -280,7 +290,7 @@ impl Acc {
             q("all-contours"),
             map(&self.dimensions)
         );
-        let _=writeln!(o,"{{\"record_kind\":\"canonical_payload\",\"schema\":\"{SCHEMA}\",\"parser_revision\":\"{PARSER_REVISION}\",\"inventory_digest\":{},\"profile\":{},\"limit\":{},\"files\":{},\"decoded\":{},\"failed\":{},\"stages\":{},\"inventory\":{}}}",q(&inventory_digest),q(profile),limit.map_or_else(|| "null".into(), |n| n.to_string()),self.files,self.decoded,self.failed,map(&self.stages),map(&self.dimensions));
+        let _=writeln!(o,"{{\"record_kind\":\"canonical_payload\",\"schema\":\"{SCHEMA}\",\"parser_revision\":\"{PARSER_REVISION}\",\"inventory_digest\":{},\"semantic_digest\":{},\"profile\":{},\"limit\":{},\"files\":{},\"decoded\":{},\"failed\":{},\"stages\":{},\"inventory\":{}}}",q(&inventory_digest),q(&semantic_digest),q(profile),limit.map_or_else(|| "null".into(), |n| n.to_string()),self.files,self.decoded,self.failed,map(&self.stages),map(&self.dimensions));
         let _=writeln!(o,"{{\"record_kind\":\"operational_envelope\",\"label\":{},\"observed_file_count\":{},\"run_status\":\"complete\"}}",q(label),self.files);
         o
     }
@@ -466,6 +476,7 @@ struct CanonicalPayload {
     profile: String,
     limit: String,
     inventory_digest: String,
+    semantic_digest: String,
     semantic: String,
     operational: String,
 }
@@ -474,16 +485,53 @@ fn json_field(line: &str, key: &str) -> Option<String> {
     let marker = format!("\"{key}\":");
     let start = line.find(&marker)? + marker.len();
     let rest = &line[start..];
-    if let Some(stripped) = rest.strip_prefix('"') {
-        let end = stripped.find('"')?;
-        Some(stripped[..end].to_owned())
-    } else {
-        let end = rest
-            .find(',')
-            .or_else(|| rest.find('}'))
-            .unwrap_or(rest.len());
-        Some(rest[..end].trim().to_owned())
+    let bytes = rest.as_bytes();
+    if bytes.first() == Some(&b'\"') {
+        let mut escaped = false;
+        for (i, byte) in bytes.iter().enumerate().skip(1) {
+            if escaped {
+                escaped = false;
+            } else if *byte == b'\\' {
+                escaped = true;
+            } else if *byte == b'\"' {
+                return Some(rest[1..i].to_owned());
+            }
+        }
+        return None;
     }
+    if matches!(bytes.first(), Some(b'{') | Some(b'[')) {
+        let open = bytes[0];
+        let close = if open == b'{' { b'}' } else { b']' };
+        let mut depth = 0usize;
+        let mut in_string = false;
+        let mut escaped = false;
+        for (i, byte) in bytes.iter().enumerate() {
+            if in_string {
+                if escaped {
+                    escaped = false;
+                } else if *byte == b'\\' {
+                    escaped = true;
+                } else if *byte == b'\"' {
+                    in_string = false;
+                }
+            } else if *byte == b'\"' {
+                in_string = true;
+            } else if *byte == open {
+                depth += 1;
+            } else if *byte == close {
+                depth = depth.checked_sub(1)?;
+                if depth == 0 {
+                    return Some(rest[..=i].to_owned());
+                }
+            }
+        }
+        return None;
+    }
+    let end = rest
+        .find(',')
+        .or_else(|| rest.find('}'))
+        .unwrap_or(rest.len());
+    Some(rest[..end].trim().to_owned())
 }
 
 fn canonical_payload(report: &str) -> Option<CanonicalPayload> {
@@ -505,12 +553,29 @@ fn canonical_payload(report: &str) -> Option<CanonicalPayload> {
         .map(|key| json_field(payload, key))
         .collect::<Option<Vec<_>>>()?
         .join("|");
+    let _stored_semantic_digest = json_field(payload, "semantic_digest")?;
+    // The stored digest is an observability field, not a trust boundary. The
+    // comparator recomputes the binding from typed semantic fields, so a stale
+    // or forged semantic_digest cannot masquerade as a valid baseline.
+    let semantic_digest = digest_bytes(
+        format!(
+            "files={};decoded={};failed={};stages={};inventory={}",
+            json_field(payload, "files")?,
+            json_field(payload, "decoded")?,
+            json_field(payload, "failed")?,
+            json_field(payload, "stages")?,
+            json_field(payload, "inventory")?,
+        )
+        .as_bytes(),
+    )
+    .ok()?;
     Some(CanonicalPayload {
         schema: json_field(header, "schema")?,
         revision: json_field(header, "parser_revision")?,
         profile: json_field(payload, "profile")?,
         limit: json_field(payload, "limit")?,
         inventory_digest: json_field(payload, "inventory_digest")?,
+        semantic_digest,
         semantic,
         operational: ["label", "observed_file_count", "run_status"]
             .iter()
