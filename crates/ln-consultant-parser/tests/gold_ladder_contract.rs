@@ -8,7 +8,7 @@ fn repo_path(relative: &str) -> std::path::PathBuf {
 }
 fn manifest(n: usize) -> corpus_manifest::CorpusManifest {
     corpus_manifest::load(&repo_path(&format!(
-        "prd/migration/rust-evidence/m203-s08-c5-gold-manifest-{n}.json"
+        "prd/migration/rust-evidence/m204-s02-c5-gold-manifest-{n}.json"
     )))
     .expect("frozen C5 manifest")
 }
@@ -34,7 +34,7 @@ fn ladder_is_nested_provider_stratified_and_proposed() {
         assert!(r
             .entries
             .iter()
-            .all(|e| matches!(e.admission, Admission::DoubleCodedAccepted)));
+            .all(|e| matches!(e.admission, Admission::BoundedReviewed)));
         assert!(r.entries.iter().any(|e| e.provider == "consultant"));
         assert!(r.entries.iter().any(|e| e.provider == "garant"));
         assert!(r
@@ -56,24 +56,24 @@ fn ladder_is_nested_provider_stratified_and_proposed() {
 #[test]
 fn durable_receipts_have_three_rungs_and_fail_closed_pins() {
     let root = repo_path("prd/migration/rust-evidence");
-    let coding = fs::read_to_string(root.join("m203-s08-c5-coding.jsonl")).unwrap();
-    let agreement = fs::read_to_string(root.join("m203-s08-c5-agreement.jsonl")).unwrap();
-    let quality = fs::read_to_string(root.join("m203-s08-quality-receipts.jsonl")).unwrap();
+    let coding = fs::read_to_string(root.join("m204-s02-c5-coding.jsonl")).unwrap();
+    let agreement = fs::read_to_string(root.join("m204-s02-c5-agreement.jsonl")).unwrap();
+    let quality = fs::read_to_string(root.join("m204-s02-c5-quality-receipts.jsonl")).unwrap();
     assert_eq!(coding.lines().count(), 3);
     assert_eq!(agreement.lines().count(), 3);
     assert_eq!(quality.lines().count(), 3);
     for line in quality.lines() {
         assert!(line.contains("\"human_acceptance\":null"));
-        assert!(line.contains("\"critical_field_loss\":0"));
-        assert!(line.contains("\"source_span_loss\":0"));
-        assert!(line.contains("\"false_fact_mint\":0"));
-        assert!(line.contains("not validated gold"));
+        assert!(line.contains("\"measurement_status\":\"not-measured\""));
+        assert!(line.contains("\"human_acceptance\":null"));
+        assert!(line.contains("not measured"));
+        assert!(line.contains("not accepted gold"));
         assert!(line.contains("not R035/R070"));
     }
     for line in agreement.lines() {
-        assert!(line.contains("\"classification\":\"proxy\""));
-        assert!(line.contains("\"percent\":1.0"));
-        assert!(line.contains("\"alpha\":1.0"));
+        assert!(line.contains("\"measurement_status\":\"not-measured\""));
+        assert!(line.contains("\"percent\":null"));
+        assert!(line.contains("\"alpha\":null"));
     }
     assert!(!coding.contains("raw_text_value"));
     assert!(coding

@@ -1,5 +1,5 @@
 //! Deterministic C5 100 -> 400 -> 800 ladder generator.
-use ln_consultant_parser::{corpus_manifest, drift_baseline, gold_eval};
+use ln_consultant_parser::{corpus_manifest, drift_baseline, gold_coding, gold_eval};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -161,11 +161,11 @@ fn manifest(
             .cloned()
             .ok_or_else(|| format!("missing inventory hash for {}", p.display()))?;
         entries.push(corpus_manifest::ManifestEntry {
-            entry_id: format!("NPA-MAN-C5-M203-S08-{i:04}"),
+            entry_id: format!("NPA-MAN-C5-M204-S02-{i:04}"),
             document_relative_path: rel.clone(),
             content_hash: h,
             evidence_anchor: format!("{rel}#document"),
-            admission: corpus_manifest::Admission::DoubleCodedAccepted,
+            admission: corpus_manifest::Admission::BoundedReviewed,
             provider: provider(p).into(),
             year: year(p),
             document_type: kind(p),
@@ -183,9 +183,9 @@ fn manifest(
         "garant".to_string(),
         entries.iter().filter(|e| e.provider == "garant").count(),
     );
-    let mut out=format!("{{\n  \"schema_version\":\"{}\",\n  \"manifest_id\":\"NPA-MAN-C5-M203-S08-{rung}\",\n  \"stratum\":\"C5\",\n  \"parser_revision\":\"m203-s08-c5-ladder-v1\",\n  \"corpus_snapshot_hash\":\"{}\",\n  \"provider_strata\":[{{\"provider\":\"consultant\",\"year\":\"inventory\",\"document_type\":\"mixed\",\"quota\":{},\"availability_cap\":{}}},{{\"provider\":\"garant\",\"year\":\"inventory\",\"document_type\":\"mixed\",\"quota\":{},\"availability_cap\":{}}}],\n  \"environment\":{{\"platform\":\"linux-x86_64\",\"rust_toolchain\":\"rustc-1.94.1\",\"command\":\"seeded C5 inventory draw 20308\"}},\n  \"entries\":[\n", corpus_manifest::SCHEMA, snapshot(&entries), pc["consultant"],pc["consultant"],pc["garant"],pc["garant"]);
+    let mut out=format!("{{\n  \"schema_version\":\"{}\",\n  \"manifest_id\":\"NPA-MAN-C5-M204-S02-{rung}\",\n  \"stratum\":\"C5\",\n  \"parser_revision\":\"m204-s02-c5-ladder-v2\",\n  \"corpus_snapshot_hash\":\"{}\",\n  \"provider_strata\":[{{\"provider\":\"consultant\",\"year\":\"inventory\",\"document_type\":\"mixed\",\"quota\":{},\"availability_cap\":{}}},{{\"provider\":\"garant\",\"year\":\"inventory\",\"document_type\":\"mixed\",\"quota\":{},\"availability_cap\":{}}}],\n  \"environment\":{{\"platform\":\"linux-x86_64\",\"rust_toolchain\":\"rustc-1.94.1\",\"command\":\"seeded C5 inventory draw 20402\"}},\n  \"entries\":[\n", corpus_manifest::SCHEMA, snapshot(&entries), pc["consultant"],pc["consultant"],pc["garant"],pc["garant"]);
     for (i, e) in entries.iter().enumerate() {
-        out.push_str(&format!("    {{\"entry_id\":\"{}\",\"document_relative_path\":\"{}\",\"content_hash\":\"{}\",\"evidence_anchor\":\"{}\",\"admission\":\"double_coded_accepted\",\"provider\":\"{}\",\"year\":\"{}\",\"document_type\":\"{}\"}}{}\n",e.entry_id,esc(&e.document_relative_path),e.content_hash,esc(&e.evidence_anchor),e.provider,e.year,e.document_type,if i+1==entries.len(){""}else{","}));
+        out.push_str(&format!("    {{\"entry_id\":\"{}\",\"document_relative_path\":\"{}\",\"content_hash\":\"{}\",\"evidence_anchor\":\"{}\",\"admission\":\"bounded_reviewed\",\"provider\":\"{}\",\"year\":\"{}\",\"document_type\":\"{}\"}}{}\n",e.entry_id,esc(&e.document_relative_path),e.content_hash,esc(&e.evidence_anchor),e.provider,e.year,e.document_type,if i+1==entries.len(){""}else{","}));
     }
     out.push_str("  ],\n  \"lifecycle\":\"[proposed]\",\n  \"sealed\":false,\n  \"manifest_digest\":null,\n  \"draw_seed\":20308,\n  \"nesting_rule\":\"prefix entry_id/content_hash; 100 subset 400 subset 800\"\n}\n");
     Ok(out)
@@ -312,25 +312,35 @@ fn outputs(
     let hashes = hash_paths(&files)?;
     let rungs: Vec<usize> = rung.map_or_else(|| vec![100, 400, 800], |n| vec![n]);
     let mut out = Vec::new();
-    for n in &rungs {
-        out.push((
-            dir.join(format!("m203-s08-c5-gold-manifest-{n}.json")),
-            manifest(*n, &files, &hashes, &excluded_hashes)?,
-        ));
-    }
     let mut coding = String::new();
     let mut agreement = String::new();
     let mut quality = String::new();
+    let status = gold_coding::MeasurementStatus::NotMeasured.as_str();
     for n in rungs {
-        let id = format!("NPA-MAN-C5-M203-S08-{n}");
-        coding.push_str(&format!("{{\"schema\":\"npa-c5-gold-coding/v1\",\"manifest_id\":\"{id}\",\"rung\":{n},\"coder_profiles\":[\"evidence-forward\",\"surface-forward\"],\"units\":{n},\"raw_text\":false}}\n"));
-        agreement.push_str(&format!("{{\"schema\":\"npa-c5-agreement/v1\",\"manifest_id\":\"{id}\",\"rung\":{n},\"percent\":1.0,\"alpha\":1.0,\"classification\":\"proxy\",\"disagreements\":0,\"adjudication_count\":0,\"parser_revision\":\"m203-s08-c5-ladder-v1\",\"corpus_snapshot_hash\":\"diagnostic-bound\"}}\n"));
-        quality.push_str(&format!("{{\"schema\":\"{}\",\"evidence_id\":\"c5-{n}\",\"family\":\"c5-rung\",\"parser_revision\":\"m203-s08-c5-ladder-v1\",\"manifest_id\":\"{id}\",\"layers\":{{\"parsing\":{{\"matched\":{n},\"missed\":0,\"extra\":0}},\"semantic\":{{\"matched\":{n},\"missed\":0,\"extra\":0}},\"identity\":{{\"matched\":{n},\"missed\":0,\"extra\":0}},\"temporal\":{{\"matched\":{n},\"missed\":0,\"extra\":0}}}},\"zero_tolerance\":{{\"critical_field_loss\":0,\"source_span_loss\":0,\"false_fact_mint\":0}},\"human_acceptance\":null,\"non_claims\":[\"proxy measurement\",\"not validated gold\",\"not R035/R070\"]}}\n",gold_eval::SCHEMA));
+        let rendered = manifest(n, &files, &hashes, &excluded_hashes)?;
+        let marker = "\"corpus_snapshot_hash\":\"";
+        let start = rendered
+            .find(marker)
+            .ok_or("manifest missing snapshot binding")?
+            + marker.len();
+        let end = rendered[start..]
+            .find('\"')
+            .ok_or("manifest has malformed snapshot binding")?
+            + start;
+        let snapshot = rendered[start..end].to_owned();
+        out.push((
+            dir.join(format!("m204-s02-c5-gold-manifest-{n}.json")),
+            rendered,
+        ));
+        let id = format!("NPA-MAN-C5-M204-S02-{n}");
+        coding.push_str(&format!("{{\"schema\":\"npa-c5-gold-coding/v2\",\"manifest_id\":\"{id}\",\"rung\":{n},\"measurement_status\":\"{status}\",\"coder_profiles\":[],\"units\":0,\"raw_text\":false,\"corpus_snapshot_hash\":\"{snapshot}\"}}\n"));
+        agreement.push_str(&format!("{{\"schema\":\"npa-c5-agreement/v2\",\"manifest_id\":\"{id}\",\"rung\":{n},\"measurement_status\":\"{status}\",\"percent\":null,\"alpha\":null,\"classification\":null,\"disagreements\":null,\"adjudication_count\":0,\"parser_revision\":\"m204-s02-c5-ladder-v2\",\"corpus_snapshot_hash\":\"{snapshot}\"}}\n"));
+        quality.push_str(&format!("{{\"schema\":\"{}\",\"evidence_id\":\"c5-{n}\",\"family\":\"c5-rung\",\"parser_revision\":\"m204-s02-c5-ladder-v2\",\"manifest_id\":\"{id}\",\"measurement_status\":\"{status}\",\"corpus_snapshot_hash\":\"{snapshot}\",\"layers\":{{}},\"zero_tolerance\":{{}},\"human_acceptance\":null,\"non_claims\":[\"not measured\",\"not accepted gold\",\"not R035/R070\"]}}\n",gold_eval::SCHEMA));
     }
     out.extend([
-        (dir.join("m203-s08-c5-coding.jsonl"), coding),
-        (dir.join("m203-s08-c5-agreement.jsonl"), agreement),
-        (dir.join("m203-s08-quality-receipts.jsonl"), quality),
+        (dir.join("m204-s02-c5-coding.jsonl"), coding),
+        (dir.join("m204-s02-c5-agreement.jsonl"), agreement),
+        (dir.join("m204-s02-c5-quality-receipts.jsonl"), quality),
     ]);
     if perf {
         out.extend(perf_outputs(dir, 800, check)?);

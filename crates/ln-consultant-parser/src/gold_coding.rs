@@ -19,6 +19,23 @@ use std::{
 pub const SCHEMA: &str = "npa-c5-gold-coding/v1";
 pub const ALPHA_RULE: &str = "krippendorff-nominal-two-rater-coincidence/v1";
 
+/// Measurement state is explicit: absence of coder units is not agreement.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MeasurementStatus {
+    NotMeasured,
+    ProxyMeasured,
+    IndependentMeasured,
+}
+impl MeasurementStatus {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::NotMeasured => "not-measured",
+            Self::ProxyMeasured => "proxy-measured",
+            Self::IndependentMeasured => "independent-measured",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum CodingLayer {
     Parsing,
@@ -205,6 +222,7 @@ pub enum CodingError {
     DuplicateUnit,
     UnitSetMismatch,
     MissingCode,
+    MissingSnapshotBinding,
 }
 impl fmt::Display for CodingError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -235,6 +253,26 @@ impl Agreement {
     pub fn percent(self) -> f64 {
         self.matched as f64 / self.total as f64
     }
+}
+
+/// Publication cannot manufacture agreement. It is only available after the
+/// two passes have been bound to the same non-empty snapshot and their units
+/// have been compared by `agreement`.
+pub fn publication_status(
+    envelope: Option<&CodingEnvelope>,
+    expected_snapshot: &str,
+) -> Result<MeasurementStatus, CodingError> {
+    if expected_snapshot.trim().is_empty() || !expected_snapshot.starts_with("sha256:") {
+        return Err(CodingError::MissingSnapshotBinding);
+    }
+    let Some(envelope) = envelope else {
+        return Ok(MeasurementStatus::NotMeasured);
+    };
+    let result = envelope.agreement()?;
+    if result.total == 0 {
+        return Err(CodingError::EmptyEnvelope);
+    }
+    Ok(MeasurementStatus::ProxyMeasured)
 }
 
 /// Exact two-rater nominal alpha. Missing or differently anchored units fail closed.

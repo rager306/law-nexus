@@ -101,6 +101,18 @@ fn envelope_requires_different_profiles_and_adjudication_is_append_only() {
 }
 
 #[test]
+fn missing_coders_are_not_measurement_and_snapshot_is_required() {
+    assert_eq!(
+        publication_status(None, "sha256:snapshot").unwrap(),
+        MeasurementStatus::NotMeasured
+    );
+    assert!(matches!(
+        publication_status(None, "diagnostic-bound"),
+        Err(CodingError::MissingSnapshotBinding)
+    ));
+}
+
+#[test]
 fn closed_label_sets_reject_unknown_values() {
     assert!(CodingLabel::new(CodingLayer::Semantic, "NormRule").is_err());
     assert!(CodingLabel::new(CodingLayer::Parsing, "Article").is_ok());
