@@ -156,3 +156,24 @@ The consumer reports separate `integrity=pass` and `c4_acceptance=non-pass`: S10
 The frozen manifest has a closed repository-relative pin set for S10 receipt/diagnostics/battery, S11 classification, S12 frozen manifest, and S13 binding/battery/manifest. Verification also checks S07 anchors through the pinned S12 manifest. The aggregate invokes the T01 consumer classifier rather than duplicating prose interpretation, invokes the T02 replay and its negative operational-pass path, runs the S10 battery and S13 regression, and performs bounded tamper tests. It does not walk the corpus, read `.gsd`, regenerate historical receipts/batteries, call `validate-milestone`, or modify Rust, predicates, requirements, findings, or lifecycle state.
 
 `S14_VERIFY_OK` and `S14_T03_VERIFY_OK` are integrity/supporting-only markers. A green integrity wrapper cannot promote C4: the battery preserves `c4_acceptance=non-pass`, `classification=supporting-only`, `status_effect=unchanged`, and `s14_called_validate_milestone=false`. Tampered pins, missing/extra surfaces, unsafe paths, forged acceptance, forged `jsonl_valid=true`, and a product failure claim replacing the harness reason are fail-closed negatives. All historical S10-S13 bytes remain unchanged.
+
+## M204 S15 requirement evidence class table
+
+This additive S15 section classifies the frozen S06/S07/S10/S14 material without mutating requirement status, Review Case lifecycle, GSD state, or finding disposition. The machine-readable source is `prd/migration/rust-evidence/m204-s15-requirement-class.json`; its frozen predecessor inputs are pinned by `prd/migration/rust-evidence/m204-s15-frozen-hashes.json`. The aggregate host is `bash scripts/m204_s15_t03_verify.sh`.
+
+The S15 verifier runs the T01 classifier and T02 negative suite, then independently invokes the actual S14 consumer with the positional `classify` command. It requires strict JSON, exit zero, `c4_acceptance=non-pass`, `classification=supporting-only`, and equality of the S14/S15 polarity fields. It checks every contained S14 manifest entry and asserts the S15 manifest and all frozen input bytes are unchanged before and after the serialized run. Dependency nonzero, timeout, malformed or noisy output, forged acceptance, unsafe paths, tampered pins, missing/extra rows, and integrity-pass-without-acceptance are fail-closed negatives. No corpus, `.gsd`, database, projection, or lifecycle API is read or changed.
+
+| Requirement | Coverage kind | Evidence class | Class-matched coverage | Observed outcome and limitation |
+|---|---|---|---|---|
+| R038 | supporting-only | source-bound-criterion-plus-c4-gsd-attempt | No | S14 remains C4 `non-pass`; the evidence supports the criterion and attempted run only and does not prove an operational pass |
+| R063 | supporting-only | process-provenance-without-product-change | No | Frozen process provenance is preserved; this is not product composition proof |
+| R064 | supporting-only | thin-harness-operability-retest | No | Harness operability is retested; no engine repair or runtime readiness is claimed |
+| R081 | supporting-only | documentation-residue-no-new-work | No | Documentation residue is classified only; this is not Work identity proof |
+| R035 | hold | ontology-gate-absent | No | HOLD remains because ontology-gate evidence is absent |
+| R070 | hold | edition-provenance-absent | No | HOLD remains because edition-provenance evidence is absent |
+| R066 | out-of-class | anti-feature-unrelated-to-c4 | No | Unrelated anti-feature material is not C4 evidence |
+| R073 | out-of-class | governor-check-specs-unexpanded | No | Governor-check specifications remain unexpanded |
+| R000 | reserved-stub | reserved-stub | No | Reserved stub; not a real requirement |
+| R999 | reserved-stub | reserved-stub | No | Reserved stub; not a real requirement |
+
+`class_matched_ids=[]` is an explicit empty set, and every row has `class_matched=false` and `status_effect=unchanged`. S15 does not add canonical `requirement_class`, owner, or validation fields; it does not infer them from historical material. R038 is not an independent review, R063 is not product composition proof, R064 is harness-operability-only, and R081 is not Work identity proof. R035 and R070 remain HOLD; R066 and R073 remain unchanged; R000 and R999 remain reserved stubs. F19 remains open with ownership M205/S04 and M210/S04; all 19 findings remain open; `engine_fix=not_fixed` and `upstream_issue=not_filed`. S15 does not call `validate-milestone` or `requirement-update`, and no requirement is terminalized.
