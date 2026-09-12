@@ -1,0 +1,78 @@
+{
+  "schema": "law-nexus/m204-s11-c4-failed-classification/v1",
+  "scope": "frozen tracked evidence only; no corpus walk",
+  "source_artifacts": {
+    "s10_receipt": "/root/law-nexus/prd/migration/rust-evidence/m204-s10-c4-operational-receipt.json",
+    "s10_diagnostics": "/root/law-nexus/prd/migration/rust-evidence/m204-s10-c4-attempts/s10-full-walk-001/diagnostics.jsonl",
+    "s10_battery": "/root/law-nexus/prd/migration/rust-evidence/m204-validation-battery-20260912-s10.json",
+    "s07_receipts": [
+      "/root/law-nexus/prd/migration/rust-evidence/m204-s07-c4-operational-receipt.json",
+      "/root/law-nexus/prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json"
+    ]
+  },
+  "source_hashes": {
+    "s10_receipt": "sha256:0c7602c051102807d50767ac836f7627b1e213ffded55c665f1743a01bb15dac",
+    "s10_diagnostics": "sha256:177282f3a2e99c80f55b85b2a1568e1a9c80c35e7999f9b6bf42491de0379e35",
+    "s10_battery": "sha256:7e735d8c10d5fddf84a0f0a164778c4d1576612d1b11e313dac96bf22a3248b8",
+    "s07_receipts": {
+      "/root/law-nexus/prd/migration/rust-evidence/m204-s07-c4-operational-receipt.json": "sha256:f515e76bf757fb4e1143fc558b00ba7033ec383f586506085a9d2748ac5fbdab",
+      "/root/law-nexus/prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json": "sha256:7c8e598779caa685ba978b29eca5f122f74e1cf81e4b437c132dc52f7eee7d69"
+    }
+  },
+  "jsonl": {
+    "parseable": true,
+    "record_count": 5,
+    "record_kinds": [
+      "header",
+      "aggregate",
+      "inventory",
+      "canonical_payload",
+      "operational_envelope"
+    ],
+    "inventory_digest": "sha256:0a5f8346dce46ec12247856ebc06dfb79747644bcfa1ed8af10ef115b332a086",
+    "duplicate_digest_occurrences": 2,
+    "duplicate_digests_equal": true,
+    "rust_validate_jsonl": "pass-on-five-lines (shape-check only; not full JSON validation)"
+  },
+  "historical_predicates": {
+    "s07_first_digest_valid": true,
+    "s10_duplicate_digest_valid": false,
+    "inventory_digest_occurrences": 2,
+    "inventory_digests": [
+      "sha256:0a5f8346dce46ec12247856ebc06dfb79747644bcfa1ed8af10ef115b332a086",
+      "sha256:0a5f8346dce46ec12247856ebc06dfb79747644bcfa1ed8af10ef115b332a086"
+    ],
+    "duplicate_digests_equal": true
+  },
+  "product_failed": {
+    "files": 43797,
+    "decoded": 43796,
+    "failed": 1,
+    "stable_across": [
+      "S07 full-walk",
+      "S07 eligible",
+      "S10 full-walk"
+    ],
+    "identity_of_failed_file": "unresolved",
+    "failure_class": "unresolved without per-file provenance; aggregate only"
+  },
+  "battery_failed_check": {
+    "check_id": "operational-c4-acceptance",
+    "summary_failed": 1,
+    "meaning": "harness non-pass caused by S10 duplicate-digest predicate, not a file identity",
+    "distinct_from_product_failed": true
+  },
+  "s10_historical_facts_preserved": {
+    "receipt_jsonl_valid": false,
+    "receipt_operational_acceptance": "non-pass",
+    "bytes_rewritten": false
+  },
+  "identity_status": "unresolved",
+  "marker": "S11_T01_CLASSIFICATION_OK",
+  "non_claims": [
+    "does not identify a failed file",
+    "does not claim C4 operational pass",
+    "does not invoke validate-milestone",
+    "does not validate legal document content"
+  ]
+}

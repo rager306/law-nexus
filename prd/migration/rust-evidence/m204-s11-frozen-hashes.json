@@ -1,0 +1,56 @@
+{
+  "schema": "law-nexus/m204-s11-frozen-hashes/v1",
+  "scope": "S11 T01 classification inputs; tracked evidence only",
+  "files": [
+    {
+      "path": "prd/migration/rust-evidence/m204-s10-c4-operational-receipt.json",
+      "sha256": "sha256:0c7602c051102807d50767ac836f7627b1e213ffded55c665f1743a01bb15dac",
+      "size_bytes": 3693
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s10-c4-attempts/s10-full-walk-001/diagnostics.jsonl",
+      "sha256": "sha256:177282f3a2e99c80f55b85b2a1568e1a9c80c35e7999f9b6bf42491de0379e35",
+      "size_bytes": 3673
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-validation-battery-20260912-s10.json",
+      "sha256": "sha256:7e735d8c10d5fddf84a0f0a164778c4d1576612d1b11e313dac96bf22a3248b8",
+      "size_bytes": 3441
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-c4-operational-receipt.json",
+      "sha256": "sha256:f515e76bf757fb4e1143fc558b00ba7033ec383f586506085a9d2748ac5fbdab",
+      "size_bytes": 3541
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json",
+      "sha256": "sha256:7c8e598779caa685ba978b29eca5f122f74e1cf81e4b437c132dc52f7eee7d69",
+      "size_bytes": 3586
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-c4-attempts/full-walk-001/diagnostics.jsonl",
+      "sha256": "sha256:3fe616e89a97a6eb83650c6a2c55b06e29d30e36c65a41f4719f016146ed49e4",
+      "size_bytes": 3653
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-c4-attempts/eligible-run-001/diagnostics.jsonl",
+      "sha256": "sha256:ad6437a2aed37cf08392f31a67e96aac762c3ea20147a3c62cc976c8c6b364f7",
+      "size_bytes": 3683
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s09-gsd-validate-deadlock.json",
+      "sha256": "sha256:78e1d64c56afde92e433396b4b906fe9a69fae7bc58bbc54d17fb4aaed3d6bc4",
+      "size_bytes": 1177
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-verification-battery.json",
+      "sha256": "sha256:f061af4342a75c6c0290f087f4503c74839f7f828b4081bfee7a4422fd408595",
+      "size_bytes": 1114
+    }
+  ],
+  "non_claims": [
+    "hash pins do not identify the failed file",
+    "hash pins do not make C4 operational acceptance pass",
+    "hash pins do not settle a milestone.validate attempt"
+  ]
+}
