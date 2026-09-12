@@ -266,6 +266,21 @@ def classify() -> dict[str, Any]:
     return result
 
 
+def _check_claim_text(text: Any, label: str) -> None:
+    if not isinstance(text, str):
+        raise ValueError(f"{label} must be a string")
+    lowered = text.lower()
+    forbidden = (
+        "validated r035",
+        "r038 validated",
+        "r070 validates",
+        "f19 closure",
+        "rc28-f19 closure",
+    )
+    if any(fragment in lowered for fragment in forbidden):
+        raise ValueError(f"forbidden affirmative claim in {label}")
+
+
 def validate(value: Any) -> None:
     value = obj(value, "S15 artifact")
     required = {
@@ -293,6 +308,7 @@ def validate(value: Any) -> None:
     if (
         value["s15_called_validate_milestone"] is not False
         or value["s15_called_requirement_update"] is not False
+        or type(value["open_findings"]) is not int
         or value["open_findings"] != 19
     ):
         raise ValueError("S15 lifecycle or finding claim is not fail-closed")
@@ -303,6 +319,7 @@ def validate(value: Any) -> None:
     rows = value["rows"]
     if (
         not isinstance(rows, list)
+        or len(rows) != len(EXPECTED_IDS)
         or [obj(row, "S15 row")["requirement_id"] for row in rows] != EXPECTED_IDS
     ):
         raise ValueError("rows must be complete and in canonical order")
@@ -327,9 +344,15 @@ def validate(value: Any) -> None:
             or not row["limitations"]
         ):
             raise ValueError(f"closed row mismatch: {row.get('requirement_id')}")
+        for index, limitation in enumerate(row["limitations"]):
+            _check_claim_text(limitation, f"{row['requirement_id']} limitation {index}")
+        if not isinstance(row["source_surfaces"], list) or not row["source_surfaces"]:
+            raise ValueError("source surfaces must be a non-empty list")
         for surface in row["source_surfaces"]:
-            if set(surface) != {"path", "sha256"}:
+            if not isinstance(surface, dict) or set(surface) != {"path", "sha256"}:
                 raise ValueError("closed source surface mismatch")
+            if not isinstance(surface["path"], str) or not isinstance(surface["sha256"], str):
+                raise ValueError("source surface fields must be strings")
             if surface["path"] not in ALLOWED_SURFACES:
                 raise ValueError(f"unapproved source surface: {surface['path']}")
             source = safe_source(surface["path"])
