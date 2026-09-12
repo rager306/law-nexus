@@ -1,0 +1,15 @@
+{
+  "schema": "m204-s13-s07-verification-battery/v1",
+  "verification": "S13_T02_REPLAY_OK",
+  "operational_acceptance": "non-pass",
+  "classification": "supporting-only",
+  "status_effect": "unchanged",
+  "s13_called_validate_milestone": false,
+  "source_binding": "sha256:10483c2a770bd3f5df3aa9df4ae26d8481033fa88f3a1ccdf4a4619f08520d68",
+  "frozen_s07_battery": "sha256:f061af4342a75c6c0290f087f4503c74839f7f828b4081bfee7a4422fd408595",
+  "historical_replay": "T01 source-bound pinned receipt replay",
+  "non_claims": [
+    "historical replay does not prove a new operational pass",
+    "no historical S07 bytes were rewritten"
+  ]
+}

@@ -23,6 +23,9 @@ PASSING_RECEIPT = ROOT / "prd/migration/rust-evidence/m204-s07-c4-operational-re
 REQUIREMENTS = ROOT / "prd/migration/rust-evidence/m204-s07-requirement-evidence.json"
 PREDECESSOR_REQUIREMENTS = ROOT / "prd/migration/rust-evidence/m204-s06-requirement-evidence.json"
 BATTERY = ROOT / "prd/migration/rust-evidence/m204-s07-verification-battery.json"
+S13_BATTERY = ROOT / "prd/migration/rust-evidence/m204-s13-s07-verification-battery.json"
+S13_BINDING = ROOT / "prd/migration/rust-evidence/m204-s13-s07-source-binding.json"
+FROZEN_BATTERY_SHA256 = "sha256:f061af4342a75c6c0290f087f4503c74839f7f828b4081bfee7a4422fd408595"
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -81,7 +84,12 @@ def verify_governor(data: dict[str, Any]) -> None:
 
 
 def verify_receipt(
-    data: dict[str, Any], *, require_short: bool = True, expected_attempt: str = "full-walk-001"
+    data: dict[str, Any],
+    *,
+    require_short: bool = True,
+    expected_attempt: str = "full-walk-001",
+    historical: bool = False,
+    pinned_path: Path | None = None,
 ) -> None:
     # Import lazily so fixture tests can replace this module's files without
     # launching anything; the underlying verifier is integrity-only.
@@ -100,13 +108,17 @@ def verify_receipt(
             data.get("claims", {}).get("operational_acceptance") == "non-pass",
             "short C4 run claims pass",
         )
-    # Reuse the recorder's integrity-only replay while validating the supplied
-    # object, not an accidentally hard-coded live path (fixture safety).
+    # Generic fixtures use the strict live-hash verifier. Historical receipts
+    # are allowed only through the validated T01 binding and pinned content.
     with tempfile.NamedTemporaryFile("w", suffix=".json", dir=ROOT, delete=False) as stream:
         json.dump(data, stream)
         replay_path = Path(stream.name)
     try:
-        c4.verify(replay_path, False)
+        if historical:
+            require(pinned_path is not None, "historical replay pin is required")
+            c4.verify_historical(replay_path, S13_BINDING, pinned_path)
+        else:
+            c4.verify(replay_path, False)
     finally:
         replay_path.unlink(missing_ok=True)
     require(data.get("attempt_id") == expected_attempt, "unexpected C4 attempt identity")
@@ -219,7 +231,11 @@ def verify_all() -> dict[str, str]:
     receipt = load(RECEIPT)
     requirements = load(REQUIREMENTS)
     verify_governor(governor)
-    verify_receipt(receipt)
+    verify_receipt(
+        receipt,
+        historical=True,
+        pinned_path=RECEIPT,
+    )
     verify_requirements(requirements, receipt)
     return {
         "governor_repeat": "pass",
@@ -233,12 +249,22 @@ def verify_t06_receipt(
     path: Path = PASSING_RECEIPT, *, require_operational_pass: bool = True
 ) -> dict[str, str]:
     receipt = load(path)
-    verify_receipt(
-        receipt,
-        require_short=False,
-        expected_attempt="passing-run-001",
-    )
     import m204_s07_c4_run as c4
+
+    if PASSING_RECEIPT.is_file() and path.resolve() == PASSING_RECEIPT.resolve():
+        verify_receipt(
+            receipt,
+            require_short=False,
+            expected_attempt="passing-run-001",
+            historical=True,
+            pinned_path=PASSING_RECEIPT,
+        )
+    else:
+        # The optional passing artifact is intentionally absent in this
+        # supporting-only slice. Synthetic callers still get fact validation,
+        # without being mistaken for a tracked historical receipt.
+        c4._verify_receipt_facts(receipt, False)
+        require(receipt.get("attempt_id") == "passing-run-001", "unexpected C4 attempt identity")
 
     actual = c4.is_operational_pass_data(receipt)
     if require_operational_pass:
@@ -251,6 +277,13 @@ def verify_t06_receipt(
 
 
 def write_battery(checks: dict[str, str]) -> None:
+    if BATTERY.is_file() and sha256(BATTERY) != FROZEN_BATTERY_SHA256:
+        raise ValueError("frozen S07 battery differs; refusing regeneration")
+    if (
+        not BATTERY.is_file()
+        and BATTERY == ROOT / "prd/migration/rust-evidence/m204-s07-verification-battery.json"
+    ):
+        raise ValueError("frozen S07 battery is missing; refusing regeneration")
     battery = {
         "schema": "m204-s07-verification-battery/v1",
         "verification": "S07_VERIFY_OK",
@@ -269,7 +302,38 @@ def write_battery(checks: dict[str, str]) -> None:
             "No requirement, finding, or lifecycle state was changed",
         ],
     }
-    BATTERY.write_text(json.dumps(battery, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    encoded = json.dumps(battery, ensure_ascii=False, indent=2) + "\n"
+    if BATTERY.is_file():
+        if BATTERY.read_text(encoding="utf-8") != encoded:
+            raise ValueError("frozen S07 battery payload differs; refusing regeneration")
+    else:
+        BATTERY.parent.mkdir(parents=True, exist_ok=True)
+        BATTERY.write_text(encoded, encoding="utf-8")
+    # Fixture tests may redirect BATTERY; only the repository's real frozen
+    # target is allowed to create the additive provenance artifact.
+    additive = {
+        "schema": "m204-s13-s07-verification-battery/v1",
+        "verification": "S13_T02_REPLAY_OK",
+        "operational_acceptance": "non-pass",
+        "classification": "supporting-only",
+        "status_effect": "unchanged",
+        "s13_called_validate_milestone": False,
+        "source_binding": sha256(S13_BINDING),
+        "frozen_s07_battery": FROZEN_BATTERY_SHA256,
+        "historical_replay": "T01 source-bound pinned receipt replay",
+        "non_claims": [
+            "historical replay does not prove a new operational pass",
+            "no historical S07 bytes were rewritten",
+        ],
+    }
+    if BATTERY == ROOT / "prd/migration/rust-evidence/m204-s07-verification-battery.json":
+        if (
+            S13_BATTERY.exists()
+            and S13_BATTERY.read_text(encoding="utf-8") != json.dumps(additive, indent=2) + "\n"
+        ):
+            raise ValueError("S13 verification battery differs")
+        if not S13_BATTERY.exists():
+            S13_BATTERY.write_text(json.dumps(additive, indent=2) + "\n", encoding="utf-8")
 
 
 def main(argv: list[str] | None = None) -> int:

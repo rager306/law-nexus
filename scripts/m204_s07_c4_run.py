@@ -305,8 +305,16 @@ def is_operational_pass_data(data: dict[str, Any]) -> bool:
     )
 
 
+def _load_receipt(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("receipt must be a JSON object")
+    return value
+
+
 def verify(path: Path, require_operational_pass: bool) -> int:
-    data = json.loads(path.read_text(encoding="utf-8"))
+    """Verify a newly produced receipt against the current live parser epoch."""
+    data = _load_receipt(path)
     if data.get("schema") != SCHEMA:
         raise ValueError("receipt schema mismatch")
     if (
@@ -366,6 +374,69 @@ def verify(path: Path, require_operational_pass: bool) -> int:
     return 0
 
 
+def verify_historical(
+    path: Path,
+    binding_path: Path,
+    pinned_path: Path,
+    require_operational_pass: bool = False,
+) -> int:
+    """Replay historical receipt bytes through the validated T01 binding only."""
+    import m204_s13_source_binding as binding
+
+    repo = ROOT.resolve()
+    binding_value = _load_receipt(binding_path)
+    binding.validate(binding_value, repo)
+    supplied = _load_receipt(path)
+    pinned = _load_receipt(pinned_path)
+    if supplied != pinned:
+        raise ValueError("historical receipt differs from pinned receipt content")
+    relative = pinned_path.resolve().relative_to(repo).as_posix()
+    expected = binding.PINNED.get(relative)
+    if expected is None or sha256(pinned_path.resolve()) != expected:
+        raise ValueError("historical receipt is not a pinned tracked artifact")
+    current_source = sha256(repo / "crates/ln-consultant-parser/src/contour_diagnostics.rs")
+    if binding_value["current"]["parser_source_sha256"] != current_source:
+        raise ValueError("historical binding current parser digest is stale")
+    if pinned.get("parser_revision") != binding.PARSER_REVISION:
+        raise ValueError("historical receipt parser revision mismatch")
+    if pinned.get("build_inputs", {}).get("parser_source_sha256") != binding.HISTORICAL_SOURCE:
+        raise ValueError("historical receipt parser digest mismatch")
+    if binding_value["parser_revision"] != parser_revision():
+        raise ValueError("historical binding revision does not match live parser")
+    diagnostics_value = pinned.get("observed_output", {}).get("diagnostics")
+    diagnostics = (repo / diagnostics_value).resolve() if diagnostics_value else None
+    if diagnostics is None or diagnostics.relative_to(repo).as_posix() not in binding.PINNED:
+        raise ValueError("historical diagnostics is not a pinned tracked artifact")
+    if sha256(diagnostics) != binding.PINNED[diagnostics.relative_to(repo).as_posix()]:
+        raise ValueError("historical diagnostics pin mismatch")
+    digest, valid, lines = inventory_from_jsonl(diagnostics)
+    observed = pinned["observed_output"]
+    if (digest, valid, lines) != (
+        observed.get("inventory_digest"),
+        observed.get("jsonl_valid"),
+        observed.get("jsonl_lines"),
+    ):
+        raise ValueError("historical diagnostics inventory mismatch")
+    _verify_receipt_facts(pinned, require_operational_pass)
+    print(json.dumps({"status": "pass", "historical": True}))
+    return 0
+
+
+def _verify_receipt_facts(data: dict[str, Any], require_operational_pass: bool) -> None:
+    """Validate facts after epoch and pinned-content checks have succeeded."""
+    if data.get("schema") != SCHEMA:
+        raise ValueError("receipt schema mismatch")
+    if data.get("c4_binding", {}).get("limit") is not None:
+        raise ValueError("operational receipt must have no limit")
+    if data.get("c4_binding", {}).get("jobs") != 0:
+        raise ValueError("operational receipt must have zero jobs")
+    actual = is_operational_pass_data(data)
+    if data.get("claims", {}).get("operational_acceptance") != ("pass" if actual else "non-pass"):
+        raise ValueError("operational claim does not match observed facts")
+    if require_operational_pass and not actual:
+        raise ValueError("operational acceptance is not proven")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -389,11 +460,33 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--budget-seconds", type=int, default=3600)
     parser.add_argument("--timeout-seconds", type=int, default=7200)
     parser.add_argument("--verify-receipt", type=Path)
+    parser.add_argument("--verify-historical", type=Path)
+    parser.add_argument(
+        "--binding",
+        type=Path,
+        default=ROOT / "prd/migration/rust-evidence/m204-s13-s07-source-binding.json",
+    )
+    parser.add_argument("--pinned-receipt", type=Path)
     parser.add_argument("--require-operational-pass", action="store_true")
     args = parser.parse_args(argv)
-    if not args.verify_receipt and (not args.source_revision or not args.attempt_id):
+    if args.verify_receipt and args.verify_historical:
+        parser.error("receipt replay modes are mutually exclusive")
+    if args.verify_historical and not args.pinned_receipt:
+        parser.error("--pinned-receipt is required for historical replay")
+    if (
+        not args.verify_receipt
+        and not args.verify_historical
+        and (not args.source_revision or not args.attempt_id)
+    ):
         parser.error("--source-revision and --attempt-id are required for a new attempt")
     try:
+        if args.verify_historical:
+            return verify_historical(
+                args.verify_historical,
+                args.binding,
+                args.pinned_receipt,
+                args.require_operational_pass,
+            )
         return (
             verify(args.verify_receipt, args.require_operational_pass)
             if args.verify_receipt
