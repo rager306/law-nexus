@@ -269,6 +269,8 @@ archive Python `LegalDomain` remain prohibited.
 
 S12 identity and failure-sidecar evidence are supporting-only. `S12 identity/sidecar is not a settled milestone.validate attempt; do not re-dispatch validate.` The S12 carrier keeps the S09 abort message verbatim, records `engine_fix=not_fixed`, `upstream_issue=not_filed`, `s12_called_validate_milestone=false`, and leaves findings open. This control does not call `gsd_validate_milestone`, patch the database, or claim operational acceptance.
 
+Post-S15 no-artifact validate ×3 is the same S09 engine deadlock; do not re-dispatch validate-milestone as a settled-attempt substitute. The S16 census is supporting-only and does not create a validation projection or alter lifecycle state.
+
 ## Non-claims
 
 Adopting this runbook does **not** claim:
