@@ -290,13 +290,14 @@ def check(root: Path, census: Path, manifest: Path) -> None:
     if not isinstance(manifest_doc["files"], list) or len(manifest_doc["files"]) != len(PINNED):
         raise ValueError("manifest must contain six predecessor pins")
     for actual, (path, expected, size) in zip(manifest_doc["files"], PINNED):
-        if (
-            not isinstance(actual, dict)
-            or set(actual) != {"path", "sha256", "size_bytes"}
-            or actual["path"] != path
-        ):
+        if not isinstance(actual, dict) or set(actual) != {"path", "sha256", "size_bytes"}:
             raise ValueError(f"manifest row mismatch: {path}")
-        source = safe_relative(root, path)
+        # Validate the supplied path before comparing it with the frozen name.
+        # This keeps unsafe path diagnostics fail-closed instead of masking them
+        # behind an ordinary row mismatch.
+        source = safe_relative(root, actual["path"])
+        if actual["path"] != path:
+            raise ValueError(f"manifest row mismatch: {path}")
         if (
             actual["sha256"] != "sha256:" + expected
             or digest(source) != expected
