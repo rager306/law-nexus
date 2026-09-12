@@ -273,6 +273,8 @@ Post-S15 no-artifact validate ×3 is the same S09 engine deadlock; do not re-dis
 
 Post-S16 no-artifact validate ×2 plus intercepted predispatch (cancelled, interrupted, `toolCalls=0`, no journal unit-start) is the same S09 engine deadlock; do not re-dispatch validate-milestone as a settled-attempt substitute. The S17 census is supporting-only: its markers are not an engine fix, a C4 pass, a `VALIDATION.md` projection, or a lifecycle transition.
 
+Post-S17 no-artifact validate ×2 plus intercepted predispatch (cancelled, interrupted, `toolCalls=0`, no journal unit-start) is the same S09 engine deadlock; do not re-dispatch validate-milestone as a settled-attempt substitute. The S18 census is supporting-only; `law_nexus_fixable=false`, and its evidence does not repair the engine or promote lifecycle state.
+
 ## Non-claims
 
 Adopting this runbook does **not** claim:
