@@ -1,0 +1,73 @@
+{
+  "schema": "law-nexus/m204-s19-frozen-hashes/v1",
+  "scope": "S19 predecessor-only; twelve frozen tracked snapshots; no self-hash and no corpus walk",
+  "files": [
+    {
+      "path": "prd/migration/rust-evidence/m204-s09-gsd-validate-deadlock.json",
+      "sha256": "sha256:78e1d64c56afde92e433396b4b906fe9a69fae7bc58bbc54d17fb4aaed3d6bc4",
+      "size_bytes": 1177
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s09-trigger-sql.json",
+      "sha256": "sha256:c115c2feea8692fc86b91001f8d71da2d155c6ee4182ec4f7a3387eca6962c97",
+      "size_bytes": 2909
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s12-validate-hard-block.json",
+      "sha256": "sha256:0ec27bbd4c0cf9bf3e48b74a375affee0824288f233598a0758d43d1ba0220f3",
+      "size_bytes": 629
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s12-frozen-hashes.json",
+      "sha256": "sha256:4ecaba1d7838a1a1b5f0484b39ef5764df43ff456ef95d7c134d6263b4041a66",
+      "size_bytes": 3272
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s15-requirement-class.json",
+      "sha256": "sha256:440dc6eb4bafabe2501002483012d373dee5133ec705c9677ef8b49c2d7b0d4d",
+      "size_bytes": 13705
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s15-frozen-hashes.json",
+      "sha256": "sha256:6e2030811c8d0f4f03b35acc1ea141b78609c941077737ceeb8321bf1746e446",
+      "size_bytes": 1186
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s16-post-s15-validate-loop.json",
+      "sha256": "sha256:be53f15f7b4aa9ef60638b52fe6d05f6a2b98d50a366fd126e9a5fcb7239ffc1",
+      "size_bytes": 2525
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s16-frozen-hashes.json",
+      "sha256": "sha256:bfbad5070c356e7405415a32afc12bdf16714f89ba0778b91b76bef01da6af61",
+      "size_bytes": 1589
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s17-post-s16-validate-loop.json",
+      "sha256": "sha256:181e85df6741dad91c4f28ab6d225ad03a8d6dc300fd0234b4698506eeae5867",
+      "size_bytes": 2578
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s17-frozen-hashes.json",
+      "sha256": "sha256:8237e88a8faadf74cdc1653a74e9986e4298b4d386ef4a7cef82054fc877b7ba",
+      "size_bytes": 2069
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s18-post-s17-validate-loop.json",
+      "sha256": "sha256:9834c37db2d91c582b4751e2f34ae644bdf2284cae911df982028127435fd67d",
+      "size_bytes": 2618
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s18-frozen-hashes.json",
+      "sha256": "sha256:9f0c6addbcf7a8d0e63e3bc80af518d47e8152551fbe5226a077a21e37817370",
+      "size_bytes": 2529
+    }
+  ],
+  "non_claims": [
+    "census records do not repair the validate engine",
+    "census does not call validate-milestone or change lifecycle state",
+    "supervisor_exit is separate from the one no-artifact abort",
+    "frozen hashes do not establish a validation projection",
+    "no SIGTERM claim is made"
+  ]
+}
