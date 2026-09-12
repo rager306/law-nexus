@@ -4,5 +4,8 @@
 # separate receipt claim, not a host-verify floor.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-uv run python scripts/m204_s07_c4_run.py --verify-receipt prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json
+uv run python scripts/m204_s07_c4_run.py --verify-historical \
+  prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json \
+  --binding prd/migration/rust-evidence/m204-s13-s07-source-binding.json \
+  --pinned-receipt prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json
 echo S07_T05_VERIFY_OK
