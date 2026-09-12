@@ -1,0 +1,86 @@
+{
+  "schema_version": "law-nexus/milestone-validation-battery/v1",
+  "milestone": "M204-w2ktfw",
+  "slice": "S10",
+  "generated_at": "2026-09-12T08:42:28Z",
+  "tested_source_revision": "pending-fill-by-validate-unit",
+  "tested_source_revision_role": "Placeholder pending the validate-milestone unit; never guess or fill in execute-task.",
+  "working_directory": ".",
+  "environment": {
+    "runner": "pi execute-task M204/S10/T04",
+    "python": "uv-managed CPython",
+    "cargo": "offline workspace"
+  },
+  "supersession": {
+    "from": "prd/migration/rust-evidence/m204-validation-battery-20260912.json",
+    "to": "prd/migration/rust-evidence/m204-validation-battery-20260912-s10.json",
+    "reason": "S10 source-bound receipt supersedes the S08 carrier for additive validation evidence",
+    "authorization": "D445",
+    "preserved_hash": "sha256:0b27ae38d01a3326abd163e753941b8b601d2ca0395da116470b24de4c949702"
+  },
+  "non_claims": [
+    "Battery is verification evidence, not product readiness",
+    "C4 remains non-pass because diagnostic JSONL is invalid",
+    "No corpus walk, artificial sleep, guessed aggregate hash, requirement closure, or lifecycle mutation was performed"
+  ],
+  "checks": [
+    {
+      "check_id": "integration-s10-receipt-integrity",
+      "verification_class": "Integration",
+      "evidence_class": "artifact",
+      "command": "m204_s10_c4_run.py --verify-receipt m204-s10-c4-operational-receipt.json",
+      "exit_code": 0,
+      "observation": "passed",
+      "stdout_tail": "S10 receipt is complete, source-bound, and preserves operational non-pass",
+      "source_ref": "prd/migration/rust-evidence/m204-s10-c4-operational-receipt.json"
+    },
+    {
+      "check_id": "operational-c4-acceptance",
+      "verification_class": "Operational",
+      "evidence_class": "artifact",
+      "command": "S10 strict predicate: terminal, duration, inventory, and JSONL validity",
+      "exit_code": 1,
+      "observation": "failed",
+      "stdout_tail": "jsonl_valid=false; operational_acceptance=non-pass despite duration_ms=4969991",
+      "source_ref": "prd/migration/rust-evidence/m204-s10-c4-operational-receipt.json"
+    },
+    {
+      "check_id": "operational-cargo-fmt",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "cargo fmt --all --check",
+      "exit_code": 0,
+      "observation": "passed",
+      "stdout_tail": "",
+      "source_ref": "live-fast-gate"
+    },
+    {
+      "check_id": "operational-cargo-check",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "cargo check --workspace --offline",
+      "exit_code": 0,
+      "observation": "passed",
+      "stdout_tail": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s",
+      "source_ref": "live-fast-gate"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 3,
+    "failed": 1
+  },
+  "c4": {
+    "observation": "failed",
+    "operational_acceptance": "non-pass",
+    "duration_ms": 4969991,
+    "duration_floor_ms": 3600000,
+    "jsonl_valid": false,
+    "receipt": "prd/migration/rust-evidence/m204-s10-c4-operational-receipt.json"
+  },
+  "historical_receipt_pins": {
+    "m203_s09": "prd/migration/rust-evidence/m203-s09-c4-operational-receipt.json",
+    "m204_s06": "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+    "m204_s07": "prd/migration/rust-evidence/m204-s07-c4-operational-receipt.json"
+  }
+}

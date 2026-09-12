@@ -124,3 +124,11 @@ This additive section records an engine-level deadlock without changing lifecycl
 The exact technical verdict abort, `technical verdict requires the current criterion and matching settled attempt`, is a HARD BLOCK for `validate-milestone` when no current criterion and matching settled attempt can satisfy the v42 trigger. The writer order therefore remains fail-closed: settle the `milestone.validate` attempt, write the technical verdict, then emit the validation projection. Retrying the same validate write cannot create the prerequisite and must not be treated as progress.
 
 The S09 fixture boundary is intentionally isolated and read-only with respect to the live GSD database: no SQLite patch, no `gsd_validate_milestone` call, and no auto restart for another validate attempt. `not_fixed` and `not_filed` remain unchanged. C4 `operational_acceptance` remains `non-pass`; this evidence does not close R035 or R070 and does not create a validation acceptance.
+
+## M204 S10 additive battery and requirement classification
+
+This section adds the source-bound S10 operational receipt without rewriting the historical S08 carrier or any predecessor receipt. The machine-readable artifacts are `prd/migration/rust-evidence/m204-validation-battery-20260912-s10.json` and `prd/migration/rust-evidence/m204-s10-requirement-evidence.json`.
+
+The owned attempt `s10-full-walk-001` is terminal with exit code 0 and an actual monotonic duration of `4,969,991ms`, above the `3,600,000ms` floor. It nevertheless remains a strict C4 non-pass because the receipt observes `jsonl_valid=false`; duration alone cannot launder malformed diagnostics into operational acceptance. The S10 composer is bounded and performs no corpus walk, sleep/padding, guessed aggregate hash, or requirement/lifecycle mutation. `tested_source_revision` remains `pending-fill-by-validate-unit`.
+
+R038, R063, R064, and R081 are classified supporting-only. R035 and R070 remain HOLD; the engine statuses remain `not_fixed` / `not_filed`; all 19 Review 28 findings remain open. Historical S06, S07, M203, and S08 artifacts are pinned and preserved byte-for-byte. Q4 terminalization is absent: no Review Case or requirement disposition is created by this battery.

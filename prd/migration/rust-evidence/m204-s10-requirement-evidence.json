@@ -1,0 +1,45 @@
+{
+  "schema": "m204-s10-requirement-evidence/v1",
+  "milestone": "M204-w2ktfw",
+  "slice": "S10",
+  "classification": "supporting-only",
+  "source_receipt": "prd/migration/rust-evidence/m204-s10-c4-operational-receipt.json",
+  "rows": [
+    {
+      "requirement_id": "R038",
+      "evidence_class": "source-bound operational attempt",
+      "evidence": "S10 receipt records attempt s10-full-walk-001 over 43785 consultant XML files and 12 Garant files, duration_ms=4969991, terminal exit 0, and jsonl_valid=false",
+      "outcome": "operational_acceptance=non-pass",
+      "disposition": "supporting-only; duration is sufficient but invalid diagnostic JSONL prevents strict operational PASS and standing gate closure"
+    },
+    {
+      "requirement_id": "R063",
+      "evidence_class": "immutable identity and process provenance",
+      "evidence": "S10 receipt records complete argv, attempt identity, binary/contract/parser hashes, Rust toolchain, caller source pin, corpus roots, diagnostics and owned log hashes",
+      "outcome": "provenance is preserved without claiming successful acceptance",
+      "disposition": "supporting-only; caller source_revision is not the GSD aggregate and no readiness claim is made"
+    },
+    {
+      "requirement_id": "R064",
+      "evidence_class": "controlled diagnostics and negative classification",
+      "evidence": "S10 receipt binds diagnostics.jsonl and its digest, while the recorder retains the observed invalid JSONL outcome",
+      "outcome": "negative operational classification is explicit and fail-closed",
+      "disposition": "supporting-only; no parser readiness, semantic acceptance, or engine repair is inferred"
+    },
+    {
+      "requirement_id": "R081",
+      "evidence_class": "documentation-only residue classification",
+      "evidence": "S10 battery and RC28 remediation program preserve the open-finding inventory and historical receipt pins",
+      "outcome": "19 findings remain open; R035 and R070 remain HOLD",
+      "disposition": "supporting-only; no requirement, Review Case, waiver, or lifecycle state is mutated"
+    }
+  ],
+  "hold_requirements": ["R035", "R070"],
+  "open_findings": 19,
+  "engine_status": {"engine_fix": "not_fixed", "upstream_issue": "not_filed"},
+  "non_claims": [
+    "This artifact does not close or validate any requirement",
+    "A terminal receipt with duration above the floor is not sufficient when diagnostics are invalid",
+    "No historical S06, S07, M203 receipt, or S08 battery is overwritten"
+  ]
+}
