@@ -271,6 +271,8 @@ S12 identity and failure-sidecar evidence are supporting-only. `S12 identity/sid
 
 Post-S15 no-artifact validate ×3 is the same S09 engine deadlock; do not re-dispatch validate-milestone as a settled-attempt substitute. The S16 census is supporting-only and does not create a validation projection or alter lifecycle state.
 
+Post-S16 no-artifact validate ×2 plus intercepted predispatch (cancelled, interrupted, `toolCalls=0`, no journal unit-start) is the same S09 engine deadlock; do not re-dispatch validate-milestone as a settled-attempt substitute. The S17 census is supporting-only: its markers are not an engine fix, a C4 pass, a `VALIDATION.md` projection, or a lifecycle transition.
+
 ## Non-claims
 
 Adopting this runbook does **not** claim:
