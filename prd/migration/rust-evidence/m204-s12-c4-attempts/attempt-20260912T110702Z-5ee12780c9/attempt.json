@@ -1,0 +1,37 @@
+{
+  "schema": "law-nexus/m204-s12-attempt/v1",
+  "attempt_id": "attempt-20260912T110702Z-5ee12780c9",
+  "argv": [
+    "/root/law-nexus/target/release/npa-contour-diagnostics",
+    "--root",
+    "/root/law-nexus/.m204-s12-empty-root.X6P9yY",
+    "--garant-root",
+    "law-source/garant",
+    "--profile",
+    "contour",
+    "--jobs",
+    "1",
+    "--failures-out",
+    "/root/law-nexus/prd/migration/rust-evidence/m204-s12-c4-attempts/attempt-20260912T110702Z-5ee12780c9/failures.jsonl",
+    "--out",
+    "/root/law-nexus/prd/migration/rust-evidence/m204-s12-c4-attempts/attempt-20260912T110702Z-5ee12780c9/diagnostics.jsonl"
+  ],
+  "binary": {
+    "path": "target/release/npa-contour-diagnostics",
+    "sha256": "sha256:52a68d30b8146e08d42ae4b89bd1e77a8180a34946c34ec26a195800751aff63"
+  },
+  "source": {
+    "path": "crates/ln-consultant-parser/src/contour_diagnostics.rs",
+    "sha256": "sha256:e111e1af2f4a64ee639ab3f3a46d4b42c220d7d5e13e0ec42195e28a954cc348"
+  },
+  "inputs": {
+    "root": ".m204-s12-empty-root.X6P9yY",
+    "garant_root": "law-source/garant",
+    "root_is_empty": true
+  },
+  "toolchain": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+  "exit_code": 0,
+  "elapsed_ms": 1896,
+  "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "sha256:a3b41b397d38445ffa1015029931fd993d39bcbd4e7169a323c382292dc6edf2"
+}
