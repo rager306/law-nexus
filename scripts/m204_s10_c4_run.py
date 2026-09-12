@@ -361,9 +361,18 @@ def run(args: argparse.Namespace) -> int:
     return 0
 
 
-def verify(path: Path, require_operational_pass: bool) -> int:
+def verify(
+    path: Path, require_operational_pass: bool, historical_binding: Path | None = None
+) -> int:
     receipt_path = canonical(path, label="receipt")
     data = json.loads(receipt_path.read_text(encoding="utf-8"))
+    replay: dict[str, Any] | None = None
+    if historical_binding is not None:
+        from m204_s14_source_binding import validate_for_replay
+
+        replay = validate_for_replay(
+            ROOT, canonical(historical_binding, label="historical binding"), receipt_path
+        )
     if data.get("schema") != SCHEMA:
         raise ValueError("receipt schema mismatch")
     attempt = data.get("attempt_id", "")
@@ -427,18 +436,35 @@ def verify(path: Path, require_operational_pass: bool) -> int:
     binary = receipt_path(data["binary"]["path"], label="binary receipt path")
     contract = receipt_path(data["contract"]["path"], label="contract receipt path")
     parser = ROOT / "crates/ln-consultant-parser/src/contour_diagnostics.rs"
-    if not binary.is_file() or not contract.is_file():
-        raise ValueError("receipt binary or contract missing")
-    if data["build_inputs"].get("binary_sha256") != data["binary"].get("sha256") or data["binary"][
-        "sha256"
-    ] != sha256(binary):
-        raise ValueError("binary hash binding mismatch")
+    if not contract.is_file():
+        raise ValueError("receipt contract missing")
+    if replay is None:
+        if not binary.is_file():
+            raise ValueError("receipt binary missing")
+        if data["build_inputs"].get("binary_sha256") != data["binary"].get("sha256") or data[
+            "binary"
+        ]["sha256"] != sha256(binary):
+            raise ValueError("binary hash binding mismatch")
+        if data["build_inputs"].get("parser_source_sha256") != sha256(parser):
+            raise ValueError("parser source hash binding mismatch")
+    else:
+        if data["binary"].get("sha256") != replay["historical_binary_sha256"]:
+            raise ValueError("historical attested binary hash mismatch")
+        if data["build_inputs"].get("binary_sha256") != replay["historical_binary_sha256"]:
+            raise ValueError("historical build binary hash mismatch")
+        if (
+            data["build_inputs"].get("parser_source_sha256")
+            != replay["historical_parser_source_sha256"]
+        ):
+            raise ValueError("historical parser hash mismatch")
+        if sha256(parser) != replay["current_parser_source_sha256"]:
+            raise ValueError("current parser hash mismatch")
+        if data.get("parser_revision") != replay["parser_revision"]:
+            raise ValueError("historical parser revision mismatch")
     if data["build_inputs"].get("contract_sha256") != data["contract"].get("sha256") or data[
         "contract"
     ]["sha256"] != sha256(contract):
         raise ValueError("contract hash binding mismatch")
-    if data["build_inputs"].get("parser_source_sha256") != sha256(parser):
-        raise ValueError("parser source hash binding mismatch")
     diagnostics = receipt_path(
         data.get("observed_output", {}).get("diagnostics", ""), label="diagnostics receipt path"
     )
@@ -500,6 +526,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--budget-seconds", type=int, default=3600)
     parser.add_argument("--timeout-seconds", type=int, default=10800)
     parser.add_argument("--verify-receipt", type=Path)
+    parser.add_argument("--historical-binding", type=Path)
     parser.add_argument("--require-operational-pass", action="store_true")
     args = parser.parse_args(argv)
     if not args.verify_receipt and (
@@ -508,7 +535,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--source-revision, --attempt-id, and --out are required for a new attempt")
     try:
         return (
-            verify(args.verify_receipt, args.require_operational_pass)
+            verify(args.verify_receipt, args.require_operational_pass, args.historical_binding)
             if args.verify_receipt
             else run(args)
         )
