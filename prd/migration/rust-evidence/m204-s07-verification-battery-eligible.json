@@ -1,0 +1,52 @@
+{
+  "schema": "m204-s07-verification-battery-eligible/v1",
+  "verification": "S07_ELIGIBLE_VERIFY_FAIL_CLOSED",
+  "operational_acceptance": "non-pass",
+  "classification": "supporting-only",
+  "attempt": {
+    "attempt_id": "eligible-run-001",
+    "terminal_outcome": "complete",
+    "exit_code": 0,
+    "duration_ms": 214150,
+    "duration_floor_ms": 3600000,
+    "budget_seconds": 3600,
+    "jobs": 0,
+    "limit": null,
+    "consultant_xml_count": 43785,
+    "garant_file_count": 12,
+    "jsonl_valid": true,
+    "jsonl_lines": 5,
+    "inventory_digest": "sha256:0a5f8346dce46ec12247856ebc06dfb79747644bcfa1ed8af10ef115b332a086",
+    "source_revision": "m204-s07-c4-eligible-caller-pin-2026-09-11",
+    "operational_claim": "non-pass"
+  },
+  "strict_verifier": {
+    "command": "uv run python scripts/m204_s07_c4_run.py --verify-receipt prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json --require-operational-pass",
+    "exit_code": 1,
+    "result": "fail-closed",
+    "error": "operational acceptance is not proven"
+  },
+  "evidence_verifier": {
+    "result": "not_applicable_to_eligible_receipt",
+    "reason": "scripts/m204_s07_evidence_verify.py has no --receipt option and is hard-coded to the predecessor full-walk-001 receipt; invoking it for eligible-run-001 would not verify this artifact"
+  },
+  "blocker": {
+    "category": "runtime-duration-floor",
+    "description": "The real full-corpus process completed in 214150ms, below the mandatory 3600000ms monotonic duration floor. Artificial sleep, forged timestamps, and pass-predicate changes are prohibited.",
+    "downstream_action": "Do not promote operational acceptance or close R038/R063/R064/R081; retain this attempt as durable negative supporting evidence."
+  },
+  "bindings": {
+    "receipt": "prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json",
+    "receipt_sha256": "sha256:7c8e598779caa685ba978b29eca5f122f74e1cf81e4b437c132dc52f7eee7d69",
+    "diagnostics": "prd/migration/rust-evidence/m204-s07-c4-attempts/eligible-run-001/diagnostics.jsonl",
+    "logs": [
+      "prd/migration/rust-evidence/m204-s07-c4-attempts/eligible-run-001/stdout.log",
+      "prd/migration/rust-evidence/m204-s07-c4-attempts/eligible-run-001/stderr.log"
+    ]
+  },
+  "non_claims": [
+    "Receipt presence is not operational acceptance",
+    "A terminal exit 0 and valid diagnostics do not satisfy the duration floor",
+    "No requirement, finding, or lifecycle state was changed"
+  ]
+}

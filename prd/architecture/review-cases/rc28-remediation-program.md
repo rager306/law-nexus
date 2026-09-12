@@ -99,3 +99,14 @@ This section is additive supporting-only classification for the fresh S07 govern
 | R081 | documentation-only residue and governor repeat classification | Fresh `m204-s07-governor-repeat.json` records `review-case-integrity` exit 0, report status `ok`, `error_count=0`, `tool_error_count=0`, one pass finding, and 19 advisory open findings | Governor control is structurally passing; open inventory remains advisory and no Review Case, ledger, requirement, or lifecycle state changed | Supporting only; no finding is accepted or closed and C4 remains non-pass |
 
 The S07 attempt is durable negative evidence: terminal `exit_code=0` and valid diagnostics do not satisfy the duration floor. No row closes R038, R063, R064, R081, R035, R070, R066, or R073; S06/M203 receipts remain untouched. T04 must treat this short completion as a fail-closed negative terminal and must not emit an operational pass.
+
+## M204 S07 eligible C4 attempt classification
+
+This section records the immutable `eligible-run-001` retry as supporting-only negative evidence. It does not replace `full-walk-001`, promote operational acceptance, mutate requirements, or close any Review Case finding.
+
+| Evidence | Binding | Observed outcome | Disposition and limitation |
+|---|---|---|---|
+| `prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json` | Attempt `eligible-run-001`; release binary hash `sha256:4a7ea7962f0880010b852c7fe7f9406e9ba35e52c77e180d0003fb1e5144b3b2`; contract `npa-acceptance-contract/v1`; `jobs=0`; no limit; caller pin `m204-s07-c4-eligible-caller-pin-2026-09-11` | Full 43,785 consultant XML corpus plus 12 Garant files; terminal `complete`, exit `0`, valid 5-line JSONL, inventory digest `sha256:0a5f8346dce46ec12247856ebc06dfb79747644bcfa1ed8af10ef115b332a086`; actual duration `214150ms` | Supporting-only durable negative evidence. The actual monotonic duration is below the mandatory `3600000ms` floor, so `operational_acceptance=non-pass`; no artificial sleep, forged timestamp, or predicate change was used. |
+| `prd/migration/rust-evidence/m204-s07-verification-battery-eligible.json` | Receipt SHA-256 `sha256:7c8e598779caa685ba978b29eca5f122f74e1cf81e4b437c132dc52f7eee7d69`; strict verifier command and outcome recorded | Integrity-only receipt verification passed; strict `--require-operational-pass` exited `1` with `operational acceptance is not proven` | Fail-closed runtime-duration blocker. The existing cross-artifact verifier is intentionally not run against this receipt because its CLI has no receipt parameter and is hard-coded to `full-walk-001`; no incompatible result is relabeled as eligible evidence. |
+
+The eligible attempt confirms that the current real workload completes materially below the acceptance floor. R038, R063, R064, R081, R035, R070, R066, and R073 remain unchanged; the receipt, diagnostics, stdout, and stderr are immutable and the attempt must not be retried with artificial duration padding.
