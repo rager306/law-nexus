@@ -1,0 +1,31 @@
+{
+  "schema": "law-nexus/m204-s15-frozen-hashes/v1",
+  "scope": "S15 additive classifier; frozen tracked evidence only; no corpus walk",
+  "files": [
+    {
+      "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+      "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3",
+      "size_bytes": 5136
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+      "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203",
+      "size_bytes": 2769
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s10-requirement-evidence.json",
+      "sha256": "sha256:72d08be71b5225fb58980ca9d415ba5d2bbc8a8a94e9cf104a37dcfdfb33f3d7",
+      "size_bytes": 2511
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+      "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17",
+      "size_bytes": 2698
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s14-frozen-hashes.json",
+      "sha256": "sha256:c8823df7e333d8c98b401c2c6d3b8769e0eb629db6cfb5f936bc58cca17d413a",
+      "size_bytes": 2070
+    }
+  ]
+}

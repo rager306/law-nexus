@@ -1,0 +1,340 @@
+{
+  "schema": "law-nexus/m204-s15-requirement-class/v1",
+  "c4_acceptance": "non-pass",
+  "classification": "supporting-only",
+  "status_effect": "unchanged",
+  "class_matched_ids": [],
+  "s15_called_validate_milestone": false,
+  "s15_called_requirement_update": false,
+  "engine_status": {
+    "engine_fix": "not_fixed",
+    "upstream_issue": "not_filed"
+  },
+  "open_findings": 19,
+  "predecessor_pins": {
+    "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+    "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+  },
+  "rows": [
+    {
+      "requirement_id": "R038",
+      "coverage_kind": "supporting-only",
+      "evidence_class": "source-bound-criterion-plus-c4-gsd-attempt",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "source_surfaces": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+          "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+          "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s10-requirement-evidence.json",
+          "sha256": "sha256:72d08be71b5225fb58980ca9d415ba5d2bbc8a8a94e9cf104a37dcfdfb33f3d7"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+          "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-frozen-hashes.json",
+          "sha256": "sha256:c8823df7e333d8c98b401c2c6d3b8769e0eb629db6cfb5f936bc58cca17d413a"
+        }
+      ],
+      "limitations": [
+        "supports criterion and attempted run only; no operational pass"
+      ]
+    },
+    {
+      "requirement_id": "R063",
+      "coverage_kind": "supporting-only",
+      "evidence_class": "process-provenance-without-product-change",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "source_surfaces": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+          "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+          "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s10-requirement-evidence.json",
+          "sha256": "sha256:72d08be71b5225fb58980ca9d415ba5d2bbc8a8a94e9cf104a37dcfdfb33f3d7"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+          "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-frozen-hashes.json",
+          "sha256": "sha256:c8823df7e333d8c98b401c2c6d3b8769e0eb629db6cfb5f936bc58cca17d413a"
+        }
+      ],
+      "limitations": [
+        "supports process provenance only; not product composition proof"
+      ]
+    },
+    {
+      "requirement_id": "R064",
+      "coverage_kind": "supporting-only",
+      "evidence_class": "thin-harness-operability-retest",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "source_surfaces": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+          "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+          "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s10-requirement-evidence.json",
+          "sha256": "sha256:72d08be71b5225fb58980ca9d415ba5d2bbc8a8a94e9cf104a37dcfdfb33f3d7"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+          "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-frozen-hashes.json",
+          "sha256": "sha256:c8823df7e333d8c98b401c2c6d3b8769e0eb629db6cfb5f936bc58cca17d413a"
+        }
+      ],
+      "limitations": [
+        "supports thin-harness operability retest only; no engine repair"
+      ]
+    },
+    {
+      "requirement_id": "R081",
+      "coverage_kind": "supporting-only",
+      "evidence_class": "documentation-residue-no-new-work",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "source_surfaces": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+          "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+          "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s10-requirement-evidence.json",
+          "sha256": "sha256:72d08be71b5225fb58980ca9d415ba5d2bbc8a8a94e9cf104a37dcfdfb33f3d7"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+          "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-frozen-hashes.json",
+          "sha256": "sha256:c8823df7e333d8c98b401c2c6d3b8769e0eb629db6cfb5f936bc58cca17d413a"
+        }
+      ],
+      "limitations": [
+        "documentation residue only; not Work identity proof"
+      ]
+    },
+    {
+      "requirement_id": "R035",
+      "coverage_kind": "hold",
+      "evidence_class": "ontology-gate-absent",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "source_surfaces": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+          "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+          "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s10-requirement-evidence.json",
+          "sha256": "sha256:72d08be71b5225fb58980ca9d415ba5d2bbc8a8a94e9cf104a37dcfdfb33f3d7"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+          "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-frozen-hashes.json",
+          "sha256": "sha256:c8823df7e333d8c98b401c2c6d3b8769e0eb629db6cfb5f936bc58cca17d413a"
+        }
+      ],
+      "limitations": [
+        "HOLD and no ontology-gate evidence"
+      ]
+    },
+    {
+      "requirement_id": "R070",
+      "coverage_kind": "hold",
+      "evidence_class": "edition-provenance-absent",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "source_surfaces": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+          "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+          "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s10-requirement-evidence.json",
+          "sha256": "sha256:72d08be71b5225fb58980ca9d415ba5d2bbc8a8a94e9cf104a37dcfdfb33f3d7"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+          "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-frozen-hashes.json",
+          "sha256": "sha256:c8823df7e333d8c98b401c2c6d3b8769e0eb629db6cfb5f936bc58cca17d413a"
+        }
+      ],
+      "limitations": [
+        "HOLD and no edition-provenance evidence"
+      ]
+    },
+    {
+      "requirement_id": "R066",
+      "coverage_kind": "out-of-class",
+      "evidence_class": "anti-feature-unrelated-to-c4",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "source_surfaces": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+          "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+          "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s10-requirement-evidence.json",
+          "sha256": "sha256:72d08be71b5225fb58980ca9d415ba5d2bbc8a8a94e9cf104a37dcfdfb33f3d7"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+          "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-frozen-hashes.json",
+          "sha256": "sha256:c8823df7e333d8c98b401c2c6d3b8769e0eb629db6cfb5f936bc58cca17d413a"
+        }
+      ],
+      "limitations": [
+        "unrelated anti-feature evidence; no C4 class match"
+      ]
+    },
+    {
+      "requirement_id": "R073",
+      "coverage_kind": "out-of-class",
+      "evidence_class": "governor-check-specs-unexpanded",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "source_surfaces": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+          "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+          "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s10-requirement-evidence.json",
+          "sha256": "sha256:72d08be71b5225fb58980ca9d415ba5d2bbc8a8a94e9cf104a37dcfdfb33f3d7"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+          "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-frozen-hashes.json",
+          "sha256": "sha256:c8823df7e333d8c98b401c2c6d3b8769e0eb629db6cfb5f936bc58cca17d413a"
+        }
+      ],
+      "limitations": [
+        "governor-check specs remain unexpanded"
+      ]
+    },
+    {
+      "requirement_id": "R000",
+      "coverage_kind": "reserved-stub",
+      "evidence_class": "reserved-stub",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "source_surfaces": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+          "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+          "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s10-requirement-evidence.json",
+          "sha256": "sha256:72d08be71b5225fb58980ca9d415ba5d2bbc8a8a94e9cf104a37dcfdfb33f3d7"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+          "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-frozen-hashes.json",
+          "sha256": "sha256:c8823df7e333d8c98b401c2c6d3b8769e0eb629db6cfb5f936bc58cca17d413a"
+        }
+      ],
+      "limitations": [
+        "reserved stub; not a real requirement"
+      ]
+    },
+    {
+      "requirement_id": "R999",
+      "coverage_kind": "reserved-stub",
+      "evidence_class": "reserved-stub",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "source_surfaces": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+          "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+          "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s10-requirement-evidence.json",
+          "sha256": "sha256:72d08be71b5225fb58980ca9d415ba5d2bbc8a8a94e9cf104a37dcfdfb33f3d7"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+          "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s14-frozen-hashes.json",
+          "sha256": "sha256:c8823df7e333d8c98b401c2c6d3b8769e0eb629db6cfb5f936bc58cca17d413a"
+        }
+      ],
+      "limitations": [
+        "reserved stub; not a real requirement"
+      ]
+    }
+  ]
+}
