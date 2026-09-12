@@ -1,0 +1,153 @@
+{
+  "schema": "m204-s10-frozen-hashes/v1",
+  "created_at": "2026-09-12T06:34:06.734069Z",
+  "scope": [
+    "m203-s08 JSON/JSONL",
+    "m203-s09 receipts",
+    "m204-s06 JSON",
+    "m204-s07 JSON",
+    "m204-validation-battery-20260912.json"
+  ],
+  "files": [
+    {
+      "path": "prd/migration/rust-evidence/m203-s08-c2-bounded-manifest.json",
+      "sha256": "sha256:ca3287bfdf20e326de24eeb2cddf88da1a60845ac4535ec58a4e41ad5f60f993",
+      "size_bytes": 25978
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s08-c3-holdout-manifest.json",
+      "sha256": "sha256:37c85ca480884717199453abd2ccc148b32d5011b194f160263764f469bbf388",
+      "size_bytes": 22873
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s08-c4-full-diagnostics.jsonl",
+      "sha256": "sha256:09488919de24a26220b04f8e4bde4516bc6ad4aa41e983045866c517e21bb5ce",
+      "size_bytes": 39165
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s08-c5-agreement.jsonl",
+      "sha256": "sha256:98fa36fbb91aa520feaf0d9fed9c2bdbb0ca30d886dc44da42b053edc9e31b70",
+      "size_bytes": 780
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s08-c5-coding.jsonl",
+      "sha256": "sha256:13413c6f6c522b7ca53578422ab6fc3dca0cb287406e0810ba7140d8dc064445",
+      "size_bytes": 513
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s08-c5-gold-manifest-100.json",
+      "sha256": "sha256:5e839c9bb44718b1a60856e6e9ce96104b447c4b15f014e74cefb66c264623f4",
+      "size_bytes": 48379
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s08-c5-gold-manifest-400.json",
+      "sha256": "sha256:353c690220696bf449bd54ba46c3e006e22ef92cf05a0faae2517892e7723578",
+      "size_bytes": 191082
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s08-c5-gold-manifest-800.json",
+      "sha256": "sha256:be2e47b56f2b6db476c7f156dd6aa58d51b1d05eb54432fe93c9a91917ee6d60",
+      "size_bytes": 381336
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s08-ledger-events.jsonl",
+      "sha256": "sha256:e41e305ff0fd955f18b28f6a56556660e6a34bf97c19970dfccd7882fc94813f",
+      "size_bytes": 2408
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s08-perf-receipts.jsonl",
+      "sha256": "sha256:528599a338f6fc2428a9ade3f3ad3c28a9f702b8344fe1b38e9dd3d89d035493",
+      "size_bytes": 857
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s08-quality-receipts.jsonl",
+      "sha256": "sha256:a4ada4cdfeaf1ede0b8514bfd759f8ed396e84b161d6c283fda21ca26e4807c4",
+      "size_bytes": 1629
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s09-c4-operational-receipt.json",
+      "sha256": "sha256:e73573e9561b7e08848177e9616b0f1f1451b617fc0709e62b040cdd1f917da8",
+      "size_bytes": 858
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s09-promotion-battery.json",
+      "sha256": "sha256:46739cc1e6c028e6ef303de7a49792adb887329609b2daf24f955b61a181e528",
+      "size_bytes": 4494
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s09-promotion-receipts.jsonl",
+      "sha256": "sha256:666b2a77543b755118b651cd1b85bfb8c355c5aed458b0c9fcc9e8a9364388da",
+      "size_bytes": 14802
+    },
+    {
+      "path": "prd/migration/rust-evidence/m203-s09-r035-r070-debt.json",
+      "sha256": "sha256:a2e0842b9cc9f267b66719ef74afae81dd93a8ab3a94a1906411c128bc1816c8",
+      "size_bytes": 463
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s06-c4-calibration-1000.json",
+      "sha256": "sha256:70d62fee49bcb24591287b14a4a1ee6c40c6384464f5f8288a869875a2cdc219",
+      "size_bytes": 3358
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+      "sha256": "sha256:04e41f896f2bded096061d7caef2ec4abdaaf37cebf88c387d1dd011943b797c",
+      "size_bytes": 3219
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s06-governor-sanctioned-outcome.json",
+      "sha256": "sha256:045af376b182aeb649497639f002adb5f875794063cb4ae8891f2273172e165e",
+      "size_bytes": 13270
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s06-requirement-evidence.json",
+      "sha256": "sha256:3ad805bb063058176a52a44c2b9768a86d09ff9c7ee2587cd6aa4144b3774ce3",
+      "size_bytes": 5136
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s06-verification-battery.json",
+      "sha256": "sha256:2be4b82f7921adfa300efb3980247b23a48839418fcf88d9c1491d5515af40e2",
+      "size_bytes": 936
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json",
+      "sha256": "sha256:7c8e598779caa685ba978b29eca5f122f74e1cf81e4b437c132dc52f7eee7d69",
+      "size_bytes": 3586
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-c4-operational-receipt.json",
+      "sha256": "sha256:f515e76bf757fb4e1143fc558b00ba7033ec383f586506085a9d2748ac5fbdab",
+      "size_bytes": 3541
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-governor-repeat.json",
+      "sha256": "sha256:da97019bc7ee197dfbcbb462b23541b8af44595904b7a6a010f6bbb34406465e",
+      "size_bytes": 13584
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-requirement-evidence.json",
+      "sha256": "sha256:f599d67c5ddc2e2bcc923acf179df38904512d0ac398caac34e8edf206098203",
+      "size_bytes": 2769
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-verification-battery-eligible.json",
+      "sha256": "sha256:ed5564ec73a10595ded62d20303b4a634a1d374dbe043dc7042dcacecceaf26f",
+      "size_bytes": 2487
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s07-verification-battery.json",
+      "sha256": "sha256:f061af4342a75c6c0290f087f4503c74839f7f828b4081bfee7a4422fd408595",
+      "size_bytes": 1114
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-validation-battery-20260912.json",
+      "sha256": "sha256:0b27ae38d01a3326abd163e753941b8b601d2ca0395da116470b24de4c949702",
+      "size_bytes": 2711
+    }
+  ],
+  "non_claims": [
+    "manifest proves byte identity only",
+    "it does not validate semantic acceptance",
+    "S10 outputs are outside this frozen boundary"
+  ]
+}

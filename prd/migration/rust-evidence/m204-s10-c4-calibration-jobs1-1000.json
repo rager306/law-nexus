@@ -1,0 +1,147 @@
+{
+  "schema": "m204-s10-c4-calibration/v1",
+  "created_at": "2026-09-12T06:34:06.677912Z",
+  "calibration_contract": {
+    "root": "consru_export/consru_export/exports",
+    "garant_root": "law-source/garant",
+    "consultant_xml_count": 43785,
+    "limit": 1000,
+    "jobs": 1,
+    "profile": "contour",
+    "duration_floor_ms": 3600000,
+    "clock": "time.monotonic",
+    "sample_is_operational_pass": false
+  },
+  "toolchain": {
+    "commands_exit_code": {
+      "rustc": 0,
+      "cargo": 0
+    },
+    "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)"
+  },
+  "parser_revision": "m204-s04-c4-contour-v1",
+  "build_inputs": {
+    "contract": {
+      "path": "prd/architecture/npa-acceptance-contract.yaml",
+      "sha256": "sha256:34e8a38a4bd7619d35e8bc2c1294e3a9bc77179b3385d9b5d9161157220d51e3"
+    },
+    "parser_source": {
+      "path": "crates/ln-consultant-parser/src/contour_diagnostics.rs",
+      "sha256": "sha256:e53a0961c8ecfaf8fcc133da1b37efcbca9dcbd41ffba28e842fa6d7de34d3a4"
+    }
+  },
+  "samples": [
+    {
+      "profile": "release",
+      "binary": {
+        "path": "target/release/npa-contour-diagnostics",
+        "sha256": "sha256:4a7ea7962f0880010b852c7fe7f9406e9ba35e52c77e180d0003fb1e5144b3b2"
+      },
+      "argv": [
+        "/root/law-nexus/target/release/npa-contour-diagnostics",
+        "--root",
+        "/root/law-nexus/consru_export/consru_export/exports",
+        "--garant-root",
+        "/root/law-nexus/law-source/garant",
+        "--profile",
+        "contour",
+        "--jobs",
+        "1",
+        "--acceptance-contract",
+        "/root/law-nexus/prd/architecture/npa-acceptance-contract.yaml",
+        "--source-revision",
+        "m204-s10-c4-calibration-2026-09-12",
+        "--out",
+        "/root/law-nexus/m204-s10-calibration-c6xmre9b/diagnostics.jsonl",
+        "--limit",
+        "1000"
+      ],
+      "argv_sha256": "sha256:646cc705ff539cabf412405668270a6a5793e487b6cf8b25288c591c24ba783a",
+      "started_at": "2026-09-12T06:31:51.303347Z",
+      "finished_at": "2026-09-12T06:32:25.130851Z",
+      "duration_ms": 33824,
+      "extrapolated_full_corpus_ms": 1480983,
+      "limit": 1000,
+      "jobs": 1,
+      "observed_jsonl_lines": 5,
+      "inventory_digest": "sha256:d1a39edb074c63985a5f7231ed1d58d70d990e11578e4fb7a1f9958f1cbbc000",
+      "jsonl_valid": true,
+      "terminal": {
+        "outcome": "complete",
+        "exit_code": 0,
+        "timeout": false
+      },
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "sha256:0f28b22674b349bbc2a37577a5d36396a80af75e83fe95e31da8bae5bbc09fb0",
+      "operational_acceptance": "non-pass",
+      "non_claims": [
+        "bounded limit-1000 calibration is not a full-corpus attempt",
+        "extrapolation is diagnostic and is not measured duration",
+        "sample receipt does not establish operational acceptance",
+        "debug timing is not a release performance claim"
+      ]
+    },
+    {
+      "profile": "debug",
+      "binary": {
+        "path": "target/debug/npa-contour-diagnostics",
+        "sha256": "sha256:7ec6e87badde37df888ae8d1359a684a29b099d33e1e3d3d0f839a6909bdf008"
+      },
+      "argv": [
+        "/root/law-nexus/target/debug/npa-contour-diagnostics",
+        "--root",
+        "/root/law-nexus/consru_export/consru_export/exports",
+        "--garant-root",
+        "/root/law-nexus/law-source/garant",
+        "--profile",
+        "contour",
+        "--jobs",
+        "1",
+        "--acceptance-contract",
+        "/root/law-nexus/prd/architecture/npa-acceptance-contract.yaml",
+        "--source-revision",
+        "m204-s10-c4-calibration-2026-09-12",
+        "--out",
+        "/root/law-nexus/m204-s10-calibration-sgsdjsph/diagnostics.jsonl",
+        "--limit",
+        "1000"
+      ],
+      "argv_sha256": "sha256:4b784be8b35662b406b53711e9e0bace79392c0431fc3eeef1c03eb81ae83734",
+      "started_at": "2026-09-12T06:32:25.131496Z",
+      "finished_at": "2026-09-12T06:34:06.677402Z",
+      "duration_ms": 101484,
+      "extrapolated_full_corpus_ms": 4443476,
+      "limit": 1000,
+      "jobs": 1,
+      "observed_jsonl_lines": 5,
+      "inventory_digest": "sha256:d1a39edb074c63985a5f7231ed1d58d70d990e11578e4fb7a1f9958f1cbbc000",
+      "jsonl_valid": true,
+      "terminal": {
+        "outcome": "complete",
+        "exit_code": 0,
+        "timeout": false
+      },
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "sha256:0f28b22674b349bbc2a37577a5d36396a80af75e83fe95e31da8bae5bbc09fb0",
+      "operational_acceptance": "non-pass",
+      "non_claims": [
+        "bounded limit-1000 calibration is not a full-corpus attempt",
+        "extrapolation is diagnostic and is not measured duration",
+        "sample receipt does not establish operational acceptance",
+        "debug timing is not a release performance claim"
+      ]
+    }
+  ],
+  "selection": {
+    "release_admissible": false,
+    "debug_admissible": true,
+    "recommended_profile": "debug",
+    "recommended_jobs": 1,
+    "reason": "choose release when bounded extrapolation reaches the floor; otherwise debug only as an explicit non-performance operational contour"
+  },
+  "claims": {
+    "calibration_status": "bounded-diagnostic",
+    "operational_acceptance": "non-pass"
+  }
+}
