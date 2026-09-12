@@ -1,0 +1,61 @@
+{
+  "schema": "law-nexus/gsd-post-s15-validate-loop/v1",
+  "milestone": "M204-w2ktfw",
+  "slice": "S16",
+  "predecessor_slice": "S15",
+  "s15_complete_at": "2026-09-12T15:17:39.296Z",
+  "s15_uat_end_at": "2026-09-12T15:22:05.811Z",
+  "abort_count": 3,
+  "aborts": [
+    {
+      "ordinal": 1,
+      "unit_start_at": "2026-09-12T15:22:25.039Z",
+      "unit_end_at": "2026-09-12T15:36:33.426Z",
+      "unit_end_status": "no-artifact",
+      "finalize_status": "retry",
+      "iteration_end_reason": "finalize-retry: You must call gsd_validate_milestone to persist the validation results. No current canonical validation result exists in the database.",
+      "flow_id": "15422f5d-d070-49d0-af02-aac38792728b",
+      "unit_id": "M204-w2ktfw",
+      "unit_type": "validate-milestone"
+    },
+    {
+      "ordinal": 2,
+      "unit_start_at": "2026-09-12T15:38:14.425Z",
+      "unit_end_at": "2026-09-12T15:53:57.240Z",
+      "unit_end_status": "no-artifact",
+      "finalize_status": "retry",
+      "iteration_end_reason": "finalize-retry: You must call gsd_validate_milestone to persist the validation results. No current canonical validation result exists in the database.",
+      "flow_id": "a93b8d9a-fbaa-46b1-8be9-b7fbeca8a9ef",
+      "unit_id": "M204-w2ktfw",
+      "unit_type": "validate-milestone"
+    },
+    {
+      "ordinal": 3,
+      "unit_start_at": "2026-09-12T15:55:29.390Z",
+      "unit_end_at": "2026-09-12T16:06:07.059Z",
+      "unit_end_status": "no-artifact",
+      "finalize_status": "retry",
+      "iteration_end_reason": "finalize-retry: You must call gsd_validate_milestone to persist the validation results. No current canonical validation result exists in the database.",
+      "flow_id": "3e84ca53-9b0e-40b2-9bab-09cd88c7a489",
+      "unit_id": "M204-w2ktfw",
+      "unit_type": "validate-milestone"
+    }
+  ],
+  "sql_abort_message": "technical verdict requires the current criterion and matching settled attempt",
+  "trigger_name": "trg_workflow_technical_verdict_scope",
+  "engine_fix": "not_fixed",
+  "upstream_issue": "not_filed",
+  "law_nexus_fixable": false,
+  "s16_called_validate_milestone": false,
+  "validation_projection_present": false,
+  "c4_acceptance": "non-pass",
+  "classification": "supporting-only",
+  "status_effect": "unchanged",
+  "same_defect_as_s09": true,
+  "s12_hard_block_stopped_dispatch": false,
+  "retry_substitute": false,
+  "frozen_manifest": {
+    "schema": "law-nexus/m204-s16-frozen-hashes/v1",
+    "path": "prd/migration/rust-evidence/m204-s16-frozen-hashes.json"
+  }
+}
