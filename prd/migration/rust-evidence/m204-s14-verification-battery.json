@@ -1,0 +1,24 @@
+{
+  "schema": "law-nexus/m204-s14-verification-battery/v1",
+  "integrity": "pass",
+  "c4_acceptance": "non-pass",
+  "classification": "supporting-only",
+  "status_effect": "unchanged",
+  "s14_called_validate_milestone": false,
+  "consumer": {
+    "integrity": "pass",
+    "c4_acceptance": "non-pass",
+    "classification": "supporting-only"
+  },
+  "replay": {
+    "operational_acceptance": "non-pass",
+    "historical_binding": "valid",
+    "live_binary_required": false
+  },
+  "s13_distinction": {
+    "operational_acceptance": "non-pass",
+    "classification": "supporting-only",
+    "status_effect": "unchanged"
+  },
+  "marker": "S14_VERIFY_OK"
+}

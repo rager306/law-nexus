@@ -1,0 +1,51 @@
+{
+  "schema": "law-nexus/m204-s14-frozen-hashes/v1",
+  "scope": "S14 aggregate; frozen tracked evidence only; no corpus walk",
+  "files": [
+    {
+      "path": "prd/migration/rust-evidence/m204-s10-c4-operational-receipt.json",
+      "sha256": "sha256:0c7602c051102807d50767ac836f7627b1e213ffded55c665f1743a01bb15dac",
+      "size_bytes": 3693
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s10-c4-attempts/s10-full-walk-001/diagnostics.jsonl",
+      "sha256": "sha256:177282f3a2e99c80f55b85b2a1568e1a9c80c35e7999f9b6bf42491de0379e35",
+      "size_bytes": 3673
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-validation-battery-20260912-s10.json",
+      "sha256": "sha256:7e735d8c10d5fddf84a0f0a164778c4d1576612d1b11e313dac96bf22a3248b8",
+      "size_bytes": 3441
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s11-c4-failed-classification.json",
+      "sha256": "sha256:d2c542d4538cdace8c11802479e3fc8e6697103db81435a0e3ccbd242cb12834",
+      "size_bytes": 3209
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s12-frozen-hashes.json",
+      "sha256": "sha256:4ecaba1d7838a1a1b5f0484b39ef5764df43ff456ef95d7c134d6263b4041a66",
+      "size_bytes": 3272
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s13-s07-source-binding.json",
+      "sha256": "sha256:10483c2a770bd3f5df3aa9df4ae26d8481033fa88f3a1ccdf4a4619f08520d68",
+      "size_bytes": 1696
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s13-s07-verification-battery.json",
+      "sha256": "sha256:e2953ea3d4336ebe44435c651046549388c5f1e4044784a084f22d44904938d4",
+      "size_bytes": 637
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s13-frozen-hashes.json",
+      "sha256": "sha256:4c25ef0858f0a414e5a431c7f42d166cfcaec1b1ad019ec5a5b8395338cf5da9",
+      "size_bytes": 2071
+    }
+  ],
+  "non_claims": [
+    "integrity verification does not make C4 operational acceptance pass",
+    "aggregate does not call validate-milestone or change lifecycle state",
+    "historical S10-S13 evidence remains byte-immutable"
+  ]
+}
