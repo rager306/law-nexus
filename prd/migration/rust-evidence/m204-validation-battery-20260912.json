@@ -1,0 +1,72 @@
+{
+  "schema_version": "law-nexus/milestone-validation-battery/v1",
+  "milestone": "M204-w2ktfw",
+  "generated_at": "2026-09-12T03:35:47Z",
+  "tested_source_revision": "pending-fill-by-validate-unit",
+  "tested_source_revision_role": "Placeholder pending the validate-milestone unit; do not replace it in execute-task.",
+  "working_directory": ".",
+  "environment": {
+    "runner": "pi execute-task M204/S08/T02",
+    "python": "uv-managed CPython",
+    "cargo": "offline workspace"
+  },
+  "non_claims": [
+    "Battery is process/verification evidence, not product readiness",
+    "C4 operational acceptance remains non-pass because the real attempt is below the duration floor",
+    "No corpus walk, artificial sleep, guessed hash, or requirement/lifecycle mutation was performed"
+  ],
+  "checks": [
+    {
+      "check_id": "integration-s07-evidence",
+      "verification_class": "Integration",
+      "evidence_class": "artifact",
+      "command": "bounded S07 eligible battery, receipt, and governor-repeat artifact checks",
+      "exit_code": 0,
+      "observation": "passed",
+      "stdout_tail": "S07 eligible artifacts are present, structurally bound, and C4 is non-pass",
+      "source_ref": "prd/migration/rust-evidence/m204-s07-verification-battery-eligible.json"
+    },
+    {
+      "check_id": "operational-c4-acceptance",
+      "verification_class": "Operational",
+      "evidence_class": "artifact",
+      "command": "eligible-run-001 receipt duration check (no corpus execution)",
+      "exit_code": 1,
+      "observation": "failed",
+      "stdout_tail": "duration_ms=214150 below mandatory duration_floor_ms=3600000; operational_acceptance=non-pass",
+      "source_ref": "prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json"
+    },
+    {
+      "check_id": "operational-cargo-fmt",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "cargo fmt --all --check",
+      "exit_code": 0,
+      "observation": "passed",
+      "stdout_tail": "cargo gate passed",
+      "source_ref": "live-fast-gate"
+    },
+    {
+      "check_id": "operational-cargo-check",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "cargo check --workspace --offline",
+      "exit_code": 0,
+      "observation": "passed",
+      "stdout_tail": "cargo gate passed",
+      "source_ref": "live-fast-gate"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 3,
+    "failed": 1
+  },
+  "c4": {
+    "observation": "failed",
+    "operational_acceptance": "non-pass",
+    "duration_ms": 214150,
+    "duration_floor_ms": 3600000,
+    "receipt": "prd/migration/rust-evidence/m204-s07-c4-operational-receipt-eligible.json"
+  }
+}

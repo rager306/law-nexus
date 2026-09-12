@@ -110,3 +110,9 @@ This section records the immutable `eligible-run-001` retry as supporting-only n
 | `prd/migration/rust-evidence/m204-s07-verification-battery-eligible.json` | Receipt SHA-256 `sha256:7c8e598779caa685ba978b29eca5f122f74e1cf81e4b437c132dc52f7eee7d69`; strict verifier command and outcome recorded | Integrity-only receipt verification passed; strict `--require-operational-pass` exited `1` with `operational acceptance is not proven` | Fail-closed runtime-duration blocker. The existing cross-artifact verifier is intentionally not run against this receipt because its CLI has no receipt parameter and is hard-coded to `full-walk-001`; no incompatible result is relabeled as eligible evidence. |
 
 The eligible attempt confirms that the current real workload completes materially below the acceptance floor. R038, R063, R064, R081, R035, R070, R066, and R073 remain unchanged; the receipt, diagnostics, stdout, and stderr are immutable and the attempt must not be retried with artificial duration padding.
+
+## M204 S08 validation battery carrier
+
+This additive carrier records the next validate-milestone input without laundering the S07 outcome. `prd/migration/rust-evidence/m204-validation-battery-20260912.json` uses the `law-nexus/milestone-validation-battery/v1` schema, binds the S07 eligible receipt and governor repeat, and records fast Rust gates. Its `tested_source_revision` intentionally remains `pending-fill-by-validate-unit`; the validate-milestone unit must replace it with the live GSD aggregate snapshot. C4 remains an explicit `failed` / `non-pass` observation because `duration_ms=214150` is below `duration_floor_ms=3600000`.
+
+The composer is bounded and does not walk the corpus, sleep to pad duration, invoke `--require-operational-pass`, or write a guessed hash. This section and the battery are supporting verification evidence only; they do not close requirements, findings, Review Case dispositions, or lifecycle state.
