@@ -7,7 +7,7 @@ use ln_decode::npa_sweep;
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.iter().any(|a| a == "-h" || a == "--help") {
-        println!("npa-contour-diagnostics [--root <dir>] [--garant-root <dir>] [--out <path>] [--limit <n>] [--profile decode|contour] [--check] [--label <label>] [--jobs <n>] [--acceptance-contract <path> --source-revision <pin>]");
+        println!("npa-contour-diagnostics [--root <dir>] [--garant-root <dir>] [--out <path>] [--failures-out <path>] [--limit <n>] [--profile decode|contour] [--check] [--label <label>] [--jobs <n>] [--acceptance-contract <path> --source-revision <pin>]");
         return ExitCode::SUCCESS;
     }
     let cli = match contour_diagnostics::parse_args(args) {

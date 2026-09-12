@@ -59,6 +59,7 @@ pub struct Cli {
     pub root: Option<String>,
     pub garant_root: Option<String>,
     pub out: Option<String>,
+    pub failures_out: Option<String>,
     pub limit: Option<u64>,
     pub profile: String,
     pub check: bool,
@@ -79,6 +80,7 @@ impl Default for Cli {
             root: None,
             garant_root: None,
             out: None,
+            failures_out: None,
             limit: None,
             profile: "contour".into(),
             check: false,
@@ -114,6 +116,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Cli, String
             "--root" => c.root = Some(next(&mut it, &a)?),
             "--garant-root" => c.garant_root = Some(next(&mut it, &a)?),
             "--out" => c.out = Some(next(&mut it, &a)?),
+            "--failures-out" => c.failures_out = Some(next(&mut it, &a)?),
             "--label" => c.label = next(&mut it, &a)?,
             "--profile" => {
                 c.profile = next(&mut it, &a)?;
@@ -182,7 +185,17 @@ pub struct Acc {
     provider: String,
     source_root: Option<PathBuf>,
     inventory: Vec<String>,
+    failures: Vec<FailureTrace>,
+    failure_error: Option<String>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct FailureTrace {
+    provider: String,
+    path: String,
+    class: &'static str,
+}
+
 impl Acc {
     fn hit(&mut self, stage: &str, outcome: &str) {
         *self
@@ -206,6 +219,21 @@ impl Acc {
                 .or_default() += 1;
         }
     }
+    fn record_failure(&mut self, path: &Path, class: &'static str) {
+        match failure_path(path) {
+            Ok(path) => self.failures.push(FailureTrace {
+                provider: self.provider.clone(),
+                path,
+                class,
+            }),
+            Err(error) => {
+                if self.failure_error.is_none() {
+                    self.failure_error = Some(error);
+                }
+            }
+        }
+    }
+
     fn observe(&mut self, path: &Path, terminal: FileTerminal, blocks: &[ParsedBlock]) {
         self.files += 1;
         let provider = self.provider.clone();
@@ -289,6 +317,10 @@ impl Acc {
         self.decoded += other.decoded;
         self.failed += other.failed;
         self.inventory.extend(other.inventory);
+        self.failures.extend(other.failures);
+        if self.failure_error.is_none() {
+            self.failure_error = other.failure_error;
+        }
         for (stage, outcomes) in other.stages {
             for (outcome, count) in outcomes {
                 *self
@@ -377,6 +409,58 @@ fn map(m: &BTreeMap<String, BTreeMap<String, u64>>) -> String {
 fn q(s: &str) -> String {
     format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
 }
+
+fn failure_path(path: &Path) -> Result<String, String> {
+    let repo = std::env::current_dir().map_err(|e| format!("repository root unavailable: {e}"))?;
+    failure_path_from(path, &repo)
+}
+
+fn failure_path_from(path: &Path, repo: &Path) -> Result<String, String> {
+    let repo = repo
+        .canonicalize()
+        .map_err(|e| format!("repository root unavailable: {e}"))?;
+    let resolved = path
+        .canonicalize()
+        .map_err(|e| format!("failure path cannot be canonicalized: {e}"))?;
+    let relative = resolved
+        .strip_prefix(&repo)
+        .map_err(|_| "failure path escapes repository root".to_string())?;
+    let relative = relative.to_string_lossy().replace('\\', "/");
+    if !(relative.starts_with("consru_export/consru_export/exports/")
+        || relative.starts_with("law-source/garant/"))
+    {
+        return Err(format!(
+            "failure path outside production allowlist: {relative}"
+        ));
+    }
+    Ok(relative)
+}
+
+fn render_failures(failures: &[FailureTrace]) -> String {
+    let mut out = String::new();
+    for failure in failures {
+        let _ = writeln!(
+            out,
+            "{{\"record_kind\":\"failure\",\"schema\":\"npa-contour-failure-trace/v1\",\"provider\":{},\"path\":{},\"class\":{}}}",
+            q(&failure.provider),
+            q(&failure.path),
+            q(failure.class),
+        );
+    }
+    out
+}
+
+fn write_failures_exclusive(path: &Path, failures: &mut [FailureTrace]) -> Result<(), String> {
+    failures.sort_by(|a, b| (&a.provider, &a.path, a.class).cmp(&(&b.provider, &b.path, b.class)));
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+        .map_err(|e| format!("failure sidecar write failed: {e}"))?;
+    file.write_all(render_failures(failures).as_bytes())
+        .map_err(|e| format!("failure sidecar write failed: {e}"))
+}
+
 fn write(path: &Path, body: &str) -> Result<(), String> {
     let nonce = std::process::id();
     let tmp = PathBuf::from(format!("{}.tmp-{nonce}", path.display()));
@@ -563,6 +647,16 @@ pub fn run(cli: &Cli, default_root: &Path) -> (u8, Option<String>, String) {
             observe_garant_file(&mut ga, &path);
         }
         a.merge(ga);
+    }
+    if !cli.check {
+        if let Some(path) = cli.failures_out.as_ref() {
+            if let Some(error) = a.failure_error.as_ref() {
+                return (EXIT_OUT_UNWRITABLE, None, error.clone());
+            }
+            if let Err(error) = write_failures_exclusive(Path::new(path), &mut a.failures) {
+                return (EXIT_OUT_UNWRITABLE, None, error);
+            }
+        }
     }
     let (version, check_id, mode, command) = acceptance_identity(cli);
     let body = a.render(
@@ -791,6 +885,7 @@ fn observe_garant_file(acc: &mut Acc, path: &Path) {
     let bytes = match fs::read(path) {
         Ok(bytes) => bytes,
         Err(_) => {
+            acc.record_failure(path, "read");
             acc.observe(path, FileTerminal::Failed, &[]);
             return;
         }
@@ -798,6 +893,7 @@ fn observe_garant_file(acc: &mut Acc, path: &Path) {
     let digest = match digest_bytes(&bytes) {
         Ok(d) => d,
         Err(_) => {
+            acc.record_failure(path, "digest");
             acc.observe(path, FileTerminal::Failed, &[]);
             return;
         }
@@ -810,29 +906,48 @@ fn observe_garant_file(acc: &mut Acc, path: &Path) {
         .unwrap_or_default();
     acc.inventory
         .push(format!("{}|{}|{}", acc.provider, relative, digest));
-    let decoded = fs::read(path)
-        .ok()
-        .and_then(|current| {
-            (digest_bytes(&current).ok().as_deref() == Some(digest.as_str())).then_some(current)
-        })
-        .and_then(|current| {
-            let request = DecodeRequest::new(
-                payload_ref_for_path(path),
-                FamilyFormat::parse("family:garant-odt").ok()?,
-                &current,
-            );
-            GarantOdtBlockDecoder.decode_blocks(&request).ok()
-        });
-    match decoded {
-        Some(blocks) => acc.observe(path, FileTerminal::Decoded, &blocks),
-        None => acc.observe(path, FileTerminal::Failed, &[]),
+    let current = match fs::read(path) {
+        Ok(current) => current,
+        Err(_) => {
+            acc.record_failure(path, "toctou");
+            acc.observe(path, FileTerminal::Failed, &[]);
+            return;
+        }
+    };
+    if digest_bytes(&current).ok().as_deref() != Some(digest.as_str()) {
+        acc.record_failure(path, "toctou");
+        acc.observe(path, FileTerminal::Failed, &[]);
+        return;
     }
+    let request = match FamilyFormat::parse("family:garant-odt") {
+        Ok(format) => DecodeRequest::new(payload_ref_for_path(path), format, &current),
+        Err(_) => {
+            acc.record_failure(path, "decode");
+            acc.observe(path, FileTerminal::Failed, &[]);
+            return;
+        }
+    };
+    match GarantOdtBlockDecoder.decode_blocks(&request) {
+        Ok(blocks) => acc.observe(path, FileTerminal::Decoded, &blocks),
+        Err(_) => {
+            acc.record_failure(path, "decode");
+            acc.observe(path, FileTerminal::Failed, &[]);
+        }
+    }
+}
+
+fn looks_like_consultant_wordml(bytes: &[u8]) -> bool {
+    let text = String::from_utf8_lossy(bytes);
+    text.contains("<w:wordDocument")
+        || text.contains("<wordDocument")
+        || text.contains(":wordDocument")
 }
 
 fn observe_consultant_file(acc: &mut Acc, path: &Path) {
     let bytes = match fs::read(path) {
         Ok(bytes) => bytes,
         Err(_) => {
+            acc.record_failure(path, "read");
             acc.observe(path, FileTerminal::Failed, &[]);
             return;
         }
@@ -840,6 +955,7 @@ fn observe_consultant_file(acc: &mut Acc, path: &Path) {
     let digest = match digest_bytes(&bytes) {
         Ok(digest) => digest,
         Err(_) => {
+            acc.record_failure(path, "digest");
             acc.observe(path, FileTerminal::Failed, &[]);
             return;
         }
@@ -857,6 +973,11 @@ fn observe_consultant_file(acc: &mut Acc, path: &Path) {
         });
     acc.inventory
         .push(format!("{}|{}|{}", acc.provider, relative, digest));
+    if !looks_like_consultant_wordml(&bytes) {
+        acc.record_failure(path, "decode");
+        acc.observe(path, FileTerminal::Failed, &[]);
+        return;
+    }
     let request = DecodeRequest::new(
         payload_ref_for_path(path),
         FamilyFormat::parse("family:consultant-wordml").expect("static family format"),
@@ -870,12 +991,16 @@ fn observe_consultant_file(acc: &mut Acc, path: &Path) {
                 .as_deref()
                 != Some(digest.as_str())
             {
+                acc.record_failure(path, "toctou");
                 acc.observe(path, FileTerminal::Failed, &[]);
             } else {
                 acc.observe(path, FileTerminal::Decoded, &blocks);
             }
         }
-        Err(_) => acc.observe(path, FileTerminal::Failed, &[]),
+        Err(_) => {
+            acc.record_failure(path, "decode");
+            acc.observe(path, FileTerminal::Failed, &[])
+        }
     }
 }
 
@@ -944,4 +1069,100 @@ fn odts(root: &Path) -> Vec<PathBuf> {
     rec(root, &mut out);
     out.sort();
     out
+}
+
+#[cfg(test)]
+mod failure_sidecar_tests {
+    use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_dir(label: &str) -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("ln-c4-{label}-{nonce}"));
+        fs::create_dir_all(&path).expect("temporary directory");
+        path
+    }
+
+    #[test]
+    fn failure_schema_is_closed_and_sorted() {
+        let mut records = vec![
+            FailureTrace {
+                provider: "garant".into(),
+                path: "law-source/garant/b.odt".into(),
+                class: "decode",
+            },
+            FailureTrace {
+                provider: "consultant".into(),
+                path: "consru_export/consru_export/exports/a.xml".into(),
+                class: "decode",
+            },
+        ];
+        let dir = temp_dir("schema");
+        let target = dir.join("failures.jsonl");
+        write_failures_exclusive(&target, &mut records).expect("sidecar");
+        let root = fs::read_to_string(&target).expect("sidecar contents");
+        assert!(root.contains("npa-contour-failure-trace/v1"));
+        assert!(!root.contains("payload"));
+        assert!(!root.contains("error"));
+        assert!(root.lines().all(|line| {
+            line.matches('"').count() > 0
+                && line.contains("\"record_kind\":\"failure\"")
+                && line.contains("\"provider\"")
+                && line.contains("\"path\"")
+                && line.contains("\"class\"")
+        }));
+        assert!(root.find("\"provider\":\"consultant\"") < root.find("\"provider\":\"garant\""));
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn rooted_allowlist_rejects_escape_and_accepts_production_prefix() {
+        let repo = temp_dir("allowlist");
+        let allowed = repo.join("consru_export/consru_export/exports");
+        fs::create_dir_all(&allowed).expect("allowlisted directory");
+        let file = allowed.join("malformed.xml");
+        fs::write(&file, b"<not-wordml/>").expect("fixture");
+        assert_eq!(
+            failure_path_from(&file, &repo).unwrap(),
+            "consru_export/consru_export/exports/malformed.xml"
+        );
+        let outside = repo.join("tmp");
+        fs::create_dir_all(&outside).expect("outside directory");
+        let outside_file = outside.join("malformed.xml");
+        fs::write(&outside_file, b"<not-wordml/>").expect("fixture");
+        assert!(failure_path_from(&outside_file, &repo).is_err());
+        let _ = fs::remove_dir_all(repo);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn rooted_allowlist_rejects_symlink_escape() {
+        use std::os::unix::fs::symlink;
+        let repo = temp_dir("symlink");
+        let allowed = repo.join("law-source/garant");
+        let outside = repo.join("outside");
+        fs::create_dir_all(&allowed).expect("allowlisted directory");
+        fs::create_dir_all(&outside).expect("outside directory");
+        let target = outside.join("escape.odt");
+        fs::write(&target, b"not odt").expect("fixture");
+        let link = allowed.join("escape.odt");
+        symlink(&target, &link).expect("symlink");
+        assert!(failure_path_from(&link, &repo).is_err());
+        let _ = fs::remove_dir_all(repo);
+    }
+
+    #[test]
+    fn exclusive_write_rejects_existing_target() {
+        let dir = temp_dir("exclusive");
+        let target = dir.join("failures.jsonl");
+        fs::write(&target, b"existing").expect("target");
+        let mut records = Vec::new();
+        let error = write_failures_exclusive(&target, &mut records).unwrap_err();
+        assert!(error.contains("failure sidecar write failed"));
+        assert_eq!(fs::read(&target).unwrap(), b"existing");
+        let _ = fs::remove_dir_all(dir);
+    }
 }
