@@ -252,6 +252,7 @@ archive Python `LegalDomain` remain prohibited.
 | Second auto | pidfile live | do not start |
 | `pkill -f 'gsd headless'` | kills the launcher | kill by pidfile |
 | `query.wedge` | always null | snapshot |
+| Validate technical-verdict deadlock | `validate-milestone` aborts because the technical verdict requires the current criterion and matching settled attempt | engine HARD BLOCK: do not restart auto for another validate, do not sqlite-patch, and do not mark C4 pass; preserve the deadlock evidence and stop |
 
 ## Related project surfaces
 
