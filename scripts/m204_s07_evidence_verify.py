@@ -19,6 +19,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 GOVERNOR = ROOT / "prd/migration/rust-evidence/m204-s07-governor-repeat.json"
 RECEIPT = ROOT / "prd/migration/rust-evidence/m204-s07-c4-operational-receipt.json"
+PASSING_RECEIPT = ROOT / "prd/migration/rust-evidence/m204-s07-c4-operational-receipt-passing.json"
 REQUIREMENTS = ROOT / "prd/migration/rust-evidence/m204-s07-requirement-evidence.json"
 PREDECESSOR_REQUIREMENTS = ROOT / "prd/migration/rust-evidence/m204-s06-requirement-evidence.json"
 BATTERY = ROOT / "prd/migration/rust-evidence/m204-s07-verification-battery.json"
@@ -79,7 +80,9 @@ def verify_governor(data: dict[str, Any]) -> None:
     require(status.get("observed", {}).get("open_count", 0) >= 0, "open inventory count missing")
 
 
-def verify_receipt(data: dict[str, Any]) -> None:
+def verify_receipt(
+    data: dict[str, Any], *, require_short: bool = True, expected_attempt: str = "full-walk-001"
+) -> None:
     # Import lazily so fixture tests can replace this module's files without
     # launching anything; the underlying verifier is integrity-only.
     import m204_s07_c4_run as c4
@@ -88,13 +91,15 @@ def verify_receipt(data: dict[str, Any]) -> None:
         data.get("schema") == "m204-s07-c4-operational-receipt/v1", "C4 receipt schema mismatch"
     )
     require(data.get("duration_ms", -1) >= 0, "C4 duration missing")
-    require(
-        data.get("duration_ms", 0) < 3_600_000, "fixture unexpectedly proves operational duration"
-    )
-    require(
-        data.get("claims", {}).get("operational_acceptance") == "non-pass",
-        "short C4 run claims pass",
-    )
+    if require_short:
+        require(
+            data.get("duration_ms", 0) < 3_600_000,
+            "fixture unexpectedly proves operational duration",
+        )
+        require(
+            data.get("claims", {}).get("operational_acceptance") == "non-pass",
+            "short C4 run claims pass",
+        )
     # Reuse the recorder's integrity-only replay while validating the supplied
     # object, not an accidentally hard-coded live path (fixture safety).
     with tempfile.NamedTemporaryFile("w", suffix=".json", dir=ROOT, delete=False) as stream:
@@ -104,21 +109,29 @@ def verify_receipt(data: dict[str, Any]) -> None:
         c4.verify(replay_path, False)
     finally:
         replay_path.unlink(missing_ok=True)
-    require(data.get("attempt_id") == "full-walk-001", "unexpected C4 attempt identity")
+    require(data.get("attempt_id") == expected_attempt, "unexpected C4 attempt identity")
     require(
         data.get("terminal", {}).get("outcome") == "complete", "C4 attempt is not terminal complete"
     )
     require(data.get("terminal", {}).get("exit_code") == 0, "C4 attempt exit is not zero")
     require(data.get("terminal", {}).get("timeout") is False, "C4 attempt timed out")
     require(data.get("duration_ms", -1) >= 0, "C4 duration missing")
-    require(
-        data.get("duration_ms", 0) < c4.DURATION_FLOOR_MS,
-        "fixture unexpectedly proves operational duration",
-    )
-    require(
-        data.get("claims", {}).get("operational_acceptance") == "non-pass",
-        "short C4 run claims pass",
-    )
+    actual = c4.is_operational_pass_data(data)
+    if require_short:
+        require(
+            data.get("duration_ms", 0) < c4.DURATION_FLOOR_MS,
+            "fixture unexpectedly proves operational duration",
+        )
+        require(
+            data.get("claims", {}).get("operational_acceptance") == "non-pass",
+            "short C4 run claims pass",
+        )
+    else:
+        require(
+            data.get("claims", {}).get("operational_acceptance")
+            == ("pass" if actual else "non-pass"),
+            "C4 operational claim does not match observed facts",
+        )
     require(data.get("c4_binding", {}).get("jobs") == 0, "C4 jobs binding mismatch")
     require(data.get("c4_binding", {}).get("limit") is None, "C4 receipt is bounded")
     require(
@@ -216,6 +229,27 @@ def verify_all() -> dict[str, str]:
     }
 
 
+def verify_t06_receipt(
+    path: Path = PASSING_RECEIPT, *, require_operational_pass: bool = True
+) -> dict[str, str]:
+    receipt = load(path)
+    verify_receipt(
+        receipt,
+        require_short=False,
+        expected_attempt="passing-run-001",
+    )
+    import m204_s07_c4_run as c4
+
+    actual = c4.is_operational_pass_data(receipt)
+    if require_operational_pass:
+        require(actual, "operational acceptance is not proven")
+    return {
+        "receipt": "pass",
+        "operational_acceptance": "pass" if actual else "non-pass",
+        "classification": "operational-pass" if actual else "fail-closed-negative",
+    }
+
+
 def write_battery(checks: dict[str, str]) -> None:
     battery = {
         "schema": "m204-s07-verification-battery/v1",
@@ -242,17 +276,22 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--write-battery", action="store_true")
+    parser.add_argument("--t06", action="store_true")
+    parser.add_argument("--require-operational-pass", action="store_true")
     args = parser.parse_args(argv)
     try:
-        checks = verify_all()
+        if args.t06:
+            checks = verify_t06_receipt(require_operational_pass=args.require_operational_pass)
+        else:
+            checks = verify_all()
         if args.write_battery:
             write_battery(checks)
         print(
             json.dumps(
                 {
                     "status": "pass",
-                    "operational_acceptance": "non-pass",
-                    "classification": "supporting-only",
+                    "operational_acceptance": checks.get("operational_acceptance", "non-pass"),
+                    "classification": checks.get("classification", "supporting-only"),
                 }
             )
         )

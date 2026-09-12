@@ -76,5 +76,26 @@ def test_battery_proves_integrity_not_operational_acceptance(tmp_path: Path) -> 
     assert battery["corpus_walk_repeated"] is False
 
 
+def test_t06_requires_passing_receipt(tmp_path: Path) -> None:
+    receipt = copy.deepcopy(artifacts()["receipt"])
+    receipt["attempt_id"] = "passing-run-001"
+    receipt["immutable_attempt_identity"]["attempt_id"] = "passing-run-001"
+    path = tmp_path / "passing.json"
+    path.write_text(json.dumps(receipt), encoding="utf-8")
+    with pytest.raises(ValueError, match="operational acceptance is not proven"):
+        verifier.verify_t06_receipt(path)
+
+
+def test_t06_rejects_forged_pass_claim(tmp_path: Path) -> None:
+    receipt = copy.deepcopy(artifacts()["receipt"])
+    receipt["attempt_id"] = "passing-run-001"
+    receipt["immutable_attempt_identity"]["attempt_id"] = "passing-run-001"
+    receipt["claims"]["operational_acceptance"] = "pass"
+    path = tmp_path / "forged.json"
+    path.write_text(json.dumps(receipt), encoding="utf-8")
+    with pytest.raises(ValueError, match="operational claim does not match observed facts"):
+        verifier.verify_t06_receipt(path, require_operational_pass=False)
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
