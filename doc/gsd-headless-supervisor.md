@@ -265,6 +265,10 @@ archive Python `LegalDomain` remain prohibited.
 - GSD tool contract: `AGENTS.md` § GSD tool contract
 - Closeout helper: `/tmp/gsd-closeout.mjs`
 
+## M204 S12 validate HARD BLOCK
+
+S12 identity and failure-sidecar evidence are supporting-only. `S12 identity/sidecar is not a settled milestone.validate attempt; do not re-dispatch validate.` The S12 carrier keeps the S09 abort message verbatim, records `engine_fix=not_fixed`, `upstream_issue=not_filed`, `s12_called_validate_milestone=false`, and leaves findings open. This control does not call `gsd_validate_milestone`, patch the database, or claim operational acceptance.
+
 ## Non-claims
 
 Adopting this runbook does **not** claim:

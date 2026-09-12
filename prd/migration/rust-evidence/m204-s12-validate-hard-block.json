@@ -1,0 +1,19 @@
+{
+  "schema": "law-nexus/gsd-validate-hard-block/v1",
+  "milestone": "M204-w2ktfw",
+  "slice": "S12",
+  "abort_message": "technical verdict requires the current criterion and matching settled attempt",
+  "engine_fix": "not_fixed",
+  "upstream_issue": "not_filed",
+  "law_nexus_fixable": false,
+  "s12_called_validate_milestone": false,
+  "s12_identity_resolved": true,
+  "s10_receipts_byte_identical": true,
+  "status_effect": "unchanged",
+  "findings": [
+    "open"
+  ],
+  "classification": "supporting-only",
+  "marker": "S12_T03_HARD_BLOCK_OK",
+  "frozen_manifest": "prd/migration/rust-evidence/m204-s12-frozen-hashes.json"
+}
