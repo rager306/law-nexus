@@ -116,3 +116,11 @@ The eligible attempt confirms that the current real workload completes materiall
 This additive carrier records the next validate-milestone input without laundering the S07 outcome. `prd/migration/rust-evidence/m204-validation-battery-20260912.json` uses the `law-nexus/milestone-validation-battery/v1` schema, binds the S07 eligible receipt and governor repeat, and records fast Rust gates. Its `tested_source_revision` intentionally remains `pending-fill-by-validate-unit`; the validate-milestone unit must replace it with the live GSD aggregate snapshot. C4 remains an explicit `failed` / `non-pass` observation because `duration_ms=214150` is below `duration_floor_ms=3600000`.
 
 The composer is bounded and does not walk the corpus, sleep to pad duration, invoke `--require-operational-pass`, or write a guessed hash. This section and the battery are supporting verification evidence only; they do not close requirements, findings, Review Case dispositions, or lifecycle state.
+
+## M204 S09 GSD validate deadlock
+
+This additive section records an engine-level deadlock without changing lifecycle state or repairing the engine. The machine-readable source is `prd/migration/rust-evidence/m204-s09-gsd-validate-deadlock.json`; the read-only runtime trigger source snapshot is `prd/migration/rust-evidence/m204-s09-trigger-sql.json`.
+
+The exact technical verdict abort, `technical verdict requires the current criterion and matching settled attempt`, is a HARD BLOCK for `validate-milestone` when no current criterion and matching settled attempt can satisfy the v42 trigger. The writer order therefore remains fail-closed: settle the `milestone.validate` attempt, write the technical verdict, then emit the validation projection. Retrying the same validate write cannot create the prerequisite and must not be treated as progress.
+
+The S09 fixture boundary is intentionally isolated and read-only with respect to the live GSD database: no SQLite patch, no `gsd_validate_milestone` call, and no auto restart for another validate attempt. `not_fixed` and `not_filed` remain unchanged. C4 `operational_acceptance` remains `non-pass`; this evidence does not close R035 or R070 and does not create a validation acceptance.

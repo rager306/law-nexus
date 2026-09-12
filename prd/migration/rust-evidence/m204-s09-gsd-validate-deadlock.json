@@ -1,0 +1,29 @@
+{
+  "schema": "law-nexus/gsd-validate-deadlock/v1",
+  "milestone": "M204-w2ktfw",
+  "slice": "S09",
+  "task": "T01",
+  "abort_message": "technical verdict requires the current criterion and matching settled attempt",
+  "activity_census": {
+    "minimum_observed_rows": 31,
+    "basis": "tracked S01 upstream-debt inventory"
+  },
+  "validation_projection_present": false,
+  "statuses": {
+    "engine_fix": "not_fixed",
+    "upstream_issue": "not_filed"
+  },
+  "law_nexus_fixable": false,
+  "trigger_name": "trg_workflow_technical_verdict_scope",
+  "writer_order": [
+    "milestone.validate attempt must settle",
+    "technical verdict must reference the current criterion and matching settled attempt",
+    "validation projection may be emitted only after the verdict is durably accepted"
+  ],
+  "loop_mechanism": "validate-milestone retries the same verdict write, while the v42 trigger rejects it before a validation projection can be persisted",
+  "c4_remains": {
+    "operational_acceptance": "non-pass",
+    "disposition": "unchanged"
+  },
+  "evidence_boundary": "This note records an engine defect; it does not patch SQLite, call gsd_validate_milestone, or promote C4."
+}

@@ -1,0 +1,20 @@
+{
+  "schema": "law-nexus/gsd-trigger-sql-snapshot/v1",
+  "milestone": "M204-w2ktfw",
+  "slice": "S09",
+  "read_only": true,
+  "source_files_relative_to_GSD_HOME": true,
+  "runtime_source_root": "/root/.gsd/agent/extensions/gsd",
+  "snapshots": {
+    "v34": {
+      "trigger_name": "trg_workflow_attempt_result_requires_settlement",
+      "source_file": "agent/extensions/gsd/db-lifecycle-foundation-schema.js",
+      "create_trigger_sql": "CREATE TRIGGER IF NOT EXISTS trg_workflow_attempt_result_requires_settlement\n    BEFORE INSERT ON workflow_attempt_results\n    WHEN NOT EXISTS (\n      SELECT 1 FROM workflow_execution_attempts attempt\n      WHERE attempt.attempt_id = NEW.attempt_id\n        AND attempt.lifecycle_id = NEW.lifecycle_id\n        AND attempt.attempt_state = 'settled'\n    )\n    BEGIN\n      SELECT RAISE(ABORT, 'attempt result requires a settled attempt');\n    END"
+    },
+    "v42": {
+      "trigger_name": "trg_workflow_technical_verdict_scope",
+      "source_file": "agent/extensions/gsd/db-milestone-validation-schema.js",
+      "create_trigger_sql": "CREATE TRIGGER trg_workflow_technical_verdict_scope\n    BEFORE INSERT ON workflow_technical_verdicts\n    WHEN NOT EXISTS (\n      SELECT 1\n      FROM workflow_acceptance_criteria criterion\n      JOIN workflow_execution_attempts attempt ON attempt.attempt_id = NEW.attempt_id\n      JOIN workflow_attempt_results result ON result.attempt_id = attempt.attempt_id\n      WHERE criterion.criterion_id = NEW.criterion_id\n        AND criterion.project_id = NEW.project_id\n        AND criterion.lifecycle_id = NEW.lifecycle_id\n        AND criterion.criterion_kind = 'technical'\n        AND criterion.project_revision <= NEW.project_revision\n        AND criterion.authority_epoch <= NEW.authority_epoch\n        AND NOT EXISTS (\n          SELECT 1 FROM workflow_acceptance_criteria successor\n          WHERE successor.supersedes_criterion_id = criterion.criterion_id\n        )\n        AND attempt.project_id = NEW.project_id\n        AND attempt.lifecycle_id = NEW.lifecycle_id\n        AND attempt.attempt_state = 'settled'\n        AND result.project_revision <= NEW.project_revision\n        AND result.authority_epoch <= NEW.authority_epoch\n        AND (\n          result.project_revision < NEW.project_revision OR\n          (\n            result.operation_id = NEW.operation_id AND\n            EXISTS (\n              SELECT 1 FROM workflow_operations operation\n              WHERE operation.operation_id = NEW.operation_id\n                AND operation.project_id = NEW.project_id\n                AND operation.operation_type = 'milestone.validate'\n            )\n          )\n        )\n        AND (NEW.verdict != 'pass' OR result.outcome = 'succeeded')\n    )\n    BEGIN\n      SELECT RAISE(ABORT, 'technical verdict requires the current criterion and matching settled attempt');\n    END;"
+    }
+  }
+}
