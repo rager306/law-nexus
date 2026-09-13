@@ -275,6 +275,14 @@ Post-S16 no-artifact validate ×2 plus intercepted predispatch (cancelled, inter
 
 Post-S17 no-artifact validate ×2 plus intercepted predispatch (cancelled, interrupted, `toolCalls=0`, no journal unit-start) is the same S09 engine deadlock; do not re-dispatch validate-milestone as a settled-attempt substitute. The S18 census is supporting-only; `law_nexus_fixable=false`, and its evidence does not repair the engine or promote lifecycle state.
 
+## M204 S21 mixed post-S20 validate window
+
+S21 records four validate dispatches after the S20 completion/UAT boundary: two no-artifact/finalize-retry aborts and two journal-cancelled interrupts. All four dispatches have `unit-start`; the cancelled terminal sessions have `toolCalls=0`, but they are not intercepts and have no finalize fields. Their measured provider error is `Provider error: Connection error.`; this observation is not attributed to the historical SQL trigger defect. The sibling supervisor terminal flow is a separate `closeout-break` event bound to headless PID `1841192`. The STOP message after four retries is not an additional abort and does not define the census abort count.
+
+The fixed evidence is `prd/migration/rust-evidence/m204-s21-post-s20-validate-loop.json`, with sixteen ordered S09–S20 predecessor pins in `prd/migration/rust-evidence/m204-s21-frozen-hashes.json`. Use `bash scripts/m204_s21_t03_verify.sh` for the bounded offline check. It runs the S21 checker in `check` mode, the independent adversarial suite, and documentation/count assertions while preserving census, manifest, and predecessor bytes. It does not inspect live `.gsd` state, call `validate-milestone`, compose evidence, or create `VALIDATION.md`.
+
+Disposition remains supporting-only: `engine_fix=not_fixed`, `law_nexus_fixable=false`, and C4 is `non-pass`. The census does not close requirements or findings and is not an automatic retry substitute; the historical trigger defect remains distinct from the measured provider connection errors.
+
 ## Non-claims
 
 Adopting this runbook does **not** claim:
