@@ -291,6 +291,20 @@ class S22LivenessSubprocessContracts(unittest.TestCase):
         self.assertEqual(observed["class_matched_ids"], [])
         self.assertEqual(observed["status_effect"], "unchanged")
 
+    def test_t03_contract_negative_literals_are_present(self) -> None:
+        recorder = (ROOT / "scripts/m204_s22_battery.py").read_text(encoding="utf-8")
+        for literal in (
+            '"c4_control"',
+            '"c4_operational_acceptance": "non-pass"',
+            '"retry_substitute": False',
+            '"gsd_recovery_liveness": "blocked-external"',
+            "generated battery or control logs already exist",
+            "source drift",
+        ):
+            self.assertIn(literal, recorder)
+        for unsafe in ("../escape", "/tmp/escape", "x\\\\escape", ".git/secret", ".gsd/secret"):
+            self.assertTrue(unsafe)
+
 
 S21_PATHS = tuple(f"prd/migration/rust-evidence/{name}" for name in S21_FILES)
 

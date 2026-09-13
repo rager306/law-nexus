@@ -1,0 +1,29 @@
+   Compiling shlex v2.0.1
+   Compiling find-msvc-tools v0.1.10
+   Compiling cc v1.4.2
+   Compiling pkg-config v0.3.34
+   Compiling vcpkg v0.2.15
+   Compiling crc32fast v1.5.0
+   Compiling libsqlite3-sys v0.38.2
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.2
+   Compiling cfg-if v1.0.4
+   Compiling memchr v2.8.3
+   Compiling zlib-rs v0.6.6
+   Compiling flate2 v1.1.9
+   Compiling indexmap v2.14.0
+   Compiling typed-path v0.12.3
+   Compiling zip v8.6.0
+   Compiling quick-xml v0.36.2
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling ln-temporal v0.1.0 (/root/law-nexus/crates/ln-temporal)
+   Compiling ln-identity v0.1.0 (/root/law-nexus/crates/ln-identity)
+   Compiling bitflags v2.13.1
+   Compiling smallvec v1.15.2
+   Compiling fallible-iterator v0.3.0
+   Compiling rusqlite v0.40.2
+   Compiling ln-kb-ontology v0.1.0 (/root/law-nexus/crates/ln-kb-ontology)
+   Compiling ln-decode v0.1.0 (/root/law-nexus/crates/ln-decode)
+   Compiling ln-consultant-parser v0.1.0 (/root/law-nexus/crates/ln-consultant-parser)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 37.77s
+     Running tests/contour_diagnostics_contract.rs (target/debug/deps/contour_diagnostics_contract-e3fb95732d943d8d)

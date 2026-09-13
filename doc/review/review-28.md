@@ -49,3 +49,17 @@ This is supporting evidence for the repeated engine deadlock pattern, not a retr
 ## Verification contract
 
 Run `bash scripts/m204_s21_t03_verify.sh`. Success requires the S21 checker marker, all independent adversarial checks, exactly sixteen ordered predecessor pins, unchanged census/manifest/pin bytes, the fixed-window documentation anchors, and the final marker `S21_T03_VERIFY_OK`.
+
+# Review 28 Addendum: S22 source-bound operational control
+
+Date: 2026-09-13
+Status: supporting-only; additive operational evidence, not lifecycle or legal acceptance.
+Scope: M204-w2ktfw/S22, external GSD recovery blocker plus a bounded C4 `Comparison` control.
+
+The S22 external blocker remains `gsd_recovery_liveness=blocked-external`, `engine_fix=not_fixed`, `law_nexus_fixable=false`, and `retry_substitute=false`. The S10 duplicate `inventory_digest` reason remains non-pass; S22 does not call `validate-milestone`, retry the engine, or claim closure of R035/R070. The Rust control is a separate subprocess receipt: `cargo test -p ln-consultant-parser --offline --locked -j 1 --test contour_diagnostics_contract`. Its result is `c4_control=pass` only when the actual bounded suite exits zero and reports at least one test; this does not promote `c4_operational_acceptance`, which remains `non-pass`.
+
+The recorder binds the exact argv, relative working directory, UTC and monotonic timing, cargo/rustc versions, stdout/stderr hashes, and tracked Cargo/Rust plus S22 evidence/document sources. The check-only host runs T01, the independent S22 subprocess suite, S21 check, and S15 classify, then rechecks every source and output hash without rewriting evidence or reading live/GSD-ignored state. A timeout, nonzero exit, empty test-result summary, missing log, stale source, or forged promotion fails closed.
+
+No S22 battery is a GSD `testedSourceRevision`, validation projection, engine repair authorization, requirement closure, or automatic validate retry. Historical S09-S21 evidence and the S10 non-pass receipt remain byte-immutable.
+
+Verification contract: `bash scripts/m204_s22_t03_verify.sh`.

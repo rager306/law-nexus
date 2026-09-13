@@ -1,0 +1,13 @@
+
+running 8 tests
+test missing_explicit_root_is_fail_closed ... ok
+test malformed_file_is_counted_not_panicked ... ok
+test canonical_payload_and_comparison_are_fail_closed ... ok
+test jobs_two_matches_sequential_on_fixture ... ok
+test bounded_run_is_closed_and_deterministic ... ok
+test check_codes_distinguish_missing_and_incomparable_baselines ... ok
+test check_rejects_stale_receipt ... ok
+test cli_receipt_battery_is_bounded_and_fail_closed ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+

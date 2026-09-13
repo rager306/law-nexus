@@ -283,6 +283,14 @@ The fixed evidence is `prd/migration/rust-evidence/m204-s21-post-s20-validate-lo
 
 Disposition remains supporting-only: `engine_fix=not_fixed`, `law_nexus_fixable=false`, and C4 is `non-pass`. The census does not close requirements or findings and is not an automatic retry substitute; the historical trigger defect remains distinct from the measured provider connection errors.
 
+## M204 S22 source-bound operational control
+
+S22 records an external GSD recovery blocker separately from a bounded Rust C4 control. The blocker remains `gsd_recovery_liveness=blocked-external`, `engine_fix=not_fixed`, `law_nexus_fixable=false`, and `retry_substitute=false`; the S10 duplicate `inventory_digest` reason remains operationally non-pass. S22 does not call `validate-milestone`, retry the engine, or close R035/R070.
+
+The separate control command is `cargo test -p ln-consultant-parser --offline --locked -j 1 --test contour_diagnostics_contract`. The source-bound recorder sets `c4_control=pass` only for the actual zero-exit suite with a non-empty test-result summary. This is not operational acceptance: `c4_operational_acceptance=non-pass`, classification is supporting-only, and lifecycle status is unchanged. A timeout, nonzero result, missing test summary, missing output log, source/output hash drift, or forged promotion fails closed.
+
+`bash scripts/m204_s22_t03_verify.sh` runs the T01 checker, independent S22 subprocess tests, and independent S21/S15 consumers. It then checks exact argv, relative cwd, UTC/monotonic timing, toolchain versions, stdout/stderr hashes, and the tracked Cargo/Rust, S22 evidence, and documentation source set. The host does not rewrite evidence, inspect live/GSD-ignored state, perform a corpus walk, or treat the receipt as a GSD aggregate `testedSourceRevision`.
+
 ## Non-claims
 
 Adopting this runbook does **not** claim:
