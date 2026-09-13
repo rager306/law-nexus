@@ -1,0 +1,31 @@
+{
+  "schema": "law-nexus/m204-s24-operational-battery/v1",
+  "milestone": "M204-w2ktfw",
+  "slice": "S24",
+  "c4_operational_acceptance": "pass",
+  "c4_control": "pass",
+  "gsd_recovery_liveness": "blocked-external",
+  "disposition": "needs-remediation",
+  "classification": "supporting-only",
+  "status_effect": "unchanged",
+  "receipt": "prd/migration/rust-evidence/m204-s23-remediation-v2-c4-receipt.json",
+  "diagnostics": "prd/migration/rust-evidence/m204-s23-remediation-v2-c4-diagnostics.jsonl",
+  "criterion_resolution": "prd/migration/rust-evidence/m204-s24-criterion-resolution.json",
+  "frozen_manifest": "prd/migration/rust-evidence/m204-s24-frozen-hashes.json",
+  "source_revision": "sha256:fb0ef39ac1f557555266139d3b76620b4f41994a609dc6cd9f68ab30c027cd5b",
+  "terminal_outcome": {
+    "outcome": "complete",
+    "exit_code": 0,
+    "timeout": false
+  },
+  "duration_ms": 4991302,
+  "non_claims": [
+    "not a GSD recovery pass",
+    "does not call validate",
+    "does not close requirements or findings",
+    "does not rewrite historical receipts",
+    "debug timing is not a release performance claim",
+    "S23 skip is not C4 non-existence",
+    "local overlay preservation is not an engine fix"
+  ]
+}
