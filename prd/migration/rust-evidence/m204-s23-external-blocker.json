@@ -1,0 +1,42 @@
+{
+  "schema": "law-nexus/m204-s23-external-blocker/v1",
+  "milestone": "M204-w2ktfw",
+  "slice": "S23",
+  "predecessor_slices": [
+    "S22",
+    "S09"
+  ],
+  "evidence_kind": "predecessor-evidence",
+  "proof_completeness": "predecessor-pins-and-boundary-complete",
+  "gsd_recovery_liveness": "blocked-external",
+  "law_nexus_fixable": false,
+  "engine_fix": "not_fixed",
+  "retry_substitute": false,
+  "s23_called_validate_milestone": false,
+  "owner_scope": "GSD engine owner",
+  "owner_resolution": "missing",
+  "disposition": "needs-remediation",
+  "upstream_issue": "not_filed",
+  "trigger_name": "trg_workflow_technical_verdict_scope",
+  "sql_abort_message": "technical verdict requires the current criterion and matching settled attempt",
+  "predecessor_refs": {
+    "s09_deadlock": "prd/migration/rust-evidence/m204-s09-gsd-validate-deadlock.json",
+    "s09_trigger_sql": "prd/migration/rust-evidence/m204-s09-trigger-sql.json",
+    "s21_liveness_census": "prd/migration/rust-evidence/m204-s21-post-s20-validate-loop.json",
+    "s22_manifest": "prd/migration/rust-evidence/m204-s22-frozen-hashes.json"
+  },
+  "c4_operational_acceptance": "non-pass",
+  "classification": "supporting-only",
+  "status_effect": "unchanged",
+  "non_claims": [
+    "not a live SQL probe",
+    "not a recovery pass or sanctioned resolution",
+    "does not file an upstream issue",
+    "does not close R035, R070, or F19",
+    "does not call validate or mutate the GSD engine"
+  ],
+  "frozen_manifest": {
+    "schema": "law-nexus/m204-s23-frozen-hashes/v1",
+    "path": "prd/migration/rust-evidence/m204-s23-frozen-hashes.json"
+  }
+}

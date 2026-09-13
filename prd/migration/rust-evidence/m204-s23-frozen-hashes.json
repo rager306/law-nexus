@@ -1,0 +1,30 @@
+{
+  "schema": "law-nexus/m204-s23-frozen-hashes/v1",
+  "scope": "S23 predecessor evidence only; ordered pins; no live probe",
+  "files": [
+    {
+      "path": "prd/migration/rust-evidence/m204-s09-gsd-validate-deadlock.json",
+      "sha256": "sha256:78e1d64c56afde92e433396b4b906fe9a69fae7bc58bbc54d17fb4aaed3d6bc4",
+      "size_bytes": 1177
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s09-trigger-sql.json",
+      "sha256": "sha256:c115c2feea8692fc86b91001f8d71da2d155c6ee4182ec4f7a3387eca6962c97",
+      "size_bytes": 2909
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s21-post-s20-validate-loop.json",
+      "sha256": "sha256:4d5057fa9f7ffacf21cdf115c63df90d10e3471f1d8fc060261b1feed957273b",
+      "size_bytes": 3906
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s22-frozen-hashes.json",
+      "sha256": "sha256:a202233fc86f6607624355113eda68f7ee42aae4405329e522b59bca6661735a",
+      "size_bytes": 4903
+    }
+  ],
+  "non_claims": [
+    "pins do not repair or resolve the GSD engine",
+    "pins do not establish validation"
+  ]
+}
