@@ -147,6 +147,21 @@ def pins(root: Path) -> list[dict[str, Any]]:
     return result
 
 
+def strict_equal(actual: Any, expected: Any) -> bool:
+    """Compare JSON values without Python's bool/int equality coercion."""
+    if type(actual) is not type(expected):
+        return False
+    if isinstance(actual, dict):
+        return list(actual) == list(expected) and all(
+            strict_equal(actual[key], expected[key]) for key in actual
+        )
+    if isinstance(actual, list):
+        return len(actual) == len(expected) and all(
+            strict_equal(value, wanted) for value, wanted in zip(actual, expected)
+        )
+    return actual == expected
+
+
 def aborts() -> list[dict[str, Any]]:
     rows = [
         (
@@ -344,16 +359,16 @@ def check(root: Path, census: Path, manifest: Path) -> None:
         or doc["dispatch_count"] != 4
         or type(doc["abort_count"]) is not int
         or doc["abort_count"] != 2
-        or doc["aborts"] != aborts()
+        or not strict_equal(doc["aborts"], aborts())
     ):
         raise ValueError("abort or dispatch census mismatch")
     if (
         type(doc["cancelled_count"]) is not int
         or doc["cancelled_count"] != 2
-        or doc["cancelled"] != cancelled()
+        or not strict_equal(doc["cancelled"], cancelled())
     ):
         raise ValueError("cancelled census mismatch")
-    if doc["supervisor_exit"] != supervisor_exit():
+    if not strict_equal(doc["supervisor_exit"], supervisor_exit()):
         raise ValueError("supervisor exit mismatch")
     for key, value in {
         "sql_abort_message": SQL_MESSAGE,
@@ -392,12 +407,15 @@ def check(root: Path, census: Path, manifest: Path) -> None:
         or len(frozen["files"]) != 16
     ):
         raise ValueError("manifest schema is not closed")
-    if frozen["files"] != pins(root):
+    if not strict_equal(frozen["files"], pins(root)):
         raise ValueError("manifest pin drift or ordering mismatch")
-    if doc["frozen_manifest"] != {
-        "schema": MANIFEST_SCHEMA,
-        "path": manifest.resolve().relative_to(root.resolve()).as_posix(),
-    }:
+    if not strict_equal(
+        doc["frozen_manifest"],
+        {
+            "schema": MANIFEST_SCHEMA,
+            "path": manifest.resolve().relative_to(root.resolve()).as_posix(),
+        },
+    ):
         raise ValueError("frozen manifest reference mismatch")
     print("S21_T01_CENSUS_OK")
 
