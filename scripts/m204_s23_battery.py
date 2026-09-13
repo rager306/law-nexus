@@ -328,9 +328,21 @@ def check() -> None:
         if row["sha256"] != digest(path) or row["size_bytes"] != path.stat().st_size:
             raise ValueError(f"frozen pin drift: {row['path']}")
     receipt = ROOT / RECEIPT_REL
-    diagnostics = ROOT / DIAGNOSTICS_REL
-    if not receipt.is_file() or not diagnostics.is_file():
-        raise ValueError("C4 terminal receipt or diagnostics missing")
+    if not receipt.is_file():
+        raise ValueError("C4 terminal receipt missing")
+    receipt_data = load(receipt)
+    observed_output = receipt_data.get("observed_output")
+    if not isinstance(observed_output, dict) or set(observed_output) != {
+        "diagnostics",
+        "inventory_digest",
+        "jsonl_valid",
+        "jsonl_lines",
+    }:
+        raise ValueError("receipt observed output binding is not closed")
+    diagnostics_rel = observed_output["diagnostics"]
+    if diagnostics_rel != DIAGNOSTICS_REL:
+        raise ValueError("receipt diagnostics binding differs from S23 battery")
+    safe_rel(diagnostics_rel)
     subprocess.run(
         [
             sys.executable,
@@ -350,7 +362,9 @@ def check() -> None:
     ):
         raise ValueError("blocker packet was promoted")
     battery = load(BATTERY)
-    actual = load(receipt).get("claims", {}).get("operational_acceptance")
+    if battery.get("diagnostics") != diagnostics_rel:
+        raise ValueError("battery and receipt diagnostics bindings differ")
+    actual = receipt_data.get("claims", {}).get("operational_acceptance")
     if battery.get("c4_operational_acceptance") != actual:
         raise ValueError("battery and receipt verdict differ")
     print("S23_T04_VERIFY_OK")
