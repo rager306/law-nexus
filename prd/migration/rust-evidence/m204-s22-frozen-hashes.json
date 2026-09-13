@@ -1,0 +1,122 @@
+{
+  "schema": "law-nexus/m204-s22-frozen-hashes/v1",
+  "scope": "S22 predecessor-only; 22 ordered pins; no self-hash and no corpus walk",
+  "files": [
+    {
+      "path": "prd/migration/rust-evidence/m204-s09-gsd-validate-deadlock.json",
+      "sha256": "sha256:78e1d64c56afde92e433396b4b906fe9a69fae7bc58bbc54d17fb4aaed3d6bc4",
+      "size_bytes": 1177
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s09-trigger-sql.json",
+      "sha256": "sha256:c115c2feea8692fc86b91001f8d71da2d155c6ee4182ec4f7a3387eca6962c97",
+      "size_bytes": 2909
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s12-validate-hard-block.json",
+      "sha256": "sha256:0ec27bbd4c0cf9bf3e48b74a375affee0824288f233598a0758d43d1ba0220f3",
+      "size_bytes": 629
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s12-frozen-hashes.json",
+      "sha256": "sha256:4ecaba1d7838a1a1b5f0484b39ef5764df43ff456ef95d7c134d6263b4041a66",
+      "size_bytes": 3272
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s15-requirement-class.json",
+      "sha256": "sha256:440dc6eb4bafabe2501002483012d373dee5133ec705c9677ef8b49c2d7b0d4d",
+      "size_bytes": 13705
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s15-frozen-hashes.json",
+      "sha256": "sha256:6e2030811c8d0f4f03b35acc1ea141b78609c941077737ceeb8321bf1746e446",
+      "size_bytes": 1186
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s16-post-s15-validate-loop.json",
+      "sha256": "sha256:be53f15f7b4aa9ef60638b52fe6d05f6a2b98d50a366fd126e9a5fcb7239ffc1",
+      "size_bytes": 2525
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s16-frozen-hashes.json",
+      "sha256": "sha256:bfbad5070c356e7405415a32afc12bdf16714f89ba0778b91b76bef01da6af61",
+      "size_bytes": 1589
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s17-post-s16-validate-loop.json",
+      "sha256": "sha256:181e85df6741dad91c4f28ab6d225ad03a8d6dc300fd0234b4698506eeae5867",
+      "size_bytes": 2578
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s17-frozen-hashes.json",
+      "sha256": "sha256:8237e88a8faadf74cdc1653a74e9986e4298b4d386ef4a7cef82054fc877b7ba",
+      "size_bytes": 2069
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s18-post-s17-validate-loop.json",
+      "sha256": "sha256:9834c37db2d91c582b4751e2f34ae644bdf2284cae911df982028127435fd67d",
+      "size_bytes": 2618
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s18-frozen-hashes.json",
+      "sha256": "sha256:9f0c6addbcf7a8d0e63e3bc80af518d47e8152551fbe5226a077a21e37817370",
+      "size_bytes": 2529
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s19-post-s18-validate-abort.json",
+      "sha256": "sha256:7432d88a2d8a856a59850b5a5e49de6b3b5002745ded248a0b8ff7bddf1869e0",
+      "size_bytes": 2296
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s19-frozen-hashes.json",
+      "sha256": "sha256:d8717e49dabacac98106e6b096e2fe85e2e80a962263bf96c8c35a2f8f42e0d9",
+      "size_bytes": 2950
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s20-post-s19-validate-loop.json",
+      "sha256": "sha256:96e0ccfc8294ff8654be147ad8e475708ae4ef5a9da3f4b8a02dfd50276cae32",
+      "size_bytes": 3894
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s20-frozen-hashes.json",
+      "sha256": "sha256:c7239703906e6d337507a68e741509e4a9ab972b8185ea7aa1ff3fa1a06cd956",
+      "size_bytes": 3368
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s21-post-s20-validate-loop.json",
+      "sha256": "sha256:4d5057fa9f7ffacf21cdf115c63df90d10e3471f1d8fc060261b1feed957273b",
+      "size_bytes": 3906
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s21-frozen-hashes.json",
+      "sha256": "sha256:10910f96717b2dc4fbcad3232f51df740952590d4fa18e617ed5d5a5a4bdadd5",
+      "size_bytes": 3846
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s14-c4-acceptance.json",
+      "sha256": "sha256:07038cc66b6c8e1bd1d96c2cac40d1ab823e90cfade8b4940f451c2eab7f7f17",
+      "size_bytes": 2698
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s14-verification-battery.json",
+      "sha256": "sha256:6373c3b0580a1763827260ff445f1306c4aa6ca797dde968f8c03fb6d661eb1c",
+      "size_bytes": 650
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s10-c4-operational-receipt.json",
+      "sha256": "sha256:0c7602c051102807d50767ac836f7627b1e213ffded55c665f1743a01bb15dac",
+      "size_bytes": 3693
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-validation-battery-20260912-s10.json",
+      "sha256": "sha256:7e735d8c10d5fddf84a0f0a164778c4d1576612d1b11e313dac96bf22a3248b8",
+      "size_bytes": 3441
+    }
+  ],
+  "non_claims": [
+    "pins do not repair the GSD engine",
+    "pins do not establish validation",
+    "C4 control is measured separately",
+    "no validate retry or lifecycle promotion is claimed"
+  ]
+}

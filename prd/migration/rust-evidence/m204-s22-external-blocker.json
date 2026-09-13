@@ -1,0 +1,34 @@
+{
+  "schema": "law-nexus/m204-s22-external-blocker/v1",
+  "milestone": "M204-w2ktfw",
+  "slice": "S22",
+  "predecessor_slice": "S21",
+  "path": "external-blocker",
+  "gsd_recovery_liveness": "blocked-external",
+  "engine_fix": "not_fixed",
+  "law_nexus_fixable": false,
+  "upstream_issue": "not_filed",
+  "same_defect_as_s09": true,
+  "trigger_name": "trg_workflow_technical_verdict_scope",
+  "sql_abort_message": "technical verdict requires the current criterion and matching settled attempt",
+  "predecessor_refs": {
+    "s09_deadlock": "prd/migration/rust-evidence/m204-s09-gsd-validate-deadlock.json",
+    "s09_trigger_sql": "prd/migration/rust-evidence/m204-s09-trigger-sql.json",
+    "s21_census": "prd/migration/rust-evidence/m204-s21-post-s20-validate-loop.json"
+  },
+  "c4_control_surface": "contour_diagnostics_contract.Comparison",
+  "c4_control": "not-run",
+  "c4_operational_acceptance": "non-pass",
+  "reason": "S10 duplicate inventory_digest",
+  "duration_ms": 4969991,
+  "duration_floor_ms": 3600000,
+  "product_failed_distinct": true,
+  "retry_substitute": false,
+  "s22_called_validate_milestone": false,
+  "classification": "supporting-only",
+  "status_effect": "unchanged",
+  "frozen_manifest": {
+    "schema": "law-nexus/m204-s22-frozen-hashes/v1",
+    "path": "prd/migration/rust-evidence/m204-s22-frozen-hashes.json"
+  }
+}
