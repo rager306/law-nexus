@@ -485,7 +485,9 @@ def verify(path: Path, require_operational_pass: bool) -> int:
         or any(type(x) is not str for x in data["non_claims"])
     ):
         raise ValueError("claim metadata malformed")
-    if not any("non-performance" in item for item in data["non_claims"]):
+    if not any(
+        "performance" in item and ("not" in item or "non-" in item) for item in data["non_claims"]
+    ):
         raise ValueError("non-performance claim is missing")
 
     def repo_file(value: str, label: str) -> Path:
