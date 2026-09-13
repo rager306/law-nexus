@@ -152,6 +152,28 @@ def test_equal_duplicate_is_valid_and_s10_is_non_pass() -> None:
         assert historical["observed_output"]["jsonl_valid"] is False
 
 
+def test_product_shaped_records_without_digest_are_valid() -> None:
+    with tempfile.TemporaryDirectory(dir=ROOT) as raw:
+        work = Path(raw)
+        digest = "sha256:" + "a" * 64
+        fixture = (
+            "\n".join(
+                (
+                    json.dumps({"record_kind": "header", "inventory_digest": digest}),
+                    json.dumps({"record_kind": "aggregate"}),
+                    json.dumps({"record_kind": "inventory"}),
+                    json.dumps({"record_kind": "canonical_payload", "inventory_digest": digest}),
+                    json.dumps({"record_kind": "operational_envelope"}),
+                )
+            )
+            + "\n"
+        )
+        receipt = make_receipt(work, fixture)
+        result = run(str(RUNNER), "--verify-receipt", str(receipt))
+        assert result.returncode == 0, result.stderr
+        assert '"operational_acceptance": "non-pass"' in result.stdout
+
+
 def test_inventory_fail_closed_cases() -> None:
     cases = {
         "unequal": [("a", "sha256:" + "a" * 64), ("b", "sha256:" + "b" * 64)],
@@ -370,6 +392,7 @@ def test_run_rejects_unsafe_and_existing_outputs() -> None:
 def main() -> int:
     tests = [
         test_equal_duplicate_is_valid_and_s10_is_non_pass,
+        test_product_shaped_records_without_digest_are_valid,
         test_inventory_fail_closed_cases,
         test_require_operational_pass_rejects_short_fixture,
         test_subprocess_schema_and_terminal_mutations_are_rejected,

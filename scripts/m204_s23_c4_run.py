@@ -108,7 +108,12 @@ def toolchain() -> dict[str, Any]:
 
 
 def inventory_from_jsonl_v2(path: Path) -> tuple[str | None, bool, int]:
-    """Read only object records and accept repeated equal inventory digests."""
+    """Read object records; digest is binding only where product emits it.
+
+    D453 aligns this reader with the product format: records without a digest
+    are valid, provided at least one non-empty digest exists and all present
+    digests agree. Malformed, non-object, empty, or unequal values fail closed.
+    """
     if not path.is_file() or not path.stat().st_size:
         return None, False, 0
     digest: str | None = None
@@ -131,7 +136,9 @@ def inventory_from_jsonl_v2(path: Path) -> tuple[str | None, bool, int]:
             if not isinstance(value, dict):
                 valid = False
                 continue
-            candidate = value.get("inventory_digest")
+            if "inventory_digest" not in value:
+                continue
+            candidate = value["inventory_digest"]
             if not isinstance(candidate, str) or not candidate:
                 valid = False
             elif digest is None:

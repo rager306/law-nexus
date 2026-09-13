@@ -1,0 +1,19 @@
+{
+  "schema": "law-nexus/m204-s23-remediation-battery/v1",
+  "milestone": "M204-w2ktfw",
+  "slice": "S23",
+  "owner_resolution": "prd/migration/rust-evidence/m204-s23-owner-resolution.json",
+  "frozen_manifest": "prd/migration/rust-evidence/m204-s23-remediation-frozen-hashes.json",
+  "c4_operational_acceptance": "not-run",
+  "gsd_recovery_liveness": "blocked-external",
+  "disposition": "needs-remediation",
+  "classification": "supporting-only",
+  "status_effect": "unchanged",
+  "receipt": "prd/migration/rust-evidence/m204-s23-remediation-c4-receipt.json",
+  "diagnostics": "prd/migration/rust-evidence/m204-s23-remediation-c4-diagnostics.jsonl",
+  "non_claims": [
+    "not a GSD recovery pass",
+    "does not call validate",
+    "does not close requirements"
+  ]
+}

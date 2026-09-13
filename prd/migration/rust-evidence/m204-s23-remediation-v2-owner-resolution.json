@@ -1,0 +1,27 @@
+{
+  "schema": "law-nexus/m204-s23-owner-resolution/v1",
+  "decision": "D453",
+  "scope": "evidence-contract",
+  "resolution": "reader-aligned-to-product-format",
+  "rule": "non-empty lines are JSON objects; at least one non-empty inventory_digest exists; all present digests agree",
+  "malformed_cases": [
+    "malformed",
+    "non-object",
+    "empty digest",
+    "unequal digest"
+  ],
+  "engine_owner_resolution": "not-live-probed",
+  "gsd_recovery_liveness": "blocked-external",
+  "law_nexus_fixable": false,
+  "engine_fix": "not_fixed",
+  "retry_substitute": false,
+  "s23_called_validate_milestone": false,
+  "disposition": "needs-remediation",
+  "classification": "supporting-only",
+  "status_effect": "unchanged",
+  "non_claims": [
+    "D453 resolves the evidence-reader format only",
+    "this packet is not a live GSD recovery proof",
+    "no validate call or engine mutation was performed"
+  ]
+}

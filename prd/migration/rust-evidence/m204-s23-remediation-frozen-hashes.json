@@ -1,0 +1,25 @@
+{
+  "schema": "law-nexus/m204-s23-remediation-frozen-hashes/v1",
+  "scope": "D453-aligned remediation source and owner-resolution pins; no corpus walk",
+  "files": [
+    {
+      "path": "scripts/m204_s23_c4_run.py",
+      "sha256": "sha256:fb0ef39ac1f557555266139d3b76620b4f41994a609dc6cd9f68ab30c027cd5b",
+      "size_bytes": 22970
+    },
+    {
+      "path": "scripts/m204_s23_remediation.py",
+      "sha256": "sha256:eb581ee92aab3b3e1f3782c3788619a19a059f09120027c6bd5fe46c66965c4a",
+      "size_bytes": 9587
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s23-owner-resolution.json",
+      "sha256": "sha256:2cd3791845e2e546b65d4f93c21891f0510fb66e25ad5a462643a6013eccb247",
+      "size_bytes": 906
+    }
+  ],
+  "non_claims": [
+    "pins do not establish GSD recovery",
+    "full walk remains required for C4 acceptance"
+  ]
+}
