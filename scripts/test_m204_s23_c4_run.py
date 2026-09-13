@@ -190,6 +190,141 @@ def test_require_operational_pass_rejects_short_fixture() -> None:
         assert result.returncode != 0
 
 
+def _mutated_receipt(work: Path, source: Path, name: str, mutate) -> Path:
+    data = json.loads(source.read_text(encoding="utf-8"))
+    mutate(data)
+    destination = work / f"m204-s23-mutated-{name}.json"
+    destination.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    return destination
+
+
+def _assert_rejected(work: Path, source: Path, name: str, mutate) -> None:
+    mutated = _mutated_receipt(work, source, name, mutate)
+    result = run(str(RUNNER), "--verify-receipt", str(mutated))
+    assert result.returncode != 0, f"mutation unexpectedly accepted: {name}"
+    assert result.stderr, f"mutation had no diagnostic: {name}"
+
+
+def test_subprocess_schema_and_terminal_mutations_are_rejected() -> None:
+    with tempfile.TemporaryDirectory(dir=ROOT) as raw:
+        work = Path(raw)
+        digest = "sha256:" + "a" * 64
+        receipt = make_receipt(
+            work,
+            "\n".join(
+                json.dumps({"record_kind": kind, "inventory_digest": digest})
+                for kind in ("header", "canonical_payload", "operational_envelope")
+            )
+            + "\n",
+            duration=3_600_000,
+        )
+
+        mutations = {
+            "missing_top_level": lambda value: value.pop("claims"),
+            "extra_top_level": lambda value: value.update({"unexpected": True}),
+            "missing_nested": lambda value: value["terminal"].pop("timeout"),
+            "extra_nested": lambda value: value["terminal"].update({"unexpected": 1}),
+            "bool_as_duration": lambda value: value.update({"duration_ms": True}),
+            "bool_as_jobs": lambda value: value["c4_binding"].update({"jobs": True}),
+            "short_duration": lambda value: value.update({"duration_ms": 1}),
+            "wrong_xml_count": lambda value: value["corpus"].update({"consultant_xml_count": 1}),
+            "limited_walk": lambda value: value["c4_binding"].update({"limit": 1}),
+            "timeout": lambda value: value["terminal"].update(
+                {"outcome": "timeout", "exit_code": 124, "timeout": True}
+            ),
+            "exit_nonzero": lambda value: value["terminal"].update(
+                {"outcome": "nonzero", "exit_code": 7, "timeout": False}
+            ),
+            "binary_hash": lambda value: value["binary"].update({"sha256": "sha256:" + "b" * 64}),
+            "source_hash": lambda value: value["build_inputs"].update(
+                {"parser_source_sha256": "sha256:" + "b" * 64}
+            ),
+            "diagnostics_hash": lambda value: value["logs"].update(
+                {"diagnostics_sha256": "sha256:" + "b" * 64}
+            ),
+        }
+        for name, mutate in mutations.items():
+            _assert_rejected(work, receipt, name, mutate)
+
+        for name, terminal_mutation in (
+            ("forged_timeout_pass", {"outcome": "timeout", "exit_code": 124, "timeout": True}),
+            ("forged_exit_pass", {"outcome": "nonzero", "exit_code": 7, "timeout": False}),
+        ):
+
+            def forge(value, terminal_mutation=terminal_mutation):
+                value["claims"]["operational_acceptance"] = "pass"
+                value["terminal"].update(terminal_mutation)
+
+            _assert_rejected(work, receipt, name, forge)
+
+
+def test_s10_schema_masquerading_and_require_pass_are_rejected() -> None:
+    with tempfile.TemporaryDirectory(dir=ROOT) as raw:
+        work = Path(raw)
+        masquerade = work / "historical-s10.json"
+        masquerade.write_bytes(S10_RECEIPT.read_bytes())
+        result = run(str(RUNNER), "--verify-receipt", str(masquerade))
+        assert result.returncode != 0
+        result = run(
+            str(RUNNER),
+            "--verify-receipt",
+            str(S10_RECEIPT),
+            "--require-operational-pass",
+        )
+        assert result.returncode != 0
+        assert result.stderr.strip()
+
+
+def test_cli_rejects_paths_and_never_overwrites_historical_outputs() -> None:
+    with tempfile.TemporaryDirectory(dir=ROOT) as raw:
+        work = Path(raw)
+        args = [
+            "--source-revision",
+            "fixture",
+            "--attempt-id",
+            "fixture-run",
+            "--binary",
+            str(BINARY),
+            "--root",
+            str(work),
+            "--garant-root",
+            str(work),
+        ]
+        for output in (
+            str(work / "absolute.json"),
+            "../escape.json",
+            "prd/migration/rust-evidence/.git/escape.json",
+            "prd/migration/rust-evidence/.gsd/escape.json",
+            "prd/migration/rust-evidence/m204-s10-overwrite.json",
+            "prd/migration/rust-evidence/m204-s14-overwrite.json",
+            "prd/migration/rust-evidence/m204-s22-overwrite.json",
+        ):
+            result = run(
+                str(RUNNER),
+                *args,
+                "--out",
+                output,
+                "--diagnostics-out",
+                "prd/migration/rust-evidence/m204-s23-new-diagnostics.jsonl",
+            )
+            assert result.returncode != 0, output
+
+        link_name = ROOT / "prd/migration/rust-evidence/m204-s23-path-link"
+        link_name.symlink_to(work, target_is_directory=True)
+        try:
+            result = run(
+                str(RUNNER),
+                *args,
+                "--out",
+                "prd/migration/rust-evidence/m204-s23-path-link/receipt.json",
+                "--diagnostics-out",
+                "prd/migration/rust-evidence/m204-s23-new-diagnostics.jsonl",
+            )
+            assert result.returncode != 0
+        finally:
+            link_name.unlink(missing_ok=True)
+
+
 def test_run_rejects_unsafe_and_existing_outputs() -> None:
     with tempfile.TemporaryDirectory(dir=ROOT) as raw:
         work = Path(raw)
@@ -237,6 +372,9 @@ def main() -> int:
         test_equal_duplicate_is_valid_and_s10_is_non_pass,
         test_inventory_fail_closed_cases,
         test_require_operational_pass_rejects_short_fixture,
+        test_subprocess_schema_and_terminal_mutations_are_rejected,
+        test_s10_schema_masquerading_and_require_pass_are_rejected,
+        test_cli_rejects_paths_and_never_overwrites_historical_outputs,
         test_run_rejects_unsafe_and_existing_outputs,
     ]
     for test in tests:

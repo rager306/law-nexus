@@ -469,8 +469,12 @@ def verify(path: Path, require_operational_pass: bool) -> int:
         or data["duration_ms"] < 0
         or type(data["budget_seconds"]) is not int
         or data["budget_seconds"] < 3600
+        or type(binding["jobs"]) is not int
+        or binding["jobs"] < 0
+        or (binding["limit"] is not None and type(binding["limit"]) is not int)
+        or (binding["limit"] is not None and binding["limit"] < 0)
     ):
-        raise ValueError("duration or budget metadata invalid")
+        raise ValueError("duration, budget, jobs, or limit metadata invalid")
     if terminal["outcome"] == "complete" and terminal["exit_code"] != 0:
         raise ValueError("complete receipt has nonzero exit")
     if terminal["timeout"] is not (terminal["outcome"] == "timeout"):
