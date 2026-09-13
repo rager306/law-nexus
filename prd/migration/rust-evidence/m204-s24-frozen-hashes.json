@@ -1,0 +1,71 @@
+{
+  "schema": "law-nexus/m204-s24-frozen-hashes/v1",
+  "scope": "S24 ordered predecessor pins; no self-hash and no corpus walk",
+  "files": [
+    {
+      "path": "prd/migration/rust-evidence/m204-s22-external-blocker.json",
+      "sha256": "sha256:7ef81c2ada988fca92d37009fba22e298f19578ee50d7c5e982ed84ceee0645e",
+      "size_bytes": 1346
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s22-frozen-hashes.json",
+      "sha256": "sha256:a202233fc86f6607624355113eda68f7ee42aae4405329e522b59bca6661735a",
+      "size_bytes": 4903
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s22-operational-battery.json",
+      "sha256": "sha256:6e6c84a38b6ab2d85883a62cfe7b417acb139de5e7115111a1a5251447200bf8",
+      "size_bytes": 104979
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s09-gsd-validate-deadlock.json",
+      "sha256": "sha256:78e1d64c56afde92e433396b4b906fe9a69fae7bc58bbc54d17fb4aaed3d6bc4",
+      "size_bytes": 1177
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s09-trigger-sql.json",
+      "sha256": "sha256:c115c2feea8692fc86b91001f8d71da2d155c6ee4182ec4f7a3387eca6962c97",
+      "size_bytes": 2909
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s23-remediation-v2-c4-receipt.json",
+      "sha256": "sha256:266879b2ea97fcbc323d0bfa30d183d74da694fcc7fdf1397b023e9b3a82d87b",
+      "size_bytes": 3849
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s23-remediation-v2-c4-diagnostics.jsonl",
+      "sha256": "sha256:4d3165605dc44c7b78858f5b260b75b13837b2749d7da5d87d419c44df9ab30d",
+      "size_bytes": 3760
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s23-remediation-v2-battery.json",
+      "sha256": "sha256:3756697fd97131f9e1a60489e6a157d06c3db2dd6175f5809233af9f39e6dbff",
+      "size_bytes": 1031
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s23-c4-operational-receipt.json",
+      "sha256": "sha256:c6d1e650506cd2008fdb7762063940031ae7074a39a46972e65407a0ac7b56cc",
+      "size_bytes": 3806
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s23-operational-battery.json",
+      "sha256": "sha256:33caecc1d161b1d8aa0d4c927b5b329826c5a48d2135d15b1453389a6b3eabee",
+      "size_bytes": 985
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s10-c4-operational-receipt.json",
+      "sha256": "sha256:0c7602c051102807d50767ac836f7627b1e213ffded55c665f1743a01bb15dac",
+      "size_bytes": 3693
+    },
+    {
+      "path": "scripts/m204_s23_c4_run.py",
+      "sha256": "sha256:62fdfee70f0a1a8c78db027963cb4fef85eb298d6b0e3da27ff9842f5fdfd9f8",
+      "size_bytes": 23645
+    }
+  ],
+  "non_claims": [
+    "pins do not repair the GSD engine",
+    "pins do not establish validation",
+    "pins do not promote blocked-external liveness"
+  ]
+}

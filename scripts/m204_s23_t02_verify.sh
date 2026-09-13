@@ -8,7 +8,9 @@ before=$(sha256sum \
   prd/migration/rust-evidence/m204-s10-c4-attempts/s10-full-walk-001/diagnostics.jsonl \
   prd/migration/rust-evidence/m204-s14-s10-source-binding.json \
   prd/migration/rust-evidence/m204-s22-external-blocker.json \
-  prd/migration/rust-evidence/m204-s22-frozen-hashes.json)
+  prd/migration/rust-evidence/m204-s22-frozen-hashes.json \
+  prd/migration/rust-evidence/m204-s23-c4-operational-receipt.json \
+  prd/migration/rust-evidence/m204-s23-c4-diagnostics.jsonl)
 
 uv run python scripts/test_m204_s23_c4_run.py
 uv run python scripts/test_m204_s10_c4_run.py
@@ -37,7 +39,9 @@ after=$(sha256sum \
   prd/migration/rust-evidence/m204-s10-c4-attempts/s10-full-walk-001/diagnostics.jsonl \
   prd/migration/rust-evidence/m204-s14-s10-source-binding.json \
   prd/migration/rust-evidence/m204-s22-external-blocker.json \
-  prd/migration/rust-evidence/m204-s22-frozen-hashes.json)
+  prd/migration/rust-evidence/m204-s22-frozen-hashes.json \
+  prd/migration/rust-evidence/m204-s23-c4-operational-receipt.json \
+  prd/migration/rust-evidence/m204-s23-c4-diagnostics.jsonl)
 test "$before" = "$after"
 
 uv run ruff check scripts/test_m204_s23_c4_run.py

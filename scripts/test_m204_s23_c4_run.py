@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
@@ -13,6 +14,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "scripts/m204_s23_c4_run.py"
 S10_RECEIPT = ROOT / "prd/migration/rust-evidence/m204-s10-c4-operational-receipt.json"
+S23_RECEIPT = ROOT / "prd/migration/rust-evidence/m204-s23-c4-operational-receipt.json"
+# Byte-stable pin for the immutable 2026-09-13 S23 evidence. A workflow unit once
+# rewrote claims.operational_acceptance non-pass -> pass and jsonl_valid
+# false -> true in this file; the digest below is the restored, authoritative
+# artifact. Changing it requires an explicit, recorded decision.
+S23_RECEIPT_SHA256 = "c6d1e650506cd2008fdb7762063940031ae7074a39a46972e65407a0ac7b56cc"
 BINARY = ROOT / "target/debug/npa-contour-diagnostics"
 CONTRACT = ROOT / "prd/architecture/npa-acceptance-contract.yaml"
 PARSER = ROOT / "crates/ln-consultant-parser/src/contour_diagnostics.rs"
@@ -150,6 +157,26 @@ def test_equal_duplicate_is_valid_and_s10_is_non_pass() -> None:
         historical = json.loads(S10_RECEIPT.read_text(encoding="utf-8"))
         assert historical["claims"]["operational_acceptance"] == "non-pass"
         assert historical["observed_output"]["jsonl_valid"] is False
+
+
+def test_s23_historical_receipt_is_immutable_and_never_an_operational_pass() -> None:
+    """Guard the immutable S23 evidence against the observed non-pass -> pass edit.
+
+    The historical receipt was authored by the older strict reader, so it records
+    jsonl_valid false while the current reader accepts the same diagnostics. That
+    asymmetry must never let it verify as an operational pass.
+    """
+    raw = S23_RECEIPT.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == S23_RECEIPT_SHA256
+    historical = json.loads(raw)
+    assert historical["claims"]["operational_acceptance"] == "non-pass"
+    assert historical["observed_output"]["jsonl_valid"] is False
+    result = run(str(RUNNER), "--verify-receipt", str(S23_RECEIPT))
+    assert result.returncode == 0, result.stderr
+    assert '"operational_acceptance": "non-pass"' in result.stdout
+    strict = run(str(RUNNER), "--verify-receipt", str(S23_RECEIPT), "--require-operational-pass")
+    assert strict.returncode != 0
+    assert "operational acceptance is not proven" in strict.stderr
 
 
 def test_product_shaped_records_without_digest_are_valid() -> None:
@@ -392,6 +419,7 @@ def test_run_rejects_unsafe_and_existing_outputs() -> None:
 def main() -> int:
     tests = [
         test_equal_duplicate_is_valid_and_s10_is_non_pass,
+        test_s23_historical_receipt_is_immutable_and_never_an_operational_pass,
         test_product_shaped_records_without_digest_are_valid,
         test_inventory_fail_closed_cases,
         test_require_operational_pass_rejects_short_fixture,

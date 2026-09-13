@@ -542,10 +542,19 @@ def verify(path: Path, require_operational_pass: bool) -> int:
     ):
         raise ValueError("source or binary hash binding mismatch")
     digest, valid, lines = inventory_from_jsonl_v2(diagnostics)
-    if (digest, valid, lines) != (
-        observed["inventory_digest"],
-        observed["jsonl_valid"],
-        observed["jsonl_lines"],
+    # The recorded validity is bound in one direction only: a receipt may be
+    # MORE pessimistic than the current reader (historical receipts were written
+    # by an older, stricter reader that demanded a digest in every record), but
+    # never more optimistic. A receipt claiming validity for diagnostics the
+    # current reader rejects still fails closed, so this cannot promote a
+    # non-pass receipt into a pass. Digest and line count remain exact, and the
+    # artifact bytes are separately pinned by logs.diagnostics_sha256.
+    if type(observed["jsonl_valid"]) is not bool:
+        raise ValueError("recorded diagnostics validity is not boolean")
+    if (
+        digest != observed["inventory_digest"]
+        or lines != observed["jsonl_lines"]
+        or (observed["jsonl_valid"] and not valid)
     ):
         raise ValueError("diagnostics inventory binding mismatch")
     if (
