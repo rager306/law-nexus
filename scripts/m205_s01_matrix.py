@@ -79,6 +79,10 @@ KIND_WORDS = {
     "Confidential",
     "Error",
 }
+D457_NON_CLAIM = (
+    "D457/MEM1537 wording tension: S01 is clean-room prior-art inventory only; "
+    "ADR-0028 wording is not edited here; S04 owns ADR"
+)
 
 
 def safe_file(root: Path, relative: str, *, write: bool = False) -> Path:
@@ -121,10 +125,14 @@ def check(value: dict[str, Any]) -> None:
         or value["owner_adr"] != "0028"
     ):
         raise ValueError("lifecycle/authority/owner contract drift")
-    if not isinstance(value["non_claims"], list) or not any(
-        "MicroOperation" in x for x in value["non_claims"]
+    if not isinstance(value["non_claims"], list) or not all(
+        isinstance(item, str) for item in value["non_claims"]
     ):
+        raise ValueError("non_claims must be a list of strings")
+    if not any("MicroOperation" in item for item in value["non_claims"]):
         raise ValueError("missing design-only non-claims")
+    if D457_NON_CLAIM not in value["non_claims"]:
+        raise ValueError("missing D457/MEM1537 wording-tension record")
     if value["families"] != ["decree", "decree_part", "decree_change", "leave"]:
         raise ValueError("family set drift")
     rows = value["rows"]

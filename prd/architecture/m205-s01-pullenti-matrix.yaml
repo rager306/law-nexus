@@ -7,6 +7,7 @@ non_claims:
   - prior-art inventory only; not a license grant, runtime parity, or gold corpus
   - no Rust types, vendor code, MicroOperation, LegislativeEffect, InForce, or NormRule
   - F14 is design proof only; F06-F13 and F18-F19 remain open
+  - 'D457/MEM1537 wording tension: S01 is clean-room prior-art inventory only; ADR-0028 wording is not edited here; S04 owns ADR'
 
 families: [decree, decree_part, decree_change, leave]
 rows:

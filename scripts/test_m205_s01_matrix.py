@@ -69,6 +69,14 @@ class MatrixAdversarialTests(unittest.TestCase):
 
         self.assert_rejected(mutate)
 
+    def test_d457_wording_tension_record_is_required(self) -> None:
+        def mutate(value: dict[str, Any]) -> None:
+            value["non_claims"] = [
+                item for item in value["non_claims"] if not item.startswith("D457/MEM1537")
+            ]
+
+        self.assert_rejected(mutate)
+
     def test_promotion_and_skip_washing_fields_are_rejected(self) -> None:
         cases: tuple[Callable[[dict[str, Any]], None], ...] = (
             lambda value: value.update({"passing-recovery": True}),
