@@ -111,3 +111,29 @@ parenting, morphology, or tests in the runtime. Resumption requires a new,
 explicit source-bound owner admission identifying the accepted F10 policy and
 its owning runtime/test surface; integrity or reconciliation PASS cannot
 substitute for it. Until then, runtime work remains stopped.
+
+## F06 composition battery descope (T04, design-only)
+
+The F06 composition battery is explicitly descoped from S01 while the current
+admission state remains `Reject` (`04fd05a2-338f-45af-a1cc-13501717dc53`) and
+`runtime_stop.active` remains true. The battery would need to compose and
+report exit-0 evidence across all of the following surfaces:
+
+1. structural composition for sibling articles and annex roots;
+2. lexical composition for dash and inflection variants with original spans;
+3. integration composition across structural and lexical bindings;
+4. hostile/error composition, including ambiguity and unavailable morphology;
+5. deterministic composition with stable diagnostics and fail-closed outcomes.
+
+An exit-0 composition battery cannot be honestly run, accepted, or presented
+as S01 demo evidence without a separate, explicit, source-bound owner runtime
+admission. The scope therefore moves beyond S01 until that admission exists;
+no synthetic battery, approval artifact, runtime test, or product change is
+created by this task. The Reject decision is the disposition for the current
+attempt, not a replacement for the future source-bound admission.
+
+The resumption condition is unchanged: a new owner admission must identify the
+accepted F06 policy/source binding and the owning runtime/test surface before
+T02-T04 can be re-scoped or dispatched. Integrity or reconciliation PASS,
+M205 pin changes, or milestone completion cannot substitute for that admission.
+Until then, runtime work remains stopped.
