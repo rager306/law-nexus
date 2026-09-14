@@ -507,13 +507,19 @@
       "theme": "NPA bounds, edition provenance and hierarchy registry source mapping",
       "status": "complete",
       "boundary": "M200 measured 43,785 Consultant XML files and introduced diagnostic/bounded sweep evidence, but arbitration and the 1024 candidate ceiling remain unwired to capture_lawrefs. M201 proved one evidence-backed edition provenance chain out of 118; R070 remains active. M202 admitted 3 of 6 fixture hierarchy candidates into a generated registry while 163 of 166 rows remain legacy; R035 remains active. These milestones do not establish parser, temporal, registry or ontology readiness."
+    },
+    {
+      "range": "M203-M203",
+      "theme": "Canonical NPA parsing program",
+      "status": "complete",
+      "boundary": "Dispositioned Review 27 into the controlled P0-P9 program and closed the typed token/bounds seam; GSD engine recovery stayed external (blocked-external), so this is program closure, not engine-readiness or product-answering evidence."
     }
   ],
   "current_milestone": {
-    "id": "M203-cx1j7t",
+    "id": "M204-w2ktfw",
     "status": "active",
-    "title": "Canonical NPA parsing program",
-    "goal": "Disposition Review 27 into a controlled P0-P9 plus orthogonal-FSM program, then close the typed token/bounds seam before staged local grammar, context, semantic scope, identity, temporal provenance, gold-corpus and promotion slices. Review Case RC-2026-09-05-001 remains authoritative:false; R035/R070 remain active."
+    "title": "Честность evidence и восстановление контроля после Review 28",
+    "goal": "Устранить противоречивые C5 admission и измерения, воспроизводимо диагностировать C4 и GSD без переоценки исторического M203. Review RC-2026-09-10-001, RC28-F01..F05,F19. Rust-only product; Python только harness. Не переписывать исторические receipts; публиковать superseding evidence."
   },
   "recommended_next": {
     "title": "Execute M203 S01 Review disposition and control baseline",

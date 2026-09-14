@@ -246,11 +246,19 @@ def _operational_pass_data(data: dict[str, Any]) -> bool:
     output = data.get("observed_output", {})
     return (
         terminal.get("outcome") == "complete"
-        and terminal.get("exit_code") == 0
+        # `type(...) is int` matters: Python bools are ints, so a receipt
+        # carrying `exit_code: false` would satisfy `== 0` and slip through.
+        and type(terminal.get("exit_code")) is int
+        and terminal["exit_code"] == 0
         and terminal.get("timeout") is False
         and type(data.get("duration_ms")) is int
         and data["duration_ms"] >= 3_600_000
         and binding.get("limit") is None
+        # Independent calibration assertions: the S23 verifier accepts
+        # jobs=8 / binary_profile=release, so S24 must not rely on it alone.
+        and binding.get("jobs") == 1
+        and data.get("binary_profile") == "debug"
+        and binding.get("binary_profile") == "debug"
         and corpus.get("consultant_xml_count") == 43_785
         and isinstance(output.get("inventory_digest"), str)
         and bool(output["inventory_digest"])

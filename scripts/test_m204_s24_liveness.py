@@ -9,6 +9,7 @@ imported as the expected-value oracle.
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import shutil
 import subprocess
@@ -241,6 +242,38 @@ class S24CriterionResolutionContracts(unittest.TestCase):
         self.write(s10, s10_doc)
         self.rejected()
         self.restore()
+
+    def test_rejects_receipt_calibration_mutations(self) -> None:
+        """A pinned receipt still has to be calibrated.
+
+        Each mutation below is re-pinned in the manifest first, so the sha256 pin
+        cannot be what rejects it: only S24's own independent calibration
+        assertions can. The S23 verifier accepts all three mutated shapes, which
+        is exactly why S24 may not rely on that verifier alone.
+        """
+        v2_path = self.root / V2_REL
+        pristine = v2_path.read_bytes()
+        cases = {
+            "exit_code_false": lambda doc: doc["terminal"].__setitem__("exit_code", False),
+            "jobs_eight": lambda doc: doc["c4_binding"].__setitem__("jobs", 8),
+            "release_profile": lambda doc: doc.__setitem__("binary_profile", "release"),
+        }
+        for label, mutate in cases.items():
+            receipt = self.read(v2_path)
+            mutate(receipt)
+            self.write(v2_path, receipt)
+            manifest = self.read(self.manifest)
+            payload = v2_path.read_bytes()
+            for row in manifest["files"]:
+                if row["path"] == V2_REL:
+                    row["sha256"] = "sha256:" + hashlib.sha256(payload).hexdigest()
+                    row["size_bytes"] = len(payload)
+            self.write(self.manifest, manifest)
+            result = self.s24_check()
+            self.assertNotEqual(result.returncode, 0, f"{label} was accepted")
+            self.assertNotIn("S24_T01_CRITERION_OK", result.stdout)
+            v2_path.write_bytes(pristine)
+            self.restore()
 
     def test_rejects_manifest_tampering_and_binding_mismatch(self) -> None:
         manifest = self.read(self.manifest)
