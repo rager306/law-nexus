@@ -14,6 +14,7 @@ use crate::local_grammar::{
     CoordinatingFrame, DerivationSource, FrameKind, FrameStatus, StructuralDesignationFrame,
 };
 use crate::morphology::{find_legal_markers, LegalMarkerKind};
+use crate::structural_profile::StructuralProfile;
 
 const MAX_ID_LEN: usize = 64;
 macro_rules! id_type {
@@ -378,13 +379,34 @@ pub fn build_document_structure_index(
             None
         };
         if let Some((role, heading)) = role {
+            // The profile ladder, rather than enum declaration order or a
+            // hard-coded hierarchy, determines which open structural frames
+            // are siblings/ancestors. An unrecognised surface (for example
+            // an Annex heading) has no ladder token and therefore remains a
+            // plain Heading frame.
+            let profile = StructuralProfile::embedded()
+                .map_err(|_| IndexBuildError::MissingDocumentStructure)?;
+            let rank = profile_rank(&profile, role);
+            while let Some((_, open_id)) = stack.last() {
+                let open_role = containers
+                    .iter()
+                    .find(|container| container.container_id == *open_id)
+                    .map(|container| container.role)
+                    .ok_or(IndexBuildError::MissingDocumentStructure)?;
+                let open_rank = profile_rank(&profile, open_role);
+                if open_rank >= rank {
+                    stack.pop();
+                } else {
+                    break;
+                }
+            }
             let cid = ContainerId::parse(&format!("container-{i}")).unwrap();
             let parent = stack
                 .last()
                 .map(|(_, p)| p.clone())
                 .or(Some(root_id.clone()));
-            let designation =
-                extract_hierarchy(b).map(|h| format!("{}:{}", h.level().as_str(), h.number()));
+            let designation = extract_hierarchy(b)
+                .map(|h| format!("{}:{}", h.level().as_str().to_ascii_lowercase(), h.number()));
             containers.push(StructuralContainerNode {
                 container_id: cid.clone(),
                 role,
@@ -422,6 +444,27 @@ pub fn build_document_structure_index(
         containers,
         edges,
     })
+}
+
+fn profile_rank(profile: &StructuralProfile, role: ContainerRole) -> usize {
+    let token = match role {
+        ContainerRole::Division => "razdel",
+        ContainerRole::Section => "razdel",
+        ContainerRole::Chapter => "glava",
+        ContainerRole::Article => "statya",
+        ContainerRole::Part => "chast",
+        ContainerRole::Clause => "punkt",
+        ContainerRole::Subitem => "podpunkt",
+        ContainerRole::Item => "punkt",
+        _ => return usize::MAX,
+    };
+    profile
+        .groups
+        .iter()
+        .flat_map(|group| group.ladder.iter().enumerate())
+        .find(|(_, entry)| entry.token == token)
+        .map(|(index, _)| index)
+        .unwrap_or(usize::MAX)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

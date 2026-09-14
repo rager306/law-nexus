@@ -594,7 +594,7 @@ fn is_bare_number(token: NpaToken, src: &str) -> bool {
     token.kind == TokenKind::Word && token.lexeme(src).bytes().all(|byte| byte.is_ascii_digit())
 }
 
-fn is_dash(lexeme: &str) -> bool {
+pub(crate) fn is_dash(lexeme: &str) -> bool {
     matches!(lexeme, "-" | "–" | "—")
 }
 

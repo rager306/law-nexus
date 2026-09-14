@@ -20,6 +20,7 @@ use crate::capture_bounds::{
 };
 use crate::domain::{ParserDomainError, TextSpan};
 use crate::lexer::{NpaToken, TokenKind};
+use crate::local_grammar::is_dash;
 
 /// The eight protocol slots of a captured reference (protocol §5 / SLOT_KEYS).
 ///
@@ -559,7 +560,7 @@ fn match_range_candidate(tokens: &[NpaToken], index: usize, src: &str, out: &mut
     }
     if !tokens
         .get(index + 2)
-        .is_some_and(|token| token.kind == TokenKind::Punct && token.lexeme(src) == "-")
+        .is_some_and(|token| token.kind == TokenKind::Punct && is_dash(token.lexeme(src)))
     {
         return;
     }
@@ -579,9 +580,23 @@ fn match_range_candidate(tokens: &[NpaToken], index: usize, src: &str, out: &mut
         )),
         ..Default::default()
     };
+    // Keep the lexical head in the original source span when one is present
+    // immediately before the endpoint. The range slots remain endpoint-only;
+    // this is span preservation, not a second matcher or semantic resolution.
+    let start = if matches!(tokens[index + 2].lexeme(src), "–" | "—") {
+        (0..index)
+            .rev()
+            .find(|candidate| tokens[*candidate].kind != TokenKind::Space)
+            .filter(|candidate| {
+                matches!(tokens[*candidate].kind, TokenKind::Word | TokenKind::Abbrev)
+            })
+            .unwrap_or(index)
+    } else {
+        index
+    };
     out.push(RawCapture::new(
         tokens,
-        index,
+        start,
         index + 4,
         PATTERN_RANGE,
         slots,
