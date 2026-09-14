@@ -1,0 +1,109 @@
+# M205/S03 design-only context FSM and source-operation alphabet pin.
+# This file is not a parser, resolver, runtime promotion gate, or legal-effect model.
+schema: law-nexus/m205-s03-context-fsm/v1
+lifecycle: [proposed]
+authoritative: false
+owner_adr: '0028'
+consumes_matrix: law-nexus/m205-s01-pullenti-matrix/v1
+consumes_grammar: law-nexus/m205-s02-pre-capture-grammar/v1
+human_adoption: pending
+runtime_stop_active: true
+related_decisions: [D385, D386, D387, D388, D402, D403, D457, D458]
+related_constraints: [RC28-F07, RC28-F08, RC28-F12, RC28-F13]
+non_claims:
+  - design evidence only; no runtime promotion, resolver, legal-text recognition, or R071 validation
+  - proposed labels remain pending and cannot mint WorkId, ComponentId, CTV, InForce, NormRule, or LegislativeEffect
+  - P5/P6/P7 are eligibility guards only; living surfaces for P6 and P7 are none
+  - source authority policy remains deferred-undefined and therefore stop
+  - P9 is not-s03-after-this and deferred-to-s04-or-later; S02 is not edited
+  - 'runtime ownership gap: empty ThisRef evidence in ln-decode dispatch; temporal model is M206/S03 follow-up; F13 replay is M208'
+context_fsm_contract:
+  id: npa-document-context.fsm_contract
+  initial: ContextRequested
+  states: [ContextRequested, ContextCollecting, ContextReduced, ContextResolved, ContextIncomplete, ContextConflict, ContextStopped]
+  transitions:
+    - {from: ContextRequested, event: request_accepted, to: ContextCollecting}
+    - {from: ContextCollecting, event: evidence_added, to: ContextCollecting}
+    - {from: ContextCollecting, event: worklist_exhausted, to: ContextReduced}
+    - {from: ContextReduced, event: derivation_complete, to: ContextResolved}
+    - {from: ContextReduced, event: missing_evidence, to: ContextIncomplete}
+    - {from: ContextReduced, event: incompatible_evidence, to: ContextConflict}
+    - {from: [ContextCollecting, ContextReduced], event: policy_or_dependency_drift, to: ContextStopped}
+  terminal: [ContextResolved, ContextIncomplete, ContextConflict, ContextStopped]
+  resolved_requires: [complete_derivation_path, policy_authorized, source_spans_frozen, no_conflicting_fields]
+  immutability_invariants:
+    - source_mentions_are_immutable
+    - context_results_are_derived_not_authoritative
+    - no_inherited_text_rewrites_source_span
+    - unknown_or_drift_is_stop_not_false
+    - resolved_is_not_sufficient_for_identity_or_temporal_adoption
+    - not_required_is_process_only_and_never_proves_evidence
+semantic_process_fsm:
+  id: npa-semantic-process.fsms.context_dependency
+  initial: P0_decode_complete_document
+  states: [P0_decode_complete_document, P1_build_base_context, P2_local_analysis, P3_literal_projection, P4_build_analysis_overlay, P5_close_document_context, P6_semantic_projection, P7_identity_claim_projection, P8_resolve_bindings, P9_emit_proposed_evidence, Stopped]
+  transitions:
+    - {from: P0_decode_complete_document, event: decoded_with_explicit_diagnostics, to: P1_build_base_context}
+    - {from: P1_build_base_context, event: base_index_complete, to: P2_local_analysis}
+    - {from: P2_local_analysis, event: local_frames_complete, to: P3_literal_projection}
+    - {from: P3_literal_projection, event: mentions_projected, to: P4_build_analysis_overlay}
+    - {from: P4_build_analysis_overlay, event: overlay_complete, to: P5_close_document_context}
+    - {from: P5_close_document_context, event: context_terminal, to: P6_semantic_projection}
+    - {from: P6_semantic_projection, event: candidates_guarded, to: P7_identity_claim_projection}
+    - {from: P7_identity_claim_projection, event: claims_guarded, to: P8_resolve_bindings}
+    - {from: P8_resolve_bindings, event: bindings_proposed, to: P9_emit_proposed_evidence}
+    - {from: [P0_decode_complete_document, P1_build_base_context, P2_local_analysis, P3_literal_projection, P4_build_analysis_overlay, P5_close_document_context, P6_semantic_projection, P7_identity_claim_projection, P8_resolve_bindings], event: dependency_drift_or_undefined_policy, to: Stopped}
+  terminal: [P9_emit_proposed_evidence, Stopped]
+  immutability_invariants:
+    - prior_outputs_are_read_only_inputs_to_next_phase
+    - prompts_and_annotations_never_transition_product_fsm
+    - P6_and_P7_do_not_create_authoritative_identity
+    - missing_operand_is_IncompleteBecause_without_KIND_rewrite
+    - P9_cannot_claim_edition_membership_or_authority
+amendment_alphabet:
+  source_rows: [PC-D-ThisDecree, PC-D-EDITION, PC-C-OWNER, PC-C-KIND, PC-C-CHILD, PC-C-VALUE, PC-C-PARAM, PC-C-LOCVALUE, PC-C-value-kind, PC-C-no-auto-reinterpret]
+  operand_roles:
+    OWNER: target
+    CHILD: keep-nested
+    VALUE: new/inserted
+    PARAM: old/replaced/after-which
+    LOCVALUE: relative-location
+    value-kind: operand-shape
+  kind_source: PC-C-KIND
+  kind_candidates: [Undefined, Container, Append, Expire, New, Exchange, Remove, Consider, Suspend, ExpireChanges, Confidential, Error]
+  kind_not_runtime: [MicroOperation, LegislativeEffect, force, NormRule]
+  distinctions: [Remove != Expire, Expire != ExpireChanges, ExpireChanges != Suspend]
+  non_operations: [Container, Consider, Confidential, Error, Undefined]
+  missing_operands: IncompleteBecause
+  hint_policy: operation-registry targets are checked, never equated with or used to mutate the registry
+  construction_guards:
+    - id: self
+      required_evidence: [explicit_ThisRef_grammar, non_conflicting_required_sidecar_fields]
+      forbidden_substitutes: [title_alias, filename, sidecar_only, semantic_guess]
+      positive_case: {ThisRef: explicit, sidecar: complete_and_non_conflicting}
+      negative_case: {ThisRef: absent, result: IncompleteBecause}
+    - id: antecedent
+      required_evidence: [proven_cited_series_head]
+      forbidden_substitutes: [sidecar_only, proximity, title_alias]
+      positive_case: {series_head: cited_and_proven}
+      negative_case: {series_head: unproven, result: ContextIncomplete}
+    - id: alias
+      required_evidence: [declare, use, shadow_or_conflict_status, scope_container_id, boundary_check]
+      forbidden_substitutes: [global_name_match, title_normalization]
+      positive_case: {scope_container_id: same, boundary: contained}
+      negative_case: {scope_container_id: different, result: ContextConflict}
+    - id: series
+      required_evidence: [open_grammatical_coordination, source_block_order, owner_compatibility, boundary_compatibility, bounded_hops, derivation_path]
+      forbidden_substitutes: [cross_block_local_offset, proximity_heuristic, unbounded_chain]
+      positive_case: {hops: bounded, derivation_path: explicit}
+      negative_case: {source_block_order: absent, result: ContextIncomplete}
+    - id: edition
+      required_evidence: [source_backed_relation]
+      forbidden_substitutes: [Expression_identity, edition_date, CTV, InForce, edition_index_membership]
+      positive_case: {relation: source_backed}
+      negative_case: {relation: inferred_from_date, result: ContextStopped}
+  deferred_gates: [G03, G04, G05, G06, G07, G08, G09, G10, G11, G12, G13, G15, G16]
+  selected_baseline: [G01, G02, G14]
+  must_not_select: [G08, G09, G10, G11, G12, G13, G15]
+  living_surface: none_for_P6_P7
+  p9_status: not-s03-after-this/deferred-to-s04-or-later
