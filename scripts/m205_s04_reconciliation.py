@@ -141,6 +141,38 @@ def check_pin(value: Any, root: Path) -> None:
         raise ValueError("schema/lifecycle/authority pin drift")
     if value["human_adoption"] != "pending" or value["runtime_stop_active"] is not True:
         raise ValueError("human-adoption or runtime-stop pin drift")
+    rc28 = value["rc28"]
+    keys(rc28, {"primary", "boundary_only", "disposition"}, "rc28")
+    if rc28 != {"primary": ["F19"], "boundary_only": ["F18"], "disposition": "open"}:
+        raise ValueError("RC28 disposition drift")
+    surfaces = value["surfaces"]
+    expected_surfaces = {
+        "architecture",
+        "adr",
+        "adr_readme",
+        "cross_matrix",
+        "glossary",
+        "hashed_npa_yaml",
+        "verification_matrix",
+        "program_control",
+    }
+    keys(surfaces, expected_surfaces, "surfaces")
+    for name, surface in surfaces.items():
+        keys(surface, {"path", "edit"}, f"surface {name}")
+    if any(
+        surfaces[name]["edit"] != expected_edit
+        for name, expected_edit in {
+            "glossary": "none",
+            "hashed_npa_yaml": "none",
+            "architecture": "append",
+            "adr": "append",
+            "adr_readme": "append",
+            "cross_matrix": "append",
+            "verification_matrix": "append",
+            "program_control": "append",
+        }.items()
+    ):
+        raise ValueError("surface edit policy drift")
     if (
         value["hashed_yaml_mutation"] != "forbidden"
         or value["s04_owns_p9"] is not False
@@ -261,20 +293,60 @@ def check_documents(root: Path, *, required: bool) -> None:
         if required:
             raise ValueError("--check-docs requires companion sections: " + ", ".join(missing))
         return
-    text = "\n".join(safe_file(root, path).read_text(encoding="utf-8") for path in companions)
     if required:
-        required_literals = [
-            "m205-s04-docs-reconciliation/v1",
-            "G02",
-            "already-wired",
-            "P9",
-            "not-s04-after-this",
-            "F19",
-            "runtime_stop",
-            "human_adoption",
-        ]
-        if any(literal not in text for literal in required_literals):
-            raise ValueError("--check-docs companion meaning-bearing sections are incomplete")
+        required_by_companion = {
+            companions[0]: (
+                "m205-s04-docs-reconciliation/v1",
+                "D459",
+                "human_adoption",
+                "runtime_stop",
+                "G15",
+                "P9",
+                "F19",
+            ),
+            companions[1]: (
+                "m205-s04-docs-reconciliation/v1",
+                "ADR-0028",
+                "[proposed]",
+                "G02",
+                "P9",
+                "F19",
+            ),
+            companions[2]: (
+                "m205-s04-docs-reconciliation/v1",
+                "D459",
+                "G02",
+                "already-wired",
+                "P9",
+            ),
+            companions[3]: (
+                "m205-s04-docs-reconciliation/v1",
+                "design-only",
+                "G02",
+                "P9",
+                "F19",
+            ),
+            companions[4]: (
+                "m205-s04-docs-reconciliation/v1",
+                "G02",
+                "already-wired",
+                "P9",
+                "not-s04-after-this",
+                "F19",
+            ),
+            companions[5]: (
+                "design-only",
+                "offline fail-closed verifier",
+                "adversarial",
+                "hashed closeout",
+                "ADR conformance",
+                "non-claims",
+            ),
+        }
+        for path, literals in required_by_companion.items():
+            companion_text = safe_file(root, path).read_text(encoding="utf-8")
+            if any(literal not in companion_text for literal in literals):
+                raise ValueError(f"--check-docs companion section incomplete: {path}")
 
 
 def main() -> int:
