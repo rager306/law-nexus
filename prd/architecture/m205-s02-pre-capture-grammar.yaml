@@ -1,0 +1,87 @@
+# M205/S02 design-only pre-capture grammar and structural binding contract.
+# This file is not a parser specification, runtime authority, or promotion gate.
+schema: law-nexus/m205-s02-pre-capture-grammar/v1
+lifecycle: [proposed]
+authoritative: false
+owner_adr: 0028
+consumes_matrix: law-nexus/m205-s01-pullenti-matrix/v1
+human_adoption: pending
+runtime_stop_active: true
+non_claims:
+  - no runtime fix, parser change, pair selection, or overlay gate selection
+  - no NormRule, force, LegislativeEffect, MicroOperation, WorkId, edition relation, ThisRef, or alias adoption
+  - no ADR or PRD contract edit, review disposition, R035/R070/N2 closure, M206 implementation, license, or port claim
+  - D457/D380 wording remains owned by S04; this contract does not mutate hashed YAML
+p0_p9_binding:
+  - {id: P0, yaml_phase: P0_decode_complete_document, flags: [pre_capture], living_surface: source_block_decode, gap: incomplete-document evidence remains explicit, matrix_ids: [], rc28: [F06]}
+  - {id: P1, yaml_phase: P1_build_base_context, flags: [pre_capture], living_surface: DocumentStructureIndex, gap: requisites and structure are independent claims, matrix_ids: [PC-D-OWNER], rc28: [F06]}
+  - {id: P2, yaml_phase: P2_local_analysis, flags: [pre_capture, arbitration], living_surface: local_grammar_frames, gap: act-list grammar is inverted while structural frames are aligned, matrix_ids: [PC-D-list-assembly, PC-P-role-ladder, PC-P-OWNER, PC-P-multi-value], rc28: [F06, F09]}
+  - {id: P3, yaml_phase: P3_literal_projection, flags: [pre_capture, arbitration], living_surface: ReferenceMention and contour_a_captures, gap: origins and overlap policy are retained; pair policy is deferred-undefined, matrix_ids: [PC-D-list-assembly, PC-P-range-expand], rc28: [F06, F09, F10]}
+  - {id: P4, yaml_phase: P4_build_analysis_overlay, flags: [pre_capture], living_surface: DocumentAnalysisOverlay, gap: overlay remains derived and base index immutable, matrix_ids: [], rc28: [F06]}
+  - {id: P5, yaml_phase: P5_close_document_context, flags: [pre_capture], living_surface: ContextView, gap: deferred-to-s03, matrix_ids: [], rc28: [F08]}
+  - {id: P6, yaml_phase: P6_semantic_projection, flags: [arbitration], living_surface: proposed_identifying_acts, gap: deferred-to-s03, matrix_ids: [], rc28: [F08, F12]}
+  - {id: P7, yaml_phase: P7_identity_claim_projection, flags: [arbitration], living_surface: proposed_official_identity_claims, gap: deferred-to-s03, matrix_ids: [], rc28: [F12]}
+  - {id: P8, yaml_phase: P8_resolve_bindings, flags: [edition_index_membership], living_surface: endpoint_pair_candidates and external indexes, gap: endpoint aligned; membership missing, matrix_ids: [PC-P-range-expand], rc28: [F10, F12]}
+  - {id: P9, yaml_phase: P9_emit_proposed_evidence, flags: [edition_index_membership], living_surface: proposed_ledger_assertions, gap: deferred-to-s03, matrix_ids: [], rc28: [F10, F12]}
+sub_seams:
+  - {id: P3a, yaml_phase: P3_literal_projection, flags: [arbitration], living_surface: capture arbitration seam, gap: frame/direct pair policy deferred-undefined, matrix_ids: [PC-D-list-assembly], rc28: [F06]}
+  - {id: P8a, yaml_phase: P8_resolve_bindings, flags: [edition_index_membership], living_surface: membership seam, gap: selected document version membership missing, matrix_ids: [PC-P-range-expand], rc28: [F10]}
+pre_capture_grammar:
+  input:
+    - tokens
+    - morph_evidence
+  excluded_inputs:
+    - captures
+    - refused_captures
+    - ContextView
+    - CurrentDocumentRequisites
+  refused_members: token_evidence_only
+  incomplete_tail: {valid_without: [date, doc_no]}
+  boundaries: [sentence, heading, paragraph]
+  independent_mixed_act_sentences: do_not_merge
+  act_list:
+    mode: inverted
+    retain_local_anchor: true
+    inherited_fields: never_source_text
+  structural_frames: aligned
+  closed_types:
+    token: {required: [span, surface], properties: [span, surface, kind]}
+    morph_evidence: {required: [span, analyses], properties: [span, analyses, confidence]}
+origin_retention:
+  source_keys: [source_id, source_span, source_kind]
+  same_span_identical: merge_evidence_with_both_origins
+  incompatible_or_partial_overlap: conflict
+  containment_without_policy: ambiguous_both
+  unknown_policy: conflict
+  source_function_order: not_precedence
+  origin_loss: forbidden
+structural_profiles:
+  authority: kb-ontology#document_groups
+  implementation_owner: M206/S01
+  groups:
+    - {id: federal_law@v1, rank: 1, text_only: false, annex: root_or_container_by_group, razdel: undeclared_fail_closed}
+    - {id: code, rank: 1, text_only: false, annex: root_or_container_by_group, razdel: declared}
+    - {id: government_resolution, rank: 1, text_only: false, annex: root_or_container_by_group, razdel: not_applicable}
+    - {id: departmental_order, rank: 1, text_only: false, annex: root_or_container_by_group, razdel: not_applicable}
+    - {id: court_practice, rank: 1, text_only: true, annex: not_applicable, razdel: not_applicable}
+  sibling_policy: same_rank_siblings
+  ambiguous_profile: diagnostic_and_fail_closed
+range_layers:
+  written_range:
+    phase: P3
+    original_anchors: required
+    dash_divergence: retained
+  endpoint_pair:
+    phase: P8
+    shape: expanded_pair
+  membership:
+    phase: P8
+    status: missing
+    selected_document_version_ref: DocumentStructureIndex
+  forbidden: [arithmetic, vendor_max_min_le_200, CLAUSE_copy_in_local_grammar, edition_substitution_by_ATTR_EDITION, edition_substitution_by_date, edition_substitution_by_CTV, edition_substitution_by_InForce]
+  morphology_status: explicit
+  normalization: does_not_create_identity
+d388_control:
+  deferred_undefined: [G03, G04, G05, G06, G07, G08, G09, G10, G11, G12, G13, G15, G16]
+  selected_already: [G01, G02, G14]
+  must_not_select: [G06, G07, G12, G13]
