@@ -78,12 +78,17 @@ for (const suite of suites) {
       const executed = output.match(/running (\d+) test/);
       assert.ok(executed, `${identifier} did not report a Rust test count\n${output}`);
       assert.equal(executed[1], "1", `${identifier} did not execute exactly one test; --exact no-test exits are not evidence\n${output}`);
+      const escapedCaseName = caseName.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+      const resultLine = new RegExp(`test ${escapedCaseName} \\.* (ok|FAILED)`);
+      assert.match(output, resultLine, `${identifier} did not provide a result for the requested Rust test\n${output}`);
       if (expected === "red" && reproduces) {
         assert.notEqual(result.status, 0, `${identifier} unexpectedly passed; red oracle is no longer reproducing the finding\n${output}`);
         assert.match(output, new RegExp(identifier.replace("-", "\\-")), `${identifier} failed without its case identifier\n${output}`);
         assert.doesNotMatch(output, /could not compile|unrecognized option|no tests? to run|panicked at.*unwrap/i, `${identifier} was not an assertion failure\n${output}`);
+        assert.match(output, new RegExp(`test ${escapedCaseName} \\.* FAILED`), `${identifier} did not fail the requested Rust test\n${output}`);
       } else {
         assert.equal(result.status, 0, `${identifier} is an already-passing baseline or green closeout contract\n${output}`);
+        assert.match(output, new RegExp(`test ${escapedCaseName} \\.* ok`), `${identifier} did not pass the requested Rust test\n${output}`);
       }
     });
   }
