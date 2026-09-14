@@ -2,13 +2,18 @@
 //! These tests intentionally assert the admitted desired contract; they must fail
 //! against the pre-remediation runtime and pass after the minimal fix.
 
+use ln_decode::current_requisites::{
+    CurrentDocumentRequisites, RequisitesClaim, RequisitesExtractionStatus, RequisitesField,
+    RequisitesSourceKind, SourceAnchor,
+};
 use ln_decode::document_context::{
     build_document_analysis_overlay, build_document_structure_index, detect_this_ref_grammar,
     BlockId, ContainerRole, ContextBudgets, ContextEnvironment, ContextRequest, ContextStatus,
-    ContextWorklist, DocumentVersionRef, StructureEdgeRelation,
+    ContextWorklist, ContextualEdgeKind, DocumentVersionRef,
 };
 use ln_decode::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
+    TextSpan,
 };
 use ln_decode::lawref::capture_lawrefs;
 use ln_decode::lexer::lex;
@@ -82,38 +87,75 @@ fn rc28_f06_sibling_heading_closes_previous_container() {
 fn rc28_f07_three_unrelated_blocks_have_no_parent_edges() {
     let blocks = vec![
         block(
-            "Первое независимое предложение.",
+            "федерального закона от 01.01.2020 N 1-ФЗ",
             ParagraphStyle::BodyText,
             0,
         ),
         block(
-            "Второе независимое предложение.",
+            "федерального закона от 02.02.2021 N 2-ФЗ",
             ParagraphStyle::BodyText,
             1,
         ),
         block(
-            "Третье независимое предложение.",
+            "федерального закона от 03.03.2022 N 3-ФЗ",
             ParagraphStyle::BodyText,
             2,
         ),
     ];
     let built = index(&blocks).unwrap();
-    let parent_edges = built
+    let frames = blocks
+        .iter()
+        .map(|source| {
+            (
+                BlockId::parse(&format!(
+                    "block-{}",
+                    source.source_location().span().start() / 100
+                ))
+                .unwrap(),
+                extract_act_list_frames(source.text(), &capture_lawrefs(source.text())),
+                Vec::new(),
+            )
+        })
+        .collect::<Vec<_>>();
+    let overlay = build_document_analysis_overlay(&built, &frames, &[]).unwrap();
+    let continuations = overlay
         .edges()
         .iter()
-        .filter(|edge| {
-            edge.relation() == StructureEdgeRelation::ParentOf
-                || edge.relation() == StructureEdgeRelation::ContainedIn
-        })
+        .filter(|edge| edge.relation == ContextualEdgeKind::ContinuesSeries)
         .count();
     assert_eq!(
-        parent_edges, 0,
-        "RC28-F07 case identifier: unrelated blocks must not gain parent edges"
+        continuations, 0,
+        "RC28-F07 case identifier: unrelated citations must not gain ContinuesSeries edges"
     );
 }
 
+fn full_requisites() -> CurrentDocumentRequisites {
+    let claims = RequisitesField::ALL
+        .into_iter()
+        .enumerate()
+        .map(|(index, field)| {
+            RequisitesClaim::try_new(
+                format!("m206-s07-{index}"),
+                "doc-v1".into(),
+                field,
+                format!("value-{index}"),
+                RequisitesSourceKind::DocumentHead,
+                SourceAnchor::try_new(
+                    TextSpan::try_new(index, index + 1).unwrap(),
+                    format!("anchor-{index}"),
+                )
+                .unwrap(),
+                "profile-v1".into(),
+                RequisitesExtractionStatus::Observed,
+            )
+            .unwrap()
+        })
+        .collect();
+    CurrentDocumentRequisites::try_new("doc-v1".into(), claims).unwrap()
+}
+
 #[test]
-fn rc28_f08_this_ref_survives_nonempty_worklist_and_empty_or_cited_is_negative() {
+fn rc28_f08_this_ref_survives_nonempty_worklist_and_empty_or_cited_negatives() {
     let blocks = vec![block(
         "Настоящего Закона следует придерживаться.",
         ParagraphStyle::BodyText,
@@ -132,10 +174,11 @@ fn rc28_f08_this_ref_survives_nonempty_worklist_and_empty_or_cited_is_negative()
             ln_decode::current_requisites::RequisitesField::Type,
         ]),
     );
+    let sidecar = full_requisites();
     let environment = ContextEnvironment {
         index: &built,
         overlay: &overlay,
-        requisites: None,
+        requisites: Some(&sidecar),
     };
     let mut worklist = ContextWorklist::new(ContextBudgets::default());
     let report = worklist.run(environment, &[request]);
