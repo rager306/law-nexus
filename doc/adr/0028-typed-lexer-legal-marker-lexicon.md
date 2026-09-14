@@ -448,3 +448,31 @@ radius, (c) headless coordination-claim finalize errors.
 ## Non-claims
 
 This proposed ADR does not establish parser readiness, legal correctness, corpus completeness, or a public temporal model. It does not authorize LLM/RLM runtime, whole-document recursion, cross-block anchors, or promotion of candidate findings; those boundaries remain evidence-gated and source-bound.
+
+## M205/S04 reconciliation companion [proposed]
+
+The design-only reconciliation pin `prd/architecture/m205-s04-docs-reconciliation.yaml`
+(`law-nexus/m205-s04-docs-reconciliation/v1`, `m205-s04-docs-reconciliation/v1`)
+is the source-bound projection for
+this companion review. It is owned by ADR-0028, has `human_adoption: pending`,
+`authoritative: false`, and keeps `runtime_stop` active; it does not amend this
+ADR or promote any lifecycle.
+
+The pin records D459 clean-room prior art against D380's `Change` wording:
+Pullenti's alphabet is an orientation only, so no `DecreeChange` type, G0
+adoption, or identifying-cycle `Change` slot is adopted. The five PC-X leave
+rows remain leave decisions, and the historical M203 local-grammar note is not
+rewritten or confused with the M205 S03 context-FSM projection. PascalCase
+projection states and snake_case process states remain separate: `resolved` is
+not `sufficient`, `not_required` is process-side only, and FSM list merging or
+aliasing is forbidden.
+
+The selected baseline is G01/G02/G14. G02 is already wired through
+`capture_lawrefs` with defaults-only arbitration and its proposed 1024 refusal
+ceiling; only residual resource behavior remains open. G03-G13, G15 and G16
+remain individually `deferred-undefined`, not silently selected. P2/P3 remain
+historical tension rows, P9 is `not-s04-after-this` / `deferred-to-later`, and
+S04 owns no P9 emission. The candidate glossary names are not §3 first-cells;
+`NormRule`, `Condition`, `LegalEffect`, `Exception`, and `force` remain
+deferred, while IR belongs to M210. F19 is supporting-only and the packet
+remains open; no human adoption or finding disposition is claimed.

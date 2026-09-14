@@ -222,3 +222,23 @@ GitNexus reindex after this wave required for accurate residual-noise queries.
 <!-- fold_expression_presence KBO-R023 companion -->
 
 <!-- map_hierarchy_marker KBO-R024 companion -->
+
+## M205/S04 design-only reconciliation companion [proposed]
+
+ADR-0028 is now cross-linked to the non-authoritative pin
+`prd/architecture/m205-s04-docs-reconciliation.yaml`
+(`m205-s04-docs-reconciliation/v1`). The pin is a source-bound projection only:
+D459 clean-room prior art and the ten tension rows preserve the no-`Change`
+identifying-cycle decision, PC-X leave rows, PascalCase-versus-snake_case FSM
+boundary, candidate glossary non-first-cell boundary, and `human_adoption:
+pending`. It does not rewrite the glossary, catalog, G0 registry, frozen NPA
+YAML, reviews or packet JSON.
+
+G01/G02/G14 are the selected baseline; G03-G13, G15 and G16 remain individually
+deferred-undefined. G02 is already wired with defaults-only capture arbitration
+and a proposed 1024 refusal ceiling; residual resource behavior is not a second
+wiring task. `resolved` is not `sufficient`, `not_required` is process-side only,
+and FSM list merging is forbidden. P9 is `not-s04-after-this` /
+`deferred-to-later`, F19 is supporting-only with the packet open, NormRule and
+force remain deferred, and IR remains an M210 boundary. These statements do
+not promote lifecycle or close requirements/findings.

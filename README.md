@@ -250,6 +250,17 @@ The root [`Cargo.toml`](Cargo.toml) is the executable workspace inventory.
 Only tracked active surfaces are listed here. Retired implementations and local
 tooling are intentionally omitted from cold-reader navigation.
 
+### M205/S04 reconciliation pin [proposed]
+
+The ADR-0028 document-control projection is the non-authoritative
+`prd/architecture/m205-s04-docs-reconciliation.yaml`
+(`m205-s04-docs-reconciliation/v1`). It is design-only, keeps
+`human_adoption: pending` and `runtime_stop` active, and is checked offline by
+the fail-closed verifier plus adversarial and hashed-closeout contracts. D459,
+G02 already-wired residual behavior, the 13 individually deferred gates, P9
+`not-s04-after-this` / `deferred-to-later`, and F19 supporting-only remain
+unchanged; this pointer is not human adoption or product/runtime proof.
+
 ## Active tree (what agents should open)
 
 | Path | Role |

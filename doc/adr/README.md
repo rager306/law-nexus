@@ -70,3 +70,10 @@ named on living surfaces only with an explicit retired/archive qualifier.
 | [ADR-0028](0028-typed-lexer-legal-marker-lexicon.md) | Typed lexer and legal-marker lexicon for the NPA document engine (LawRef FSM, clause/list_item modes, act tree) | Proposed | [proposed] |
 
 M203/S02 companion review (2026-09-07): `capture_lawrefs` now wires defaults-only arbitration and the 1024 candidate ceiling; `runtime_stop` remains active and pair policies remain deferred.
+
+M205/S04 design-only reconciliation pointer: `prd/architecture/m205-s04-docs-reconciliation.yaml`
+(`m205-s04-docs-reconciliation/v1`, `[proposed]`, `authoritative: false`,
+`human_adoption: pending`). D459 clean-room prior art, G02 already-wired
+residual-only behavior, the individually deferred G03-G13/G15/G16 gates,
+P9 `not-s04-after-this` / `deferred-to-later`, and F19 supporting-only remain
+source-bound; this pointer does not amend ADR status or claim human adoption.

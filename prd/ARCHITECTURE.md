@@ -67,6 +67,26 @@ falkordb=historical-only
 Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as
 active ADR substance.
 
+### M205/S04 documentation reconciliation [proposed]
+
+The design-only pin `prd/architecture/m205-s04-docs-reconciliation.yaml`
+(`m205-s04-docs-reconciliation/v1`) reconciles ADR-0028, the NPA architecture
+contracts and their verification companions. It is `authoritative: false`,
+keeps `human_adoption: pending` and `runtime_stop` active, and does not promote
+lifecycle or alter the frozen S01-S03 and M200 YAML bytes. D459 records the
+clean-room prior-art boundary: no `DecreeChange`, identifying-cycle `Change`,
+G0 adoption, or Pullenti runtime is introduced; PC-X rows remain leave rows.
+
+The selected gates are G01/G02/G14. G02 is already wired in `capture_lawrefs`
+with defaults-only arbitration and the proposed 1024 refusal ceiling; only
+residual resource behavior remains open. G03-G13, G15 and G16 remain
+individually `deferred-undefined`; `not_required` is process-side only and
+`resolved` is not `sufficient`. P9 is `not-s04-after-this` /
+`deferred-to-later`, with no S04 emission or ownership. Candidate glossary
+names are not §3 first-cells: NormRule, Condition, LegalEffect, Exception and
+force remain deferred, and IR belongs to M210. F19 is supporting-only and the
+packet remains open; human adoption and all findings remain pending.
+
 ## Knowledge-base ontology draft (O1, `[proposed]`)
 
 Accumulating **materialization** requirements (not production schema):
