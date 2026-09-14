@@ -41,7 +41,24 @@ function cargo(args) {
 }
 
 function diagnostic(result) {
-  return `${result.stdout ?? ""}\n${result.stderr ?? ""}\nspawn_error=${result.error?.message ?? "none"}\nstatus=${result.status}`;
+  return `${result.stdout ?? ""}\n${result.stderr ?? ""}\nspawn_error=${result.error?.message ?? "none"}\nsignal=${result.signal ?? "none"}\nstatus=${result.status}`;
+}
+
+function assertExecutedResult(result, output, caseName, identifier) {
+  assert.equal(result.error, undefined, `${identifier} could not execute cargo\n${output}`);
+  assert.equal(result.signal, null, `${identifier} was terminated by a signal\n${output}`);
+  assert.equal(typeof result.status, "number", `${identifier} has no concrete exit status\n${output}`);
+
+  const escapedCaseName = caseName.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+  const resultMatches = [...output.matchAll(new RegExp(`^test ${escapedCaseName} \\.* (ok|FAILED)$`, "gm"))];
+  assert.equal(resultMatches.length, 1, `${identifier} did not provide exactly one result for the requested Rust test\n${output}`);
+  const observed = resultMatches[0][1];
+  assert.equal(
+    result.status === 0,
+    observed === "ok",
+    `${identifier} exit status does not agree with its observed Rust result (${observed})\n${output}`,
+  );
+  return observed;
 }
 
 for (const suite of suites) {
@@ -75,20 +92,18 @@ for (const suite of suites) {
         "--nocapture",
       ]);
       const output = diagnostic(result);
-      const executed = output.match(/running (\d+) test/);
+      const executed = output.match(/running (\d+) test(?:s)?/);
       assert.ok(executed, `${identifier} did not report a Rust test count\n${output}`);
       assert.equal(executed[1], "1", `${identifier} did not execute exactly one test; --exact no-test exits are not evidence\n${output}`);
-      const escapedCaseName = caseName.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
-      const resultLine = new RegExp(`test ${escapedCaseName} \\.* (ok|FAILED)`);
-      assert.match(output, resultLine, `${identifier} did not provide a result for the requested Rust test\n${output}`);
+      const observed = assertExecutedResult(result, output, caseName, identifier);
       if (expected === "red" && reproduces) {
         assert.notEqual(result.status, 0, `${identifier} unexpectedly passed; red oracle is no longer reproducing the finding\n${output}`);
         assert.match(output, new RegExp(identifier.replace("-", "\\-")), `${identifier} failed without its case identifier\n${output}`);
         assert.doesNotMatch(output, /could not compile|unrecognized option|no tests? to run|panicked at.*unwrap/i, `${identifier} was not an assertion failure\n${output}`);
-        assert.match(output, new RegExp(`test ${escapedCaseName} \\.* FAILED`), `${identifier} did not fail the requested Rust test\n${output}`);
+        assert.equal(observed, "FAILED", `${identifier} did not fail the requested Rust test\n${output}`);
       } else {
         assert.equal(result.status, 0, `${identifier} is an already-passing baseline or green closeout contract\n${output}`);
-        assert.match(output, new RegExp(`test ${escapedCaseName} \\.* ok`), `${identifier} did not pass the requested Rust test\n${output}`);
+        assert.equal(observed, "ok", `${identifier} did not pass the requested Rust test\n${output}`);
       }
     });
   }

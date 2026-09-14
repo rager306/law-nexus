@@ -35,6 +35,11 @@ test("M206 S07 preserves historical no-start provenance", () => {
 
 test("M206 S07 admission names the executable contract and fail-closed boundary", () => {
   requireLiteral(admission, "scripts/m206_s07_admission_contract.test.mjs", "executable admission check");
+  requireLiteral(admission, "scripts/m206_s06_reproduction.test.mjs", "reproduction oracle");
+  requireLiteral(admission, "M206_EXPECT=green node --test scripts/m206_s06_reproduction.test.mjs", "green reproduction command");
+  requireLiteral(admission, "actually executed `--exact` case", "exact execution evidence");
+  requireLiteral(admission, "exit status consistent with that result", "result/status agreement");
+  requireLiteral(admission, "spawn errors, signals, compile failures, skipped cases, and missing output are\nnot evidence", "fail-closed execution evidence");
   requireLiteral(admission, "missing, conflicting, or unavailable evidence remains fail-closed", "failure boundary");
   for (const finding of ["RC28-F06", "RC28-F07", "RC28-F08", "RC28-F09", "RC28-F10", "RC28-F11", "RC28-F12"]) {
     requireLiteral(admission, finding, `${finding} scope`);
