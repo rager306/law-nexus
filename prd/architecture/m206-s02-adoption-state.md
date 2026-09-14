@@ -105,3 +105,5 @@ this document does not choose a policy by inference.
 This artifact is intentionally repository-relative and design-only. Its sole
 purpose is to preserve provenance, the active stop, the complete deferred gate
 state, the future scenario contract, and the source-bound resume condition.
+
+**battery_status: NOT_RUN** — the future-battery scenarios recorded above have not been executed as runtime tests.

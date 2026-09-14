@@ -135,3 +135,5 @@ This repository-relative record intentionally preserves the active no-start
 state, exact finding scope, upstream provenance, independent gate sets, and
 future proof obligations without changing runtime, ADRs, corpus, upstream
 records, or requirements.
+
+**battery_status: NOT_RUN** — the future-battery scenarios recorded above have not been executed as runtime tests.

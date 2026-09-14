@@ -130,3 +130,5 @@ Until then:
 This repository-relative document is intentionally limited to preserving the
 active stop, provenance, gate boundaries, and twelve unverified future
 scenarios for the next authorized owner decision.
+
+**battery_status: NOT_RUN** — the future-battery scenarios recorded above have not been executed as runtime tests.

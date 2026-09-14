@@ -1,49 +1,50 @@
-# M206/S07 runtime admission overlay: RC28-F06..F12
+# M206/S07 runtime admission: RC28-F06..F12 grammar context remediation completion
 
-**admission_source:** `prd/architecture/m206-s05-runtime-admission.md`
-**scope:** M206-jnbhlz / S07 Runtime grammar context remediation completion
-**status:** admitted completion work for the same source-bound RC28-F06..F12 set
+**source_bound_admission:** prd/architecture/m206-s05-runtime-admission.md
+**S05 already records the owner's Accept** for the M206/S05 runtime scope; this
+document extends that recorded acceptance to the S07 remediation completion
+slice without changing its scope or conditions.
+
+**scope: RC28-F06..F12**
 **selected_d388_gates:** G01, G02, G14
-**deferred_d388_gates:** G03,G04,G05,G06,G07,G08,G09,G10,G11,G12,G13,G15,G16
-**runtime_stop:** lifted for M206/S07 completion of the S05-admitted scope only
+**deferred_d388_gates:** G03, G04, G05, G06, G07, G08, G09, G10, G11, G12, G13, G15, G16 remain individually deferred and are not selected by this document.
+**runtime_stop:** lifted for M206/S07 remediation completion only, by the same
+owner decision recorded in the S05 admission; it remains active everywhere
+else.
 
-## Source-bound decision and boundary
+## Historical no-start provenance
 
-S05 already records the owner's Accept for RC28-F06..F12. S07 is the sanctioned
-completion slice named by the S06 remediation assessment; it does not mint a
-second owner Accept and does not broaden the admitted scope. The D388 baseline
-is limited to selected G01/G02/G14. The remainder stays deferred, including
-numeric grammar and hop budgets; G02 remains wired at its existing capture
-surface and is not reselected or duplicated here.
+S01, S02, S03, and S04 remain **NOT_RUN** with respect to runtime execution:
+their batteries are documentation contracts and have never been executed as
+runtime tests. S05 confirmed the admission checkpoint. S06 supplied the
+red-oracle reproduction baseline. This slice supplies the missing green
+runtime remediation evidence.
 
-S07 owns the following runtime proof surfaces:
+## Executable contract and fail-closed boundary
 
-- `crates/ln-decode` document context, local grammar, and law-reference
-  capture/resolution contracts for F06, F07, F08, F09, and F10;
-- `crates/ln-temporal` context, semantic-scope, and binding-candidate
-  contracts for F11 and F12;
-- provider-isolated port composition and bounded diagnostic evidence only.
+- Executable admission check: scripts/m206_s07_admission_contract.test.mjs
+- Reproduction oracle: scripts/m206_s06_reproduction.test.mjs
+- Green reproduction command: M206_EXPECT=green node --test scripts/m206_s06_reproduction.test.mjs
+- Execution evidence policy: every claimed result names the command actually executed `--exact` case, and the recorded exit status consistent with that result.
+- Fail-closed execution evidence: spawn errors, signals, compile failures, skipped cases, and missing output are
+not evidence of a PASS.
+- Failure boundary: missing, conflicting, or unavailable evidence remains fail-closed.
 
-## Historical provenance and non-claims
+## Admitted finding scope
 
-S01, S02, S03, and S04 remain **NOT_RUN** historical adoption-state records.
-Their `runtime_stop_active` and no-start markers are not rewritten and their
-future scenario rows are not retroactively promoted to runtime PASS. Their
-adoption-contract checks remain provenance checks, not S07 implementation
-proof.
+RC28-F06, RC28-F07, RC28-F08, RC28-F09, RC28-F10, RC28-F11, RC28-F12 — the
+grammar context and binding candidate findings from review packet
+RC-2026-09-10-001 are admitted for runtime remediation in the owning surfaces
+recorded in the S05 admission (crates/ln-decode: document_context.rs,
+local_grammar.rs, lawref.rs; crates/ln-temporal: document_context.rs,
+semantic_scope.rs) with their regression and contract suites.
 
-This overlay is not product readiness, a `[validated]` lifecycle promotion,
-a corpus-wide correctness claim, or a disposition of packet
-`RC-2026-09-10-001`. It does not close R035, R038, R070, R074, or R081, amend
-ADR-0028, select deferred-undefined vocabulary, introduce legal IR, or alter
-M205 pins. Candidates remain candidates; missing, conflicting, or unavailable
-evidence remains fail-closed and source-bound.
+## Boundary
 
-## Completion condition
-
-The S07 implementation may claim green only after the honest reproduction
-oracle distinguishes a real executed test from a missing `--exact` match,
-then the F06..F12 target suites and composed battery pass with positive and
-fail-closed paths. The executable admission contract
-`scripts/m206_s07_admission_contract.test.mjs` checks these source-bound
-literals and refuses absent or incomplete admission metadata.
+- This document does not promote lifecycle, requirements, or product
+  readiness claims.
+- F12 remediation must not activate deferred IR (F12-NO-IR); cue recognition
+  is not a NormRule.
+- The D388 deferred gates are not selected; no Pullenti port is admitted.
+- If fresh sources contradict this record, the result is a blocker; no policy
+  is chosen by inference.

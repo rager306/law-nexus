@@ -137,3 +137,5 @@ accepted F06 policy/source binding and the owning runtime/test surface before
 T02-T04 can be re-scoped or dispatched. Integrity or reconciliation PASS,
 M205 pin changes, or milestone completion cannot substitute for that admission.
 Until then, runtime work remains stopped.
+
+**battery_status: NOT_RUN** — the future-battery scenarios recorded above have not been executed as runtime tests.
