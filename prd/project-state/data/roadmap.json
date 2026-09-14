@@ -513,11 +513,17 @@
       "theme": "Canonical NPA parsing program",
       "status": "complete",
       "boundary": "Dispositioned Review 27 into the controlled P0-P9 program and closed the typed token/bounds seam; GSD engine recovery stayed external (blocked-external), so this is program closure, not engine-readiness or product-answering evidence."
+    },
+    {
+      "range": "M204-M204",
+      "theme": "Честность evidence и восстановление контроля после Review 28",
+      "status": "complete",
+      "boundary": "C4 operational acceptance proven by source-bound citation of the measured v2 receipt; GSD recovery liveness preserved as blocked-external without promotion; S23 sanctioned skipped; requirement traceability bindings added. Engine-readiness and product-answering evidence remain out of scope."
     }
   ],
   "current_milestone": {
     "id": "M204-w2ktfw",
-    "status": "active",
+    "status": "complete",
     "title": "Честность evidence и восстановление контроля после Review 28",
     "goal": "Устранить противоречивые C5 admission и измерения, воспроизводимо диагностировать C4 и GSD без переоценки исторического M203. Review RC-2026-09-10-001, RC28-F01..F05,F19. Rust-only product; Python только harness. Не переписывать исторические receipts; публиковать superseding evidence."
   },
