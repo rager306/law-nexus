@@ -81,3 +81,33 @@ excuse to alter M205 pins. Until then, runtime work remains stopped.
 - Do not begin runtime or product implementation for T02-T04.
 - Do not edit ADR-0028 to manufacture adoption or readiness.
 - Do not add product logic to `law_nexus_harness` (R064 boundary).
+
+## F10 lexical blocker provenance (T03, design-only)
+
+The lexical portion of F10 remains blocked and is not an implementation
+claim. The intended scope covers one canonical treatment of dash and
+inflection variants, preservation of each variant's original source spans,
+and typed morphology, including an explicit unavailable-morphology outcome.
+Those guarantees cannot be implemented or accepted without a separate
+source-bound runtime admission; under the current `Reject` decision and
+active stop, runtime work remains stopped.
+
+Five prior attempts are preserved as blocker provenance rather than treated
+as missing implementation evidence:
+
+1. **Attempt #1 — no artifact:** no source-bound admission artifact was
+   available.
+2. **Attempt #2 — blocker-discovered:** the exact owning crate and test suite
+   were unavailable, and runtime adoption was rejected.
+3. **Attempt #3 — no artifact:** no source-bound admission artifact was
+   available.
+4. **Attempt #4 — no artifact:** no source-bound admission artifact was
+   available.
+5. **Attempt #5 — blocker-discovered:** the exact owning crate and test suite
+   were unavailable, and runtime adoption was rejected.
+
+This provenance does not authorize lexical normalization, span binding,
+parenting, morphology, or tests in the runtime. Resumption requires a new,
+explicit source-bound owner admission identifying the accepted F10 policy and
+its owning runtime/test surface; integrity or reconciliation PASS cannot
+substitute for it. Until then, runtime work remains stopped.
