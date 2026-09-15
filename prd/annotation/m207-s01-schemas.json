@@ -1,0 +1,232 @@
+{
+  "schema": "m207-s01-annotation-schemas/v1",
+  "schema_version": 1,
+  "codebook": "prd/annotation/m207-s01-codebook.md",
+  "slot_space_source": "prd/migration/rust-evidence/m199-s01-annotation-protocol.md#5",
+  "parent_schema": "npa-lawref-sample/v1 slot space reused; M199 schema_version is NOT bumped",
+  "m199_schema_version_bump": false,
+  "slot_space": {
+    "closed_keys": [
+      "marker_chain",
+      "hier_nums",
+      "date",
+      "doc_no",
+      "law_code",
+      "anaphora",
+      "range",
+      "quoted_enum"
+    ],
+    "binary_outcome": {
+      "key": "not_a_reference",
+      "type": "boolean"
+    },
+    "closed_key_count": 9
+  },
+  "alternative_axes": [
+    {
+      "axis": "reference_decision",
+      "values": ["reference", "not_a_reference"]
+    },
+    {
+      "axis": "slot_presence",
+      "values": ["slot_present", "slot_absent"]
+    },
+    {
+      "axis": "scope",
+      "values": ["scope_local", "scope_inherited"]
+    },
+    {
+      "axis": "binding",
+      "values": ["binding_explicit", "binding_unresolved"]
+    }
+  ],
+  "vocabularies": {
+    "families": ["npa", "courts", "fas", "xml"],
+    "note_kinds": ["enacting", "provider_note", "hostile-control", "pattern-boost"],
+    "metadata_sources": ["validated-manifest", "unknown"],
+    "provenance": ["human-reviewed"],
+    "authority": ["none"],
+    "suggestion_status": ["none-provided"],
+    "output_type": ["AnnotationSuggestion"],
+    "decision_values": ["reference", "not_a_reference"],
+    "abstention_values": ["not-abstained", "ambiguous", "insufficient-context"],
+    "span_coordinate": ["half-open-byte-range-utf8-boundaries"],
+    "decoder": ["ConsultantWordMlBlockDecoder"]
+  },
+  "schemas": {
+    "case_manifest": {
+      "schema_id": "m207-s01-pilot-cases/v1",
+      "closed_keys": [
+        "schema",
+        "schema_version",
+        "codebook",
+        "source_seed",
+        "draw_seed",
+        "work_family_cap",
+        "case_count",
+        "cases",
+        "non_claims",
+        "lifecycle"
+      ],
+      "required_keys": [
+        "schema",
+        "schema_version",
+        "codebook",
+        "source_seed",
+        "draw_seed",
+        "work_family_cap",
+        "case_count",
+        "cases",
+        "non_claims",
+        "lifecycle"
+      ],
+      "case_closed_keys": [
+        "case_id",
+        "fragment_id",
+        "doc_id",
+        "source_path",
+        "source_sha256",
+        "byte_len",
+        "source_block_index",
+        "start",
+        "end",
+        "alternative_classes",
+        "abstention_available",
+        "span_offered_for_coding",
+        "metadata_source",
+        "year",
+        "document_type",
+        "draw_stratum",
+        "work_family"
+      ],
+      "case_required_keys": [
+        "case_id",
+        "fragment_id",
+        "doc_id",
+        "source_path",
+        "source_sha256",
+        "byte_len",
+        "start",
+        "end",
+        "alternative_classes",
+        "abstention_available",
+        "span_offered_for_coding",
+        "metadata_source",
+        "work_family"
+      ],
+      "source_seed_closed_keys": [
+        "schema",
+        "sha256",
+        "documents",
+        "fragments",
+        "draw_seed"
+      ],
+      "case_count_range": [20, 40],
+      "work_family_cap": 4,
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "unknown_metadata_value": "unknown"
+    },
+    "coding_submission": {
+      "schema_id": "m207-s01-coding-submission/v1",
+      "closed_keys": [
+        "schema",
+        "schema_version",
+        "codebook",
+        "submission_id",
+        "coder_id",
+        "coder_pass",
+        "provenance",
+        "cases",
+        "non_claims",
+        "lifecycle"
+      ],
+      "required_keys": [
+        "schema",
+        "schema_version",
+        "codebook",
+        "submission_id",
+        "coder_id",
+        "coder_pass",
+        "provenance",
+        "cases",
+        "non_claims",
+        "lifecycle"
+      ],
+      "case_closed_keys": ["case_id", "decision", "span", "slots", "abstention"],
+      "case_required_keys": ["case_id", "decision", "span", "slots", "abstention"],
+      "span_closed_keys": ["start", "end"],
+      "slot_closed_keys": [
+        "marker_chain",
+        "hier_nums",
+        "date",
+        "doc_no",
+        "law_code",
+        "anaphora",
+        "range",
+        "quoted_enum"
+      ],
+      "decision_values": ["reference", "not_a_reference"],
+      "abstention_values": ["not-abstained", "ambiguous", "insufficient-context"],
+      "coder_pass_values": [1, 2],
+      "provenance_value": "human-reviewed",
+      "abstention_distinct_from": "not_a_reference"
+    },
+    "prompt_packet": {
+      "schema_id": "m207-s01-prompt-packet/v1",
+      "closed_keys": [
+        "packet_id",
+        "case_id",
+        "codebook_ref",
+        "source_anchor",
+        "fragment_text",
+        "span",
+        "alternative_classes",
+        "decision_space",
+        "output_type",
+        "authority",
+        "suggestion_status",
+        "model_invoked",
+        "non_claims"
+      ],
+      "required_keys": [
+        "packet_id",
+        "case_id",
+        "codebook_ref",
+        "source_anchor",
+        "fragment_text",
+        "span",
+        "alternative_classes",
+        "decision_space",
+        "output_type",
+        "authority",
+        "suggestion_status",
+        "model_invoked",
+        "non_claims"
+      ],
+      "anchor_closed_keys": ["doc_path", "source_sha256", "block_index", "byte_len"],
+      "span_closed_keys": ["start", "end"],
+      "output_type": "AnnotationSuggestion",
+      "authority_values": ["none"],
+      "suggestion_status_values": ["none-provided"],
+      "model_invoked": false
+    }
+  },
+  "non_claims": [
+    "not official-publication provenance (R070 stays open)",
+    "not amendment provenance (R070 stays open)",
+    "not LawRef / act-tree / clause segmentation",
+    "not the N2-gate acceptance decision",
+    "not legal interpretation",
+    "not gold: no S01 span or slot is a gold label",
+    "not a human pilot: S01 performs no coding and reports no agreement",
+    "not product authority: prompt output is AnnotationSuggestion only"
+  ],
+  "lifecycle": {
+    "human_adoption": "pending",
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none",
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged"
+  }
+}
