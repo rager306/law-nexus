@@ -23,7 +23,11 @@ fn extract_act(src: &str) -> Vec<ln_decode::local_grammar::CoordinatingFrame> {
 #[test]
 fn empty_batch_and_malformed_tails_are_panic_free() {
     assert!(extract_act("").is_empty());
-    assert!(extract_act("законов от 01.01.2020").is_empty());
+    let incomplete = extract_act("законов от 01.01.2020");
+    assert_eq!(incomplete.len(), 1);
+    assert_eq!(incomplete[0].status, FrameStatus::Ambiguous);
+    assert_eq!(incomplete[0].members.len(), 1);
+    assert!(incomplete[0].members[0].doc_no.is_none());
     let trailing_comma = extract_act("законов от 01.01.2020 N 1-ФЗ,");
     assert_eq!(trailing_comma.len(), 1);
     assert_eq!(trailing_comma[0].members.len(), 1);

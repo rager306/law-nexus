@@ -39,19 +39,25 @@ fn act_list_has_three_explicit_date_number_members() {
 }
 
 #[test]
-fn act_list_ellipsis_inherits_type_with_head_evidence() {
-    let frames = extract_act("федеральных законов от 01.01.2020 N 1-ФЗ, от 02.02.2021 N 2-ФЗ");
-    assert_eq!(frames.len(), 1);
-    assert_eq!(
-        frames[0].members[1].derivation,
-        DerivationSource::SameSeriesHead
-    );
-    assert!(!frames[0].members[1].evidence.is_empty());
+fn act_list_does_not_inherit_head_across_sentences() {
+    let frames = extract_act("федеральных законов от 01.01.2020 N 1-ФЗ. от 02.02.2021 N 2-ФЗ");
+    assert_eq!(frames.len(), 2);
+    assert!(frames.iter().all(|frame| {
+        frame.members.len() == 1 && frame.members[0].derivation == DerivationSource::ExplicitMember
+    }));
 }
 
 #[test]
-fn act_list_without_doc_number_is_incomplete_and_not_minted() {
-    assert!(extract_act("федеральных законов от 01.01.2020").is_empty());
+fn act_list_incomplete_tail_is_observable_and_not_minted_complete() {
+    let frames = extract_act("федеральных законов от 01.01.2020");
+    assert_eq!(frames.len(), 1);
+    assert_eq!(frames[0].status, FrameStatus::Ambiguous);
+    assert_eq!(frames[0].members.len(), 1);
+    assert_eq!(
+        frames[0].members[0].state,
+        ln_decode::local_grammar::EnumerationState::Incomplete
+    );
+    assert!(frames[0].members[0].doc_no.is_none());
 }
 
 #[test]

@@ -265,59 +265,93 @@ pub const ACT_TYPE_LEMMAS: &[&str] = &[
 
 /// Extract coordinating act-requisite frames from admitted capture output.
 ///
-/// This function never calls `capture_lawrefs` and never sees refused captures:
-/// its only candidate inputs are `batch.captures()`. A member is emitted only
-/// when the admitted LawRef has both date and document-number slots and is
-/// preceded by the local `от` grammar marker. Type inheritance is represented
-/// by `SameSeriesHead` and the head span in `evidence`; it is not a document
-/// context lookup.
+/// Captures are composed with the existing sentence splitter before origins
+/// are arbitrated. A head is therefore searched only inside the sentence that
+/// owns the date: an earlier sentence can never authorize a later ellipsis.
+/// Date-only tails are retained as incomplete, source-backed members; no
+/// document number is fabricated and no refused capture is reconstructed.
 pub fn extract_act_list_frames(
     src: &str,
     batch: &crate::lawref::LawRefCaptureBatch,
 ) -> Vec<CoordinatingFrame> {
     let tokens = crate::lexer::lex(src);
-    let mut groups: Vec<(Option<usize>, Vec<&crate::lawref::LawRef>)> = Vec::new();
+    let sentences = crate::sentence::split_legal_sentences(src);
+    let mut groups: Vec<(usize, Option<usize>, Vec<ActMemberCandidate>)> = Vec::new();
+
     for capture in batch.captures() {
-        // A capture with neither slot cannot be an act-list member. A DATE
-        // without NUMBER is retained as an incomplete member when the local
-        // `от` grammar admits it; inventing a number is prohibited.
-        if capture.slots.date.is_none() && capture.slots.doc_no.is_none() {
-            continue;
-        }
         let Some(date_text) = capture.slots.date.as_deref() else {
             continue;
         };
-        let Some(date_start) =
+        let Some(date_span) =
             find_subspan(src, capture.span.start(), capture.span.end(), date_text)
         else {
             continue;
         };
-        if !has_local_ot(&tokens, src, date_start) {
+        let Some(sentence_index) = sentence_containing(&sentences, date_span) else {
+            continue;
+        };
+        if !has_local_ot(&tokens, src, date_span) {
             continue;
         }
-        let head = find_act_head(&tokens, src, date_start);
-        if let Some((existing, members)) = groups.iter_mut().find(|(key, _)| *key == head) {
-            let _ = existing;
-            members.push(capture);
+        let sentence = sentences[sentence_index];
+        let head = find_act_head(&tokens, src, date_span, sentence.text_span());
+        let candidate = ActMemberCandidate::Capture(capture);
+        if let Some((_, _, members)) = groups
+            .iter_mut()
+            .find(|(index, existing, _)| *index == sentence_index && *existing == head)
+        {
+            members.push(candidate);
         } else {
-            groups.push((head, vec![capture]));
+            groups.push((sentence_index, head, vec![candidate]));
         }
     }
+
+    // `date-docno-window` intentionally refuses a lone date. Add only the
+    // missing local tail, bounded to its sentence and `от` marker, so the
+    // incomplete state remains observable without broadening LawRef capture.
+    for (sentence_index, sentence) in sentences.iter().copied().enumerate() {
+        for (token_index, token) in tokens.iter().enumerate() {
+            if token.span.start() < sentence.start()
+                || token.span.end() > sentence.end()
+                || token.kind != TokenKind::Date
+                || !has_local_ot(&tokens, src, token.span)
+            {
+                continue;
+            }
+            let already_captured = batch.captures().iter().any(|capture| {
+                capture.slots.date.as_deref().is_some_and(|date| {
+                    find_subspan(src, capture.span.start(), capture.span.end(), date)
+                        == Some(token.span)
+                })
+            });
+            if already_captured {
+                continue;
+            }
+            let head = find_act_head(&tokens, src, token.span, sentence.text_span());
+            let candidate = ActMemberCandidate::Incomplete {
+                span: token.span,
+                date: token.lexeme(src).to_owned(),
+            };
+            if let Some((_, existing, members)) = groups
+                .iter_mut()
+                .find(|(index, existing, _)| *index == sentence_index && *existing == head)
+            {
+                let _ = (existing, token_index);
+                members.push(candidate);
+            } else {
+                groups.push((sentence_index, head, vec![candidate]));
+            }
+        }
+    }
+
     groups
         .into_iter()
-        .filter_map(|(head, captures)| {
-            let first = captures.first()?;
-            let mut members = Vec::with_capacity(captures.len());
-            for (index, capture) in captures.iter().enumerate() {
-                let date = capture.slots.date.clone();
-                let date_span = date.as_deref().and_then(|value| {
-                    find_subspan(src, capture.span.start(), capture.span.end(), value)
-                });
-                let doc_no = capture.slots.doc_no.clone();
-                let doc_no_span = doc_no.as_deref().and_then(|value| {
-                    find_subspan(src, capture.span.start(), capture.span.end(), value)
-                });
-                let value = doc_no.clone().unwrap_or_default();
+        .filter_map(|(_, head, candidates)| {
+            let first = candidates.first()?.span();
+            let mut members = Vec::with_capacity(candidates.len());
+            for (index, candidate) in candidates.iter().enumerate() {
+                let (value, value_span, date, date_span, doc_no, doc_no_span, state) =
+                    candidate.fields(src);
                 let derivation = if index == 0 {
                     DerivationSource::ExplicitMember
                 } else {
@@ -327,22 +361,18 @@ pub fn extract_act_list_frames(
                     head.and_then(|i| tokens.get(i).map(|t| vec![t.span]))
                         .unwrap_or_default()
                 } else {
-                    vec![capture.span]
+                    vec![candidate.span()]
                 };
                 members.push(FrameMember {
                     value,
-                    value_span: capture.span,
+                    value_span,
                     date,
                     date_span,
                     doc_no,
                     doc_no_span,
                     derivation,
                     evidence,
-                    state: if capture.slots.date.is_some() && capture.slots.doc_no.is_some() {
-                        EnumerationState::Candidate
-                    } else {
-                        EnumerationState::Incomplete
-                    },
+                    state,
                 });
             }
             let type_alternatives = head
@@ -350,10 +380,13 @@ pub fn extract_act_list_frames(
                 .unwrap_or_default();
             let unresolved = head.is_none();
             let ambiguous = type_alternatives.len() > 1;
+            let incomplete = members
+                .iter()
+                .any(|member| member.state == EnumerationState::Incomplete);
             let too_many = members.len() > PROPOSED_MAX_FRAME_MEMBERS;
             let status = if too_many {
                 FrameStatus::Rejected
-            } else if unresolved || ambiguous {
+            } else if unresolved || ambiguous || incomplete {
                 FrameStatus::Ambiguous
             } else {
                 FrameStatus::Proposed
@@ -369,18 +402,15 @@ pub fn extract_act_list_frames(
             };
             let start = head
                 .and_then(|i| tokens.get(i).map(|t| t.span.start()))
-                .unwrap_or(first.span.start());
-            let end = captures
-                .last()
-                .map(|c| c.span.end())
-                .unwrap_or(first.span.end());
+                .unwrap_or(first.start());
+            let end = candidates.last()?.span().end();
             Some(CoordinatingFrame {
                 frame_kind: FrameKind::ActRequisites,
                 local_anchor: TextSpan::try_new(start, end).ok()?,
                 head_roles: type_alternatives,
                 members,
                 separators: Vec::new(),
-                continuation: captures.len() > 1,
+                continuation: candidates.len() > 1,
                 alternatives: Vec::new(),
                 bounds: FrameBounds {
                     max_members: PROPOSED_MAX_FRAME_MEMBERS,
@@ -391,6 +421,80 @@ pub fn extract_act_list_frames(
             })
         })
         .collect()
+}
+
+#[derive(Clone)]
+enum ActMemberCandidate<'a> {
+    Capture(&'a crate::lawref::LawRef),
+    Incomplete { span: TextSpan, date: String },
+}
+
+/// Captured head fields with source spans and the enumeration state.
+type CapturedHeadFields = (
+    String,
+    TextSpan,
+    Option<String>,
+    Option<TextSpan>,
+    Option<String>,
+    Option<TextSpan>,
+    EnumerationState,
+);
+
+impl ActMemberCandidate<'_> {
+    fn span(&self) -> TextSpan {
+        match self {
+            Self::Capture(capture) => capture.span,
+            Self::Incomplete { span, .. } => *span,
+        }
+    }
+
+    fn fields(&self, src: &str) -> CapturedHeadFields {
+        match self {
+            Self::Capture(capture) => {
+                let date = capture.slots.date.clone();
+                let date_span = date.as_deref().and_then(|value| {
+                    find_subspan(src, capture.span.start(), capture.span.end(), value)
+                });
+                let doc_no = capture.slots.doc_no.clone();
+                let doc_no_span = doc_no.as_deref().and_then(|value| {
+                    find_subspan(src, capture.span.start(), capture.span.end(), value)
+                });
+                let value = doc_no.clone().unwrap_or_default();
+                let state = if date.is_some() && doc_no.is_some() {
+                    EnumerationState::Candidate
+                } else {
+                    EnumerationState::Incomplete
+                };
+                (
+                    value,
+                    capture.span,
+                    date,
+                    date_span,
+                    doc_no,
+                    doc_no_span,
+                    state,
+                )
+            }
+            Self::Incomplete { span, date } => (
+                String::new(),
+                *span,
+                Some(date.clone()),
+                Some(*span),
+                None,
+                None,
+                EnumerationState::Incomplete,
+            ),
+        }
+    }
+}
+
+fn sentence_containing(
+    sentences: &[crate::sentence::SentenceSpan],
+    span: TextSpan,
+) -> Option<usize> {
+    sentences
+        .iter()
+        .position(|sentence| span.start() >= sentence.start() && span.end() <= sentence.end())
 }
 
 fn find_subspan(src: &str, start: usize, end: usize, needle: &str) -> Option<TextSpan> {
@@ -409,10 +513,17 @@ fn has_local_ot(tokens: &[NpaToken], src: &str, date: TextSpan) -> bool {
         .is_some_and(|i| tokens[i].lexeme(src).eq_ignore_ascii_case("от"))
 }
 
-fn find_act_head(tokens: &[NpaToken], src: &str, date: TextSpan) -> Option<usize> {
+fn find_act_head(
+    tokens: &[NpaToken],
+    src: &str,
+    date: TextSpan,
+    sentence: TextSpan,
+) -> Option<usize> {
     let date_index = tokens.iter().position(|t| t.span == date)?;
     (0..date_index).rev().find(|i| {
-        tokens[*i].kind == TokenKind::Word
+        tokens[*i].span.start() >= sentence.start()
+            && tokens[*i].span.end() <= sentence.end()
+            && tokens[*i].kind == TokenKind::Word
             && ACT_TYPE_LEMMAS.contains(&tokens[*i].lexeme(src).to_lowercase().as_str())
     })
 }
