@@ -67,10 +67,19 @@ fn immutable_overlay_preserves_inputs_and_cross_block_provenance() {
 #[test]
 fn requisites_inheritance_and_unavailable_are_typed() {
     let (index, overlay) = fixture();
-    let request = ContextRequest::new(RequestKind::CurrentDocumentRequisites, FrameId::new(1));
+    // RC28-F08: an available sidecar alone is not authorization. Admitted
+    // grammar evidence is required before the result may be Resolved.
+    let admitted = detect_this_ref("согласно настоящего Закона");
+    let request = ContextRequest::new(RequestKind::CurrentDocumentRequisites, FrameId::new(1))
+        .with_evidence(admitted);
     assert_eq!(
         resolve(&request, &index, &overlay, true, 1).terminal,
         Terminal::Resolved
+    );
+    let empty = ContextRequest::new(RequestKind::CurrentDocumentRequisites, FrameId::new(1));
+    assert_eq!(
+        resolve(&empty, &index, &overlay, true, 1).terminal,
+        Terminal::Partial
     );
     assert_eq!(
         resolve(&request, &index, &overlay, false, 1).terminal,

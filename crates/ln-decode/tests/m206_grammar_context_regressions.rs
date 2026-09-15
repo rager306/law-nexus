@@ -4,12 +4,14 @@
 
 use ln_decode::current_requisites::{
     CurrentDocumentRequisites, RequisitesClaim, RequisitesExtractionStatus, RequisitesField,
-    RequisitesSourceKind, SourceAnchor,
+    RequisitesSourceKind, SourceAnchor, ThisRefGrammarEvidence,
 };
 use ln_decode::document_context::{
     build_document_analysis_overlay, build_document_structure_index, detect_this_ref_grammar,
-    BlockId, ContainerRole, ContextBudgets, ContextEnvironment, ContextRequest, ContextStatus,
-    ContextWorklist, ContextualEdgeKind, DocumentVersionRef,
+    open_series_head, BlockId, ContainerRole, ContextBudgets, ContextClaimStatus,
+    ContextDiagnostic, ContextEnvironment, ContextRequest, ContextStatus, ContextWorklist,
+    ContextualEdge, ContextualEdgeKind, DocumentAnalysisOverlay, DocumentStructureIndex,
+    DocumentVersionRef, FrameRef, StructureEdgeStatus,
 };
 use ln_decode::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
@@ -130,15 +132,22 @@ fn rc28_f07_three_unrelated_blocks_have_no_parent_edges() {
 }
 
 fn full_requisites() -> CurrentDocumentRequisites {
-    let claims = RequisitesField::ALL
+    CurrentDocumentRequisites::try_new("doc-v1".into(), all_field_claims("m206-s07", "value"))
+        .unwrap()
+}
+
+/// One observed claim per closed requisites field, all from the document head.
+/// Values differ per field so no cross-field equality is implied.
+fn all_field_claims(prefix: &str, value_prefix: &str) -> Vec<RequisitesClaim> {
+    RequisitesField::ALL
         .into_iter()
         .enumerate()
         .map(|(index, field)| {
             RequisitesClaim::try_new(
-                format!("m206-s07-{index}"),
+                format!("{prefix}-{index}"),
                 "doc-v1".into(),
                 field,
-                format!("value-{index}"),
+                format!("{value_prefix}-{index}"),
                 RequisitesSourceKind::DocumentHead,
                 SourceAnchor::try_new(
                     TextSpan::try_new(index, index + 1).unwrap(),
@@ -150,8 +159,38 @@ fn full_requisites() -> CurrentDocumentRequisites {
             )
             .unwrap()
         })
-        .collect();
-    CurrentDocumentRequisites::try_new("doc-v1".into(), claims).unwrap()
+        .collect()
+}
+
+/// Requisites environment for the single-block ThisRef fixture.
+fn this_ref_environment<'a>(
+    index: &'a ln_decode::document_context::DocumentStructureIndex,
+    overlay: &'a ln_decode::document_context::DocumentAnalysisOverlay,
+    sidecar: &'a CurrentDocumentRequisites,
+) -> ContextEnvironment<'a> {
+    ContextEnvironment {
+        index,
+        overlay,
+        requisites: Some(sidecar),
+    }
+}
+
+fn this_ref_fixture() -> (
+    ln_decode::document_context::DocumentStructureIndex,
+    ln_decode::document_context::DocumentAnalysisOverlay,
+) {
+    let blocks = vec![block(
+        "Настоящего Закона следует придерживаться.",
+        ParagraphStyle::BodyText,
+        0,
+    )];
+    let built = index(&blocks).unwrap();
+    let overlay = build_document_analysis_overlay(&built, &[], &[]).unwrap();
+    (built, overlay)
+}
+
+fn this_ref_request(evidence: ThisRefGrammarEvidence) -> ContextRequest {
+    ContextRequest::current_document_requisites(FrameRef::parse("block-0").unwrap(), evidence)
 }
 
 #[test]
@@ -257,4 +296,362 @@ fn rc28_f10_original_spans_accept_en_and_em_dash_range_variants() {
         "статьями 7.29 – 7.32",
         &find_legal_markers("статьями 7.29 – 7.32"),
     );
+}
+
+/// Overlay built from the act-list frames of the given blocks, in document
+/// order. Used by the F07 continuation-eligibility scenarios.
+fn overlay_from_blocks(
+    built: &DocumentStructureIndex,
+    blocks: &[ParsedBlock],
+) -> DocumentAnalysisOverlay {
+    let frames = blocks
+        .iter()
+        .enumerate()
+        .map(|(order, source)| {
+            (
+                BlockId::parse(&format!("block-{order}")).unwrap(),
+                extract_act_list_frames(source.text(), &capture_lawrefs(source.text())),
+                Vec::new(),
+            )
+        })
+        .collect::<Vec<_>>();
+    build_document_analysis_overlay(built, &frames, &[]).unwrap()
+}
+
+fn continuations(overlay: &DocumentAnalysisOverlay) -> Vec<&ContextualEdge> {
+    overlay
+        .edges()
+        .iter()
+        .filter(|edge| edge.relation == ContextualEdgeKind::ContinuesSeries)
+        .collect()
+}
+
+/// `F07-series-positive`: open coordination, source-block order, compatible
+/// owner/boundary and a retained derivation path are all present.
+#[test]
+fn rc28_f07_series_positive_proven_head_open_tail_and_document_order() {
+    // The head proves its own act type after a long prefix, so its
+    // fragment-local anchor starts *later* than the tail's. Eligibility must
+    // therefore be decided by source-block document order and never by
+    // comparing fragment-local offsets.
+    let blocks = vec![
+        block(
+            "Действующее законодательство и федеральный закон от 01.01.2020 N 1-ФЗ",
+            ParagraphStyle::BodyText,
+            0,
+        ),
+        block("от 02.02.2021 N 2-ФЗ", ParagraphStyle::BodyText, 1),
+    ];
+    let built = index(&blocks).unwrap();
+    let overlay = overlay_from_blocks(&built, &blocks);
+    let edges = continuations(&overlay);
+    assert_eq!(
+        edges.len(),
+        1,
+        "F07-series-positive: exactly one eligible origin must mint one edge"
+    );
+    let edge = edges[0];
+    assert_eq!(edge.from, "block-0-frame-0");
+    assert_eq!(edge.to, "block-1-frame-0");
+    assert_eq!(edge.status, StructureEdgeStatus::Proposed);
+    assert_eq!(
+        edge.evidence.len(),
+        2,
+        "F07-series-positive: both local derivations must be retained"
+    );
+    assert!(
+        edge.evidence[0].start() > edge.evidence[1].start(),
+        "F07-series-positive: document order, not fragment-local offsets, decides eligibility"
+    );
+    let outcome = open_series_head(&overlay, &FrameRef::parse("block-1-frame-0").unwrap());
+    assert_eq!(outcome.status, ContextStatus::Resolved);
+    assert_eq!(outcome.candidates.len(), 1);
+    assert_eq!(outcome.candidates[0].node_ref, "block-0-frame-0");
+}
+
+/// `F07-series-invalid`: missing order, incompatible owner/boundary, or an
+/// unproven head must never prove continuation eligibility.
+#[test]
+fn rc28_f07_series_invalid_order_boundary_and_unproven_head_mint_nothing() {
+    // (a) the open tail precedes every proven head in document order.
+    let reversed = vec![
+        block("от 02.02.2021 N 2-ФЗ", ParagraphStyle::BodyText, 0),
+        block(
+            "федеральный закон от 01.01.2020 N 1-ФЗ",
+            ParagraphStyle::BodyText,
+            1,
+        ),
+    ];
+    let built = index(&reversed).unwrap();
+    let overlay = overlay_from_blocks(&built, &reversed);
+    assert!(
+        continuations(&overlay).is_empty(),
+        "F07-series-invalid: a head after the tail must not authorize it"
+    );
+
+    // (b) head and tail sit in different owner/boundary containers.
+    let split = vec![
+        block("Закон", ParagraphStyle::Title, 0),
+        block("Статья 1. Первый", ParagraphStyle::Heading, 1),
+        block(
+            "федеральный закон от 01.01.2020 N 1-ФЗ",
+            ParagraphStyle::BodyText,
+            2,
+        ),
+        block("Статья 2. Второй", ParagraphStyle::Heading, 3),
+        block("от 02.02.2021 N 2-ФЗ", ParagraphStyle::BodyText, 4),
+    ];
+    let built = index(&split).unwrap();
+    let overlay = overlay_from_blocks(&built, &split);
+    assert!(
+        continuations(&overlay).is_empty(),
+        "F07-series-invalid: cross-container heads must not cross the owner boundary"
+    );
+
+    // (c) no frame proves its own act type, so no head exists at all. This is
+    // also the bounded-hop case: an open coordination can never head another.
+    let unproven = vec![
+        block("от 01.01.2020 N 1-ФЗ", ParagraphStyle::BodyText, 0),
+        block("от 02.02.2021 N 2-ФЗ", ParagraphStyle::BodyText, 1),
+    ];
+    let built = index(&unproven).unwrap();
+    let overlay = overlay_from_blocks(&built, &unproven);
+    assert!(
+        continuations(&overlay).is_empty(),
+        "F07-series-invalid: an unproven head must not authorize a continuation"
+    );
+
+    // (d) the earlier citation is incomplete (date without a document number),
+    // so it is an ambiguous frame and cannot prove a series head. The frame
+    // must exist with a proven act type, so the refusal is by frame status and
+    // not by an empty frame list.
+    let incomplete_head = vec![
+        block(
+            "федеральный закон от 01.01.2020",
+            ParagraphStyle::BodyText,
+            0,
+        ),
+        block("от 02.02.2021 N 2-ФЗ", ParagraphStyle::BodyText, 1),
+    ];
+    let head_frames = extract_act_list_frames(
+        incomplete_head[0].text(),
+        &capture_lawrefs(incomplete_head[0].text()),
+    );
+    assert_eq!(
+        head_frames.len(),
+        1,
+        "F07-series-invalid: head frame exists"
+    );
+    assert_eq!(
+        head_frames[0].status,
+        FrameStatus::Ambiguous,
+        "F07-series-invalid: an incomplete citation is ambiguous, not proposed"
+    );
+    assert!(
+        !head_frames[0].head_roles.is_empty(),
+        "F07-series-invalid: the act type is proven, only the requisites are incomplete"
+    );
+    let built = index(&incomplete_head).unwrap();
+    let overlay = overlay_from_blocks(&built, &incomplete_head);
+    assert!(
+        continuations(&overlay).is_empty(),
+        "F07-series-invalid: an incomplete citation must not authorize a continuation"
+    );
+}
+
+/// `F08-self-positive`: detector evidence, request, dispatch and the sidecar
+/// guard form one vertical.
+#[test]
+fn rc28_f08_self_positive_authorizes_through_typed_request_evidence() {
+    let (built, overlay) = this_ref_fixture();
+    let spans = detect_this_ref_grammar("Настоящего Закона следует придерживаться.");
+    assert_eq!(
+        spans.len(),
+        1,
+        "F08-self-positive: sentence-initial capitalization is the written form"
+    );
+    assert_eq!((spans[0].start(), spans[0].end()), (0, 33));
+    let request = this_ref_request(ThisRefGrammarEvidence::new([RequisitesField::Type]));
+    assert!(
+        request.this_ref_evidence().is_some(),
+        "F08-self-positive: evidence must be persisted on the request, not in a label"
+    );
+    let sidecar = full_requisites();
+    let mut worklist = ContextWorklist::new(ContextBudgets::default());
+    let report = worklist.run(this_ref_environment(&built, &overlay, &sidecar), &[request]);
+    let result = report.results.values().next().unwrap();
+    assert_eq!(result.status, ContextStatus::Resolved);
+    assert_eq!(result.candidate_claims.len(), 1);
+    assert_eq!(
+        result.candidate_claims[0].claim_status,
+        ContextClaimStatus::Inherited
+    );
+    assert!(!result.candidate_claims[0].source_node_ref.is_empty());
+}
+
+/// `F08-cited-act-negative`: an ordinary citation stays an earlier cited act,
+/// and a missing sidecar stays unavailable even with admitted evidence.
+#[test]
+fn rc28_f08_cited_act_negative_and_missing_sidecar_stay_refused() {
+    let (built, overlay) = this_ref_fixture();
+    assert!(
+        detect_this_ref_grammar("согласно статье 5").is_empty(),
+        "F08-cited-act-negative: ordinary citation must not admit ThisRef grammar"
+    );
+    let sidecar = full_requisites();
+    let empty_request = this_ref_request(ThisRefGrammarEvidence::default());
+    let mut worklist = ContextWorklist::new(ContextBudgets::default());
+    let report = worklist.run(
+        this_ref_environment(&built, &overlay, &sidecar),
+        &[empty_request],
+    );
+    let result = report.results.values().next().unwrap();
+    assert_eq!(
+        result.status,
+        ContextStatus::Partial,
+        "F08-cited-act-negative: an available sidecar alone is not authorization"
+    );
+    assert!(
+        result.candidate_claims.is_empty(),
+        "F08-cited-act-negative: no self-reference may be fabricated"
+    );
+    assert!(result
+        .diagnostics
+        .contains(&ContextDiagnostic::InheritedFieldConflict));
+
+    let admitted_request = this_ref_request(ThisRefGrammarEvidence::new([RequisitesField::Type]));
+    let no_sidecar = ContextEnvironment {
+        index: &built,
+        overlay: &overlay,
+        requisites: None,
+    };
+    let report =
+        ContextWorklist::new(ContextBudgets::default()).run(no_sidecar, &[admitted_request]);
+    let result = report.results.values().next().unwrap();
+    assert_eq!(result.status, ContextStatus::Unavailable);
+    assert!(result
+        .diagnostics
+        .contains(&ContextDiagnostic::MissingCurrentRequisites));
+    assert!(result.candidate_claims.is_empty());
+}
+
+/// `F08-self-missing-conflict`: missing or conflicting required sidecar fields
+/// fail closed even when the grammar evidence is admitted.
+#[test]
+fn rc28_f08_self_missing_or_conflicting_sidecar_fails_closed() {
+    let (built, overlay) = this_ref_fixture();
+    let mut claims = all_field_claims("m206-s07", "value");
+    claims.push(
+        RequisitesClaim::try_new(
+            "catalog-type".into(),
+            "doc-v1".into(),
+            RequisitesField::Type,
+            "other-type".into(),
+            RequisitesSourceKind::SourceCatalog,
+            SourceAnchor::try_new(TextSpan::try_new(0, 1).unwrap(), "catalog-anchor".into())
+                .unwrap(),
+            "profile-v1".into(),
+            RequisitesExtractionStatus::Observed,
+        )
+        .unwrap(),
+    );
+    let conflicting = CurrentDocumentRequisites::try_new("doc-v1".into(), claims).unwrap();
+    let date_only = CurrentDocumentRequisites::try_new(
+        "doc-v1".into(),
+        vec![RequisitesClaim::try_new(
+            "date-only".into(),
+            "doc-v1".into(),
+            RequisitesField::Date,
+            "2026-01-01".into(),
+            RequisitesSourceKind::DocumentHead,
+            SourceAnchor::try_new(TextSpan::try_new(0, 1).unwrap(), "date-anchor".into()).unwrap(),
+            "profile-v1".into(),
+            RequisitesExtractionStatus::Observed,
+        )
+        .unwrap()],
+    )
+    .unwrap();
+
+    for (label, sidecar) in [
+        ("conflicting required field", &conflicting),
+        ("missing required field", &date_only),
+    ] {
+        let request = this_ref_request(ThisRefGrammarEvidence::new([RequisitesField::Type]));
+        let mut worklist = ContextWorklist::new(ContextBudgets::default());
+        let report = worklist.run(this_ref_environment(&built, &overlay, sidecar), &[request]);
+        let result = report.results.values().next().unwrap();
+        assert_eq!(
+            result.status,
+            ContextStatus::Partial,
+            "F08-self-missing-conflict: {label} must not resolve"
+        );
+        assert!(
+            result.candidate_claims.is_empty(),
+            "F08-self-missing-conflict: {label} must not mint a claim"
+        );
+    }
+}
+
+/// `F08-self-positive` contra `F08-cited-act-negative`: one worklist must keep
+/// the empty and the non-empty authorization apart in either arrival order,
+/// and requests without a typed evidence surface must keep their exact memo
+/// identity (the documented cycle-detection label contract).
+#[test]
+fn rc28_f08_memo_identity_separates_empty_and_nonempty_evidence_in_both_orders() {
+    let (built, overlay) = this_ref_fixture();
+    let sidecar = full_requisites();
+    let empty = this_ref_request(ThisRefGrammarEvidence::default());
+    let admitted = this_ref_request(ThisRefGrammarEvidence::new([RequisitesField::Type]));
+    assert_ne!(
+        empty.memo_key(),
+        admitted.memo_key(),
+        "F08: authorization evidence is part of the memo identity"
+    );
+    assert_eq!(empty.memo_key().authorization_evidence.as_deref(), Some(""));
+    assert_eq!(
+        admitted.memo_key().authorization_evidence.as_deref(),
+        Some("type")
+    );
+    assert_eq!(
+        ContextRequest::new(
+            ln_decode::document_context::ContextRequestKind::AncestorPath,
+            "doc-v1".into(),
+            FrameRef::parse("block-0").unwrap(),
+            Vec::new(),
+            None,
+            None,
+            Vec::new(),
+            1,
+            "structural".into(),
+        )
+        .memo_key()
+        .authorization_evidence,
+        None,
+        "F08: structural requests keep their recorded memo label"
+    );
+
+    for order in [
+        vec![empty.clone(), admitted.clone()],
+        vec![admitted.clone(), empty.clone()],
+    ] {
+        let mut worklist = ContextWorklist::new(ContextBudgets::default());
+        let report = worklist.run(this_ref_environment(&built, &overlay, &sidecar), &order);
+        assert_eq!(
+            report.results.len(),
+            2,
+            "F08: two authorizations must not collapse into one memo entry"
+        );
+        assert_eq!(report.stats.memo_hits, 0);
+        let statuses: Vec<(Option<&str>, ContextStatus)> = report
+            .results
+            .iter()
+            .map(|(key, result)| (key.authorization_evidence.as_deref(), result.status))
+            .collect();
+        assert!(statuses.contains(&(Some("type"), ContextStatus::Resolved)));
+        assert!(statuses.contains(&(Some(""), ContextStatus::Partial)));
+
+        let replay = worklist.run(this_ref_environment(&built, &overlay, &sidecar), &order);
+        assert_eq!(replay.results, report.results);
+        assert_eq!(replay.stats.memo_hits, 2);
+    }
 }

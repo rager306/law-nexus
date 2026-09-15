@@ -1,16 +1,23 @@
+use ln_decode::current_requisites::{
+    CurrentDocumentRequisites, RequisitesClaim, RequisitesExtractionStatus, RequisitesField,
+    RequisitesSourceKind, SourceAnchor, ThisRefGrammarEvidence,
+};
 use ln_decode::document_context::{
     build_document_analysis_overlay, build_document_structure_index, explicit_anchor_lookup,
     open_series_head, reduce_context_results, scoped_alias, BlockId, ContainerId, ContextBudgets,
     ContextClaim, ContextClaimStatus, ContextDiagnostic, ContextEnvironment, ContextRequest,
-    ContextRequestKind, ContextResult, ContextStatus, ContextWorklist, DocumentVersionRef,
-    FrameRef, IndexBuildError, PROPOSED_MAX_ALIAS_CANDIDATES,
-    PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD, PROPOSED_MAX_SERIES_HOPS,
-    PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
+    ContextRequestKind, ContextResult, ContextStatus, ContextWorklist, ContextualEdgeKind,
+    DocumentAnalysisOverlay, DocumentStructureIndex, DocumentVersionRef, FrameRef, IndexBuildError,
+    StructureEdgeStatus, PROPOSED_MAX_ALIAS_CANDIDATES, PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD,
+    PROPOSED_MAX_SERIES_HOPS, PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
 };
 use ln_decode::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, TextSpan,
 };
-use ln_decode::local_grammar::{CoordinatingFrame, DerivationSource, FrameKind};
+use ln_decode::lawref::capture_lawrefs;
+use ln_decode::local_grammar::{
+    extract_act_list_frames, CoordinatingFrame, DerivationSource, FrameKind,
+};
 
 fn block(text: &str, style: ParagraphStyle, order: usize) -> ParsedBlock {
     ParsedBlock::try_new(
@@ -446,5 +453,198 @@ fn invalid_empty_index_is_fail_closed() {
     assert_eq!(
         build_document_structure_index(version(), &[]),
         Err(IndexBuildError::EmptyDocument)
+    );
+}
+
+/// Act-list overlay for the given blocks, in document order.
+fn act_overlay(index: &DocumentStructureIndex, blocks: &[ParsedBlock]) -> DocumentAnalysisOverlay {
+    let frames = blocks
+        .iter()
+        .enumerate()
+        .map(|(order, source)| {
+            (
+                BlockId::parse(&format!("block-{order}")).unwrap(),
+                extract_act_list_frames(source.text(), &capture_lawrefs(source.text())),
+                Vec::new(),
+            )
+        })
+        .collect::<Vec<_>>();
+    build_document_analysis_overlay(index, &frames, &[]).unwrap()
+}
+
+/// RC28-F07: conflict arbitration is driven by *eligibility*, never by
+/// multiplicity or proximity. Several eligible origins stay a retained
+/// conflict; unrelated self-sufficient citations mint nothing.
+#[test]
+fn continuation_conflict_requires_eligible_origins_not_multiplicity() {
+    let blocks = vec![
+        block(
+            "федеральный закон от 01.01.2020 N 1-ФЗ",
+            ParagraphStyle::BodyText,
+            0,
+        ),
+        block(
+            "федеральный кодекс от 02.02.2021 N 2-ФЗ",
+            ParagraphStyle::BodyText,
+            1,
+        ),
+        block("от 03.03.2022 N 3-ФЗ", ParagraphStyle::BodyText, 2),
+    ];
+    let index = build_document_structure_index(version(), &blocks).unwrap();
+    let overlay = act_overlay(&index, &blocks);
+    let continuations: Vec<_> = overlay
+        .edges()
+        .iter()
+        .filter(|edge| edge.relation == ContextualEdgeKind::ContinuesSeries)
+        .collect();
+    assert_eq!(
+        continuations.len(),
+        2,
+        "both eligible origins must stay visible"
+    );
+    assert!(continuations
+        .iter()
+        .all(|edge| edge.status == StructureEdgeStatus::Conflicting));
+    let outcome = open_series_head(&overlay, &FrameRef::parse("block-2-frame-0").unwrap());
+    assert_eq!(outcome.status, ContextStatus::Conflicting);
+    assert_eq!(outcome.candidates.len(), 2, "no proximity winner");
+    assert!(outcome
+        .diagnostics
+        .contains(&ContextDiagnostic::IncompatibleSeriesHead));
+
+    // Two complete, unrelated citations are not competing interpretations.
+    let unrelated = vec![
+        block(
+            "федеральный закон от 01.01.2020 N 1-ФЗ",
+            ParagraphStyle::BodyText,
+            0,
+        ),
+        block(
+            "федеральный кодекс от 02.02.2021 N 2-ФЗ",
+            ParagraphStyle::BodyText,
+            1,
+        ),
+    ];
+    let index = build_document_structure_index(version(), &unrelated).unwrap();
+    let overlay = act_overlay(&index, &unrelated);
+    assert!(
+        overlay
+            .edges()
+            .iter()
+            .all(|edge| edge.relation != ContextualEdgeKind::ContinuesSeries),
+        "unrelated citations must not gain continuation edges"
+    );
+}
+
+fn observed_claim(
+    id: &str,
+    field: RequisitesField,
+    value: &str,
+    source: RequisitesSourceKind,
+) -> RequisitesClaim {
+    RequisitesClaim::try_new(
+        id.to_owned(),
+        "doc-v1".into(),
+        field,
+        value.to_owned(),
+        source,
+        SourceAnchor::try_new(TextSpan::try_new(0, 1).unwrap(), format!("anchor-{id}")).unwrap(),
+        "profile-v1".into(),
+        RequisitesExtractionStatus::Observed,
+    )
+    .unwrap()
+}
+
+fn all_observed_claims(value_prefix: &str) -> Vec<RequisitesClaim> {
+    RequisitesField::ALL
+        .into_iter()
+        .enumerate()
+        .map(|(index, field)| {
+            observed_claim(
+                &format!("head-{index}"),
+                field,
+                &format!("{value_prefix}-{index}"),
+                RequisitesSourceKind::DocumentHead,
+            )
+        })
+        .collect()
+}
+
+/// RC28-F08 stale-evidence guard: one worklist reused against a changed or
+/// removed sidecar must recompute the authorization instead of replaying a
+/// memoized one.
+#[test]
+fn changed_sidecar_identity_invalidates_memoized_authorization() {
+    let index = build_document_structure_index(version(), &fixture()).unwrap();
+    let overlay = empty_overlay(&index);
+    let admitted = ContextRequest::current_document_requisites(
+        FrameRef::parse("block-4").unwrap(),
+        ThisRefGrammarEvidence::new([RequisitesField::Type]),
+    );
+    let usable =
+        CurrentDocumentRequisites::try_new("doc-v1".into(), all_observed_claims("value")).unwrap();
+    let conflicting = CurrentDocumentRequisites::try_new("doc-v1".into(), {
+        let mut claims = all_observed_claims("value");
+        claims.push(observed_claim(
+            "catalog-type",
+            RequisitesField::Type,
+            "other-type",
+            RequisitesSourceKind::SourceCatalog,
+        ));
+        claims
+    })
+    .unwrap();
+    assert_ne!(
+        usable.identity_fingerprint(),
+        conflicting.identity_fingerprint(),
+        "a changed claim set must change the sidecar identity"
+    );
+
+    let mut worklist = ContextWorklist::new(ContextBudgets::default());
+    let with_usable = ContextEnvironment {
+        index: &index,
+        overlay: &overlay,
+        requisites: Some(&usable),
+    };
+    let first = worklist.run(with_usable, std::slice::from_ref(&admitted));
+    assert_eq!(
+        first.results.values().next().unwrap().status,
+        ContextStatus::Resolved
+    );
+
+    let second = worklist.run(
+        ContextEnvironment {
+            index: &index,
+            overlay: &overlay,
+            requisites: Some(&conflicting),
+        },
+        std::slice::from_ref(&admitted),
+    );
+    assert_eq!(
+        second.results.values().next().unwrap().status,
+        ContextStatus::Partial,
+        "a changed sidecar must not replay a memoized authorization"
+    );
+    assert_eq!(second.stats.memo_hits, 0, "the memo must be invalidated");
+
+    let third = worklist.run(
+        ContextEnvironment {
+            index: &index,
+            overlay: &overlay,
+            requisites: None,
+        },
+        std::slice::from_ref(&admitted),
+    );
+    assert_eq!(
+        third.results.values().next().unwrap().status,
+        ContextStatus::Unavailable,
+        "a removed sidecar must not replay a memoized authorization"
+    );
+
+    let fourth = worklist.run(with_usable, &[admitted]);
+    assert_eq!(
+        fourth.results.values().next().unwrap().status,
+        ContextStatus::Resolved,
+        "restoring the sidecar recomputes the authorization"
     );
 }

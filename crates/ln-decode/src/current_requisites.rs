@@ -30,6 +30,20 @@ impl RequisitesField {
         Self::Title,
         Self::Family,
     ];
+
+    /// Closed YAML spelling (`prd/architecture/current-document-requisites.yaml`).
+    /// Used only to render a closed field fingerprint; never to spell source text.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Type => "type",
+            Self::Org => "org",
+            Self::Geo => "geo",
+            Self::Date => "date",
+            Self::Number => "number",
+            Self::Title => "title",
+            Self::Family => "family",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -224,7 +238,7 @@ impl RequisitesDiagnostic {
 
 /// Opaque grammar proof supplied by the ThisRef recognizer. It records only
 /// admitted fields, not source text or a way to manufacture a cited-act tail.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ThisRefGrammarEvidence {
     fields: BTreeSet<RequisitesField>,
 }
@@ -236,6 +250,20 @@ impl ThisRefGrammarEvidence {
     }
     pub fn contains(&self, field: RequisitesField) -> bool {
         self.fields.contains(&field)
+    }
+    pub fn is_empty(&self) -> bool {
+        self.fields.is_empty()
+    }
+    /// Closed fingerprint over the admitted field vocabulary in deterministic
+    /// order. It never carries source text, so it is safe to use as part of a
+    /// context memo identity: two requests that admit different fields can
+    /// never share one memoized authorization.
+    pub fn fingerprint(&self) -> String {
+        self.fields
+            .iter()
+            .map(|field| field.as_str())
+            .collect::<Vec<_>>()
+            .join("|")
     }
 }
 
@@ -416,6 +444,31 @@ impl CurrentDocumentRequisites {
     }
     pub fn diagnostics(&self) -> &[RequisitesDiagnostic] {
         &self.diagnostics
+    }
+
+    /// Content-bound identity of this sidecar. It exists so a context memo can
+    /// be bound to the exact authorization inputs it was computed from: a
+    /// sidecar whose version, completeness, or claims changed can never be
+    /// served a stale memoized authorization (RC28-F08). It is an identity
+    /// token only and is never emitted as a claim or a report field.
+    pub fn identity_fingerprint(&self) -> String {
+        let mut out = format!("{}:{:?}", self.document_version_ref, self.completeness);
+        for claim in &self.raw_claims {
+            out.push('|');
+            out.push_str(claim.claim_id());
+            out.push(':');
+            out.push_str(claim.field().as_str());
+            out.push(':');
+            out.push_str(claim.raw_value());
+            out.push(':');
+            out.push_str(&format!(
+                "{:?}/{:?}/{}",
+                claim.source_kind(),
+                claim.extraction_status(),
+                claim.extractor_profile()
+            ));
+        }
+        out
     }
     fn resolution(&self, field: RequisitesField) -> &FieldResolution {
         self.field_resolutions

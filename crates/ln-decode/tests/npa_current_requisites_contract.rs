@@ -255,4 +255,81 @@ fn diagnostics_have_exact_yaml_spelling() {
         RequisitesDiagnostic::SourceAuthorityPolicyMissing.as_str(),
         "source_authority_policy_missing"
     );
+    assert_eq!(
+        RequisitesField::ALL
+            .into_iter()
+            .map(RequisitesField::as_str)
+            .collect::<Vec<_>>(),
+        vec!["type", "org", "geo", "date", "number", "title", "family"],
+        "field spellings are the closed YAML vocabulary"
+    );
+}
+
+/// RC28-F08: the memo identity of a requisites request is a closed fingerprint
+/// over the admitted field set, so empty and non-empty evidence can never be
+/// conflated and no source text can leak into the identity.
+#[test]
+fn grammar_evidence_fingerprint_is_closed_and_deterministic() {
+    let empty = ThisRefGrammarEvidence::new([]);
+    assert!(empty.is_empty());
+    assert_eq!(empty.fingerprint(), "");
+    assert_eq!(
+        ThisRefGrammarEvidence::new([RequisitesField::Type]).fingerprint(),
+        "type"
+    );
+    assert_eq!(
+        ThisRefGrammarEvidence::new([
+            RequisitesField::Family,
+            RequisitesField::Type,
+            RequisitesField::Date,
+        ])
+        .fingerprint(),
+        "type|date|family",
+        "the fingerprint is deterministic and order-independent"
+    );
+    assert!(!ThisRefGrammarEvidence::new([RequisitesField::Title]).is_empty());
+}
+
+/// RC28-F08 stale-evidence guard input: the sidecar identity is content-bound,
+/// so a changed document version, completeness, or claim set changes it.
+#[test]
+fn sidecar_identity_fingerprint_is_content_bound() {
+    let base = CurrentDocumentRequisites::try_new("doc-v1".into(), full_claims()).unwrap();
+    let same = CurrentDocumentRequisites::try_new("doc-v1".into(), full_claims()).unwrap();
+    assert_eq!(base.identity_fingerprint(), same.identity_fingerprint());
+    assert!(!base.identity_fingerprint().is_empty());
+
+    let changed_value = CurrentDocumentRequisites::try_new("doc-v1".into(), {
+        let mut claims = full_claims();
+        claims[0] = claim(
+            "head-0",
+            RequisitesField::Type,
+            "different-type",
+            RequisitesSourceKind::DocumentHead,
+        );
+        claims
+    })
+    .unwrap();
+    assert_ne!(
+        base.identity_fingerprint(),
+        changed_value.identity_fingerprint(),
+        "a changed raw value must change the identity"
+    );
+
+    let conflicting = CurrentDocumentRequisites::try_new("doc-v1".into(), {
+        let mut claims = full_claims();
+        claims.push(claim(
+            "catalog-type",
+            RequisitesField::Type,
+            "other-type",
+            RequisitesSourceKind::SourceCatalog,
+        ));
+        claims
+    })
+    .unwrap();
+    assert_ne!(
+        base.identity_fingerprint(),
+        conflicting.identity_fingerprint(),
+        "a changed completeness must change the identity"
+    );
 }

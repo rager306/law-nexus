@@ -223,7 +223,7 @@ impl DocumentStructureIndex {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ThisRefEvidence {
     span: TextSpan,
     surface: String,
@@ -339,6 +339,11 @@ pub struct ContextRequest {
     pub key: Option<String>,
     pub scope: Option<usize>,
     pub path: Vec<FrameId>,
+    /// Typed current-document `ThisRef` grammar evidence (RC28-F08). It is
+    /// part of the request identity so two requests can never share an
+    /// authorization result while admitting different evidence. Empty means
+    /// "no admitted grammar proof", never "self-reference proven".
+    pub evidence: Vec<ThisRefEvidence>,
 }
 impl ContextRequest {
     pub fn new(kind: RequestKind, origin: FrameId) -> Self {
@@ -348,10 +353,16 @@ impl ContextRequest {
             key: None,
             scope: None,
             path: Vec::new(),
+            evidence: Vec::new(),
         }
     }
     pub fn key(mut self, key: impl Into<String>) -> Self {
         self.key = Some(key.into());
+        self
+    }
+    /// Attaches admitted `ThisRef` grammar evidence to the request.
+    pub fn with_evidence(mut self, evidence: Vec<ThisRefEvidence>) -> Self {
+        self.evidence = evidence;
         self
     }
 }
@@ -451,10 +462,15 @@ pub fn resolve(
             }
         }
         RequestKind::CurrentDocumentRequisites => {
-            let terminal = if requisites_available {
-                Terminal::Resolved
-            } else {
+            // RC28-F08 alignment with the owning ln-decode contract: a missing
+            // sidecar is Unavailable, an available sidecar with an empty
+            // grammar evidence set is a refusal (Partial) and never Resolved.
+            let terminal = if !requisites_available {
                 Terminal::Unavailable
+            } else if request.evidence.is_empty() {
+                Terminal::Partial
+            } else {
+                Terminal::Resolved
             };
             ContextResult {
                 terminal,

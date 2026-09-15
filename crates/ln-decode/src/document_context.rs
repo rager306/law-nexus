@@ -542,6 +542,7 @@ pub struct ContextRequest {
     path_so_far: Vec<String>,
     budget_remaining: usize,
     evidence_requirement: String,
+    this_ref_evidence: Option<ThisRefGrammarEvidence>,
 }
 impl ContextRequest {
     pub fn kind(&self) -> ContextRequestKind {
@@ -572,6 +573,7 @@ impl ContextRequest {
             path_so_far,
             budget_remaining,
             evidence_requirement,
+            this_ref_evidence: None,
         }
     }
 
@@ -592,7 +594,15 @@ impl ContextRequest {
             } else {
                 "grammar-evidence".to_owned()
             },
+            this_ref_evidence: Some(evidence),
         }
+    }
+
+    /// Typed authorization evidence persisted on the request (RC28-F08).
+    /// `evidence_requirement` is an opaque label and never an authorization
+    /// proof; only this value is dispatched to the sidecar guard.
+    pub fn this_ref_evidence(&self) -> Option<&ThisRefGrammarEvidence> {
+        self.this_ref_evidence.as_ref()
     }
 
     pub fn memo_key(&self) -> MemoKey {
@@ -602,6 +612,10 @@ impl ContextRequest {
             origin_frame_ref: self.origin_frame_ref.clone(),
             explicit_key: self.explicit_key.clone(),
             structural_scope: self.structural_scope.clone(),
+            authorization_evidence: self
+                .this_ref_evidence
+                .as_ref()
+                .map(ThisRefGrammarEvidence::fingerprint),
         }
     }
 }
@@ -681,6 +695,10 @@ pub struct ContextResult {
 /// The stable identity used by the context memo table.  Budget counters and
 /// traversal history are intentionally excluded: replaying the same typed
 /// query in one document version must hit the same memo entry.
+///
+/// Authorization evidence is *not* excluded: it is carried as a closed field
+/// fingerprint so that an empty evidence set and a non-empty one can never
+/// share a memoized authorization result (RC28-F08 contamination guard).
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct MemoKey {
     pub document_version_ref: String,
@@ -688,6 +706,7 @@ pub struct MemoKey {
     pub origin_frame_ref: FrameRef,
     pub explicit_key: Option<String>,
     pub structural_scope: Option<ContainerId>,
+    pub authorization_evidence: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -749,15 +768,21 @@ pub struct ContextRunReport {
 
 /// Stateful only with respect to immutable memoized results.  The source
 /// index, overlay and requisites are borrowed and are never altered.
+///
+/// The memo is additionally bound to the sidecar identity it was computed
+/// against: a run whose requisites identity differs invalidates the memo
+/// instead of serving a stale authorization (RC28-F08 stale-evidence guard).
 pub struct ContextWorklist {
     budgets: ContextBudgets,
     memo: BTreeMap<MemoKey, ContextResult>,
+    requisites_identity: Option<String>,
 }
 impl ContextWorklist {
     pub fn new(budgets: ContextBudgets) -> Self {
         Self {
             budgets,
             memo: BTreeMap::new(),
+            requisites_identity: None,
         }
     }
 
@@ -766,6 +791,13 @@ impl ContextWorklist {
         environment: ContextEnvironment<'a>,
         requests: &[ContextRequest],
     ) -> ContextRunReport {
+        let requisites_identity = environment
+            .requisites
+            .map(crate::current_requisites::CurrentDocumentRequisites::identity_fingerprint);
+        if self.requisites_identity != requisites_identity {
+            self.memo.clear();
+            self.requisites_identity = requisites_identity;
+        }
         let mut results = BTreeMap::new();
         let mut views = Vec::new();
         let mut stats = ContextRunStats::default();
@@ -808,12 +840,19 @@ impl ContextWorklist {
 }
 
 fn memo_label(key: &MemoKey) -> String {
-    format!(
+    let base = format!(
         "{:?}:{}:{}",
         key.request_kind,
         key.origin_frame_ref.as_str(),
         key.explicit_key.as_deref().unwrap_or("")
-    )
+    );
+    // Labels of requests without typed evidence stay byte-identical to the
+    // recorded contract; evidence-bearing requests append the closed
+    // fingerprint so two different authorizations never render as one ref.
+    match &key.authorization_evidence {
+        Some(fingerprint) => format!("{base}:evidence={fingerprint}"),
+        None => base,
+    }
 }
 fn limit_result(key: &MemoKey) -> ContextResult {
     ContextResult {
@@ -915,7 +954,7 @@ fn dispatch_leaf(
             }),
         ContextRequestKind::CurrentDocumentRequisites => current_document_requisites(
             environment.requisites,
-            ThisRefGrammarEvidence::new([]),
+            request.this_ref_evidence().cloned().unwrap_or_default(),
             &request.origin_frame_ref,
         ),
         ContextRequestKind::ExplicitAnchorLookup => request
@@ -1139,6 +1178,56 @@ impl fmt::Display for OverlayBuildError {
 }
 impl std::error::Error for OverlayBuildError {}
 
+/// Source-local view of one admitted act-requisites frame, used only by the
+/// continuation-eligibility proof. It carries the block's document order and
+/// nearest owner container so eligibility never compares fragment-local
+/// offsets across blocks (RC28-F07).
+#[derive(Debug, Clone)]
+struct ActFrameRecord {
+    frame_ref: FrameRef,
+    block_id: BlockId,
+    order: usize,
+    scope_id: ContainerId,
+    local_anchor: TextSpan,
+    status: FrameStatus,
+    /// The grammar admitted an act-type head inside this frame's own block.
+    /// Only such a frame can stand as a proven head; a frame whose act type
+    /// was never admitted locally is an open coordination that would need an
+    /// antecedent (and therefore can only ever be a tail).
+    admits_act_type: bool,
+}
+
+impl ActFrameRecord {
+    /// RC28-F07 eligibility. Every clause is a proof obligation, never a
+    /// proximity or multiplicity vote:
+    ///
+    /// * the tail is an open coordination (`!admits_act_type`), so it cannot
+    ///   stand alone and is not an unrelated complete citation;
+    /// * the head proves its own act type locally *and* its own frame is
+    ///   fully proven (`Proposed`: no unresolved, ambiguous, or incomplete
+    ///   member), which also bounds linking to a single pass without
+    ///   assigning any numeric hop policy;
+    /// * source-block *document order* holds (`order`), never a comparison of
+    ///   fragment-local offsets;
+    /// * owner and boundary are compatible (same nearest structural scope);
+    /// * both sides retain a real source-local derivation span.
+    fn eligible_continuation_head_for(&self, tail: &Self) -> bool {
+        self.status == FrameStatus::Proposed
+            && tail.status != FrameStatus::Rejected
+            && self.frame_ref != tail.frame_ref
+            && self.block_id != tail.block_id
+            && self.admits_act_type
+            && self.order < tail.order
+            && self.scope_id == tail.scope_id
+            && self.retains_local_derivation()
+            && tail.retains_local_derivation()
+    }
+
+    fn retains_local_derivation(&self) -> bool {
+        self.local_anchor.start() < self.local_anchor.end()
+    }
+}
+
 /// Builds only derived, source-local nodes and edges.  In particular, no
 /// node may contain a cross-block TextSpan; continuation edges carry the two
 /// separate local frame anchors instead.
@@ -1158,6 +1247,7 @@ pub fn build_document_analysis_overlay(
         mentions: Vec::new(),
         edges: Vec::new(),
     };
+    let mut act_records: Vec<ActFrameRecord> = Vec::new();
     for (block_id, frames, designations) in frames_per_block {
         let source = index
             .source_blocks
@@ -1181,6 +1271,17 @@ pub fn build_document_analysis_overlay(
                 local_anchor: frame.local_anchor,
                 status: frame.status,
             });
+            if frame.frame_kind == FrameKind::ActRequisites {
+                act_records.push(ActFrameRecord {
+                    frame_ref: frame_ref.clone(),
+                    block_id: block_id.clone(),
+                    order: source.order(),
+                    scope_id: scope_id.clone(),
+                    local_anchor: frame.local_anchor,
+                    status: frame.status,
+                    admits_act_type: !frame.head_roles.is_empty(),
+                });
+            }
             let frame_node = frame_ref.as_str().to_owned();
             let relation = if frame.continuation {
                 ContextualEdgeKind::ContinuesSeries
@@ -1238,40 +1339,39 @@ pub fn build_document_analysis_overlay(
             });
         }
     }
-    // A head is accepted only when there is exactly one candidate.  No
-    // proximity tie-break is applied; competing candidates stay visible.
-    let act_frames: Vec<_> = overlay
-        .frames
+    // A head is accepted only when exactly one frame *proves* continuation
+    // eligibility.  Multiplicity alone creates no conflict: unrelated
+    // citations are not competing authorized interpretations (RC28-F07), and
+    // no proximity tie-break is applied.
+    for tail in act_records
         .iter()
-        .filter(|f| f.frame_kind == FrameKind::ActRequisites)
-        .collect();
-    for tail in act_frames
-        .iter()
-        .filter(|f| f.status != FrameStatus::Rejected)
+        .filter(|record| !record.admits_act_type && record.status != FrameStatus::Rejected)
     {
-        let candidates: Vec<_> = act_frames
+        let eligible: Vec<&ActFrameRecord> = act_records
             .iter()
-            .filter(|head| head.frame_ref != tail.frame_ref && head.block_id != tail.block_id)
+            .filter(|head| head.eligible_continuation_head_for(tail))
             .collect();
-        if candidates.len() == 1 && tail.local_anchor.start() > candidates[0].local_anchor.start() {
-            overlay.edges.push(ContextualEdge {
-                from: candidates[0].frame_ref.as_str().to_owned(),
+        match eligible.len() {
+            0 => {}
+            1 => overlay.edges.push(ContextualEdge {
+                from: eligible[0].frame_ref.as_str().to_owned(),
                 to: tail.frame_ref.as_str().to_owned(),
                 relation: ContextualEdgeKind::ContinuesSeries,
-                evidence: vec![candidates[0].local_anchor, tail.local_anchor],
+                evidence: vec![eligible[0].local_anchor, tail.local_anchor],
                 confidence_class: ConfidenceClass::DerivedPath,
                 status: StructureEdgeStatus::Proposed,
-            });
-        } else if candidates.len() > 1 {
-            for head in candidates {
-                overlay.edges.push(ContextualEdge {
-                    from: head.frame_ref.as_str().to_owned(),
-                    to: tail.frame_ref.as_str().to_owned(),
-                    relation: ContextualEdgeKind::ContinuesSeries,
-                    evidence: vec![head.local_anchor, tail.local_anchor],
-                    confidence_class: ConfidenceClass::DerivedPath,
-                    status: StructureEdgeStatus::Conflicting,
-                });
+            }),
+            _ => {
+                for head in eligible {
+                    overlay.edges.push(ContextualEdge {
+                        from: head.frame_ref.as_str().to_owned(),
+                        to: tail.frame_ref.as_str().to_owned(),
+                        relation: ContextualEdgeKind::ContinuesSeries,
+                        evidence: vec![head.local_anchor, tail.local_anchor],
+                        confidence_class: ConfidenceClass::DerivedPath,
+                        status: StructureEdgeStatus::Conflicting,
+                    });
+                }
             }
         }
     }
@@ -1330,21 +1430,49 @@ pub fn detect_declared_aliases(text: &str, scope: ContainerId) -> Vec<DeclaredAl
 
 /// Detect the closed ThisRef surface and return exact local spans. The
 /// sidecar proof itself remains `current_requisites::ThisRefGrammarEvidence`.
+///
+/// The surface list is a closed vocabulary and matching is case-insensitive:
+/// Russian legal text capitalizes sentence-initial and nominal references
+/// (`Настоящего Закона`), and a case-sensitive probe would silently drop the
+/// commonest written form. Spans always index the original source text and
+/// are emitted in deterministic source order.
 pub fn detect_this_ref_grammar(text: &str) -> Vec<TextSpan> {
-    [
+    const SURFACES: [&str; 6] = [
         "настоящего Федерального закона",
         "настоящего Закона",
         "настоящего приказа",
         "настоящего Порядка",
         "настоящего положения",
         "настоящей статьи",
-    ]
-    .iter()
-    .flat_map(|surface| {
-        text.match_indices(surface)
-            .filter_map(move |(start, _)| TextSpan::try_new(start, start + surface.len()).ok())
-    })
-    .collect()
+    ];
+    let mut spans = Vec::new();
+    for (start, _) in text.char_indices() {
+        for surface in SURFACES {
+            if let Some(end) = match_this_ref_surface(text, start, surface) {
+                if let Ok(span) = TextSpan::try_new(start, end) {
+                    spans.push(span);
+                }
+            }
+        }
+    }
+    spans.sort_by_key(|span| (span.start(), span.end()));
+    spans.dedup();
+    spans
+}
+
+/// Case-insensitive match of one closed surface at `start`, returning the end
+/// byte offset in the original text. Only char case folding is applied; no
+/// normalization, stemming, or source rewriting is performed.
+fn match_this_ref_surface(text: &str, start: usize, surface: &str) -> Option<usize> {
+    let mut cursor = start;
+    for expected in surface.chars() {
+        let actual = text.get(cursor..)?.chars().next()?;
+        if !actual.to_lowercase().eq(expected.to_lowercase()) {
+            return None;
+        }
+        cursor += actual.len_utf8();
+    }
+    Some(cursor)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -2,7 +2,7 @@ use ln_decode::document_context::{
     build_document_analysis_overlay, build_document_structure_index, reduce_context_results,
     BlockId, ContainerRole, ContextBudgets, ContextEnvironment, ContextPhase, ContextRequest,
     ContextRequestKind, ContextStatus, ContextTransition, ContextWorklist, DocumentVersionRef,
-    IndexBuildError, MAX_LINKING_PASSES, PROPOSED_MAX_ADJACENT_RADIUS,
+    FrameRef, IndexBuildError, MAX_LINKING_PASSES, PROPOSED_MAX_ADJACENT_RADIUS,
 };
 use ln_decode::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
@@ -362,4 +362,88 @@ fn typed_request_and_terminal_status_are_closed() {
         ContextStatus::Limit,
     ];
     assert!(TERMINALS.contains(&ContextStatus::Cycle));
+}
+
+/// RC28-F08 port contract: the legacy `evidence_requirement` label is an
+/// opaque label, never an authorization. Only typed evidence persisted on the
+/// request can authorize, and that evidence is part of the memo identity, so
+/// two different authorizations can never collapse into one memoized result.
+#[test]
+fn typed_request_evidence_is_the_only_authorization_route() {
+    use ln_decode::current_requisites::{
+        CurrentDocumentRequisites, RequisitesClaim, RequisitesExtractionStatus, RequisitesField,
+        RequisitesSourceKind, SourceAnchor, ThisRefGrammarEvidence,
+    };
+    use ln_decode::domain::TextSpan;
+
+    let version =
+        DocumentVersionRef::try_new("doc-v1".into(), "rev-1".into(), "profile-1".into()).unwrap();
+    let index = build_document_structure_index(version, &fixture()).unwrap();
+    let overlay = build_document_analysis_overlay(&index, &[], &[]).unwrap();
+    let claims: Vec<_> = RequisitesField::ALL
+        .into_iter()
+        .enumerate()
+        .map(|(index, field)| {
+            RequisitesClaim::try_new(
+                format!("head-{index}"),
+                "doc-v1".into(),
+                field,
+                format!("value-{index}"),
+                RequisitesSourceKind::DocumentHead,
+                SourceAnchor::try_new(
+                    TextSpan::try_new(index, index + 1).unwrap(),
+                    format!("anchor-{index}"),
+                )
+                .unwrap(),
+                "profile-v1".into(),
+                RequisitesExtractionStatus::Observed,
+            )
+            .unwrap()
+        })
+        .collect();
+    let sidecar = CurrentDocumentRequisites::try_new("doc-v1".into(), claims).unwrap();
+    let environment = ContextEnvironment {
+        index: &index,
+        overlay: &overlay,
+        requisites: Some(&sidecar),
+    };
+
+    // A request whose only "evidence" is the opaque legacy label carries no
+    // typed evidence and therefore stays a refusal.
+    let labelled = ContextRequest::new(
+        ContextRequestKind::CurrentDocumentRequisites,
+        "doc-v1".into(),
+        FrameRef::parse("block-3").unwrap(),
+        Vec::new(),
+        None,
+        None,
+        Vec::new(),
+        1,
+        "authorized-fields".into(),
+    );
+    assert!(labelled.this_ref_evidence().is_none());
+    assert_eq!(labelled.memo_key().authorization_evidence, None);
+    let mut worklist = ContextWorklist::new(ContextBudgets::default());
+    let report = worklist.run(environment, &[labelled]);
+    assert_eq!(
+        report.results.values().next().unwrap().status,
+        ContextStatus::Partial,
+        "an evidence label is not an authorization proof"
+    );
+
+    // Persisted typed evidence resolves through the same dispatch path, and
+    // the two requests keep distinct memo identities on one worklist.
+    let admitted = ContextRequest::current_document_requisites(
+        FrameRef::parse("block-3").unwrap(),
+        ThisRefGrammarEvidence::new([RequisitesField::Type]),
+    );
+    assert_eq!(
+        admitted.memo_key().authorization_evidence.as_deref(),
+        Some("type")
+    );
+    let report = worklist.run(environment, &[admitted]);
+    assert_eq!(
+        report.results.values().next().unwrap().status,
+        ContextStatus::Resolved
+    );
 }
