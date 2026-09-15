@@ -1,0 +1,446 @@
+{
+  "schema": "m206-s07-runtime-battery/v1",
+  "milestone": "M206-jnbhlz",
+  "slice": "S07",
+  "admission": "prd/architecture/m206-s07-runtime-admission.md",
+  "admissionCheck": "scripts/m206_s07_admission_contract.test.mjs",
+  "greenOracle": "M206_EXPECT=green node --test scripts/m206_s06_reproduction.test.mjs",
+  "commands": [
+    {
+      "label": "M206_EXPECT=green node --test scripts/m206_s06_reproduction.test.mjs",
+      "status": 0,
+      "passed": 12,
+      "failed": 0,
+      "changeClass": "Composed RC28-F06..F12 closeout oracle"
+    },
+    {
+      "label": "cargo test -p ln-decode --offline --test m206_grammar_context_regressions",
+      "status": 0,
+      "passed": 19,
+      "failed": 0,
+      "ignored": 0,
+      "filteredOut": 0,
+      "changeClass": "S06 red reproduction oracle for RC28-F06..F10"
+    },
+    {
+      "label": "cargo test -p ln-temporal --offline --test m206_scope_regressions",
+      "status": 0,
+      "passed": 18,
+      "failed": 0,
+      "ignored": 0,
+      "filteredOut": 0,
+      "changeClass": "S06 red reproduction oracle for RC28-F11..F12"
+    },
+    {
+      "label": "cargo test -p ln-temporal --offline --test reference_binding_endpoints",
+      "status": 0,
+      "passed": 10,
+      "failed": 0,
+      "ignored": 0,
+      "filteredOut": 0,
+      "changeClass": "RC28-F10 endpoint and membership boundary"
+    },
+    {
+      "label": "cargo test -p ln-testkit --offline --test decode_port_contracts",
+      "status": 0,
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0,
+      "filteredOut": 0,
+      "changeClass": "RC28-F12 composed reference vertical and provider isolation"
+    }
+  ],
+  "scenarioMap": [
+    {
+      "slice": "S02",
+      "id": "F09-independent-sentences",
+      "path": "positive",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "m206_s02_f09_independent_sentences_are_not_merged",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S02",
+      "id": "F09-incomplete-tail",
+      "path": "negative",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "m206_s02_f09_incomplete_tail_stays_observable",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S02",
+      "id": "F09-boundaries",
+      "path": "negative",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "m206_s02_f09_sentence_and_heading_boundaries_stay_distinct",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S02",
+      "id": "F09-refused-token-only",
+      "path": "negative",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "m206_s02_f09_refused_token_only_evidence_never_completes_a_member",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S02",
+      "id": "F09-identical-origins",
+      "path": "positive",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "m206_s02_f09_identical_origins_keep_slot_fingerprint",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S02",
+      "id": "F09-overlap",
+      "path": "negative",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "m206_s02_f09_overlap_is_a_conflict_set_not_order_resolution",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S02",
+      "id": "F09-order",
+      "path": "negative",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "m206_s02_f09_producer_order_is_not_precedence",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S02",
+      "id": "F10-original-spans",
+      "path": "positive",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "m206_s02_f10_original_spans_and_unavailable_morphology_stay_explicit",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F08-self-positive",
+      "path": "positive",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "rc28_f08_self_positive_authorizes_through_typed_request_evidence",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F08-cited-act-negative",
+      "path": "negative",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "rc28_f08_cited_act_negative_and_missing_sidecar_stay_refused",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F08-self-missing-conflict",
+      "path": "negative",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "rc28_f08_self_missing_or_conflicting_sidecar_fails_closed",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F12-antecedent-positive",
+      "path": "positive",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f12_antecedent_positive_and_unproven_cited_act_stay_separate",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F12-antecedent-unproven",
+      "path": "negative",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f12_antecedent_positive_and_unproven_cited_act_stay_separate",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F12-alias-declare-use",
+      "path": "positive",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f12_alias_declare_use_shadow_conflict_and_boundary",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F12-alias-shadow-conflict",
+      "path": "negative",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f12_alias_declare_use_shadow_conflict_and_boundary",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F12-alias-boundary",
+      "path": "negative",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f12_alias_declare_use_shadow_conflict_and_boundary",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F07-series-positive",
+      "path": "positive",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "rc28_f07_series_positive_proven_head_open_tail_and_document_order",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F07-three-unrelated",
+      "path": "negative",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "rc28_f07_three_unrelated_blocks_have_no_parent_edges",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F07-series-invalid",
+      "path": "negative",
+      "package": "ln-decode",
+      "suite": "m206_grammar_context_regressions",
+      "test": "rc28_f07_series_invalid_order_boundary_and_unproven_head_mint_nothing",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S03",
+      "id": "F12-edition-relation",
+      "path": "positive",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f12_edition_relation_is_a_source_backed_candidate_not_identity",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F10-CUE-TOKEN",
+      "path": "negative",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f11_s04_f10_cue_token_scoped_negation_stays_separate",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F10-CUE-POSITIVE",
+      "path": "positive",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f11_s04_f10_cue_positive_stays_a_candidate",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F10-ACTOR-ANCHORED",
+      "path": "positive",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f11_s04_f10_actor_anchored_span_is_exact",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F10-ACTOR-NEGATIVE",
+      "path": "negative",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f11_s04_f10_actor_negative_is_typed_absence",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F11-ENDPOINTS",
+      "path": "positive",
+      "package": "ln-temporal",
+      "suite": "reference_binding_endpoints",
+      "test": "rc28_f10_s04_f11_endpoints_pair_keeps_only_the_two_written_endpoints",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F11-MEMBERSHIP",
+      "path": "negative",
+      "package": "ln-temporal",
+      "suite": "reference_binding_endpoints",
+      "test": "rc28_f10_s04_f11_membership_requires_a_selected_edition_index",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F11-MISSING-MEMBER",
+      "path": "negative",
+      "package": "ln-temporal",
+      "suite": "reference_binding_endpoints",
+      "test": "rc28_f10_s04_f11_missing_member_is_typed_incomplete_with_endpoints_preserved",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F11-RANGE-INVALID",
+      "path": "negative",
+      "package": "ln-temporal",
+      "suite": "reference_binding_endpoints",
+      "test": "rc28_f10_s04_f11_invalid_or_reversed_range_is_refused_without_arithmetic",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F12-VERTICAL-POSITIVE",
+      "path": "positive",
+      "package": "ln-testkit",
+      "suite": "decode_port_contracts",
+      "test": "rc28_f12_s04_f12_vertical_positive_composes_for_consultant",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F12-VERTICAL-NEGATIVE",
+      "path": "negative",
+      "package": "ln-testkit",
+      "suite": "decode_port_contracts",
+      "test": "rc28_f12_s04_f12_vertical_negative_missing_context_stays_typed_unknown",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F12-CONTEXT-SEPARATION",
+      "path": "positive",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f12_construction_separation_keeps_authorizations_apart",
+      "outcome": "passed",
+      "status": 0
+    },
+    {
+      "slice": "S04",
+      "id": "F12-NO-IR",
+      "path": "negative",
+      "package": "ln-temporal",
+      "suite": "m206_scope_regressions",
+      "test": "rc28_f12_edition_relation_is_a_source_backed_candidate_not_identity",
+      "outcome": "passed",
+      "status": 0
+    }
+  ],
+  "s01Provenance": {
+    "slice": "S01",
+    "status": "design-only",
+    "batteryStatus": "NOT_RUN",
+    "ownerDecision": "Reject",
+    "interaction": "04fd05a2-338f-45af-a1cc-13501717dc53",
+    "source": "prd/architecture/m206-s01-adoption-state.md",
+    "scenarioIds": [],
+    "outcome": "not-executed",
+    "evidenceNote": "S01 recorded a source-bound owner Reject for the F06/F10 adoption and left its composition battery NOT_RUN; the marker is preserved, never flipped."
+  },
+  "historicalGuards": [
+    {
+      "label": "bash scripts/m206_s02_t02_verify.sh",
+      "status": 0,
+      "outcome": "passed",
+      "passed": null,
+      "note": "historical S01-S04 provenance still describes the design-only stop honestly"
+    },
+    {
+      "label": "node --test scripts/m206_s03_adoption_contract.test.mjs",
+      "status": 0,
+      "outcome": "passed",
+      "passed": 14,
+      "note": "historical S01-S04 provenance still describes the design-only stop honestly"
+    },
+    {
+      "label": "node --test scripts/m206_s04_adoption_contract.test.mjs",
+      "status": 0,
+      "outcome": "passed",
+      "passed": 5,
+      "note": "historical S01-S04 provenance still describes the design-only stop honestly"
+    }
+  ],
+  "sourceHashes": {
+    "crates/ln-decode/src/capture_bounds.rs": "sha256:aed54ce919514aede38e97b40869d1efb81ca7d2f9fc615e4c4738ea33dcc102",
+    "crates/ln-decode/src/document_context.rs": "sha256:b6773a6e10793cf4d564708a1687c6c1252f7ef201bedd936049de3ff9770748",
+    "crates/ln-decode/src/lawref.rs": "sha256:2d4b4ac586b02a020d9aeddc8ea0ab9e5d34143d561b0419b8f48009b4bf6583",
+    "crates/ln-decode/src/local_grammar.rs": "sha256:ba272c28173ba340ea4a1637f66b026e1c5a019e2768dbf1a19e68bbf6b6eb86",
+    "crates/ln-decode/src/sentence.rs": "sha256:287da58bbd73bd78a16147cf434e2f2512ad622fb3c789da75d6bc63a195e17e",
+    "crates/ln-temporal/src/document_context.rs": "sha256:c870f211d2fab0fe3644766dcbeac1920e65d34c869679a2a4fa3a54a6f40dae",
+    "crates/ln-temporal/src/identity_binding.rs": "sha256:b9659fa0f59ff876636f548763bcf8930d231008aedbc8ac7c206824bdae666a",
+    "crates/ln-temporal/src/semantic_scope.rs": "sha256:f2b42affec34075a64b1e12b5f8fe40a1188116e318ff49324590ff6db4f68a3",
+    "crates/ln-decode/tests/m206_grammar_context_regressions.rs": "sha256:6efe32bedcf6e54f632886ac9cf16222a1ff5533d5e06635d6df3429bc5691f9",
+    "crates/ln-temporal/tests/m206_scope_regressions.rs": "sha256:f742f65a9422763c6dc4db6eda95fc1428333072e2e8a009c373aa2e189480a2",
+    "crates/ln-temporal/tests/reference_binding_endpoints.rs": "sha256:07a5df45b5d5e6e2e5df9c0547728e2d52788c4605d173d71af4c7f70657c581",
+    "crates/ln-testkit/tests/decode_port_contracts.rs": "sha256:8abbb02bd69973dbfddcba46ac3856035e12df1d934c94867893c5c1ca556fdd",
+    "scripts/m206_s06_reproduction.test.mjs": "sha256:2744d80f71f27b11475c1ccae9d19d71afcdd048ffbfaa3c86b329cc743b93e7",
+    "scripts/m206_s07_admission_contract.test.mjs": "sha256:8aa31c3410a741f3321177528e311c11f4d39557818eafd9cb9ee86eb5d2bb8a",
+    "scripts/m206_s07_runtime_battery.test.mjs": "sha256:e22c1f654873209792e54a542cfd0d7dde55b6f0c64a540ada7222c795e08ec7",
+    "prd/architecture/m206-s07-runtime-admission.md": "sha256:75f5a031296d2afe8b808a3e1257a9a579e908157198c9a0be7ee81b70a8c4ab",
+    "doc/review/review-28-10-09-2026.md": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+  },
+  "governor": {
+    "status": "not-run-in-battery",
+    "note": "Governor is recorded separately by the closeout unit; pass M206_GOVERNOR_REPORT to bind it here.",
+    "pass_count": null,
+    "warn_count": null,
+    "error_count": null,
+    "inherited": [
+      "empty_entities projection compatibility drift (DECISIONS.md first offender)"
+    ],
+    "newDefects": []
+  },
+  "counts": {
+    "suites": 5,
+    "scenarios": 32,
+    "scenarioPassed": 32,
+    "negativePaths": 19
+  },
+  "diagnostics": "Bounded execution evidence only: every row above ran one named command; no raw legal text is stored. Wall-clock timings are not persisted (they are printed to stdout), so the manifest stays byte-reproducible for an unchanged tree."
+}

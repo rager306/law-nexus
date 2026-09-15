@@ -9,8 +9,10 @@
 //! stay with RC28-F10 in ln-decode and are not owned here.
 
 use ln_temporal::document_context::{
-    detect_this_ref, AnalysisOverlay, BlockId, Container, ContainerRole, DocumentStructureIndex,
-    DocumentVersion, Frame, FrameId, SourceBlock, Terminal, TextSpan,
+    detect_edition_relations, detect_this_ref, resolve_construction, AnalysisOverlay, BlockId,
+    ConstructionAbstention, ConstructionOutcome, ConstructionRequest, Container, ContainerRole,
+    ContextError, DocumentStructureIndex, DocumentVersion, Frame, FrameId, ReferenceConstruction,
+    ScopedAliasDeclaration, SourceAnchor, SourceBlock, Terminal, TextSpan,
 };
 use ln_temporal::semantic_scope::{
     extract_semantic_claims, project_norm_rule, AbstentionReason, ProjectionOutcome, SemanticClaim,
@@ -388,4 +390,507 @@ fn rc28_f11_scale_stays_bounded_and_truncation_is_typed() {
         .claims()
         .iter()
         .all(|claim| claim.span().end() <= block.text().len()));
+}
+
+// ---------------------------------------------------------------------------
+// RC28-F12 construction separation (T06).
+//
+// S03 scenario map owned by this file:
+// `F12-antecedent-positive`, `F12-antecedent-unproven`,
+// `F12-alias-declare-use`, `F12-alias-shadow-conflict`, `F12-alias-boundary`,
+// `F12-edition-relation`.
+// S04 scenario map owned by this file for RC28-F12:
+// `F12-CONTEXT-SEPARATION`, `F12-NO-IR`.
+// `F12-VERTICAL-POSITIVE`/`F12-VERTICAL-NEGATIVE` are the composed vertical and
+// live in `crates/ln-testkit/tests/decode_port_contracts.rs`.
+// ---------------------------------------------------------------------------
+
+/// Three blocks in document order: block 0 is the earlier cited act, block 1
+/// cites it, block 2 is an unrelated later section.
+fn construction_fixture() -> (DocumentStructureIndex, AnalysisOverlay) {
+    let blocks = vec![
+        SourceBlock::new(BlockId::new(0), 0, "Федеральный закон от 01.01.2020 N 1-ФЗ"),
+        SourceBlock::new(BlockId::new(1), 1, "Статья 5 применяется в отношении него"),
+        SourceBlock::new(BlockId::new(2), 2, "Иной раздел документа"),
+    ];
+    let index = DocumentStructureIndex::build(
+        DocumentVersion::new("doc-v1").unwrap(),
+        blocks,
+        vec![
+            Container::new(0, ContainerRole::Document, None),
+            Container::new(1, ContainerRole::Article, Some(0)),
+            Container::new(2, ContainerRole::Article, Some(0)),
+        ],
+        BTreeMap::from([
+            (BlockId::new(0), 1),
+            (BlockId::new(1), 1),
+            (BlockId::new(2), 2),
+        ]),
+    )
+    .unwrap();
+    let frames = vec![
+        Frame::new(FrameId::new(0), BlockId::new(0), false, false),
+        Frame::new(FrameId::new(1), BlockId::new(1), false, false),
+        Frame::new(FrameId::new(2), BlockId::new(2), false, false),
+    ];
+    let overlay = AnalysisOverlay::new(frames, BTreeMap::new(), BTreeMap::new()).unwrap();
+    (index, overlay)
+}
+
+/// The source-local anchor of `needle` inside `haystack`.
+fn anchor_of(haystack: &str, needle: &str) -> TextSpan {
+    let start = haystack
+        .find(needle)
+        .unwrap_or_else(|| panic!("fixture needle {needle:?} not found"));
+    TextSpan::new(start, start + needle.len()).unwrap()
+}
+
+/// A block-bound source anchor: byte offsets are fragment-local, so the block
+/// identity travels with the span.
+fn source_anchor(block: usize, haystack: &str, needle: &str) -> SourceAnchor {
+    SourceAnchor::new(BlockId::new(block), anchor_of(haystack, needle))
+        .expect("fixture source anchor")
+}
+
+#[test]
+fn rc28_f12_antecedent_positive_and_unproven_cited_act_stay_separate() {
+    let (index, overlay) = construction_fixture();
+    let earlier_text = index.blocks()[0].text();
+    let anchor = source_anchor(0, earlier_text, "закон");
+    let origin = FrameId::new(1);
+
+    // F12-antecedent-positive: the earlier cited act is proven by source-block
+    // document order plus its own source-local anchor.
+    let positive = ConstructionRequest::new(ReferenceConstruction::EarlierCitedAct, origin, 1)
+        .explicit_target(FrameId::new(0))
+        .anchor(anchor);
+    match resolve_construction(&positive, &index, &overlay, false) {
+        ConstructionOutcome::Resolved {
+            construction,
+            target,
+            evidence,
+        } => {
+            assert_eq!(
+                construction,
+                ReferenceConstruction::EarlierCitedAct,
+                "F12-antecedent-positive: the construction is preserved on the outcome"
+            );
+            assert_eq!(target, FrameId::new(0));
+            assert_eq!(evidence, vec![anchor.span()]);
+            assert_eq!(evidence[0], anchor_of(earlier_text, "закон"));
+        }
+        other => {
+            panic!("F12-antecedent-positive: expected a proven earlier cited act, got {other:?}")
+        }
+    }
+
+    // F12-antecedent-unproven: every unproven path is typed and none of them
+    // resolves.
+    let cases: Vec<(ConstructionRequest, ConstructionAbstention, &str)> = vec![
+        (
+            ConstructionRequest::new(ReferenceConstruction::EarlierCitedAct, origin, 1),
+            ConstructionAbstention::MissingAntecedent,
+            "no antecedent was offered at all",
+        ),
+        (
+            ConstructionRequest::new(ReferenceConstruction::EarlierCitedAct, origin, 1)
+                .explicit_target(FrameId::new(9))
+                .anchor(anchor),
+            ConstructionAbstention::MissingAntecedent,
+            "the offered antecedent frame is unknown",
+        ),
+        (
+            ConstructionRequest::new(ReferenceConstruction::EarlierCitedAct, origin, 1)
+                .explicit_target(FrameId::new(2))
+                .anchor(source_anchor(2, index.blocks()[2].text(), "раздел")),
+            ConstructionAbstention::AntecedentNotEarlier,
+            "a later act is not an antecedent",
+        ),
+        (
+            ConstructionRequest::new(ReferenceConstruction::EarlierCitedAct, origin, 1)
+                .explicit_target(FrameId::new(0)),
+            ConstructionAbstention::AnchorOutOfBlock,
+            "an antecedent without its own source anchor is unproven",
+        ),
+        (
+            ConstructionRequest::new(ReferenceConstruction::EarlierCitedAct, origin, 1)
+                .explicit_target(FrameId::new(0))
+                .anchor(source_anchor(1, index.blocks()[1].text(), "Статья")),
+            ConstructionAbstention::AnchorOutOfBlock,
+            "an anchor minted in another block must not prove the antecedent",
+        ),
+    ];
+    for (request, expected, label) in cases {
+        match resolve_construction(&request, &index, &overlay, false) {
+            ConstructionOutcome::Unproven {
+                reason,
+                construction,
+            } => {
+                assert_eq!(construction, ReferenceConstruction::EarlierCitedAct);
+                assert_eq!(
+                    reason, expected,
+                    "F12-antecedent-unproven: {label} must abstain with the typed reason"
+                );
+            }
+            other => panic!("F12-antecedent-unproven: {label} must stay unproven, got {other:?}"),
+        }
+    }
+}
+
+fn alias(wording: &str, scope: usize, frame: usize, anchor: TextSpan) -> ScopedAliasDeclaration {
+    ScopedAliasDeclaration::new(wording, scope, FrameId::new(frame), anchor)
+        .expect("fixture alias declaration")
+}
+
+#[test]
+fn rc28_f12_alias_declare_use_shadow_conflict_and_boundary() {
+    let (index, overlay) = construction_fixture();
+    let origin = FrameId::new(1);
+    let declaration_anchor = anchor_of(index.blocks()[2].text(), "Иной");
+    let declared = overlay
+        .clone()
+        .with_scoped_aliases(vec![alias("Закон", 1, 0, declaration_anchor)])
+        .expect("alias declaration points at a known frame");
+
+    // F12-alias-declare-use: a declare/use pair in the same structural scope.
+    let use_request =
+        ConstructionRequest::new(ReferenceConstruction::DeclaredScopedAlias, origin, 1)
+            .key("Закон");
+    match resolve_construction(&use_request, &index, &declared, false) {
+        ConstructionOutcome::Resolved {
+            construction,
+            target,
+            evidence,
+        } => {
+            assert_eq!(construction, ReferenceConstruction::DeclaredScopedAlias);
+            assert_eq!(target, FrameId::new(0));
+            assert_eq!(evidence, vec![declaration_anchor]);
+        }
+        other => panic!("F12-alias-declare-use: expected a resolved alias, got {other:?}"),
+    }
+
+    // F12-alias-boundary: the same wording used outside the declaring scope is
+    // an out-of-scope crossing, never a resolved reference.
+    let outside = ConstructionRequest::new(ReferenceConstruction::DeclaredScopedAlias, origin, 2)
+        .key("Закон");
+    match resolve_construction(&outside, &index, &declared, false) {
+        ConstructionOutcome::OutOfScope {
+            construction,
+            wording,
+        } => {
+            assert_eq!(construction, ReferenceConstruction::DeclaredScopedAlias);
+            assert_eq!(wording, "Закон");
+        }
+        other => panic!("F12-alias-boundary: expected an out-of-scope crossing, got {other:?}"),
+    }
+    assert_eq!(
+        ConstructionOutcome::OutOfScope {
+            construction: ReferenceConstruction::DeclaredScopedAlias,
+            wording: "Закон".to_owned(),
+        }
+        .terminal(),
+        Terminal::Unavailable,
+        "F12-alias-boundary: a boundary crossing maps to Unavailable"
+    );
+
+    // F12-alias-shadow-conflict: two declarations of one wording inside the
+    // same scope retain both candidate frames instead of picking one.
+    let shadowed = overlay
+        .clone()
+        .with_scoped_aliases(vec![
+            alias("Закон", 1, 0, declaration_anchor),
+            alias("Закон", 1, 2, anchor_of(index.blocks()[2].text(), "раздел")),
+        ])
+        .expect("both declarations point at known frames");
+    match resolve_construction(&use_request, &index, &shadowed, false) {
+        ConstructionOutcome::Conflicting {
+            construction,
+            retained,
+            evidence,
+        } => {
+            assert_eq!(construction, ReferenceConstruction::DeclaredScopedAlias);
+            assert_eq!(retained, vec![FrameId::new(0), FrameId::new(2)]);
+            assert_eq!(
+                evidence.len(),
+                2,
+                "F12-alias-shadow-conflict: both anchors stay"
+            );
+        }
+        other => {
+            panic!("F12-alias-shadow-conflict: a shadowed declaration must conflict, got {other:?}")
+        }
+    }
+
+    // The undeclared and wording-less paths are typed abstentions.
+    let undeclared =
+        ConstructionRequest::new(ReferenceConstruction::DeclaredScopedAlias, origin, 1)
+            .key("Кодекс");
+    assert!(matches!(
+        resolve_construction(&undeclared, &index, &declared, false),
+        ConstructionOutcome::Unproven {
+            reason: ConstructionAbstention::UndeclaredAlias,
+            ..
+        }
+    ));
+    let wording_less =
+        ConstructionRequest::new(ReferenceConstruction::DeclaredScopedAlias, origin, 1);
+    assert!(matches!(
+        resolve_construction(&wording_less, &index, &declared, false),
+        ConstructionOutcome::Unproven {
+            reason: ConstructionAbstention::MissingAliasWording,
+            ..
+        }
+    ));
+
+    // Declaration-time guards: an empty wording and a dangling frame are
+    // refused before any request can see them.
+    assert_eq!(
+        ScopedAliasDeclaration::new("   ", 1, FrameId::new(0), declaration_anchor),
+        Err(ContextError::EmptyAliasWording)
+    );
+    assert_eq!(
+        ScopedAliasDeclaration::new("Закон", 1, FrameId::new(0), TextSpan::new(3, 3).unwrap()),
+        Err(ContextError::InvalidSpan)
+    );
+    assert_eq!(
+        SourceAnchor::new(BlockId::new(0), TextSpan::new(3, 3).unwrap()),
+        Err(ContextError::InvalidSpan),
+        "F12-alias-boundary: an empty source anchor is refused"
+    );
+    assert_eq!(
+        overlay
+            .clone()
+            .with_scoped_aliases(vec![alias("Закон", 1, 9, declaration_anchor)]),
+        Err(ContextError::UnknownFrame)
+    );
+}
+
+#[test]
+fn rc28_f12_construction_separation_keeps_authorizations_apart() {
+    // S04 `F12-CONTEXT-SEPARATION`: self, antecedent, alias and coordinating
+    // head keep independent authorizations. Recognizing one never authorizes
+    // another, and no shared label merges them.
+    let (index, overlay) = construction_fixture();
+    let origin = FrameId::new(1);
+    let declared = overlay
+        .clone()
+        .with_scoped_aliases(vec![alias(
+            "Закон",
+            1,
+            0,
+            anchor_of(index.blocks()[2].text(), "Иной"),
+        )])
+        .expect("alias declaration points at a known frame");
+
+    // (a) a declared alias does not authorize self-reference: the `ThisRef`
+    // evidence is a separate authorization input and stays empty here.
+    let self_request =
+        ConstructionRequest::new(ReferenceConstruction::CurrentDocumentSelf, origin, 1);
+    assert!(matches!(
+        resolve_construction(&self_request, &index, &declared, true),
+        ConstructionOutcome::Unproven {
+            reason: ConstructionAbstention::MissingSelfEvidence,
+            ..
+        }
+    ));
+    // ... and no requisites sidecar remains its own distinct refusal.
+    assert!(matches!(
+        resolve_construction(&self_request, &index, &declared, false),
+        ConstructionOutcome::Unproven {
+            reason: ConstructionAbstention::MissingRequisites,
+            ..
+        }
+    ));
+
+    // (b) resolving the alias does not create a coordinating head.
+    assert!(matches!(
+        resolve_construction(
+            &ConstructionRequest::new(ReferenceConstruction::DeclaredScopedAlias, origin, 1)
+                .key("Закон"),
+            &index,
+            &declared,
+            true
+        ),
+        ConstructionOutcome::Resolved { .. }
+    ));
+    assert!(matches!(
+        resolve_construction(
+            &ConstructionRequest::new(ReferenceConstruction::CoordinatingHead, origin, 1),
+            &index,
+            &declared,
+            true
+        ),
+        ConstructionOutcome::Unproven {
+            reason: ConstructionAbstention::MissingAntecedent,
+            ..
+        }
+    ));
+
+    // (c) a coordinating head resolution does not authorize the alias outside
+    // its declaring scope, and does not authorize an antecedent.
+    let headed = declared
+        .clone()
+        .with_scoped_aliases(vec![alias(
+            "Закон",
+            1,
+            0,
+            anchor_of(index.blocks()[2].text(), "Иной"),
+        )])
+        .expect("alias declaration points at a known frame");
+    let mut heads = BTreeMap::new();
+    heads.insert(origin, vec![FrameId::new(0)]);
+    let headed = AnalysisOverlay::new(headed.frames().to_vec(), BTreeMap::new(), heads)
+        .expect("head map references known frames")
+        .with_scoped_aliases(vec![alias(
+            "Закон",
+            1,
+            0,
+            anchor_of(index.blocks()[2].text(), "Иной"),
+        )])
+        .expect("alias declaration points at a known frame");
+    assert!(matches!(
+        resolve_construction(
+            &ConstructionRequest::new(ReferenceConstruction::CoordinatingHead, origin, 1),
+            &index,
+            &headed,
+            true
+        ),
+        ConstructionOutcome::Resolved {
+            target,
+            ..
+        } if target == FrameId::new(0)
+    ));
+    assert!(matches!(
+        resolve_construction(
+            &ConstructionRequest::new(ReferenceConstruction::DeclaredScopedAlias, origin, 2)
+                .key("Закон"),
+            &index,
+            &headed,
+            true
+        ),
+        ConstructionOutcome::OutOfScope { .. }
+    ));
+    assert!(matches!(
+        resolve_construction(
+            &ConstructionRequest::new(ReferenceConstruction::EarlierCitedAct, origin, 1),
+            &index,
+            &headed,
+            true
+        ),
+        ConstructionOutcome::Unproven {
+            reason: ConstructionAbstention::MissingAntecedent,
+            ..
+        }
+    ));
+
+    // (d) the four constructions are distinct labels and each outcome reports
+    // the construction it was asked about, so no shared label can merge them.
+    let labels = [
+        ReferenceConstruction::CurrentDocumentSelf,
+        ReferenceConstruction::EarlierCitedAct,
+        ReferenceConstruction::DeclaredScopedAlias,
+        ReferenceConstruction::CoordinatingHead,
+    ];
+    let mut seen = std::collections::BTreeSet::new();
+    for label in labels {
+        assert!(
+            seen.insert(label),
+            "F12-CONTEXT-SEPARATION: labels are distinct"
+        );
+        let outcome = resolve_construction(
+            &ConstructionRequest::new(label, origin, 1),
+            &index,
+            &headed,
+            false,
+        );
+        assert_eq!(
+            outcome.construction(),
+            label,
+            "F12-CONTEXT-SEPARATION: the outcome reports its own construction"
+        );
+    }
+}
+
+#[test]
+fn rc28_f12_edition_relation_is_a_source_backed_candidate_not_identity() {
+    // S03 `F12-edition-relation` + S04 `F12-NO-IR`: `в ред.` is preserved as a
+    // source-backed relation candidate and never becomes Expression identity,
+    // `edition_date`, CTV, force, or any legal IR.
+    let text = "Статья 5 в ред. 01.01.2020 N 1-ФЗ и в редакции 02.02.2021";
+    let candidates = detect_edition_relations(text);
+    assert_eq!(
+        candidates.len(),
+        2,
+        "F12-edition-relation: both written forms are preserved"
+    );
+    assert_eq!(candidates[0].surface(), "в ред.");
+    assert_eq!(candidates[1].surface(), "в редакции");
+    for candidate in &candidates {
+        let span = candidate.anchor();
+        assert!(
+            text.is_char_boundary(span.start()) && text.is_char_boundary(span.end()),
+            "F12-edition-relation: the anchor stays on UTF-8 character boundaries"
+        );
+        assert_eq!(
+            &text[span.start()..span.end()],
+            candidate.surface(),
+            "F12-edition-relation: the anchor names the original source surface"
+        );
+        assert!(
+            span.end() <= text.len(),
+            "F12-edition-relation: the anchor is source-local"
+        );
+    }
+
+    // Token-bound negatives: a substring inside a longer token is not the
+    // construction, and the full form is not matched by the abbreviated one.
+    for negative in [
+        "ввиду редакции документа",
+        "Петров ред. документа",
+        "в редакциях документа",
+        "согласно редакции",
+    ] {
+        assert!(
+            detect_edition_relations(negative).is_empty(),
+            "F12-edition-relation: {negative:?} must not mint a candidate"
+        );
+    }
+
+    // F12-NO-IR: the candidate carries nothing but its surface and anchor, and
+    // the wording never authorizes a reference construction.
+    let debug = format!("{:?}", candidates[0]);
+    for forbidden in ["force", "edition_date", "Force", "Status", "Applicability"] {
+        assert!(
+            !debug.contains(forbidden),
+            "F12-NO-IR: an edition relation candidate must not carry {forbidden}"
+        );
+    }
+    let (index, overlay) = construction_fixture();
+    let origin = FrameId::new(1);
+    for construction in [
+        ReferenceConstruction::CurrentDocumentSelf,
+        ReferenceConstruction::EarlierCitedAct,
+        ReferenceConstruction::DeclaredScopedAlias,
+        ReferenceConstruction::CoordinatingHead,
+    ] {
+        let request = ConstructionRequest::new(construction, origin, 1).key("в ред.");
+        assert!(
+            !resolve_construction(&request, &index, &overlay, true).is_resolved(),
+            "F12-NO-IR: the edition wording must not authorize {construction:?}"
+        );
+    }
+
+    // No legal IR: the cue surface still abstains on the normative slots.
+    let (block, claims) = extract("Орган должен действовать в ред. 01.01.2020 N 1-ФЗ.", true);
+    match project_norm_rule(claims, Terminal::Resolved) {
+        ProjectionOutcome::Abstained(record) => assert!(
+            record.reasons().contains(&AbstentionReason::MissingAction)
+                && record.reasons().contains(&AbstentionReason::MissingObject),
+            "F12-NO-IR: an edition relation must not complete a norm rule"
+        ),
+        ProjectionOutcome::Complete(_) => {
+            panic!("F12-NO-IR: an edition relation must not mint Applicable/NormRule IR")
+        }
+    }
+    assert!(!block.text().is_empty());
 }

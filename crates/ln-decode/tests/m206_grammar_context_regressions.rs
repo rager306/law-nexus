@@ -2,6 +2,9 @@
 //! These tests intentionally assert the admitted desired contract; they must fail
 //! against the pre-remediation runtime and pass after the minimal fix.
 
+use ln_decode::capture_bounds::{
+    arbitrate_pair, span_relation, PairDiagnostic, PairOutcome, SpanRelation,
+};
 use ln_decode::current_requisites::{
     CurrentDocumentRequisites, RequisitesClaim, RequisitesExtractionStatus, RequisitesField,
     RequisitesSourceKind, SourceAnchor, ThisRefGrammarEvidence,
@@ -21,6 +24,7 @@ use ln_decode::lawref::capture_lawrefs;
 use ln_decode::lexer::lex;
 use ln_decode::local_grammar::{extract_act_list_frames, extract_structural_frames, FrameStatus};
 use ln_decode::morphology::find_legal_markers;
+use ln_decode::sentence::split_legal_sentences;
 
 fn block(text: &str, style: ParagraphStyle, order: usize) -> ParsedBlock {
     ParsedBlock::try_new(
@@ -654,4 +658,271 @@ fn rc28_f08_memo_identity_separates_empty_and_nonempty_evidence_in_both_orders()
         assert_eq!(replay.results, report.results);
         assert_eq!(replay.stats.memo_hits, 2);
     }
+}
+
+// ---------------------------------------------------------------------------
+// S02 scenario map owned by this file. The S02 rows name the RC28-F09 and
+// RC28-F10 runtime scenarios that S07 executes; their literal ids are carried
+// in every assertion message so the runtime battery can map scenario -> test.
+// ---------------------------------------------------------------------------
+
+/// `F09-independent-sentences`: unrelated mixed-act sentences must not be
+/// merged, and each keeps its own local origin.
+#[test]
+fn m206_s02_f09_independent_sentences_are_not_merged() {
+    let first = "федерального закона от 01.01.2020 N 1-ФЗ";
+    let second = "федерального закона от 02.02.2021 N 2-ФЗ";
+    let source = format!("{first}. {second}.");
+    let frames = extract_act_list_frames(&source, &capture_lawrefs(&source));
+    assert_eq!(
+        frames.len(),
+        2,
+        "F09-independent-sentences: independent sentences must not be merged"
+    );
+    assert!(
+        frames[0].local_anchor.end() < frames[1].local_anchor.start(),
+        "F09-independent-sentences: each frame keeps its own local origin"
+    );
+    for frame in &frames {
+        assert!(
+            source.is_char_boundary(frame.local_anchor.start())
+                && source.is_char_boundary(frame.local_anchor.end()),
+            "F09-independent-sentences: origins stay on UTF-8 character boundaries"
+        );
+    }
+}
+
+/// `F09-incomplete-tail`: a tail without the required requisites stays
+/// observable and is never rewritten as a complete member.
+#[test]
+fn m206_s02_f09_incomplete_tail_stays_observable() {
+    let source = "федерального закона от 03.03.2022";
+    let frames = extract_act_list_frames(source, &capture_lawrefs(source));
+    assert_eq!(
+        frames.len(),
+        1,
+        "F09-incomplete-tail: the tail remains observable"
+    );
+    assert_eq!(
+        frames[0].status,
+        FrameStatus::Ambiguous,
+        "F09-incomplete-tail: an incomplete tail is ambiguous, never complete"
+    );
+    assert!(
+        frames[0].local_anchor.start() < frames[0].local_anchor.end(),
+        "F09-incomplete-tail: the ambiguous tail keeps a source-local origin"
+    );
+    assert!(
+        frames[0]
+            .members
+            .iter()
+            .all(|member| member.doc_no.is_none()),
+        "F09-incomplete-tail: the missing requisite is never fabricated"
+    );
+}
+
+/// `F09-boundaries`: sentence, heading and paragraph boundaries stay
+/// distinguishable and are not silently merged.
+#[test]
+fn m206_s02_f09_sentence_and_heading_boundaries_stay_distinct() {
+    let source = "Федеральный закон от 01.01.2020 N 1-ФЗ. Статья 2. Иной текст.";
+    let sentences = split_legal_sentences(source);
+    assert!(
+        sentences.len() >= 2,
+        "F09-boundaries: sentence boundaries must be found, got {sentences:?}"
+    );
+    for sentence in &sentences {
+        assert!(
+            source.is_char_boundary(sentence.start()) && source.is_char_boundary(sentence.end()),
+            "F09-boundaries: sentence spans stay on UTF-8 character boundaries"
+        );
+    }
+    let heading = block("Статья 2. Второй", ParagraphStyle::Heading, 1);
+    let body = block("Второй текст", ParagraphStyle::BodyText, 2);
+    assert_ne!(
+        heading.style(),
+        body.style(),
+        "F09-boundaries: heading and paragraph stay distinguishable"
+    );
+    let built = index(&[block("Закон", ParagraphStyle::Title, 0), heading, body]).unwrap();
+    assert_eq!(
+        built
+            .ancestor_path(&BlockId::parse("block-2").unwrap())
+            .unwrap()[0]
+            .role(),
+        ContainerRole::Article,
+        "F09-boundaries: the paragraph keeps its own container instead of merging upward"
+    );
+}
+
+/// `F09-refused-token-only`: evidence that is not an admitted, complete capture
+/// never completes a frame member. A separator-only input mints nothing, and an
+/// unproven tail stays ambiguous with its missing requisite absent instead of
+/// being filled in from token evidence alone.
+#[test]
+fn m206_s02_f09_refused_token_only_evidence_never_completes_a_member() {
+    assert!(
+        extract_act_list_frames("  , ,  ", &capture_lawrefs("")).is_empty(),
+        "F09-refused-token-only: separator-only token evidence never mints a frame"
+    );
+    let source = "законов от 01.01.2020";
+    let frames = extract_act_list_frames(source, &capture_lawrefs(source));
+    assert_eq!(
+        frames.len(),
+        1,
+        "F09-refused-token-only: the unproven tail stays observable"
+    );
+    assert_eq!(
+        frames[0].status,
+        FrameStatus::Ambiguous,
+        "F09-refused-token-only: token evidence alone never completes the frame"
+    );
+    assert!(
+        frames[0]
+            .members
+            .iter()
+            .all(|member| member.date.is_some() && member.doc_no.is_none()),
+        "F09-refused-token-only: only the source-proven slot is filled; the rest stays absent"
+    );
+}
+
+/// `F09-identical-origins`: identical same-span evidence merges only when
+/// every closed slot agrees; otherwise both origins are retained in a conflict
+/// set and no winner is invented.
+#[test]
+fn m206_s02_f09_identical_origins_keep_slot_fingerprint() {
+    let merged = arbitrate_pair((10, 15), (10, 15), true);
+    assert_eq!(
+        merged,
+        PairOutcome::MergeEvidence(PairDiagnostic::DuplicateMatcherEvidenceMerged),
+        "F09-identical-origins: equal slots merge the duplicate matcher evidence"
+    );
+    assert_eq!(
+        merged,
+        arbitrate_pair((10, 15), (10, 15), true),
+        "F09-identical-origins: the merge is deterministic"
+    );
+    let conflict = arbitrate_pair((10, 15), (10, 15), false);
+    assert_eq!(
+        conflict,
+        PairOutcome::ConflictSet(PairDiagnostic::ExactSpanSlotConflict),
+        "F09-identical-origins: a same-span slot conflict retains both origins"
+    );
+}
+
+/// `F09-overlap`: partial overlap is a conflict set; containment without a
+/// selected pair policy stays ambiguous; no order-based resolution exists.
+#[test]
+fn m206_s02_f09_overlap_is_a_conflict_set_not_order_resolution() {
+    assert_eq!(
+        span_relation((0, 10), (5, 15)),
+        SpanRelation::PartialOverlap,
+        "F09-overlap: partial intersection is classified before arbitration"
+    );
+    for slots_equal in [true, false] {
+        assert_eq!(
+            arbitrate_pair((0, 10), (5, 15), slots_equal),
+            PairOutcome::ConflictSet(PairDiagnostic::PartialOverlapConflict),
+            "F09-overlap: overlap is a conflict set for every slot fingerprint"
+        );
+    }
+    assert_eq!(
+        arbitrate_pair((0, 20), (5, 10), true),
+        PairOutcome::RetainBoth(Some(PairDiagnostic::ContainmentWithoutPairPolicy)),
+        "F09-overlap: containment without a selected policy stays ambiguous_both"
+    );
+}
+
+/// `F09-order`: producer order is not precedence. Every arbitration outcome is
+/// invariant under argument order, and no origin is discarded.
+#[test]
+fn m206_s02_f09_producer_order_is_not_precedence() {
+    for (a, b) in [
+        ((0usize, 10usize), (5usize, 15usize)),
+        ((0, 20), (5, 10)),
+        ((0, 10), (20, 30)),
+        ((10, 15), (10, 15)),
+    ] {
+        for slots_equal in [true, false] {
+            assert_eq!(
+                arbitrate_pair(a, b, slots_equal),
+                arbitrate_pair(b, a, slots_equal),
+                "F09-order: arbitration must not depend on producer order ({a:?} vs {b:?})"
+            );
+            assert_eq!(
+                span_relation(a, b),
+                span_relation(b, a),
+                "F09-order: the span relation is order-independent"
+            );
+        }
+    }
+    assert_eq!(
+        arbitrate_pair((0, 10), (20, 30), true),
+        PairOutcome::RetainBoth(None),
+        "F09-order: disjoint evidence retains both origins"
+    );
+}
+
+/// `F10-original-spans`: original UTF-8 anchors and dash variants are retained,
+/// and morphology that cannot be obtained stays an explicit absence instead of
+/// a guessed match.
+#[test]
+fn m206_s02_f10_original_spans_and_unavailable_morphology_stay_explicit() {
+    for dash in ["-", "–", "—"] {
+        let source = format!("статьями 7.29 {dash} 7.32");
+        let captures = capture_lawrefs(&source);
+        let capture = captures
+            .captures()
+            .iter()
+            .find(|capture| capture.slots.range.is_some())
+            .unwrap_or_else(|| panic!("F10-original-spans: {dash} range must be captured"));
+        assert!(
+            capture.user_text(&source).contains(dash),
+            "F10-original-spans: the captured range keeps the written {dash} variant"
+        );
+        assert_eq!(
+            capture.user_text(&source),
+            &source[capture.span.start()..capture.span.end()],
+            "F10-original-spans: the capture span indexes the original source text"
+        );
+        assert!(
+            source.is_char_boundary(capture.span.start())
+                && source.is_char_boundary(capture.span.end()),
+            "F10-original-spans: the anchor covers whole UTF-8 characters"
+        );
+        assert!(
+            source[dash_range(&source, dash)] == *dash,
+            "F10-original-spans: the source dash byte range still holds the written dash"
+        );
+    }
+
+    // Morphology is a closed lexical surface: a form outside the lexicon is an
+    // explicit absence, never an invented marker.
+    let marked = find_legal_markers("статьями 7.29 – 7.32");
+    assert!(
+        !marked.is_empty(),
+        "F10-original-spans: the closed lexicon still marks the admitted surface"
+    );
+    let source = "статьями 7.29 – 7.32";
+    for marker in &marked {
+        let span = marker.text_span();
+        assert!(
+            source.is_char_boundary(span.start()) && source.is_char_boundary(span.end()),
+            "F10-original-spans: morphology markers stay on UTF-8 character boundaries"
+        );
+        assert!(
+            span.end() <= source.len(),
+            "F10-original-spans: morphology markers stay source-local"
+        );
+    }
+    assert!(
+        find_legal_markers("zzzqqq").is_empty(),
+        "F10-original-spans: unavailable morphology is an explicit absence"
+    );
+}
+
+/// The byte range of the written dash in `source`.
+fn dash_range(source: &str, dash: &str) -> std::ops::Range<usize> {
+    let start = source.find(dash).expect("fixture dash");
+    start..start + dash.len()
 }
