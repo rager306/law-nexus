@@ -1,0 +1,561 @@
+{
+  "schema": "m207-s02-annotation-schemas/v1",
+  "schema_version": 1,
+  "protocol": "prd/annotation/m207-s02-coder-protocol.md",
+  "codebook": "prd/annotation/m207-s01-codebook.md",
+  "submission_schema_id": "m207-s01-coding-submission/v1",
+  "submission_schema_reused_verbatim": true,
+  "slot_space_source": "prd/migration/rust-evidence/m199-s01-annotation-protocol.md#5",
+  "frozen_sources": {
+    "m207_s01_codebook": {
+      "path": "prd/annotation/m207-s01-codebook.md",
+      "sha256": "1a1bfe944207e69cb5fb507e94d680384dadecf7ac98ac29b1de4932d7cb76c6"
+    },
+    "m207_s01_schemas": {
+      "path": "prd/annotation/m207-s01-schemas.json",
+      "sha256": "63a4bc6629bade752f9fa02d1dd5fa6bbf21238e20772d2ba5b74f88ecca3682"
+    },
+    "m207_s01_cases": {
+      "path": "prd/migration/rust-evidence/m207-s01-pilot-cases.json",
+      "sha256": "9b0b6bc6bd8eadf9eb86886e45eb756ebade654e96ac3a84132ed9452bdeb9ad"
+    },
+    "m199_protocol": {
+      "path": "prd/migration/rust-evidence/m199-s01-annotation-protocol.md",
+      "sha256": "eed922b02c1b89b8e51e8b342b1a9f113a8029b8a2fe0a1bee84f9f2035c6e3d"
+    }
+  },
+  "slot_space": {
+    "closed_keys": [
+      "marker_chain",
+      "hier_nums",
+      "date",
+      "doc_no",
+      "law_code",
+      "anaphora",
+      "range",
+      "quoted_enum"
+    ],
+    "binary_outcome": {
+      "key": "not_a_reference",
+      "type": "boolean"
+    },
+    "closed_key_count": 9
+  },
+  "agreement_axes": [
+    "reference_decision",
+    "span_exact",
+    "abstention",
+    "slot_marker_chain",
+    "slot_hier_nums",
+    "slot_date",
+    "slot_doc_no",
+    "slot_law_code",
+    "slot_anaphora",
+    "slot_range",
+    "slot_quoted_enum"
+  ],
+  "resolution_space": {
+    "by_axis": {
+      "reference_decision": ["reference", "not_a_reference"],
+      "span_exact": ["span_pass_1", "span_pass_2"],
+      "abstention": ["not-abstained", "ambiguous", "insufficient-context"],
+      "slot_marker_chain": ["slot_present", "slot_absent"],
+      "slot_hier_nums": ["slot_present", "slot_absent"],
+      "slot_date": ["slot_present", "slot_absent"],
+      "slot_doc_no": ["slot_present", "slot_absent"],
+      "slot_law_code": ["slot_present", "slot_absent"],
+      "slot_anaphora": ["slot_present", "slot_absent"],
+      "slot_range": ["slot_present", "slot_absent"],
+      "slot_quoted_enum": ["slot_present", "slot_absent"]
+    },
+    "derived_from": "m207-s01-codebook/v1 alternative_classes plus the codebook abstention vocabulary",
+    "span_axis_rule": "span_pass_1 and span_pass_2 name one of the two already-committed coder spans; the adjudicator never mints a third span",
+    "new_values_allowed": false
+  },
+  "vocabularies": {
+    "provenance": ["human-reviewed"],
+    "coder_pass": [1, 2],
+    "authority": ["none"],
+    "suggestion_status": ["none-provided"],
+    "output_type": ["AnnotationSuggestion"],
+    "classification": ["not-authorized"],
+    "promotion": ["none"],
+    "threshold": null,
+    "decision_values": ["reference", "not_a_reference"],
+    "abstention_values": ["not-abstained", "ambiguous", "insufficient-context"],
+    "measurement_status": ["computed", "undefined"],
+    "resolution_provenance": ["human-reviewed"],
+    "adjudicator_provenance": ["human-reviewed"],
+    "span_coordinate": ["half-open-byte-range-utf8-boundaries"]
+  },
+  "output_contract": {
+    "output_type": "AnnotationSuggestion",
+    "authority": "none",
+    "suggestion_status": "none-provided",
+    "model_invoked": false,
+    "classification": "not-authorized",
+    "promotion": "none",
+    "threshold": null
+  },
+  "store_paths": {
+    "submissions": "prd/annotation/m207-s02-submissions",
+    "adjudications": "prd/annotation/m207-s02-adjudications",
+    "evidence": "prd/migration/rust-evidence",
+    "allowed_prefix": "prd/annotation/",
+    "store_prefix_lock": true,
+    "prefix_diagnostic": "UNSAFE_PATH"
+  },
+  "pass_protocol": {
+    "coder_pass_values": [1, 2],
+    "independence": "mutually-blind",
+    "cross_pass_artifact_sharing": "forbidden",
+    "both_passes_committed_before": "agreement",
+    "adjudication_after": "agreement_freeze"
+  },
+  "diagnostics": [
+    "HUMAN_PILOT_ABSENT",
+    "MACHINERY_GREEN_HUMAN_ABSENT",
+    "NO_ADJUDICATION_INPUT",
+    "UNFILLED_SUBMISSION",
+    "TEST_FIXTURE_IN_STORE",
+    "PROVENANCE_NOT_HUMAN",
+    "CODER_PASS_INVALID",
+    "DUPLICATE_CODER_ID",
+    "DUPLICATE_SUBMISSION_ID",
+    "UNKNOWN_CASE_ID",
+    "SUBMISSION_CONFLICT",
+    "NINTH_SLOT",
+    "SLOT_SET_DRIFT",
+    "SUBMISSION_SCHEMA_DRIFT",
+    "LEAK_FORBIDDEN_KEY",
+    "ABSTENTION_COLLAPSE",
+    "SPAN_BEYOND_EOF",
+    "SPAN_NOT_UTF8_BOUNDARY",
+    "SPAN_NOT_ORIGIN",
+    "AUTHORITY_CLAIM",
+    "MODEL_INVOKED",
+    "AGREEMENT_UNDEFINED",
+    "ONE_CODER_ONLY",
+    "DENOMINATOR_MISMATCH",
+    "PERFECT_AGREEMENT_UNCOMPUTED",
+    "CLASSIFICATION_REQUESTED",
+    "THRESHOLD_REQUESTED",
+    "GOLD_CLAIM",
+    "PROMOTION_CLAIM",
+    "IS_GOLD_CLAIM",
+    "ADJUDICATION_NOT_A_DISAGREEMENT",
+    "ADJUDICATOR_PROVENANCE_NOT_HUMAN",
+    "RESOLUTION_OUT_OF_SPACE",
+    "RESOLUTION_SPACE_DRIFT",
+    "RATIONALE_NOT_BOUNDED",
+    "SUPERSEDES_UNKNOWN",
+    "UNRESOLVED_NONZERO",
+    "WORK_FAMILY_DOMINANCE",
+    "FRAGMENT_PIN_DRIFT",
+    "KIT_TEXT_INLINED",
+    "KIT_CROSS_PASS_INVARIANT",
+    "FROZEN_SOURCE_DRIFT",
+    "SEED_ENLARGED",
+    "PROMPT_ISOLATION_VIOLATION",
+    "UNSAFE_PATH",
+    "BATTERY_STALE",
+    "BATTERY_WALLCLOCK_FORBIDDEN",
+    "MISSING_ARTIFACT",
+    "MISSING_SCHEMA",
+    "MISSING_SECTION",
+    "MISSING_NON_CLAIM",
+    "MISSING_LIFECYCLE_MARKER",
+    "EMPTY_SUITE",
+    "SUBCLI_FAILURE",
+    "S01_REGRESSION_FAILED",
+    "SCHEMA_KEY_DRIFT",
+    "SCHEMA_PARSE_ERROR",
+    "DUPLICATE_JSON_KEY",
+    "VOCABULARY_DRIFT",
+    "ALTERNATIVE_DRIFT",
+    "CASE_COUNT_OUT_OF_RANGE",
+    "DIAGNOSTIC_TABLE_DRIFT"
+  ],
+  "schemas": {
+    "coder_kit": {
+      "schema_id": "m207-s02-coder-kit/v1",
+      "closed_keys": [
+        "case_count",
+        "cases",
+        "codebook",
+        "coder_pass",
+        "lifecycle",
+        "non_claims",
+        "schema",
+        "schema_version",
+        "submission_id",
+        "submission_schema_id",
+        "submission_template",
+        "work_family_cap"
+      ],
+      "required_keys": [
+        "case_count",
+        "cases",
+        "codebook",
+        "coder_pass",
+        "lifecycle",
+        "non_claims",
+        "schema",
+        "schema_version",
+        "submission_id",
+        "submission_schema_id",
+        "submission_template",
+        "work_family_cap"
+      ],
+      "case_closed_keys": [
+        "abstention_available",
+        "alternative_classes",
+        "byte_len",
+        "case_id",
+        "fragment_id",
+        "fragment_path",
+        "fragment_sha256",
+        "span_offered_for_coding"
+      ],
+      "case_required_keys": [
+        "abstention_available",
+        "alternative_classes",
+        "byte_len",
+        "case_id",
+        "fragment_id",
+        "fragment_path",
+        "fragment_sha256",
+        "span_offered_for_coding"
+      ],
+      "forbidden_case_keys": ["fragment_text", "slot_values", "slots", "work_family"],
+      "template_closed_keys": [
+        "cases",
+        "codebook",
+        "coder_id",
+        "coder_pass",
+        "lifecycle",
+        "non_claims",
+        "provenance",
+        "schema",
+        "schema_version",
+        "submission_id"
+      ],
+      "case_count": 40,
+      "kits": 2,
+      "text_inlined": false,
+      "work_family_cap": 4
+    },
+    "intake_record": {
+      "schema_id": "m207-s02-intake-record/v1",
+      "closed_keys": [
+        "case_universe",
+        "cases_covered",
+        "diagnostics",
+        "lifecycle",
+        "non_claims",
+        "schema",
+        "schema_version",
+        "submission_count",
+        "submissions"
+      ],
+      "required_keys": [
+        "case_universe",
+        "cases_covered",
+        "diagnostics",
+        "lifecycle",
+        "non_claims",
+        "schema",
+        "schema_version",
+        "submission_count",
+        "submissions"
+      ],
+      "submission_closed_keys": [
+        "case_count",
+        "coder_id",
+        "coder_pass",
+        "provenance",
+        "sha256",
+        "submission_id"
+      ],
+      "submission_required_keys": [
+        "case_count",
+        "coder_id",
+        "coder_pass",
+        "provenance",
+        "sha256",
+        "submission_id"
+      ],
+      "submission_schema_id": "m207-s01-coding-submission/v1",
+      "store_read_only": true
+    },
+    "agreement_report": {
+      "schema_id": "m207-s02-agreement-report/v1",
+      "closed_keys": [
+        "alpha",
+        "axes",
+        "classification",
+        "lifecycle",
+        "measurement_status",
+        "non_claims",
+        "pre_adjudication",
+        "promotion",
+        "schema",
+        "schema_version",
+        "submission_refs",
+        "threshold",
+        "units_excluded",
+        "units_total",
+        "units_used",
+        "work_family_breakdown",
+        "work_family_cap"
+      ],
+      "required_keys": [
+        "alpha",
+        "axes",
+        "classification",
+        "lifecycle",
+        "measurement_status",
+        "non_claims",
+        "pre_adjudication",
+        "promotion",
+        "schema",
+        "schema_version",
+        "submission_refs",
+        "threshold",
+        "units_excluded",
+        "units_total",
+        "units_used",
+        "work_family_breakdown",
+        "work_family_cap"
+      ],
+      "axis_closed_keys": [
+        "abstained_units",
+        "alpha",
+        "axis",
+        "measurement_status",
+        "observed_agreement",
+        "units_excluded",
+        "units_total",
+        "units_used"
+      ],
+      "submission_ref_closed_keys": [
+        "coder_id",
+        "coder_pass",
+        "sha256",
+        "submission_id"
+      ],
+      "units_total": 40,
+      "work_family_cap": 4,
+      "pre_adjudication": true
+    },
+    "disagreement_inventory": {
+      "schema_id": "m207-s02-disagreement-inventory/v1",
+      "closed_keys": [
+        "disagreement_count",
+        "entries",
+        "lifecycle",
+        "non_claims",
+        "pre_adjudication",
+        "schema",
+        "schema_version"
+      ],
+      "required_keys": [
+        "disagreement_count",
+        "entries",
+        "lifecycle",
+        "non_claims",
+        "pre_adjudication",
+        "schema",
+        "schema_version"
+      ],
+      "entry_closed_keys": [
+        "axis",
+        "case_id",
+        "pass_1_value",
+        "pass_2_value",
+        "work_family"
+      ],
+      "entry_required_keys": [
+        "axis",
+        "case_id",
+        "pass_1_value",
+        "pass_2_value",
+        "work_family"
+      ],
+      "pre_adjudication": true
+    },
+    "adjudication_input": {
+      "schema_id": "m207-s02-adjudication-input/v1",
+      "closed_keys": [
+        "adjudication_id",
+        "adjudicator_id",
+        "axis",
+        "case_id",
+        "is_gold",
+        "lifecycle",
+        "non_claims",
+        "provenance",
+        "rationale",
+        "resolution",
+        "schema",
+        "schema_version",
+        "supersedes"
+      ],
+      "required_keys": [
+        "adjudication_id",
+        "adjudicator_id",
+        "axis",
+        "case_id",
+        "provenance",
+        "rationale",
+        "resolution",
+        "schema",
+        "schema_version",
+        "supersedes"
+      ],
+      "rationale_max_chars": 280,
+      "rationale_single_line": true,
+      "adjudicator_provenance": "human-reviewed"
+    },
+    "adjudication_record": {
+      "schema_id": "m207-s02-adjudication-record/v1",
+      "closed_keys": [
+        "adjudicator_provenance",
+        "append_only",
+        "entries",
+        "entry_count",
+        "is_gold",
+        "lifecycle",
+        "non_claims",
+        "pre_adjudication_agreement_sha256",
+        "promotion",
+        "resolved_count",
+        "schema",
+        "schema_version",
+        "unresolved_count"
+      ],
+      "required_keys": [
+        "adjudicator_provenance",
+        "append_only",
+        "entries",
+        "entry_count",
+        "is_gold",
+        "lifecycle",
+        "non_claims",
+        "pre_adjudication_agreement_sha256",
+        "promotion",
+        "resolved_count",
+        "schema",
+        "schema_version",
+        "unresolved_count"
+      ],
+      "entry_closed_keys": [
+        "adjudication_id",
+        "adjudicator_id",
+        "axis",
+        "case_id",
+        "is_gold",
+        "provenance",
+        "rationale",
+        "resolution",
+        "supersedes"
+      ],
+      "entry_required_keys": [
+        "adjudication_id",
+        "adjudicator_id",
+        "axis",
+        "case_id",
+        "provenance",
+        "rationale",
+        "resolution",
+        "supersedes"
+      ],
+      "append_only": true,
+      "is_gold": false,
+      "promotion": "none",
+      "adjudicator_provenance": "human-reviewed"
+    },
+    "pilot_receipt": {
+      "schema_id": "m207-s02-pilot-receipt/v1",
+      "closed_keys": [
+        "adjudication_record_sha256",
+        "adjudicator_count",
+        "case_count",
+        "coder_count",
+        "human_pilot_performed",
+        "lifecycle",
+        "non_claims",
+        "pre_adjudication_agreement_sha256",
+        "promotion",
+        "schema",
+        "schema_version"
+      ],
+      "required_keys": [
+        "adjudication_record_sha256",
+        "adjudicator_count",
+        "case_count",
+        "coder_count",
+        "human_pilot_performed",
+        "lifecycle",
+        "non_claims",
+        "pre_adjudication_agreement_sha256",
+        "promotion",
+        "schema",
+        "schema_version"
+      ],
+      "case_count": 40,
+      "coder_count": 2,
+      "adjudicator_count_min": 1,
+      "promotion": "none"
+    },
+    "battery": {
+      "schema_id": "m207-s02-battery/v1",
+      "closed_keys": [
+        "checks",
+        "human_pilot_performed",
+        "lifecycle",
+        "model_invoked",
+        "non_claims",
+        "pins",
+        "schema",
+        "schema_version"
+      ],
+      "required_keys": [
+        "checks",
+        "human_pilot_performed",
+        "lifecycle",
+        "model_invoked",
+        "non_claims",
+        "pins",
+        "schema",
+        "schema_version"
+      ],
+      "check_closed_keys": ["check_id", "command", "diagnostic", "exit_code", "status"],
+      "check_required_keys": ["check_id", "command", "diagnostic", "exit_code", "status"],
+      "pins_closed_keys": ["path", "sha256"],
+      "forbidden_battery_keys": ["duration_ms", "elapsed_ms", "generated_at", "wall_clock"],
+      "model_invoked": false
+    }
+  },
+  "non_claims": [
+    "not a human pilot: S02 fabricates no coding and reports no agreement without two human submissions",
+    "not gold: no S02 artifact, coded span or adjudicated resolution is a gold label",
+    "not a promotion: classification stays not-authorized and promotion stays none",
+    "not a threshold: no agreement threshold, pass/fail or accept/reject decision is introduced",
+    "not per-aspect rates: span, slot, scope, binding and false-authority rates belong to S03",
+    "not official-publication provenance (R070 stays open)",
+    "not amendment provenance (R070 stays open)",
+    "not LawRef / act-tree / clause segmentation",
+    "not the N2-gate acceptance decision",
+    "not legal interpretation",
+    "not product authority: no coder kit, submission or adjudication drives the product runtime",
+    "not a second product surface: S02 stays an offline Python harness under scripts/"
+  ],
+  "lifecycle": {
+    "human_adoption": "pending",
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none",
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged"
+  }
+}
