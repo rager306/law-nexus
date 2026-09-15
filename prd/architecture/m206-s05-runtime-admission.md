@@ -4,6 +4,9 @@
 **granted_by: owner (interactive session instruction, 2026-09-14 ~15:05Z, option A)**
 **scope: M206/S05 runtime implementation of RC28-F06, RC28-F07, RC28-F08, RC28-F09, RC28-F10, RC28-F11, RC28-F12**
 **classification: source-bound runtime admission**
+**selected_d388_gates:** G01, G02, G14
+**deferred_d388_gates:** G03, G04, G05, G06, G07, G08, G09, G10, G11, G12, G13, G15, G16 remain individually deferred and are not selected by this document.
+**battery_status: NOT_RUN** — the S06 red-oracle scenarios were declared, not executed as runtime tests; runtime execution started only with S07 under this admission.
 **runtime_stop: lifted for M206/S05 scope only**
 **prerequisites: M204-w2ktfw complete (validated pass, human adoption accepted); M205-p7xc54 complete (validated pass, human adoption accepted)**
 **human_adoption_for_m204_m205: accepted**
