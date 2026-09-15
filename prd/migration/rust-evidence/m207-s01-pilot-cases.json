@@ -1,0 +1,1954 @@
+{
+  "schema": "m207-s01-pilot-cases/v1",
+  "schema_version": 1,
+  "codebook": "prd/annotation/m207-s01-codebook.md",
+  "source_seed": {
+    "schema": "npa-lawref-sample/v1",
+    "sha256": "134751f49db1858329248be1857ada669097f1860609090028c7b5af8975574f",
+    "documents": 40,
+    "fragments": 180,
+    "draw_seed": 20260903
+  },
+  "draw_seed": 20260915,
+  "work_family_cap": 4,
+  "case_count": 40,
+  "cases": [
+    {
+      "case_id": "m207-s01-case-001",
+      "fragment_id": "npa-frag-118",
+      "doc_id": "npa-doc-026",
+      "source_path": "consru_export/consru_export/exports/npa/decree_2020-09-14_558_rev-2024-07-08_a6d600ea.xml",
+      "source_sha256": "2d44686da494b529ee1e1344a16460528f33a2285dec5f87129eea652b27cc25",
+      "byte_len": 71,
+      "source_block_index": 17,
+      "start": 0,
+      "end": 71,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/decree-document",
+      "work_family": "stem:decree_2020-09-14_558"
+    },
+    {
+      "case_id": "m207-s01-case-002",
+      "fragment_id": "npa-frag-009",
+      "doc_id": "npa-doc-003",
+      "source_path": "consru_export/consru_export/exports/npa/law_2014-11-24_356-fz_rev-2017-12-31_3d04594c.xml",
+      "source_sha256": "853b83dcaaf836fc8bbb425fb296ff7c2ad4cd2ae9992363978a8209caa09e94",
+      "byte_len": 637,
+      "source_block_index": 68,
+      "start": 0,
+      "end": 637,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "work_family": "stem:law_2014-11-24_356-fz"
+    },
+    {
+      "case_id": "m207-s01-case-003",
+      "fragment_id": "npa-frag-123",
+      "doc_id": "npa-doc-027",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166280-edition-84232bdf5e80b4c2d012dbae.xml",
+      "source_sha256": "b4d95e445a01345c30baaef42667d2b6e0010b7a584d6042ec85f77ce63fbf8a",
+      "byte_len": 864,
+      "source_block_index": 51,
+      "start": 0,
+      "end": 864,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "courts/courts-unspecified",
+      "work_family": "stem:000166280"
+    },
+    {
+      "case_id": "m207-s01-case-004",
+      "fragment_id": "npa-frag-140",
+      "doc_id": "npa-doc-031",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166350-edition-2f79e06db707d34dc23a1beb.xml",
+      "source_sha256": "cb6726b8721f1bf5f23c811fd3d84126d85105be745670481143da4888e01efd",
+      "byte_len": 393,
+      "source_block_index": 24,
+      "start": 0,
+      "end": 393,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "courts/courts-unspecified",
+      "work_family": "stem:000166350"
+    },
+    {
+      "case_id": "m207-s01-case-005",
+      "fragment_id": "npa-frag-049",
+      "doc_id": "npa-doc-012",
+      "source_path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+      "source_sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14",
+      "byte_len": 164,
+      "source_block_index": 126,
+      "start": 0,
+      "end": 164,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law-44fz",
+      "work_family": "work:law-44fz-cluster"
+    },
+    {
+      "case_id": "m207-s01-case-006",
+      "fragment_id": "npa-frag-046",
+      "doc_id": "npa-doc-012",
+      "source_path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+      "source_sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14",
+      "byte_len": 24,
+      "source_block_index": 59,
+      "start": 0,
+      "end": 24,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law-44fz",
+      "work_family": "work:law-44fz-cluster"
+    },
+    {
+      "case_id": "m207-s01-case-007",
+      "fragment_id": "npa-frag-160",
+      "doc_id": "npa-doc-036",
+      "source_path": "consru_export/consru_export/exports/fas/decision_2025-01-10_04-10-18-1-229-2025_rev-unknown_2d373cef.xml",
+      "source_sha256": "8015b21737a128018900b889d10101c78402e5200baffd51e70d295636c753c5",
+      "byte_len": 58,
+      "source_block_index": 8,
+      "start": 0,
+      "end": 58,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "fas/fas-unspecified",
+      "work_family": "stem:decision_2025-01-10_04-10-18-1-229-2025"
+    },
+    {
+      "case_id": "m207-s01-case-008",
+      "fragment_id": "npa-frag-109",
+      "doc_id": "npa-doc-025",
+      "source_path": "consru_export/consru_export/exports/npa/directive_2015-04-28_753-r_rev-2021-05-15_e6384c41.xml",
+      "source_sha256": "d5d9672534d6a0091fdde1c65a94e8cdc9487864577367b258343b2ba78e49b8",
+      "byte_len": 423,
+      "source_block_index": 0,
+      "start": 0,
+      "end": 423,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/directive",
+      "work_family": "stem:directive_2015-04-28_753-r"
+    },
+    {
+      "case_id": "m207-s01-case-009",
+      "fragment_id": "npa-frag-106",
+      "doc_id": "npa-doc-024",
+      "source_path": "consru_export/consru_export/exports/npa/directive_2014-03-13_364-r_rev-2017-03-21_8d37fe2d.xml",
+      "source_sha256": "d1a84a7941a23b3dcd4818260d8e93cf491837285911ad5af470e9b6dc130db8",
+      "byte_len": 94,
+      "source_block_index": 10,
+      "start": 0,
+      "end": 94,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/directive",
+      "work_family": "stem:directive_2014-03-13_364-r"
+    },
+    {
+      "case_id": "m207-s01-case-010",
+      "fragment_id": "npa-frag-126",
+      "doc_id": "npa-doc-028",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166305-edition-7e6e14131f3fab621a92f158.xml",
+      "source_sha256": "8bd4a4448cfdf192ca6db3d016758e616d77addb326b2ed0a1945fb46332ae35",
+      "byte_len": 270,
+      "source_block_index": 74,
+      "start": 0,
+      "end": 270,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "courts/courts-unspecified",
+      "work_family": "stem:000166305"
+    },
+    {
+      "case_id": "m207-s01-case-011",
+      "fragment_id": "npa-frag-115",
+      "doc_id": "npa-doc-026",
+      "source_path": "consru_export/consru_export/exports/npa/decree_2020-09-14_558_rev-2024-07-08_a6d600ea.xml",
+      "source_sha256": "2d44686da494b529ee1e1344a16460528f33a2285dec5f87129eea652b27cc25",
+      "byte_len": 73,
+      "source_block_index": 12,
+      "start": 0,
+      "end": 73,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/decree-document",
+      "work_family": "stem:decree_2020-09-14_558"
+    },
+    {
+      "case_id": "m207-s01-case-012",
+      "fragment_id": "npa-frag-031",
+      "doc_id": "npa-doc-007",
+      "source_path": "consru_export/consru_export/exports/npa/law_2019-06-27_151-fz_rev-2024-08-08_2296dc28.xml",
+      "source_sha256": "bbb27af24e2aeb7149b51100d9f26797257cb55ae272d442e042a0e755242879",
+      "byte_len": 1771,
+      "source_block_index": 130,
+      "start": 0,
+      "end": 1771,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "work_family": "stem:law_2019-06-27_151-fz"
+    },
+    {
+      "case_id": "m207-s01-case-013",
+      "fragment_id": "npa-frag-150",
+      "doc_id": "npa-doc-034",
+      "source_path": "consru_export/consru_export/exports/fas/decision_2025-01-10_04-10-18-1-15-2025_rev-unknown_382b6a0f.xml",
+      "source_sha256": "5dff97b4b557c4c4d23edc9bd766b4e759866c927ce5942e071ea4be37f13bf5",
+      "byte_len": 64,
+      "source_block_index": 12,
+      "start": 0,
+      "end": 64,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "fas/fas-unspecified",
+      "work_family": "stem:decision_2025-01-10_04-10-18-1-15-2025"
+    },
+    {
+      "case_id": "m207-s01-case-014",
+      "fragment_id": "npa-frag-060",
+      "doc_id": "npa-doc-015",
+      "source_path": "consru_export/consru_export/exports/npa/order_2014-02-14_55_rev-2025-05-28_fc54b9bc.xml",
+      "source_sha256": "059f8d10eebd0f5f65320866a5ca243c795ebe70c64509f7ff98dd630050c378",
+      "byte_len": 888,
+      "source_block_index": 0,
+      "start": 0,
+      "end": 888,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/order",
+      "work_family": "stem:order_2014-02-14_55"
+    },
+    {
+      "case_id": "m207-s01-case-015",
+      "fragment_id": "npa-frag-091",
+      "doc_id": "npa-doc-021",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2013-09-19_826_rev-2018-09-08_4e4aaea7.xml",
+      "source_sha256": "5c1994762da66e21db4d1516c01de7a4ac94ded062b5de0dc2cf0c46ca950770",
+      "byte_len": 94,
+      "source_block_index": 9,
+      "start": 0,
+      "end": 94,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "work_family": "stem:resolution_2013-09-19_826"
+    },
+    {
+      "case_id": "m207-s01-case-016",
+      "fragment_id": "npa-frag-132",
+      "doc_id": "npa-doc-030",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166339-edition-c0c8875a6b0619c4af077933.xml",
+      "source_sha256": "897b8e49a34780dee86ac32dfd9f46f5c1ba7b6e441b0ad342984cb60e25b141",
+      "byte_len": 2366,
+      "source_block_index": 37,
+      "start": 0,
+      "end": 2366,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "courts/courts-unspecified",
+      "work_family": "stem:000166339"
+    },
+    {
+      "case_id": "m207-s01-case-017",
+      "fragment_id": "npa-frag-025",
+      "doc_id": "npa-doc-006",
+      "source_path": "consru_export/consru_export/exports/npa/law_2015-07-13_220-fz_rev-2025-07-31_7832fee0.xml",
+      "source_sha256": "cb12268616fce8b8235f3dbf4bdfe07af8dc8365b98a34ceba581e92e80d76ce",
+      "byte_len": 165,
+      "source_block_index": 97,
+      "start": 0,
+      "end": 165,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "work_family": "stem:law_2015-07-13_220-fz"
+    },
+    {
+      "case_id": "m207-s01-case-018",
+      "fragment_id": "npa-frag-103",
+      "doc_id": "npa-doc-023",
+      "source_path": "consru_export/consru_export/exports/npa/directive_2013-09-30_1765-r_rev-2015-12-17_1a80d0cd.xml",
+      "source_sha256": "34f71f02d545bca2b5e6f1f5595c622c958f11623271d03f6b7d1a035ab8fc94",
+      "byte_len": 194,
+      "source_block_index": 139,
+      "start": 0,
+      "end": 194,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/directive",
+      "work_family": "stem:directive_2013-09-30_1765-r"
+    },
+    {
+      "case_id": "m207-s01-case-019",
+      "fragment_id": "npa-frag-081",
+      "doc_id": "npa-doc-019",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2007-11-26_812_rev-2017-11-30_a3835720.xml",
+      "source_sha256": "3ffe2e404f85f79d093888dda55b6c2ba70b4023b179b5f1971b6f4d436f6f4c",
+      "byte_len": 93,
+      "source_block_index": 20,
+      "start": 0,
+      "end": 93,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "work_family": "stem:resolution_2007-11-26_812"
+    },
+    {
+      "case_id": "m207-s01-case-020",
+      "fragment_id": "npa-frag-047",
+      "doc_id": "npa-doc-012",
+      "source_path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+      "source_sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14",
+      "byte_len": 87,
+      "source_block_index": 88,
+      "start": 0,
+      "end": 87,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law-44fz",
+      "work_family": "work:law-44fz-cluster"
+    },
+    {
+      "case_id": "m207-s01-case-021",
+      "fragment_id": "npa-frag-044",
+      "doc_id": "npa-doc-011",
+      "source_path": "consru_export/consru_export/exports/npa/law_2013-04-05_44-fz/edition-0013_rev-2015-07-13_from-unknown_7d06b511.xml",
+      "source_sha256": "31d6ca25a08735b9599c45600570ab20bbc72ba00e7046f5c7f545d67de68eae",
+      "byte_len": 87,
+      "source_block_index": 373,
+      "start": 0,
+      "end": 87,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law-44fz",
+      "work_family": "work:law-44fz-cluster"
+    },
+    {
+      "case_id": "m207-s01-case-022",
+      "fragment_id": "npa-frag-166",
+      "doc_id": "npa-doc-037",
+      "source_path": "consru_export/consru_export/exports/xml/law/126745/edition-d5a1c5fe630fd867d5ce4a7a.xml",
+      "source_sha256": "889c664702d56cb9170f3fc596f097172107c66404ed349a024c5e5d1d1c7e2c",
+      "byte_len": 88,
+      "source_block_index": 195,
+      "start": 0,
+      "end": 88,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "xml/xml-unspecified",
+      "work_family": "workdir:xml/law/126745"
+    },
+    {
+      "case_id": "m207-s01-case-023",
+      "fragment_id": "npa-frag-007",
+      "doc_id": "npa-doc-003",
+      "source_path": "consru_export/consru_export/exports/npa/law_2014-11-24_356-fz_rev-2017-12-31_3d04594c.xml",
+      "source_sha256": "853b83dcaaf836fc8bbb425fb296ff7c2ad4cd2ae9992363978a8209caa09e94",
+      "byte_len": 1562,
+      "source_block_index": 59,
+      "start": 0,
+      "end": 1562,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "work_family": "stem:law_2014-11-24_356-fz"
+    },
+    {
+      "case_id": "m207-s01-case-024",
+      "fragment_id": "npa-frag-051",
+      "doc_id": "npa-doc-013",
+      "source_path": "consru_export/consru_export/exports/npa/order_2013-10-02_567_rev-unknown_bc2023c7.xml",
+      "source_sha256": "a9c93a503c7be9fdb3879ba4bc108d57821fc2e31532d8f62037a5dbbc4086da",
+      "byte_len": 456,
+      "source_block_index": 0,
+      "start": 0,
+      "end": 456,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/order",
+      "work_family": "stem:order_2013-10-02_567"
+    },
+    {
+      "case_id": "m207-s01-case-025",
+      "fragment_id": "npa-frag-053",
+      "doc_id": "npa-doc-013",
+      "source_path": "consru_export/consru_export/exports/npa/order_2013-10-02_567_rev-unknown_bc2023c7.xml",
+      "source_sha256": "a9c93a503c7be9fdb3879ba4bc108d57821fc2e31532d8f62037a5dbbc4086da",
+      "byte_len": 21,
+      "source_block_index": 208,
+      "start": 0,
+      "end": 21,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/order",
+      "work_family": "stem:order_2013-10-02_567"
+    },
+    {
+      "case_id": "m207-s01-case-026",
+      "fragment_id": "npa-frag-083",
+      "doc_id": "npa-doc-019",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2007-11-26_812_rev-2017-11-30_a3835720.xml",
+      "source_sha256": "3ffe2e404f85f79d093888dda55b6c2ba70b4023b179b5f1971b6f4d436f6f4c",
+      "byte_len": 111,
+      "source_block_index": 26,
+      "start": 0,
+      "end": 111,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "work_family": "stem:resolution_2007-11-26_812"
+    },
+    {
+      "case_id": "m207-s01-case-027",
+      "fragment_id": "npa-frag-122",
+      "doc_id": "npa-doc-027",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166280-edition-84232bdf5e80b4c2d012dbae.xml",
+      "source_sha256": "b4d95e445a01345c30baaef42667d2b6e0010b7a584d6042ec85f77ce63fbf8a",
+      "byte_len": 371,
+      "source_block_index": 48,
+      "start": 0,
+      "end": 371,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "courts/courts-unspecified",
+      "work_family": "stem:000166280"
+    },
+    {
+      "case_id": "m207-s01-case-028",
+      "fragment_id": "npa-frag-164",
+      "doc_id": "npa-doc-037",
+      "source_path": "consru_export/consru_export/exports/xml/law/126745/edition-d5a1c5fe630fd867d5ce4a7a.xml",
+      "source_sha256": "889c664702d56cb9170f3fc596f097172107c66404ed349a024c5e5d1d1c7e2c",
+      "byte_len": 90,
+      "source_block_index": 35,
+      "start": 0,
+      "end": 90,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "xml/xml-unspecified",
+      "work_family": "workdir:xml/law/126745"
+    },
+    {
+      "case_id": "m207-s01-case-029",
+      "fragment_id": "npa-frag-012",
+      "doc_id": "npa-doc-004",
+      "source_path": "consru_export/consru_export/exports/npa/law_2014-11-24_356-fz_rev-2017-12-31_f3704147.xml",
+      "source_sha256": "d111825cc43eadba338a8802603127b4620eee45aee74b07e04c9d3bc6969cb5",
+      "byte_len": 1562,
+      "source_block_index": 53,
+      "start": 0,
+      "end": 1562,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "work_family": "stem:law_2014-11-24_356-fz"
+    },
+    {
+      "case_id": "m207-s01-case-030",
+      "fragment_id": "npa-frag-035",
+      "doc_id": "npa-doc-008",
+      "source_path": "consru_export/consru_export/exports/npa/law_2019-06-27_151-fz_rev-2024-08-08_d7d8dfca.xml",
+      "source_sha256": "c152ad1070cd4cabb176529dbcf7068838c7ce5dfbd2028597fe2b3136c8d5d7",
+      "byte_len": 1771,
+      "source_block_index": 123,
+      "start": 0,
+      "end": 1771,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "work_family": "stem:law_2019-06-27_151-fz"
+    },
+    {
+      "case_id": "m207-s01-case-031",
+      "fragment_id": "npa-frag-065",
+      "doc_id": "npa-doc-016",
+      "source_path": "consru_export/consru_export/exports/npa/order_2014-03-06_80_rev-2024-02-19_ea2ac116.xml",
+      "source_sha256": "25cec4c2838a231234f4fa24169b342ed7af48e551ac97a0ae660db0656faa67",
+      "byte_len": 206,
+      "source_block_index": 0,
+      "start": 0,
+      "end": 206,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/order",
+      "work_family": "stem:order_2014-03-06_80"
+    },
+    {
+      "case_id": "m207-s01-case-032",
+      "fragment_id": "npa-frag-099",
+      "doc_id": "npa-doc-022",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2013-11-08_1005_rev-2024-12-26_924a4838.xml",
+      "source_sha256": "53f77530082bbb423c3a3cbbcfd1c22ab73275959f63104816c024bf59be88ef",
+      "byte_len": 71,
+      "source_block_index": 14,
+      "start": 0,
+      "end": 71,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "work_family": "stem:resolution_2013-11-08_1005"
+    },
+    {
+      "case_id": "m207-s01-case-033",
+      "fragment_id": "npa-frag-095",
+      "doc_id": "npa-doc-022",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2013-11-08_1005_rev-2024-12-26_924a4838.xml",
+      "source_sha256": "53f77530082bbb423c3a3cbbcfd1c22ab73275959f63104816c024bf59be88ef",
+      "byte_len": 1198,
+      "source_block_index": 0,
+      "start": 0,
+      "end": 1198,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "work_family": "stem:resolution_2013-11-08_1005"
+    },
+    {
+      "case_id": "m207-s01-case-034",
+      "fragment_id": "npa-frag-179",
+      "doc_id": "npa-doc-040",
+      "source_path": "consru_export/consru_export/exports/xml/law/135559/edition-38317e622441abfe3524d376.xml",
+      "source_sha256": "3919a37dd9d87558158b14e3b05e5f0f68acd58a74d6ab16baebf43a7797c9ac",
+      "byte_len": 156,
+      "source_block_index": 356,
+      "start": 0,
+      "end": 156,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "xml/xml-unspecified",
+      "work_family": "workdir:xml/law/135559"
+    },
+    {
+      "case_id": "m207-s01-case-035",
+      "fragment_id": "npa-frag-023",
+      "doc_id": "npa-doc-006",
+      "source_path": "consru_export/consru_export/exports/npa/law_2015-07-13_220-fz_rev-2025-07-31_7832fee0.xml",
+      "source_sha256": "cb12268616fce8b8235f3dbf4bdfe07af8dc8365b98a34ceba581e92e80d76ce",
+      "byte_len": 87,
+      "source_block_index": 58,
+      "start": 0,
+      "end": 87,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "work_family": "stem:law_2015-07-13_220-fz"
+    },
+    {
+      "case_id": "m207-s01-case-036",
+      "fragment_id": "npa-frag-114",
+      "doc_id": "npa-doc-026",
+      "source_path": "consru_export/consru_export/exports/npa/decree_2020-09-14_558_rev-2024-07-08_a6d600ea.xml",
+      "source_sha256": "2d44686da494b529ee1e1344a16460528f33a2285dec5f87129eea652b27cc25",
+      "byte_len": 510,
+      "source_block_index": 0,
+      "start": 0,
+      "end": 510,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/decree-document",
+      "work_family": "stem:decree_2020-09-14_558"
+    },
+    {
+      "case_id": "m207-s01-case-037",
+      "fragment_id": "npa-frag-079",
+      "doc_id": "npa-doc-018",
+      "source_path": "consru_export/consru_export/exports/npa/order_2014-04-23_398_rev-2015-02-13_2ba775ce.xml",
+      "source_sha256": "1e56d30c7030d39bf29fc6bb10b62f0b5e5e7cab8db096c12a24ccb4be7bebca",
+      "byte_len": 84,
+      "source_block_index": 76,
+      "start": 0,
+      "end": 84,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/order",
+      "work_family": "stem:order_2014-04-23_398"
+    },
+    {
+      "case_id": "m207-s01-case-038",
+      "fragment_id": "npa-frag-090",
+      "doc_id": "npa-doc-021",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2013-09-19_826_rev-2018-09-08_4e4aaea7.xml",
+      "source_sha256": "5c1994762da66e21db4d1516c01de7a4ac94ded062b5de0dc2cf0c46ca950770",
+      "byte_len": 309,
+      "source_block_index": 0,
+      "start": 0,
+      "end": 309,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "work_family": "stem:resolution_2013-09-19_826"
+    },
+    {
+      "case_id": "m207-s01-case-039",
+      "fragment_id": "npa-frag-001",
+      "doc_id": "npa-doc-001",
+      "source_path": "consru_export/consru_export/exports/npa/law_2013-12-28_396-fz_rev-2025-03-20_5195aa84.xml",
+      "source_sha256": "a5c0d8ba883b4ce307a583cd85b59be939de591ba0bf935bdbaa32b2c42c6fbf",
+      "byte_len": 874,
+      "source_block_index": 73,
+      "start": 0,
+      "end": 874,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "work_family": "stem:law_2013-12-28_396-fz"
+    },
+    {
+      "case_id": "m207-s01-case-040",
+      "fragment_id": "npa-frag-107",
+      "doc_id": "npa-doc-024",
+      "source_path": "consru_export/consru_export/exports/npa/directive_2014-03-13_364-r_rev-2017-03-21_8d37fe2d.xml",
+      "source_sha256": "d1a84a7941a23b3dcd4818260d8e93cf491837285911ad5af470e9b6dc130db8",
+      "byte_len": 94,
+      "source_block_index": 12,
+      "start": 0,
+      "end": 94,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true,
+      "span_offered_for_coding": true,
+      "metadata_source": "unknown",
+      "year": "unknown",
+      "document_type": "unknown",
+      "draw_stratum": "npa/directive",
+      "work_family": "stem:directive_2014-03-13_364-r"
+    }
+  ],
+  "non_claims": [
+    "not official-publication provenance (R070 stays open)",
+    "not amendment provenance (R070 stays open)",
+    "not LawRef / act-tree / clause segmentation",
+    "not the N2-gate acceptance decision",
+    "not legal interpretation",
+    "not gold: no S01 span or slot is a gold label",
+    "not a human pilot: S01 performs no coding and reports no agreement",
+    "not product authority: prompt output is AnnotationSuggestion only"
+  ],
+  "lifecycle": {
+    "human_adoption": "pending",
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none",
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged"
+  }
+}
