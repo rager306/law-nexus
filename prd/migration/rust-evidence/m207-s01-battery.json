@@ -1,0 +1,100 @@
+{
+  "schema": "m207-s01-pilot-battery/v1",
+  "milestone": "M207-b2i96m",
+  "slice": "S01",
+  "task": "T04",
+  "human_pilot_performed": false,
+  "model_invoked": false,
+  "runtime_stop_active": true,
+  "selected_d388_gates": "none",
+  "deferred_d388_gates": [
+    "G03",
+    "G04",
+    "G05",
+    "G06",
+    "G07",
+    "G08",
+    "G09",
+    "G10",
+    "G11",
+    "G12",
+    "G13",
+    "G15",
+    "G16"
+  ],
+  "human_adoption": "pending",
+  "requirement_status_effect": "unchanged",
+  "review_disposition_effect": "unchanged",
+  "non_claims": [
+    "not official-publication provenance (R070 stays open)",
+    "not amendment provenance (R070 stays open)",
+    "not LawRef / act-tree / clause segmentation",
+    "not the N2-gate acceptance decision",
+    "not legal interpretation",
+    "not gold: no S01 span or slot is a gold label",
+    "not a human pilot: S01 performs no coding and reports no agreement",
+    "not product authority: prompt output is AnnotationSuggestion only"
+  ],
+  "pins": {
+    "prd/migration/rust-evidence/m207-s01-pilot-cases.json": "9b0b6bc6bd8eadf9eb86886e45eb756ebade654e96ac3a84132ed9452bdeb9ad",
+    "prd/annotation/m207-s01-codebook.md": "1a1bfe944207e69cb5fb507e94d680384dadecf7ac98ac29b1de4932d7cb76c6",
+    "prd/migration/rust-evidence/m199-s01-annotation-protocol.md": "eed922b02c1b89b8e51e8b342b1a9f113a8029b8a2fe0a1bee84f9f2035c6e3d",
+    "prd/annotation/m207-s01-metaprompt.md": "d09d09fe9189a7f76b02f715eefa6ebd0c16a3b71ef7ff4b88f5f380af68a999",
+    "prd/migration/rust-evidence/m207-s01-prompt-packets.jsonl": "d9d30bf24d40ab8abebb28c1a22692ae99ca029e1b4e2b032a4dae1137cc6b77",
+    "prd/annotation/m207-s01-schemas.json": "63a4bc6629bade752f9fa02d1dd5fa6bbf21238e20772d2ba5b74f88ecca3682",
+    "prd/migration/rust-evidence/m199-s01-gold-sample-manifest.json": "134751f49db1858329248be1857ada669097f1860609090028c7b5af8975574f"
+  },
+  "fixture_rollup_sha256": "50b48668cba5b89d75af0604a78004404310e36377679984273fa0a883053c9d",
+  "fixture_txt": 180,
+  "check_count": 8,
+  "checks": [
+    {
+      "id": "gate-schemas",
+      "command": "uv run python scripts/m207_s01_schemas.py check",
+      "status": 0,
+      "verdict": "pass"
+    },
+    {
+      "id": "gate-select-cases",
+      "command": "uv run python scripts/m207_s01_select_cases.py check",
+      "status": 0,
+      "verdict": "pass"
+    },
+    {
+      "id": "gate-prompt-packet",
+      "command": "uv run python scripts/m207_s01_prompt_packet.py check",
+      "status": 0,
+      "verdict": "pass"
+    },
+    {
+      "id": "verifier-pilot",
+      "command": "uv run python scripts/m207_s01_pilot.py check",
+      "status": 0,
+      "verdict": "pass"
+    },
+    {
+      "id": "adversarial-suite",
+      "command": "uv run python scripts/test_m207_s01_pilot.py",
+      "status": 0,
+      "verdict": "pass"
+    },
+    {
+      "id": "ruff-format-check",
+      "command": "uv run ruff format --check scripts/m207_s01_schemas.py scripts/m207_s01_select_cases.py scripts/m207_s01_prompt_packet.py scripts/m207_s01_pilot.py scripts/test_m207_s01_pilot.py",
+      "status": 0,
+      "verdict": "pass"
+    },
+    {
+      "id": "ruff-lint",
+      "command": "uv run ruff check scripts/m207_s01_schemas.py scripts/m207_s01_select_cases.py scripts/m207_s01_prompt_packet.py scripts/m207_s01_pilot.py scripts/test_m207_s01_pilot.py",
+      "status": 0,
+      "verdict": "pass"
+    },
+    {
+      "id": "adr-conformance",
+      "command": "uv run python scripts/verify-adr-conformance.py",
+      "status": 0,
+      "verdict": "pass"
+    }
+  ]
+}
