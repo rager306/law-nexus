@@ -1,0 +1,1624 @@
+{
+  "schema": "m207-s02-coder-kit/v1",
+  "schema_version": 1,
+  "codebook": "prd/annotation/m207-s01-codebook.md",
+  "coder_pass": 1,
+  "submission_id": "m207-s02-submission-pass-1",
+  "submission_schema_id": "m207-s01-coding-submission/v1",
+  "case_count": 40,
+  "work_family_cap": 4,
+  "cases": [
+    {
+      "case_id": "m207-s01-case-001",
+      "fragment_id": "npa-frag-118",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-118.txt",
+      "fragment_sha256": "c0b448fad20bc05c6292841e048a6c571fc579725fbb2d7c66494c4344dae19d",
+      "byte_len": 71,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-002",
+      "fragment_id": "npa-frag-009",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-009.txt",
+      "fragment_sha256": "81f011f5ca12a2801a478600cce2327b4274d629ea0393d3bd397c0af8320173",
+      "byte_len": 637,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-003",
+      "fragment_id": "npa-frag-123",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-123.txt",
+      "fragment_sha256": "029d47acb108d020395e145358faaf17f4a37b58182bb4de26387fb9b0ad6952",
+      "byte_len": 864,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-004",
+      "fragment_id": "npa-frag-140",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-140.txt",
+      "fragment_sha256": "b724711b42b01e59dbc5ec0de18cb7f24803a880e06113ae1ca59f006202772f",
+      "byte_len": 393,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-005",
+      "fragment_id": "npa-frag-049",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-049.txt",
+      "fragment_sha256": "d366c64037e50869833ebda9ffa47a8c9f004b103187c74e3c237073bc9724f5",
+      "byte_len": 164,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-006",
+      "fragment_id": "npa-frag-046",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-046.txt",
+      "fragment_sha256": "4de5d488c3dd4c138b872fccbb6ae7fe8d2b8685c3947f2c0afef17db4c446ec",
+      "byte_len": 24,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-007",
+      "fragment_id": "npa-frag-160",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-160.txt",
+      "fragment_sha256": "493906b5cf67ca9cc1a609275a9e6367688d4bce04a50008d661f714959dadf8",
+      "byte_len": 58,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-008",
+      "fragment_id": "npa-frag-109",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-109.txt",
+      "fragment_sha256": "abae93be8fbeb0b665bc29624b27bd866e9ec5018fda67975fecfab126e7b5f2",
+      "byte_len": 423,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-009",
+      "fragment_id": "npa-frag-106",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-106.txt",
+      "fragment_sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216",
+      "byte_len": 94,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-010",
+      "fragment_id": "npa-frag-126",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-126.txt",
+      "fragment_sha256": "7f23e4b87162669a07d49628551da48319206cfa22417443eb3d549596d78a73",
+      "byte_len": 270,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-011",
+      "fragment_id": "npa-frag-115",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-115.txt",
+      "fragment_sha256": "4014046ebbd29f66b029c2855f77bc559e992c1d150cfb40b6682032343ab061",
+      "byte_len": 73,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-012",
+      "fragment_id": "npa-frag-031",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-031.txt",
+      "fragment_sha256": "82430e5b4a5801e3bcdc014151754309aa65e3dfc0492c0c73b357f46fca3e5b",
+      "byte_len": 1771,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-013",
+      "fragment_id": "npa-frag-150",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-150.txt",
+      "fragment_sha256": "d80215842c9141c9cfd252905c3a6e27d8c85addd4833b4b91e9eb1f2d878883",
+      "byte_len": 64,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-014",
+      "fragment_id": "npa-frag-060",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-060.txt",
+      "fragment_sha256": "0cfee5a6f9dc1dac2916559c924c5e93dc17a67612733000f4edff786ef0002b",
+      "byte_len": 888,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-015",
+      "fragment_id": "npa-frag-091",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-091.txt",
+      "fragment_sha256": "e664bc2206c3623331011e61e42915c7cc864319f76bdead784a561d32b6294d",
+      "byte_len": 94,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-016",
+      "fragment_id": "npa-frag-132",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-132.txt",
+      "fragment_sha256": "918f9e47f799c20b7a6e822e563bf67234d70dc0a4db965ffc43cd30a6b5525e",
+      "byte_len": 2366,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-017",
+      "fragment_id": "npa-frag-025",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-025.txt",
+      "fragment_sha256": "03f9521c079bcfe378b6e02ee2dec615d86dce1d7f5ae6a5cc6aab9efaaa6fcc",
+      "byte_len": 165,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-018",
+      "fragment_id": "npa-frag-103",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-103.txt",
+      "fragment_sha256": "27f47f86b796c1ea0e1208028fd64d8e7aed6b73d9cf3fc3b9aaac831da87215",
+      "byte_len": 194,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-019",
+      "fragment_id": "npa-frag-081",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-081.txt",
+      "fragment_sha256": "e05e8992b676e3b61d4fca1386221aca7b4e7279555d875b6f066b7b7fc835ea",
+      "byte_len": 93,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-020",
+      "fragment_id": "npa-frag-047",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-047.txt",
+      "fragment_sha256": "73841eedfe8f6bf06a67d9788ee84392a34ee7198c6544e5d58b5a6680c3cd6c",
+      "byte_len": 87,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-021",
+      "fragment_id": "npa-frag-044",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-044.txt",
+      "fragment_sha256": "3e758a63c3fd643205bb600090afff53a1caebb18986429e4415ff483c427c5e",
+      "byte_len": 87,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-022",
+      "fragment_id": "npa-frag-166",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-166.txt",
+      "fragment_sha256": "58f2820bbd80448e2ec9e2994275d0c66fb285ae3e67465eaa404ea7b5fd25fb",
+      "byte_len": 88,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-023",
+      "fragment_id": "npa-frag-007",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-007.txt",
+      "fragment_sha256": "804d50525f6e41486856e5af25cee012b1b85c140542fde1acd2f64c255283c3",
+      "byte_len": 1562,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-024",
+      "fragment_id": "npa-frag-051",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-051.txt",
+      "fragment_sha256": "d7218139f39f8fe14f689a7a64c1ebdf0ad29fe3adba43fa711d4458a33347c3",
+      "byte_len": 456,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-025",
+      "fragment_id": "npa-frag-053",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-053.txt",
+      "fragment_sha256": "3485298034c7d341d16d7edca2165611cd63a6187ea79002c11dd2c5b6e78fcb",
+      "byte_len": 21,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-026",
+      "fragment_id": "npa-frag-083",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-083.txt",
+      "fragment_sha256": "caaed43573e956bb523b7601e287c1c94358625cea275ba426bee61f07562d6f",
+      "byte_len": 111,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-027",
+      "fragment_id": "npa-frag-122",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-122.txt",
+      "fragment_sha256": "dc90e26e0418308fb7b9ffd35f1da737bcc9d8293fd2fa46c207d26249dd86e9",
+      "byte_len": 371,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-028",
+      "fragment_id": "npa-frag-164",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-164.txt",
+      "fragment_sha256": "c70833e6e5bab59217e9a799c89edf1d16275b623903c341ca33a50dc4cabd93",
+      "byte_len": 90,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-029",
+      "fragment_id": "npa-frag-012",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-012.txt",
+      "fragment_sha256": "804d50525f6e41486856e5af25cee012b1b85c140542fde1acd2f64c255283c3",
+      "byte_len": 1562,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-030",
+      "fragment_id": "npa-frag-035",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-035.txt",
+      "fragment_sha256": "82430e5b4a5801e3bcdc014151754309aa65e3dfc0492c0c73b357f46fca3e5b",
+      "byte_len": 1771,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-031",
+      "fragment_id": "npa-frag-065",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-065.txt",
+      "fragment_sha256": "79c370803daf49bb35a4aa4570cbc0630d4602dc8fc1110000a8f3b9a9c4c7d0",
+      "byte_len": 206,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-032",
+      "fragment_id": "npa-frag-099",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-099.txt",
+      "fragment_sha256": "da3567d48cf03b624421856a7e0daa9fc850d261d4c835a1236145f3ac0a3b25",
+      "byte_len": 71,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-033",
+      "fragment_id": "npa-frag-095",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-095.txt",
+      "fragment_sha256": "de312ae2029828adcdaf4e8597dffb7db648aab3abfab62cac57c98ea6ef8c40",
+      "byte_len": 1198,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-034",
+      "fragment_id": "npa-frag-179",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-179.txt",
+      "fragment_sha256": "d9c142ffef092c74d66020cbe0c2394b4b80082fee2ef83d53d7561e66baa931",
+      "byte_len": 156,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-035",
+      "fragment_id": "npa-frag-023",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-023.txt",
+      "fragment_sha256": "e3890c3e4c8d802065129b0e0484ba8ad2f52d3f9850077dc6d28b038584567d",
+      "byte_len": 87,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-036",
+      "fragment_id": "npa-frag-114",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-114.txt",
+      "fragment_sha256": "949653f1629c95cdd0751018cc0f106cf6eaf21ac92ce646152c7f7038d19d65",
+      "byte_len": 510,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-037",
+      "fragment_id": "npa-frag-079",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-079.txt",
+      "fragment_sha256": "d3453650e06b0d2deaad1696c2b802faf1dff954460a187d5de71dd4b8d09f23",
+      "byte_len": 84,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-038",
+      "fragment_id": "npa-frag-090",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-090.txt",
+      "fragment_sha256": "493f16bf9cc4de03627478c42f89367902a8e1d8204446acb70353051783bbc4",
+      "byte_len": 309,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-039",
+      "fragment_id": "npa-frag-001",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-001.txt",
+      "fragment_sha256": "24b9ac09f1e7732e8b3a1ddbda692ecae3824845b6137bb1a013cabc0fd9da51",
+      "byte_len": 874,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    },
+    {
+      "case_id": "m207-s01-case-040",
+      "fragment_id": "npa-frag-107",
+      "fragment_path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-107.txt",
+      "fragment_sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216",
+      "byte_len": 94,
+      "span_offered_for_coding": true,
+      "alternative_classes": [
+        {
+          "axis": "reference_decision",
+          "values": [
+            "reference",
+            "not_a_reference"
+          ]
+        },
+        {
+          "axis": "slot_presence",
+          "values": [
+            "slot_present",
+            "slot_absent"
+          ]
+        },
+        {
+          "axis": "scope",
+          "values": [
+            "scope_local",
+            "scope_inherited"
+          ]
+        },
+        {
+          "axis": "binding",
+          "values": [
+            "binding_explicit",
+            "binding_unresolved"
+          ]
+        }
+      ],
+      "abstention_available": true
+    }
+  ],
+  "submission_template": {
+    "schema": "m207-s01-coding-submission/v1",
+    "schema_version": 1,
+    "codebook": "prd/annotation/m207-s01-codebook.md",
+    "submission_id": "m207-s02-submission-pass-1",
+    "coder_id": "",
+    "coder_pass": 1,
+    "provenance": "",
+    "cases": [],
+    "non_claims": [
+      "not a human pilot: S02 fabricates no coding and reports no agreement without two human submissions",
+      "not gold: no S02 artifact, coded span or adjudicated resolution is a gold label",
+      "not a promotion: classification stays not-authorized and promotion stays none",
+      "not a threshold: no agreement threshold, pass/fail or accept/reject decision is introduced",
+      "not per-aspect rates: span, slot, scope, binding and false-authority rates belong to S03",
+      "not official-publication provenance (R070 stays open)",
+      "not amendment provenance (R070 stays open)",
+      "not LawRef / act-tree / clause segmentation",
+      "not the N2-gate acceptance decision",
+      "not legal interpretation",
+      "not product authority: no coder kit, submission or adjudication drives the product runtime",
+      "not a second product surface: S02 stays an offline Python harness under scripts/"
+    ],
+    "lifecycle": {
+      "human_adoption": "pending",
+      "runtime_stop_active": true,
+      "selected_d388_gates": "none",
+      "requirement_status_effect": "unchanged",
+      "review_disposition_effect": "unchanged"
+    }
+  },
+  "non_claims": [
+    "not a human pilot: S02 fabricates no coding and reports no agreement without two human submissions",
+    "not gold: no S02 artifact, coded span or adjudicated resolution is a gold label",
+    "not a promotion: classification stays not-authorized and promotion stays none",
+    "not a threshold: no agreement threshold, pass/fail or accept/reject decision is introduced",
+    "not per-aspect rates: span, slot, scope, binding and false-authority rates belong to S03",
+    "not official-publication provenance (R070 stays open)",
+    "not amendment provenance (R070 stays open)",
+    "not LawRef / act-tree / clause segmentation",
+    "not the N2-gate acceptance decision",
+    "not legal interpretation",
+    "not product authority: no coder kit, submission or adjudication drives the product runtime",
+    "not a second product surface: S02 stays an offline Python harness under scripts/"
+  ],
+  "lifecycle": {
+    "human_adoption": "pending",
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none",
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged"
+  }
+}
