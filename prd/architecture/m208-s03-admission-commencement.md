@@ -342,6 +342,187 @@ that the no-start state is intact — never a runtime result.
   verdict is `not-adopted`: its only would-be emitter `scripts/m208_s03_t05_verify.sh`
   is deliberately absent, and the contract asserts that it never emits this marker.
 
+## T02 no-start note: operation admission gate (accepted target, operand match, temporal evidence)
+
+Recorded by M208/S03/T02 on 2026-09-16 under the `not-adopted` verdict above
+(`verdict=not-adopted`). This note adds provenance to the checkpoint; it does not
+relax it, and no statement in it is a proof.
+
+- Provenance: the S01 no-start lineage is consumed here as the S03 admission basis —
+  T01 attempt `f436a10e` settled failed/blocker-discovered, host recovery abort
+  `532e9062`, decision D503 — the S02 slice shape is D504, and the S03 form itself is
+  D507 (design-only no-start instead of a third recovery cycle), with D508 recording
+  the requested gate union `G05, G11, G12, G13, G15`. All ten
+  `prd/architecture/m205-s01-pullenti-matrix.yaml` rows whose `unblocks` contains
+  `S03` (`PC-D-EDITION`, `PC-D-ThisDecree`, `PC-C-OWNER`, `PC-C-KIND`, `PC-C-CHILD`,
+  `PC-C-VALUE`, `PC-C-PARAM`, `PC-C-LOCVALUE`, `PC-C-value-kind`,
+  `PC-C-no-auto-reinterpret`) still carry `human_adoption: pending` and
+  `lifecycle: [proposed]`; neither the admission leg of RC28-F13 nor RC28-F17 is
+  admitted, and the only tracked admitted runtime scope in this area
+  (RC28-F06..F12, M206/S05) excludes both. This note therefore records no runtime
+  work: `runtime_work: not-started`.
+- The gate statement `Parsed operation becomes executable only with accepted target,
+  operand match and temporal evidence` is recorded here as a **design-only
+  obligation** (the S03 demo stays `runtime_demo: not-proven`). No such operation
+  admission gate exists today, and this note must not be read as if it did.
+  Concretely: `crates/ln-admission/src/lib.rs` is the HC-13 application/capacity
+  policy (`DecideAdmission`, `AdmissionDecision { Admitted, Paused, Rejected }` with
+  capacity/vendor/completeness reasons) and is **not** an operation admission;
+  `ProvenanceAdmission` in `crates/ln-temporal/src/provenance.rs` is a
+  caller-supplied provenance packet for one held `edition_delta` target and is
+  **not** a parse-time admission for a parsed operation; OP-F `Commence` in
+  `prd/architecture/operation-registry.yaml` carries `runtime_today: none`. Claiming
+  either neighbour as this gate is the fail-closed case
+  `operation_admission_gate_claimed`.
+- The three legs of the gate are recorded as design statements only; none of them is
+  implemented:
+  1. **accepted target** — the S02 contour (nested change target, amending-act scope
+     binding), itself `not-adopted`; without an accepted, scope-bound target the
+     operation is not admissible.
+  2. **operand match** — the S01 contour (quoted operands and the five local change
+     operations), itself `not-adopted`; a parsed operand must match its declared
+     role before the operation is admissible.
+  3. **temporal evidence** — the commencement contour of the note below; an
+     operation whose commencement evidence is missing or ambiguous is not
+     admissible.
+  No leg delegates to another, no leg is satisfied by inference from the same source
+  that produced the operation, and no leg may be promoted from a neighbouring
+  admitted contour.
+- Fail-closed: a missing or incompatible leg closes as **not admitted**. There is no
+  "nearest" decision, no default-admission, and no KIND substitution; the operation
+  is not executed silently and no `MicroOperation` is derived from the raw mention.
+- Nothing is minted by this note: `ChangeTarget`, `ChangeScope`, `MicroOperation`,
+  `LegislativeEffect`, `NormRule`, `InForce`, `WorkId` and `force` all stay
+  deferred-undefined; `crates/ln-temporal/src/operation_admission.rs` is not
+  created, and `mod operation_admission` is not registered in
+  `crates/ln-temporal/src/lib.rs`. Extraction never implies force, and no KIND is
+  rewritten, invented or substituted.
+- No frozen surface was touched: the M205 pins, ADR-0028, `prd/ARCHITECTURE.md`, the
+  M206 records, the M208/S01 and M208/S02 records, the operation registry and the
+  M200/M201 frozen evidence artifacts are unmodified by T02, and no runtime or test
+  file was created.
+
+The T02 evidence for this note is the note-presence state asserted by
+`scripts/m208_s03_admission_contract.test.mjs` (contract code `t02_note_missing`)
+together with the absence checks it performs over the declared S03 runtime surfaces;
+the contract asserts this note while the verdict is `not-adopted`. A PASS of that
+contract is **not** runtime proof and not C4 evidence.
+
+## T02 no-start note: commencement evidence and the three anti-leakage statements
+
+Recorded by M208/S03/T02 on 2026-09-16 under the `not-adopted` verdict above
+(`verdict=not-adopted`). This note adds provenance to the checkpoint; it does not
+relax it, and no statement in it is a proof.
+
+- Provenance: the same S01 no-start lineage as the note above — T01 attempt
+  `f436a10e` settled failed/blocker-discovered, host recovery abort `532e9062`,
+  decision D503 — with the S02 slice shape D504 and the S03 form D507. Every owning
+  matrix row whose `unblocks` contains `S03` keeps `human_adoption: pending`, the
+  admission leg of RC28-F13 and RC28-F17 is **not** admitted, and the M206/S05
+  admitted scope (RC28-F06..F12) excludes both. No commencement extractor is
+  implemented here: `runtime_work: not-started`.
+- Design anchors for the commencement contour, cited as design pins and never as
+  runtime evidence: `prd/architecture/force-interval-set-contract.yaml` keeps
+  `NotYetInForce` in `written_statuses` and gives the `Commence` trigger
+  `seed default NotYetInForce/Unknown` with the explicit `never automatic InForce`
+  rule; `prd/architecture/pending-effects-contract.yaml` fixes
+  `force_status_seed: [NotYetInForce, Unknown]`; `prd/architecture/operation-registry.yaml`
+  gives `Commence` an `evidence_span` and `runtime_today: none`;
+  `prd/architecture/current-document-requisites.yaml` places `commencement_rules`
+  inside `temporal_separation.not_proven_by_sidecar` and states that `authorization
+  selects admissible claims; it never rewrites the literal mention`;
+  `prd/architecture/npa-promotion-gates.json` records R070 `remaining: "118
+  consolidated editions remain uncovered; commencement and transitional
+  slot-filled evidence is not proven."`; and `prd/temporal-legal-model.md` TL-GC19
+  (vacatio) states that the amended text may already be present while force stays
+  `NotYetInForce` pending per-component commence.
+- Three anti-leakage statements are recorded as design-only obligations, not as
+  proof that they hold:
+  1. **text presence is not force** — the presence of text in a consolidated edition
+     does **not** give `InForce`; force stays `NotYetInForce` until a per-component
+     commence is authorized (TL-GC19). Claiming the opposite is the fail-closed case
+     `text_presence_implies_inforce_claimed`.
+  2. **editorial or hypothesized commencement is not upgraded** — an editorial hint,
+     a hypothesis or a sidecar suggestion about commencement is stored as
+     unresolved and is never upgraded into a proven `InForce`; the literal mention
+     is never rewritten by an authorization.
+  3. **missing or ambiguous temporal evidence closes fail-closed** — no default to
+     the publication date, the decision date, the ingestion date, or a "nearest"
+     date, and no default admission from the seed status. The outcome is the
+     fail-closed non-success, never a silent `InForce` and never `false`.
+- A neighbouring admitted contour must not be read as S03 delivery:
+  `crates/ln-temporal/src/provenance.rs` (`CommencementEvidence`,
+  `TransitionalEvidence`, `ProvenanceAdmission`), `crates/ln-temporal/src/domain.rs`
+  (`NormativeState`, `NotYetInForce`, `resolve_force_status_at`) and the suites
+  `crates/ln-temporal/tests/provenance_edition_delta.rs`, `normative_state_force.rs`,
+  `r070_proof_gate.rs`, `transitional_justification.rs` each prove only their own
+  admitted scope (M206/S05-S07 and earlier). None of their PASSes may be cited as S03
+  evidence, as the F13/F17 admission or as C4 evidence (fail-closed case
+  `neighbouring_contour_as_evidence`).
+- Nothing is minted by this note: `ChangeTarget`, `ChangeScope`, `MicroOperation`,
+  `LegislativeEffect`, `NormRule`, `InForce`, `WorkId` and `force` stay
+  deferred-undefined; `crates/ln-decode/src/change_commencement.rs` is not created,
+  and `mod change_commencement` is not registered in `crates/ln-decode/src/lib.rs`.
+  Extraction never implies force.
+- No frozen surface was touched: the M205 pins, ADR-0028, `prd/ARCHITECTURE.md`, the
+  M206 records, the M208/S01 and M208/S02 records, the operation registry and the
+  M200/M201 frozen evidence artifacts are unmodified by T02, and no runtime or test
+  file was created.
+
+The T02 evidence for this note is the note-presence state asserted by
+`scripts/m208_s03_admission_contract.test.mjs` (contract code `t02_note_missing`) and
+the anchor-token checks it performs over this section; the contract asserts this note
+while the verdict is `not-adopted`. A PASS of that contract is **not** runtime proof
+and not C4 evidence.
+
+## T02 no-start note: no hostile contour, no battery, no runtime proof
+
+Recorded by M208/S03/T02 on 2026-09-16 under the `not-adopted` verdict above
+(`verdict=not-adopted`). This note adds provenance to the checkpoint; it does not
+relax it.
+
+- Provenance: the same S01 no-start lineage as the two notes above — T01 attempt
+  `f436a10e` settled failed/blocker-discovered, host recovery abort `532e9062`,
+  decision D503, S02 slice shape D504, S03 form D507; every owning row whose
+  `unblocks` contains `S03` keeps `human_adoption: pending`, and the admission leg of
+  RC28-F13/F17 is not admitted; `runtime_work: not-started`.
+- The hostile contour stays not-started: `hostile_proof: deferred`. No
+  `crates/ln-temporal/tests/npa_operation_admission_hostile_contract.rs` is created,
+  no hostile commencement fixture (missing commencement evidence, text-presence
+  `InForce` claim, default-date fallback) is added, and no host-side generator,
+  adapter or CLI hook is added. The absence of that suite is the expected state — a
+  hostile contour may not precede the admission it would verify against, so its
+  proof is deferred until a source-bound owner admission of the M208/S03 scope
+  exists.
+- The proof battery and the frozen-surface guard stay not-started:
+  `battery_proof: deferred` and `frozen_surface_proof: deferred`. No
+  `scripts/m208_s03_admission_commencement_battery.test.mjs`, no
+  `prd/migration/rust-evidence/m208-s03-admission-commencement-battery.json` and no
+  `crates/ln-temporal/tests/m208_s03_frozen_surface_guard.rs` is created. A battery
+  would have to measure the admission decisions and commencement evidence of a
+  runtime surface that is itself not-started, so it cannot precede the admission it
+  would measure.
+- No runtime proof is claimed anywhere in this record, here or elsewhere:
+  `runtime_proof: not-claimed`. `M208_S03_VERIFY_OK` stays
+  `verify_marker: unreachable` while the verdict is `not-adopted`, because its only
+  would-be emitter `scripts/m208_s03_t05_verify.sh` is deliberately absent, and the
+  contract asserts that the marker is never emitted.
+- A **checkpoint-contract PASS is not runtime proof**
+  (`contract_pass_is_not_runtime_proof: true`), and the D499 GSD milestone lock is
+  not an admission or C4 evidence (`lock_is_not_runtime_proof: true`). The same holds
+  for any PASS of the M206/S05-S07 admitted scope, for an integrity PASS, for a
+  battery PASS, for a milestone completion or for a subagent narrative: none of them
+  may be re-labelled as the missing S03 admission, as runtime proof, or as the S03
+  demo (`runtime_demo: not-proven`).
+- Neighbouring admitted contours are neighbours only, as recorded in the
+  `Neighbouring admitted contours` section above: the HC-13 capacity policy, the
+  `ProvenanceAdmission` carrier, the force overlay and their suites prove their own
+  admitted scopes and cannot be re-read as this slice's admission.
+- Gate rule: every no-start statement in all three T02 notes is explicitly
+  conditioned on `verdict=not-adopted`. A future granted admission must produce a
+  fresh checkpoint with re-bound source hashes instead of inheriting this text; no
+  sentence above may survive as a current claim once the verdict changes.
+
 ## Verification matrix overlay (not a proof anchor)
 
 `.agents/skills/law-nexus-rust/references/verification-matrix.md` is a gitignored
