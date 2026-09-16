@@ -71,6 +71,31 @@ PRIOR = f"{EVID}/m204-s06-c4-operational-receipt.json"
 S03_BATTERY = f"{EVID}/m207-s03-battery.json"
 REPORT = f"{EVID}/m207-s03-evaluation-report.json"
 BATTERY = f"{EVID}/m207-s04-battery.json"
+BATTERY_MARKER = "M207_S04_BATTERY_OK"
+BATTERY_WRITE_ENV = "M207_S04_WRITE_BATTERY"
+
+# The frozen chain the tracked battery projects.  Re-declared here on purpose: this suite
+# imports nothing from the tool under test (D472), so a drift between the chain and the
+# battery becomes a failing battery-mode case rather than a silent agreement.
+CHAIN_CHECKS = (
+    "s04_schemas",
+    "s04_c4_receipt",
+    "s04_hostile_suite",
+    "s04_machinery_verifier",
+    "s03_regression",
+    "ruff_format",
+    "ruff_check",
+    "adr_conformance",
+)
+
+# The frozen sources the battery pins, plus the S04-owned contract pair and the C4 attempt.
+# Battery assembly re-hashes every one of them, so a battery-mode case needs them present.
+PINNED_SURFACE = (
+    "prd/annotation/m207-s04-c4-protocol.md",
+    "prd/annotation/m207-s03-schemas.json",
+    "prd/architecture/npa-acceptance-contract.yaml",
+    f"{EVID}/m199-s01-gold-sample-manifest.json",
+)
 
 CHILD_ENV = {key: value for key, value in os.environ.items() if not key.startswith("M207_S04_")}
 TIMEOUT = 300
@@ -701,6 +726,7 @@ def _copy_surface(root: Path) -> None:
         S03_BATTERY,
         str(receipt["logs"]["stdout"]),
         str(receipt["logs"]["stderr"]),
+        *PINNED_SURFACE,
     ]
     for relative in relatives:
         target = root / relative
@@ -897,6 +923,167 @@ class PositiveControlTests(SuiteBase):
             if any(token in text for token in ("m207-s03", "m207_s03", "m207-s04", "m207_s04")):
                 hits.append(path.relative_to(ROOT).as_posix())
         self.assertEqual(hits, [])
+
+
+# --------------------------------------------------------------------------- #
+# Battery mode (T04): the tracked battery is assembled, never invented.
+# --------------------------------------------------------------------------- #
+
+
+def result_table(rows: tuple[tuple[str, int, int], ...]) -> str:
+    """A chain result table: ``id<TAB>status<TAB>durationMs<TAB>command``."""
+    return "".join(f"{name}\t{status}\t{duration}\tcmd {name}\n" for name, status, duration in rows)
+
+
+def chain_table(*, failing: str | None = None) -> str:
+    """A green table over the frozen chain, optionally with exactly one red row."""
+    return result_table(tuple((name, 1 if name == failing else 0, 5) for name in CHAIN_CHECKS))
+
+
+class BatteryModeTests(SuiteBase):
+    """Battery assembly refuses an empty, drifting, red or unauthorized table (D473).
+
+    The battery is a byte-stable projection of the closing chain's own observations: this mode
+    is the only writer of the tracked artifact, it writes once under
+    ``M207_S04_WRITE_BATTERY=1``, and every later read-only pass must stay byte-identical.
+    """
+
+    def results_file(self, table: str) -> Path:
+        holder = Path(tempfile.mkdtemp(prefix="m207-s04-table-"))
+        self.addCleanup(shutil.rmtree, holder, ignore_errors=True)
+        path = holder / "results.tsv"
+        path.write_text(table, encoding="utf-8")
+        return path
+
+    def run_battery(
+        self,
+        root: Path,
+        table: str,
+        *extra: str,
+        env_extra: dict[str, str] | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        env = dict(CHILD_ENV)
+        if env_extra is not None:
+            env.update(env_extra)
+        return subprocess.run(
+            [
+                sys.executable,
+                str(PILOT),
+                "battery",
+                "--root",
+                str(root),
+                "--results",
+                str(self.results_file(table)),
+                *extra,
+            ],
+            cwd=str(ROOT),
+            env=env,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=TIMEOUT,
+        )
+
+    def assert_battery_fails_with(
+        self, result: subprocess.CompletedProcess[str], diagnostic: str
+    ) -> None:
+        self.assert_no_integrity_marker(result)
+        self.assertEqual(result.returncode, 1, msg=f"{result.stdout}\n{result.stderr}")
+        self.assertIn(f"FAIL {diagnostic}:", result.stderr)
+        self.assertNotIn(BATTERY_MARKER, result.stdout)
+
+    def test_battery_empty_result_table_fails(self) -> None:
+        self.assert_battery_fails_with(self.run_battery(self.temp_root(), ""), "EMPTY_SUITE")
+
+    def test_battery_result_table_must_carry_the_chain_set(self) -> None:
+        table = result_table(
+            tuple((name, 0, 5) for name in CHAIN_CHECKS[:-1]) + (("not_a_chain_check", 0, 5),)
+        )
+        self.assert_battery_fails_with(
+            self.run_battery(self.temp_root(), table), "SCHEMA_KEY_DRIFT"
+        )
+
+    def test_battery_failing_row_fails(self) -> None:
+        """A red row is copied as observed: the assembler can never make it green."""
+        self.assert_battery_fails_with(
+            self.run_battery(self.temp_root(), chain_table(failing="s04_machinery_verifier")),
+            "SUBCLI_FAILURE",
+        )
+
+    def test_battery_missing_tracked_battery_fails(self) -> None:
+        self.assert_battery_fails_with(
+            self.run_battery(self.temp_root(), chain_table()), "MISSING_ARTIFACT"
+        )
+
+    def test_battery_stale_tracked_battery_fails(self) -> None:
+        """A tracked battery that no longer matches the assembled payload is refused."""
+        root = self.temp_root()
+        plant_battery(root)
+        self.assert_battery_fails_with(self.run_battery(root, chain_table()), "BATTERY_STALE")
+
+    def test_battery_write_without_the_authorized_env_fails(self) -> None:
+        root = self.temp_root()
+        plant_battery(root)
+        self.assert_battery_fails_with(
+            self.run_battery(root, chain_table(), "--write"), "AUTHORITY_CLAIM"
+        )
+
+    def test_authorized_write_is_byte_stable_across_read_only_passes(self) -> None:
+        """The D473 flow: one authorized write, then read-only passes that never rewrite."""
+        root = self.temp_root()
+        table = chain_table()
+        written = self.run_battery(root, table, "--write", env_extra={BATTERY_WRITE_ENV: "1"})
+        self.assertEqual(written.returncode, 0, msg=written.stderr)
+        self.assertIn(BATTERY_MARKER, written.stdout)
+        self.assertIn("written", written.stdout)
+        self.assert_no_integrity_marker(written)
+
+        path = root / BATTERY
+        payload = load_json(path)
+        self.assertEqual(payload["schema"], "m207-s04-battery/v1")
+        self.assertEqual(payload["schema_version"], 1)
+        self.assertIs(payload["human_pilot_performed"], False)
+        self.assertIs(payload["model_invoked"], False)
+        self.assertEqual([row["check_id"] for row in payload["checks"]], list(CHAIN_CHECKS))
+        self.assertEqual([row["status"] for row in payload["checks"]], ["pass"] * len(CHAIN_CHECKS))
+        pinned = {pin["path"] for pin in payload["pins"]}
+        self.assertIn(SCHEMAS, pinned)
+        self.assertNotIn(BATTERY, pinned)
+        self.assertEqual(len(pinned), len(payload["pins"]))
+        for key in ("duration_ms", "elapsed_ms", "generated_at", "wall_clock"):
+            self.assertNotIn(key, path.read_text(encoding="utf-8"))
+
+        before = sha256_file(path)
+        for _ in range(2):
+            again = self.run_battery(root, table)
+            self.assertEqual(again.returncode, 0, msg=again.stderr)
+            self.assertIn(BATTERY_MARKER, again.stdout)
+            self.assertIn("current", again.stdout)
+            self.assert_no_integrity_marker(again)
+            self.assertEqual(sha256_file(path), before)
+
+    def test_hand_edited_battery_is_refused_after_a_write(self) -> None:
+        root = self.temp_root()
+        table = chain_table()
+        self.run_battery(root, table, "--write", env_extra={BATTERY_WRITE_ENV: "1"})
+        path = root / BATTERY
+        document = load_json(path)
+        document["checks"][0]["status"] = "fail"
+        dump_json(path, document)
+        self.assert_battery_fails_with(self.run_battery(root, table), "BATTERY_STALE")
+
+    def test_battery_mode_never_prints_the_integrity_marker(self) -> None:
+        """Whatever the input, the battery marker is the only marker this mode speaks."""
+        root = self.temp_root()
+        table = chain_table()
+        for result in (
+            self.run_battery(root, table),
+            self.run_battery(root, table, "--write"),
+            self.run_battery(root, table, "--write", env_extra={BATTERY_WRITE_ENV: "1"}),
+            self.run_battery(root, table, "--out", "../../etc/passwd"),
+        ):
+            with self.subTest(returncode=result.returncode):
+                self.assert_no_integrity_marker(result)
 
 
 # --------------------------------------------------------------------------- #

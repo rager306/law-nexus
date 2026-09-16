@@ -86,6 +86,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path, PurePosixPath
@@ -119,6 +120,42 @@ PRIOR_RECEIPT_REL = f"{EVIDENCE_PREFIX}m204-s06-c4-operational-receipt.json"
 S03_BATTERY_REL = f"{EVIDENCE_PREFIX}m207-s03-battery.json"
 REPORT_REL = f"{EVIDENCE_PREFIX}m207-s03-evaluation-report.json"
 SCHEMAS_REL = f"{ANNOTATION_PREFIX}m207-s04-schemas.json"
+PROTOCOL_REL = f"{ANNOTATION_PREFIX}m207-s04-c4-protocol.md"
+
+# --------------------------------------------------------------------------- #
+# The T04 battery (assembled here, printed by the closing chain).
+#
+# ``battery`` mode renders ``prd/migration/rust-evidence/m207-s04-battery.json`` from the
+# closing chain's own result table.  It is a *renderer*, never a judge: every row is copied
+# from the chain's observed exit status, so this tool cannot make a failing check green.  The
+# mode is read-only by default (byte comparison, ``BATTERY_STALE``); the single opt-in that
+# may touch the tracked artifact is ``M207_S04_WRITE_BATTERY=1`` plus ``--write``, and a
+# ``--write`` without the opt-in is ``AUTHORITY_CLAIM``.  Timings are printed to stdout as
+# ``M207_S04_BATTERY_TIMINGS`` so the durable exec log keeps them while the battery stays a
+# pure function of the observed checks (D473).
+# --------------------------------------------------------------------------- #
+BATTERY_MARKER = "M207_S04_BATTERY_OK"
+BATTERY_TIMINGS_TAG = "M207_S04_BATTERY_TIMINGS"
+BATTERY_WRITE_ENV = "M207_S04_WRITE_BATTERY"
+BATTERY_DIAGNOSTIC_NONE = "none"
+SCHEMA_VERSION_PIN = 1
+
+# The frozen closed set of battery rows: exactly the gates the closing chain runs, in order.
+CHAIN_CHECKS = (
+    "s04_schemas",
+    "s04_c4_receipt",
+    "s04_hostile_suite",
+    "s04_machinery_verifier",
+    "s03_regression",
+    "ruff_format",
+    "ruff_check",
+    "adr_conformance",
+)
+
+# The S04-owned pins: the frozen contract pair and the C4 attempt this battery witnesses.  Their
+# digests are observed live; the roster pins come from the frozen document and are re-hashed
+# against it, so a drifted frozen source is ``FROZEN_SOURCE_DRIFT`` at assembly time.
+S04_PIN_ROSTER = (PROTOCOL_REL, SCHEMAS_REL, DEFAULT_RECEIPT_REL)
 
 # Frozen content pins.  The frozen contract names the same values; the two halves
 # are compared on every run so neither can drift silently.
@@ -311,6 +348,9 @@ SPOKEN_DIAGNOSTICS = (
     "REPORT_WITHOUT_HUMAN_DATA",
     "MISSING_LIFECYCLE_MARKER",
     "BATTERY_WALLCLOCK_FORBIDDEN",
+    "BATTERY_STALE",
+    "EMPTY_SUITE",
+    "SUBCLI_FAILURE",
     "FROZEN_SOURCE_DRIFT",
     "MISSING_ARTIFACT",
     "MISSING_NON_CLAIM",
@@ -1361,6 +1401,316 @@ def _load_battery(path: Path, failures: Failures) -> Any:
 
 
 # --------------------------------------------------------------------------- #
+# The T04 battery: rendered from the closing chain's result table.
+# --------------------------------------------------------------------------- #
+
+
+def parse_result_table(path: Path, failures: Failures) -> list[dict[str, Any]]:
+    """Read the chain's ``id<TAB>status<TAB>durationMs<TAB>command`` result table.
+
+    The rows are copied, never judged: a row that is not green is ``SUBCLI_FAILURE``, and a
+    row set that drifts from the frozen chain is ``SCHEMA_KEY_DRIFT``.  Duration is kept out
+    of the payload (the battery carries no wall-clock key at all).
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        _fail(failures, "MISSING_ARTIFACT", f"result table {path} is unreadable: {exc}")
+        return []
+    rows: list[dict[str, Any]] = []
+    for number, line in enumerate(text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        if len(parts) != 4:
+            _fail(failures, "SCHEMA_KEY_DRIFT", f"result row {number} does not have 4 columns")
+            continue
+        identifier, status, duration, command = parts
+        try:
+            status_code = int(status)
+            duration_ms = int(duration)
+        except ValueError:
+            _fail(
+                failures,
+                "SCHEMA_KEY_DRIFT",
+                f"result row {number} has non-numeric status/duration",
+            )
+            continue
+        if status_code != 0:
+            _fail(
+                failures,
+                "SUBCLI_FAILURE",
+                f"check {identifier} still fails with status {status_code}",
+            )
+        rows.append(
+            {
+                "check_id": identifier,
+                "command": command,
+                "diagnostic": BATTERY_DIAGNOSTIC_NONE,
+                "exit_code": status_code,
+                "status": "pass" if status_code == 0 else "fail",
+                "durationMs": duration_ms,
+            }
+        )
+    if not rows:
+        _fail(failures, "EMPTY_SUITE", "the result table holds no check row")
+        return rows
+    seen = [str(row["check_id"]) for row in rows]
+    repeated = sorted({identifier for identifier in seen if seen.count(identifier) > 1})
+    if repeated:
+        _fail(failures, "SCHEMA_KEY_DRIFT", f"the result table repeats the check ids {repeated}")
+    missing = sorted(set(CHAIN_CHECKS) - set(seen))
+    unexpected = sorted(set(seen) - set(CHAIN_CHECKS))
+    if missing or unexpected:
+        _fail(
+            failures,
+            "SCHEMA_KEY_DRIFT",
+            f"the battery check set differs from the chain: missing={missing} "
+            f"unexpected={unexpected}",
+        )
+    return rows
+
+
+def load_schemas_document(root: Path, schemas_rel: str, failures: Failures) -> Any:
+    """Load the frozen S04 schema document, failing closed when it is absent or unreadable."""
+    try:
+        path = resolve_path(root, schemas_rel, "schemas", suffix=".json", prefix=ANNOTATION_PREFIX)
+    except GateError as exc:
+        _fail(failures, exc.diagnostic, exc.detail)
+        return None
+    if not path.is_file():
+        _fail(failures, "MISSING_ARTIFACT", f"frozen S04 schema document missing at {schemas_rel}")
+        return None
+    try:
+        return load_json(path, "S04 schema document")
+    except GateError as exc:
+        _fail(failures, exc.diagnostic, exc.detail)
+        return None
+
+
+def battery_sub_schema(schemas: Any, failures: Failures) -> dict[str, Any] | None:
+    """The frozen ``$.schemas.battery`` block: the closed key sets of the artifact."""
+    block: Any = None
+    if isinstance(schemas, dict):
+        sub = schemas.get("schemas")
+        if isinstance(sub, dict):
+            block = sub.get("battery")
+    if not isinstance(block, dict):
+        _fail(failures, "SCHEMA_KEY_DRIFT", "the frozen battery schema is missing")
+        return None
+    if block.get("schema_id") != S04_BATTERY_SCHEMA_ID:
+        _fail(
+            failures,
+            "SCHEMA_KEY_DRIFT",
+            f"the frozen battery schema_id={block.get('schema_id')!r} != {S04_BATTERY_SCHEMA_ID!r}",
+        )
+    for key in ("closed_keys", "required_keys", "check_closed_keys", "pins_closed_keys"):
+        if not block.get(key):
+            _fail(failures, "SCHEMA_KEY_DRIFT", f"the frozen battery schema lacks {key}")
+    return block
+
+
+def frozen_source_pins(root: Path, schemas: Any, failures: Failures) -> list[dict[str, str]]:
+    """Re-hash the frozen roster and observe the S04-owned pins; drift fails closed.
+
+    The roster digests are the ones the frozen document declares, re-derived from the bytes on
+    disk; the S04-owned pins (the contract pair and the C4 attempt) carry their observed
+    digest.  The battery never pins itself.
+    """
+    pins: dict[str, str] = {}
+    declared = schemas.get("frozen_sources") if isinstance(schemas, dict) else None
+    if not isinstance(declared, dict) or not declared:
+        _fail(
+            failures,
+            "FROZEN_SOURCE_DRIFT",
+            "the frozen document carries no frozen_sources roster",
+        )
+    else:
+        for name, entry in sorted(declared.items()):
+            rel = entry.get("path") if isinstance(entry, dict) else None
+            wanted = entry.get("sha256") if isinstance(entry, dict) else None
+            if not isinstance(rel, str) or not isinstance(wanted, str):
+                _fail(
+                    failures,
+                    "FROZEN_SOURCE_DRIFT",
+                    f"frozen_sources/{name} lacks a path or a digest",
+                )
+                continue
+            path = root / rel
+            if not path.is_file():
+                _fail(failures, "MISSING_ARTIFACT", f"the pinned source {rel} is missing")
+                continue
+            observed = sha256_file(path)
+            if observed != wanted:
+                _fail(
+                    failures,
+                    "FROZEN_SOURCE_DRIFT",
+                    f"the pinned source {rel} does not match the digest frozen in the contract",
+                )
+                continue
+            pins[rel] = observed
+    for rel in S04_PIN_ROSTER:
+        path = root / rel
+        if not path.is_file():
+            _fail(failures, "MISSING_ARTIFACT", f"the S04 pin {rel} is missing")
+            continue
+        pins[rel] = sha256_file(path)
+    return [{"path": rel, "sha256": pins[rel]} for rel in sorted(pins)]
+
+
+def assemble_battery(
+    rows: list[dict[str, Any]],
+    pins: list[dict[str, str]],
+    schemas: Any,
+    failures: Failures,
+) -> dict[str, Any] | None:
+    """Render the byte-stable battery payload, or fail closed with a named diagnostic."""
+    block = battery_sub_schema(schemas, failures)
+    if block is None:
+        return None
+    non_claims = schemas.get("non_claims") if isinstance(schemas, dict) else None
+    lifecycle = schemas.get("lifecycle") if isinstance(schemas, dict) else None
+    if not isinstance(non_claims, list) or not non_claims:
+        _fail(failures, "MISSING_NON_CLAIM", "the frozen non-claims could not be read")
+    if lifecycle != LIFECYCLE_PIN:
+        _fail(
+            failures,
+            "MISSING_LIFECYCLE_MARKER",
+            "the frozen lifecycle markers are not the pinned set",
+        )
+    check_closed = set(block.get("check_closed_keys") or [])
+    pin_closed = set(block.get("pins_closed_keys") or [])
+    for index, row in enumerate(rows):
+        if set(row) - {"durationMs"} != check_closed:
+            _fail(
+                failures,
+                "SCHEMA_KEY_DRIFT",
+                f"battery.checks[{index}] is not a closed battery check row",
+            )
+    for index, pin in enumerate(pins):
+        if set(pin) != pin_closed:
+            _fail(
+                failures,
+                "SCHEMA_KEY_DRIFT",
+                f"battery.pins[{index}] is not a closed battery pin",
+            )
+    payload: dict[str, Any] = {
+        "schema": S04_BATTERY_SCHEMA_ID,
+        "schema_version": SCHEMA_VERSION_PIN,
+        "checks": [
+            {key: value for key, value in row.items() if key != "durationMs"} for row in rows
+        ],
+        "pins": pins,
+        "human_pilot_performed": False,
+        "model_invoked": False,
+        "lifecycle": dict(lifecycle) if isinstance(lifecycle, dict) else dict(LIFECYCLE_PIN),
+        "non_claims": (
+            list(non_claims) if isinstance(non_claims, list) else list(VERDICT_NON_CLAIMS)
+        ),
+    }
+    forbidden = set(block.get("forbidden_battery_keys") or []) | BATTERY_WALLCLOCK_KEYS
+    for pointer, key, _value, _exempt in iter_keyed(payload):
+        if key in forbidden:
+            _fail(
+                failures,
+                "BATTERY_WALLCLOCK_FORBIDDEN",
+                f"the assembled battery would persist wall-clock data at {pointer}",
+            )
+    closed = set(block.get("closed_keys") or [])
+    if set(payload) != closed:
+        _fail(
+            failures,
+            "SCHEMA_KEY_DRIFT",
+            f"the assembled battery keys {sorted(set(payload) ^ closed)} differ from the frozen "
+            "closed set",
+        )
+    if payload["model_invoked"] is not False:
+        _fail(failures, "MODEL_INVOKED", "the battery claims a model invocation; S04 runs none")
+    if payload["human_pilot_performed"] is not False:
+        _fail(failures, "S03_BATTERY_PILOT_PERFORMED", "S04 runs no pilot and holds no human data")
+    scan_derived(payload, "s04_battery", failures)
+    return payload
+
+
+def report_battery(failures: Failures) -> int:
+    """Fail-closed reporting for battery mode: named diagnostics, never a marker."""
+    seen: set[str] = set()
+    for diagnostic, detail in failures:
+        line = f"{diagnostic}: {detail}"
+        if line in seen:
+            continue
+        seen.add(line)
+        print(f"FAIL {line}", file=sys.stderr)
+    print(
+        f"FAIL {GATE_NAME}: {len(seen)} finding(s); the tracked battery is not current and "
+        "nothing is promoted",
+        file=sys.stderr,
+    )
+    return 1
+
+
+def battery_mode(root: Path, args: argparse.Namespace) -> int:
+    """Render or verify the tracked T04 battery; read-only unless explicitly authorized."""
+    failures: Failures = []
+    if not args.results:
+        return report_battery([("EMPTY_SUITE", "battery mode needs --results")])
+    try:
+        out = resolve_path(root, args.out, "battery", suffix=".json", prefix=EVIDENCE_PREFIX)
+    except GateError as exc:
+        return report_battery([(exc.diagnostic, exc.detail)])
+    if args.write and os.environ.get(BATTERY_WRITE_ENV) != "1":
+        return report_battery(
+            [
+                (
+                    "AUTHORITY_CLAIM",
+                    f"--write was requested without {BATTERY_WRITE_ENV}=1: the tracked battery is "
+                    "written only by the authorized closing chain",
+                )
+            ]
+        )
+    results = Path(args.results)
+    if not results.is_file():
+        return report_battery([("MISSING_ARTIFACT", f"result table {args.results} is missing")])
+    schemas = load_schemas_document(root, args.schemas, failures)
+    rows = parse_result_table(results, failures)
+    pins = frozen_source_pins(root, schemas, failures)
+    payload = assemble_battery(rows, pins, schemas, failures) if not failures else None
+    if failures or payload is None:
+        return report_battery(failures)
+    rendered = (json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
+    write = bool(args.write) and os.environ.get(BATTERY_WRITE_ENV) == "1"
+    outcome: str
+    if write:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        current = out.read_bytes() if out.is_file() else None
+        if current == rendered:
+            outcome = "unchanged"
+        else:
+            out.write_bytes(rendered)
+            outcome = "written"
+    elif not out.is_file():
+        return report_battery([("MISSING_ARTIFACT", f"battery missing at {args.out}")])
+    elif out.read_bytes() != rendered:
+        return report_battery(
+            [
+                (
+                    "BATTERY_STALE",
+                    "the assembled battery differs from the tracked battery; regenerate once with "
+                    f"{BATTERY_WRITE_ENV}=1 --write before host verification",
+                )
+            ]
+        )
+    else:
+        outcome = "current"
+    timings = " ".join(f"{row['check_id']}={row['durationMs']}ms" for row in rows)
+    emit(f"{BATTERY_MARKER} checks={len(rows)} path={out.name} {outcome}")
+    emit(f"{BATTERY_TIMINGS_TAG} {timings}")
+    return 0
+
+
+# --------------------------------------------------------------------------- #
 # Verdict assembly and reporting.
 # --------------------------------------------------------------------------- #
 
@@ -1524,11 +1874,23 @@ def main(argv: list[str] | None = None) -> int:
         "mode",
         nargs="?",
         default="check",
-        choices=["check"],
-        help="'check' re-derives the promotion verdict and the S03 isolation state, read-only",
+        choices=["check", "battery"],
+        help="'check' re-derives the promotion verdict and the S03 isolation state, read-only; "
+        "'battery' renders or verifies the tracked T04 battery",
     )
     parser.add_argument(
         "--root", default=str(ROOT), help="repository root the paths resolve against"
+    )
+    parser.add_argument(
+        "--results", default="", help="battery mode: the chain's tab-separated result table"
+    )
+    parser.add_argument(
+        "--out", default=DEFAULT_BATTERY_REL, help="battery mode: battery output path"
+    )
+    parser.add_argument(
+        "--write",
+        action="store_true",
+        help=(f"battery mode: regenerate the tracked battery (requires {BATTERY_WRITE_ENV}=1)"),
     )
     parser.add_argument("--receipt", default=DEFAULT_RECEIPT_REL, help="the C4 receipt to verdict")
     parser.add_argument("--battery", default=DEFAULT_BATTERY_REL, help="an optional T04 battery")
@@ -1547,6 +1909,8 @@ def main(argv: list[str] | None = None) -> int:
         if not root.is_dir():
             print(f"FAIL MISSING_ARTIFACT: root {args.root} is not a directory", file=sys.stderr)
             return 1
+        if args.mode == "battery":
+            return battery_mode(root, args)
         failures, verdict = collect_failures(args, root)
         return report(failures, verdict)
     except GateError as exc:

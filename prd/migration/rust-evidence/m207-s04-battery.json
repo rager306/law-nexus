@@ -1,0 +1,128 @@
+{
+  "checks": [
+    {
+      "check_id": "s04_schemas",
+      "command": "uv run python scripts/m207_s04_schemas.py check",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "s04_c4_receipt",
+      "command": "uv run python scripts/m207_s04_c4_run.py check",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "s04_hostile_suite",
+      "command": "uv run python scripts/test_m207_s04_pilot.py",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "s04_machinery_verifier",
+      "command": "uv run python scripts/m207_s04_pilot.py check",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "s03_regression",
+      "command": "bash scripts/m207_s03_t06_verify.sh (exit 0 or 3 accepted)",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "ruff_format",
+      "command": "uv run ruff format --check scripts/m207_s04_schemas.py scripts/m207_s04_c4_run.py scripts/m207_s04_pilot.py scripts/test_m207_s04_pilot.py",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "ruff_check",
+      "command": "uv run ruff check scripts/m207_s04_schemas.py scripts/m207_s04_c4_run.py scripts/m207_s04_pilot.py scripts/test_m207_s04_pilot.py",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "adr_conformance",
+      "command": "uv run python scripts/verify-adr-conformance.py",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    }
+  ],
+  "human_pilot_performed": false,
+  "lifecycle": {
+    "human_adoption": "pending",
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged",
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none"
+  },
+  "model_invoked": false,
+  "non_claims": [
+    "not gold: no S04 artifact, receipt field or terminal outcome is a gold label",
+    "not a promotion: promotion stays none, classification stays not-authorized and threshold stays null",
+    "not a threshold: no rate threshold, pass/fail cut-off or accept/reject decision is introduced",
+    "not a classification: no classifier is fitted, no gate is selected and no D388 gate is scored",
+    "not independent-measured: S04 performs no human pilot and publishes no independently measured rate",
+    "not an S03 rate publication: the S03 evaluation report stays absent and no S03 aspect or stratum rate is imported or synthesized",
+    "not a seed enlargement: the 180 frozen fragments, the M199 sample manifest and the rule-seed sidecar stay frozen",
+    "not an R035 closure: a corpus walk is operational diagnostics, not GATE-PILOT-SCALE-READINESS",
+    "not an R070 closure: a corpus walk is not edition provenance and not an amending-act chain",
+    "not a requirement status change: requirement_status_effect stays unchanged and R038/R063/R064/R071/R077 stay supporting-only",
+    "not human acceptance: human_acceptance stays null",
+    "not system quality: operational completion is a process fact, never product, legal or N2 quality",
+    "not a product surface: S04 stays an offline Python harness under scripts/ and no crates file references it",
+    "not a terminal-outcome rewrite: timeout, nonzero and launch_error are published as-is and never rewritten to complete",
+    "not a marker promotion: M207_S04_VERIFY_OK means the integrity battery ran, not a C4 pass",
+    "not a budget achievement: budget_seconds is a ceiling, not evidence that the walk reached it",
+    "not a second measurement convention: npa-quality-receipts/v1, npa-c5-* and npa-lawref-seed/v1 inputs are refused"
+  ],
+  "pins": [
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/lawref_seed.json",
+      "sha256": "b88e5af14bcc9496c4d35627afda058d58956f459106c147f1cc7959a6930f28"
+    },
+    {
+      "path": "prd/annotation/m207-s03-schemas.json",
+      "sha256": "34d874e59b16e356e5658b7eec45d3fef01a4342592728f10f122b0126903456"
+    },
+    {
+      "path": "prd/annotation/m207-s04-c4-protocol.md",
+      "sha256": "11dd5e0bbd29ecd398469be95321fc854d3da323bed2b3b0042c1c6f595642fb"
+    },
+    {
+      "path": "prd/annotation/m207-s04-schemas.json",
+      "sha256": "7d494b55f5bd7b5a6ee5dd7818f4ca3aa61a26dcfb81d1b1c4d2de27df217293"
+    },
+    {
+      "path": "prd/architecture/npa-acceptance-contract.yaml",
+      "sha256": "34e8a38a4bd7619d35e8bc2c1294e3a9bc77179b3385d9b5d9161157220d51e3"
+    },
+    {
+      "path": "prd/migration/rust-evidence/m199-s01-gold-sample-manifest.json",
+      "sha256": "134751f49db1858329248be1857ada669097f1860609090028c7b5af8975574f"
+    },
+    {
+      "path": "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+      "sha256": "04e41f896f2bded096061d7caef2ec4abdaaf37cebf88c387d1dd011943b797c"
+    },
+    {
+      "path": "prd/migration/rust-evidence/m207-s03-battery.json",
+      "sha256": "76b9a78e3e83772be3ca3e46b83a89b3b3baaf690ffe6aa0c72f77aa6d56b533"
+    },
+    {
+      "path": "prd/migration/rust-evidence/m207-s04-c4-operational-receipt.json",
+      "sha256": "423d30de06080fce1c3da255d1d03cc3f19548d29e4338c74d913f4771e9e935"
+    }
+  ],
+  "schema": "m207-s04-battery/v1",
+  "schema_version": 1
+}
