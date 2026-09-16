@@ -204,6 +204,11 @@ chosen by inference.
   partition is valid.
 - `M208_S01_VERIFY_OK` — emitted only by `scripts/m208_s01_t05_verify.sh`, i.e.
   only on full slice success; it is never emitted from this checkpoint.
+- `M208_S01_T05_NO_START_OK` — emitted by the checkpoint contract when the T05
+  no-start state holds: the proof battery, the frozen-surface guard and the verify
+  runner are absent, the M200/M201 frozen evidence artifacts are unmodified, and no
+  checkpoint-contract or D499 lock PASS is re-labelled as runtime proof. Like the
+  markers above it denotes a checkpoint state, never a runtime or C4 result.
 
 ## T02 no-start note: quoted operand contour
 
@@ -336,10 +341,77 @@ an integrity PASS (`integrity_pass_as_admission`) and the D499 lock
 (`lock_as_admission`) — are re-run unchanged and still refuse a self-minted
 admission.
 
+## T05 no-start note: no battery, no frozen-surface guard, no runtime proof
+
+Recorded by M208/S01/T05 on 2026-09-16 under the not-adopted verdict above. This
+note adds provenance to the checkpoint; it does not relax it.
+
+- Provenance: the same T01 blocker-accepted lineage as T02-T04 — T01 attempt
+  `f436a10e` settled failed/blocker-discovered, host recovery abort `532e9062`,
+  decision D503, and RC28-F13 is not admitted. Resume of that recovery would loop
+  the same HARD BLOCK, so the slice closes this task by the no-start pattern
+  rather than by implementation.
+- The slice proof battery stays **not-started**: `battery_proof: deferred`. No
+  `scripts/m208_s01_change_battery.test.mjs` was created, no
+  `prd/migration/rust-evidence/m208-s01-change-battery.json` was written, and no
+  `scripts/m208_s01_t05_verify.sh` runner exists. A battery would have to assert
+  exact old / new / location byte spans emitted by a runtime surface that is
+  itself not-started, so it cannot precede the admission it would measure.
+- The frozen-surface guard stays **not-started**: `frozen_surface_proof: deferred`.
+  No `crates/ln-decode/tests/m208_frozen_surface_guard.rs` was created. The
+  M200/M201 frozen evidence artifacts in `prd/migration/rust-evidence/` were
+  neither edited nor regenerated: all eight tracked artifacts are untouched, the
+  worktree reports no change for them, and their last commits stay `b6c9d79` /
+  `e6eaa19` / `1160844` from 2026-09-05/06, i.e. from before M208. The read-only
+  frozen-surface check that this task can honestly run lives in the checkpoint
+  contract (`M200_M201_FROZEN_ARTIFACTS`), not in a Rust test.
+- No change-class row is added and none claims runtime proof: the tracked matrix
+  `.agents/skills/law-nexus-rust/references/verification-matrix.md` was not edited
+  by T05, and no M208 row asking for `cargo fmt --all --check` / targeted
+  `cargo test` / `cargo check --workspace --offline` runtime evidence was added,
+  because that runtime change does not exist. When an admission lands, the row
+  must cite the real battery instead of this note.
+- No runtime proof is claimed anywhere in this record: `runtime_proof: not-claimed`.
+  The marker `M208_S01_VERIFY_OK` stays `verify_marker: unreachable` while the
+  verdict is not-adopted, because the runner that alone would emit it is
+  deliberately absent — its `Marker semantics` entry above names
+  `scripts/m208_s01_t05_verify.sh` as the only emitter.
+- A **checkpoint contract PASS is not runtime proof**:
+  `contract_pass_is_not_runtime_proof: true`. A green
+  `node --test scripts/m208_s01_admission_contract.test.mjs` proves only that the
+  no-start state is intact; it is not the missing admission, not C4 evidence and
+  not the S01 demo. The same holds for the D499 GSD milestone lock:
+  `lock_is_not_runtime_proof: true`. Neither a lock nor a contract PASS may be
+  cited as a runtime or C4 result.
+- The T05 guard codes are `t05_note_missing`, `t05_provenance_missing`,
+  `t05_battery_proof_not_deferred`, `t05_frozen_surface_proof_not_deferred`,
+  `t05_runtime_proof_claimed`, `t05_marker_reachable_claim`,
+  `t05_contract_pass_as_runtime_proof`, `t05_lock_as_runtime_proof`,
+  `t05_surface_citation_missing` and `t05_runtime_surface_present`.
+- No frozen surface was touched: the M205 pins, ADR-0028, `prd/ARCHITECTURE.md`,
+  the M206 records, the M200/M201 frozen evidence artifacts, the operation
+  registry and the tracked verification matrix are unmodified by T05, and no
+  runtime or test file was created.
+
+The T05 evidence is the re-run of this checkpoint contract plus the absence
+checks it performs over the four T05 surfaces
+(`scripts/m208_s01_change_battery.test.mjs`,
+`prd/migration/rust-evidence/m208-s01-change-battery.json`,
+`crates/ln-decode/tests/m208_frozen_surface_guard.rs` and
+`scripts/m208_s01_t05_verify.sh`); the contract asserts this note, the deferred
+sentinel pair, the no-runtime-proof claims and those absences while the verdict is
+not-adopted.
+
 ## Prohibited changes under this state
 
 - Do not start T02, T03, T04 or T05 runtime work; `change_operand.rs` and
   `change_operation.rs` must not be created.
+- Do not create the T05 proof surfaces
+  (`scripts/m208_s01_change_battery.test.mjs`,
+  `prd/migration/rust-evidence/m208-s01-change-battery.json`,
+  `crates/ln-decode/tests/m208_frozen_surface_guard.rs`,
+  `scripts/m208_s01_t05_verify.sh`) or add a change-class row that would claim
+  runtime proof from them before the admission is granted.
 - Do not create `crates/ln-decode/tests/npa_change_operation_hostile_contract.rs`
   to prove the missing-operand `IncompleteBecause` contour before RC28-F13 is
   admitted.
@@ -348,7 +420,8 @@ admission.
   or the operation registry to manufacture adoption.
 - Do not promote any gate, lifecycle, requirement or Review Case finding.
 - Do not treat an integrity PASS, a battery PASS, a milestone lock, a milestone
-  completion, or a subagent narrative as the missing admission.
+  completion, a subagent narrative, or a PASS of this checkpoint contract as the
+  missing admission, as runtime proof, or as C4 evidence.
 
 ## Resume condition
 

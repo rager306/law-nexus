@@ -53,6 +53,7 @@ const M208_RUNTIME_SURFACES = [
   "scripts/m208_s01_change_battery.test.mjs",
   "prd/migration/rust-evidence/m208-s01-change-battery.json",
   "crates/ln-decode/tests/m208_frozen_surface_guard.rs",
+  "scripts/m208_s01_t05_verify.sh",
 ];
 
 // ---------------------------------------------------------------------------
@@ -262,6 +263,76 @@ function t04NoteErrors(text) {
   if (!note.includes("`IncompleteBecause`")) errors.push("t04_incomplete_because_missing");
   for (const file of T04_FORBIDDEN_RUNTIME) {
     if (existsSync(path.join(root, file))) errors.push("t04_runtime_surface_present");
+  }
+  return errors;
+}
+
+// T05 no-start note guard: the slice proof battery and the frozen-surface guard
+// stay unstarted while the verdict is not-adopted, no contract or milestone-lock
+// PASS is re-labelled as runtime proof, and the M200/M201 frozen evidence
+// artifacts stay untouched in the worktree.
+const T05_NOTE_HEADING = "## T05 no-start note: no battery, no frozen-surface guard, no runtime proof";
+const T05_PROVENANCE = ["f436a10e", "532e9062", "D503", "RC28-F13"];
+const T05_BATTERY_SENTINEL = "battery_proof: deferred";
+const T05_FROZEN_SENTINEL = "frozen_surface_proof: deferred";
+const T05_CLAIM_SENTINELS = [
+  ["runtime_proof: not-claimed", "t05_runtime_proof_claimed"],
+  ["verify_marker: unreachable", "t05_marker_reachable_claim"],
+  ["contract_pass_is_not_runtime_proof: true", "t05_contract_pass_as_runtime_proof"],
+  ["lock_is_not_runtime_proof: true", "t05_lock_as_runtime_proof"],
+];
+const T05_SURFACES = [
+  "scripts/m208_s01_change_battery.test.mjs",
+  "prd/migration/rust-evidence/m208-s01-change-battery.json",
+  "crates/ln-decode/tests/m208_frozen_surface_guard.rs",
+  "scripts/m208_s01_t05_verify.sh",
+];
+const M200_M201_FROZEN_ARTIFACTS = [
+  "prd/migration/rust-evidence/m200-s01-scanner-fixture-gate.json",
+  "prd/migration/rust-evidence/m200-s02-corpus-acceptance.json",
+  "prd/migration/rust-evidence/m200-s02-corpus-smoke-rate.json",
+  "prd/migration/rust-evidence/m200-s02-npa-bounds-scan.jsonl",
+  "prd/migration/rust-evidence/m200-s03-outlier-review.json",
+  "prd/migration/rust-evidence/m200-s04-contract-reconciliation.json",
+  "prd/migration/rust-evidence/m201-s03-tracked-chain.json",
+  "prd/migration/rust-evidence/m201-s04-r070-proof-gate.json",
+];
+
+function unmodifiedFrozenArtifacts(paths) {
+  try {
+    const status = execFileSync("git", ["status", "--porcelain", "--", ...paths], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    return status.trim() === "";
+  } catch {
+    return false;
+  }
+}
+
+function t05NoteErrors(text) {
+  const note = section(text, T05_NOTE_HEADING);
+  if (!note) return ["t05_note_missing"];
+  const errors = [];
+  for (const ref of T05_PROVENANCE) {
+    if (!note.includes(ref)) errors.push("t05_provenance_missing");
+  }
+  if (!note.includes(T05_BATTERY_SENTINEL)) errors.push("t05_battery_proof_not_deferred");
+  if (!note.includes(T05_FROZEN_SENTINEL)) errors.push("t05_frozen_surface_proof_not_deferred");
+  for (const [token, code] of T05_CLAIM_SENTINELS) {
+    if (!note.includes(token)) errors.push(code);
+  }
+  if (/runtime_proof:\s*(claimed|proven|passed|pass)\b/i.test(note)) {
+    errors.push("t05_runtime_proof_claimed");
+  }
+  if (/verify_marker:\s*(emitted|reachable)\b/i.test(note)) {
+    errors.push("t05_marker_reachable_claim");
+  }
+  for (const surface of T05_SURFACES) {
+    if (!note.includes(`\`${surface}\``)) errors.push("t05_surface_citation_missing");
+  }
+  for (const file of T05_SURFACES) {
+    if (existsSync(path.join(root, file))) errors.push("t05_runtime_surface_present");
   }
   return errors;
 }
@@ -559,6 +630,29 @@ test("negative: T03 no-start note and its absences are genuinely checked", () =>
   );
 });
 
+test("T05: no-start battery and frozen-surface guard stay absent while the verdict is not-adopted", () => {
+  const result = validateAdmission(doc);
+  // A later slice may supersede this checkpoint with a granted admission; the
+  // T05 no-start note and its absences only hold under the not-adopted verdict.
+  if (result.verdict !== "not-adopted") return;
+  assert.deepEqual(t05NoteErrors(doc), [], `T05 note errors: ${JSON.stringify(t05NoteErrors(doc))}`);
+  for (const surface of T05_SURFACES) {
+    assert.equal(existsSync(path.join(root, surface)), false, `${surface} must stay absent`);
+  }
+  for (const artifact of M200_M201_FROZEN_ARTIFACTS) {
+    assert.ok(isTracked(artifact), `${artifact} must stay tracked`);
+  }
+  assert.ok(
+    unmodifiedFrozenArtifacts(M200_M201_FROZEN_ARTIFACTS),
+    "the M200/M201 frozen evidence artifacts must stay unmodified in the worktree",
+  );
+  const contractSource = readRepo(CONTRACT_PATH);
+  assert.ok(
+    !/console\.log\(\s*["'`]M208_S01_VERIFY_OK/.test(contractSource),
+    "the checkpoint contract must never emit M208_S01_VERIFY_OK",
+  );
+});
+
 test("T04: hostile IncompleteBecause contour stays not-started while the verdict is not-adopted", () => {
   const result = validateAdmission(doc);
   // A later slice may supersede this checkpoint with a granted admission; the
@@ -603,6 +697,62 @@ test("negative: T04 no-start note and its deferred proof are genuinely checked",
   );
 });
 
+test("negative: T05 no-start note and its deferred proofs are genuinely checked", () => {
+  const result = validateAdmission(doc);
+  if (result.verdict !== "not-adopted") return;
+  assert.deepEqual(t05NoteErrors(doc), [], "the live document must pass the T05 guard");
+  assert.ok(
+    t05NoteErrors(doc.replace(T05_NOTE_HEADING, "## T05 note dropped")).includes("t05_note_missing"),
+    "a dropped T05 note must fail closed",
+  );
+  assert.ok(
+    t05NoteErrors(doc.replace(T05_BATTERY_SENTINEL, "battery_proof: proven")).includes(
+      "t05_battery_proof_not_deferred",
+    ),
+    "claiming a proven battery must fail closed",
+  );
+  assert.ok(
+    t05NoteErrors(doc.replace(T05_FROZEN_SENTINEL, "frozen_surface_proof: proven")).includes(
+      "t05_frozen_surface_proof_not_deferred",
+    ),
+    "claiming a proven frozen-surface guard must fail closed",
+  );
+  assert.ok(
+    t05NoteErrors(doc.replace("runtime_proof: not-claimed", "runtime_proof: claimed")).includes(
+      "t05_runtime_proof_claimed",
+    ),
+    "claiming runtime proof must fail closed",
+  );
+  assert.ok(
+    t05NoteErrors(doc.replace("verify_marker: unreachable", "verify_marker: emitted")).includes(
+      "t05_marker_reachable_claim",
+    ),
+    "claiming the verify marker is reachable must fail closed",
+  );
+  assert.ok(
+    t05NoteErrors(
+      doc.replace("contract_pass_is_not_runtime_proof: true", "contract_pass_is_not_runtime_proof: false"),
+    ).includes("t05_contract_pass_as_runtime_proof"),
+    "reading a contract PASS as runtime proof must fail closed",
+  );
+  assert.ok(
+    t05NoteErrors(doc.replace("lock_is_not_runtime_proof: true", "lock_is_not_runtime_proof: false")).includes(
+      "t05_lock_as_runtime_proof",
+    ),
+    "reading the D499 lock as runtime proof must fail closed",
+  );
+  assert.ok(
+    t05NoteErrors(doc.replaceAll("f436a10e", "00000000")).includes("t05_provenance_missing"),
+    "dropping the T05 provenance must fail closed",
+  );
+  assert.ok(
+    t05NoteErrors(doc.replaceAll("`scripts/m208_s01_t05_verify.sh`", "the t05 runner")).includes(
+      "t05_surface_citation_missing",
+    ),
+    "dropping a T05 surface citation must fail closed",
+  );
+});
+
 // ---------------------------------------------------------------------------
 // markers (emitted only after the checkpoint contract holds)
 // ---------------------------------------------------------------------------
@@ -615,4 +765,5 @@ test("M208 S01 checkpoint markers", () => {
   console.log(`admission_verdict=${result.verdict}`);
   console.log("M208_S01_ADMISSION_NOT_GRANTED");
   console.log("M208_S01_GATES_OK");
+  console.log("M208_S01_T05_NO_START_OK");
 });
