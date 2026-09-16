@@ -400,6 +400,215 @@ that the no-start state is intact — never a runtime result.
   verdict is `not-adopted`: its only would-be emitter `scripts/m208_s04_t05_verify.sh`
   is deliberately absent, and the contract asserts that it never emits this marker.
 
+## T02 no-start note: bounded chain replay and scoped oracle exam
+
+Recorded by M208/S04/T02 on 2026-09-16 under the `not-adopted` verdict above
+(`verdict=not-adopted`). This note adds provenance to the checkpoint; it does not
+relax it, and no statement in it is a proof.
+
+- Provenance: the S01 no-start lineage — attempt `f436a10e` settled
+  failed/blocker-discovered, host recovery abort `532e9062`, decision D503 — is
+  consumed here as the S04 admission basis, together with the S02 slice shape D504
+  and the S03 form D507 with its requested gate union D508. The replay leg of
+  RC28-F13 and the transitions / edition-deltas leg of RC28-F17 are **not**
+  admitted; the only tracked `admission: granted` record in this area (RC28-F06..F12,
+  M206/S05) covers neither. Every owning matrix row whose `unblocks` contains `S04`
+  remains a `leave` row with `human_adoption: not-required` and `d388_gates: []`.
+  This note therefore records no runtime work: `runtime_work: not-started`.
+- **"Bounded chain" is a caller-supplied admitted packet, not corpus coverage.**
+  The design statement — recorded here as design-only, never as runtime evidence —
+  is that a bounded chain is an admitted packet supplied by the caller, of which
+  `prd/architecture/fz44-tracked-edition-chain.yaml` is the single tracked sample:
+  it is marked `lifecycle: "[bounded]"`, `authoritative: false`, it is "a
+  caller-supplied admission packet for ONE tracked edition chain, reproduced
+  end-to-end through the public `edition_delta` runtime", and its header states it
+  is `NOT parsed by product code` (D216/D252: no YAML codegen, no runtime
+  authority). Determinism of a bounded chain replay is therefore defined **over the
+  admitted packet**, not over the corpus: repeated replay of the same packet must
+  produce the same result, and no statement here extends that to any other chain. A
+  new chain requires its own source-bound admission and its own pinned canon bytes /
+  sha256 — the existing packet pins `canon_bytes: 252478` and the 484-FZ
+  `canon_sha256` — and this record claims no such admission and no such pin for any
+  new chain.
+- **Oracle exam control rule (design-only).** The oracle exam is stated as the
+  control rule `fold(events, t) ≈ snapshot(oracle@t)` with
+  `drift(t) = fold(events, t) Δ snapshot(oracle@t)` (ADR-0017 §R5-04, third hash leg
+  of §G0(d)). The heal rule is recorded verbatim as an obligation, not as
+  behaviour: "Non-zero drift is healed by a new event or explicit waiver — never by
+  writing the oracle tree back as canon". A discrepancy is **scoped** and
+  classified as a parse gap, not as photo erasure (model-crystal P7 /
+  VIEW-Discrepancy), so no non-zero `drift` result may be read as an absence of the
+  source artifact. A checksum is not a canon event: in the neighbouring admitted
+  `crates/ln-temporal/src/domain.rs`, `ThreeCanonRecord::is_canon_event` returns
+  false for the `EditionOracle` variant, and the log comment states verbatim that
+  "EditionOracle records are checksums, not canon; fold never writes an oracle back
+  as events". None of this is implemented for S04.
+- The precedence `Legislative > HypothesizedFromOracleDiff > EditorialHint` in
+  `crates/ln-temporal/src/domain.rs` is a fact of that **admitted** scope only: it
+  does **not** upgrade a hypothesized commencement, extraction never implies force,
+  and neither the precedence nor any suite that exercises it may be quoted as S04
+  evidence (see the `Neighbouring admitted contours` section above).
+- Nothing is minted by this note. No new chain beyond the frozen packet is minted:
+  `prd/migration/rust-evidence/m201-s03-tracked-chain.json` is **frozen M201
+  evidence** (RC28-F17) and is untouched by T02 — only read, never written. No
+  `fold` implementation, no oracle-exam surface and no replay surface is created:
+  `crates/ln-temporal/src/bounded_chain_replay.rs` and
+  `crates/ln-temporal/src/oracle_exam.rs` do not exist, and `mod bounded_chain_replay`
+  and `mod oracle_exam` are not registered in `crates/ln-temporal/src/lib.rs`.
+- No frozen surface was touched: the M205 pins, ADR-0028, `prd/ARCHITECTURE.md`, the
+  M206 records, the M208/S01, M208/S02 and M208/S03 records, the operation registry
+  and the M200/M201 frozen evidence artifacts are unmodified by T02, and no runtime
+  or test file was created.
+
+The T02 evidence for this note is the note-presence state asserted by the
+checkpoint contract `scripts/m208_s04_admission_contract.test.mjs` (contract code
+`t02_note_missing`) together with the absence checks it performs over the declared
+S04 runtime surfaces; the contract asserts this note while the verdict is
+`not-adopted`. A PASS of that contract is **not** runtime proof and not C4 evidence.
+
+## T02 no-start note: known-as-of preservation and unclaimed scope
+
+Recorded by M208/S04/T02 on 2026-09-16 under the `not-adopted` verdict above
+(`verdict=not-adopted`). This note adds provenance to the checkpoint; it does not
+relax it, and no statement in it is a proof.
+
+- Provenance: the same S01 no-start lineage as the note above — attempt `f436a10e`,
+  host recovery abort `532e9062`, decision D503 — with the S02 slice shape D504 and
+  the S03 form D507 with its requested gate union D508. The replay leg of RC28-F13
+  and the RC28-F17 leg are not admitted, and the only granted scope in this area
+  (RC28-F06..F12) excludes both. `runtime_work: not-started`.
+- Design anchors, cited as `[proposed]` design pins and never as runtime evidence:
+  - `doc/adr/0009-five-clock-temporal-model.md` — `known_as_of` binds the
+    `system_observation` role of the snapshot fold; `legal_as_of` and `known_as_of`
+    are independent facts, and "neither substitutes `source_publication` or
+    `legal_act_effect`".
+  - `doc/adr/0017-component-temporal-versioning.md` — "`known_as_of` is a required
+    parameter of every projection, never a view"; the third hash leg binds the
+    oracle exam (`fold(events, t) ≈ snapshot(oracle@t)`), and rebuild must be
+    equivalent — "repeated replay → the same root hash".
+  - `prd/temporal-legal-model.md` INV-05 — "Assertion correction never rewrites the
+    `known_as_of` past" (ADR-0017 G0(a), ledger).
+  - `prd/architecture/model-crystal.md` (VIEW-Discrepancy) and
+    `doc/review/review-26-23-08-2026.md` give the same definition and repeat that
+    `known_as_of` is a required parameter of every projection, not a view.
+- Runtime denial: the neighbouring admitted `crates/ln-temporal/src/domain.rs` does
+  **not** provide this surface. `CHECKOUT_NON_CLAIMS` states verbatim: "Point
+  per-target fold of the recorded three-canon log; not bitemporal checkout (no
+  legal_as_of / known_as_of / VIEW)". Claiming that the existing three-canon fold
+  already performs known-as-of-preserving checkout is the fail-closed case
+  `known_as_of_checkout_claimed`.
+- Three anti-leakage statements are recorded as design-only obligations, not as
+  proof that they hold:
+  1. **Oracle disagreement never writes the oracle tree back as canon.** A non-zero
+     `drift(t)` is healed by a new event or an explicit waiver only; neither the
+     oracle snapshot nor the oracle tree is ever written back as canon, and no
+     accumulated oracle tree is minted as an edition.
+  2. **Scoped coverage never upgrades into corpus-wide coverage.** The one frozen
+     bounded packet (`484-FZ -> cc:44-fz:statya-93`) is not the 118-edition corpus:
+     `prd/architecture/npa-promotion-gates.json` keeps R070 `remaining: "118
+     consolidated editions remain uncovered; commencement and transitional
+     slot-filled evidence is not proven."`, and
+     `prd/architecture/fz44-tracked-edition-chain.yaml` itself non-claims "R070
+     stays active: one bounded tracked chain is supporting evidence, not coverage
+     validation".
+  3. **`known_as_of` preservation never reads a later correction into an earlier
+     projection.** A correction recorded after a `known_as_of` instant does not
+     change the checkout for an earlier `known_as_of`, per INV-05; the earlier
+     projection is not rewritten by later evidence.
+- Unclaimed scope points, declared and **not** resolved here:
+  - (a) The five `prd/architecture/m205-s01-pullenti-matrix.yaml` rows whose
+    `unblocks` contains `S04` have provenance-ambiguous ownership (M205/S04 versus
+    M208/S04). The design pin `prd/architecture/m205-s04-docs-reconciliation.yaml`
+    has already consumed them (`pc_x_leave`, `T-PC-X-LEAVE`), and its non-claims
+    exclude "not P9 ledger emission, M206 implementation, or M208 replay". The
+    ambiguity is recorded, not resolved by guesswork
+    (`pc_x_provenance_resolved_by_guess`).
+  - (b) "oracle discrepancy" has no glossary first-cell in
+    `prd/temporal-legal-model.md` §3, and none is minted here
+    (`oracle_discrepancy_glossary_cell_minted`).
+  - (c) The matrix's `S04 owns ADR` wording addresses M205/S04 and is already
+    executed by the `## M205/S04 reconciliation companion [proposed]` section of
+    `doc/adr/0028-typed-lexer-legal-marker-lexicon.md`; ADR-0028 is therefore not
+    reopened (`adr0028_reopened`, `s04_owns_adr_claim`).
+  - (d) The requested-gate set of S04 is empty **by construction of the matrix**
+    (all five rows are `leave` rows with `d388_gates: []`); the empty set is not an
+    omission and is not an admission.
+  - (e) M207 delivers protocols, not accepted annotations:
+    `prd/annotation/m207-s03-eval-protocol.md` and
+    `prd/annotation/m207-s04-c4-protocol.md` stay `[bounded]` process artifacts, the
+    human pilot was not run, rates are `not-measured` and C4 is
+    `operational_acceptance=non-pass`. The oracle exam therefore rests on the
+    **absence** of accepted annotations, never on their presence
+    (`m207_pilot_as_annotation_evidence`).
+- Nothing is minted by this note: `ChangeTarget`, `ChangeScope`, `MicroOperation`,
+  `LegislativeEffect`, `NormRule`, `InForce`, `WorkId` and `force` stay
+  deferred-undefined, no S04 runtime surface is created, and no design pin is
+  promoted out of `[proposed]` / `[bounded]`.
+- No frozen surface was touched: the M205 pins, ADR-0028, `prd/ARCHITECTURE.md`, the
+  M206 records, the M208/S01, M208/S02 and M208/S03 records, the operation registry
+  and the M200/M201 frozen evidence artifacts are unmodified by T02, and no runtime
+  or test file was created.
+
+The T02 evidence for this note is the note-presence state asserted by the
+checkpoint contract `scripts/m208_s04_admission_contract.test.mjs` (contract code
+`t02_note_missing`) and the anchor-token checks it performs over this section; the
+contract asserts this note while the verdict is `not-adopted`. A PASS of that
+contract is **not** runtime proof and not C4 evidence.
+
+## T02 no-start note: no hostile contour, no battery, no runtime proof
+
+Recorded by M208/S04/T02 on 2026-09-16 under the `not-adopted` verdict above
+(`verdict=not-adopted`). This note adds provenance to the checkpoint; it does not
+relax it.
+
+- Provenance: the same S01 no-start lineage as the two notes above — T01 attempt
+  `f436a10e` settled failed/blocker-discovered, host recovery abort `532e9062`,
+  decision D503, S02 slice shape D504, S03 form D507 with requested gate union D508;
+  every owning row whose `unblocks` contains `S04` stays a `leave` row with
+  `human_adoption: not-required`, and neither the replay leg of RC28-F13 nor
+  RC28-F17 is admitted; `runtime_work: not-started`.
+- The hostile contour stays not-started: `hostile_proof: deferred`. No
+  `crates/ln-temporal/tests/m208_s04_frozen_surface_guard.rs` and no hostile
+  bounded-replay / oracle-discrepancy fixture (stale packet, tampered checksum,
+  drift laundered into canon, later correction read back into an earlier
+  `known_as_of`) is created. The absence of such a suite is the expected state: a
+  hostile contour may not precede the admission it would verify against, so its
+  proof is deferred until a source-bound owner admission of the M208/S04 scope
+  exists.
+- The proof battery and the frozen-surface guard stay not-started:
+  `battery_proof: deferred` and `frozen_surface_proof: deferred`. No
+  `scripts/m208_s04_bounded_replay_battery.test.mjs`, no
+  `prd/migration/rust-evidence/m208-s04-bounded-replay-battery.json` and no
+  `crates/ln-temporal/tests/m208_s04_frozen_surface_guard.rs` is created. A battery
+  would have to measure a replay surface that is itself not-started, and a
+  frozen-surface guard without a runtime delta would prove only its own emptiness;
+  neither can precede the admission it would measure.
+- No runtime proof is claimed anywhere in this record, here or elsewhere:
+  `runtime_proof: not-claimed`. `M208_S04_VERIFY_OK` stays
+  `verify_marker: unreachable` while the verdict is `not-adopted`, because its only
+  would-be emitter `scripts/m208_s04_t05_verify.sh` is deliberately absent (the
+  emitter does not exist by construction), and the contract asserts that the marker
+  is never emitted.
+- A **checkpoint-contract PASS is not runtime proof**
+  (`contract_pass_is_not_runtime_proof: true`), and the D499 GSD milestone lock is
+  not an admission or C4 evidence (`lock_is_not_runtime_proof: true`). The same
+  holds for any PASS of the M206/S05 admitted scope, for an integrity PASS, for a
+  battery PASS, for a milestone completion and for a subagent narrative: none of
+  them may be re-labelled as the missing S04 admission, as runtime proof, or as the
+  S04 demo (`runtime_demo: not-proven`), and none of them is a C4 result.
+- Neighbouring admitted contours are neighbours only, exactly as recorded in the
+  `Neighbouring admitted contours` section above: the existing `EditionOracle` /
+  `ThreeCanonRecord` / `fold_three_canon_at` / `HypothesizedFromOracleDiff` contour
+  in `crates/ln-temporal/src/domain.rs`, the four `fz44_*` suites, the two design
+  pins, the frozen M201 evidence artifact and the two M207 protocol documents each
+  prove only their own admitted scope (M190/M201/M206/M207 and earlier). No PASS of
+  any of them may be quoted as S04 evidence, as the F13/F17 admission, as an
+  accepted annotation or as C4 evidence.
+- Gate rule: every no-start statement in all three T02 notes is explicitly
+  conditioned on `verdict=not-adopted`. A future granted admission must produce a
+  fresh checkpoint with re-bound source hashes instead of inheriting this text; no
+  sentence above may survive as a current claim once the verdict changes.
+
 ## Verification matrix overlay (not a proof anchor)
 
 `.agents/skills/law-nexus-rust/references/verification-matrix.md` is a gitignored
