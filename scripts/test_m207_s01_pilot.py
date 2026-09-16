@@ -54,12 +54,34 @@ FIXTURES = "crates/ln-decode/tests/fixtures/npa-lawref"
 FENCE = "```json"
 
 COPY = (
-    "prd/annotation",
+    CODEBOOK,
+    SCHEMAS,
+    METAPROMPT,
     SEED,
     "prd/migration/rust-evidence/m199-s01-annotation-protocol.md",
     "prd/migration/rust-evidence/m204-s02-c5-gold-manifest-400.json",
     CASES,
     PACKETS,
+    REQUIREMENTS,
+    D388_ADMISSION,
+    REVIEW_PROGRAM,
+    FIXTURES,
+)
+# The S01 pilot is bound to exactly these inputs.  The "needs no human coding"
+# invariant below must range over *them* and not over every path that happens to
+# share a directory: ``prd/annotation/`` is a shared frozen-contract directory,
+# and a sibling slice legitimately adds its own coder-facing protocol there
+# (M207 S02, D480).  Scanning the directory wholesale coupled S01's suite to a
+# later slice's filenames and turned an unrelated addition into an S01 failure.
+S01_INPUTS = (
+    CODEBOOK,
+    SCHEMAS,
+    METAPROMPT,
+    CASES,
+    PACKETS,
+    SEED,
+    "prd/migration/rust-evidence/m199-s01-annotation-protocol.md",
+    "prd/migration/rust-evidence/m204-s02-c5-gold-manifest-400.json",
     REQUIREMENTS,
     D388_ADMISSION,
     REVIEW_PROGRAM,
@@ -267,12 +289,13 @@ class PilotBoundaryTests(unittest.TestCase):
         )
 
     def test_pilot_requires_no_human_coding_artifact(self) -> None:
-        """S01 creates no coding, so none may be required to pass."""
+        """S01 creates no coding, so none of its inputs may be a human coding."""
         root = self.make_root()
-        for path in root.rglob("*"):
-            lowered = str(path.relative_to(root)).lower()
-            for marker in HUMAN_INPUT_MARKERS:
-                self.assertNotIn(marker, lowered, f"unexpected human-coding artifact {path}")
+        for relative in S01_INPUTS:
+            for path in (root / relative).rglob("*"):
+                lowered = str(path.relative_to(root)).lower()
+                for marker in HUMAN_INPUT_MARKERS:
+                    self.assertNotIn(marker, lowered, f"unexpected human-coding artifact {path}")
         self.assert_ok(self.run_verifier(root), "subclis=3/3")
 
     # -- leakage ----------------------------------------------------------
