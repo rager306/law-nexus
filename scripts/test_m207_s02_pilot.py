@@ -36,6 +36,7 @@ case registry to be populated and every registered case to exist.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -49,6 +50,12 @@ VERIFIER = ROOT / "scripts" / "m207_s02_pilot.py"
 INTAKE = ROOT / "scripts" / "m207_s02_intake.py"
 AGREEMENT = ROOT / "scripts" / "m207_s02_agreement.py"
 ADJUDICATE = ROOT / "scripts" / "m207_s02_adjudicate.py"
+
+# Child processes must not inherit a mode-switching environment: the T07 closeout
+# chain may be launched with M207_S02_WRITE_BATTERY=1 for its single battery
+# write, and a battery test that expects the read-only contract would otherwise
+# observe a write (and lose the MISSING_ARTIFACT / BATTERY_STALE refusals).
+CHILD_ENV = {k: v for k, v in os.environ.items() if k != "M207_S02_WRITE_BATTERY"}
 
 MARKER = "M207_S02_MACHINERY_OK"
 HUMAN_DATA_MARKER = "M207_S02_MACHINERY_HUMAN_DATA_PRESENT"
@@ -222,7 +229,13 @@ class SuiteBase(unittest.TestCase):
     def run_verifier(self, root: Path, *extra: str) -> subprocess.CompletedProcess[str]:
         command = [sys.executable, str(VERIFIER), "check", "--root", str(root), *extra]
         return subprocess.run(
-            command, cwd=ROOT, text=True, capture_output=True, check=False, timeout=TIMEOUT
+            command,
+            cwd=ROOT,
+            env=CHILD_ENV,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=TIMEOUT,
         )
 
     def run_battery(
@@ -239,7 +252,13 @@ class SuiteBase(unittest.TestCase):
             *extra,
         ]
         return subprocess.run(
-            command, cwd=ROOT, text=True, capture_output=True, check=False, timeout=TIMEOUT
+            command,
+            cwd=ROOT,
+            env=CHILD_ENV,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=TIMEOUT,
         )
 
     def run_cli(
@@ -249,6 +268,7 @@ class SuiteBase(unittest.TestCase):
         return subprocess.run(
             command,
             cwd=str(cwd or ROOT),
+            env=CHILD_ENV,
             text=True,
             capture_output=True,
             check=False,
@@ -964,6 +984,7 @@ class PilotContourTests(HostileSubmissionBase):
             return subprocess.run(
                 [sys.executable, str(script), *args],
                 cwd=str(ROOT),
+                env=CHILD_ENV,
                 text=True,
                 capture_output=True,
                 check=False,

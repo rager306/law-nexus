@@ -1,0 +1,144 @@
+{
+  "checks": [
+    {
+      "check_id": "gate-schemas",
+      "command": "uv run python scripts/m207_s02_schemas.py check",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "gate-coder-kit",
+      "command": "uv run python scripts/m207_s02_coder_kit.py check",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "gate-intake",
+      "command": "uv run python scripts/m207_s02_intake.py check",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "gate-agreement",
+      "command": "uv run python scripts/m207_s02_agreement.py check",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "gate-adjudication",
+      "command": "uv run python scripts/m207_s02_adjudicate.py check",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "adversarial-suite",
+      "command": "uv run python scripts/test_m207_s02_pilot.py",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "verifier-pilot",
+      "command": "uv run python scripts/m207_s02_pilot.py check",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "s01-regression",
+      "command": "bash scripts/m207_s01_t04_verify.sh",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "ruff-format-check",
+      "command": "uv run ruff format --check scripts/m207_s02_schemas.py scripts/m207_s02_coder_kit.py scripts/m207_s02_intake.py scripts/m207_s02_agreement.py scripts/m207_s02_adjudicate.py scripts/m207_s02_pilot.py scripts/test_m207_s02_pilot.py",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "ruff-lint",
+      "command": "uv run ruff check scripts/m207_s02_schemas.py scripts/m207_s02_coder_kit.py scripts/m207_s02_intake.py scripts/m207_s02_agreement.py scripts/m207_s02_adjudicate.py scripts/m207_s02_pilot.py scripts/test_m207_s02_pilot.py",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "check_id": "adr-conformance",
+      "command": "uv run python scripts/verify-adr-conformance.py",
+      "diagnostic": "none",
+      "exit_code": 0,
+      "status": "pass"
+    }
+  ],
+  "human_pilot_performed": false,
+  "lifecycle": {
+    "human_adoption": "pending",
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged",
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none"
+  },
+  "model_invoked": false,
+  "non_claims": [
+    "not a human pilot: S02 fabricates no coding and reports no agreement without two human submissions",
+    "not gold: no S02 artifact, coded span or adjudicated resolution is a gold label",
+    "not a promotion: classification stays not-authorized and promotion stays none",
+    "not a threshold: no agreement threshold, pass/fail or accept/reject decision is introduced",
+    "not per-aspect rates: span, slot, scope, binding and false-authority rates belong to S03",
+    "not official-publication provenance (R070 stays open)",
+    "not amendment provenance (R070 stays open)",
+    "not LawRef / act-tree / clause segmentation",
+    "not the N2-gate acceptance decision",
+    "not legal interpretation",
+    "not product authority: no coder kit, submission or adjudication drives the product runtime",
+    "not a second product surface: S02 stays an offline Python harness under scripts/"
+  ],
+  "pins": [
+    {
+      "path": "prd/annotation/m207-s01-codebook.md",
+      "sha256": "1a1bfe944207e69cb5fb507e94d680384dadecf7ac98ac29b1de4932d7cb76c6"
+    },
+    {
+      "path": "prd/annotation/m207-s01-schemas.json",
+      "sha256": "63a4bc6629bade752f9fa02d1dd5fa6bbf21238e20772d2ba5b74f88ecca3682"
+    },
+    {
+      "path": "prd/annotation/m207-s02-coder-protocol.md",
+      "sha256": "763de0f998b772afd85373e438da0b1b6b2a6435d761e67f06177f4b0b1fbc32"
+    },
+    {
+      "path": "prd/annotation/m207-s02-schemas.json",
+      "sha256": "ef438bb5171a8b58f43a8bc4bc2d9a875877da40943ef28e1337b8741a1cab97"
+    },
+    {
+      "path": "prd/migration/rust-evidence/m207-s01-battery.json",
+      "sha256": "5d3eb65860f902fb8b7109a5a620c2b7af2b26e34531cbeddb92da294d6a9a5d"
+    },
+    {
+      "path": "prd/migration/rust-evidence/m207-s01-pilot-cases.json",
+      "sha256": "9b0b6bc6bd8eadf9eb86886e45eb756ebade654e96ac3a84132ed9452bdeb9ad"
+    },
+    {
+      "path": "prd/migration/rust-evidence/m207-s01-prompt-packets.jsonl",
+      "sha256": "d9d30bf24d40ab8abebb28c1a22692ae99ca029e1b4e2b032a4dae1137cc6b77"
+    },
+    {
+      "path": "prd/migration/rust-evidence/m207-s02-coder-kit-pass1.json",
+      "sha256": "e23b25d9ce45f72263d9630b47c096a7463b95dbcbfda9233c750e7bf39418c5"
+    },
+    {
+      "path": "prd/migration/rust-evidence/m207-s02-coder-kit-pass2.json",
+      "sha256": "52be89f0f72f46c7f4503c7912508868f92e1e8501c848b2907c59330e192380"
+    }
+  ],
+  "schema": "m207-s02-battery/v1",
+  "schema_version": 1
+}
