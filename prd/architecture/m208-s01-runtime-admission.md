@@ -284,10 +284,65 @@ checks it performs over the M208 runtime surfaces, including
 this note, the five design-only names and those absences while the verdict is
 not-adopted.
 
+## T04 no-start note: hostile IncompleteBecause contour
+
+Recorded by M208/S01/T04 on 2026-09-16 under the not-adopted verdict above. This
+note adds provenance to the checkpoint; it does not relax it.
+
+- Provenance: the same T01 blocker-accepted lineage as T02 and T03 — T01 attempt
+  `f436a10e` settled failed/blocker-discovered, host recovery abort `532e9062`,
+  decision D503, and RC28-F13 is not admitted. Resume of that recovery would loop
+  the same HARD BLOCK, so the slice closes this task by the no-start pattern
+  rather than by implementation.
+- The hostile KIND-rewrite contour stays **not-started**: no
+  `crates/ln-decode/tests/npa_change_operation_hostile_contract.rs` was created,
+  no hostile fixture was added, and no host-side generator, adapter or CLI hook
+  was added. The absence of that suite is the expected state — a hostile contour
+  may not precede the admission it would test against.
+- The design statement it would prove is recorded here, not proven: a missing
+  operand stays `IncompleteBecause` and never rewrites KIND. The owning design pin
+  `prd/architecture/m205-s03-context-fsm.yaml` fixes that in two places — the
+  semantic-process immutability invariant
+  `missing_operand_is_IncompleteBecause_without_KIND_rewrite` and the alphabet
+  field `missing_operands: IncompleteBecause` — and its construction guard `self`
+  records the negative case `{ThisRef: absent, result: IncompleteBecause}`. The
+  Change-family row `PC-C-no-auto-reinterpret` names the surface
+  `IncompleteBecause diagnostic` while keeping `human_adoption: pending`, so the
+  diagnostic is still a proposed design label, not a runtime type.
+- Therefore `hostile_proof: deferred`: the proof is deferred until a source-bound
+  owner admission of RC28-F13 (amendment operands and the Change operation
+  alphabet) exists. `prd/architecture/review-cases/rc28-remediation-program.md`
+  assigns F13 to M205/S03 and M208/S01-S04 and requires an adopted operation
+  grammar together with the operand and admission evidence before any runtime step
+  may run; the milestone-level M205 UAT acceptance cited above is not that
+  adoption.
+- Missing operands are **not** a false or empty result, and no diagnostic name is
+  promoted by this note: `IncompleteBecause` is a coverage verdict value, not an
+  entity key or a glossary first-cell, and it stays deferred-undefined alongside
+  `MicroOperation`, `LegislativeEffect`, `NormRule`, `InForce`, `WorkId` and
+  `force`. Extraction never implies force, and no KIND is rewritten, invented or
+  substituted.
+- No frozen surface was touched: the M205 pins, ADR-0028, `prd/ARCHITECTURE.md`,
+  the M206 records, the M200/M201 frozen evidence artifacts and the operation
+  registry are unmodified by T04, and no runtime or test file was created.
+
+The T04 evidence is the re-run of this checkpoint contract plus the absence
+checks it performs over
+`crates/ln-decode/tests/npa_change_operation_hostile_contract.rs` and the
+remaining M208 runtime surfaces; the contract asserts this note, the KIND-rewrite
+invariant and those absences while the verdict is not-adopted. The T01 fail-closed
+negatives — self-minted adoption from pins alone (`self_minted_adoption`),
+an integrity PASS (`integrity_pass_as_admission`) and the D499 lock
+(`lock_as_admission`) — are re-run unchanged and still refuse a self-minted
+admission.
+
 ## Prohibited changes under this state
 
 - Do not start T02, T03, T04 or T05 runtime work; `change_operand.rs` and
   `change_operation.rs` must not be created.
+- Do not create `crates/ln-decode/tests/npa_change_operation_hostile_contract.rs`
+  to prove the missing-operand `IncompleteBecause` contour before RC28-F13 is
+  admitted.
 - Do not create an approval, waiver, or adoption artifact from this record.
 - Do not change the M205 pins, ADR-0028, `prd/ARCHITECTURE.md`, the M206 records,
   or the operation registry to manufacture adoption.

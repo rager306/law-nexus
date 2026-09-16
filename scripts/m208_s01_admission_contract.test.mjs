@@ -238,6 +238,34 @@ function t03NoteErrors(text) {
   return errors;
 }
 
+// T04 no-start note guard: the hostile KIND-rewrite contour (missing operands
+// stay IncompleteBecause) stays design-only while the verdict is not-adopted, and
+// its hostile suite must stay absent.
+const T04_NOTE_HEADING = "## T04 no-start note: hostile IncompleteBecause contour";
+const T04_PROVENANCE = ["f436a10e", "532e9062", "D503", "RC28-F13"];
+const T04_KIND_REWRITE_INVARIANT = "missing_operand_is_IncompleteBecause_without_KIND_rewrite";
+const T04_DEFERRED_SENTINEL = "hostile_proof: deferred";
+const T04_FORBIDDEN_RUNTIME = [
+  "crates/ln-decode/tests/npa_change_operation_hostile_contract.rs",
+  "crates/ln-decode/src/change_operation.rs",
+];
+
+function t04NoteErrors(text) {
+  const note = section(text, T04_NOTE_HEADING);
+  if (!note) return ["t04_note_missing"];
+  const errors = [];
+  for (const ref of T04_PROVENANCE) {
+    if (!note.includes(ref)) errors.push("t04_provenance_missing");
+  }
+  if (!note.includes(T04_KIND_REWRITE_INVARIANT)) errors.push("t04_kind_rewrite_rule_missing");
+  if (!note.includes(T04_DEFERRED_SENTINEL)) errors.push("t04_proof_not_deferred");
+  if (!note.includes("`IncompleteBecause`")) errors.push("t04_incomplete_because_missing");
+  for (const file of T04_FORBIDDEN_RUNTIME) {
+    if (existsSync(path.join(root, file))) errors.push("t04_runtime_surface_present");
+  }
+  return errors;
+}
+
 // ---------------------------------------------------------------------------
 // fixtures
 // ---------------------------------------------------------------------------
@@ -528,6 +556,50 @@ test("negative: T03 no-start note and its absences are genuinely checked", () =>
   assert.ok(
     t03NoteErrors(doc.replaceAll("f436a10e", "00000000")).includes("t03_provenance_missing"),
     "dropping the T03 provenance must fail closed",
+  );
+});
+
+test("T04: hostile IncompleteBecause contour stays not-started while the verdict is not-adopted", () => {
+  const result = validateAdmission(doc);
+  // A later slice may supersede this checkpoint with a granted admission; the
+  // T04 no-start note and its absences only hold under the not-adopted verdict.
+  if (result.verdict !== "not-adopted") return;
+  const errors = t04NoteErrors(doc);
+  assert.deepEqual(errors, [], `T04 note errors: ${JSON.stringify(errors)}`);
+  assert.equal(
+    existsSync(path.join(root, "crates/ln-decode/tests/npa_change_operation_hostile_contract.rs")),
+    false,
+    "the hostile operation suite must stay absent until RC28-F13 is admitted",
+  );
+});
+
+test("negative: T04 no-start note and its deferred proof are genuinely checked", () => {
+  const result = validateAdmission(doc);
+  if (result.verdict !== "not-adopted") return;
+  assert.deepEqual(t04NoteErrors(doc), [], "the live document must pass the T04 guard");
+  assert.ok(
+    t04NoteErrors(doc.replace(T04_NOTE_HEADING, "## T04 note dropped")).includes("t04_note_missing"),
+    "a dropped T04 note must fail closed",
+  );
+  assert.ok(
+    t04NoteErrors(doc.replaceAll(T04_KIND_REWRITE_INVARIANT, "missing_operand_is_ContextIncomplete")).includes(
+      "t04_kind_rewrite_rule_missing",
+    ),
+    "dropping the KIND-rewrite invariant must fail closed",
+  );
+  assert.ok(
+    t04NoteErrors(doc.replace(T04_DEFERRED_SENTINEL, "hostile_proof: proven")).includes("t04_proof_not_deferred"),
+    "claiming a proven hostile contour must fail closed",
+  );
+  assert.ok(
+    t04NoteErrors(doc.replaceAll("RC28-F13", "RC28-F06")).includes("t04_provenance_missing"),
+    "dropping the RC28-F13 provenance must fail closed",
+  );
+  assert.ok(
+    t04NoteErrors(doc.replaceAll("`IncompleteBecause`", "IncompleteBecause")).includes(
+      "t04_incomplete_because_missing",
+    ),
+    "dropping the IncompleteBecause citation must fail closed",
   );
 });
 
