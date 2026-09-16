@@ -1,0 +1,98 @@
+{
+  "schema": "m204-s06-c4-operational-receipt/v1",
+  "attempt_id": "m207-s04-c4-full-walk-001",
+  "immutable_attempt_identity": {
+    "attempt_id": "m207-s04-c4-full-walk-001",
+    "argv_sha256": "a7627eaffcdfde976a415e43d6f6658d65e759ca2e06445ab6e3d642eb80da03"
+  },
+  "argv": [
+    "/root/law-nexus/target/release/npa-contour-diagnostics",
+    "--root",
+    "/root/law-nexus/consru_export/consru_export/exports",
+    "--garant-root",
+    "/root/law-nexus/law-source/garant",
+    "--profile",
+    "contour",
+    "--jobs",
+    "0",
+    "--acceptance-contract",
+    "/root/law-nexus/prd/architecture/npa-acceptance-contract.yaml",
+    "--source-revision",
+    "m207-s04-c4-caller-pin-2026-09-16"
+  ],
+  "binary": {
+    "path": "target/release/npa-contour-diagnostics",
+    "sha256": "51442b4e550c760cfb6dbabc213ee15bc85a231b4cef13fe493e31d414305691"
+  },
+  "build_inputs": {
+    "binary_sha256": "51442b4e550c760cfb6dbabc213ee15bc85a231b4cef13fe493e31d414305691",
+    "contract_sha256": "34e8a38a4bd7619d35e8bc2c1294e3a9bc77179b3385d9b5d9161157220d51e3",
+    "parser_source_sha256": "e111e1af2f4a64ee639ab3f3a46d4b42c220d7d5e13e0ec42195e28a954cc348"
+  },
+  "toolchain": {
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "commands_exit_code": {
+      "rustc": 0,
+      "cargo": 0
+    }
+  },
+  "parser_revision": "m204-s04-c4-contour-v1",
+  "source_revision": "m207-s04-c4-caller-pin-2026-09-16",
+  "contract": {
+    "path": "prd/architecture/npa-acceptance-contract.yaml",
+    "sha256": "34e8a38a4bd7619d35e8bc2c1294e3a9bc77179b3385d9b5d9161157220d51e3",
+    "version": "npa-acceptance-contract/v1",
+    "check_id": "c4-live-check",
+    "mode": "runtime"
+  },
+  "corpus": {
+    "consultant_xml_count": 43785,
+    "consultant_root": "consru_export/consru_export/exports",
+    "garant_file_count": 12,
+    "garant_root": "law-source/garant"
+  },
+  "observed_output": {
+    "stdout_sha256": "4a55c31f803865f42ebbaf7e558dc00b1d27627ab2d248cea31228a11633dfcf",
+    "inventory_digest": "sha256:0a5f8346dce46ec12247856ebc06dfb79747644bcfa1ed8af10ef115b332a086"
+  },
+  "c4_binding": {
+    "profile": "contour",
+    "limit": null,
+    "jobs": 0,
+    "inventory_scope": "consultant XML plus separate Garant files",
+    "baseline_sha256": null
+  },
+  "started_at": "2026-09-16T09:02:18Z",
+  "finished_at": "2026-09-16T09:08:45Z",
+  "duration_ms": 387174,
+  "budget_seconds": 3600,
+  "terminal": {
+    "outcome": "complete",
+    "exit_code": 0,
+    "signal": null,
+    "timeout": false
+  },
+  "logs": {
+    "stdout": "prd/migration/rust-evidence/m207-s04-c4-attempts/m207-s04-c4-full-walk-001/stdout.log",
+    "stderr": "prd/migration/rust-evidence/m207-s04-c4-attempts/m207-s04-c4-full-walk-001/stderr.log",
+    "stdout_sha256": "4a55c31f803865f42ebbaf7e558dc00b1d27627ab2d248cea31228a11633dfcf",
+    "stderr_sha256": "25e59b0278e2bda081d5b8ce617e29a72e61f3b3ed0748fefe9c5d329d27bc38",
+    "inventory_digest": "sha256:0a5f8346dce46ec12247856ebc06dfb79747644bcfa1ed8af10ef115b332a086"
+  },
+  "claims": {
+    "operational_acceptance": "non-pass",
+    "receipt_is_runtime_attempt": true
+  },
+  "non_claims": [
+    "receipt presence is not freshness",
+    "source_revision is caller pin, not GSD aggregate",
+    "semantic acceptance remains in Rust JSONL",
+    "not gold: the receipt is a process record, never a gold label",
+    "not a promotion: promotion stays none and classification stays not-authorized",
+    "not an S03 rate publication: no aspect rate, stratum rate or measurement_status is imported",
+    "not a seed enlargement: the frozen fragment seed is untouched",
+    "not an R035 or R070 closure: a corpus walk is operational diagnostics only",
+    "not a marker promotion: M207_S04_VERIFY_OK means the integrity battery ran"
+  ]
+}
