@@ -1,0 +1,74 @@
+{
+  "check_count": 6,
+  "checks": [
+    {
+      "check_id": "holdout_dev_disjoint",
+      "diagnostic": "HOLDOUT_LEAKAGE",
+      "observed": "|intersection|=0",
+      "required": "holdout_families and dev_families are disjoint (|intersection| == 0)",
+      "status": "pass"
+    },
+    {
+      "check_id": "holdout_family_granularity",
+      "diagnostic": "HOLDOUT_LEAKAGE",
+      "observed": "families_split_across_scopes=0",
+      "required": "every Work family is wholly in holdout or wholly in dev (no family is split across scopes)",
+      "status": "pass"
+    },
+    {
+      "check_id": "holdout_family_absent_from_development_surface",
+      "diagnostic": "HOLDOUT_LEAKAGE",
+      "observed": "matches=0 inlined_source_text_hits=0",
+      "required": "no holdout Work-family identifier appears in the frozen codebook, metaprompt, prompt packets or coder kits",
+      "status": "pass"
+    },
+    {
+      "check_id": "holdout_hashes_absent_from_sealed_c3",
+      "diagnostic": "C3_ISOLATION_VIOLATION",
+      "observed": "holdout_overlap=0 (holdout_hashes=9) all_pilot_overlap=0 (pilot_hashes=27)",
+      "required": "no holdout case content hash appears in the sealed C3 holdout manifest",
+      "status": "pass"
+    },
+    {
+      "check_id": "work_family_cap_respected",
+      "diagnostic": "WORK_FAMILY_DOMINANCE",
+      "observed": "max_family_cases=4 cap=4",
+      "required": "no Work family exceeds the frozen cap of 4 cases",
+      "status": "pass"
+    },
+    {
+      "check_id": "seed_fragment_count_frozen",
+      "diagnostic": "SEED_ENLARGED",
+      "observed": "fragments=180",
+      "required": "the seed still holds exactly 180 frozen .txt fragments",
+      "status": "pass"
+    }
+  ],
+  "leakage_count": 0,
+  "lifecycle": {
+    "human_adoption": "pending",
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged",
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none"
+  },
+  "non_claims": [
+    "not gold: no S03 artifact, aspect value or stratum rate is a gold label",
+    "not a promotion: classification stays not-authorized, promotion stays none and threshold stays null",
+    "not a threshold: no rate threshold, pass/fail cut-off or accept/reject decision is introduced",
+    "not a classification: no classifier is fitted, no gate is selected and no D388 gate is scored",
+    "not system quality: the measured agreement is rater-vs-resolved-reference, never system quality",
+    "not a model evaluation: no model is invoked anywhere in M207 and model_invoked stays false",
+    "not human acceptance: no resolved reference becomes human-accepted truth (human_acceptance stays null)",
+    "not a second measurement convention: npa-quality-receipts/v1, npa-c5-* and npa-lawref-seed/v1 inputs are refused",
+    "not official-publication provenance (R070 stays open)",
+    "not amendment provenance (R070 stays open)",
+    "not LawRef / act-tree / clause segmentation",
+    "not the N2-gate acceptance decision",
+    "not legal interpretation",
+    "not a product surface: S03 stays an offline Python harness under scripts/ and no crates/** file reads it",
+    "not an evaluation of the dev slice: development-slice numbers are development-only, never independent evidence"
+  ],
+  "schema": "m207-s03-leakage-report/v1",
+  "schema_version": 1
+}

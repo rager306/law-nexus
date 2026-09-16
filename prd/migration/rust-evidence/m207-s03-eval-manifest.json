@@ -1,0 +1,1771 @@
+{
+  "c3_hashes_excluded": [
+    "sha256:04b89c8176b33dfb9e5c607f6f650d574075496bf8f844954c20df072631d6a8",
+    "sha256:0c93924ce628d6fc49b7dfa1516cdb8e5d00d00eb0307ae26c134e51e13eebeb",
+    "sha256:128be7ad9dca11bc4fe00f9944d3168d64f071145b3a0596eae66026464dd23e",
+    "sha256:187d52b102d7a550b06ba1077498e2526b08383d54a23645c20ce013d614b413",
+    "sha256:1c40e8840109135c0840d8e70d9f618a72c589b27448896f9d1964decbc3de7f",
+    "sha256:1cb8348b0354f8a02faee1fbad90d167234cde8e73fc8e2ffab713e54316dc2a",
+    "sha256:202ece9c1cf69b566b4f586ab47f42efc9504c19851c408bfa9775636a60adec",
+    "sha256:2f0dea15aab77879257307e84dfb815140ca7093d3eeac1acfc6998299a3e5dc",
+    "sha256:3e780ba2d21d7110d9441b26d117e2a70b9f249eb746619e1b62db8288bca6e3",
+    "sha256:438936927df1ec0efc1bbf5d1a3fab35e850e091a7a23d95a39bbf123250a0c1",
+    "sha256:512661324e35b2a70f507ec8af8728c3d03b511b72c113178e7d65ba2f2e9912",
+    "sha256:6598ac66da68397432785979cb91aa1709bfa31b43277850a729999f3f7317d5",
+    "sha256:661872b413cc97f01e2184d7279f38d56dab37dfced48ec3acbfdf6dc688a2cf",
+    "sha256:6da6725b60bbfb72447fde81a452a83d07bb1920afc6ebf7baa4d3c2043cd252",
+    "sha256:701a8b9e43362a3a1ed2b0e63b293cbab28c31a58b7c6d57bebdf1c541f53cb9",
+    "sha256:745ba81b68a0855242b833f84925e92eb55a2b889ec00e9df6b8b6394da4f0a9",
+    "sha256:755864348e53e8c14aab5710b1d25e307ad64b0dc17b6d8f2b453e79a4cf4576",
+    "sha256:7a05019806a058fe9de60eed1b1eb35170cb66a7b854458e6c6082bb7ed494ca",
+    "sha256:7ca94d1a8b9235e1facb5bafc102917476677a9f48282ab824aea5ac89f8edb7",
+    "sha256:8e2f3db652b13f4d0c397a7d5aea1de59dc895b109e444c33b192cda73cbceec",
+    "sha256:94363718f03a2baba2ab145c4cccaae722b2032976adbe2ac1268e35269835b3",
+    "sha256:9d427cf21db89021a0459942d3f436494f43acb0dee67f9a89ef546abaf90fb4",
+    "sha256:a0c12e2fb14628c75d59b8eaef7c55fec7a256cd3f7ed78053447de50756e3e0",
+    "sha256:a4839d676a2f26f46001836f2e8e70c3f81966fc5926096819a6b17c77709479",
+    "sha256:ac93eb8b1ac8ce2c6ed3fc7d15d2ae07390104980802c022ea9f6f2138301966",
+    "sha256:add4d41ee731a616e0bf478867324ef6716e8769da95f5c653612be1926433bc",
+    "sha256:adf62e71ff2724039c71ebeed969879d801642b16da74b2f11df29ee08a5086d",
+    "sha256:b7da56d8f7881a7c2a3fb2f2da68a4259ccf1969a31ae01f01ab8b899f168e4c",
+    "sha256:bab2d8879d697a776063a3e7c586722a24040ef325db2f9756365daed82a2e5b",
+    "sha256:c442ad65743225aeb437e37f9992870972f2dfc0a108c6edd1e80cbc982a5513",
+    "sha256:cc8c0c2f1db6bc207d2f5ae05aa82a4f3856399e2a26b931c0fec900da38ae3f",
+    "sha256:cd26c06d48cd93b952d0e521f6a55cd9ffd7bee174366c10185fc08d9b726531",
+    "sha256:cd7be8e9dfcb5e046155f92c9b2523dbc5700ce0b7b88ee52b63a27d498cdd0e",
+    "sha256:d8d09541ef62d8933537e389d0b9bef7642d7b018e91375e6b7f96acc1383fbc",
+    "sha256:f160a9811ee339fdb6b3f2be5e1623b608ff538100ac5073ac479758258d129c",
+    "sha256:f4a5a65927934f29cc625be71a525ceaa8612b891342c244e1bc2bd785d7cfa5"
+  ],
+  "cases": [
+    {
+      "byte_len": 71,
+      "case_id": "m207-s01-case-001",
+      "document_type": "unknown",
+      "draw_stratum": "npa/decree-document",
+      "family_scope": "dev",
+      "fragment_sha256": "c0b448fad20bc05c6292841e048a6c571fc579725fbb2d7c66494c4344dae19d",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/decree_2020-09-14_558_rev-2024-07-08_a6d600ea.xml",
+      "source_sha256": "2d44686da494b529ee1e1344a16460528f33a2285dec5f87129eea652b27cc25",
+      "work_family": "stem:decree_2020-09-14_558",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 637,
+      "case_id": "m207-s01-case-002",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "family_scope": "holdout",
+      "fragment_sha256": "81f011f5ca12a2801a478600cce2327b4274d629ea0393d3bd397c0af8320173",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/law_2014-11-24_356-fz_rev-2017-12-31_3d04594c.xml",
+      "source_sha256": "853b83dcaaf836fc8bbb425fb296ff7c2ad4cd2ae9992363978a8209caa09e94",
+      "work_family": "stem:law_2014-11-24_356-fz",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 864,
+      "case_id": "m207-s01-case-003",
+      "document_type": "unknown",
+      "draw_stratum": "courts/courts-unspecified",
+      "family_scope": "holdout",
+      "fragment_sha256": "029d47acb108d020395e145358faaf17f4a37b58182bb4de26387fb9b0ad6952",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166280-edition-84232bdf5e80b4c2d012dbae.xml",
+      "source_sha256": "b4d95e445a01345c30baaef42667d2b6e0010b7a584d6042ec85f77ce63fbf8a",
+      "work_family": "stem:000166280",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 393,
+      "case_id": "m207-s01-case-004",
+      "document_type": "unknown",
+      "draw_stratum": "courts/courts-unspecified",
+      "family_scope": "dev",
+      "fragment_sha256": "b724711b42b01e59dbc5ec0de18cb7f24803a880e06113ae1ca59f006202772f",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166350-edition-2f79e06db707d34dc23a1beb.xml",
+      "source_sha256": "cb6726b8721f1bf5f23c811fd3d84126d85105be745670481143da4888e01efd",
+      "work_family": "stem:000166350",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 164,
+      "case_id": "m207-s01-case-005",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law-44fz",
+      "family_scope": "dev",
+      "fragment_sha256": "d366c64037e50869833ebda9ffa47a8c9f004b103187c74e3c237073bc9724f5",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "law-source/consultant",
+      "source_path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+      "source_sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14",
+      "work_family": "work:law-44fz-cluster",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 24,
+      "case_id": "m207-s01-case-006",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law-44fz",
+      "family_scope": "dev",
+      "fragment_sha256": "4de5d488c3dd4c138b872fccbb6ae7fe8d2b8685c3947f2c0afef17db4c446ec",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "law-source/consultant",
+      "source_path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+      "source_sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14",
+      "work_family": "work:law-44fz-cluster",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 58,
+      "case_id": "m207-s01-case-007",
+      "document_type": "unknown",
+      "draw_stratum": "fas/fas-unspecified",
+      "family_scope": "dev",
+      "fragment_sha256": "493906b5cf67ca9cc1a609275a9e6367688d4bce04a50008d661f714959dadf8",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/fas/decision_2025-01-10_04-10-18-1-229-2025_rev-unknown_2d373cef.xml",
+      "source_sha256": "8015b21737a128018900b889d10101c78402e5200baffd51e70d295636c753c5",
+      "work_family": "stem:decision_2025-01-10_04-10-18-1-229-2025",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 423,
+      "case_id": "m207-s01-case-008",
+      "document_type": "unknown",
+      "draw_stratum": "npa/directive",
+      "family_scope": "dev",
+      "fragment_sha256": "abae93be8fbeb0b665bc29624b27bd866e9ec5018fda67975fecfab126e7b5f2",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/directive_2015-04-28_753-r_rev-2021-05-15_e6384c41.xml",
+      "source_sha256": "d5d9672534d6a0091fdde1c65a94e8cdc9487864577367b258343b2ba78e49b8",
+      "work_family": "stem:directive_2015-04-28_753-r",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 94,
+      "case_id": "m207-s01-case-009",
+      "document_type": "unknown",
+      "draw_stratum": "npa/directive",
+      "family_scope": "dev",
+      "fragment_sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/directive_2014-03-13_364-r_rev-2017-03-21_8d37fe2d.xml",
+      "source_sha256": "d1a84a7941a23b3dcd4818260d8e93cf491837285911ad5af470e9b6dc130db8",
+      "work_family": "stem:directive_2014-03-13_364-r",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 270,
+      "case_id": "m207-s01-case-010",
+      "document_type": "unknown",
+      "draw_stratum": "courts/courts-unspecified",
+      "family_scope": "holdout",
+      "fragment_sha256": "7f23e4b87162669a07d49628551da48319206cfa22417443eb3d549596d78a73",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166305-edition-7e6e14131f3fab621a92f158.xml",
+      "source_sha256": "8bd4a4448cfdf192ca6db3d016758e616d77addb326b2ed0a1945fb46332ae35",
+      "work_family": "stem:000166305",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 73,
+      "case_id": "m207-s01-case-011",
+      "document_type": "unknown",
+      "draw_stratum": "npa/decree-document",
+      "family_scope": "dev",
+      "fragment_sha256": "4014046ebbd29f66b029c2855f77bc559e992c1d150cfb40b6682032343ab061",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/decree_2020-09-14_558_rev-2024-07-08_a6d600ea.xml",
+      "source_sha256": "2d44686da494b529ee1e1344a16460528f33a2285dec5f87129eea652b27cc25",
+      "work_family": "stem:decree_2020-09-14_558",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 1771,
+      "case_id": "m207-s01-case-012",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "family_scope": "dev",
+      "fragment_sha256": "82430e5b4a5801e3bcdc014151754309aa65e3dfc0492c0c73b357f46fca3e5b",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/law_2019-06-27_151-fz_rev-2024-08-08_2296dc28.xml",
+      "source_sha256": "bbb27af24e2aeb7149b51100d9f26797257cb55ae272d442e042a0e755242879",
+      "work_family": "stem:law_2019-06-27_151-fz",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 64,
+      "case_id": "m207-s01-case-013",
+      "document_type": "unknown",
+      "draw_stratum": "fas/fas-unspecified",
+      "family_scope": "holdout",
+      "fragment_sha256": "d80215842c9141c9cfd252905c3a6e27d8c85addd4833b4b91e9eb1f2d878883",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/fas/decision_2025-01-10_04-10-18-1-15-2025_rev-unknown_382b6a0f.xml",
+      "source_sha256": "5dff97b4b557c4c4d23edc9bd766b4e759866c927ce5942e071ea4be37f13bf5",
+      "work_family": "stem:decision_2025-01-10_04-10-18-1-15-2025",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 888,
+      "case_id": "m207-s01-case-014",
+      "document_type": "unknown",
+      "draw_stratum": "npa/order",
+      "family_scope": "dev",
+      "fragment_sha256": "0cfee5a6f9dc1dac2916559c924c5e93dc17a67612733000f4edff786ef0002b",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/order_2014-02-14_55_rev-2025-05-28_fc54b9bc.xml",
+      "source_sha256": "059f8d10eebd0f5f65320866a5ca243c795ebe70c64509f7ff98dd630050c378",
+      "work_family": "stem:order_2014-02-14_55",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 94,
+      "case_id": "m207-s01-case-015",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "family_scope": "dev",
+      "fragment_sha256": "e664bc2206c3623331011e61e42915c7cc864319f76bdead784a561d32b6294d",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2013-09-19_826_rev-2018-09-08_4e4aaea7.xml",
+      "source_sha256": "5c1994762da66e21db4d1516c01de7a4ac94ded062b5de0dc2cf0c46ca950770",
+      "work_family": "stem:resolution_2013-09-19_826",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 2366,
+      "case_id": "m207-s01-case-016",
+      "document_type": "unknown",
+      "draw_stratum": "courts/courts-unspecified",
+      "family_scope": "dev",
+      "fragment_sha256": "918f9e47f799c20b7a6e822e563bf67234d70dc0a4db965ffc43cd30a6b5525e",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166339-edition-c0c8875a6b0619c4af077933.xml",
+      "source_sha256": "897b8e49a34780dee86ac32dfd9f46f5c1ba7b6e441b0ad342984cb60e25b141",
+      "work_family": "stem:000166339",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 165,
+      "case_id": "m207-s01-case-017",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "family_scope": "dev",
+      "fragment_sha256": "03f9521c079bcfe378b6e02ee2dec615d86dce1d7f5ae6a5cc6aab9efaaa6fcc",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/law_2015-07-13_220-fz_rev-2025-07-31_7832fee0.xml",
+      "source_sha256": "cb12268616fce8b8235f3dbf4bdfe07af8dc8365b98a34ceba581e92e80d76ce",
+      "work_family": "stem:law_2015-07-13_220-fz",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 194,
+      "case_id": "m207-s01-case-018",
+      "document_type": "unknown",
+      "draw_stratum": "npa/directive",
+      "family_scope": "holdout",
+      "fragment_sha256": "27f47f86b796c1ea0e1208028fd64d8e7aed6b73d9cf3fc3b9aaac831da87215",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/directive_2013-09-30_1765-r_rev-2015-12-17_1a80d0cd.xml",
+      "source_sha256": "34f71f02d545bca2b5e6f1f5595c622c958f11623271d03f6b7d1a035ab8fc94",
+      "work_family": "stem:directive_2013-09-30_1765-r",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 93,
+      "case_id": "m207-s01-case-019",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "family_scope": "holdout",
+      "fragment_sha256": "e05e8992b676e3b61d4fca1386221aca7b4e7279555d875b6f066b7b7fc835ea",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2007-11-26_812_rev-2017-11-30_a3835720.xml",
+      "source_sha256": "3ffe2e404f85f79d093888dda55b6c2ba70b4023b179b5f1971b6f4d436f6f4c",
+      "work_family": "stem:resolution_2007-11-26_812",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 87,
+      "case_id": "m207-s01-case-020",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law-44fz",
+      "family_scope": "dev",
+      "fragment_sha256": "73841eedfe8f6bf06a67d9788ee84392a34ee7198c6544e5d58b5a6680c3cd6c",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "law-source/consultant",
+      "source_path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+      "source_sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14",
+      "work_family": "work:law-44fz-cluster",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 87,
+      "case_id": "m207-s01-case-021",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law-44fz",
+      "family_scope": "dev",
+      "fragment_sha256": "3e758a63c3fd643205bb600090afff53a1caebb18986429e4415ff483c427c5e",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/law_2013-04-05_44-fz/edition-0013_rev-2015-07-13_from-unknown_7d06b511.xml",
+      "source_sha256": "31d6ca25a08735b9599c45600570ab20bbc72ba00e7046f5c7f545d67de68eae",
+      "work_family": "work:law-44fz-cluster",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 88,
+      "case_id": "m207-s01-case-022",
+      "document_type": "unknown",
+      "draw_stratum": "xml/xml-unspecified",
+      "family_scope": "holdout",
+      "fragment_sha256": "58f2820bbd80448e2ec9e2994275d0c66fb285ae3e67465eaa404ea7b5fd25fb",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/xml/law/126745/edition-d5a1c5fe630fd867d5ce4a7a.xml",
+      "source_sha256": "889c664702d56cb9170f3fc596f097172107c66404ed349a024c5e5d1d1c7e2c",
+      "work_family": "workdir:xml/law/126745",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 1562,
+      "case_id": "m207-s01-case-023",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "family_scope": "holdout",
+      "fragment_sha256": "804d50525f6e41486856e5af25cee012b1b85c140542fde1acd2f64c255283c3",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/law_2014-11-24_356-fz_rev-2017-12-31_3d04594c.xml",
+      "source_sha256": "853b83dcaaf836fc8bbb425fb296ff7c2ad4cd2ae9992363978a8209caa09e94",
+      "work_family": "stem:law_2014-11-24_356-fz",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 456,
+      "case_id": "m207-s01-case-024",
+      "document_type": "unknown",
+      "draw_stratum": "npa/order",
+      "family_scope": "holdout",
+      "fragment_sha256": "d7218139f39f8fe14f689a7a64c1ebdf0ad29fe3adba43fa711d4458a33347c3",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/order_2013-10-02_567_rev-unknown_bc2023c7.xml",
+      "source_sha256": "a9c93a503c7be9fdb3879ba4bc108d57821fc2e31532d8f62037a5dbbc4086da",
+      "work_family": "stem:order_2013-10-02_567",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 21,
+      "case_id": "m207-s01-case-025",
+      "document_type": "unknown",
+      "draw_stratum": "npa/order",
+      "family_scope": "holdout",
+      "fragment_sha256": "3485298034c7d341d16d7edca2165611cd63a6187ea79002c11dd2c5b6e78fcb",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/order_2013-10-02_567_rev-unknown_bc2023c7.xml",
+      "source_sha256": "a9c93a503c7be9fdb3879ba4bc108d57821fc2e31532d8f62037a5dbbc4086da",
+      "work_family": "stem:order_2013-10-02_567",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 111,
+      "case_id": "m207-s01-case-026",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "family_scope": "holdout",
+      "fragment_sha256": "caaed43573e956bb523b7601e287c1c94358625cea275ba426bee61f07562d6f",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2007-11-26_812_rev-2017-11-30_a3835720.xml",
+      "source_sha256": "3ffe2e404f85f79d093888dda55b6c2ba70b4023b179b5f1971b6f4d436f6f4c",
+      "work_family": "stem:resolution_2007-11-26_812",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 371,
+      "case_id": "m207-s01-case-027",
+      "document_type": "unknown",
+      "draw_stratum": "courts/courts-unspecified",
+      "family_scope": "holdout",
+      "fragment_sha256": "dc90e26e0418308fb7b9ffd35f1da737bcc9d8293fd2fa46c207d26249dd86e9",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166280-edition-84232bdf5e80b4c2d012dbae.xml",
+      "source_sha256": "b4d95e445a01345c30baaef42667d2b6e0010b7a584d6042ec85f77ce63fbf8a",
+      "work_family": "stem:000166280",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 90,
+      "case_id": "m207-s01-case-028",
+      "document_type": "unknown",
+      "draw_stratum": "xml/xml-unspecified",
+      "family_scope": "holdout",
+      "fragment_sha256": "c70833e6e5bab59217e9a799c89edf1d16275b623903c341ca33a50dc4cabd93",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/xml/law/126745/edition-d5a1c5fe630fd867d5ce4a7a.xml",
+      "source_sha256": "889c664702d56cb9170f3fc596f097172107c66404ed349a024c5e5d1d1c7e2c",
+      "work_family": "workdir:xml/law/126745",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 1562,
+      "case_id": "m207-s01-case-029",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "family_scope": "holdout",
+      "fragment_sha256": "804d50525f6e41486856e5af25cee012b1b85c140542fde1acd2f64c255283c3",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/law_2014-11-24_356-fz_rev-2017-12-31_f3704147.xml",
+      "source_sha256": "d111825cc43eadba338a8802603127b4620eee45aee74b07e04c9d3bc6969cb5",
+      "work_family": "stem:law_2014-11-24_356-fz",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 1771,
+      "case_id": "m207-s01-case-030",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "family_scope": "dev",
+      "fragment_sha256": "82430e5b4a5801e3bcdc014151754309aa65e3dfc0492c0c73b357f46fca3e5b",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/law_2019-06-27_151-fz_rev-2024-08-08_d7d8dfca.xml",
+      "source_sha256": "c152ad1070cd4cabb176529dbcf7068838c7ce5dfbd2028597fe2b3136c8d5d7",
+      "work_family": "stem:law_2019-06-27_151-fz",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 206,
+      "case_id": "m207-s01-case-031",
+      "document_type": "unknown",
+      "draw_stratum": "npa/order",
+      "family_scope": "dev",
+      "fragment_sha256": "79c370803daf49bb35a4aa4570cbc0630d4602dc8fc1110000a8f3b9a9c4c7d0",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/order_2014-03-06_80_rev-2024-02-19_ea2ac116.xml",
+      "source_sha256": "25cec4c2838a231234f4fa24169b342ed7af48e551ac97a0ae660db0656faa67",
+      "work_family": "stem:order_2014-03-06_80",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 71,
+      "case_id": "m207-s01-case-032",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "family_scope": "dev",
+      "fragment_sha256": "da3567d48cf03b624421856a7e0daa9fc850d261d4c835a1236145f3ac0a3b25",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2013-11-08_1005_rev-2024-12-26_924a4838.xml",
+      "source_sha256": "53f77530082bbb423c3a3cbbcfd1c22ab73275959f63104816c024bf59be88ef",
+      "work_family": "stem:resolution_2013-11-08_1005",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 1198,
+      "case_id": "m207-s01-case-033",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "family_scope": "dev",
+      "fragment_sha256": "de312ae2029828adcdaf4e8597dffb7db648aab3abfab62cac57c98ea6ef8c40",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2013-11-08_1005_rev-2024-12-26_924a4838.xml",
+      "source_sha256": "53f77530082bbb423c3a3cbbcfd1c22ab73275959f63104816c024bf59be88ef",
+      "work_family": "stem:resolution_2013-11-08_1005",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 156,
+      "case_id": "m207-s01-case-034",
+      "document_type": "unknown",
+      "draw_stratum": "xml/xml-unspecified",
+      "family_scope": "dev",
+      "fragment_sha256": "d9c142ffef092c74d66020cbe0c2394b4b80082fee2ef83d53d7561e66baa931",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/xml/law/135559/edition-38317e622441abfe3524d376.xml",
+      "source_sha256": "3919a37dd9d87558158b14e3b05e5f0f68acd58a74d6ab16baebf43a7797c9ac",
+      "work_family": "workdir:xml/law/135559",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 87,
+      "case_id": "m207-s01-case-035",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "family_scope": "dev",
+      "fragment_sha256": "e3890c3e4c8d802065129b0e0484ba8ad2f52d3f9850077dc6d28b038584567d",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/law_2015-07-13_220-fz_rev-2025-07-31_7832fee0.xml",
+      "source_sha256": "cb12268616fce8b8235f3dbf4bdfe07af8dc8365b98a34ceba581e92e80d76ce",
+      "work_family": "stem:law_2015-07-13_220-fz",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 510,
+      "case_id": "m207-s01-case-036",
+      "document_type": "unknown",
+      "draw_stratum": "npa/decree-document",
+      "family_scope": "dev",
+      "fragment_sha256": "949653f1629c95cdd0751018cc0f106cf6eaf21ac92ce646152c7f7038d19d65",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/decree_2020-09-14_558_rev-2024-07-08_a6d600ea.xml",
+      "source_sha256": "2d44686da494b529ee1e1344a16460528f33a2285dec5f87129eea652b27cc25",
+      "work_family": "stem:decree_2020-09-14_558",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 84,
+      "case_id": "m207-s01-case-037",
+      "document_type": "unknown",
+      "draw_stratum": "npa/order",
+      "family_scope": "dev",
+      "fragment_sha256": "d3453650e06b0d2deaad1696c2b802faf1dff954460a187d5de71dd4b8d09f23",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/order_2014-04-23_398_rev-2015-02-13_2ba775ce.xml",
+      "source_sha256": "1e56d30c7030d39bf29fc6bb10b62f0b5e5e7cab8db096c12a24ccb4be7bebca",
+      "work_family": "stem:order_2014-04-23_398",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 309,
+      "case_id": "m207-s01-case-038",
+      "document_type": "unknown",
+      "draw_stratum": "npa/resolution",
+      "family_scope": "dev",
+      "fragment_sha256": "493f16bf9cc4de03627478c42f89367902a8e1d8204446acb70353051783bbc4",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2013-09-19_826_rev-2018-09-08_4e4aaea7.xml",
+      "source_sha256": "5c1994762da66e21db4d1516c01de7a4ac94ded062b5de0dc2cf0c46ca950770",
+      "work_family": "stem:resolution_2013-09-19_826",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 874,
+      "case_id": "m207-s01-case-039",
+      "document_type": "unknown",
+      "draw_stratum": "npa/law",
+      "family_scope": "dev",
+      "fragment_sha256": "24b9ac09f1e7732e8b3a1ddbda692ecae3824845b6137bb1a013cabc0fd9da51",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/law_2013-12-28_396-fz_rev-2025-03-20_5195aa84.xml",
+      "source_sha256": "a5c0d8ba883b4ce307a583cd85b59be939de591ba0bf935bdbaa32b2c42c6fbf",
+      "work_family": "stem:law_2013-12-28_396-fz",
+      "year": "unknown"
+    },
+    {
+      "byte_len": 94,
+      "case_id": "m207-s01-case-040",
+      "document_type": "unknown",
+      "draw_stratum": "npa/directive",
+      "family_scope": "dev",
+      "fragment_sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216",
+      "metadata_source": "unknown",
+      "provider": "consultant",
+      "provider_root": "consru_export/consru_export/exports",
+      "source_path": "consru_export/consru_export/exports/npa/directive_2014-03-13_364-r_rev-2017-03-21_8d37fe2d.xml",
+      "source_sha256": "d1a84a7941a23b3dcd4818260d8e93cf491837285911ad5af470e9b6dc130db8",
+      "work_family": "stem:directive_2014-03-13_364-r",
+      "year": "unknown"
+    }
+  ],
+  "dev_families": [
+    "stem:decision_2025-01-10_04-10-18-1-229-2025",
+    "stem:order_2014-03-06_80",
+    "stem:000166350",
+    "workdir:xml/law/135559",
+    "stem:directive_2015-04-28_753-r",
+    "stem:law_2013-12-28_396-fz",
+    "stem:law_2019-06-27_151-fz",
+    "stem:000166339",
+    "stem:directive_2014-03-13_364-r",
+    "work:law-44fz-cluster",
+    "stem:order_2014-02-14_55",
+    "stem:resolution_2013-11-08_1005",
+    "stem:decree_2020-09-14_558",
+    "stem:resolution_2013-09-19_826",
+    "stem:law_2015-07-13_220-fz",
+    "stem:order_2014-04-23_398"
+  ],
+  "families": [
+    {
+      "case_count": 2,
+      "family_scope": "holdout",
+      "rank": 1695898466646877806,
+      "work_family": "stem:order_2013-10-02_567"
+    },
+    {
+      "case_count": 3,
+      "family_scope": "holdout",
+      "rank": 3627039287579507610,
+      "work_family": "stem:law_2014-11-24_356-fz"
+    },
+    {
+      "case_count": 2,
+      "family_scope": "holdout",
+      "rank": 4075642305120419458,
+      "work_family": "stem:resolution_2007-11-26_812"
+    },
+    {
+      "case_count": 2,
+      "family_scope": "holdout",
+      "rank": 4963842903799845447,
+      "work_family": "workdir:xml/law/126745"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "holdout",
+      "rank": 5909201247401988999,
+      "work_family": "stem:directive_2013-09-30_1765-r"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "holdout",
+      "rank": 6002114594752773381,
+      "work_family": "stem:decision_2025-01-10_04-10-18-1-15-2025"
+    },
+    {
+      "case_count": 2,
+      "family_scope": "holdout",
+      "rank": 6313803233896157102,
+      "work_family": "stem:000166280"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "holdout",
+      "rank": 7418259379783770693,
+      "work_family": "stem:000166305"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "dev",
+      "rank": 7439783751133032855,
+      "work_family": "stem:decision_2025-01-10_04-10-18-1-229-2025"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "dev",
+      "rank": 7476621651759576722,
+      "work_family": "stem:order_2014-03-06_80"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "dev",
+      "rank": 8779680642417273267,
+      "work_family": "stem:000166350"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "dev",
+      "rank": 12588268147995051418,
+      "work_family": "workdir:xml/law/135559"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "dev",
+      "rank": 13789114410858405097,
+      "work_family": "stem:directive_2015-04-28_753-r"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "dev",
+      "rank": 14542736167602599273,
+      "work_family": "stem:law_2013-12-28_396-fz"
+    },
+    {
+      "case_count": 2,
+      "family_scope": "dev",
+      "rank": 14648822398342751839,
+      "work_family": "stem:law_2019-06-27_151-fz"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "dev",
+      "rank": 15278101547314524144,
+      "work_family": "stem:000166339"
+    },
+    {
+      "case_count": 2,
+      "family_scope": "dev",
+      "rank": 15349566075630091905,
+      "work_family": "stem:directive_2014-03-13_364-r"
+    },
+    {
+      "case_count": 4,
+      "family_scope": "dev",
+      "rank": 16033678207616913523,
+      "work_family": "work:law-44fz-cluster"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "dev",
+      "rank": 16228462822646610177,
+      "work_family": "stem:order_2014-02-14_55"
+    },
+    {
+      "case_count": 2,
+      "family_scope": "dev",
+      "rank": 16409301785047591429,
+      "work_family": "stem:resolution_2013-11-08_1005"
+    },
+    {
+      "case_count": 3,
+      "family_scope": "dev",
+      "rank": 17081531736492048997,
+      "work_family": "stem:decree_2020-09-14_558"
+    },
+    {
+      "case_count": 2,
+      "family_scope": "dev",
+      "rank": 17803921969809017541,
+      "work_family": "stem:resolution_2013-09-19_826"
+    },
+    {
+      "case_count": 2,
+      "family_scope": "dev",
+      "rank": 18062087181381346047,
+      "work_family": "stem:law_2015-07-13_220-fz"
+    },
+    {
+      "case_count": 1,
+      "family_scope": "dev",
+      "rank": 18378895055110906963,
+      "work_family": "stem:order_2014-04-23_398"
+    }
+  ],
+  "fragments": [
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-001.txt",
+      "sha256": "24b9ac09f1e7732e8b3a1ddbda692ecae3824845b6137bb1a013cabc0fd9da51"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-002.txt",
+      "sha256": "154b15553306bef8c42f4761e662154aa2f6e2487fec0f559408b24a1f164783"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-003.txt",
+      "sha256": "0d6ae2547c569277b12cb3f27485473da811e91b0fbec4a317a31509a481ea61"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-004.txt",
+      "sha256": "24b9ac09f1e7732e8b3a1ddbda692ecae3824845b6137bb1a013cabc0fd9da51"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-005.txt",
+      "sha256": "154b15553306bef8c42f4761e662154aa2f6e2487fec0f559408b24a1f164783"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-006.txt",
+      "sha256": "0d6ae2547c569277b12cb3f27485473da811e91b0fbec4a317a31509a481ea61"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-007.txt",
+      "sha256": "804d50525f6e41486856e5af25cee012b1b85c140542fde1acd2f64c255283c3"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-008.txt",
+      "sha256": "2b82dd8488a34de7513b6e0996e07c1f282ce82224f83e0fbd1b135803ee1410"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-009.txt",
+      "sha256": "81f011f5ca12a2801a478600cce2327b4274d629ea0393d3bd397c0af8320173"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-010.txt",
+      "sha256": "4bff013e49cb08c469d79474e6a8abcfd3b9400617914d91cc67b17b4451e63f"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-011.txt",
+      "sha256": "f90ab72b9810973e7eb3bc44d518fc6d3e3f9e5030f8cf67f7695eded8765d00"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-012.txt",
+      "sha256": "804d50525f6e41486856e5af25cee012b1b85c140542fde1acd2f64c255283c3"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-013.txt",
+      "sha256": "2b82dd8488a34de7513b6e0996e07c1f282ce82224f83e0fbd1b135803ee1410"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-014.txt",
+      "sha256": "81f011f5ca12a2801a478600cce2327b4274d629ea0393d3bd397c0af8320173"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-015.txt",
+      "sha256": "4bff013e49cb08c469d79474e6a8abcfd3b9400617914d91cc67b17b4451e63f"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-016.txt",
+      "sha256": "f90ab72b9810973e7eb3bc44d518fc6d3e3f9e5030f8cf67f7695eded8765d00"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-017.txt",
+      "sha256": "ee2a54b2448fa69204c7019590b30765ef558907e45a3cd847a271279755c3e8"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-018.txt",
+      "sha256": "e3890c3e4c8d802065129b0e0484ba8ad2f52d3f9850077dc6d28b038584567d"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-019.txt",
+      "sha256": "d9c00d717d1b344b2f570e26d00e70e6333de6cc9a5a921df3ab0111bab3a19d"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-020.txt",
+      "sha256": "03f9521c079bcfe378b6e02ee2dec615d86dce1d7f5ae6a5cc6aab9efaaa6fcc"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-021.txt",
+      "sha256": "97fa64e871b0cafa0502f7175c6e6be06a04411ef9bdebced00c684d0fe5e9c6"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-022.txt",
+      "sha256": "ee2a54b2448fa69204c7019590b30765ef558907e45a3cd847a271279755c3e8"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-023.txt",
+      "sha256": "e3890c3e4c8d802065129b0e0484ba8ad2f52d3f9850077dc6d28b038584567d"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-024.txt",
+      "sha256": "d9c00d717d1b344b2f570e26d00e70e6333de6cc9a5a921df3ab0111bab3a19d"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-025.txt",
+      "sha256": "03f9521c079bcfe378b6e02ee2dec615d86dce1d7f5ae6a5cc6aab9efaaa6fcc"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-026.txt",
+      "sha256": "97fa64e871b0cafa0502f7175c6e6be06a04411ef9bdebced00c684d0fe5e9c6"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-027.txt",
+      "sha256": "6b6acaff4afa2a325454d41ee5b35e2a49ab2e08eea3cbf2ccfe9d34d6fea51b"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-028.txt",
+      "sha256": "5ed55f1184330fefd13283f291b11c09583b553c9fbe81ab712b0432c05d7b80"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-029.txt",
+      "sha256": "8d984acc9a6f893725e19657f156251241c2b41cf6fd8beaab5570c8add18ee4"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-030.txt",
+      "sha256": "0603491de070dc3c6ca8874df8b938a693da81c43074de47b7a9b5e2a01f3484"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-031.txt",
+      "sha256": "82430e5b4a5801e3bcdc014151754309aa65e3dfc0492c0c73b357f46fca3e5b"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-032.txt",
+      "sha256": "5ed55f1184330fefd13283f291b11c09583b553c9fbe81ab712b0432c05d7b80"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-033.txt",
+      "sha256": "8d984acc9a6f893725e19657f156251241c2b41cf6fd8beaab5570c8add18ee4"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-034.txt",
+      "sha256": "0603491de070dc3c6ca8874df8b938a693da81c43074de47b7a9b5e2a01f3484"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-035.txt",
+      "sha256": "82430e5b4a5801e3bcdc014151754309aa65e3dfc0492c0c73b357f46fca3e5b"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-036.txt",
+      "sha256": "9c0ee7f10f3772e3b1fef4fbfb5692d4a0b26b4a20981f9c42e0c655b8c417f4"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-037.txt",
+      "sha256": "934c8310a71213b133e477b47bd8e7df5e4cde7c0e202cf2873a2fd6259bcef2"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-038.txt",
+      "sha256": "3e758a63c3fd643205bb600090afff53a1caebb18986429e4415ff483c427c5e"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-039.txt",
+      "sha256": "52a7e2f331f6cecb1c0b3108e920f32bcd628e46f494fbee59467c65010e2a0e"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-040.txt",
+      "sha256": "934c8310a71213b133e477b47bd8e7df5e4cde7c0e202cf2873a2fd6259bcef2"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-041.txt",
+      "sha256": "3e758a63c3fd643205bb600090afff53a1caebb18986429e4415ff483c427c5e"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-042.txt",
+      "sha256": "52a7e2f331f6cecb1c0b3108e920f32bcd628e46f494fbee59467c65010e2a0e"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-043.txt",
+      "sha256": "934c8310a71213b133e477b47bd8e7df5e4cde7c0e202cf2873a2fd6259bcef2"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-044.txt",
+      "sha256": "3e758a63c3fd643205bb600090afff53a1caebb18986429e4415ff483c427c5e"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-045.txt",
+      "sha256": "52a7e2f331f6cecb1c0b3108e920f32bcd628e46f494fbee59467c65010e2a0e"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-046.txt",
+      "sha256": "4de5d488c3dd4c138b872fccbb6ae7fe8d2b8685c3947f2c0afef17db4c446ec"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-047.txt",
+      "sha256": "73841eedfe8f6bf06a67d9788ee84392a34ee7198c6544e5d58b5a6680c3cd6c"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-048.txt",
+      "sha256": "4794c7a7b6e6e14f9eaad426ab2f9bc7031e44af73581ac6f6d6f49dc85d2212"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-049.txt",
+      "sha256": "d366c64037e50869833ebda9ffa47a8c9f004b103187c74e3c237073bc9724f5"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-050.txt",
+      "sha256": "f2191564e2387ff75bb2c3a2e50b21a03d085c48755e1fd6720888d689419732"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-051.txt",
+      "sha256": "d7218139f39f8fe14f689a7a64c1ebdf0ad29fe3adba43fa711d4458a33347c3"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-052.txt",
+      "sha256": "3485298034c7d341d16d7edca2165611cd63a6187ea79002c11dd2c5b6e78fcb"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-053.txt",
+      "sha256": "3485298034c7d341d16d7edca2165611cd63a6187ea79002c11dd2c5b6e78fcb"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-054.txt",
+      "sha256": "3485298034c7d341d16d7edca2165611cd63a6187ea79002c11dd2c5b6e78fcb"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-055.txt",
+      "sha256": "4829866d07cb31f7c22cdda5464af96616362f837dbb77a74a7297d7fc8b28a9"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-056.txt",
+      "sha256": "191902f2d41f4c433a815f708951730be6eb809b1eafcdf62a8d46e8e307600a"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-057.txt",
+      "sha256": "c4ff788bf47e8a5b52f243ac3f3e2d6dca49eb641a897688ad05c0f8e0f710b0"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-058.txt",
+      "sha256": "88d7a887015ef3aa23aae0813138d634986236153b11e915e989325ce0e163a4"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-059.txt",
+      "sha256": "a8bc9374313e02472b29646f5b77a18242a8cd44558b1ba12438a65f50066782"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-060.txt",
+      "sha256": "0cfee5a6f9dc1dac2916559c924c5e93dc17a67612733000f4edff786ef0002b"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-061.txt",
+      "sha256": "b7248aabbdd9a90175795d3c8f1271fea1bf80691370bcea6f04b97f262d44d2"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-062.txt",
+      "sha256": "e8deea4be29c455b89e9302574470a35429e081730296bd1fa9d1876c235cb5e"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-063.txt",
+      "sha256": "d9edb8e54ab765c6c8ac0957b1958c7bf62f6b2bb242d784fb66788bdc89c456"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-064.txt",
+      "sha256": "0c000bf9431af197e7feaf7287e1c6c600e096e97d3065e1f04c4e1637e302b5"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-065.txt",
+      "sha256": "79c370803daf49bb35a4aa4570cbc0630d4602dc8fc1110000a8f3b9a9c4c7d0"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-066.txt",
+      "sha256": "932cb882fe834789a9a41a2f7b096e1b24b0ff78fdbf78be33fb10942b475561"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-067.txt",
+      "sha256": "5794586e7b039dfca0552be88d95240f18aac242fe81279da29bc5d4fd05eb63"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-068.txt",
+      "sha256": "6fba77b4563970451aaf71c29d70532c4ac36e2af5c815339255587b16bf6e6b"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-069.txt",
+      "sha256": "e70d00a8c07ad55831101ac8c73deb6113f02778cd3df3b12f2994e5dcc8e9de"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-070.txt",
+      "sha256": "992045c07bf254e120ff6964fbc50318596e2baf63377ebbc1a076721092c962"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-071.txt",
+      "sha256": "279b04d471b79454293d35b1ed7b247d42692c652a9f4606eabea0514b718d2f"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-072.txt",
+      "sha256": "085b7ff0aea407b40426abdb8ff950e9f47a7fa06d90999640d01f07bb2ba784"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-073.txt",
+      "sha256": "fbee92476f56986332622bc90ee18a31ecbec99fb67feed1442fd2171c5a141c"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-074.txt",
+      "sha256": "7bff934381078a0a2f863e24997825050825d3fc218e45be2c583a2f748c88f5"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-075.txt",
+      "sha256": "7a5c88aed9c9b130e00708ada91ea4b1c9f770aa11f0510ea8a08b8586bc572a"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-076.txt",
+      "sha256": "d3453650e06b0d2deaad1696c2b802faf1dff954460a187d5de71dd4b8d09f23"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-077.txt",
+      "sha256": "d3453650e06b0d2deaad1696c2b802faf1dff954460a187d5de71dd4b8d09f23"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-078.txt",
+      "sha256": "d3453650e06b0d2deaad1696c2b802faf1dff954460a187d5de71dd4b8d09f23"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-079.txt",
+      "sha256": "d3453650e06b0d2deaad1696c2b802faf1dff954460a187d5de71dd4b8d09f23"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-080.txt",
+      "sha256": "e9e2f9421ca2902b0381186b30a8524adf3a06c55787cd8ad289af81fe31a761"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-081.txt",
+      "sha256": "e05e8992b676e3b61d4fca1386221aca7b4e7279555d875b6f066b7b7fc835ea"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-082.txt",
+      "sha256": "b4e8252d1edfc2c8ab2a8b2378fbef37ec817094606b666e8986ea82e0fa9fb1"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-083.txt",
+      "sha256": "caaed43573e956bb523b7601e287c1c94358625cea275ba426bee61f07562d6f"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-084.txt",
+      "sha256": "6925af02142f551426b6bd47408d13663688fa1aa64a6f7008b9676986aee976"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-085.txt",
+      "sha256": "6fb34b3e30ed9a4badc40f2969252951a45a88a18429d86cce7b192ce03a726e"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-086.txt",
+      "sha256": "54cbf44f9d801cf7c386965ac01eb9a823801bf5b75b28b17fb7f25a91d811b6"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-087.txt",
+      "sha256": "a9605ecf37a3565c74618a699fedbf4d804b1c14da6c3479e4149bcca60e8a85"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-088.txt",
+      "sha256": "5b5dad487faef4c5785e67ed799ec7fc36c6078038096ff368208e9553b456e9"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-089.txt",
+      "sha256": "78af235e35bd7220368d2905a12a907b0cedf2541e6944a97efdbce994b2901e"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-090.txt",
+      "sha256": "493f16bf9cc4de03627478c42f89367902a8e1d8204446acb70353051783bbc4"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-091.txt",
+      "sha256": "e664bc2206c3623331011e61e42915c7cc864319f76bdead784a561d32b6294d"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-092.txt",
+      "sha256": "6ef7b2ddd5381212398e6fe7cb0be8c93f06c89cddedd4049421e41eda847db1"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-093.txt",
+      "sha256": "e664bc2206c3623331011e61e42915c7cc864319f76bdead784a561d32b6294d"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-094.txt",
+      "sha256": "6ef7b2ddd5381212398e6fe7cb0be8c93f06c89cddedd4049421e41eda847db1"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-095.txt",
+      "sha256": "de312ae2029828adcdaf4e8597dffb7db648aab3abfab62cac57c98ea6ef8c40"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-096.txt",
+      "sha256": "3344026affdff353bb6254a11e5defaa854e06fb13a77c47d994a3c20ccfbee8"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-097.txt",
+      "sha256": "5d4bd987adee640bd1740e62974be1ee156f54ef9fd9c3be70011c8ffa2ef18b"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-098.txt",
+      "sha256": "d8553ae66e2c9bd48e69d4a4c1bb313a9dc71085e52220c616e366925e1faaba"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-099.txt",
+      "sha256": "da3567d48cf03b624421856a7e0daa9fc850d261d4c835a1236145f3ac0a3b25"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-100.txt",
+      "sha256": "149ef7815bf3c0c1f17e033132447c3693e5add1c93642acc41d50f7b311206b"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-101.txt",
+      "sha256": "742bae1518fa9e293442c784948e2a4f4f41e5f24452910d4ff6c666e58761e8"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-102.txt",
+      "sha256": "742bae1518fa9e293442c784948e2a4f4f41e5f24452910d4ff6c666e58761e8"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-103.txt",
+      "sha256": "27f47f86b796c1ea0e1208028fd64d8e7aed6b73d9cf3fc3b9aaac831da87215"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-104.txt",
+      "sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-105.txt",
+      "sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-106.txt",
+      "sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-107.txt",
+      "sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-108.txt",
+      "sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-109.txt",
+      "sha256": "abae93be8fbeb0b665bc29624b27bd866e9ec5018fda67975fecfab126e7b5f2"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-110.txt",
+      "sha256": "5fe246d20ca7829edb711946ffd4f8e5d9d5e7149e9bf1ece0ab676458aee6d1"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-111.txt",
+      "sha256": "3e0a63941ddb57a92be7fc696c3f5046dca074d6ae15c6031ed7eed0f26d9e41"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-112.txt",
+      "sha256": "a84ee22d4533693a5f84d6d0c8aab34c4f53c0200cda26bc34193dce6a66c951"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-113.txt",
+      "sha256": "328b5eea9c712c7873c05beba22774dfc5c053c5a00872869531c3bc2814d068"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-114.txt",
+      "sha256": "949653f1629c95cdd0751018cc0f106cf6eaf21ac92ce646152c7f7038d19d65"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-115.txt",
+      "sha256": "4014046ebbd29f66b029c2855f77bc559e992c1d150cfb40b6682032343ab061"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-116.txt",
+      "sha256": "3f52ccffd17a5849524fa2069c2b6579d62cd4362e22e8202780ead0321f43da"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-117.txt",
+      "sha256": "c0b448fad20bc05c6292841e048a6c571fc579725fbb2d7c66494c4344dae19d"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-118.txt",
+      "sha256": "c0b448fad20bc05c6292841e048a6c571fc579725fbb2d7c66494c4344dae19d"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-119.txt",
+      "sha256": "6f2ee229ba18207031807a3c07b690da7625734a3c98da10e75b530b53fd5970"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-120.txt",
+      "sha256": "0e294976e923f84d87f5ca6653592af38f4f15c3e2c1467a4ca8249d2312cda3"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-121.txt",
+      "sha256": "89816ccc223f1ab4738fff6f3fca16dabbd199ee79106be59b6d8809ba0f9543"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-122.txt",
+      "sha256": "dc90e26e0418308fb7b9ffd35f1da737bcc9d8293fd2fa46c207d26249dd86e9"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-123.txt",
+      "sha256": "029d47acb108d020395e145358faaf17f4a37b58182bb4de26387fb9b0ad6952"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-124.txt",
+      "sha256": "fdae351abd6a51fada231f34ef456db12ba755c3d9ce64e4be9a265581fcd71c"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-125.txt",
+      "sha256": "933b436fd417717d1c726ed53efc2f7357ed4461182bbcee4cabf15787251399"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-126.txt",
+      "sha256": "7f23e4b87162669a07d49628551da48319206cfa22417443eb3d549596d78a73"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-127.txt",
+      "sha256": "835c6c2d530a7d4e9136a7fd0e345a99a790a42c7087e9a19ad761f8c52d1fa6"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-128.txt",
+      "sha256": "4cab9732aa243d692c843abb51add8aeef6b9a185917c8c336abbd40a50a6a86"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-129.txt",
+      "sha256": "07d96352d1544a57ca18bd5ef501d02d73c19556a3d255903f00fd0ffd0a04eb"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-130.txt",
+      "sha256": "9fe8f032f7e468644a9fd160b53095bf0ba4c623cc342ec9e6fa308a9ec928ce"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-131.txt",
+      "sha256": "d462f3c0cbe0dfdc6703faafa020420b0fc1096b865f44ca286ec7719e928bbe"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-132.txt",
+      "sha256": "918f9e47f799c20b7a6e822e563bf67234d70dc0a4db965ffc43cd30a6b5525e"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-133.txt",
+      "sha256": "df1241081913757425b2c8ac7fa66718250eb9d3a36feda9b2f03b9a08952d28"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-134.txt",
+      "sha256": "41a5caaae04521892b8c7380b357bc78ab1a491078c96f4b0eb7ef61dc68fef4"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-135.txt",
+      "sha256": "6641930ff15ba68014118c89a46b1b86b50186fbf9c9a3d8da08051f55cb96ea"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-136.txt",
+      "sha256": "b281f9817e78dceec6e6c6413a80a3df84d2f68051bd86ae32e9a702f2490ef2"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-137.txt",
+      "sha256": "ecda41f490ff7c332c80cf96638482c40aa4a625e873dad11fa72d62850cee88"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-138.txt",
+      "sha256": "373ca233f86c802a77621704eac023bff8c4b4df96c3f838e847af7b2ca1811a"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-139.txt",
+      "sha256": "012f59558b1ec17fed1424da15dec80ebc67bc96e544d450a3fab29fe1e2eee6"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-140.txt",
+      "sha256": "b724711b42b01e59dbc5ec0de18cb7f24803a880e06113ae1ca59f006202772f"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-141.txt",
+      "sha256": "d4a919d3d613fd0467f54f934a574abbd0d6903fe13b12962e281760115e980b"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-142.txt",
+      "sha256": "5e2b04f583281892110d54068fcf435c779d8c0aea9551c768caa769f5624ffd"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-143.txt",
+      "sha256": "d385d96f89df81d3694ad9c45764ee4c54c2e13bef19ed575ae12763a91018ac"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-144.txt",
+      "sha256": "51b7cc57c7dbfbd9ad1af4c11dee47f8710ef07b27a90ab6941a6d2a537cd9ed"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-145.txt",
+      "sha256": "aeec870cb97ccb405512a6a3052cf8c303bfc0bf2db0bc61e3f894b3fb980fc1"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-146.txt",
+      "sha256": "9d7c825e55090ac473b01bfe76f1bb33bf66a4bad5028f167c6b96c23c6326ff"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-147.txt",
+      "sha256": "579261408dbf07a7c9292e12e3845507488162c734d20fe496c9016759f6128a"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-148.txt",
+      "sha256": "be5f956c58d6a9aac642debecbc83635ec54b8f268415e93aa3d01688a01e3e6"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-149.txt",
+      "sha256": "18a36dc0f9c252ba5cfdc57626fe92d1707223969d992de3ed9c1c3891dc18b1"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-150.txt",
+      "sha256": "d80215842c9141c9cfd252905c3a6e27d8c85addd4833b4b91e9eb1f2d878883"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-151.txt",
+      "sha256": "81f7dc583bb924128e7caad275a5aa041169e708f557297e2cb0d03315e3250f"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-152.txt",
+      "sha256": "80c0868fff14e44267b18022b0768a5de97438cd4ee2125e1bc1ff406997d26b"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-153.txt",
+      "sha256": "07f69f10b91b3f029a9df1644db25d158f35e15444fcebac88f37ba6cddc8b35"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-154.txt",
+      "sha256": "18128eb488052e0155786667a83d68bf0f07773eb4721153515d913136da61d6"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-155.txt",
+      "sha256": "884f3030b6df8fbb0d9bea1de05b98a6b11c203a09caba941ff83138b924bdb6"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-156.txt",
+      "sha256": "f91d67c4d4e3cd6347526af77de4c4351ba8724aefa96f0e8ecb57887021dbac"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-157.txt",
+      "sha256": "19a7dfb3d6f1bafbe2047541f088502718f25d198d685d488c8b9d3fd86465b2"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-158.txt",
+      "sha256": "e6fb5a3b68963479e050e12d3aaa454aecc1a243d0fa1d5501a28876b1a27878"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-159.txt",
+      "sha256": "075e5f480c6b5fb9491478790456da5046f4f04525e26fb1694e4c02008cd2bd"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-160.txt",
+      "sha256": "493906b5cf67ca9cc1a609275a9e6367688d4bce04a50008d661f714959dadf8"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-161.txt",
+      "sha256": "5d431ff858e54e07cc604b099925fad8a88e2856d938b4d200f542c1cf163255"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-162.txt",
+      "sha256": "9ba2df098c44fc3e05a186d7b63c84102566cb71f75f97373b2e0df8c72c430f"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-163.txt",
+      "sha256": "640f7092a295f42211dbc538893dc5bcbaafdbff08dadaec2c873a55eed0f011"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-164.txt",
+      "sha256": "c70833e6e5bab59217e9a799c89edf1d16275b623903c341ca33a50dc4cabd93"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-165.txt",
+      "sha256": "7029d53009e6865a83595961077cc6d66685a000d40745f2967ba0bc072a53a0"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-166.txt",
+      "sha256": "58f2820bbd80448e2ec9e2994275d0c66fb285ae3e67465eaa404ea7b5fd25fb"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-167.txt",
+      "sha256": "fa9b1163811205dbf360040378b90811f5c7a53fabdf6a7bebe7b8336a9c0b3c"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-168.txt",
+      "sha256": "0edd47f61244153af973a75890ef7b18cf9aea8d18cedda9cf02a2256e37f5cb"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-169.txt",
+      "sha256": "0edd47f61244153af973a75890ef7b18cf9aea8d18cedda9cf02a2256e37f5cb"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-170.txt",
+      "sha256": "2e94e52063c8520661058a959027b82cb0186b448cc63fa8d200d2abcc8e356a"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-171.txt",
+      "sha256": "9c67aab53f3e3402013034c53770cdbbe08a4b78e4f557ad2e9a4ea6818e6cd3"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-172.txt",
+      "sha256": "d3007a34a456bc873f17bf2110d30f059ef86ff4cc9ff578932c7e8888048cf2"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-173.txt",
+      "sha256": "8d3ff3604cfab210e16f0603a7ba410c5310fd67d6241faca3527f7945935dfc"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-174.txt",
+      "sha256": "0c832e89e7881e4940c9c993e1ef1138f84b319746b10cdec2cc12fd9235e817"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-175.txt",
+      "sha256": "3a7d16bb215cf47e8a49428313685c0bfb02d97935e44f842ec16ebd6cd54cb6"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-176.txt",
+      "sha256": "b740663e71ff9832c28cb18a668ebc6da231cecd55f65e405d36494adb32c6f7"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-177.txt",
+      "sha256": "c37efa3cd656d1eb5b6c1b98b15cd3898bda562f96eb6ba996752fa59ff75f38"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-178.txt",
+      "sha256": "f7d1d9bf6fd1f874c167e656e150b569ed9f7c37452f6092d44da43bd0eb53ab"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-179.txt",
+      "sha256": "d9c142ffef092c74d66020cbe0c2394b4b80082fee2ef83d53d7561e66baa931"
+    },
+    {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/npa-frag-180.txt",
+      "sha256": "ef029224ce267156f06fe047ad6a954c6c58f14db8f5914f297aedac85a5e077"
+    }
+  ],
+  "holdout_families": [
+    "stem:order_2013-10-02_567",
+    "stem:law_2014-11-24_356-fz",
+    "stem:resolution_2007-11-26_812",
+    "workdir:xml/law/126745",
+    "stem:directive_2013-09-30_1765-r",
+    "stem:decision_2025-01-10_04-10-18-1-15-2025",
+    "stem:000166280",
+    "stem:000166305"
+  ],
+  "lifecycle": {
+    "human_adoption": "pending",
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged",
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none"
+  },
+  "non_claims": [
+    "not gold: no S03 artifact, aspect value or stratum rate is a gold label",
+    "not a promotion: classification stays not-authorized, promotion stays none and threshold stays null",
+    "not a threshold: no rate threshold, pass/fail cut-off or accept/reject decision is introduced",
+    "not a classification: no classifier is fitted, no gate is selected and no D388 gate is scored",
+    "not system quality: the measured agreement is rater-vs-resolved-reference, never system quality",
+    "not a model evaluation: no model is invoked anywhere in M207 and model_invoked stays false",
+    "not human acceptance: no resolved reference becomes human-accepted truth (human_acceptance stays null)",
+    "not a second measurement convention: npa-quality-receipts/v1, npa-c5-* and npa-lawref-seed/v1 inputs are refused",
+    "not official-publication provenance (R070 stays open)",
+    "not amendment provenance (R070 stays open)",
+    "not LawRef / act-tree / clause segmentation",
+    "not the N2-gate acceptance decision",
+    "not legal interpretation",
+    "not a product surface: S03 stays an offline Python harness under scripts/ and no crates/** file reads it",
+    "not an evaluation of the dev slice: development-slice numbers are development-only, never independent evidence"
+  ],
+  "pins": {
+    "fragment_rollup": {
+      "count": 180,
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref",
+      "sha256": "sha256:6b3c920686e5dcb202a13a700ef8db5721cd63bd3b7c07c9da66ba5df21e0796"
+    },
+    "sources": {
+      "m199_protocol": {
+        "path": "prd/migration/rust-evidence/m199-s01-annotation-protocol.md",
+        "sha256": "eed922b02c1b89b8e51e8b342b1a9f113a8029b8a2fe0a1bee84f9f2035c6e3d"
+      },
+      "m203_s08_c3_holdout": {
+        "path": "prd/migration/rust-evidence/m203-s08-c3-holdout-manifest.json",
+        "sha256": "37c85ca480884717199453abd2ccc148b32d5011b194f160263764f469bbf388"
+      },
+      "m204_s02_c5_gold_100": {
+        "path": "prd/migration/rust-evidence/m204-s02-c5-gold-manifest-100.json",
+        "sha256": "0096f2d8173afbcdb550077c419b65044946bb42ef98cd1d91a2d0712c82cdf6"
+      },
+      "m204_s02_c5_gold_400": {
+        "path": "prd/migration/rust-evidence/m204-s02-c5-gold-manifest-400.json",
+        "sha256": "e100c8b9e4d4bc51a7752cb5138088711e0d487ebbdf0857a2f83075e4e53fc3"
+      },
+      "m204_s02_c5_gold_800": {
+        "path": "prd/migration/rust-evidence/m204-s02-c5-gold-manifest-800.json",
+        "sha256": "33c023d132de1350dfc814ff812bbeeafe3c2ce8fd4da4531c302798e27afd10"
+      },
+      "m207_s01_cases": {
+        "path": "prd/migration/rust-evidence/m207-s01-pilot-cases.json",
+        "sha256": "9b0b6bc6bd8eadf9eb86886e45eb756ebade654e96ac3a84132ed9452bdeb9ad"
+      },
+      "m207_s01_codebook": {
+        "path": "prd/annotation/m207-s01-codebook.md",
+        "sha256": "1a1bfe944207e69cb5fb507e94d680384dadecf7ac98ac29b1de4932d7cb76c6"
+      },
+      "m207_s01_metaprompt": {
+        "path": "prd/annotation/m207-s01-metaprompt.md",
+        "sha256": "d09d09fe9189a7f76b02f715eefa6ebd0c16a3b71ef7ff4b88f5f380af68a999"
+      },
+      "m207_s01_prompt_packets": {
+        "path": "prd/migration/rust-evidence/m207-s01-prompt-packets.jsonl",
+        "sha256": "d9d30bf24d40ab8abebb28c1a22692ae99ca029e1b4e2b032a4dae1137cc6b77"
+      },
+      "m207_s01_schemas": {
+        "path": "prd/annotation/m207-s01-schemas.json",
+        "sha256": "63a4bc6629bade752f9fa02d1dd5fa6bbf21238e20772d2ba5b74f88ecca3682"
+      },
+      "m207_s02_coder_kit_pass1": {
+        "path": "prd/migration/rust-evidence/m207-s02-coder-kit-pass1.json",
+        "sha256": "e23b25d9ce45f72263d9630b47c096a7463b95dbcbfda9233c750e7bf39418c5"
+      },
+      "m207_s02_coder_kit_pass2": {
+        "path": "prd/migration/rust-evidence/m207-s02-coder-kit-pass2.json",
+        "sha256": "52be89f0f72f46c7f4503c7912508868f92e1e8501c848b2907c59330e192380"
+      },
+      "m207_s02_protocol": {
+        "path": "prd/annotation/m207-s02-coder-protocol.md",
+        "sha256": "763de0f998b772afd85373e438da0b1b6b2a6435d761e67f06177f4b0b1fbc32"
+      },
+      "m207_s02_schemas": {
+        "path": "prd/annotation/m207-s02-schemas.json",
+        "sha256": "ef438bb5171a8b58f43a8bc4bc2d9a875877da40943ef28e1337b8741a1cab97"
+      },
+      "m207_s03_protocol": {
+        "path": "prd/annotation/m207-s03-eval-protocol.md",
+        "sha256": "e60029d01e9f20ecc84b157ed39e0f8339fc6931f16cc12db171017273457d84"
+      },
+      "m207_s03_schemas": {
+        "path": "prd/annotation/m207-s03-schemas.json",
+        "sha256": "34d874e59b16e356e5658b7eec45d3fef01a4342592728f10f122b0126903456"
+      }
+    },
+    "split": {
+      "dev_cases": 26,
+      "dev_family_count": 16,
+      "family_count": 24,
+      "granularity": "work_family",
+      "holdout_cases": 14,
+      "holdout_families_sha256": "sha256:f7ac282793b70f725f67456dad624831809d784364af9b2fc8a37f0cb8387111",
+      "holdout_family_count": 8,
+      "rank_algorithm": "splitmix64 mixing of sha256(work_family) seeded with seed ^ 0x9e3779b97f4a7c15 (rotate_left(7)/0x100000001b3 over the digest byte pairs), mirroring Rust corpus_sample::mixed_rank",
+      "rank_order": [
+        [
+          "stem:order_2013-10-02_567",
+          1695898466646877806
+        ],
+        [
+          "stem:law_2014-11-24_356-fz",
+          3627039287579507610
+        ],
+        [
+          "stem:resolution_2007-11-26_812",
+          4075642305120419458
+        ],
+        [
+          "workdir:xml/law/126745",
+          4963842903799845447
+        ],
+        [
+          "stem:directive_2013-09-30_1765-r",
+          5909201247401988999
+        ],
+        [
+          "stem:decision_2025-01-10_04-10-18-1-15-2025",
+          6002114594752773381
+        ],
+        [
+          "stem:000166280",
+          6313803233896157102
+        ],
+        [
+          "stem:000166305",
+          7418259379783770693
+        ],
+        [
+          "stem:decision_2025-01-10_04-10-18-1-229-2025",
+          7439783751133032855
+        ],
+        [
+          "stem:order_2014-03-06_80",
+          7476621651759576722
+        ],
+        [
+          "stem:000166350",
+          8779680642417273267
+        ],
+        [
+          "workdir:xml/law/135559",
+          12588268147995051418
+        ],
+        [
+          "stem:directive_2015-04-28_753-r",
+          13789114410858405097
+        ],
+        [
+          "stem:law_2013-12-28_396-fz",
+          14542736167602599273
+        ],
+        [
+          "stem:law_2019-06-27_151-fz",
+          14648822398342751839
+        ],
+        [
+          "stem:000166339",
+          15278101547314524144
+        ],
+        [
+          "stem:directive_2014-03-13_364-r",
+          15349566075630091905
+        ],
+        [
+          "work:law-44fz-cluster",
+          16033678207616913523
+        ],
+        [
+          "stem:order_2014-02-14_55",
+          16228462822646610177
+        ],
+        [
+          "stem:resolution_2013-11-08_1005",
+          16409301785047591429
+        ],
+        [
+          "stem:decree_2020-09-14_558",
+          17081531736492048997
+        ],
+        [
+          "stem:resolution_2013-09-19_826",
+          17803921969809017541
+        ],
+        [
+          "stem:law_2015-07-13_220-fz",
+          18062087181381346047
+        ],
+        [
+          "stem:order_2014-04-23_398",
+          18378895055110906963
+        ]
+      ],
+      "seed": 20260915,
+      "seed_source": "frozen m207-s01-pilot-cases/v1 draw_seed"
+    }
+  },
+  "provider_strata": [
+    {
+      "availability": 40,
+      "justification": "declared root `consru_export/consru_export/exports`, `law-source/consultant` attributes 40 of the 40 frozen pilot cases; quota 40 <= availability 40; the stratum stays not-measured until the independent S02 human reference exists",
+      "measurement_status": "not-measured",
+      "provider": "consultant",
+      "quota": 40
+    },
+    {
+      "availability": 0,
+      "justification": "declared root `law-source/garant` attributes 0 of the 40 frozen pilot cases; quota 0 <= availability 0; the stratum is retained as not-measured -- a zero stratum is honest, dropping it is PROVIDER_STRATUM_DROPPED",
+      "measurement_status": "not-measured",
+      "provider": "garant",
+      "quota": 0
+    },
+    {
+      "availability": 0,
+      "justification": "undeclared paths attribute 0 of the 40 frozen pilot cases (no frozen case falls outside the declared provider roots); quota 0 <= availability 0; the stratum is retained as not-measured -- a zero stratum is honest, dropping it is PROVIDER_STRATUM_DROPPED",
+      "measurement_status": "not-measured",
+      "provider": "unknown",
+      "quota": 0
+    }
+  ],
+  "schema": "m207-s03-eval-manifest/v1",
+  "schema_version": 1,
+  "seed": 20260915
+}
