@@ -158,6 +158,7 @@ REQUIRED_HOSTILE_CASES = (
     "test_battery_result_table_must_carry_the_chain_set",
     "test_battery_failing_row_fails",
     "test_battery_missing_tracked_battery_fails",
+    "test_battery_stale_tracked_battery_fails",
     "test_absent_human_reference_refuses_and_publishes_nothing",
     "test_synthetic_report_has_honest_denominators",
     "test_imputed_zero_value_fails",
@@ -271,6 +272,19 @@ class SuiteBase(unittest.TestCase):
         root = holder / "root"
         shutil.copytree(world_root(), root)
         return root
+
+    @staticmethod
+    def real_root_carries_human_data() -> bool:
+        """True once an operator has dropped an envelope into a fixed human store.
+
+        The suite drives temp copies everywhere else; only one positive control
+        looks at the repository itself, and that control is only meaningful while
+        the repository is still human-absent.
+        """
+        return any(
+            (ROOT / store).is_dir() and any((ROOT / store).glob("*.json"))
+            for store in (SUBMISSIONS, ADJUDICATIONS)
+        )
 
     # -- hand-built CLI doubles -------------------------------------------
     def stub_chain(self, body: str, *, code: int = 0) -> Path:
@@ -393,7 +407,23 @@ class VerifierBoundaryTests(SuiteBase):
         )
 
     def test_real_root_verifies_machinery_green(self) -> None:
-        """The repository itself is green, and the default chain is the real S02 one."""
+        """The repository itself is green, and the default chain is the real S02 one.
+
+        The assertion pins the *pre-pilot* catalogue
+        (``human_pilot_performed=false``).  Once an operator performs the S03
+        human pilot the real root is no longer human-absent -- and a human
+        reference without a published report is a lawful refusal
+        (``REPORT_MISSING_WITH_HUMAN_DATA``) -- so this control stands down
+        instead of turning the closing chain red and making the human ending
+        unreachable.  The human-absent machinery path keeps its positive control
+        in ``test_clean_root_passes_with_counters`` (a temp root), and the
+        post-pilot path is covered by the closing chain's own verifier row.
+        """
+        if self.real_root_carries_human_data():
+            self.skipTest(
+                "the real repository carries a human pilot: the pre-pilot machinery-green "
+                "assertion does not apply"
+            )
         result = self.run_cli(
             VERIFIER, "check", "--root", str(ROOT), "--s02-chain", str(self.green_chain())
         )
@@ -617,6 +647,31 @@ class BatteryModeTests(SuiteBase):
         self.assert_diagnostic(
             self.run_battery(self.make_root(), self.green_table(), "--out", BATTERY),
             "MISSING_ARTIFACT",
+        )
+
+    def test_battery_stale_tracked_battery_fails(self) -> None:
+        """A tracked battery that no longer matches the assembled payload is refused.
+
+        The read-only pass is what makes the D473 write observable: a battery
+        edited by hand -- or one left behind by a chain whose check set has
+        drifted -- is refused with ``BATTERY_STALE`` instead of being reported as
+        current, because write mode is the only path that ever rewrites it.
+        """
+        root = self.make_root()
+        (root / BATTERY).write_text(
+            json.dumps(
+                {"schema": "m207-s03-battery/v1", "schema_version": 1, "checks": []},
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        self.assert_diagnostic(
+            self.run_battery(root, self.green_table(), "--out", BATTERY),
+            "BATTERY_STALE",
+            detail="regenerate once with M207_S03_WRITE_BATTERY=1",
         )
 
     def test_battery_write_without_the_authorized_env_fails(self) -> None:
