@@ -196,6 +196,48 @@ function codes(result) {
   return result.errors.map((entry) => entry.code);
 }
 
+function section(doc, heading) {
+  const lines = doc.split("\n");
+  const start = lines.findIndex((line) => line === heading);
+  if (start === -1) return null;
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i += 1) {
+    if (lines[i].startsWith("## ")) {
+      end = i;
+      break;
+    }
+  }
+  return lines.slice(start, end).join("\n");
+}
+
+// T03 no-start note guard: the five local change operations stay design-only
+// names while the verdict is not-adopted, and their runtime surfaces stay absent.
+const T03_NOTE_HEADING = "## T03 no-start note: five local change operations";
+const T03_OPERATIONS = ["Replace", "NewWording", "Insert", "Remove", "Repeal"];
+const T03_PROVENANCE = ["f436a10e", "532e9062", "D503"];
+const T03_FORBIDDEN_RUNTIME = [
+  "crates/ln-decode/src/change_operation.rs",
+  "crates/ln-decode/tests/npa_change_operation_contract.rs",
+];
+
+function t03NoteErrors(text) {
+  const note = section(text, T03_NOTE_HEADING);
+  if (!note) return ["t03_note_missing"];
+  const errors = [];
+  for (const operation of T03_OPERATIONS) {
+    if (!note.includes(`\`${operation}\``)) errors.push("t03_operation_missing");
+  }
+  for (const ref of T03_PROVENANCE) {
+    if (!note.includes(ref)) errors.push("t03_provenance_missing");
+  }
+  if (!note.includes("kind_not_runtime")) errors.push("t03_pin_citation_missing");
+  if (!/`Remove` is \*\*not\*\* `Expire`/.test(note)) errors.push("t03_remove_expire_merged");
+  for (const file of T03_FORBIDDEN_RUNTIME) {
+    if (existsSync(path.join(root, file))) errors.push("t03_runtime_surface_present");
+  }
+  return errors;
+}
+
 // ---------------------------------------------------------------------------
 // fixtures
 // ---------------------------------------------------------------------------
@@ -446,6 +488,47 @@ test("T02: quoted operand no-start note holds while the verdict is not-adopted",
   ]) {
     assert.equal(existsSync(path.join(root, file)), false, `${file} must stay absent`);
   }
+});
+
+test("T03: five local change operations stay design-only while the verdict is not-adopted", () => {
+  const result = validateAdmission(doc);
+  // A later slice may supersede this checkpoint with a granted admission; the
+  // T03 no-start note and its absences only hold under the not-adopted verdict.
+  if (result.verdict !== "not-adopted") return;
+  const errors = t03NoteErrors(doc);
+  assert.deepEqual(errors, [], `T03 note errors: ${JSON.stringify(errors)}`);
+  const lib = readRepo("crates/ln-decode/src/lib.rs");
+  assert.ok(!lib.includes("change_operation"), "lib.rs must not register change_operation");
+});
+
+test("negative: T03 no-start note and its absences are genuinely checked", () => {
+  const result = validateAdmission(doc);
+  if (result.verdict !== "not-adopted") return;
+  assert.deepEqual(t03NoteErrors(doc), [], "the live document must pass the T03 guard");
+  assert.ok(
+    t03NoteErrors(doc.replace(T03_NOTE_HEADING, "## T03 note dropped")).includes("t03_note_missing"),
+    "a dropped T03 note must fail closed",
+  );
+  assert.ok(
+    t03NoteErrors(doc.replaceAll("`Repeal`", "Repeal")).includes("t03_operation_missing"),
+    "an unnamed design-only operation must fail closed",
+  );
+  assert.ok(
+    t03NoteErrors(doc.replaceAll("`Remove` is **not** `Expire`", "`Remove` is the `Expire` kind")).includes(
+      "t03_remove_expire_merged",
+    ),
+    "mixing Remove with Expire must fail closed",
+  );
+  assert.ok(
+    t03NoteErrors(doc.replace("`kind_not_runtime: [MicroOperation", "`kind_runtime: [MicroOperation")).includes(
+      "t03_pin_citation_missing",
+    ),
+    "dropping the kind_not_runtime citation must fail closed",
+  );
+  assert.ok(
+    t03NoteErrors(doc.replaceAll("f436a10e", "00000000")).includes("t03_provenance_missing"),
+    "dropping the T03 provenance must fail closed",
+  );
 });
 
 // ---------------------------------------------------------------------------

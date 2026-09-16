@@ -238,6 +238,52 @@ checks it performs over the four runtime operand surfaces
 `crates/ln-decode/tests/npa_change_operand_hostile_contract.rs`); the contract
 asserts both this note and those absences while the verdict is not-adopted.
 
+## T03 no-start note: five local change operations
+
+Recorded by M208/S01/T03 on 2026-09-16 under the not-adopted verdict above. This
+note adds provenance to the checkpoint; it does not relax it.
+
+- Provenance: the same T01 blocker-accepted lineage as T02 — T01 attempt
+  `f436a10e` settled failed/blocker-discovered, host recovery abort `532e9062`,
+  decision D503. Resume of that recovery would loop the same HARD BLOCK, so the
+  slice closes this task by the no-start pattern rather than by implementation.
+- The five local source change operations — `Replace` (заменить), `NewWording`
+  (изложить в новой редакции), `Insert` (дополнить), `Remove` (исключить) and
+  `Repeal` (признать утратившим силу) — remain **design-only names** of the S01
+  source-operation alphabet, i.e. of the design surface that
+  `prd/architecture/m205-s03-context-fsm.yaml` names for itself
+  (`# M205/S03 design-only context FSM and source-operation alphabet pin`).
+  They are not implemented names: the pin itself carries no runtime contour for
+  them, and nothing in this slice mints one. No `ChangeOperationCandidate` was
+  minted, no
+  `crates/ln-decode/src/change_operation.rs` was created, no
+  `crates/ln-decode/tests/npa_change_operation_contract.rs` was created, and
+  `crates/ln-decode/src/lib.rs` was not touched.
+- The five names are not `MicroOperation`, not `LegislativeEffect`, and they do
+  not mint `WorkId`, `InForce`, `force` or `NormRule`. The owning M205 pin
+  `prd/architecture/m205-s03-context-fsm.yaml` fixes
+  `kind_not_runtime: [MicroOperation, LegislativeEffect, force, NormRule]`, and
+  the Change-family matrix rows carry
+  `non_claims: [not MicroOperation, not LegislativeEffect, not InForce, not NormRule]`.
+  All of those names stay deferred-undefined; extraction never implies force.
+- `Remove` is **not** `Expire` (nor `ExpireChanges`, nor `Suspend`): the same pin
+  fixes `distinctions: [Remove != Expire, Expire != ExpireChanges, ExpireChanges != Suspend]`.
+  A future admitted contour must keep deletion-of-wording distinct from
+  expiry-of-force; this note records no runtime merge of the two.
+- The extraction surface stays empty while the verdict is not-adopted, so the
+  S01 demo (`Replace/new wording/insert/remove/repeal source candidates have
+  exact old/new/location spans`) stays not-proven.
+- No frozen surface was touched: the M205 pins, ADR-0028,
+  `prd/ARCHITECTURE.md`, the M206 records and the M200/M201 frozen evidence
+  artifacts are unmodified by T03, and no runtime or test file was created.
+
+The T03 evidence is the re-run of this checkpoint contract plus the absence
+checks it performs over the M208 runtime surfaces, including
+`crates/ln-decode/src/change_operation.rs` and
+`crates/ln-decode/tests/npa_change_operation_contract.rs`; the contract asserts
+this note, the five design-only names and those absences while the verdict is
+not-adopted.
+
 ## Prohibited changes under this state
 
 - Do not start T02, T03, T04 or T05 runtime work; `change_operand.rs` and
