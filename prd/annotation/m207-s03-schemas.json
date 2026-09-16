@@ -1,0 +1,822 @@
+{
+  "schema": "m207-s03-eval-schemas/v1",
+  "schema_version": 1,
+  "protocol": "prd/annotation/m207-s03-eval-protocol.md",
+  "codebook": "prd/annotation/m207-s01-codebook.md",
+  "submission_schema_id": "m207-s01-coding-submission/v1",
+  "submission_schema_reused_verbatim": true,
+  "slot_space_source": "prd/migration/rust-evidence/m199-s01-annotation-protocol.md#5",
+  "frozen_sources": {
+    "m207_s01_codebook": {
+      "path": "prd/annotation/m207-s01-codebook.md",
+      "sha256": "1a1bfe944207e69cb5fb507e94d680384dadecf7ac98ac29b1de4932d7cb76c6"
+    },
+    "m207_s01_schemas": {
+      "path": "prd/annotation/m207-s01-schemas.json",
+      "sha256": "63a4bc6629bade752f9fa02d1dd5fa6bbf21238e20772d2ba5b74f88ecca3682"
+    },
+    "m207_s01_cases": {
+      "path": "prd/migration/rust-evidence/m207-s01-pilot-cases.json",
+      "sha256": "9b0b6bc6bd8eadf9eb86886e45eb756ebade654e96ac3a84132ed9452bdeb9ad"
+    },
+    "m207_s02_protocol": {
+      "path": "prd/annotation/m207-s02-coder-protocol.md",
+      "sha256": "763de0f998b772afd85373e438da0b1b6b2a6435d761e67f06177f4b0b1fbc32"
+    },
+    "m207_s02_schemas": {
+      "path": "prd/annotation/m207-s02-schemas.json",
+      "sha256": "ef438bb5171a8b58f43a8bc4bc2d9a875877da40943ef28e1337b8741a1cab97"
+    },
+    "m199_protocol": {
+      "path": "prd/migration/rust-evidence/m199-s01-annotation-protocol.md",
+      "sha256": "eed922b02c1b89b8e51e8b342b1a9f113a8029b8a2fe0a1bee84f9f2035c6e3d"
+    }
+  },
+  "slot_space": {
+    "closed_keys": [
+      "marker_chain",
+      "hier_nums",
+      "date",
+      "doc_no",
+      "law_code",
+      "anaphora",
+      "range",
+      "quoted_enum"
+    ],
+    "binary_outcome": {
+      "key": "not_a_reference",
+      "type": "boolean"
+    },
+    "closed_key_count": 9
+  },
+  "input_axes": [
+    "reference_decision",
+    "span_exact",
+    "abstention",
+    "slot_marker_chain",
+    "slot_hier_nums",
+    "slot_date",
+    "slot_doc_no",
+    "slot_law_code",
+    "slot_anaphora",
+    "slot_range",
+    "slot_quoted_enum"
+  ],
+  "aspect_table": [
+    {
+      "aspect": "span",
+      "source_axes": [
+        "span_exact"
+      ],
+      "derived_from": "m207-s02 agreement axis span_exact; the per-pass coding is compared with the resolved reference under the frozen M199 section-8 rule (start, end and decision all equal)",
+      "numerator": "units where the pass coding equals the resolved reference coding on span_exact",
+      "denominator": "units in which both passes committed a coding, the resolved reference is a reference, and the resolved reference names one of the two committed spans",
+      "denominator_units": "committed_coding_with_resolved_reference_span",
+      "units_excluded_reasons": [
+        "abstained",
+        "undisputed_missing",
+        "unresolved",
+        "not_derivable"
+      ],
+      "value_kind": "rate",
+      "aggregate": false
+    },
+    {
+      "aspect": "slot",
+      "source_axes": [
+        "slot_marker_chain",
+        "slot_hier_nums",
+        "slot_date",
+        "slot_doc_no",
+        "slot_law_code",
+        "slot_anaphora",
+        "slot_range",
+        "slot_quoted_enum"
+      ],
+      "derived_from": "the eight m207-s02 slot_<key> agreement axes; per-pass slot presence is compared with the resolved reference slot presence for each closed slot key",
+      "numerator": "per slot key, units where the pass slot presence equals the resolved reference presence; the published aspect value is the aggregate over the eight closed slot keys",
+      "denominator": "per slot key, units in which both passes committed a coding and the resolved reference is a reference; the aggregate denominator is the sum over the eight closed slot keys",
+      "denominator_units": "committed_coding_with_resolved_reference",
+      "units_excluded_reasons": [
+        "abstained",
+        "undisputed_missing",
+        "unresolved",
+        "not_derivable"
+      ],
+      "value_kind": "rate",
+      "aggregate": true
+    },
+    {
+      "aspect": "scope",
+      "source_axes": [
+        "slot_hier_nums",
+        "slot_doc_no",
+        "slot_law_code",
+        "slot_marker_chain"
+      ],
+      "derived_from": "D490 derived rule over the frozen slots (there is no ninth slot and no schema-version bump): a reference carrying its own target through hier_nums, doc_no or law_code is scope_local; a reference whose target arrives only through a non-empty marker_chain is scope_inherited; otherwise the unit is excluded",
+      "numerator": "units where the pass-derived scope label equals the resolved-reference-derived scope label",
+      "denominator": "units in which both passes committed a coding, the resolved reference is a reference, and the resolved reference derives a scope label (scope_local or scope_inherited)",
+      "denominator_units": "resolved_reference_with_derived_scope",
+      "units_excluded_reasons": [
+        "abstained",
+        "undisputed_missing",
+        "unresolved",
+        "not_derivable"
+      ],
+      "value_kind": "rate",
+      "aggregate": false
+    },
+    {
+      "aspect": "binding",
+      "source_axes": [
+        "slot_anaphora",
+        "slot_range"
+      ],
+      "derived_from": "D490 derived rule over the frozen slots: anaphora and range both absent with a present target is binding_explicit; a non-empty anaphora or range is binding_unresolved; otherwise the unit is excluded",
+      "numerator": "units where the pass-derived binding label equals the resolved-reference-derived binding label",
+      "denominator": "units in which both passes committed a coding, the resolved reference is a reference, and the resolved reference derives a binding label (binding_explicit or binding_unresolved)",
+      "denominator_units": "resolved_reference_with_derived_binding",
+      "units_excluded_reasons": [
+        "abstained",
+        "undisputed_missing",
+        "unresolved",
+        "not_derivable"
+      ],
+      "value_kind": "rate",
+      "aggregate": false
+    },
+    {
+      "aspect": "abstention",
+      "source_axes": [
+        "abstention"
+      ],
+      "derived_from": "m207-s02 agreement axis abstention; abstention is a separate coder outcome that is never merged with not_a_reference (ABSTENTION_COLLAPSE)",
+      "numerator": "units where the pass abstention value equals the resolved reference abstention value",
+      "denominator": "all units in which both passes committed a coding, including units whose resolved decision is not_a_reference; abstention keeps its own denominator and is never folded into the other five aspects",
+      "denominator_units": "committed_coding_pair",
+      "units_excluded_reasons": [
+        "undisputed_missing",
+        "unresolved",
+        "not_derivable"
+      ],
+      "value_kind": "rate",
+      "aggregate": false
+    },
+    {
+      "aspect": "false_authority",
+      "source_axes": [
+        "reference_decision"
+      ],
+      "derived_from": "derived from the m207-s02 reference_decision axis: a unit where the pass asserted reference while the resolved reference is not_a_reference, that is claimed authority with no resolved support",
+      "numerator": "units where the pass asserts reference while the resolved reference is not_a_reference",
+      "denominator": "units in which both passes committed a coding and the resolved reference is not_a_reference, the population in which false authority can occur",
+      "denominator_units": "resolved_reference_is_not_a_reference",
+      "units_excluded_reasons": [
+        "abstained",
+        "undisputed_missing",
+        "unresolved",
+        "not_derivable"
+      ],
+      "value_kind": "rate",
+      "aggregate": false
+    }
+  ],
+  "aspect_closed_keys": [
+    "aspect",
+    "source_axes",
+    "derived_from",
+    "numerator",
+    "denominator",
+    "denominator_units",
+    "units_excluded_reasons",
+    "value_kind",
+    "aggregate"
+  ],
+  "denominator_rule": {
+    "publication_shape": [
+      "measured",
+      "denominator",
+      "value",
+      "measurement_status"
+    ],
+    "zero_denominator_value": null,
+    "zero_denominator_measurement_status": "not-measured",
+    "zero_denominator_diagnostic": "RATE_UNDEFINED",
+    "imputed_zero_value_forbidden": true,
+    "perfect_value": 1.0,
+    "perfect_value_requires_full_coverage": true,
+    "perfect_value_unbacked_diagnostic": "COMPUTED_PERFECT_UNBACKED",
+    "excluded_unit_reason_values": [
+      "abstained",
+      "undisputed_missing",
+      "unresolved",
+      "not_derivable"
+    ],
+    "excluded_unit_effect": "neither increases nor decreases a measured value"
+  },
+  "strata_rule": {
+    "provider_strata": [
+      "consultant",
+      "garant",
+      "unknown"
+    ],
+    "provider_basis": "declared provider roots only; an undeclared or unattributable case stays unknown and is never re-derived from a path or a file name",
+    "unknown_provider_value": "unknown",
+    "family_scope_values": [
+      "holdout",
+      "dev"
+    ],
+    "draw_stratum_values_source": "frozen m207-s01-pilot-cases/v1 draw_stratum",
+    "holdout_granularity": "work_family",
+    "quota_rule": "quota <= availability",
+    "every_stratum_present": true,
+    "empty_stratum_publication": {
+      "value": null,
+      "measurement_status": "not-measured"
+    },
+    "stratum_drop_forbidden": true
+  },
+  "publication_contract": {
+    "measurement_status_values": [
+      "not-measured",
+      "proxy-measured",
+      "independent-measured"
+    ],
+    "admissible_measurement_status": "independent-measured",
+    "independent_measured_requires": [
+      "two_validated_human_submissions",
+      "provenance_human-reviewed",
+      "coder_pass_1_and_2",
+      "distinct_coder_id",
+      "separate_adjudication_record",
+      "unresolved_count_zero",
+      "pre_adjudication_agreement_sha256_pinned"
+    ],
+    "refused_input_schema_ids": [
+      "npa-quality-receipts/v1",
+      "npa-lawref-seed/v1",
+      "law-nexus-npa-corpus-manifest/v1"
+    ],
+    "refused_input_schema_prefixes": [
+      "npa-c5-"
+    ],
+    "refused_input_provenance_values": [
+      "rule-seed"
+    ],
+    "refused_input_paths": [
+      "crates/ln-decode/tests/fixtures/npa-lawref/lawref_seed.json"
+    ],
+    "refusal_diagnostic": "PROXY_INPUT_REFUSED",
+    "framing": "rater-vs-resolved-reference",
+    "framing_is_not": [
+      "system-quality",
+      "gold"
+    ]
+  },
+  "input_admissibility": {
+    "case_manifest_schema_id": "m207-s01-pilot-cases/v1",
+    "submission_schema_id": "m207-s01-coding-submission/v1",
+    "s02_derived_schema_ids": [
+      "m207-s02-agreement-report/v1",
+      "m207-s02-disagreement-inventory/v1",
+      "m207-s02-adjudication-record/v1",
+      "m207-s02-pilot-receipt/v1"
+    ],
+    "human_store_paths": [
+      "prd/annotation/m207-s02-submissions",
+      "prd/annotation/m207-s02-adjudications"
+    ],
+    "stores_are_read_only": true,
+    "new_slot_keys_allowed": false
+  },
+  "output_contract": {
+    "output_type": "AnnotationSuggestion",
+    "authority": "none",
+    "suggestion_status": "none-provided",
+    "model_invoked": false,
+    "classification": "not-authorized",
+    "promotion": "none",
+    "threshold": null,
+    "is_gold": false,
+    "human_acceptance": null,
+    "legal_claim": "forbidden",
+    "n2_claim": "forbidden"
+  },
+  "vocabularies": {
+    "provenance": [
+      "human-reviewed"
+    ],
+    "coder_pass": [
+      1,
+      2
+    ],
+    "authority": [
+      "none"
+    ],
+    "suggestion_status": [
+      "none-provided"
+    ],
+    "output_type": [
+      "AnnotationSuggestion"
+    ],
+    "classification": [
+      "not-authorized"
+    ],
+    "promotion": [
+      "none"
+    ],
+    "threshold": null,
+    "decision_values": [
+      "reference",
+      "not_a_reference"
+    ],
+    "abstention_values": [
+      "not-abstained",
+      "ambiguous",
+      "insufficient-context"
+    ],
+    "measurement_status": [
+      "not-measured",
+      "proxy-measured",
+      "independent-measured"
+    ],
+    "aspect_names": [
+      "span",
+      "slot",
+      "scope",
+      "binding",
+      "abstention",
+      "false_authority"
+    ],
+    "provider_strata": [
+      "consultant",
+      "garant",
+      "unknown"
+    ],
+    "family_scope_values": [
+      "holdout",
+      "dev"
+    ],
+    "excluded_reason_values": [
+      "abstained",
+      "undisputed_missing",
+      "unresolved",
+      "not_derivable"
+    ],
+    "span_coordinate": [
+      "half-open-byte-range-utf8-boundaries"
+    ]
+  },
+  "diagnostics": [
+    "HUMAN_PILOT_ABSENT",
+    "MACHINERY_GREEN_HUMAN_ABSENT",
+    "NO_ADJUDICATION_INPUT",
+    "UNFILLED_SUBMISSION",
+    "TEST_FIXTURE_IN_STORE",
+    "PROVENANCE_NOT_HUMAN",
+    "CODER_PASS_INVALID",
+    "DUPLICATE_CODER_ID",
+    "DUPLICATE_SUBMISSION_ID",
+    "UNKNOWN_CASE_ID",
+    "SUBMISSION_CONFLICT",
+    "NINTH_SLOT",
+    "SLOT_SET_DRIFT",
+    "SUBMISSION_SCHEMA_DRIFT",
+    "LEAK_FORBIDDEN_KEY",
+    "ABSTENTION_COLLAPSE",
+    "SPAN_BEYOND_EOF",
+    "SPAN_NOT_UTF8_BOUNDARY",
+    "SPAN_NOT_ORIGIN",
+    "AUTHORITY_CLAIM",
+    "MODEL_INVOKED",
+    "AGREEMENT_UNDEFINED",
+    "ONE_CODER_ONLY",
+    "DENOMINATOR_MISMATCH",
+    "PERFECT_AGREEMENT_UNCOMPUTED",
+    "CLASSIFICATION_REQUESTED",
+    "THRESHOLD_REQUESTED",
+    "GOLD_CLAIM",
+    "PROMOTION_CLAIM",
+    "IS_GOLD_CLAIM",
+    "ADJUDICATION_NOT_A_DISAGREEMENT",
+    "ADJUDICATOR_PROVENANCE_NOT_HUMAN",
+    "RESOLUTION_OUT_OF_SPACE",
+    "RESOLUTION_SPACE_DRIFT",
+    "RATIONALE_NOT_BOUNDED",
+    "SUPERSEDES_UNKNOWN",
+    "UNRESOLVED_NONZERO",
+    "WORK_FAMILY_DOMINANCE",
+    "FRAGMENT_PIN_DRIFT",
+    "KIT_TEXT_INLINED",
+    "KIT_CROSS_PASS_INVARIANT",
+    "FROZEN_SOURCE_DRIFT",
+    "SEED_ENLARGED",
+    "PROMPT_ISOLATION_VIOLATION",
+    "UNSAFE_PATH",
+    "BATTERY_STALE",
+    "BATTERY_WALLCLOCK_FORBIDDEN",
+    "MISSING_ARTIFACT",
+    "MISSING_SCHEMA",
+    "MISSING_SECTION",
+    "MISSING_NON_CLAIM",
+    "MISSING_LIFECYCLE_MARKER",
+    "EMPTY_SUITE",
+    "SUBCLI_FAILURE",
+    "S01_REGRESSION_FAILED",
+    "S02_REGRESSION_FAILED",
+    "SCHEMA_KEY_DRIFT",
+    "SCHEMA_PARSE_ERROR",
+    "DUPLICATE_JSON_KEY",
+    "VOCABULARY_DRIFT",
+    "ALTERNATIVE_DRIFT",
+    "CASE_COUNT_OUT_OF_RANGE",
+    "DIAGNOSTIC_TABLE_DRIFT",
+    "HOLDOUT_LEAKAGE",
+    "C3_ISOLATION_VIOLATION",
+    "PROVIDER_STRATUM_DROPPED",
+    "PROVIDER_QUOTA_UNJUSTIFIED",
+    "PROVIDER_MISATTRIBUTED",
+    "METADATA_REDERIVED",
+    "C5_MEASUREMENT_CLAIM",
+    "MANIFEST_STALE",
+    "RATE_UNDEFINED",
+    "COMPUTED_PERFECT_UNBACKED",
+    "PROXY_INPUT_REFUSED",
+    "DEVELOPMENT_SLICE_NOT_EVALUATION",
+    "REPORT_WITHOUT_HUMAN_DATA",
+    "REPORT_MISSING_WITH_HUMAN_DATA",
+    "ASPECT_TABLE_DRIFT",
+    "STRATUM_TABLE_DRIFT",
+    "MEASUREMENT_STATUS_DRIFT"
+  ],
+  "schemas": {
+    "eval_manifest": {
+      "schema_id": "m207-s03-eval-manifest/v1",
+      "closed_keys": [
+        "schema",
+        "schema_version",
+        "seed",
+        "families",
+        "holdout_families",
+        "dev_families",
+        "cases",
+        "provider_strata",
+        "c3_hashes_excluded",
+        "fragments",
+        "pins",
+        "lifecycle",
+        "non_claims"
+      ],
+      "required_keys": [
+        "schema",
+        "schema_version",
+        "seed",
+        "families",
+        "holdout_families",
+        "dev_families",
+        "cases",
+        "provider_strata",
+        "c3_hashes_excluded",
+        "fragments",
+        "pins",
+        "lifecycle",
+        "non_claims"
+      ],
+      "case_closed_keys": [
+        "case_id",
+        "work_family",
+        "family_scope",
+        "draw_stratum",
+        "provider",
+        "provider_root",
+        "source_path",
+        "source_sha256",
+        "fragment_sha256",
+        "byte_len",
+        "year",
+        "document_type",
+        "metadata_source"
+      ],
+      "case_required_keys": [
+        "case_id",
+        "work_family",
+        "family_scope",
+        "draw_stratum",
+        "provider",
+        "source_path",
+        "source_sha256",
+        "byte_len",
+        "year",
+        "document_type",
+        "metadata_source"
+      ],
+      "provider_stratum_closed_keys": [
+        "provider",
+        "availability",
+        "quota",
+        "justification",
+        "measurement_status"
+      ],
+      "provider_stratum_required_keys": [
+        "provider",
+        "availability",
+        "quota",
+        "justification",
+        "measurement_status"
+      ],
+      "fragment_pin_closed_keys": [
+        "path",
+        "sha256"
+      ],
+      "unknown_metadata_value": "unknown",
+      "case_count": 40,
+      "work_family_cap": 4
+    },
+    "stratum_table": {
+      "schema_id": "m207-s03-stratum-table/v1",
+      "closed_keys": [
+        "schema",
+        "schema_version",
+        "strata",
+        "stratum_count",
+        "aspects_covered",
+        "lifecycle",
+        "non_claims"
+      ],
+      "required_keys": [
+        "schema",
+        "schema_version",
+        "strata",
+        "stratum_count",
+        "aspects_covered",
+        "lifecycle",
+        "non_claims"
+      ],
+      "stratum_closed_keys": [
+        "stratum_id",
+        "provider",
+        "work_family",
+        "draw_stratum",
+        "family_scope",
+        "measurement_status",
+        "units_available",
+        "units_evaluated"
+      ],
+      "stratum_required_keys": [
+        "stratum_id",
+        "provider",
+        "work_family",
+        "draw_stratum",
+        "family_scope",
+        "measurement_status",
+        "units_available",
+        "units_evaluated"
+      ],
+      "empty_stratum_retained": true
+    },
+    "leakage_report": {
+      "schema_id": "m207-s03-leakage-report/v1",
+      "closed_keys": [
+        "schema",
+        "schema_version",
+        "checks",
+        "check_count",
+        "leakage_count",
+        "lifecycle",
+        "non_claims"
+      ],
+      "required_keys": [
+        "schema",
+        "schema_version",
+        "checks",
+        "check_count",
+        "leakage_count",
+        "lifecycle",
+        "non_claims"
+      ],
+      "check_closed_keys": [
+        "check_id",
+        "required",
+        "observed",
+        "status",
+        "diagnostic"
+      ],
+      "check_required_keys": [
+        "check_id",
+        "required",
+        "observed",
+        "status"
+      ],
+      "status_values": [
+        "pass",
+        "fail"
+      ],
+      "diagnostic_values": [
+        "HOLDOUT_LEAKAGE",
+        "C3_ISOLATION_VIOLATION",
+        "WORK_FAMILY_DOMINANCE",
+        "SEED_ENLARGED"
+      ]
+    },
+    "evaluation_report": {
+      "schema_id": "m207-s03-evaluation-report/v1",
+      "closed_keys": [
+        "schema",
+        "schema_version",
+        "framing",
+        "model_invoked",
+        "measurement_status",
+        "is_gold",
+        "promotion",
+        "threshold",
+        "classification",
+        "human_acceptance",
+        "independent_reference",
+        "aspects",
+        "strata",
+        "holdout",
+        "dev",
+        "units_total",
+        "units_excluded",
+        "lifecycle",
+        "non_claims"
+      ],
+      "required_keys": [
+        "schema",
+        "schema_version",
+        "framing",
+        "model_invoked",
+        "measurement_status",
+        "is_gold",
+        "promotion",
+        "threshold",
+        "classification",
+        "human_acceptance",
+        "independent_reference",
+        "aspects",
+        "strata",
+        "holdout",
+        "dev",
+        "units_total",
+        "units_excluded",
+        "lifecycle",
+        "non_claims"
+      ],
+      "aspect_result_closed_keys": [
+        "aspect",
+        "measured",
+        "denominator",
+        "value",
+        "measurement_status",
+        "per_pass",
+        "strata",
+        "units_excluded",
+        "units_excluded_reasons"
+      ],
+      "aspect_result_required_keys": [
+        "aspect",
+        "measured",
+        "denominator",
+        "value",
+        "measurement_status",
+        "per_pass",
+        "strata",
+        "units_excluded",
+        "units_excluded_reasons"
+      ],
+      "stratum_result_closed_keys": [
+        "stratum_id",
+        "aspect",
+        "measured",
+        "denominator",
+        "value",
+        "measurement_status"
+      ],
+      "stratum_result_required_keys": [
+        "stratum_id",
+        "aspect",
+        "measured",
+        "denominator",
+        "value",
+        "measurement_status"
+      ],
+      "per_pass_closed_keys": [
+        "coder_pass",
+        "true_positive",
+        "false_positive",
+        "false_negative",
+        "true_negative",
+        "precision",
+        "recall"
+      ],
+      "per_pass_required_keys": [
+        "coder_pass",
+        "true_positive",
+        "false_positive",
+        "false_negative",
+        "true_negative"
+      ],
+      "independent_reference_closed_keys": [
+        "submission_refs",
+        "adjudication_sha256",
+        "unresolved_count",
+        "pre_adjudication_agreement_sha256"
+      ],
+      "independent_reference_required_keys": [
+        "submission_refs",
+        "adjudication_sha256",
+        "unresolved_count",
+        "pre_adjudication_agreement_sha256"
+      ],
+      "units_excluded_closed_keys": [
+        "case_id",
+        "aspect",
+        "reason"
+      ],
+      "forbidden_report_keys": [
+        "duration_ms",
+        "elapsed_ms",
+        "generated_at",
+        "wall_clock"
+      ],
+      "measurement_status_values": [
+        "not-measured",
+        "proxy-measured",
+        "independent-measured"
+      ]
+    },
+    "battery": {
+      "schema_id": "m207-s03-battery/v1",
+      "closed_keys": [
+        "schema",
+        "schema_version",
+        "checks",
+        "pins",
+        "human_pilot_performed",
+        "model_invoked",
+        "lifecycle",
+        "non_claims"
+      ],
+      "required_keys": [
+        "schema",
+        "schema_version",
+        "checks",
+        "pins",
+        "human_pilot_performed",
+        "model_invoked",
+        "lifecycle",
+        "non_claims"
+      ],
+      "check_closed_keys": [
+        "check_id",
+        "command",
+        "diagnostic",
+        "exit_code",
+        "status"
+      ],
+      "check_required_keys": [
+        "check_id",
+        "command",
+        "diagnostic",
+        "exit_code",
+        "status"
+      ],
+      "pins_closed_keys": [
+        "path",
+        "sha256"
+      ],
+      "forbidden_battery_keys": [
+        "duration_ms",
+        "elapsed_ms",
+        "generated_at",
+        "wall_clock"
+      ],
+      "model_invoked": false
+    }
+  },
+  "non_claims": [
+    "not gold: no S03 artifact, aspect value or stratum rate is a gold label",
+    "not a promotion: classification stays not-authorized, promotion stays none and threshold stays null",
+    "not a threshold: no rate threshold, pass/fail cut-off or accept/reject decision is introduced",
+    "not a classification: no classifier is fitted, no gate is selected and no D388 gate is scored",
+    "not system quality: the measured agreement is rater-vs-resolved-reference, never system quality",
+    "not a model evaluation: no model is invoked anywhere in M207 and model_invoked stays false",
+    "not human acceptance: no resolved reference becomes human-accepted truth (human_acceptance stays null)",
+    "not a second measurement convention: npa-quality-receipts/v1, npa-c5-* and npa-lawref-seed/v1 inputs are refused",
+    "not official-publication provenance (R070 stays open)",
+    "not amendment provenance (R070 stays open)",
+    "not LawRef / act-tree / clause segmentation",
+    "not the N2-gate acceptance decision",
+    "not legal interpretation",
+    "not a product surface: S03 stays an offline Python harness under scripts/ and no crates/** file reads it",
+    "not an evaluation of the dev slice: development-slice numbers are development-only, never independent evidence"
+  ],
+  "lifecycle": {
+    "human_adoption": "pending",
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none",
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged"
+  }
+}
