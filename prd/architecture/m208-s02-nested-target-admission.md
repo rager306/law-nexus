@@ -246,6 +246,160 @@ intact — never a runtime result.
   `scripts/m208_s02_t04_verify.sh` is deliberately absent, and the contract
   asserts that it never emits this marker.
 
+## T02 no-start note: nested change target and nesting depth
+
+Recorded by M208/S02/T02 on 2026-09-16 under the `not-adopted` verdict above
+(`verdict=not-adopted`). This note adds provenance to the checkpoint; it does not
+relax it, and no statement in it is a proof.
+
+- Provenance: the S01 no-start lineage is consumed here as the S02 admission
+  basis — T01 attempt `f436a10e` settled failed/blocker-discovered, host recovery
+  abort `532e9062`, decision D503 — while the S02 slice shape itself is D504
+  (plan S02 directly as a design-only no-start instead of replaying the S01
+  recovery cycle). Every owning Change-family row still carries
+  `human_adoption: pending`, RC28-F13 is **not** admitted, and the only tracked
+  admitted runtime scope in this area (RC28-F06..F12, M206/S05) does not include
+  F13. This note therefore records no runtime work: `runtime_work: not-started`.
+- The chain «В статье → в части → заменить» is the **target role** of the amending
+  act, not a flat top-level reference. Its owning matrix row is `PC-C-OWNER`
+  (`vendor_anchor: Pullenti/Ner/Decree/DecreeChangeReferent.cs:OWNER`,
+  `pullenti_behavior: nested target decree or part`, `law_nexus_surface:
+  amendment-owner candidate`, `owner_crate_or_yaml:
+  prd/architecture/npa-document-context.yaml`, `d388_gates: [G12, G13]`,
+  `unblocks: [S03, M208]`), and its nesting depth is a **separate** row
+  `PC-C-CHILD` (`vendor_anchor: Pullenti/Ner/Decree/DecreeChangeReferent.cs:CHILD`,
+  `pullenti_behavior: nested change remains nested`, `d388_gates: [G11, G12]`,
+  `unblocks: [S03]`). Both rows keep `lifecycle: [proposed]` and
+  `human_adoption: pending` in `prd/architecture/m205-s01-pullenti-matrix.yaml`.
+- The nesting obligation is therefore recorded as a design-only statement, not as
+  implemented behaviour: nesting is **preserved** — a nested target is not
+  flattened, not collapsed into its parent and not merged into one span. The pin
+  `prd/architecture/m205-s03-context-fsm.yaml` fixes that in
+  `amendment_alphabet.operand_roles` as `CHILD: keep-nested` (`keep-nested` is a
+  declared design value, not a runtime flag), while the `leave` row
+  `PC-X-occurrence-span` in the matrix (`pullenti_behavior: no cross-occurrence
+  span joining`, `take_or_leave: leave`, `law_nexus_surface: none`) forbids
+  joining spans across occurrences: a nested target may not glue the spans of
+  different occurrences together, and no cross-occurrence span is produced. That
+  row is a leave row and stays a leave row — it is not promotion, not a runtime
+  contract, and not an authorization to mint an occurrence-span type.
+- Nothing is minted by this note: `ChangeTarget`, `ChangeScope`, `MicroOperation`,
+  `LegislativeEffect`, `NormRule`, `InForce`, `WorkId` and `force` all stay
+  deferred-undefined; no `crates/ln-decode/src/change_target.rs` is created,
+  `mod change_target` is not registered in `crates/ln-decode/src/lib.rs`, and no
+  candidate type, observation or diagnostic is added to the operation registry.
+  Extraction never implies force, and no KIND is rewritten, invented or
+  substituted.
+- No frozen surface was touched: the M205 pins, ADR-0028, `prd/ARCHITECTURE.md`,
+  the M206 records, the M208/S01 record, the operation registry and the M200/M201
+  frozen evidence artifacts are unmodified by T02, and no runtime or test file
+  was created.
+
+The T02 evidence for this note is the note-presence state asserted by
+`scripts/m208_s02_admission_contract.test.mjs` (contract code `t02_note_missing`)
+together with the absence checks it performs over the declared S02 runtime
+surfaces; the contract asserts this note while the verdict is `not-adopted`. A
+PASS of that contract is **not** runtime proof and not C4 evidence.
+
+## T02 no-start note: amending-act scope binding and sibling / quote anti-leakage
+
+Recorded by M208/S02/T02 on 2026-09-16 under the `not-adopted` verdict above
+(`verdict=not-adopted`). This note adds provenance to the checkpoint; it does not
+relax it, and no statement in it is a proof.
+
+- Provenance: the same S01 no-start lineage as the note above — T01 attempt
+  `f436a10e` settled failed/blocker-discovered, host recovery abort `532e9062`,
+  decision D503, with the S02 slice shape recorded by D504. Every owning
+  Change-family row still carries `human_adoption: pending`, RC28-F13 is **not**
+  admitted, and the M206/S05 admitted scope (RC28-F06..F12) excludes it. No scope
+  binder is implemented here: `runtime_work: not-started`.
+- Design anchors for the binding contour, cited as design pins and never as
+  runtime evidence. `prd/architecture/m205-s03-context-fsm.yaml` fixes the
+  alias-guard evidence set
+  `required_evidence: [declare, use, shadow_or_conflict_status, scope_container_id, boundary_check]`
+  with the positive case `{scope_container_id: same, boundary: contained}` and the
+  negative case `{scope_container_id: different, result: ContextConflict}`.
+  `prd/architecture/npa-document-context.yaml` fixes `scoped_alias`
+  (`purpose: resolve «далее — ...» only inside its declared structural scope`),
+  `structural_scope` as a context-request field and memo key, the diagnostic
+  `scoped_alias_ambiguous`, the hostile seed `alias declaration outside structural
+  scope must not bind`, and the contract invariant `terminal context state never
+  mutates a source block, frame, or literal mention`.
+- Three anti-leakage statements are recorded as design-only obligations, not as
+  proof that they hold:
+  1. **sibling leakage** — a target declared in a different scope container must
+     not bind here; a `scope_container_id` that differs is not resolved by
+     proximity but closed as `ContextConflict`, exactly as the pin's negative
+     alias-guard case states. No "nearest sibling" fallback is admissible.
+  2. **quote leakage** — a mention of a target inside a quoted operand (the S01
+     operand scope: ёлочки-кавычки, German-style quotes and ASCII `"`) must not
+     become a nested target and must not be promoted into a change-target span.
+     The same pin carries the immutability anchors `source_mentions_are_immutable`,
+     `no_inherited_text_rewrites_source_span` and
+     `context_results_are_derived_not_authoritative`, so a context result is
+     derived, never authoritative over the quoted source span.
+  3. **missing or ambiguous boundary** — an absent or ambiguous structural
+     boundary must not produce a "nearest" scope. It closes fail-closed as
+     `ContextIncomplete` (missing evidence) or `ContextConflict` (incompatible
+     evidence) and never rewrites KIND; ambiguity inside the scope-binding contour
+     surfaces as `ContextConflict` / `scoped_alias_ambiguous`, not as a silent
+     binding.
+- A neighbouring admitted contour must not be read as S02 delivery:
+  `crates/ln-decode/src/document_context.rs` and its hostile suite exist under
+  the admitted M206/S05 scope (RC28-F06 sibling/parent closure, RC28-F07
+  continuation eligibility). They do not bind nested change targets, they are not
+  within this slice's declared scope, and none of their PASSes may be cited as
+  S02 evidence, as F13 admission or as C4 evidence.
+- Nothing is minted by this note: `ChangeTarget`, `ChangeScope`, `MicroOperation`,
+  `LegislativeEffect`, `NormRule`, `InForce`, `WorkId` and `force` stay
+  deferred-undefined, and no `crates/ln-decode/src/change_target.rs`,
+  `crates/ln-decode/tests/npa_change_target_contract.rs` or
+  `crates/ln-decode/tests/npa_change_target_hostile_contract.rs` is created.
+- No frozen surface was touched: the M205 pins, ADR-0028, `prd/ARCHITECTURE.md`,
+  the M206 records, the M208/S01 record, the operation registry and the M200/M201
+  frozen evidence artifacts are unmodified by T02, and no runtime or test file was
+  created.
+
+## T02 no-start note: no hostile contour, no battery, no runtime proof
+
+Recorded by M208/S02/T02 on 2026-09-16 under the `not-adopted` verdict above
+(`verdict=not-adopted`). This note adds provenance to the checkpoint; it does not
+relax it.
+
+- Provenance: the same S01 no-start lineage as the two notes above — T01 attempt
+  `f436a10e` settled failed/blocker-discovered, host recovery abort `532e9062`,
+  decision D503, S02 slice shape D504; every owning pin keeps
+  `human_adoption: pending`, and RC28-F13 is not admitted; `runtime_work: not-started`.
+- The hostile contour stays not-started: `hostile_proof: deferred`. No
+  `crates/ln-decode/tests/npa_change_target_hostile_contract.rs` is created, no
+  sibling/quote leakage fixture is added, and no host-side generator, adapter or
+  CLI hook is added. The absence of that suite is the expected state — a hostile
+  contour may not precede the admission it would verify against, so its proof is
+  deferred until a source-bound owner admission of RC28-F13 exists.
+- The proof battery and the frozen-surface guard stay not-started:
+  `battery_proof: deferred` and `frozen_surface_proof: deferred`. No
+  `scripts/m208_s02_nested_target_battery.test.mjs`, no
+  `prd/migration/rust-evidence/m208-s02-nested-target-battery.json` and no
+  `crates/ln-decode/tests/m208_s02_frozen_surface_guard.rs` is created. A battery
+  would have to measure byte spans emitted by a runtime surface that is itself
+  not-started, so it cannot precede the admission it would measure.
+- No runtime proof is claimed anywhere in this record, here or elsewhere:
+  `runtime_proof: not-claimed`. `M208_S02_VERIFY_OK` stays
+  `verify_marker: unreachable` while the verdict is `not-adopted`, because its
+  only would-be emitter `scripts/m208_s02_t04_verify.sh` is deliberately absent,
+  and the contract asserts that the marker is never emitted.
+- A **checkpoint-contract PASS is not runtime proof**
+  (`contract_pass_is_not_runtime_proof: true`), and the D499 GSD milestone lock is
+  not an admission or C4 evidence (`lock_is_not_runtime_proof: true`). The same
+  holds for any inherited PASS of the M206/S05 admitted scope, for an integrity
+  PASS, for a battery PASS, for a milestone completion or for a subagent
+  narrative: none of them may be re-labelled as the missing S02 admission, as
+  runtime proof, or as the S02 demo (`runtime_demo: not-proven`).
+- Gate rule: every no-start statement in all three T02 notes is explicitly
+  conditioned on `verdict=not-adopted`. A future granted admission must produce a
+  fresh checkpoint with re-bound source hashes instead of inheriting this text; no
+  sentence above may survive as a current claim once the verdict changes.
+
 ## Verification matrix overlay (not a proof anchor)
 
 `.agents/skills/law-nexus-rust/references/verification-matrix.md` is a gitignored
