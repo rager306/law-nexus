@@ -1,0 +1,583 @@
+{
+  "schema": "m207-s04-c4-schemas/v1",
+  "schema_version": 1,
+  "protocol": "prd/annotation/m207-s04-c4-protocol.md",
+  "receipt_schema_id": "m204-s06-c4-operational-receipt/v1",
+  "receipt_schema_reused_verbatim": true,
+  "digest_format": "bare lowercase hex sha256, no algorithm prefix",
+  "frozen_sources": {
+    "npa_acceptance_contract": {
+      "path": "prd/architecture/npa-acceptance-contract.yaml",
+      "sha256": "34e8a38a4bd7619d35e8bc2c1294e3a9bc77179b3385d9b5d9161157220d51e3"
+    },
+    "m204_s06_c4_operational_receipt": {
+      "path": "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+      "sha256": "04e41f896f2bded096061d7caef2ec4abdaaf37cebf88c387d1dd011943b797c"
+    },
+    "m207_s03_battery": {
+      "path": "prd/migration/rust-evidence/m207-s03-battery.json",
+      "sha256": "76b9a78e3e83772be3ca3e46b83a89b3b3baaf690ffe6aa0c72f77aa6d56b533"
+    },
+    "m207_s03_schemas": {
+      "path": "prd/annotation/m207-s03-schemas.json",
+      "sha256": "34d874e59b16e356e5658b7eec45d3fef01a4342592728f10f122b0126903456"
+    },
+    "m199_s01_sample_manifest": {
+      "path": "prd/migration/rust-evidence/m199-s01-gold-sample-manifest.json",
+      "sha256": "134751f49db1858329248be1857ada669097f1860609090028c7b5af8975574f"
+    },
+    "m199_seed_sidecar": {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/lawref_seed.json",
+      "sha256": "b88e5af14bcc9496c4d35627afda058d58956f459106c147f1cc7959a6930f28"
+    }
+  },
+  "prior_non_pass_pin": {
+    "path": "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+    "sha256": "04e41f896f2bded096061d7caef2ec4abdaaf37cebf88c387d1dd011943b797c",
+    "attempt_id_pin": "full-walk-timeout-001",
+    "terminal_outcome_pin": "timeout",
+    "terminal_signal_pin": "SIGTERM",
+    "timeout_flag_pin": true,
+    "operational_acceptance_pin": "non-pass",
+    "may_be_rewritten": false,
+    "diagnostic": "C4_TIMEOUT_AS_PASS"
+  },
+  "receipt_contract": {
+    "schema_id": "m204-s06-c4-operational-receipt/v1",
+    "schema_reused_verbatim": true,
+    "binary_path_pin": "target/release/npa-contour-diagnostics",
+    "receipt_path": "prd/migration/rust-evidence/m207-s04-c4-operational-receipt.json",
+    "attempt_log_dir": "prd/migration/rust-evidence/m207-s04-c4-attempts",
+    "attempt_log_files": [
+      "stdout.log",
+      "stderr.log"
+    ],
+    "new_attempt_policy": "a later attempt is a new receipt under a new attempt_id; an existing receipt and its logs are never overwritten in place",
+    "closed_keys": [
+      "schema",
+      "attempt_id",
+      "immutable_attempt_identity",
+      "argv",
+      "binary",
+      "build_inputs",
+      "toolchain",
+      "parser_revision",
+      "source_revision",
+      "contract",
+      "corpus",
+      "observed_output",
+      "c4_binding",
+      "started_at",
+      "finished_at",
+      "duration_ms",
+      "budget_seconds",
+      "terminal",
+      "logs",
+      "claims",
+      "non_claims"
+    ],
+    "required_keys": [
+      "schema",
+      "attempt_id",
+      "immutable_attempt_identity",
+      "argv",
+      "binary",
+      "build_inputs",
+      "toolchain",
+      "source_revision",
+      "contract",
+      "corpus",
+      "observed_output",
+      "c4_binding",
+      "started_at",
+      "finished_at",
+      "duration_ms",
+      "budget_seconds",
+      "terminal",
+      "logs",
+      "claims",
+      "non_claims"
+    ],
+    "nested_closed_keys": {
+      "immutable_attempt_identity": [
+        "attempt_id",
+        "argv_sha256"
+      ],
+      "binary": [
+        "path",
+        "sha256"
+      ],
+      "build_inputs": [
+        "binary_sha256",
+        "contract_sha256",
+        "parser_source_sha256"
+      ],
+      "toolchain": [
+        "rustc",
+        "cargo",
+        "commands_exit_code"
+      ],
+      "contract": [
+        "path",
+        "sha256",
+        "version",
+        "check_id",
+        "mode"
+      ],
+      "corpus": [
+        "consultant_xml_count",
+        "consultant_root",
+        "garant_file_count",
+        "garant_root"
+      ],
+      "observed_output": [
+        "stdout_sha256",
+        "inventory_digest"
+      ],
+      "c4_binding": [
+        "profile",
+        "limit",
+        "jobs",
+        "inventory_scope",
+        "baseline_sha256"
+      ],
+      "terminal": [
+        "outcome",
+        "exit_code",
+        "signal",
+        "timeout"
+      ],
+      "logs": [
+        "stdout",
+        "stderr",
+        "stdout_sha256",
+        "stderr_sha256",
+        "inventory_digest"
+      ],
+      "claims": [
+        "operational_acceptance",
+        "receipt_is_runtime_attempt"
+      ]
+    },
+    "identity_fields": [
+      "attempt_id",
+      "argv_sha256"
+    ],
+    "argv_sha256_basis": "sha256 over json.dumps(argv, separators=(',', ':')), reused verbatim from the M204/S06 emitter",
+    "argv_required_flags": [
+      "--root",
+      "--garant-root",
+      "--profile",
+      "--jobs",
+      "--acceptance-contract",
+      "--source-revision"
+    ],
+    "argv_forbidden_flags": [
+      "--limit"
+    ],
+    "profile_pin": "contour",
+    "jobs_pin": 0,
+    "limit_pin": null,
+    "contract_version_pin": "npa-acceptance-contract/v1",
+    "contract_check_id_pin": "c4-live-check",
+    "contract_mode_pin": "runtime",
+    "binary_hash_fields": [
+      "binary.sha256",
+      "build_inputs.binary_sha256"
+    ],
+    "binary_hash_fields_must_be_equal": true,
+    "contract_hash_fields": [
+      "contract.sha256",
+      "build_inputs.contract_sha256"
+    ],
+    "contract_hash_fields_must_be_equal": true,
+    "source_revision_basis": "caller pin recorded by the caller; never a GSD aggregate and never a sha256 digest",
+    "source_revision_digest_forbidden": true,
+    "log_path_fields": [
+      "logs.stdout",
+      "logs.stderr"
+    ],
+    "log_hash_fields": [
+      "logs.stdout_sha256",
+      "logs.stderr_sha256"
+    ],
+    "duration_field": "duration_ms",
+    "budget_field": "budget_seconds",
+    "budget_seconds_minimum": 3600,
+    "budget_is_a_ceiling_not_an_achievement": true,
+    "terminal_closed_keys": [
+      "outcome",
+      "exit_code",
+      "signal",
+      "timeout"
+    ],
+    "terminal_required_keys": [
+      "outcome",
+      "exit_code",
+      "signal",
+      "timeout"
+    ],
+    "outcome_values": [
+      "complete",
+      "nonzero",
+      "timeout",
+      "launch_error",
+      "not-run"
+    ],
+    "accepted_outcomes": [
+      "complete"
+    ],
+    "non_pass_outcomes": [
+      "nonzero",
+      "timeout",
+      "launch_error",
+      "not-run"
+    ],
+    "acceptance_values": [
+      "pass",
+      "non-pass"
+    ],
+    "acceptance_rule": "operational_acceptance is pass only when terminal.outcome is complete, terminal.exit_code is 0 and duration_ms >= budget_seconds * 1000; every other combination is non-pass",
+    "acceptance_rule_source": "m204-s06-c4-operational-receipt/v1, reused verbatim; S04 does not relax it",
+    "timeout_is_never_accepted": true,
+    "outcome_rewrite_forbidden": true,
+    "process_group_kill": {
+      "signal": "SIGTERM",
+      "scope": "process group of the launched walk",
+      "timeout_flag": true,
+      "exit_code_on_timeout": null
+    },
+    "immutable_attempt_identity": true,
+    "attempt_identity_rebuild_forbidden": true,
+    "receipt_rebuild_forbidden": true
+  },
+  "corpus_pins": {
+    "consultant_root": "consru_export/consru_export/exports",
+    "consultant_root_is_declared_not_derived": true,
+    "consultant_xml_suffix": ".xml",
+    "consultant_xml_count": 43785,
+    "garant_root": "law-source/garant",
+    "garant_file_count": 12,
+    "count_basis": "recursive file count under the declared root, identical to the M204/S06 basis",
+    "count_is_a_corpus_pin_not_promotion_evidence": true,
+    "drift_diagnostic": "CORPUS_COUNT_DRIFT"
+  },
+  "promotion_contract": {
+    "promotion": "none",
+    "classification": "not-authorized",
+    "threshold": null,
+    "human_acceptance": null,
+    "is_gold": false,
+    "model_invoked": false,
+    "legal_claim": "forbidden",
+    "n2_claim": "forbidden",
+    "rate_publication": "forbidden",
+    "measurement_status_publication": "forbidden",
+    "corpus_complete_is_not_acceptance": true,
+    "integrity_marker_is_not_acceptance": true
+  },
+  "s03_isolation": {
+    "evaluation_report_path": "prd/migration/rust-evidence/m207-s03-evaluation-report.json",
+    "evaluation_report_must_be_absent": true,
+    "s03_battery_path": "prd/migration/rust-evidence/m207-s03-battery.json",
+    "s03_battery_human_pilot_performed_required": false,
+    "s03_rates_required_status": "not-measured",
+    "rate_import_forbidden": true,
+    "seed_fragment_root": "crates/ln-decode/tests/fixtures/npa-lawref",
+    "seed_fragment_glob": "*.txt",
+    "seed_fragment_count": 180,
+    "seed_aggregate_sha256": "50b48668cba5b89d75af0604a78004404310e36377679984273fa0a883053c9d",
+    "seed_aggregate_basis": "sha256 over sorted lines '<file name>\\0<file sha256>\\n'",
+    "seed_sidecar_path": "crates/ln-decode/tests/fixtures/npa-lawref/lawref_seed.json",
+    "seed_sidecar_sha256": "b88e5af14bcc9496c4d35627afda058d58956f459106c147f1cc7959a6930f28",
+    "crates_reference_forbidden": true,
+    "crates_reference_patterns": [
+      "m207-s03",
+      "m207_s03",
+      "m207-s04",
+      "m207_s04"
+    ],
+    "crates_reference_scope": "every tracked file under crates/, excluding target/ and .git/",
+    "seed_enlarge_diagnostic": "SEED_ENLARGED",
+    "seed_drift_diagnostic": "SEED_DRIFT"
+  },
+  "requirement_bindings": {
+    "supporting_ids": [
+      "R038",
+      "R063",
+      "R064",
+      "R071",
+      "R077"
+    ],
+    "hold_pin_ids": [
+      "R035",
+      "R070"
+    ],
+    "hold_pin_commands": [
+      "cargo test -p ln-kb-ontology --offline --test r035_proof_gate",
+      "cargo test -p ln-temporal --offline --test r070_proof_gate",
+      "cargo test -p ln-decode --offline --test npa_lawref_sample_contract"
+    ],
+    "validated_ids": [],
+    "invalidated_ids": [],
+    "status_effect": "unchanged",
+    "requirement_closure_forbidden": true,
+    "evaluation_report_forbidden": true,
+    "decisions_reaffirmed": [
+      "D444",
+      "D466",
+      "D487"
+    ],
+    "decisions_untouched": [
+      "D388",
+      "D416",
+      "D430",
+      "D495"
+    ]
+  },
+  "integrity_marker": {
+    "marker": "M207_S04_VERIFY_OK",
+    "meaning": "the S04 integrity battery ran and every check passed",
+    "does_not_mean": [
+      "C4 pass",
+      "operational acceptance",
+      "independent-measured rates",
+      "gold",
+      "requirement closure"
+    ],
+    "marker_is_not_acceptance": true,
+    "marker_values": [
+      "M207_S04_VERIFY_OK"
+    ],
+    "battery_path": "prd/migration/rust-evidence/m207-s04-battery.json",
+    "diagnostic": "INTEGRITY_MARKER_AS_ACCEPTANCE"
+  },
+  "vocabularies": {
+    "promotion_values": [
+      "none"
+    ],
+    "classification_values": [
+      "not-authorized"
+    ],
+    "acceptance_values": [
+      "pass",
+      "non-pass"
+    ],
+    "outcome_values": [
+      "complete",
+      "nonzero",
+      "timeout",
+      "launch_error",
+      "not-run"
+    ],
+    "accepted_outcomes": [
+      "complete"
+    ],
+    "non_pass_outcomes": [
+      "nonzero",
+      "timeout",
+      "launch_error",
+      "not-run"
+    ],
+    "profile_values": [
+      "contour"
+    ],
+    "contract_version_values": [
+      "npa-acceptance-contract/v1"
+    ],
+    "contract_check_id_values": [
+      "c4-live-check"
+    ],
+    "contract_mode_values": [
+      "runtime"
+    ],
+    "battery_status_values": [
+      "pass",
+      "fail"
+    ],
+    "marker_values": [
+      "M207_S04_VERIFY_OK"
+    ],
+    "digest_format": "bare lowercase hex sha256, no algorithm prefix",
+    "requirement_status_effect_values": [
+      "unchanged"
+    ]
+  },
+  "diagnostics": [
+    "PROMOTION_CLAIM",
+    "GOLD_CLAIM",
+    "IS_GOLD_CLAIM",
+    "THRESHOLD_REQUESTED",
+    "CLASSIFICATION_REQUESTED",
+    "MODEL_INVOKED",
+    "AUTHORITY_CLAIM",
+    "LEAK_FORBIDDEN_KEY",
+    "C4_RECEIPT_MISSING",
+    "C4_RECEIPT_DRIFT",
+    "C4_TIMEOUT_AS_PASS",
+    "INTEGRITY_MARKER_AS_ACCEPTANCE",
+    "BUDGET_BELOW_MINIMUM",
+    "TERMINAL_OUTCOME_DRIFT",
+    "ARGV_PIN_DRIFT",
+    "CORPUS_COUNT_DRIFT",
+    "LOG_HASH_MISSING",
+    "ATTEMPT_LOG_MISSING",
+    "IMMUTABLE_IDENTITY_MISSING",
+    "BINARY_HASH_MISSING",
+    "TOOLCHAIN_PIN_MISSING",
+    "SOURCE_REVISION_MISSING",
+    "DURATION_MISSING",
+    "PROXY_INPUT_REFUSED",
+    "REPORT_WITHOUT_HUMAN_DATA",
+    "S03_RATE_IMPORTED",
+    "S03_BATTERY_PILOT_PERFORMED",
+    "S03_REGRESSION_FAILED",
+    "SEED_ENLARGED",
+    "SEED_DRIFT",
+    "HOLD_PIN_FAILED",
+    "REQUIREMENT_STATUS_CLAIM",
+    "BATTERY_STALE",
+    "BATTERY_WALLCLOCK_FORBIDDEN",
+    "EMPTY_SUITE",
+    "SUBCLI_FAILURE",
+    "HOSTILE_CASE_MISSING",
+    "MACHINERY_MARKER_MISSING",
+    "FROZEN_SOURCE_DRIFT",
+    "MISSING_ARTIFACT",
+    "MISSING_SECTION",
+    "MISSING_NON_CLAIM",
+    "MISSING_LIFECYCLE_MARKER",
+    "MISSING_SCHEMA",
+    "SCHEMA_KEY_DRIFT",
+    "SCHEMA_PARSE_ERROR",
+    "DUPLICATE_JSON_KEY",
+    "DIAGNOSTIC_TABLE_DRIFT",
+    "VOCABULARY_DRIFT",
+    "UNSAFE_PATH"
+  ],
+  "schemas": {
+    "receipt": {
+      "schema_id": "m204-s06-c4-operational-receipt/v1",
+      "closed_keys": [
+        "schema",
+        "attempt_id",
+        "immutable_attempt_identity",
+        "argv",
+        "binary",
+        "build_inputs",
+        "toolchain",
+        "parser_revision",
+        "source_revision",
+        "contract",
+        "corpus",
+        "observed_output",
+        "c4_binding",
+        "started_at",
+        "finished_at",
+        "duration_ms",
+        "budget_seconds",
+        "terminal",
+        "logs",
+        "claims",
+        "non_claims"
+      ],
+      "required_keys": [
+        "schema",
+        "attempt_id",
+        "immutable_attempt_identity",
+        "argv",
+        "binary",
+        "build_inputs",
+        "toolchain",
+        "source_revision",
+        "contract",
+        "corpus",
+        "observed_output",
+        "c4_binding",
+        "started_at",
+        "finished_at",
+        "duration_ms",
+        "budget_seconds",
+        "terminal",
+        "logs",
+        "claims",
+        "non_claims"
+      ]
+    },
+    "battery": {
+      "schema_id": "m207-s04-battery/v1",
+      "closed_keys": [
+        "schema",
+        "schema_version",
+        "checks",
+        "pins",
+        "human_pilot_performed",
+        "model_invoked",
+        "lifecycle",
+        "non_claims"
+      ],
+      "required_keys": [
+        "schema",
+        "schema_version",
+        "checks",
+        "pins",
+        "human_pilot_performed",
+        "model_invoked",
+        "lifecycle",
+        "non_claims"
+      ],
+      "check_closed_keys": [
+        "check_id",
+        "command",
+        "diagnostic",
+        "exit_code",
+        "status"
+      ],
+      "check_required_keys": [
+        "check_id",
+        "command",
+        "diagnostic",
+        "exit_code",
+        "status"
+      ],
+      "pins_closed_keys": [
+        "path",
+        "sha256"
+      ],
+      "forbidden_battery_keys": [
+        "duration_ms",
+        "elapsed_ms",
+        "generated_at",
+        "wall_clock"
+      ],
+      "human_pilot_performed_required": false,
+      "model_invoked_required": false
+    }
+  },
+  "non_claims": [
+    "not gold: no S04 artifact, receipt field or terminal outcome is a gold label",
+    "not a promotion: promotion stays none, classification stays not-authorized and threshold stays null",
+    "not a threshold: no rate threshold, pass/fail cut-off or accept/reject decision is introduced",
+    "not a classification: no classifier is fitted, no gate is selected and no D388 gate is scored",
+    "not independent-measured: S04 performs no human pilot and publishes no independently measured rate",
+    "not an S03 rate publication: the S03 evaluation report stays absent and no S03 aspect or stratum rate is imported or synthesized",
+    "not a seed enlargement: the 180 frozen fragments, the M199 sample manifest and the rule-seed sidecar stay frozen",
+    "not an R035 closure: a corpus walk is operational diagnostics, not GATE-PILOT-SCALE-READINESS",
+    "not an R070 closure: a corpus walk is not edition provenance and not an amending-act chain",
+    "not a requirement status change: requirement_status_effect stays unchanged and R038/R063/R064/R071/R077 stay supporting-only",
+    "not human acceptance: human_acceptance stays null",
+    "not system quality: operational completion is a process fact, never product, legal or N2 quality",
+    "not a product surface: S04 stays an offline Python harness under scripts/ and no crates file references it",
+    "not a terminal-outcome rewrite: timeout, nonzero and launch_error are published as-is and never rewritten to complete",
+    "not a marker promotion: M207_S04_VERIFY_OK means the integrity battery ran, not a C4 pass",
+    "not a budget achievement: budget_seconds is a ceiling, not evidence that the walk reached it",
+    "not a second measurement convention: npa-quality-receipts/v1, npa-c5-* and npa-lawref-seed/v1 inputs are refused"
+  ],
+  "lifecycle": {
+    "human_adoption": "pending",
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none",
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged"
+  }
+}
