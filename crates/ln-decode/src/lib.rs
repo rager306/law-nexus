@@ -28,6 +28,7 @@ pub mod npa_bounds;
 pub mod npa_context_baseline;
 pub mod npa_frames_baseline;
 pub mod npa_sweep;
+pub mod npa_typed;
 pub mod ports;
 pub mod prefix_catalog;
 pub mod references;

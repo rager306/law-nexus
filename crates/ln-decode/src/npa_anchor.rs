@@ -133,6 +133,7 @@ fn starts_with_lit(text: &[char], i: usize, lit: &str) -> bool {
     i + lc.len() <= text.len() && text[i..i + lc.len()] == lc[..]
 }
 
+#[allow(dead_code)]
 pub struct OtDateHit {
     pub start: usize,
     pub end: usize,
@@ -624,26 +625,4 @@ pub fn scan_anchors(paras: &[String]) -> Vec<Anchor> {
         }
     }
     set.into_iter().collect()
-}
-
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-
-    #[test]
-    fn debug_scan_literal() {
-        let s = "(п. 2.1 введен Федеральным законом от 02.07.2021 N 351-ФЗ)";
-        let chars: Vec<char> = s.chars().collect();
-        let od = scan_ot_date(&chars);
-        eprintln!("ot_date hits: {}", od.len());
-        for h in &od {
-            eprintln!("  {} N {}", h.date, h.number);
-        }
-        let paras = vec![s.to_string()];
-        let anchors = scan_anchors(&paras);
-        eprintln!("anchors: {:?}", anchors);
-        assert_eq!(od.len(), 1);
-        assert_eq!(anchors.len(), 1);
-    }
 }
