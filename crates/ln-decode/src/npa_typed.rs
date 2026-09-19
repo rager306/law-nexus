@@ -378,8 +378,12 @@ pub fn scan_types(text: &[char]) -> Vec<TypeCandidate> {
                 continue;
             }
             // следующее слово — «закон»?
-            let wend = i + 9;
-            let nw = skip_ws(text, wend);
+            // word end of "федеральн*"
+            let mut fw = i;
+            while fw < n && is_word(text[fw]) {
+                fw += 1;
+            }
+            let nw = skip_ws(text, fw);
             if nw < n && starts_lower(&lower, nw, "закон") {
                 let e = type_end(text, i);
                 out.push(TypeCandidate {
@@ -577,10 +581,14 @@ pub fn scan_typed(paras: &[String]) -> Vec<TypedMember> {
                     before = filtered;
                 }
             }
-            let canon = before
+            let mut canon = before
                 .iter()
                 .max_by_key(|t| t.start)
                 .map(|t| t.canon.clone());
+            // -ФЗ суффикс → Федеральный закон (Закон РФ override)
+            if canon.as_deref() == Some("Закон РФ") && d.number.ends_with("-ФЗ") {
+                canon = Some("Федеральный закон".to_string());
+            }
             let key = (d.date.clone(), d.number.clone());
             match seen.get(&key) {
                 None => {
