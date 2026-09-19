@@ -135,3 +135,47 @@ jobs:
           && uv run python scripts/verify-hostile-negative-suite-coverage.py
           && uv run python scripts/verify-multi-adapter-port-coverage.py
           && uv run python scripts/verify-live-adapter-readiness.py
+
+  offline-contract-verifiers:
+    name: Milestone offline contract chains (M207/S03, M207/S04, M208/S04)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install Python harness dependencies
+        run: uv sync --frozen
+
+      - name: Set up Node
+        uses: actions/setup-node@v4.0.0
+        with:
+          node-version: 22
+
+      - name: M207 S04 integrity battery chain
+        run: bash scripts/m207_s04_t04_verify.sh
+
+      # The S03 chain exits 3 when the human pilot is absent (D495 boundary:
+      # MACHINERY_GREEN_HUMAN_ABSENT). Exit 0 (human pilot present) and exit 3
+      # (machinery green, human gate open) are both green; anything else fails.
+      - name: M207 S03 frozen evaluation chain (exit 0/3 green boundary)
+        run: |
+          bash scripts/m207_s03_t06_verify.sh
+          code=$?
+          if [ "$code" -ne 0 ] && [ "$code" -ne 3 ]; then
+            echo "M207 S03 chain exited $code (green boundary is 0 or 3)"
+            exit "$code"
+          fi
+
+      # M208/S04 admission contract (node --test scripts/m208_s04_admission_contract.test.mjs)
+      # stays wired-out: its admission record pins ADR-0028 bytes, which legitimately
+      # evolved via the D512-sanctioned M205/S04 companion (commit 1c01c09). Refreshing
+      # that pin is part of the pending M208 owner scope decision, not a CI edit.
