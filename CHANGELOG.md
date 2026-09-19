@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+### M211-hkknug S01 — якорь-первая FSM: лексикон-данные + gold-паритет (2026-09-19)
+
+- **ADR-0029** (`doc/adr/0029-requisites-anchored-member-assembly-fsm.md`,
+  `[proposed]`): якорь-первая FSM сборки членов NPA — 10 решений
+  (лексикон-как-данные/Aho-Corasick, гипотезы до конца абзаца против
+  cross-date steal, letterhead-приоритет, head-family carry, prompt-FSM
+  для fail-closed остатка). Альтернативы отклонены: полный Pullenti-токен
+  пайплайн, Python-в-продукт, LLM-first.
+- **S01 выполнено** (parent session; headless sequencing-blocked):
+  `ln-decode/src/npa_anchor.rs` — w:p/w:t экстрактор, consultant-декодер,
+  сканеры OT_DATE/OT_DUMA с guard'ами INBOUND/MINJUST (hand-rolled, D328
+  без serde). Паритет якорей с Python-прототипом: **40/40 док,
+  151/151 якорей** (`tests/npa_members_gold_parity.rs` + TSV-фикстура
+  `anchor-parity-fixture.tsv` [bounded], universe = seed-фрагменты).
+- **CI**: job `offline-contract-verifiers` — M207/S04 battery (exit 0),
+  M207/S03 chain (exit 0/3 boundary D495); M208/S04 admission-контракт
+  wired-out: пин ADR-0028 ждёт owner scope decision (D512-маршрут).
+- ln-decode suite: 61 test-result ok, clippy 0 warnings, D328
+  acceptance-guard удержан (без serde).
+
+
 ### NPA engine review, ADR-0028 and morphology audit (2026-08-31/09-01)
 
 - **ADR-0028** (doc/adr/0028-typed-lexer-legal-marker-lexicon.md,

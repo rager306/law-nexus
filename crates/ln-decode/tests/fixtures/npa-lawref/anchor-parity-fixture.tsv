@@ -1,0 +1,373 @@
+# m211-anchor-parity-fixture/v3 [bounded]
+# universe = seed fragment texts ONLY (raw parse_members; head/forward-tails/linkers are S02+ layers)
+doc	npa-doc-001
+frag	npa-frag-001.txt
+frag	npa-frag-002.txt
+frag	npa-frag-003.txt
+doc	npa-doc-002
+frag	npa-frag-004.txt
+frag	npa-frag-005.txt
+frag	npa-frag-006.txt
+doc	npa-doc-003
+frag	npa-frag-007.txt
+frag	npa-frag-008.txt
+frag	npa-frag-009.txt
+frag	npa-frag-010.txt
+frag	npa-frag-011.txt
+doc	npa-doc-004
+frag	npa-frag-012.txt
+frag	npa-frag-013.txt
+frag	npa-frag-014.txt
+frag	npa-frag-015.txt
+frag	npa-frag-016.txt
+doc	npa-doc-005
+frag	npa-frag-017.txt
+frag	npa-frag-018.txt
+frag	npa-frag-019.txt
+frag	npa-frag-020.txt
+frag	npa-frag-021.txt
+anchor	02.07.2021	337-ФЗ
+anchor	02.07.2021	351-ФЗ
+anchor	08.08.2024	232-ФЗ
+anchor	21.11.2022	459-ФЗ
+doc	npa-doc-006
+frag	npa-frag-022.txt
+frag	npa-frag-023.txt
+frag	npa-frag-024.txt
+frag	npa-frag-025.txt
+frag	npa-frag-026.txt
+anchor	02.07.2021	337-ФЗ
+anchor	02.07.2021	351-ФЗ
+anchor	08.08.2024	232-ФЗ
+anchor	21.11.2022	459-ФЗ
+doc	npa-doc-007
+frag	npa-frag-027.txt
+frag	npa-frag-028.txt
+frag	npa-frag-029.txt
+frag	npa-frag-030.txt
+frag	npa-frag-031.txt
+anchor	21.07.2022	34-П
+anchor	29.07.2017	218-ФЗ
+doc	npa-doc-008
+frag	npa-frag-032.txt
+frag	npa-frag-033.txt
+frag	npa-frag-034.txt
+frag	npa-frag-035.txt
+frag	npa-frag-036.txt
+anchor	29.07.2017	218-ФЗ
+doc	npa-doc-009
+frag	npa-frag-037.txt
+frag	npa-frag-038.txt
+frag	npa-frag-039.txt
+anchor	04.04.2014	23
+anchor	28.12.2013	396-ФЗ
+doc	npa-doc-010
+frag	npa-frag-040.txt
+frag	npa-frag-041.txt
+frag	npa-frag-042.txt
+anchor	04.04.2014	23
+anchor	28.12.2013	396-ФЗ
+doc	npa-doc-011
+frag	npa-frag-043.txt
+frag	npa-frag-044.txt
+frag	npa-frag-045.txt
+anchor	04.04.2014	23
+anchor	28.12.2013	396-ФЗ
+doc	npa-doc-012
+frag	npa-frag-046.txt
+frag	npa-frag-047.txt
+frag	npa-frag-048.txt
+frag	npa-frag-049.txt
+frag	npa-frag-050.txt
+anchor	01.07.2021	277-ФЗ
+anchor	02.07.2021	360-ФЗ
+anchor	09.04.2020	16-П
+anchor	14.11.2023	531-ФЗ
+anchor	16.04.2022	104-ФЗ
+anchor	26.12.2024	484-ФЗ
+anchor	27.12.2019	449-ФЗ
+anchor	28.06.2022	231-ФЗ
+anchor	29.05.2024	124-ФЗ
+doc	npa-doc-013
+frag	npa-frag-051.txt
+frag	npa-frag-052.txt
+frag	npa-frag-053.txt
+frag	npa-frag-054.txt
+frag	npa-frag-055.txt
+anchor	02.10.2013	567
+doc	npa-doc-014
+frag	npa-frag-056.txt
+frag	npa-frag-057.txt
+frag	npa-frag-058.txt
+frag	npa-frag-059.txt
+anchor	09.01.2014	1
+doc	npa-doc-015
+frag	npa-frag-060.txt
+frag	npa-frag-061.txt
+frag	npa-frag-062.txt
+frag	npa-frag-063.txt
+frag	npa-frag-064.txt
+anchor	09.10.2019	516
+anchor	14.02.2014	55
+anchor	17.03.2022	97
+anchor	17.09.2018	390
+anchor	18.07.2014	426
+anchor	19.11.2015	718
+anchor	20.01.2016	7
+anchor	21.11.2016	535
+anchor	26.12.2016	607
+anchor	28.10.2015	660
+anchor	30.06.2016	232
+doc	npa-doc-016
+frag	npa-frag-065.txt
+frag	npa-frag-066.txt
+frag	npa-frag-067.txt
+frag	npa-frag-068.txt
+frag	npa-frag-069.txt
+anchor	06.03.2014	80
+anchor	08.02.2023	29
+anchor	17.03.2022	59
+anchor	19.02.2024	32
+anchor	20.07.2018	408
+doc	npa-doc-017
+frag	npa-frag-070.txt
+frag	npa-frag-071.txt
+frag	npa-frag-072.txt
+frag	npa-frag-073.txt
+frag	npa-frag-074.txt
+anchor	07.02.2017	44
+anchor	12.07.2022	365
+anchor	15.05.2020	284
+anchor	18.05.2022	264
+anchor	18.08.2023	581
+anchor	20.10.2020	686
+anchor	20.11.2019	756
+anchor	25.08.2014	502
+anchor	26.03.2014	161
+anchor	27.05.2014	300
+anchor	29.04.2014	239
+doc	npa-doc-018
+frag	npa-frag-075.txt
+frag	npa-frag-076.txt
+frag	npa-frag-077.txt
+frag	npa-frag-078.txt
+frag	npa-frag-079.txt
+anchor	13.02.2015	89
+anchor	23.04.2014	398
+doc	npa-doc-019
+frag	npa-frag-080.txt
+frag	npa-frag-081.txt
+frag	npa-frag-082.txt
+frag	npa-frag-083.txt
+frag	npa-frag-084.txt
+anchor	08.12.2008	929
+anchor	26.11.2007	812
+anchor	30.11.2017	1452
+doc	npa-doc-020
+frag	npa-frag-085.txt
+frag	npa-frag-086.txt
+frag	npa-frag-087.txt
+frag	npa-frag-088.txt
+frag	npa-frag-089.txt
+anchor	14.04.2017	446
+anchor	25.12.2014	1489
+anchor	26.08.2013	728
+doc	npa-doc-021
+frag	npa-frag-090.txt
+frag	npa-frag-091.txt
+frag	npa-frag-092.txt
+frag	npa-frag-093.txt
+frag	npa-frag-094.txt
+anchor	03.12.2014	1298
+anchor	04.09.2015	941
+anchor	08.09.2018	1077
+anchor	19.09.2013	826
+anchor	25.12.2014	1489
+doc	npa-doc-022
+frag	npa-frag-095.txt
+frag	npa-frag-096.txt
+frag	npa-frag-097.txt
+frag	npa-frag-098.txt
+frag	npa-frag-099.txt
+anchor	02.04.2015	308
+anchor	08.11.2013	1005
+anchor	09.08.2022	1397
+anchor	09.12.2014	1339
+anchor	15.01.2018	11
+anchor	15.10.2022	1838
+anchor	18.07.2019	920
+anchor	20.12.2021	2369
+anchor	23.09.2024	1285
+anchor	29.05.2018	608
+anchor	30.06.2018	768
+doc	npa-doc-023
+frag	npa-frag-100.txt
+frag	npa-frag-101.txt
+frag	npa-frag-102.txt
+frag	npa-frag-103.txt
+anchor	17.12.2015	2590-р
+anchor	30.09.2013	1765-р
+doc	npa-doc-024
+frag	npa-frag-104.txt
+frag	npa-frag-105.txt
+frag	npa-frag-106.txt
+frag	npa-frag-107.txt
+frag	npa-frag-108.txt
+anchor	21.03.2017	508-р
+doc	npa-doc-025
+frag	npa-frag-109.txt
+frag	npa-frag-110.txt
+frag	npa-frag-111.txt
+frag	npa-frag-112.txt
+frag	npa-frag-113.txt
+anchor	05.04.2013	44-ФЗ
+anchor	15.05.2021	1257-р
+anchor	16.03.2018	442-р
+anchor	17.03.2016	444-р
+anchor	18.03.2019	452-р
+anchor	28.02.2020	455-р
+anchor	28.04.2015	753-р
+anchor	28.06.2017	1347-р
+doc	npa-doc-026
+frag	npa-frag-114.txt
+frag	npa-frag-115.txt
+frag	npa-frag-116.txt
+frag	npa-frag-117.txt
+frag	npa-frag-118.txt
+anchor	02.09.2021	510
+anchor	08.07.2024	577
+anchor	11.11.2021	641
+anchor	14.09.2020	558
+anchor	30.12.2021	747
+doc	npa-doc-027
+frag	npa-frag-119.txt
+frag	npa-frag-120.txt
+frag	npa-frag-121.txt
+frag	npa-frag-122.txt
+frag	npa-frag-123.txt
+anchor	05.04.2013	44-ФЗ
+anchor	11.03.1992	2487-1
+anchor	18.01.2018	17
+anchor	21.11.2011	957
+anchor	24.02.2021	0001976
+anchor	29.12.2021	2571
+doc	npa-doc-028
+frag	npa-frag-124.txt
+frag	npa-frag-125.txt
+frag	npa-frag-126.txt
+frag	npa-frag-127.txt
+anchor	01.10.2020	1576
+anchor	12.01.2026	01-05
+anchor	12.01.2026	10
+anchor	21.03.2025	032/06/105-316/2025
+doc	npa-doc-029
+frag	npa-frag-128.txt
+frag	npa-frag-129.txt
+frag	npa-frag-130.txt
+anchor	17.02.2022	7-П
+anchor	23.06.2015	25
+doc	npa-doc-030
+frag	npa-frag-131.txt
+frag	npa-frag-132.txt
+frag	npa-frag-133.txt
+frag	npa-frag-134.txt
+frag	npa-frag-135.txt
+anchor	03.10.2025	ЦЗ1-06-440
+anchor	06.06.2012	4н
+anchor	08.02.2017	145
+anchor	15.01.2026	26/26
+anchor	25.09.2014	557н
+anchor	27.12.2012	1416
+doc	npa-doc-031
+frag	npa-frag-136.txt
+frag	npa-frag-137.txt
+frag	npa-frag-138.txt
+frag	npa-frag-139.txt
+frag	npa-frag-140.txt
+anchor	21.05.2023	1
+anchor	23.03.2023	2
+anchor	23.03.2023	4
+anchor	23.03.2023	5
+anchor	24.05.2023	1
+doc	npa-doc-032
+frag	npa-frag-141.txt
+frag	npa-frag-142.txt
+frag	npa-frag-143.txt
+frag	npa-frag-144.txt
+anchor	15.08.2024	74-480-р
+anchor	21.12.2001	178-ФЗ
+anchor	23.12.2024	б/н
+anchor	24.12.2024	АК/18682/24
+anchor	26.07.2006	135-ФЗ
+anchor	27.08.2012	860
+doc	npa-doc-033
+frag	npa-frag-145.txt
+frag	npa-frag-146.txt
+frag	npa-frag-147.txt
+frag	npa-frag-148.txt
+anchor	15.08.2024	74-480-р
+anchor	21.12.2001	178-ФЗ
+anchor	23.12.2024	б/н
+anchor	24.12.2024	АК/18682/24
+anchor	26.07.2006	135-ФЗ
+anchor	27.08.2012	860
+doc	npa-doc-034
+frag	npa-frag-149.txt
+frag	npa-frag-150.txt
+frag	npa-frag-151.txt
+frag	npa-frag-152.txt
+frag	npa-frag-153.txt
+anchor	01.01.2022	88
+anchor	19.12.2024	б/н
+anchor	21.12.2001	178-ФЗ
+anchor	26.07.2006	135-ФЗ
+anchor	27.08.2012	860
+anchor	27.12.2023	211
+doc	npa-doc-035
+frag	npa-frag-154.txt
+frag	npa-frag-155.txt
+frag	npa-frag-156.txt
+frag	npa-frag-157.txt
+frag	npa-frag-158.txt
+anchor	01.07.2024	01
+anchor	05.09.2016	881
+anchor	10.12.2024	1
+anchor	13.12.2024	1
+anchor	14.11.2024	123/25
+anchor	16.12.2024	МР/3653/24
+anchor	26.07.2006	135-ФЗ
+anchor	30.11.2023	1
+doc	npa-doc-036
+frag	npa-frag-159.txt
+frag	npa-frag-160.txt
+frag	npa-frag-161.txt
+frag	npa-frag-162.txt
+frag	npa-frag-163.txt
+anchor	01.07.2024	01
+anchor	13.02.2025	б/н
+anchor	14.02.2025	МР/367/25
+anchor	24.12.2024	6
+anchor	26.07.2006	135-ФЗ
+anchor	30.11.2023	1
+doc	npa-doc-037
+frag	npa-frag-164.txt
+frag	npa-frag-165.txt
+frag	npa-frag-166.txt
+doc	npa-doc-038
+frag	npa-frag-167.txt
+frag	npa-frag-168.txt
+frag	npa-frag-169.txt
+frag	npa-frag-170.txt
+frag	npa-frag-171.txt
+anchor	01.02.2012	61
+doc	npa-doc-039
+frag	npa-frag-172.txt
+frag	npa-frag-173.txt
+frag	npa-frag-174.txt
+frag	npa-frag-175.txt
+frag	npa-frag-176.txt
+doc	npa-doc-040
+frag	npa-frag-177.txt
+frag	npa-frag-178.txt
+frag	npa-frag-179.txt
+frag	npa-frag-180.txt
