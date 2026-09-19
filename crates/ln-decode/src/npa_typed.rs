@@ -235,7 +235,11 @@ pub fn scan_types(text: &[char]) -> Vec<TypeCandidate> {
     while i < n {
         // --- Приказ + issuer ---
         if starts_lower(&lower, i, "приказ") {
-            let wend = i + 6;
+            // конец полного слова (приказом, приказ, приказы...)
+            let mut wend = i;
+            while wend < n && is_word(text[wend]) {
+                wend += 1;
+            }
             let iss = skip_ws(text, wend);
             if iss < n && text[iss].is_uppercase() {
                 // issuer run до «от» / точки
@@ -276,7 +280,11 @@ pub fn scan_types(text: &[char]) -> Vec<TypeCandidate> {
                 end: i + 6,
                 canon: "приказ".into(),
             });
-            i += 6;
+            let mut we = i;
+            while we < n && is_word(text[we]) {
+                we += 1;
+            }
+            i = we;
             continue;
         }
         // --- Постановление КС / Пленум / Правительства ---
