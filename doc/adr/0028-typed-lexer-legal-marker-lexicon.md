@@ -5,7 +5,7 @@ status: Proposed
 lifecycle: "[proposed]"
 date: 2026-09-01
 supersedes: none
-related: [ADR-0025, ADR-0027, ADR-0013, ADR-0024]
+related: [ADR-0025, ADR-0027, ADR-0013, ADR-0024, ADR-0016, ADR-0018, ADR-0019, ADR-0020]
 ---
 
 # ADR-0028: Typed lexer and legal-marker lexicon for the NPA document engine
@@ -170,7 +170,12 @@ do not drop the GEO half. `ORGANIZATION.GEO` (Управление, област
 Воронежская) is the honest pairing. STREET/ADDRESS is a location contour
 (торги, площадка), never jurisdiction. Federal TYPE (ФЗ, кодекс, указ
 президента, постановление Правительства РФ) implies GEO=РФ; that default
-is not an identity distinguisher.
+is not an identity distinguisher. GEO is the organ toponym (axis D),
+not competence (axis C, D516): a territorial FOIV in a city remains
+federal. Do not read ADR-0016 `OfficialIdentityClaim.jurisdiction` as
+level of power. Classification axes live in the sibling YAML
+`prd/architecture/npa-classification-axes.yaml`; they do not mutate this
+cycle file (M205 `hashed_yaml_mutation: forbidden`).
 
 The cycle is data in `prd/architecture/npa-identifying-cycle.yaml`
 (`[proposed]`, no Rust types minted):
@@ -193,6 +198,92 @@ eight S01 protocol slots; identifying attributes live on the sidecar.
 Ellipsis `от DATE N` (WordML clip of one «в ред.» list: 086+087, 096–099)
 inherits TYPE+ORG+GEO from the opening NP or the document head — clip is
 the input, not a model hole.
+
+### Classification axes (D516)
+
+D382 split ORG from GEO against Pullenti `SOURCE=город`. It did not split
+**form**, **legal class**, **competence**, **normativity**, and
+**general-bindingness**. `act_type_lemmas` remain covering-Word form
+lemmas in the M205-frozen `prd/architecture/npa-identifying-cycle.yaml`.
+They are not a second legal-class lexicon and they are not ADR-0019 rank.
+Axes live in `prd/architecture/npa-classification-axes.yaml`. No Rust
+types are minted from this section (D216 / D098). `LawRefSlots` stays
+eight protocol slots. `local_grammar.rs` `ACT_TYPE_LEMMAS` stays a
+form-head matcher. Do not edit the frozen cycle YAML for D516.
+
+Nine independent sidecar axes. One lemma never closes them.
+
+| Axis | Question | Closed values / home |
+|---|---|---|
+| A form | blank name as written | nominative singular TYPE lemma (`Указ`, not `Указов`); lives in `act_type_lemmas` |
+| B legal class | what it is in law | `npa` / `individual_legal_act` / `clarification_letter` / `judicial_act` / `primary_instrument` / `unknown` |
+| C competence | whose public power | `international` / `federal` / `subject` / `municipal` / `intra_agency_or_local` |
+| D GEO | organ or event toponym | `geo_levels`; sibling of ORG; **not** C |
+| E issuer | who issued | ORG slot |
+| F normativity | general legal rule? | `yes` / `no` / `unknown` |
+| G general-bindingness | bound as by a statute? | `yes` / `no` / `not_applicable` |
+| H administrativeness | public-admin / KoAP genre | not a substitute for F/G/C |
+| I force regime | publication, Minjust, restricted, commencement | ADR-0018 owns `InForce` for NPA; I is not class |
+
+**Order.** Form → class → competence (+ issuer + GEO) → if class is NPA,
+normativity → force regime → then general-bindingness. Do not jump from
+«has date and number» to «everyone must obey».
+
+**Form is not class.** `Приказ` is both NPA (general rules, publication /
+Minjust) and individual (appointment). `Письмо` is a form in the agency
+bucket and **never** NPA: PP RF No. 1009 forbids issuing normative acts
+as letters. KS «нормативные свойства» on some letters are a flag, not
+axis-F `yes` and not axis-G `yes`. `Доверенность` / `жалоба` /
+`контракт` are `primary_instrument`: not an act of public power as a
+source of law.
+
+**Normativity (F) is not general-bindingness (G).** F requires, together:
+authorized organ within competence; rules for an indefinite circle;
+repeated application; a form in which NPA may be issued. Letter form is
+a hard F=`no`. G is asked only after F=`yes` and the force regime has
+passed, except the KS RF constitutional-review exception. An unpublished
+or Minjust-refused departmental NPA may still be normative in content and
+still **not** generally binding on third parties (PP 1009). An individual
+act can bind its addressee without F or G.
+
+**Competence is not GEO.** Chelyabinsk UFAS: C=`federal`, D=Chelyabinsk,
+E=UFAS, typically B=`clarification_letter` or `individual_legal_act`.
+City administration in the same Chelyabinsk: C=`municipal`. Identity-key
+families follow competence, not the office address: territorial FOIV uses
+`presidential_agency` `{type, org, date, number}` even when GEO is a
+city. GEO is load-bearing only for subject / municipal competence.
+International competence is `deferred-undefined` for identity keys.
+
+**Fail-closed identity.** Do not project `OfficialIdentityClaim` (and do
+not mint an NPA-graph identity edge) when B is `unknown`,
+`clarification_letter`, or `primary_instrument`. Contour B may still hold
+TYPE+ORG+GEO+DATE+NUMBER as written.
+
+**KS RF exception (G without F).** A Constitutional Court `постановление`
+is `judicial_act`, F=`no` (not an NPA under PP 1009), and G=`yes` **as to
+the fate or construed meaning of the reviewed norm**. It is not a rung on
+the ADR-0019 `NormativeRank` ladder (that ladder is NPA-only). Overlay
+ownership stays ADR-0020. Do not collapse this with FOIV letters, Plenum
+ВС interpretations (binding on courts by procedure, not as statute), or
+KoAP case orders. Not every KS `определение` is this exception;
+refuse-to-accept determinations are not.
+
+**Administrativeness (H) is genre, not force.** KoAP RF as a code sits at
+ADR-0019 `FederalLaw/Code` (F=`yes`, G=`yes` after publication). A case
+order under KoAP is `individual_legal_act` + `koap_proceeding_act`
+(F=`no`, G=`no`). An FOIV letter about KoAP / 44-FZ is
+`administrative_clarification` (F=`no`, G=`no`). H never promotes a
+letter to NPA.
+
+**NPA rank ladder (class B=`npa` only)** remains ADR-0019. Letters,
+individual orders, instruments, KoAP case acts, and KS acts are not
+steps on that ladder. A letter is not «below the statute»; it is not on
+the ladder.
+
+Data: `prd/architecture/npa-classification-axes.yaml`.
+Do not copy `Old_project/legislation_hierarchy.yaml` as a second product
+lexicon; it glued territorial level into type markers. Do not mutate
+`npa-identifying-cycle.yaml` (M205 frozen hash).
 
 ### Enumeration (D383) — the ident40 weak link
 
@@ -428,15 +519,24 @@ changing the decision:
   ("Task Attempt claim must activate exactly one matching coordination
   dispatch") add an acknowledge step per affected unit until the gsd-pi
   defect is fixed.
+- **Classification axes (D516)**: IdentifyingAct TYPE remains a form
+  lemma. Legal class, competence, normativity, general-bindingness, and
+  administrativeness live on the sidecar YAML. A FOIV letter cannot mint
+  an NPA identity edge. A KS RF resolution is generally binding as to the
+  reviewed norm without becoming an NPA or an ADR-0019 rank rung.
+  Territorial FOIV GEO does not become municipal competence.
 - **Risks and mitigations**: portal availability — cache and retry;
   history: 2,478 artifact rows with foreign-relative paths poisoned the
   compat marker (compat hygiene check landed in M195); per-unit liveness
-  wedges are acknowledged only through honest rechecks.
+  wedges are acknowledged only through honest rechecks. Collapsing D516
+  axes back into TYPE or into GEO repeats the Pullenti `SOURCE=город`
+  class of error.
 
 ## Companion / control
 
 `adr-contract-change` freshness trigger satisfied by the `doc/adr/README.md`
-index row added in the same commit. Review record:
+index row in the same working tree (D516 classification-axes amendment
+updates that row; keep the ADR-0028 prefix and `[proposed]` tag). Review record:
 `assessment/24-npa-engine-review.md`; prior-art research record:
 `assessment/25-npa-tokenizer-prior-art.md` (§7 Pullenti / dual-tokenizer addendum, 2026-09-05). Related gsd-pi defects FILED:
 (a) `env_git_remote` false-negative -> open-gsd/gsd-pi#2129, (b)
@@ -447,7 +547,7 @@ radius, (c) headless coordination-claim finalize errors.
 
 ## Non-claims
 
-This proposed ADR does not establish parser readiness, legal correctness, corpus completeness, or a public temporal model. It does not authorize LLM/RLM runtime, whole-document recursion, cross-block anchors, or promotion of candidate findings; those boundaries remain evidence-gated and source-bound.
+This proposed ADR does not establish parser readiness, legal correctness, corpus completeness, or a public temporal model. It does not authorize LLM/RLM runtime, whole-document recursion, cross-block anchors, or promotion of candidate findings; those boundaries remain evidence-gated and source-bound. D516 does not mint Rust classification enums, does not promote PP-1009 letters to NPA, does not place Constitutional Court acts on the ADR-0019 `NormativeRank` ladder, does not treat `OfficialIdentityClaim.jurisdiction` as competence, and does not rewrite `ACT_TYPE_LEMMAS` in `local_grammar.rs`.
 
 ## M205/S04 reconciliation companion [proposed]
 

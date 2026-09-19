@@ -1,0 +1,3213 @@
+{
+  "adaptation": {
+    "coding_unit": "one complete reference occurrence, or one complete edition-list series diagnosed across adjacent same-document blocks",
+    "context": "typed adjacent_blocks / open_series_head (D385), never a merged span",
+    "do_not_rewrite_m207_codebook": true,
+    "human_pilot": "do not run two-pass coding on incomplete-series-member or orphan-tail units",
+    "keep_frozen_seed": true,
+    "not_gold": true
+  },
+  "authoritative": false,
+  "counts": {
+    "coding_verdict": {
+      "complete-ed-note": 36,
+      "document-title": 17,
+      "in-text-cite": 32,
+      "incomplete-series-member": 20,
+      "not-norm-reference": 8,
+      "operative-text-not-cite": 6,
+      "orphan-tail": 11,
+      "other-needs-coder": 50
+    },
+    "duplicate_groups": 28,
+    "fragments": 180,
+    "genre": {
+      "amending-operative": 8,
+      "consultant-ed-note": 46,
+      "full-title": 17,
+      "intra-or-anaphora": 32,
+      "orphan-tail": 21,
+      "other": 50,
+      "power-of-attorney": 8,
+      "truncated-list": 31
+    },
+    "note_kind": {
+      "enacting": 118,
+      "provider_note": 62
+    },
+    "pilot_cases": 40,
+    "pilot_unique_texts": 37,
+    "series": 10,
+    "series_members": 27,
+    "unique_texts": 143
+  },
+  "duplicates": [
+    {
+      "byte_len": 874,
+      "fragment_ids": [
+        "npa-frag-001",
+        "npa-frag-004"
+      ]
+    },
+    {
+      "byte_len": 739,
+      "fragment_ids": [
+        "npa-frag-002",
+        "npa-frag-005"
+      ]
+    },
+    {
+      "byte_len": 90,
+      "fragment_ids": [
+        "npa-frag-003",
+        "npa-frag-006"
+      ]
+    },
+    {
+      "byte_len": 1562,
+      "fragment_ids": [
+        "npa-frag-007",
+        "npa-frag-012"
+      ]
+    },
+    {
+      "byte_len": 811,
+      "fragment_ids": [
+        "npa-frag-008",
+        "npa-frag-013"
+      ]
+    },
+    {
+      "byte_len": 637,
+      "fragment_ids": [
+        "npa-frag-009",
+        "npa-frag-014"
+      ]
+    },
+    {
+      "byte_len": 939,
+      "fragment_ids": [
+        "npa-frag-010",
+        "npa-frag-015"
+      ]
+    },
+    {
+      "byte_len": 443,
+      "fragment_ids": [
+        "npa-frag-011",
+        "npa-frag-016"
+      ]
+    },
+    {
+      "byte_len": 87,
+      "fragment_ids": [
+        "npa-frag-017",
+        "npa-frag-022"
+      ]
+    },
+    {
+      "byte_len": 87,
+      "fragment_ids": [
+        "npa-frag-018",
+        "npa-frag-023"
+      ]
+    },
+    {
+      "byte_len": 88,
+      "fragment_ids": [
+        "npa-frag-019",
+        "npa-frag-024"
+      ]
+    },
+    {
+      "byte_len": 165,
+      "fragment_ids": [
+        "npa-frag-020",
+        "npa-frag-025"
+      ]
+    },
+    {
+      "byte_len": 165,
+      "fragment_ids": [
+        "npa-frag-021",
+        "npa-frag-026"
+      ]
+    },
+    {
+      "byte_len": 128,
+      "fragment_ids": [
+        "npa-frag-028",
+        "npa-frag-032"
+      ]
+    },
+    {
+      "byte_len": 94,
+      "fragment_ids": [
+        "npa-frag-029",
+        "npa-frag-033"
+      ]
+    },
+    {
+      "byte_len": 287,
+      "fragment_ids": [
+        "npa-frag-030",
+        "npa-frag-034"
+      ]
+    },
+    {
+      "byte_len": 1771,
+      "fragment_ids": [
+        "npa-frag-031",
+        "npa-frag-035"
+      ]
+    },
+    {
+      "byte_len": 358,
+      "fragment_ids": [
+        "npa-frag-037",
+        "npa-frag-040",
+        "npa-frag-043"
+      ]
+    },
+    {
+      "byte_len": 87,
+      "fragment_ids": [
+        "npa-frag-038",
+        "npa-frag-041",
+        "npa-frag-044"
+      ]
+    },
+    {
+      "byte_len": 87,
+      "fragment_ids": [
+        "npa-frag-039",
+        "npa-frag-042",
+        "npa-frag-045"
+      ]
+    },
+    {
+      "byte_len": 21,
+      "fragment_ids": [
+        "npa-frag-052",
+        "npa-frag-053",
+        "npa-frag-054"
+      ]
+    },
+    {
+      "byte_len": 84,
+      "fragment_ids": [
+        "npa-frag-076",
+        "npa-frag-077",
+        "npa-frag-078",
+        "npa-frag-079"
+      ]
+    },
+    {
+      "byte_len": 94,
+      "fragment_ids": [
+        "npa-frag-091",
+        "npa-frag-093"
+      ]
+    },
+    {
+      "byte_len": 70,
+      "fragment_ids": [
+        "npa-frag-092",
+        "npa-frag-094"
+      ]
+    },
+    {
+      "byte_len": 95,
+      "fragment_ids": [
+        "npa-frag-101",
+        "npa-frag-102"
+      ]
+    },
+    {
+      "byte_len": 94,
+      "fragment_ids": [
+        "npa-frag-104",
+        "npa-frag-105",
+        "npa-frag-106",
+        "npa-frag-107",
+        "npa-frag-108"
+      ]
+    },
+    {
+      "byte_len": 71,
+      "fragment_ids": [
+        "npa-frag-117",
+        "npa-frag-118"
+      ]
+    },
+    {
+      "byte_len": 81,
+      "fragment_ids": [
+        "npa-frag-168",
+        "npa-frag-169"
+      ]
+    }
+  ],
+  "edition_series": [
+    {
+      "block_indices": [
+        13,
+        14,
+        15,
+        16
+      ],
+      "cross_block_text_anchor": false,
+      "display_join_only": true,
+      "doc_id": "npa-doc-015",
+      "doc_type": "order",
+      "family": "npa",
+      "fragment_ids": [
+        "npa-frag-061",
+        "npa-frag-062",
+        "npa-frag-063",
+        "npa-frag-064"
+      ],
+      "in_m207_pilot": false,
+      "joined_byte_len": 277,
+      "joined_preview": "(в ред. Приказов Росгидромета от 18.07.2014 N 426,от 28.10.2015 N 660, от 19.11.2015 N 718, от 20.01.2016 N 7,от 30.06.2016 N 232, от 21.11.2016 N 535, от 26.12.2016 N 607,от 17.09",
+      "kind": "consultant-edition-list",
+      "member_count": 4
+    },
+    {
+      "block_indices": [
+        9,
+        10
+      ],
+      "cross_block_text_anchor": false,
+      "display_join_only": true,
+      "doc_id": "npa-doc-016",
+      "doc_type": "order",
+      "family": "npa",
+      "fragment_ids": [
+        "npa-frag-066",
+        "npa-frag-067"
+      ],
+      "in_m207_pilot": false,
+      "joined_byte_len": 133,
+      "joined_preview": "(в ред. Приказов Роструда от 20.07.2018 N 408,от 17.03.2022 N 59, от 08.02.2023 N 29, от 19.02.2024 N 32)",
+      "kind": "consultant-edition-list",
+      "member_count": 2
+    },
+    {
+      "block_indices": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "cross_block_text_anchor": false,
+      "display_join_only": true,
+      "doc_id": "npa-doc-017",
+      "doc_type": "order",
+      "family": "npa",
+      "fragment_ids": [
+        "npa-frag-071",
+        "npa-frag-072",
+        "npa-frag-073",
+        "npa-frag-074"
+      ],
+      "in_m207_pilot": false,
+      "joined_byte_len": 302,
+      "joined_preview": "(в ред. Приказов Минэкономразвития России от 29.04.2014 N 239,от 27.05.2014 N 300, от 25.08.2014 N 502, от 07.02.2017 N 44,от 20.11.2019 N 756, от 15.05.2020 N 284, от 20.10.2020 N",
+      "kind": "consultant-edition-list",
+      "member_count": 4
+    },
+    {
+      "block_indices": [
+        20,
+        21
+      ],
+      "cross_block_text_anchor": false,
+      "display_join_only": true,
+      "doc_id": "npa-doc-019",
+      "doc_type": "resolution",
+      "family": "npa",
+      "fragment_ids": [
+        "npa-frag-081",
+        "npa-frag-082"
+      ],
+      "in_m207_pilot": true,
+      "joined_byte_len": 116,
+      "joined_preview": "(в ред. Постановлений Правительства РФ от 08.12.2008 N 929,от 30.11.2017 N 1452)",
+      "kind": "consultant-edition-list",
+      "member_count": 2
+    },
+    {
+      "block_indices": [
+        11,
+        12
+      ],
+      "cross_block_text_anchor": false,
+      "display_join_only": true,
+      "doc_id": "npa-doc-020",
+      "doc_type": "resolution",
+      "family": "npa",
+      "fragment_ids": [
+        "npa-frag-086",
+        "npa-frag-087"
+      ],
+      "in_m207_pilot": false,
+      "joined_byte_len": 116,
+      "joined_preview": "(в ред. Постановлений Правительства РФ от 25.12.2014 N 1489,от 14.04.2017 N 446)",
+      "kind": "consultant-edition-list",
+      "member_count": 2
+    },
+    {
+      "block_indices": [
+        9,
+        10
+      ],
+      "cross_block_text_anchor": false,
+      "display_join_only": true,
+      "doc_id": "npa-doc-021",
+      "doc_type": "resolution",
+      "family": "npa",
+      "fragment_ids": [
+        "npa-frag-091",
+        "npa-frag-092"
+      ],
+      "in_m207_pilot": true,
+      "joined_byte_len": 164,
+      "joined_preview": "(в ред. Постановлений Правительства РФ от 03.12.2014 N 1298,от 25.12.2014 N 1489, от 04.09.2015 N 941, от 08.09.2018 N 1077)",
+      "kind": "consultant-edition-list",
+      "member_count": 2
+    },
+    {
+      "block_indices": [
+        28,
+        29
+      ],
+      "cross_block_text_anchor": false,
+      "display_join_only": true,
+      "doc_id": "npa-doc-021",
+      "doc_type": "resolution",
+      "family": "npa",
+      "fragment_ids": [
+        "npa-frag-093",
+        "npa-frag-094"
+      ],
+      "in_m207_pilot": false,
+      "joined_byte_len": 164,
+      "joined_preview": "(в ред. Постановлений Правительства РФ от 03.12.2014 N 1298,от 25.12.2014 N 1489, от 04.09.2015 N 941, от 08.09.2018 N 1077)",
+      "kind": "consultant-edition-list",
+      "member_count": 2
+    },
+    {
+      "block_indices": [
+        11,
+        12,
+        13,
+        14
+      ],
+      "cross_block_text_anchor": false,
+      "display_join_only": true,
+      "doc_id": "npa-doc-022",
+      "doc_type": "resolution",
+      "family": "npa",
+      "fragment_ids": [
+        "npa-frag-096",
+        "npa-frag-097",
+        "npa-frag-098",
+        "npa-frag-099"
+      ],
+      "in_m207_pilot": true,
+      "joined_byte_len": 301,
+      "joined_preview": "(в ред. Постановлений Правительства РФ от 09.12.2014 N 1339,от 02.04.2015 N 308, от 15.01.2018 N 11, от 29.05.2018 N 608,от 30.06.2018 N 768, от 18.07.2019 N 920, от 20.12.2021 N 2",
+      "kind": "consultant-edition-list",
+      "member_count": 4
+    },
+    {
+      "block_indices": [
+        6,
+        7,
+        8
+      ],
+      "cross_block_text_anchor": false,
+      "display_join_only": true,
+      "doc_id": "npa-doc-025",
+      "doc_type": "directive",
+      "family": "npa",
+      "fragment_ids": [
+        "npa-frag-110",
+        "npa-frag-111",
+        "npa-frag-112"
+      ],
+      "in_m207_pilot": false,
+      "joined_byte_len": 224,
+      "joined_preview": "(в ред. распоряжений Правительства РФ от 17.03.2016 N 444-р,от 28.06.2017 N 1347-р, от 16.03.2018 N 442-р, от 18.03.2019 N 452-р,от 28.02.2020 N 455-р, от 15.05.2021 N 1257-р)",
+      "kind": "consultant-edition-list",
+      "member_count": 3
+    },
+    {
+      "block_indices": [
+        12,
+        13
+      ],
+      "cross_block_text_anchor": false,
+      "display_join_only": true,
+      "doc_id": "npa-doc-026",
+      "doc_type": "decree-document",
+      "family": "npa",
+      "fragment_ids": [
+        "npa-frag-115",
+        "npa-frag-116"
+      ],
+      "in_m207_pilot": true,
+      "joined_byte_len": 141,
+      "joined_preview": "(в ред. Указов Президента РФ от 02.09.2021 N 510,от 11.11.2021 N 641, от 30.12.2021 N 747, от 08.07.2024 N 577)",
+      "kind": "consultant-edition-list",
+      "member_count": 2
+    }
+  ],
+  "fragments": [
+    {
+      "byte_len": 874,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-001",
+      "fragment_id": "npa-frag-001",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 73,
+      "text_sha256": "24b9ac09f1e7732e8b3a1ddbda692ecae3824845b6137bb1a013cabc0fd9da51",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 739,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-001",
+      "fragment_id": "npa-frag-002",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 77,
+      "text_sha256": "154b15553306bef8c42f4761e662154aa2f6e2487fec0f559408b24a1f164783",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 90,
+      "coding_verdict": "operative-text-not-cite",
+      "doc_id": "npa-doc-001",
+      "fragment_id": "npa-frag-003",
+      "genre": [
+        "amending-operative"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 549,
+      "text_sha256": "0d6ae2547c569277b12cb3f27485473da811e91b0fbec4a317a31509a481ea61",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 874,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-002",
+      "fragment_id": "npa-frag-004",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 65,
+      "text_sha256": "24b9ac09f1e7732e8b3a1ddbda692ecae3824845b6137bb1a013cabc0fd9da51",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 739,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-002",
+      "fragment_id": "npa-frag-005",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 69,
+      "text_sha256": "154b15553306bef8c42f4761e662154aa2f6e2487fec0f559408b24a1f164783",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 90,
+      "coding_verdict": "operative-text-not-cite",
+      "doc_id": "npa-doc-002",
+      "fragment_id": "npa-frag-006",
+      "genre": [
+        "amending-operative"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 539,
+      "text_sha256": "0d6ae2547c569277b12cb3f27485473da811e91b0fbec4a317a31509a481ea61",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1562,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-003",
+      "fragment_id": "npa-frag-007",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 59,
+      "text_sha256": "804d50525f6e41486856e5af25cee012b1b85c140542fde1acd2f64c255283c3",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 811,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-003",
+      "fragment_id": "npa-frag-008",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 63,
+      "text_sha256": "2b82dd8488a34de7513b6e0996e07c1f282ce82224f83e0fbd1b135803ee1410",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 637,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-003",
+      "fragment_id": "npa-frag-009",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 68,
+      "text_sha256": "81f011f5ca12a2801a478600cce2327b4274d629ea0393d3bd397c0af8320173",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 939,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-003",
+      "fragment_id": "npa-frag-010",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 69,
+      "text_sha256": "4bff013e49cb08c469d79474e6a8abcfd3b9400617914d91cc67b17b4451e63f",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 443,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-003",
+      "fragment_id": "npa-frag-011",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 90,
+      "text_sha256": "f90ab72b9810973e7eb3bc44d518fc6d3e3f9e5030f8cf67f7695eded8765d00",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1562,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-004",
+      "fragment_id": "npa-frag-012",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 53,
+      "text_sha256": "804d50525f6e41486856e5af25cee012b1b85c140542fde1acd2f64c255283c3",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 811,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-004",
+      "fragment_id": "npa-frag-013",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 57,
+      "text_sha256": "2b82dd8488a34de7513b6e0996e07c1f282ce82224f83e0fbd1b135803ee1410",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 637,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-004",
+      "fragment_id": "npa-frag-014",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 62,
+      "text_sha256": "81f011f5ca12a2801a478600cce2327b4274d629ea0393d3bd397c0af8320173",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 939,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-004",
+      "fragment_id": "npa-frag-015",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 63,
+      "text_sha256": "4bff013e49cb08c469d79474e6a8abcfd3b9400617914d91cc67b17b4451e63f",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 443,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-004",
+      "fragment_id": "npa-frag-016",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 84,
+      "text_sha256": "f90ab72b9810973e7eb3bc44d518fc6d3e3f9e5030f8cf67f7695eded8765d00",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-005",
+      "fragment_id": "npa-frag-017",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 45,
+      "text_sha256": "ee2a54b2448fa69204c7019590b30765ef558907e45a3cd847a271279755c3e8",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-005",
+      "fragment_id": "npa-frag-018",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 49,
+      "text_sha256": "e3890c3e4c8d802065129b0e0484ba8ad2f52d3f9850077dc6d28b038584567d",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 88,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-005",
+      "fragment_id": "npa-frag-019",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 74,
+      "text_sha256": "d9c00d717d1b344b2f570e26d00e70e6333de6cc9a5a921df3ab0111bab3a19d",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 165,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-005",
+      "fragment_id": "npa-frag-020",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 84,
+      "text_sha256": "03f9521c079bcfe378b6e02ee2dec615d86dce1d7f5ae6a5cc6aab9efaaa6fcc",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 165,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-005",
+      "fragment_id": "npa-frag-021",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 86,
+      "text_sha256": "97fa64e871b0cafa0502f7175c6e6be06a04411ef9bdebced00c684d0fe5e9c6",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-006",
+      "fragment_id": "npa-frag-022",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 54,
+      "text_sha256": "ee2a54b2448fa69204c7019590b30765ef558907e45a3cd847a271279755c3e8",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-006",
+      "fragment_id": "npa-frag-023",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 58,
+      "text_sha256": "e3890c3e4c8d802065129b0e0484ba8ad2f52d3f9850077dc6d28b038584567d",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 88,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-006",
+      "fragment_id": "npa-frag-024",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 87,
+      "text_sha256": "d9c00d717d1b344b2f570e26d00e70e6333de6cc9a5a921df3ab0111bab3a19d",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 165,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-006",
+      "fragment_id": "npa-frag-025",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 97,
+      "text_sha256": "03f9521c079bcfe378b6e02ee2dec615d86dce1d7f5ae6a5cc6aab9efaaa6fcc",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 165,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-006",
+      "fragment_id": "npa-frag-026",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 99,
+      "text_sha256": "97fa64e871b0cafa0502f7175c6e6be06a04411ef9bdebced00c684d0fe5e9c6",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-007",
+      "fragment_id": "npa-frag-027",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 22,
+      "text_sha256": "6b6acaff4afa2a325454d41ee5b35e2a49ab2e08eea3cbf2ccfe9d34d6fea51b",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 128,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-007",
+      "fragment_id": "npa-frag-028",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 77,
+      "text_sha256": "5ed55f1184330fefd13283f291b11c09583b553c9fbe81ab712b0432c05d7b80",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-007",
+      "fragment_id": "npa-frag-029",
+      "genre": [
+        "amending-operative",
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 113,
+      "text_sha256": "8d984acc9a6f893725e19657f156251241c2b41cf6fd8beaab5570c8add18ee4",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 287,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-007",
+      "fragment_id": "npa-frag-030",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 119,
+      "text_sha256": "0603491de070dc3c6ca8874df8b938a693da81c43074de47b7a9b5e2a01f3484",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1771,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-007",
+      "fragment_id": "npa-frag-031",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 130,
+      "text_sha256": "82430e5b4a5801e3bcdc014151754309aa65e3dfc0492c0c73b357f46fca3e5b",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 128,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-008",
+      "fragment_id": "npa-frag-032",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 70,
+      "text_sha256": "5ed55f1184330fefd13283f291b11c09583b553c9fbe81ab712b0432c05d7b80",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-008",
+      "fragment_id": "npa-frag-033",
+      "genre": [
+        "amending-operative",
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 106,
+      "text_sha256": "8d984acc9a6f893725e19657f156251241c2b41cf6fd8beaab5570c8add18ee4",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 287,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-008",
+      "fragment_id": "npa-frag-034",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 112,
+      "text_sha256": "0603491de070dc3c6ca8874df8b938a693da81c43074de47b7a9b5e2a01f3484",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1771,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-008",
+      "fragment_id": "npa-frag-035",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 123,
+      "text_sha256": "82430e5b4a5801e3bcdc014151754309aa65e3dfc0492c0c73b357f46fca3e5b",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 92,
+      "coding_verdict": "operative-text-not-cite",
+      "doc_id": "npa-doc-008",
+      "fragment_id": "npa-frag-036",
+      "genre": [
+        "amending-operative"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 340,
+      "text_sha256": "9c0ee7f10f3772e3b1fef4fbfb5692d4a0b26b4a20981f9c42e0c655b8c417f4",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 358,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-009",
+      "fragment_id": "npa-frag-037",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 29,
+      "text_sha256": "934c8310a71213b133e477b47bd8e7df5e4cde7c0e202cf2873a2fd6259bcef2",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-009",
+      "fragment_id": "npa-frag-038",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 360,
+      "text_sha256": "3e758a63c3fd643205bb600090afff53a1caebb18986429e4415ff483c427c5e",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-009",
+      "fragment_id": "npa-frag-039",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 898,
+      "text_sha256": "52a7e2f331f6cecb1c0b3108e920f32bcd628e46f494fbee59467c65010e2a0e",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 358,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-010",
+      "fragment_id": "npa-frag-040",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 32,
+      "text_sha256": "934c8310a71213b133e477b47bd8e7df5e4cde7c0e202cf2873a2fd6259bcef2",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-010",
+      "fragment_id": "npa-frag-041",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 371,
+      "text_sha256": "3e758a63c3fd643205bb600090afff53a1caebb18986429e4415ff483c427c5e",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-010",
+      "fragment_id": "npa-frag-042",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 911,
+      "text_sha256": "52a7e2f331f6cecb1c0b3108e920f32bcd628e46f494fbee59467c65010e2a0e",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 358,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-011",
+      "fragment_id": "npa-frag-043",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 33,
+      "text_sha256": "934c8310a71213b133e477b47bd8e7df5e4cde7c0e202cf2873a2fd6259bcef2",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-011",
+      "fragment_id": "npa-frag-044",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 373,
+      "text_sha256": "3e758a63c3fd643205bb600090afff53a1caebb18986429e4415ff483c427c5e",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-011",
+      "fragment_id": "npa-frag-045",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 926,
+      "text_sha256": "52a7e2f331f6cecb1c0b3108e920f32bcd628e46f494fbee59467c65010e2a0e",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 24,
+      "coding_verdict": "orphan-tail",
+      "doc_id": "npa-doc-012",
+      "fragment_id": "npa-frag-046",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 59,
+      "text_sha256": "4de5d488c3dd4c138b872fccbb6ae7fe8d2b8685c3947f2c0afef17db4c446ec",
+      "trunc_flags": [
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-012",
+      "fragment_id": "npa-frag-047",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 88,
+      "text_sha256": "73841eedfe8f6bf06a67d9788ee84392a34ee7198c6544e5d58b5a6680c3cd6c",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-012",
+      "fragment_id": "npa-frag-048",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 119,
+      "text_sha256": "4794c7a7b6e6e14f9eaad426ab2f9bc7031e44af73581ac6f6d6f49dc85d2212",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 164,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-012",
+      "fragment_id": "npa-frag-049",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 126,
+      "text_sha256": "d366c64037e50869833ebda9ffa47a8c9f004b103187c74e3c237073bc9724f5",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 220,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-012",
+      "fragment_id": "npa-frag-050",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 130,
+      "text_sha256": "f2191564e2387ff75bb2c3a2e50b21a03d085c48755e1fd6720888d689419732",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 456,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-013",
+      "fragment_id": "npa-frag-051",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "d7218139f39f8fe14f689a7a64c1ebdf0ad29fe3adba43fa711d4458a33347c3",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 21,
+      "coding_verdict": "orphan-tail",
+      "doc_id": "npa-doc-013",
+      "fragment_id": "npa-frag-052",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 180,
+      "text_sha256": "3485298034c7d341d16d7edca2165611cd63a6187ea79002c11dd2c5b6e78fcb",
+      "trunc_flags": [
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 21,
+      "coding_verdict": "orphan-tail",
+      "doc_id": "npa-doc-013",
+      "fragment_id": "npa-frag-053",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 208,
+      "text_sha256": "3485298034c7d341d16d7edca2165611cd63a6187ea79002c11dd2c5b6e78fcb",
+      "trunc_flags": [
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 21,
+      "coding_verdict": "orphan-tail",
+      "doc_id": "npa-doc-013",
+      "fragment_id": "npa-frag-054",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 248,
+      "text_sha256": "3485298034c7d341d16d7edca2165611cd63a6187ea79002c11dd2c5b6e78fcb",
+      "trunc_flags": [
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 213,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-013",
+      "fragment_id": "npa-frag-055",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 288,
+      "text_sha256": "4829866d07cb31f7c22cdda5464af96616362f837dbb77a74a7297d7fc8b28a9",
+      "trunc_flags": [
+        "ellipsis"
+      ]
+    },
+    {
+      "byte_len": 223,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-014",
+      "fragment_id": "npa-frag-056",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "191902f2d41f4c433a815f708951730be6eb809b1eafcdf62a8d46e8e307600a",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 156,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-014",
+      "fragment_id": "npa-frag-057",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 10,
+      "text_sha256": "c4ff788bf47e8a5b52f243ac3f3e2d6dca49eb641a897688ad05c0f8e0f710b0",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 194,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-014",
+      "fragment_id": "npa-frag-058",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 38,
+      "text_sha256": "88d7a887015ef3aa23aae0813138d634986236153b11e915e989325ce0e163a4",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 213,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-014",
+      "fragment_id": "npa-frag-059",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 147,
+      "text_sha256": "a8bc9374313e02472b29646f5b77a18242a8cd44558b1ba12438a65f50066782",
+      "trunc_flags": [
+        "ellipsis"
+      ]
+    },
+    {
+      "byte_len": 888,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-015",
+      "fragment_id": "npa-frag-060",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "0cfee5a6f9dc1dac2916559c924c5e93dc17a67612733000f4edff786ef0002b",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 76,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-015",
+      "fragment_id": "npa-frag-061",
+      "genre": [
+        "consultant-ed-note",
+        "truncated-list"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 13,
+      "text_sha256": "b7248aabbdd9a90175795d3c8f1271fea1bf80691370bcea6f04b97f262d44d2",
+      "trunc_flags": [
+        "ends-comma",
+        "unclosed-paren",
+        "ed-note-open"
+      ]
+    },
+    {
+      "byte_len": 66,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-015",
+      "fragment_id": "npa-frag-062",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 14,
+      "text_sha256": "e8deea4be29c455b89e9302574470a35429e081730296bd1fa9d1876c235cb5e",
+      "trunc_flags": [
+        "ends-comma",
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 68,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-015",
+      "fragment_id": "npa-frag-063",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 15,
+      "text_sha256": "d9edb8e54ab765c6c8ac0957b1958c7bf62f6b2bb242d784fb66788bdc89c456",
+      "trunc_flags": [
+        "ends-comma",
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 67,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-015",
+      "fragment_id": "npa-frag-064",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 16,
+      "text_sha256": "0c000bf9431af197e7feaf7287e1c6c600e096e97d3065e1f04c4e1637e302b5",
+      "trunc_flags": [
+        "ends-comma",
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 206,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-016",
+      "fragment_id": "npa-frag-065",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "79c370803daf49bb35a4aa4570cbc0630d4602dc8fc1110000a8f3b9a9c4c7d0",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 68,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-016",
+      "fragment_id": "npa-frag-066",
+      "genre": [
+        "consultant-ed-note",
+        "truncated-list"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 9,
+      "text_sha256": "932cb882fe834789a9a41a2f7b096e1b24b0ff78fdbf78be33fb10942b475561",
+      "trunc_flags": [
+        "ends-comma",
+        "unclosed-paren",
+        "ed-note-open"
+      ]
+    },
+    {
+      "byte_len": 65,
+      "coding_verdict": "orphan-tail",
+      "doc_id": "npa-doc-016",
+      "fragment_id": "npa-frag-067",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 10,
+      "text_sha256": "5794586e7b039dfca0552be88d95240f18aac242fe81279da29bc5d4fd05eb63",
+      "trunc_flags": [
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 71,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-016",
+      "fragment_id": "npa-frag-068",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 17,
+      "text_sha256": "6fba77b4563970451aaf71c29d70532c4ac36e2af5c815339255587b16bf6e6b",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 71,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-016",
+      "fragment_id": "npa-frag-069",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 20,
+      "text_sha256": "e70d00a8c07ad55831101ac8c73deb6113f02778cd3df3b12f2994e5dcc8e9de",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 258,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-017",
+      "fragment_id": "npa-frag-070",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "992045c07bf254e120ff6964fbc50318596e2baf63377ebbc1a076721092c962",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 99,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-017",
+      "fragment_id": "npa-frag-071",
+      "genre": [
+        "consultant-ed-note",
+        "truncated-list"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 8,
+      "text_sha256": "279b04d471b79454293d35b1ed7b247d42692c652a9f4606eabea0514b718d2f",
+      "trunc_flags": [
+        "ends-comma",
+        "unclosed-paren",
+        "ed-note-open"
+      ]
+    },
+    {
+      "byte_len": 67,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-017",
+      "fragment_id": "npa-frag-072",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 9,
+      "text_sha256": "085b7ff0aea407b40426abdb8ff950e9f47a7fa06d90999640d01f07bb2ba784",
+      "trunc_flags": [
+        "ends-comma",
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 68,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-017",
+      "fragment_id": "npa-frag-073",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 10,
+      "text_sha256": "fbee92476f56986332622bc90ee18a31ecbec99fb67feed1442fd2171c5a141c",
+      "trunc_flags": [
+        "ends-comma",
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 68,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-017",
+      "fragment_id": "npa-frag-074",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 11,
+      "text_sha256": "7bff934381078a0a2f863e24997825050825d3fc218e45be2c583a2f748c88f5",
+      "trunc_flags": [
+        "ends-comma",
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 491,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-018",
+      "fragment_id": "npa-frag-075",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "7a5c88aed9c9b130e00708ada91ea4b1c9f770aa11f0510ea8a08b8586bc572a",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 84,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-018",
+      "fragment_id": "npa-frag-076",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 11,
+      "text_sha256": "d3453650e06b0d2deaad1696c2b802faf1dff954460a187d5de71dd4b8d09f23",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 84,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-018",
+      "fragment_id": "npa-frag-077",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 16,
+      "text_sha256": "d3453650e06b0d2deaad1696c2b802faf1dff954460a187d5de71dd4b8d09f23",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 84,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-018",
+      "fragment_id": "npa-frag-078",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 30,
+      "text_sha256": "d3453650e06b0d2deaad1696c2b802faf1dff954460a187d5de71dd4b8d09f23",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 84,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-018",
+      "fragment_id": "npa-frag-079",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 76,
+      "text_sha256": "d3453650e06b0d2deaad1696c2b802faf1dff954460a187d5de71dd4b8d09f23",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1291,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-019",
+      "fragment_id": "npa-frag-080",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "e9e2f9421ca2902b0381186b30a8524adf3a06c55787cd8ad289af81fe31a761",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 93,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-019",
+      "fragment_id": "npa-frag-081",
+      "genre": [
+        "consultant-ed-note",
+        "truncated-list"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 20,
+      "text_sha256": "e05e8992b676e3b61d4fca1386221aca7b4e7279555d875b6f066b7b7fc835ea",
+      "trunc_flags": [
+        "ends-comma",
+        "unclosed-paren",
+        "ed-note-open"
+      ]
+    },
+    {
+      "byte_len": 23,
+      "coding_verdict": "orphan-tail",
+      "doc_id": "npa-doc-019",
+      "fragment_id": "npa-frag-082",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 21,
+      "text_sha256": "b4e8252d1edfc2c8ab2a8b2378fbef37ec817094606b666e8986ea82e0fa9fb1",
+      "trunc_flags": [
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 111,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-019",
+      "fragment_id": "npa-frag-083",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 26,
+      "text_sha256": "caaed43573e956bb523b7601e287c1c94358625cea275ba426bee61f07562d6f",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-019",
+      "fragment_id": "npa-frag-084",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 43,
+      "text_sha256": "6925af02142f551426b6bd47408d13663688fa1aa64a6f7008b9676986aee976",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 543,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-020",
+      "fragment_id": "npa-frag-085",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "6fb34b3e30ed9a4badc40f2969252951a45a88a18429d86cce7b192ce03a726e",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-020",
+      "fragment_id": "npa-frag-086",
+      "genre": [
+        "consultant-ed-note",
+        "truncated-list"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 11,
+      "text_sha256": "54cbf44f9d801cf7c386965ac01eb9a823801bf5b75b28b17fb7f25a91d811b6",
+      "trunc_flags": [
+        "ends-comma",
+        "unclosed-paren",
+        "ed-note-open"
+      ]
+    },
+    {
+      "byte_len": 22,
+      "coding_verdict": "orphan-tail",
+      "doc_id": "npa-doc-020",
+      "fragment_id": "npa-frag-087",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 12,
+      "text_sha256": "a9605ecf37a3565c74618a699fedbf4d804b1c14da6c3479e4149bcca60e8a85",
+      "trunc_flags": [
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 93,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-020",
+      "fragment_id": "npa-frag-088",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 15,
+      "text_sha256": "5b5dad487faef4c5785e67ed799ec7fc36c6078038096ff368208e9553b456e9",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 100,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-020",
+      "fragment_id": "npa-frag-089",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 17,
+      "text_sha256": "78af235e35bd7220368d2905a12a907b0cedf2541e6944a97efdbce994b2901e",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 309,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-021",
+      "fragment_id": "npa-frag-090",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "493f16bf9cc4de03627478c42f89367902a8e1d8204446acb70353051783bbc4",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-021",
+      "fragment_id": "npa-frag-091",
+      "genre": [
+        "consultant-ed-note",
+        "truncated-list"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 9,
+      "text_sha256": "e664bc2206c3623331011e61e42915c7cc864319f76bdead784a561d32b6294d",
+      "trunc_flags": [
+        "ends-comma",
+        "unclosed-paren",
+        "ed-note-open"
+      ]
+    },
+    {
+      "byte_len": 70,
+      "coding_verdict": "orphan-tail",
+      "doc_id": "npa-doc-021",
+      "fragment_id": "npa-frag-092",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 10,
+      "text_sha256": "6ef7b2ddd5381212398e6fe7cb0be8c93f06c89cddedd4049421e41eda847db1",
+      "trunc_flags": [
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-021",
+      "fragment_id": "npa-frag-093",
+      "genre": [
+        "consultant-ed-note",
+        "truncated-list"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 28,
+      "text_sha256": "e664bc2206c3623331011e61e42915c7cc864319f76bdead784a561d32b6294d",
+      "trunc_flags": [
+        "ends-comma",
+        "unclosed-paren",
+        "ed-note-open"
+      ]
+    },
+    {
+      "byte_len": 70,
+      "coding_verdict": "orphan-tail",
+      "doc_id": "npa-doc-021",
+      "fragment_id": "npa-frag-094",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 29,
+      "text_sha256": "6ef7b2ddd5381212398e6fe7cb0be8c93f06c89cddedd4049421e41eda847db1",
+      "trunc_flags": [
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 1198,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-022",
+      "fragment_id": "npa-frag-095",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "de312ae2029828adcdaf4e8597dffb7db648aab3abfab62cac57c98ea6ef8c40",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-022",
+      "fragment_id": "npa-frag-096",
+      "genre": [
+        "consultant-ed-note",
+        "truncated-list"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 11,
+      "text_sha256": "3344026affdff353bb6254a11e5defaa854e06fb13a77c47d994a3c20ccfbee8",
+      "trunc_flags": [
+        "ends-comma",
+        "unclosed-paren",
+        "ed-note-open"
+      ]
+    },
+    {
+      "byte_len": 67,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-022",
+      "fragment_id": "npa-frag-097",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 12,
+      "text_sha256": "5d4bd987adee640bd1740e62974be1ee156f54ef9fd9c3be70011c8ffa2ef18b",
+      "trunc_flags": [
+        "ends-comma",
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 69,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-022",
+      "fragment_id": "npa-frag-098",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 13,
+      "text_sha256": "d8553ae66e2c9bd48e69d4a4c1bb313a9dc71085e52220c616e366925e1faaba",
+      "trunc_flags": [
+        "ends-comma",
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 71,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-022",
+      "fragment_id": "npa-frag-099",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 14,
+      "text_sha256": "da3567d48cf03b624421856a7e0daa9fc850d261d4c835a1236145f3ac0a3b25",
+      "trunc_flags": [
+        "ends-comma",
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 445,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-023",
+      "fragment_id": "npa-frag-100",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "149ef7815bf3c0c1f17e033132447c3693e5add1c93642acc41d50f7b311206b",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 95,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-023",
+      "fragment_id": "npa-frag-101",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 6,
+      "text_sha256": "742bae1518fa9e293442c784948e2a4f4f41e5f24452910d4ff6c666e58761e8",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 95,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-023",
+      "fragment_id": "npa-frag-102",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 23,
+      "text_sha256": "742bae1518fa9e293442c784948e2a4f4f41e5f24452910d4ff6c666e58761e8",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 194,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-023",
+      "fragment_id": "npa-frag-103",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 139,
+      "text_sha256": "27f47f86b796c1ea0e1208028fd64d8e7aed6b73d9cf3fc3b9aaac831da87215",
+      "trunc_flags": [
+        "ellipsis"
+      ]
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-024",
+      "fragment_id": "npa-frag-104",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 4,
+      "text_sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-024",
+      "fragment_id": "npa-frag-105",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 8,
+      "text_sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-024",
+      "fragment_id": "npa-frag-106",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 10,
+      "text_sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-024",
+      "fragment_id": "npa-frag-107",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 12,
+      "text_sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-024",
+      "fragment_id": "npa-frag-108",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 14,
+      "text_sha256": "46ad7dd5074803efcafe894e36906d23be54f8e7edd501cbcdb903608fdba216",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 423,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-025",
+      "fragment_id": "npa-frag-109",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "abae93be8fbeb0b665bc29624b27bd866e9ec5018fda67975fecfab126e7b5f2",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 94,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-025",
+      "fragment_id": "npa-frag-110",
+      "genre": [
+        "consultant-ed-note",
+        "truncated-list"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 6,
+      "text_sha256": "5fe246d20ca7829edb711946ffd4f8e5d9d5e7149e9bf1ece0ab676458aee6d1",
+      "trunc_flags": [
+        "ends-comma",
+        "unclosed-paren",
+        "ed-note-open"
+      ]
+    },
+    {
+      "byte_len": 78,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-025",
+      "fragment_id": "npa-frag-111",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 7,
+      "text_sha256": "3e0a63941ddb57a92be7fc696c3f5046dca074d6ae15c6031ed7eed0f26d9e41",
+      "trunc_flags": [
+        "ends-comma",
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 52,
+      "coding_verdict": "orphan-tail",
+      "doc_id": "npa-doc-025",
+      "fragment_id": "npa-frag-112",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 8,
+      "text_sha256": "a84ee22d4533693a5f84d6d0c8aab34c4f53c0200cda26bc34193dce6a66c951",
+      "trunc_flags": [
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 95,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-025",
+      "fragment_id": "npa-frag-113",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 11,
+      "text_sha256": "328b5eea9c712c7873c05beba22774dfc5c053c5a00872869531c3bc2814d068",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 510,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-026",
+      "fragment_id": "npa-frag-114",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 0,
+      "text_sha256": "949653f1629c95cdd0751018cc0f106cf6eaf21ac92ce646152c7f7038d19d65",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 73,
+      "coding_verdict": "incomplete-series-member",
+      "doc_id": "npa-doc-026",
+      "fragment_id": "npa-frag-115",
+      "genre": [
+        "consultant-ed-note",
+        "truncated-list"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 12,
+      "text_sha256": "4014046ebbd29f66b029c2855f77bc559e992c1d150cfb40b6682032343ab061",
+      "trunc_flags": [
+        "ends-comma",
+        "unclosed-paren",
+        "ed-note-open"
+      ]
+    },
+    {
+      "byte_len": 68,
+      "coding_verdict": "orphan-tail",
+      "doc_id": "npa-doc-026",
+      "fragment_id": "npa-frag-116",
+      "genre": [
+        "truncated-list",
+        "orphan-tail"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 13,
+      "text_sha256": "3f52ccffd17a5849524fa2069c2b6579d62cd4362e22e8202780ead0321f43da",
+      "trunc_flags": [
+        "starts-ot-date"
+      ]
+    },
+    {
+      "byte_len": 71,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-026",
+      "fragment_id": "npa-frag-117",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "enacting",
+      "source_block_index": 15,
+      "text_sha256": "c0b448fad20bc05c6292841e048a6c571fc579725fbb2d7c66494c4344dae19d",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 71,
+      "coding_verdict": "complete-ed-note",
+      "doc_id": "npa-doc-026",
+      "fragment_id": "npa-frag-118",
+      "genre": [
+        "consultant-ed-note"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "enacting",
+      "source_block_index": 17,
+      "text_sha256": "c0b448fad20bc05c6292841e048a6c571fc579725fbb2d7c66494c4344dae19d",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 2339,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-027",
+      "fragment_id": "npa-frag-119",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 25,
+      "text_sha256": "6f2ee229ba18207031807a3c07b690da7625734a3c98da10e75b530b53fd5970",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 864,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-027",
+      "fragment_id": "npa-frag-120",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 27,
+      "text_sha256": "0e294976e923f84d87f5ca6653592af38f4f15c3e2c1467a4ca8249d2312cda3",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1110,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-027",
+      "fragment_id": "npa-frag-121",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 33,
+      "text_sha256": "89816ccc223f1ab4738fff6f3fca16dabbd199ee79106be59b6d8809ba0f9543",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 371,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-027",
+      "fragment_id": "npa-frag-122",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "provider_note",
+      "source_block_index": 48,
+      "text_sha256": "dc90e26e0418308fb7b9ffd35f1da737bcc9d8293fd2fa46c207d26249dd86e9",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 864,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-027",
+      "fragment_id": "npa-frag-123",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "provider_note",
+      "source_block_index": 51,
+      "text_sha256": "029d47acb108d020395e145358faaf17f4a37b58182bb4de26387fb9b0ad6952",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 245,
+      "coding_verdict": "not-norm-reference",
+      "doc_id": "npa-doc-028",
+      "fragment_id": "npa-frag-124",
+      "genre": [
+        "power-of-attorney"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 10,
+      "text_sha256": "fdae351abd6a51fada231f34ef456db12ba755c3d9ce64e4be9a265581fcd71c",
+      "trunc_flags": [
+        "ends-comma"
+      ]
+    },
+    {
+      "byte_len": 262,
+      "coding_verdict": "not-norm-reference",
+      "doc_id": "npa-doc-028",
+      "fragment_id": "npa-frag-125",
+      "genre": [
+        "power-of-attorney"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 11,
+      "text_sha256": "933b436fd417717d1c726ed53efc2f7357ed4461182bbcee4cabf15787251399",
+      "trunc_flags": [
+        "ends-comma"
+      ]
+    },
+    {
+      "byte_len": 270,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-028",
+      "fragment_id": "npa-frag-126",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "provider_note",
+      "source_block_index": 74,
+      "text_sha256": "7f23e4b87162669a07d49628551da48319206cfa22417443eb3d549596d78a73",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1328,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-028",
+      "fragment_id": "npa-frag-127",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 75,
+      "text_sha256": "835c6c2d530a7d4e9136a7fd0e345a99a790a42c7087e9a19ad761f8c52d1fa6",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 848,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-029",
+      "fragment_id": "npa-frag-128",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 43,
+      "text_sha256": "4cab9732aa243d692c843abb51add8aeef6b9a185917c8c336abbd40a50a6a86",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 733,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-029",
+      "fragment_id": "npa-frag-129",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 48,
+      "text_sha256": "07d96352d1544a57ca18bd5ef501d02d73c19556a3d255903f00fd0ffd0a04eb",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 382,
+      "coding_verdict": "document-title",
+      "doc_id": "npa-doc-029",
+      "fragment_id": "npa-frag-130",
+      "genre": [
+        "full-title"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 57,
+      "text_sha256": "9fe8f032f7e468644a9fd160b53095bf0ba4c623cc342ec9e6fa308a9ec928ce",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1330,
+      "coding_verdict": "not-norm-reference",
+      "doc_id": "npa-doc-030",
+      "fragment_id": "npa-frag-131",
+      "genre": [
+        "power-of-attorney"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 8,
+      "text_sha256": "d462f3c0cbe0dfdc6703faafa020420b0fc1096b865f44ca286ec7719e928bbe",
+      "trunc_flags": [
+        "ends-comma"
+      ]
+    },
+    {
+      "byte_len": 2366,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-030",
+      "fragment_id": "npa-frag-132",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "provider_note",
+      "source_block_index": 37,
+      "text_sha256": "918f9e47f799c20b7a6e822e563bf67234d70dc0a4db965ffc43cd30a6b5525e",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 528,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-030",
+      "fragment_id": "npa-frag-133",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 40,
+      "text_sha256": "df1241081913757425b2c8ac7fa66718250eb9d3a36feda9b2f03b9a08952d28",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1106,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-030",
+      "fragment_id": "npa-frag-134",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 41,
+      "text_sha256": "41a5caaae04521892b8c7380b357bc78ab1a491078c96f4b0eb7ef61dc68fef4",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 929,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-030",
+      "fragment_id": "npa-frag-135",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 42,
+      "text_sha256": "6641930ff15ba68014118c89a46b1b86b50186fbf9c9a3d8da08051f55cb96ea",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1020,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-031",
+      "fragment_id": "npa-frag-136",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 13,
+      "text_sha256": "b281f9817e78dceec6e6c6413a80a3df84d2f68051bd86ae32e9a702f2490ef2",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 546,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-031",
+      "fragment_id": "npa-frag-137",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 15,
+      "text_sha256": "ecda41f490ff7c332c80cf96638482c40aa4a625e873dad11fa72d62850cee88",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 616,
+      "coding_verdict": "in-text-cite",
+      "doc_id": "npa-doc-031",
+      "fragment_id": "npa-frag-138",
+      "genre": [
+        "intra-or-anaphora"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 17,
+      "text_sha256": "373ca233f86c802a77621704eac023bff8c4b4df96c3f838e847af7b2ca1811a",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 393,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-031",
+      "fragment_id": "npa-frag-139",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 23,
+      "text_sha256": "012f59558b1ec17fed1424da15dec80ebc67bc96e544d450a3fab29fe1e2eee6",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 393,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-031",
+      "fragment_id": "npa-frag-140",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "provider_note",
+      "source_block_index": 24,
+      "text_sha256": "b724711b42b01e59dbc5ec0de18cb7f24803a880e06113ae1ca59f006202772f",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1018,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-032",
+      "fragment_id": "npa-frag-141",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 13,
+      "text_sha256": "d4a919d3d613fd0467f54f934a574abbd0d6903fe13b12962e281760115e980b",
+      "trunc_flags": [
+        "ends-comma"
+      ]
+    },
+    {
+      "byte_len": 944,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-032",
+      "fragment_id": "npa-frag-142",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 15,
+      "text_sha256": "5e2b04f583281892110d54068fcf435c779d8c0aea9551c768caa769f5624ffd",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1527,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-032",
+      "fragment_id": "npa-frag-143",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 19,
+      "text_sha256": "d385d96f89df81d3694ad9c45764ee4c54c2e13bef19ed575ae12763a91018ac",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 740,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-032",
+      "fragment_id": "npa-frag-144",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 91,
+      "text_sha256": "51b7cc57c7dbfbd9ad1af4c11dee47f8710ef07b27a90ab6941a6d2a537cd9ed",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1026,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-033",
+      "fragment_id": "npa-frag-145",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 13,
+      "text_sha256": "aeec870cb97ccb405512a6a3052cf8c303bfc0bf2db0bc61e3f894b3fb980fc1",
+      "trunc_flags": [
+        "ends-comma"
+      ]
+    },
+    {
+      "byte_len": 952,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-033",
+      "fragment_id": "npa-frag-146",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 15,
+      "text_sha256": "9d7c825e55090ac473b01bfe76f1bb33bf66a4bad5028f167c6b96c23c6326ff",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1480,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-033",
+      "fragment_id": "npa-frag-147",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 19,
+      "text_sha256": "579261408dbf07a7c9292e12e3845507488162c734d20fe496c9016759f6128a",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 748,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-033",
+      "fragment_id": "npa-frag-148",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 89,
+      "text_sha256": "be5f956c58d6a9aac642debecbc83635ec54b8f268415e93aa3d01688a01e3e6",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 207,
+      "coding_verdict": "not-norm-reference",
+      "doc_id": "npa-doc-034",
+      "fragment_id": "npa-frag-149",
+      "genre": [
+        "power-of-attorney"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 11,
+      "text_sha256": "18a36dc0f9c252ba5cfdc57626fe92d1707223969d992de3ed9c1c3891dc18b1",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 64,
+      "coding_verdict": "not-norm-reference",
+      "doc_id": "npa-doc-034",
+      "fragment_id": "npa-frag-150",
+      "genre": [
+        "power-of-attorney"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "provider_note",
+      "source_block_index": 12,
+      "text_sha256": "d80215842c9141c9cfd252905c3a6e27d8c85addd4833b4b91e9eb1f2d878883",
+      "trunc_flags": [
+        "ends-comma"
+      ]
+    },
+    {
+      "byte_len": 755,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-034",
+      "fragment_id": "npa-frag-151",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 13,
+      "text_sha256": "81f7dc583bb924128e7caad275a5aa041169e708f557297e2cb0d03315e3250f",
+      "trunc_flags": [
+        "ends-comma"
+      ]
+    },
+    {
+      "byte_len": 630,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-034",
+      "fragment_id": "npa-frag-152",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 15,
+      "text_sha256": "80c0868fff14e44267b18022b0768a5de97438cd4ee2125e1bc1ff406997d26b",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1123,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-034",
+      "fragment_id": "npa-frag-153",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 19,
+      "text_sha256": "07f69f10b91b3f029a9df1644db25d158f35e15444fcebac88f37ba6cddc8b35",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 115,
+      "coding_verdict": "not-norm-reference",
+      "doc_id": "npa-doc-035",
+      "fragment_id": "npa-frag-154",
+      "genre": [
+        "power-of-attorney"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 9,
+      "text_sha256": "18128eb488052e0155786667a83d68bf0f07773eb4721153515d913136da61d6",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1242,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-035",
+      "fragment_id": "npa-frag-155",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 11,
+      "text_sha256": "884f3030b6df8fbb0d9bea1de05b98a6b11c203a09caba941ff83138b924bdb6",
+      "trunc_flags": [
+        "ends-comma"
+      ]
+    },
+    {
+      "byte_len": 1470,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-035",
+      "fragment_id": "npa-frag-156",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 13,
+      "text_sha256": "f91d67c4d4e3cd6347526af77de4c4351ba8724aefa96f0e8ecb57887021dbac",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 973,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-035",
+      "fragment_id": "npa-frag-157",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 16,
+      "text_sha256": "19a7dfb3d6f1bafbe2047541f088502718f25d198d685d488c8b9d3fd86465b2",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 572,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-035",
+      "fragment_id": "npa-frag-158",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 18,
+      "text_sha256": "e6fb5a3b68963479e050e12d3aaa454aecc1a243d0fa1d5501a28876b1a27878",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 56,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-036",
+      "fragment_id": "npa-frag-159",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 7,
+      "text_sha256": "075e5f480c6b5fb9491478790456da5046f4f04525e26fb1694e4c02008cd2bd",
+      "trunc_flags": [
+        "ends-comma"
+      ]
+    },
+    {
+      "byte_len": 58,
+      "coding_verdict": "not-norm-reference",
+      "doc_id": "npa-doc-036",
+      "fragment_id": "npa-frag-160",
+      "genre": [
+        "power-of-attorney"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "provider_note",
+      "source_block_index": 8,
+      "text_sha256": "493906b5cf67ca9cc1a609275a9e6367688d4bce04a50008d661f714959dadf8",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 51,
+      "coding_verdict": "not-norm-reference",
+      "doc_id": "npa-doc-036",
+      "fragment_id": "npa-frag-161",
+      "genre": [
+        "power-of-attorney"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 10,
+      "text_sha256": "5d431ff858e54e07cc604b099925fad8a88e2856d938b4d200f542c1cf163255",
+      "trunc_flags": [
+        "ends-comma"
+      ]
+    },
+    {
+      "byte_len": 1244,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-036",
+      "fragment_id": "npa-frag-162",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 11,
+      "text_sha256": "9ba2df098c44fc3e05a186d7b63c84102566cb71f75f97373b2e0df8c72c430f",
+      "trunc_flags": [
+        "ends-comma"
+      ]
+    },
+    {
+      "byte_len": 1155,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-036",
+      "fragment_id": "npa-frag-163",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 13,
+      "text_sha256": "640f7092a295f42211dbc538893dc5bcbaafdbff08dadaec2c873a55eed0f011",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 90,
+      "coding_verdict": "operative-text-not-cite",
+      "doc_id": "npa-doc-037",
+      "fragment_id": "npa-frag-164",
+      "genre": [
+        "amending-operative"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "provider_note",
+      "source_block_index": 35,
+      "text_sha256": "c70833e6e5bab59217e9a799c89edf1d16275b623903c341ca33a50dc4cabd93",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 88,
+      "coding_verdict": "operative-text-not-cite",
+      "doc_id": "npa-doc-037",
+      "fragment_id": "npa-frag-165",
+      "genre": [
+        "amending-operative"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 111,
+      "text_sha256": "7029d53009e6865a83595961077cc6d66685a000d40745f2967ba0bc072a53a0",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 88,
+      "coding_verdict": "operative-text-not-cite",
+      "doc_id": "npa-doc-037",
+      "fragment_id": "npa-frag-166",
+      "genre": [
+        "amending-operative"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "provider_note",
+      "source_block_index": 195,
+      "text_sha256": "58f2820bbd80448e2ec9e2994275d0c66fb285ae3e67465eaa404ea7b5fd25fb",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 87,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-038",
+      "fragment_id": "npa-frag-167",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 8,
+      "text_sha256": "fa9b1163811205dbf360040378b90811f5c7a53fabdf6a7bebe7b8336a9c0b3c",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 81,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-038",
+      "fragment_id": "npa-frag-168",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 11,
+      "text_sha256": "0edd47f61244153af973a75890ef7b18cf9aea8d18cedda9cf02a2256e37f5cb",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 81,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-038",
+      "fragment_id": "npa-frag-169",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 13,
+      "text_sha256": "0edd47f61244153af973a75890ef7b18cf9aea8d18cedda9cf02a2256e37f5cb",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 74,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-038",
+      "fragment_id": "npa-frag-170",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 16,
+      "text_sha256": "2e94e52063c8520661058a959027b82cb0186b448cc63fa8d200d2abcc8e356a",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 74,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-038",
+      "fragment_id": "npa-frag-171",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 32,
+      "text_sha256": "9c67aab53f3e3402013034c53770cdbbe08a4b78e4f557ad2e9a4ea6818e6cd3",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 439,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-039",
+      "fragment_id": "npa-frag-172",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 42,
+      "text_sha256": "d3007a34a456bc873f17bf2110d30f059ef86ff4cc9ff578932c7e8888048cf2",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 1368,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-039",
+      "fragment_id": "npa-frag-173",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 51,
+      "text_sha256": "8d3ff3604cfab210e16f0603a7ba410c5310fd67d6241faca3527f7945935dfc",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 652,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-039",
+      "fragment_id": "npa-frag-174",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 67,
+      "text_sha256": "0c832e89e7881e4940c9c993e1ef1138f84b319746b10cdec2cc12fd9235e817",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 463,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-039",
+      "fragment_id": "npa-frag-175",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 68,
+      "text_sha256": "3a7d16bb215cf47e8a49428313685c0bfb02d97935e44f842ec16ebd6cd54cb6",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 521,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-039",
+      "fragment_id": "npa-frag-176",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 69,
+      "text_sha256": "b740663e71ff9832c28cb18a668ebc6da231cecd55f65e405d36494adb32c6f7",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 469,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-040",
+      "fragment_id": "npa-frag-177",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 258,
+      "text_sha256": "c37efa3cd656d1eb5b6c1b98b15cd3898bda562f96eb6ba996752fa59ff75f38",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 709,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-040",
+      "fragment_id": "npa-frag-178",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 306,
+      "text_sha256": "f7d1d9bf6fd1f874c167e656e150b569ed9f7c37452f6092d44da43bd0eb53ab",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 156,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-040",
+      "fragment_id": "npa-frag-179",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": true,
+      "note_kind": "provider_note",
+      "source_block_index": 356,
+      "text_sha256": "d9c142ffef092c74d66020cbe0c2394b4b80082fee2ef83d53d7561e66baa931",
+      "trunc_flags": []
+    },
+    {
+      "byte_len": 304,
+      "coding_verdict": "other-needs-coder",
+      "doc_id": "npa-doc-040",
+      "fragment_id": "npa-frag-180",
+      "genre": [
+        "other"
+      ],
+      "in_m207_pilot": false,
+      "note_kind": "provider_note",
+      "source_block_index": 368,
+      "text_sha256": "ef029224ce267156f06fe047ad6a954c6c58f14db8f5914f297aedac85a5e077",
+      "trunc_flags": []
+    }
+  ],
+  "frozen_pins": {
+    "m199_manifest": {
+      "path": "prd/migration/rust-evidence/m199-s01-gold-sample-manifest.json",
+      "sha256": "134751f49db1858329248be1857ada669097f1860609090028c7b5af8975574f"
+    },
+    "m207_pilot_cases": {
+      "path": "prd/migration/rust-evidence/m207-s01-pilot-cases.json",
+      "sha256": "9b0b6bc6bd8eadf9eb86886e45eb756ebade654e96ac3a84132ed9452bdeb9ad"
+    }
+  },
+  "human_adoption": "pending",
+  "lifecycle": "[bounded]",
+  "non_claims": [
+    "not gold",
+    "not a human pilot",
+    "not a Pullenti port or license grant",
+    "not a rewrite of the frozen 180-fragment seed",
+    "not a cross-block TextAnchor",
+    "not RC28-F13 / Change-family adoption",
+    "not official-publication provenance (R070 stays open)"
+  ],
+  "prior_art": {
+    "law_nexus_own": {
+      "d385": "prd/architecture/npa-document-context.yaml",
+      "observed": [
+        "adjacent_blocks query is allowed; concatenating the document into parser input is forbidden",
+        "cross-block TextAnchor is forbidden",
+        "harvest selected shaped WordML w:p blocks independently"
+      ]
+    },
+    "pullenti": {
+      "evaluation_orientation": {
+        "authority": "D380; ident40 bake-off (D383); RC28-F14",
+        "compare": [
+          "edition-list membership and TYPE inheritance on elliptical «от DATE N» tails",
+          "Decree vs Part vs ThisDecree slot alphabet",
+          "series reconstructed by adjacent_blocks vs Sofa token chain"
+        ],
+        "never": [
+          "gold",
+          "second human coder",
+          "independent-measured S03 rate",
+          "product lex()/CI call"
+        ],
+        "other_extractors_ident40": [
+          "sol",
+          "spark",
+          "Agnes"
+        ],
+        "other_extractors_role": "disagreement map only; not a coding-unit design and not M207 gold",
+        "role": "diagnostic third extractor, optional, license-gated",
+        "s03_machinery": "Pullenti-differential was not scheduled inside execute-task; that does not cancel D380",
+        "when": "after owner confirmation, on complete coding units only"
+      },
+      "not_adopted": [
+        "no vendor code, dictionary, threshold, or runtime port",
+        "agreement with Pullenti is not gold and not a second coder"
+      ],
+      "observed": [
+        "AnalysisKit+Sofa keeps one token chain over the whole document",
+        "DecreeToken.ItemType.Edition parses '(в ред. …)' including bracketed lists",
+        "elliptical 'от DATE N' members inherit TYPE from the list head",
+        "IsNewlineBefore is a layout cue, not a document cut"
+      ],
+      "path": "/root/vendor-source/pullenti",
+      "role": "development-stage orientation only (D380)"
+    }
+  },
+  "runtime_stop_active": true,
+  "schema": "m207-unit-diagnosis/v1",
+  "schema_version": 1
+}

@@ -1,0 +1,135 @@
+# Classification axes for identifying documents (D516 / ADR-0028).
+#
+# Design-only sidecar. No Rust types (D216 / D098). No S01 slot.
+# Does not mutate prd/architecture/npa-identifying-cycle.yaml (M205
+# hashed_yaml_mutation: forbidden; pin sha256 72e8901b…).
+# act_type_lemmas in that frozen file remain covering-Word form lemmas
+# (axis A). They are not legal class, competence, normativity, or rank.
+# Do not copy Old_project/legislation_hierarchy.yaml type_markers.
+
+schema_version: law-nexus-npa-classification-axes/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_adr: ADR-0028
+owner_decision: D516
+related: [D382, D516, ADR-0016, ADR-0018, ADR-0019, ADR-0020]
+form_lexicon: prd/architecture/npa-identifying-cycle.yaml
+not_a_second_type_lexicon: true
+non_claims:
+  - not product runtime / not lex() backend / not CI
+  - not Layer-2 gold / not N2 / not alpha
+  - no S01 schema_version bump; LawRefSlots stays eight protocol slots
+  - GEO is not competence; OfficialIdentityClaim.jurisdiction is not axis C
+  - act_type_lemmas are form lemmas, not legal class / normativity / rank
+  - FOIV letters are not NPA (PP RF 1009) and are not generally binding
+  - KS RF resolutions are not NPA and are not ADR-0019 NormativeRank rungs
+  - classification_axes mint no Rust types
+  - does not rewrite local_grammar.rs ACT_TYPE_LEMMAS
+  - does not mutate the M205-frozen identifying-cycle YAML
+
+# Ask in this order. Do not jump from «has date and number» to «everyone must obey».
+order: [form, legal_class, competence, geo, issuer, normativity, force_regime, general_bindingness]
+
+axes:
+  form:
+    id: A
+    home: act_type_lemmas
+    question: blank name as written
+    canon: nominative_singular
+    not: [legal_class, competence, normativity, general_bindingness, rank]
+  legal_class:
+    id: B
+    question: what it is in law
+    values: [npa, individual_legal_act, clarification_letter, judicial_act, primary_instrument, unknown]
+    fail_closed: unknown blocks OfficialIdentityClaim and NPA-graph identity edges
+  competence:
+    id: C
+    question: whose public power
+    values: [international, federal, subject, municipal, intra_agency_or_local]
+    not: geo
+    international_identity_key: deferred-undefined
+  geo:
+    id: D
+    home: geo_levels
+    question: organ or event toponym
+    not: competence
+    example: Chelyabinsk UFAS is competence=federal, geo=Chelyabinsk, org=UFAS
+  issuer:
+    id: E
+    home: org
+  normativity:
+    id: F
+    question: general legal rule for an indefinite circle, repeated application, authorized form
+    values: ["yes", "no", "unknown"]
+    letter_form: "no"  # PP RF 1009: NPA are not issued as letters
+    ks_normative_properties_on_letters: flag_not_F_yes
+  general_bindingness:
+    id: G
+    question: bound as by a statute for everyone the norm addresses
+    values: ["yes", "no", "not_applicable"]
+    asked_only_after: [legal_class_npa, normativity_yes, force_regime_passed]
+    exception: ks_rf_constitutional_review  # G=yes as to the reviewed norm without F=yes
+  administrativeness:
+    id: H
+    question: public-administration / KoAP genre, not force
+    values:
+      - legislative_on_admin_subject
+      - administrative_npa
+      - administrative_individual
+      - koap_proceeding_act
+      - administrative_clarification
+      - not_administrative
+    never_promotes_letter_to_npa: true
+  force_regime:
+    id: I
+    question: publication, Minjust registration, restricted marking, commencement
+    npa_in_force_owner: ADR-0018
+    not: legal_class
+
+form_is_not_class:
+  prikaz: [npa, individual_legal_act]
+  pismo: clarification_letter  # never npa
+  doverennost_zhaloba_kontrakt: primary_instrument
+
+identity_key_policy:
+  selector: competence
+  federal_and_territorial_foiv: presidential_agency  # GEO may be a city; not load-bearing
+  subject_or_municipal: regional_municipal  # GEO load-bearing
+  international: deferred-undefined
+  do_not_project_official_identity_claim_when_legal_class:
+    - unknown
+    - clarification_letter
+    - primary_instrument
+
+ks_rf_exception:
+  legal_class: judicial_act
+  normativity: "no"
+  general_bindingness: yes_as_to_reviewed_norm
+  not_adr_0019_rank: true
+  overlay_owner: ADR-0020
+  not_every_ks_determination: true
+
+koap:
+  code:
+    legal_class: npa
+    competence: federal
+    rank: FederalLaw/Code
+    administrativeness: legislative_on_admin_subject
+  case_order:
+    legal_class: individual_legal_act
+    administrativeness: koap_proceeding_act
+    normativity: "no"
+    general_bindingness: "no"
+
+fas_practice_overlay:
+  # Решение территориального ФАС/УФАС — не форма из identifying-cycle.
+  # Overlay практики (ADR-0020), не ступенька ADR-0019. GEO города ≠ competence.
+  legal_class: individual_legal_act
+  competence: federal
+  administrativeness: administrative_individual
+  normativity: "no"
+  general_bindingness: "no"
+  overlay_owner: ADR-0020
+  not_npa: true
+
+npa_rank_ladder_owner: ADR-0019  # only legal_class=npa; letters are not a rung

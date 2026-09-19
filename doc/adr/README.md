@@ -67,7 +67,8 @@ named on living surfaces only with an explicit retired/archive qualifier.
 | [ADR-0025](0025-consultant-parser-crate.md) | Consultant parser — separate crate for provider-specific extraction | Accepted | [bounded] |
 | [ADR-0026](0026-ruvector-agent-memory.md) | RuVector as agent memory layer for the meta-parser | Accepted | [proposed] |
 | [ADR-0027](0027-multi-layer-classifier.md) | Multi-layer manifest classifier for document-specific link classification | Accepted | [bounded] |
-| [ADR-0028](0028-typed-lexer-legal-marker-lexicon.md) | Typed lexer and legal-marker lexicon for the NPA document engine (LawRef FSM, clause/list_item modes, act tree) | Proposed | [proposed] |
+| [ADR-0028](0028-typed-lexer-legal-marker-lexicon.md) | Typed lexer and legal-marker lexicon for the NPA document engine (LawRef FSM, clause/list_item modes, act tree). D516: form ≠ legal class ≠ competence ≠ GEO; FOIV letters are not NPA; KS RF G-without-F exception; KoAP code vs case order | Proposed | [proposed] |
+| [ADR-0029](0029-requisites-anchored-member-assembly-fsm.md) | Requisites-anchored member-assembly FSM for NPA reference capture (M207 model): anchor-first assembly, lexicon-as-data (Aho-Corasick over TYPE/act/date tables), paragraph-end hypothesis resolution (cross-date steal), letterhead recognizer outranking body mentions, Work ≠ утверждающий акт annex citations, fail-closed four-valued graph with axes, ADR-0019 ReferenceMention semantics for quoted requisites, ADR-0020 overlays, invariants audit + gold 40 battery as CI gates, optional validated prompt-FSM for the fail-closed residue. Evidence: M207 Python prototype (demo-only; ~43k XML / ~430k members censuses; npa 798 full-depth) | Proposed | [proposed] |
 
 M203/S02 companion review (2026-09-07): `capture_lawrefs` now wires defaults-only arbitration and the 1024 candidate ceiling; `runtime_stop` remains active and pair policies remain deferred.
 
