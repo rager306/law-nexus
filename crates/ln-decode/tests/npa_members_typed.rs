@@ -60,7 +60,10 @@ fn fixture_dir() -> PathBuf {
 
 #[test]
 fn gold_typed_parity_40_docs() {
-    let docs = read_typed_fixture(&fixture_dir().join("typed-parity-fixture.tsv"));
+    let docs = read_typed_fixture(
+        &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/npa-members/typed-parity-fixture.tsv"),
+    );
     let mut mismatches: Vec<String> = Vec::new();
     let mut checked = 0usize;
     let mut skipped = 0usize;

@@ -67,7 +67,7 @@ fn read_fixture(path: &PathBuf) -> BTreeMap<String, DocFixture> {
 fn fixture_path() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
-        .join("crates/ln-decode/tests/fixtures/npa-lawref/anchor-parity-fixture.tsv")
+        .join("crates/ln-decode/tests/fixtures/npa-members/anchor-parity-fixture.tsv")
 }
 
 #[test]
