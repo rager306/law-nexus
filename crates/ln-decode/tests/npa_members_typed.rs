@@ -139,7 +139,7 @@ fn gold_typed_parity_40_docs() {
     // Минимальный порог: >50% type_match на типизированных want-членах.
     let want_typed = want_total; // все want entries имеют тип
     let rate = if want_typed > 0 {
-        (type_match * 100) / want_typed
+        (type_match * 100).checked_div(want_typed).unwrap_or(0)
     } else {
         0
     };

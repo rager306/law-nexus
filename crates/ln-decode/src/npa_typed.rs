@@ -9,6 +9,7 @@ pub struct TypedMember {
     pub date: String,
     pub number: String,
     pub type_name: String,
+    pub approved_by: String,
 }
 
 pub struct TypeCandidate {
@@ -597,6 +598,7 @@ pub fn scan_typed(paras: &[String]) -> Vec<TypedMember> {
                         date: d.date.clone(),
                         number: d.number.clone(),
                         type_name: canon.unwrap_or_default(),
+                        approved_by: String::new(),
                     });
                 }
                 Some(&j) => {
