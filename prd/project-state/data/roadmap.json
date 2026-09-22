@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-09-05T00:00:00Z",
+  "generated_at": "2026-09-22T11:40:46Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -519,13 +519,19 @@
       "theme": "Честность evidence и восстановление контроля после Review 28",
       "status": "complete",
       "boundary": "C4 operational acceptance proven by source-bound citation of the measured v2 receipt; GSD recovery liveness preserved as blocked-external without promotion; S23 sanctioned skipped; requirement traceability bindings added. Engine-readiness and product-answering evidence remain out of scope."
+    },
+    {
+      "range": "M205-M206",
+      "theme": "Context-grammar and legal-candidate contracts; corrected grammar-context and binding candidates",
+      "status": "complete",
+      "boundary": "Bounded grammar-context and binding remediation after M204 evidence honesty, with reproduction-first fixes for the confirmed RC28-F06..F12 defects and the M205/M206 runtime grammar-context proof chain. R035, R038, R070, R074 and R081 remain active unless their independent proof obligations are separately met. Not parser, temporal, registry or ontology readiness, and not product acceptance."
     }
   ],
   "current_milestone": {
-    "id": "M204-w2ktfw",
+    "id": "M206-jnbhlz",
     "status": "complete",
-    "title": "Честность evidence и восстановление контроля после Review 28",
-    "goal": "Устранить противоречивые C5 admission и измерения, воспроизводимо диагностировать C4 и GSD без переоценки исторического M203. Review RC-2026-09-10-001, RC28-F01..F05,F19. Rust-only product; Python только harness. Не переписывать исторические receipts; публиковать superseding evidence."
+    "title": "Корректные grammar context и binding кандидаты",
+    "goal": "Исправить подтверждённые дефекты RC28-F06..F12 с reproduction first после завершения M204/M205 и human-adopted затронутых политик. Rust-only продукт; Pullenti не портируется. R035, R038, R070, R074 и R081 остаются active, пока их независимые доказательства не получены отдельно."
   },
   "recommended_next": {
     "title": "Execute M203 S01 Review disposition and control baseline",

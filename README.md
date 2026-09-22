@@ -89,6 +89,7 @@ completion and green repository checks are not product readiness.
   ADR-0022 [proposed] L7 industry profiles
   ADR-0023 [proposed] applicability ownership boundary; runtime [deferred]
   ADR-0028 [proposed] typed lexer, LawRef FSM, layered NPA process and explicit future local-grammar boundary
+  ADR-0029 [proposed] requisites-anchored member-assembly FSM for NPA reference capture (M207 model); no Rust engine code yet
 
 [DOWNSTREAM — BLOCKED until parser data + RuVector/TEI ready]
   graph materialization → citation-safe retrieval → R035/R038 validation

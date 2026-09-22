@@ -150,3 +150,15 @@ npa 6,4% / fas 7,6% / courts 24,5% / xml.law 1,2%):
   (40 editions); compact battery `chain=10, tails=56, orphans=0`.
 - Axes and codebook: `prd/architecture/npa-classification-axes.yaml`,
   `prd/annotation/m207-s01-codebook.md`.
+
+## Non-claims
+
+This proposed ADR does not establish reference-capture correctness, parser
+readiness, corpus completeness, or legal correctness, and it does not mint Rust
+types or wire the FSM into any runtime. The prototype, the gold-sample manifest
+and the chain/tail/orphan censuses are raw-parse diagnostics on fixture-sized
+material, not gold-standard measures: they do not close R035 or R070, do not
+authorize LLM/RLM runtime, whole-document recursion, cross-block anchors or
+grammar-frame identity, and do not amend ADR-0028 or any earlier ADR. Human
+adoption of the member-assembly vocabulary remains pending and is not implied by
+this document.
