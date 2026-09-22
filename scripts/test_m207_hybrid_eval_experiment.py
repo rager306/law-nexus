@@ -11,6 +11,7 @@ import contextlib
 import hashlib
 import io
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -28,6 +29,19 @@ RECORD_REL = "prd/migration/rust-evidence/m207-hybrid-synthetic-experiment.json"
 EVAL_MARKER = "M207_HYBRID_EVAL_OK"
 EVAL_SCHEMA = "m207-hybrid-eval-report/v1"
 S03_REPORT_REL = "prd/migration/rust-evidence/m207-s03-evaluation-report.json"
+S03_BATTERY_REL = "prd/migration/rust-evidence/m207-s03-battery.json"
+# Contract documents that must not drift while the evaluator is exercised.
+RECORDS_CONTRACT_REL = "prd/annotation/m207-hybrid-records-contract.md"
+EVAL_CONTRACT_REL = "prd/annotation/m207-hybrid-eval-contract.md"
+# Pinned `--check` summary: the synthetic regression baseline. Score values are
+# pinned exactly so a scorer edit cannot silently move the drift baseline.
+PINNED_CHECK_SUMMARY = (
+    "constructions=4 scenarios=13 detection_tp=22 detection_fp=1 detection_fn=2 "
+    "field=59/75 provenance=36/50 rel_e2e=7/10 rel_cond=7/8 bundle_exact=4/13 "
+    "ambiguity_groups=1"
+)
+# The eval contract must stay harness-local (R064): no Rust surface consumes it.
+RUST_SURFACE_NEEDLES = ("m207-hybrid-eval-report", "M207_HYBRID_EVAL_OK", "--evaluate-records")
 TIMEOUT = 30
 
 FROZEN_PATHS = (
@@ -40,6 +54,8 @@ FROZEN_PATHS = (
     "prd/migration/rust-evidence/m207-s01-pilot-cases.json",
     "prd/migration/rust-evidence/m207-s03-eval-manifest.json",
     "prd/annotation/m207-context-presentation-contract.md",
+    "prd/annotation/m207-hybrid-records-contract.md",
+    "prd/annotation/m207-hybrid-eval-contract.md",
     "prd/migration/rust-evidence/m207-context-inventory.json",
     "scripts/m207_context_inventory.py",
     "scripts/test_m207_context_inventory.py",
@@ -80,6 +96,42 @@ def frozen_fingerprint() -> dict[str, str]:
         else:
             out[relative] = "absent"
     return out
+
+
+EVAL_DIAGNOSTICS_BEGIN = "<!-- eval-diagnostics:begin -->"
+EVAL_DIAGNOSTICS_END = "<!-- eval-diagnostics:end -->"
+_DIAGNOSTIC_CODE_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
+
+
+def parse_eval_diagnostic_codes(text: str) -> set[str]:
+    """Extract the closed eval-diagnostic set from a contract document.
+
+    Exactly one marker block is expected, with one upper-case code per line.
+    A missing or duplicated marker, an out-of-order block, an empty block, a
+    duplicate code, or a non-code line is a hard error -- never a silent skip.
+    """
+    lines = text.splitlines()
+    begins = [index for index, line in enumerate(lines) if line.strip() == EVAL_DIAGNOSTICS_BEGIN]
+    ends = [index for index, line in enumerate(lines) if line.strip() == EVAL_DIAGNOSTICS_END]
+    if len(begins) != 1 or len(ends) != 1:
+        raise AssertionError(
+            f"expected exactly one diagnostic block, begin={len(begins)} end={len(ends)}"
+        )
+    if begins[0] >= ends[0]:
+        raise AssertionError("diagnostic block markers are out of order")
+    codes: list[str] = []
+    for line in lines[begins[0] + 1 : ends[0]]:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if not _DIAGNOSTIC_CODE_RE.match(stripped):
+            raise AssertionError(f"non-code line in diagnostic block: {stripped!r}")
+        codes.append(stripped)
+    if not codes:
+        raise AssertionError("diagnostic block is empty")
+    if len(codes) != len(set(codes)):
+        raise AssertionError("diagnostic block contains duplicate codes")
+    return set(codes)
 
 
 class HybridEvalExperimentTests(unittest.TestCase):
@@ -1646,6 +1698,184 @@ class HybridEvalReportTests(unittest.TestCase):
                 self.assertNotEqual(details["expected"], details["predicted"], name)
 
 
+class HybridEvalContractTests(unittest.TestCase):
+    """Doc-code conformance and byte-stability regression for the S06 evaluator."""
+
+    def make_root(self) -> Path:
+        directory = Path(tempfile.mkdtemp(prefix="m207-hybrid-eval-contract-"))
+        self.addCleanup(shutil.rmtree, directory, ignore_errors=True)
+        return directory
+
+    def run_cli(self, root: Path, *extra: str) -> subprocess.CompletedProcess[str]:
+        command = [sys.executable, str(SCRIPT), "--root", str(root), *extra]
+        return subprocess.run(
+            command, cwd=ROOT, text=True, capture_output=True, check=False, timeout=TIMEOUT
+        )
+
+    def write_records(self, root: Path, payload: Any, name: str) -> Path:
+        path = root / name
+        path.write_bytes(exp.canonical_json_bytes(payload))
+        return path
+
+    def eval_cli(
+        self, root: Path, expected: Any, predicted: Any
+    ) -> subprocess.CompletedProcess[str]:
+        return self.run_cli(root, "--evaluate-records", str(expected), str(predicted))
+
+    def assert_eval_ok_cli(self, result: subprocess.CompletedProcess[str]) -> dict[str, Any]:
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn(EVAL_MARKER, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["status"], "ok")
+        return report
+
+    def assert_eval_fail_cli(
+        self, result: subprocess.CompletedProcess[str], diagnostic: str
+    ) -> dict[str, Any]:
+        self.assertEqual(result.returncode, 1, result.stderr + result.stdout)
+        self.assertIn(f"FAIL {diagnostic}", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["status"], "invalid")
+        self.assertIsNone(report["marker"])
+        return report
+
+    def eval_in_process(
+        self, root: Path, expected: Path, predicted: Path, **patches: Any
+    ) -> tuple[int, str, str]:
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            with contextlib.ExitStack() as stack:
+                for target, replacement in patches.items():
+                    stack.enter_context(mock.patch.object(exp, target, replacement))
+                code = exp.main(
+                    ["--root", str(root), "--evaluate-records", str(expected), str(predicted)]
+                )
+        return code, stdout.getvalue(), stderr.getvalue()
+
+    def test_contract_document_matches_the_closed_diagnostic_set(self) -> None:
+        document = (ROOT / EVAL_CONTRACT_REL).read_text(encoding="utf-8")
+        self.assertEqual(parse_eval_diagnostic_codes(document), set(exp.EVAL_DIAGNOSTICS))
+
+    def test_diagnostic_extraction_fails_in_both_directions(self) -> None:
+        document = (ROOT / EVAL_CONTRACT_REL).read_text(encoding="utf-8")
+        expected = set(exp.EVAL_DIAGNOSTICS)
+        # Removing any single documented code must be detectable.
+        for code in exp.EVAL_DIAGNOSTICS:
+            pruned = "\n".join(line for line in document.splitlines() if line.strip() != code)
+            self.assertNotEqual(parse_eval_diagnostic_codes(pruned), expected, code)
+        # Adding an undocumented code must be detectable.
+        injected: list[str] = []
+        for line in document.splitlines():
+            injected.append(line)
+            if line.strip() == EVAL_DIAGNOSTICS_BEGIN:
+                injected.append("UNDOCUMENTED_CODE")
+        with_extra = parse_eval_diagnostic_codes("\n".join(injected))
+        self.assertNotEqual(with_extra, expected)
+        self.assertEqual(with_extra - expected, {"UNDOCUMENTED_CODE"})
+        # Malformed blocks are hard errors, never silent skips.
+        with self.assertRaises(AssertionError):
+            parse_eval_diagnostic_codes("no markers here")
+        with self.assertRaises(AssertionError):
+            parse_eval_diagnostic_codes(document.replace(EVAL_DIAGNOSTICS_END, ""))
+        with self.assertRaises(AssertionError):
+            parse_eval_diagnostic_codes(
+                document.replace(EVAL_DIAGNOSTICS_BEGIN, EVAL_DIAGNOSTICS_BEGIN + "\nlowercase")
+            )
+        with self.assertRaises(AssertionError):
+            parse_eval_diagnostic_codes(
+                document.replace(EVAL_DIAGNOSTICS_BEGIN, EVAL_DIAGNOSTICS_BEGIN + "\nUSAGE")
+            )
+
+    def test_pinned_check_summary_is_stable(self) -> None:
+        root = self.make_root()
+        written = self.run_cli(root, "--write")
+        self.assertEqual(written.returncode, 0, written.stderr + written.stdout)
+        check = self.run_cli(root, "--check")
+        self.assertEqual(check.returncode, 0, check.stderr + check.stdout)
+        self.assertIn(PINNED_CHECK_SUMMARY, check.stdout)
+        self.assertIn("drift=0", check.stdout)
+        default = self.run_cli(root)
+        self.assertEqual(default.returncode, 0, default.stderr + default.stdout)
+        self.assertIn(PINNED_CHECK_SUMMARY, default.stdout)
+
+    def test_validate_records_summary_is_unchanged(self) -> None:
+        root = self.make_root()
+        path = self.write_records(root, exp.example_hybrid_records(), "records.json")
+        result = self.run_cli(root, "--validate-records", str(path))
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertIn(RECORDS_MARKER, result.stdout)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["status"], "ok")
+        self.assertEqual(report["documents"], 4)
+        self.assertEqual(report["bundles"], 4)
+        self.assertEqual(report["diagnostics"], [])
+
+    def test_eval_runs_leave_frozen_stores_and_inputs_untouched(self) -> None:
+        self.assertIn(RECORDS_CONTRACT_REL, FROZEN_PATHS)
+        self.assertIn(EVAL_CONTRACT_REL, FROZEN_PATHS)
+        before = frozen_fingerprint()
+        watched = {
+            relative: ((ROOT / relative).read_bytes() if (ROOT / relative).is_file() else None)
+            for relative in (RECORD_REL, S03_REPORT_REL, S03_BATTERY_REL)
+        }
+        root = self.make_root()
+        payload = exp.example_hybrid_records()
+        expected = self.write_records(root, payload, "expected.json")
+        predicted = self.write_records(root, payload, "predicted.json")
+        expected_before = expected.read_bytes()
+        predicted_before = predicted.read_bytes()
+        # 1. successful eval
+        self.assert_eval_ok_cli(self.eval_cli(root, expected, predicted))
+        # 2. invalid input eval (dishonest honesty key)
+        dishonest = exp.clone(payload)
+        dishonest["is_gold"] = True
+        bad = self.write_records(root, dishonest, "bad.json")
+        self.assert_eval_fail_cli(self.eval_cli(root, bad, predicted), "MALFORMED_REF")
+        # 3. forced metamorphic property failure
+        target = "metamorphic_empty_denominator_is_not_measured"
+        real = getattr(exp, target)
+
+        def broken(context: Any) -> dict[str, Any]:
+            row = real(context)
+            row["status"] = "failed"
+            row["correct"] = 0
+            row["detail"] = "forced failure for the byte-stability regression"
+            return row
+
+        code, stdout, stderr = self.eval_in_process(root, expected, predicted, **{target: broken})
+        self.assertEqual(code, 1, stderr + stdout)
+        unstable = json.loads(stdout)
+        self.assertEqual(unstable["status"], "unstable")
+        self.assertIsNone(unstable["marker"])
+        # No frozen byte moved, no artifact appeared or was rewritten, inputs intact.
+        self.assertEqual(frozen_fingerprint(), before)
+        for relative, snapshot in watched.items():
+            actual = (ROOT / relative).read_bytes() if (ROOT / relative).is_file() else None
+            self.assertEqual(actual, snapshot, relative)
+        self.assertEqual(expected.read_bytes(), expected_before)
+        self.assertEqual(predicted.read_bytes(), predicted_before)
+        self.assertEqual(
+            sorted(path.name for path in root.iterdir()),
+            ["bad.json", "expected.json", "predicted.json"],
+        )
+
+    def test_eval_contract_stays_out_of_the_rust_surface(self) -> None:
+        offenders: list[str] = []
+        for path in sorted((ROOT / "crates").rglob("*")):
+            if not path.is_file():
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+            for needle in RUST_SURFACE_NEEDLES:
+                if needle in text:
+                    offenders.append(f"{path.relative_to(ROOT)}:{needle}")
+        self.assertEqual(offenders, [])
+
+
 def main() -> int:
     loader = unittest.defaultTestLoader
     suite = unittest.TestSuite()
@@ -1653,6 +1883,7 @@ def main() -> int:
     suite.addTests(loader.loadTestsFromTestCase(HybridRecordsContractTests))
     suite.addTests(loader.loadTestsFromTestCase(HybridRecordsRejectionTests))
     suite.addTests(loader.loadTestsFromTestCase(HybridEvalReportTests))
+    suite.addTests(loader.loadTestsFromTestCase(HybridEvalContractTests))
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     return 0 if result.wasSuccessful() else 1
 
