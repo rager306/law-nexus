@@ -32,7 +32,10 @@
     "frozen_snapshot": {
       "path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json",
       "selector": "promotion_gates[].gate_verdict",
+      "pin_kind": "captured-at-baseline-not-rust-anchored",
+      "pin_basis": "the fail-closed pin is inherited from crates/ln-kb-ontology/tests/r035_proof_gate.rs, which asserts three semantic counts over this file's text (exactly 7 gate_id, exactly 7 unsatisfied gate_verdict, zero promoted verdicts) plus exactly one textual occurrence of each of the four external sha256 hexes. No PROOF_GATE_JSON_SHA256 or PROOF_GATE_JSON_BYTES constant exists in that suite, so sha256 and bytes below are a captured-at baseline recorded by T01 and git-history anchored, not a Rust-side anchor; the semantic pin plus the T06 frozen-set git sweep are the enforcement mechanisms.",
       "sha256": "4e95a20e774fa9e551921922cedde7e6bcdd9fbdceb87d2c640ed5795859ca83",
+      "bytes": 7762,
       "authority": "frozen M202 disposition snapshot; carries gate_id, gate_note, gate_verdict only (no owner, no quantifier, no evidence class)"
     },
     "derived_non_authoritative_view": {
