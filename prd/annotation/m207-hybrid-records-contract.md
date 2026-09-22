@@ -33,7 +33,10 @@ never writes the synthetic artifact, and never writes frozen S01–S04
 stores. Combining it with `--write` is a usage error.
 
 Marker on success: `M207_HYBRID_RECORDS_OK`. Invalid input exits non-zero
-with machine-readable JSON on stdout and `FAIL <CODE>: …` on stderr.
+with machine-readable JSON on stdout and `FAIL <CODE>: …` on stderr. The
+validator is fail-closed for *every* rejection path: an unexpected
+exception while handling records input is mapped to a `MALFORMED_REF`
+diagnostic instead of escaping as a traceback with empty stdout.
 
 ## Version
 
@@ -89,7 +92,7 @@ Required:
 
 Optional (if present, must be honest):
 
-- `lifecycle` — `[proposed]` for this slice
+- `lifecycle` — `["proposed"]` for this slice
 - `authoritative` — `false`
 - `is_gold` — `false`
 - `not_human` — `true`
@@ -100,6 +103,45 @@ Optional (if present, must be honest):
 
 Unknown required-key absence is `MALFORMED_REF`. This envelope must not
 carry S03 rate keys, coder submissions, or raw legal corpus text.
+
+Honesty keys are **enforced**, not advisory. When a key from the optional
+list is present the validator compares it against the fixed value above and
+raises `MALFORMED_REF` on any mismatch. So a structurally valid payload
+carrying `is_gold=true`, `not_human=false`, `lifecycle=["validated"]`, or
+`alignment_policy="best-match"` is refused instead of emitting
+`M207_HYBRID_RECORDS_OK`. An omitted honesty key is still accepted; the
+contract does not fabricate the claim on the caller's behalf.
+
+### Closed allow-list
+
+The envelope is **closed per level** — not just at the top. Every object
+listed below admits exactly its documented keys, and any other key is
+`MALFORMED_REF`:
+
+| Level | Allowed keys |
+|---|---|
+| envelope (top) | the required and optional keys listed above |
+| document | `document_id`, `fragments` |
+| fragment | `fragment_id`, `byte_length`, `source_utf8` |
+| bundle | `bundle_id`, `construction`, `focus_id`, `context_status`, `declared_region`, `context_only`, `occurrences`, `relations` |
+| occurrence | `id`, `anchors`, `unresolved`, `unresolved_reason`, `fields` |
+| `fields` container | `kind`, `date`, `number` |
+| field slot | `value`, `source` |
+| relation | `id`, `rel`, `from`, `to` |
+| anchor | `fragment_id`, `start`, `end` |
+
+Named forbidden keys are refused with an explicit reason rather than a
+generic one: S03 rate keys (`false_authority`, `span_rate`, `slot_rate`,
+`scope_rate`, `binding_rate`, `abstention_rate`, `aspect_rates`),
+coder-submission shapes (`submissions`, `coder_id`, `coder`,
+`adjudication`, `adjudications`), and raw legal corpus text
+(`corpus_excerpt`, `raw_text`, `legal_text`, `source_text`,
+`corpus_text`, `raw_legal_text`). A closed envelope prevents the future
+Rust emitter from silently ignoring — or being forced to model — an
+untyped tail, and keeps the two forbidden classes out of the wire entirely.
+
+The synthetic experiment schema `m207-hybrid-synthetic-experiment/v1` is a
+separate fixture and is **not** validated against these allow-lists.
 
 ## Documents and fragments
 
@@ -137,6 +179,13 @@ Each bundle reuses the synthetic experiment bundle object:
 - `occurrences` with `id`, `anchors`, `unresolved`, `unresolved_reason`,
   `fields.{kind,date,number}.{value,source}`
 - `relations` with `id`, `rel`, `from`, `to`
+
+Types are checked before any catalog lookup: `bundle_id`,
+`construction`, `context_status` and `focus_id` are non-empty strings;
+`declared_region` and `context_only` are arrays of non-empty strings;
+`unresolved` is a boolean and `unresolved_reason` is `null` or a string.
+A type error is a machine-readable `MALFORMED_REF` JSON diagnostic, never an
+uncaught traceback.
 
 `kind` remains a **working label**, not adopted legal TYPE vocabulary.
 
@@ -191,7 +240,7 @@ Closed codes used by the validator:
 |---|---|
 | `UNSUPPORTED_VERSION` | `schema` / `schema_version` not v1 of this contract |
 | `MISSING_INPUT` | PATH does not exist |
-| `MALFORMED_REF` | not UTF-8 JSON, missing keys, duplicate ids, catalog self-inconsistency |
+| `MALFORMED_REF` | not UTF-8 JSON, missing keys, unknown or forbidden keys, dishonest honesty key, wrong value type, duplicate ids, catalog self-inconsistency |
 | `INVALID_BOUNDS` | span exceeds catalog length or splits UTF-8 when bytes are present |
 | `CROSS_DOC_REF` | one bundle cites fragments from more than one document |
 | `DANGLING_EDGE` | missing fragment, focus, or relation endpoint |
@@ -208,6 +257,8 @@ Stdout JSON object (canonical key order): `status` (`ok` \| `invalid`),
 
 ## Non-claims
 
+- `M207_HYBRID_RECORDS_OK` is not acceptance evidence, not gold, and not a
+  discharged M207 pin; it only reports that the bytes satisfy this contract.
 - Does not measure legal correctness.
 - Does not adopt TYPE / label inventory.
 - Does not release a human pilot or rewrite frozen S01–S04.

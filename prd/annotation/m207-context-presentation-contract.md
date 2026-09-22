@@ -214,6 +214,11 @@ New automated S05 scope (no mandatory human evaluation):
 - Python verification harness only (ADR-0007); no Rust product in this slice
 - Provenance origin closed as `synthetic` or `rust-runtime` — never a fake
   human-reviewed record
+- The envelope is **closed per level** and its honesty keys
+  (`lifecycle`/`authoritative`/`is_gold`/`not_human`/`not_s03_metrics`/
+  `alignment_policy`) are enforced against fixed values, so synthetic bytes
+  carrying `is_gold=true` are refused with `MALFORMED_REF` rather than
+  reported as a validated record
 - First Rust series is exported and validated as records, not as a coder
   submission and not as S03 rates
 - Synthetic experiment JSON (`m207-hybrid-synthetic-experiment/v1`) stays a

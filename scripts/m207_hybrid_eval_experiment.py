@@ -61,6 +61,82 @@ CONSTRUCTIONS = (
     "alias-this-ref-ambiguity",
 )
 
+# Closed key allow-lists for the external records wire contract
+# (prd/annotation/m207-hybrid-records-contract.md). The synthetic experiment
+# schema is a separate fixture and is not validated against these lists.
+RECORDS_ENVELOPE_KEYS = frozenset(
+    {
+        "schema",
+        "schema_version",
+        "provenance_origin",
+        "documents",
+        "bundles",
+        "lifecycle",
+        "authoritative",
+        "is_gold",
+        "not_human",
+        "not_s03_metrics",
+        "source_validation",
+        "alignment_policy",
+        "limits",
+        "non_claims",
+    }
+)
+RECORDS_DOCUMENT_KEYS = frozenset({"document_id", "fragments"})
+RECORDS_FRAGMENT_KEYS = frozenset({"fragment_id", "byte_length", "source_utf8"})
+RECORDS_BUNDLE_KEYS = frozenset(
+    {
+        "bundle_id",
+        "construction",
+        "focus_id",
+        "context_status",
+        "declared_region",
+        "context_only",
+        "occurrences",
+        "relations",
+    }
+)
+RECORDS_OCCURRENCE_KEYS = frozenset({"id", "anchors", "unresolved", "unresolved_reason", "fields"})
+RECORDS_RELATION_KEYS = frozenset({"id", "rel", "from", "to"})
+RECORDS_FIELDS_KEYS = frozenset(SLOTS)
+RECORDS_FIELD_SLOT_KEYS = frozenset({"value", "source"})
+RECORDS_ANCHOR_KEYS = frozenset({"fragment_id", "start", "end"})
+
+# Explicitly forbidden, at any level: S03 rate keys, coder submission shapes,
+# and raw legal corpus text. Unknown keys are already refused by the closed
+# allow-lists; naming these keeps the refusal explicit and auditable.
+RECORDS_FORBIDDEN_KEYS = {
+    "false_authority": "S03 rate key",
+    "span_rate": "S03 rate key",
+    "slot_rate": "S03 rate key",
+    "scope_rate": "S03 rate key",
+    "binding_rate": "S03 rate key",
+    "abstention_rate": "S03 rate key",
+    "aspect_rates": "S03 rate key",
+    "submissions": "coder submission shape",
+    "coder_id": "coder submission shape",
+    "coder": "coder submission shape",
+    "adjudication": "coder submission shape",
+    "adjudications": "coder submission shape",
+    "corpus_excerpt": "raw legal corpus text",
+    "raw_text": "raw legal corpus text",
+    "legal_text": "raw legal corpus text",
+    "source_text": "raw legal corpus text",
+    "corpus_text": "raw legal corpus text",
+    "raw_legal_text": "raw legal corpus text",
+}
+
+# Honesty keys are optional, but when present they must carry the fixed v1
+# value. A dishonest label is refused, not silently accepted.
+RECORDS_HONESTY_VALUES = (
+    ("lifecycle", ["proposed"]),
+    ("authoritative", False),
+    ("is_gold", False),
+    ("not_human", True),
+    ("not_s03_metrics", True),
+    ("alignment_policy", "local-anchor-identity-v1"),
+)
+
 # Working labels only. Not adopted legal TYPE vocabulary.
 KIND_MEMBER = "series_member"
 KIND_AGREEMENT = "agreement"
@@ -382,8 +458,52 @@ def require_int(value: Any, label: str) -> int:
     return value
 
 
+def require_closed_keys(payload: Mapping[str, Any], allowed: frozenset[str], label: str) -> None:
+    """Refuse any key outside the documented closed allow-list for one level."""
+    for key in sorted(payload):
+        reason = RECORDS_FORBIDDEN_KEYS.get(key)
+        if reason is not None:
+            raise ExperimentError(
+                "MALFORMED_REF",
+                f"{label}.{key} is forbidden in m207-hybrid-records/v1 ({reason})",
+            )
+        if key not in allowed:
+            raise ExperimentError(
+                "MALFORMED_REF",
+                f"{label}.{key} is not in the closed m207-hybrid-records/v1 allow-list",
+            )
+
+
+def require_str_list(value: Any, label: str) -> list[str]:
+    rows = require_list(value, label)
+    out: list[str] = []
+    for index, row in enumerate(rows):
+        out.append(require_str(row, f"{label}[{index}]"))
+    return out
+
+
+def validate_honesty_keys(payload: Mapping[str, Any], label: str) -> None:
+    """Optional envelope keys must be honest when present (fail closed)."""
+    for key, expected in RECORDS_HONESTY_VALUES:
+        if key not in payload:
+            continue
+        actual = payload[key]
+        if isinstance(expected, bool):
+            ok = actual is expected
+        elif isinstance(expected, list):
+            ok = isinstance(actual, list) and actual == expected
+        else:
+            ok = isinstance(actual, str) and actual == expected
+        if not ok:
+            raise ExperimentError(
+                "MALFORMED_REF",
+                f"{label}.{key} must be {expected!r} (honesty key) but is {actual!r}",
+            )
+
+
 def validate_anchor(row: Any, label: str) -> dict[str, Any]:
     payload = require_mapping(row, label)
+    require_closed_keys(payload, RECORDS_ANCHOR_KEYS, label)
     fragment_id = require_str(payload.get("fragment_id"), f"{label}.fragment_id")
     start = require_int(payload.get("start"), f"{label}.start")
     end = require_int(payload.get("end"), f"{label}.end")
@@ -403,6 +523,7 @@ def validate_source(row: Any, label: str) -> dict[str, Any] | None:
 
 def validate_bundle(payload: Mapping[str, Any], label: str) -> dict[str, Any]:
     body = require_mapping(payload, label)
+    require_closed_keys(body, RECORDS_BUNDLE_KEYS, label)
     for key in (
         "bundle_id",
         "construction",
@@ -415,11 +536,17 @@ def validate_bundle(payload: Mapping[str, Any], label: str) -> dict[str, Any]:
     ):
         if key not in body:
             raise ExperimentError("MALFORMED_REF", f"{label} missing {key}")
+    require_str(body["bundle_id"], f"{label}.bundle_id")
+    require_str(body["construction"], f"{label}.construction")
+    require_str(body["context_status"], f"{label}.context_status")
+    require_str_list(body["declared_region"], f"{label}.declared_region")
+    require_str_list(body["context_only"], f"{label}.context_only")
     occs = require_list(body["occurrences"], f"{label}.occurrences")
     rels = require_list(body["relations"], f"{label}.relations")
     ids: list[str] = []
     for index, raw in enumerate(occs):
         item = require_mapping(raw, f"{label}.occurrences[{index}]")
+        require_closed_keys(item, RECORDS_OCCURRENCE_KEYS, f"{label}.occurrences[{index}]")
         oid = require_str(item.get("id"), f"{label}.occurrences[{index}].id")
         if oid in ids:
             raise ExperimentError("MALFORMED_REF", f"{label} duplicate occurrence id {oid}")
@@ -430,10 +557,12 @@ def validate_bundle(payload: Mapping[str, Any], label: str) -> dict[str, Any]:
         for a_index, raw_anchor in enumerate(anchors):
             validate_anchor(raw_anchor, f"{label}.{oid}.anchors[{a_index}]")
         fields = require_mapping(item.get("fields"), f"{label}.{oid}.fields")
+        require_closed_keys(fields, RECORDS_FIELDS_KEYS, f"{label}.{oid}.fields")
         for slot in SLOTS:
             if slot not in fields:
                 raise ExperimentError("MALFORMED_REF", f"{label}.{oid}.fields missing {slot}")
             slot_body = require_mapping(fields[slot], f"{label}.{oid}.fields.{slot}")
+            require_closed_keys(slot_body, RECORDS_FIELD_SLOT_KEYS, f"{label}.{oid}.fields.{slot}")
             if "value" not in slot_body or "source" not in slot_body:
                 raise ExperimentError(
                     "MALFORMED_REF",
@@ -442,6 +571,11 @@ def validate_bundle(payload: Mapping[str, Any], label: str) -> dict[str, Any]:
             validate_source(slot_body.get("source"), f"{label}.{oid}.fields.{slot}.source")
         if not isinstance(item.get("unresolved"), bool):
             raise ExperimentError("MALFORMED_REF", f"{label}.{oid}.unresolved must be bool")
+        reason = item.get("unresolved_reason")
+        if reason is not None and not isinstance(reason, str):
+            raise ExperimentError(
+                "MALFORMED_REF", f"{label}.{oid}.unresolved_reason must be null or a string"
+            )
     id_set = set(ids)
     focus = require_str(body["focus_id"], f"{label}.focus_id")
     if ids and focus not in id_set:
@@ -449,6 +583,7 @@ def validate_bundle(payload: Mapping[str, Any], label: str) -> dict[str, Any]:
     rel_ids: list[str] = []
     for index, raw in enumerate(rels):
         item = require_mapping(raw, f"{label}.relations[{index}]")
+        require_closed_keys(item, RECORDS_RELATION_KEYS, f"{label}.relations[{index}]")
         rid = require_str(item.get("id"), f"{label}.relations[{index}].id")
         if rid in rel_ids:
             raise ExperimentError("MALFORMED_REF", f"{label} duplicate relation id {rid}")
@@ -637,7 +772,7 @@ def example_hybrid_records(
     return {
         "schema": RECORDS_SCHEMA,
         "schema_version": RECORDS_SCHEMA_VERSION,
-        "lifecycle": "[proposed]",
+        "lifecycle": ["proposed"],
         "authoritative": False,
         "is_gold": False,
         "not_human": True,
@@ -699,6 +834,8 @@ def load_hybrid_records_bytes(raw: bytes, label: str) -> dict[str, Any]:
 
 def validate_hybrid_records(payload: Mapping[str, Any], label: str = "records") -> dict[str, Any]:
     body = require_mapping(payload, label)
+    require_closed_keys(body, RECORDS_ENVELOPE_KEYS, label)
+    validate_honesty_keys(body, label)
     for key in ("schema", "schema_version", "provenance_origin", "documents", "bundles"):
         if key not in body:
             raise ExperimentError("MALFORMED_REF", f"{label} missing {key}")
@@ -729,6 +866,7 @@ def validate_hybrid_records(payload: Mapping[str, Any], label: str = "records") 
     frag_meta: dict[str, dict[str, Any]] = {}
     for d_index, raw_doc in enumerate(documents):
         doc = require_mapping(raw_doc, f"{label}.documents[{d_index}]")
+        require_closed_keys(doc, RECORDS_DOCUMENT_KEYS, f"{label}.documents[{d_index}]")
         document_id = require_str(
             doc.get("document_id"), f"{label}.documents[{d_index}].document_id"
         )
@@ -742,6 +880,9 @@ def validate_hybrid_records(payload: Mapping[str, Any], label: str = "records") 
             )
         for f_index, raw_frag in enumerate(fragments):
             frag = require_mapping(raw_frag, f"{label}.{document_id}.fragments[{f_index}]")
+            require_closed_keys(
+                frag, RECORDS_FRAGMENT_KEYS, f"{label}.{document_id}.fragments[{f_index}]"
+            )
             fragment_id = require_str(
                 frag.get("fragment_id"),
                 f"{label}.{document_id}.fragments[{f_index}].fragment_id",
@@ -1617,6 +1758,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             report = validate_records_file(root, Path(args.validate_records))
         except ExperimentError as exc:
             return emit_records_result(invalid_records_report(exc), exc)
+        except Exception as exc:  # noqa: BLE001 - fail closed, never traceback
+            error = ExperimentError(
+                "MALFORMED_REF",
+                f"records input raised unexpected {type(exc).__name__}: {exc}",
+            )
+            return emit_records_result(invalid_records_report(error), error)
         return emit_records_result(report, None)
     if args.write and args.check:
         print("FAIL USAGE: pass only one of --check or --write", file=sys.stderr)

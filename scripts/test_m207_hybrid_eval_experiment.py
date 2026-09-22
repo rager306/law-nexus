@@ -542,6 +542,51 @@ class HybridRecordsContractTests(unittest.TestCase):
             "PROVENANCE_FORBIDDEN",
         )
 
+    def test_hostile_encodings_and_object_shape_fail_closed(self) -> None:
+        root = self.make_root()
+        cases = (
+            ("zero-byte.json", b""),
+            ("bom.json", b"\xef\xbb\xbf{}"),
+            ("array.json", b"[1, 2, 3]"),
+            ("null.json", b"null"),
+            ("string.json", b'"records"'),
+            ("trailing.json", b'{"schema": "m207-hybrid-records/v1"} trailing'),
+            ("invalid-utf8.json", b'{"schema": "\xff\xfe"}'),
+        )
+        for name, raw in cases:
+            with self.subTest(name=name):
+                path = root / name
+                path.write_bytes(raw)
+                self.assert_records_fail(
+                    self.run_cli(root, "--validate-records", str(path)), "MALFORMED_REF"
+                )
+                self.assertEqual(path.read_bytes(), raw)
+
+    def test_directory_and_protected_symlink_fail_closed(self) -> None:
+        root = self.make_root()
+        directory = root / "as-directory"
+        directory.mkdir()
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(directory)), "MISSING_INPUT"
+        )
+        real = self.write_records(root, exp.example_hybrid_records(), "ok.json")
+        self.assert_records_ok(self.run_cli(root, "--validate-records", str(real)))
+        for relative in (
+            "prd/annotation/m207-s01-codebook.md",
+            RECORD_REL,
+        ):
+            with self.subTest(protected=relative):
+                target = ROOT / relative
+                if not target.is_file():
+                    continue
+                before = target.read_bytes()
+                link = root / ("link-" + Path(relative).name)
+                link.symlink_to(target)
+                self.assert_records_fail(
+                    self.run_cli(root, "--validate-records", str(link)), "PROTECTED_PATH"
+                )
+                self.assertEqual(target.read_bytes(), before)
+
     def test_duplicate_anchor_is_explicit(self) -> None:
         root = self.make_root()
         payload = exp.example_hybrid_records(include_alias=False)
@@ -602,11 +647,248 @@ class HybridRecordsContractTests(unittest.TestCase):
         self.assertFalse((root / RECORD_REL).exists())
 
 
+class HybridRecordsRejectionTests(unittest.TestCase):
+    """Regression coverage for the closed, honest, fail-closed envelope.
+
+    Every case here previously validated as ``status=ok`` with the success
+    marker, which made the executable gate weaker than its own contract.
+    """
+
+    def make_root(self) -> Path:
+        directory = Path(tempfile.mkdtemp(prefix="m207-hybrid-reject-"))
+        self.addCleanup(shutil.rmtree, directory, ignore_errors=True)
+        return directory
+
+    def run_cli(self, root: Path, *extra: str) -> subprocess.CompletedProcess[str]:
+        command = [sys.executable, str(SCRIPT), "--root", str(root), *extra]
+        return subprocess.run(
+            command, cwd=ROOT, text=True, capture_output=True, check=False, timeout=TIMEOUT
+        )
+
+    def write_records(self, root: Path, payload: dict[str, Any], name: str) -> Path:
+        path = root / name
+        path.write_bytes(exp.canonical_json_bytes(payload))
+        return path
+
+    def assert_rejected(self, result: subprocess.CompletedProcess[str]) -> dict[str, Any]:
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertNotIn(RECORDS_MARKER, result.stdout)
+        self.assertNotIn(RECORDS_MARKER, result.stderr)
+        self.assertIn("FAIL MALFORMED_REF", result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["status"], "invalid")
+        self.assertIsNone(report["marker"])
+        codes = [row["code"] for row in report["diagnostics"]]
+        self.assertIn("MALFORMED_REF", codes)
+        return report
+
+    def assert_accepted(self, result: subprocess.CompletedProcess[str]) -> None:
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertIn(RECORDS_MARKER, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["status"], "ok")
+
+    def test_dishonest_honesty_keys_fail_closed(self) -> None:
+        root = self.make_root()
+        cases: tuple[tuple[str, Any], ...] = (
+            ("is_gold", True),
+            ("authoritative", True),
+            ("not_human", False),
+            ("not_s03_metrics", False),
+            ("lifecycle", ["validated"]),
+            ("lifecycle", ["proposed", "validated"]),
+            ("lifecycle", "[proposed]"),
+            ("alignment_policy", "best-match"),
+            ("alignment_policy", ""),
+            ("authoritative", 0),
+            ("not_human", 1),
+        )
+        for index, (key, value) in enumerate(cases):
+            with self.subTest(key=key, value=value):
+                payload = exp.example_hybrid_records(origin="rust-runtime")
+                payload[key] = value
+                path = self.write_records(root, payload, f"dishonest-{index}.json")
+                self.assert_rejected(self.run_cli(root, "--validate-records", str(path)))
+
+    def test_synthetic_bytes_cannot_be_relabelled_as_gold(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records(origin="rust-runtime")
+        payload.update(
+            {
+                "is_gold": True,
+                "authoritative": True,
+                "not_human": False,
+                "not_s03_metrics": False,
+                "lifecycle": ["validated"],
+                "alignment_policy": "best-match",
+            }
+        )
+        path = self.write_records(root, payload, "relabelled-gold.json")
+        report = self.assert_rejected(self.run_cli(root, "--validate-records", str(path)))
+        self.assertIn("honesty key", report["diagnostics"][0]["detail"])
+
+    def test_honest_and_absent_honesty_keys_are_accepted(self) -> None:
+        root = self.make_root()
+        honest = exp.example_hybrid_records(origin="synthetic")
+        self.assert_accepted(
+            self.run_cli(
+                root,
+                "--validate-records",
+                str(self.write_records(root, honest, "honest.json")),
+            )
+        )
+        bare = exp.clone(honest)
+        for key, _ in exp.RECORDS_HONESTY_VALUES:
+            bare.pop(key)
+        self.assert_accepted(
+            self.run_cli(
+                root,
+                "--validate-records",
+                str(self.write_records(root, bare, "bare.json")),
+            )
+        )
+
+    def test_bundle_and_list_types_fail_closed_with_json_diagnostics(self) -> None:
+        root = self.make_root()
+
+        def declared_region_int(payload: dict[str, Any]) -> None:
+            payload["bundles"][0]["declared_region"] = 1
+
+        def declared_region_str(payload: dict[str, Any]) -> None:
+            payload["bundles"][0]["declared_region"] = "syn-head"
+
+        def declared_region_element_int(payload: dict[str, Any]) -> None:
+            payload["bundles"][0]["declared_region"] = [1]
+
+        def declared_region_element_empty(payload: dict[str, Any]) -> None:
+            payload["bundles"][0]["declared_region"] = [""]
+
+        def context_only_str(payload: dict[str, Any]) -> None:
+            payload["bundles"][0]["context_only"] = "syn-head"
+
+        def context_only_int(payload: dict[str, Any]) -> None:
+            payload["bundles"][0]["context_only"] = 5
+
+        def bundle_id_int(payload: dict[str, Any]) -> None:
+            payload["bundles"][0]["bundle_id"] = 123
+
+        def construction_int(payload: dict[str, Any]) -> None:
+            payload["bundles"][0]["construction"] = 7
+
+        def construction_empty(payload: dict[str, Any]) -> None:
+            payload["bundles"][0]["construction"] = ""
+
+        def context_status_int(payload: dict[str, Any]) -> None:
+            payload["bundles"][0]["context_status"] = 9
+
+        cases = (
+            ("declared-region-int", declared_region_int),
+            ("declared-region-str", declared_region_str),
+            ("declared-region-element-int", declared_region_element_int),
+            ("declared-region-element-empty", declared_region_element_empty),
+            ("context-only-str", context_only_str),
+            ("context-only-int", context_only_int),
+            ("bundle-id-int", bundle_id_int),
+            ("construction-int", construction_int),
+            ("construction-empty", construction_empty),
+            ("context-status-int", context_status_int),
+        )
+        for name, mutate in cases:
+            with self.subTest(name=name):
+                payload = exp.example_hybrid_records(include_alias=False)
+                mutate(payload)
+                path = self.write_records(root, payload, f"shape-{name}.json")
+                self.assert_rejected(self.run_cli(root, "--validate-records", str(path)))
+
+    def test_closed_allow_list_rejects_unknown_and_forbidden_keys(self) -> None:
+        root = self.make_root()
+
+        def top(key: str) -> Any:
+            def mutate(payload: dict[str, Any]) -> None:
+                payload[key] = "injected"
+
+            return mutate
+
+        def on_occurrence(key: str, value: Any) -> Any:
+            def mutate(payload: dict[str, Any]) -> None:
+                payload["bundles"][0]["occurrences"][0][key] = value
+
+            return mutate
+
+        def on_relation(key: str, value: Any) -> Any:
+            def mutate(payload: dict[str, Any]) -> None:
+                payload["bundles"][0]["relations"][0][key] = value
+
+            return mutate
+
+        def on_field_slot(key: str, value: Any) -> Any:
+            def mutate(payload: dict[str, Any]) -> None:
+                payload["bundles"][0]["occurrences"][0]["fields"]["kind"][key] = value
+
+            return mutate
+
+        def on_fields_container(key: str, value: Any) -> Any:
+            def mutate(payload: dict[str, Any]) -> None:
+                payload["bundles"][0]["occurrences"][0]["fields"][key] = value
+
+            return mutate
+
+        def on_anchor(key: str, value: Any) -> Any:
+            def mutate(payload: dict[str, Any]) -> None:
+                payload["bundles"][0]["occurrences"][0]["anchors"][0][key] = value
+
+            return mutate
+
+        def on_document(key: str) -> Any:
+            def mutate(payload: dict[str, Any]) -> None:
+                payload["documents"][0][key] = "injected"
+
+            return mutate
+
+        def on_fragment(key: str) -> Any:
+            def mutate(payload: dict[str, Any]) -> None:
+                payload["documents"][0]["fragments"][0][key] = "injected"
+
+            return mutate
+
+        cases = (
+            ("envelope-s03-rate", top("span_rate")),
+            ("envelope-s03-rate-false-authority", top("false_authority")),
+            ("envelope-s03-aspect-rates", top("aspect_rates")),
+            ("envelope-raw-corpus", top("corpus_excerpt")),
+            ("envelope-raw-legal-text", top("raw_legal_text")),
+            ("envelope-coder-submission", top("submissions")),
+            ("envelope-coder-id", top("coder_id")),
+            ("envelope-unknown", top("future_field")),
+            ("document-unknown", on_document("hash")),
+            ("fragment-unknown", on_fragment("encoding")),
+            ("bundle-unknown", top("nothing")),
+            ("occurrence-unknown", on_occurrence("legal_type", "договор")),
+            ("occurrence-rate", on_occurrence("slot_rate", 0.9)),
+            ("relation-unknown", on_relation("weight", 1)),
+            ("field-slot-unknown", on_field_slot("confidence", 0.9)),
+            ("fields-container-unknown", on_fields_container("confidence", 0.9)),
+            ("anchor-unknown", on_anchor("confidence", 1)),
+        )
+        for index, (name, mutate) in enumerate(cases):
+            with self.subTest(name=name):
+                payload = exp.example_hybrid_records(include_alias=False)
+                if name == "bundle-unknown":
+                    payload["bundles"][0]["future_key"] = 1
+                elif name == "envelope-unknown":
+                    payload["future_field"] = 1
+                else:
+                    mutate(payload)
+                path = self.write_records(root, payload, f"closed-{index}.json")
+                self.assert_rejected(self.run_cli(root, "--validate-records", str(path)))
+
+
 def main() -> int:
     loader = unittest.defaultTestLoader
     suite = unittest.TestSuite()
     suite.addTests(loader.loadTestsFromTestCase(HybridEvalExperimentTests))
     suite.addTests(loader.loadTestsFromTestCase(HybridRecordsContractTests))
+    suite.addTests(loader.loadTestsFromTestCase(HybridRecordsRejectionTests))
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     return 0 if result.wasSuccessful() else 1
 
