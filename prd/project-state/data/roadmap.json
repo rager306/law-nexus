@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-09-22T11:40:46Z",
+  "generated_at": "2026-09-22T16:09:31Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -525,13 +525,19 @@
       "theme": "Context-grammar and legal-candidate contracts; corrected grammar-context and binding candidates",
       "status": "complete",
       "boundary": "Bounded grammar-context and binding remediation after M204 evidence honesty, with reproduction-first fixes for the confirmed RC28-F06..F12 defects and the M205/M206 runtime grammar-context proof chain. R035, R038, R070, R074 and R081 remain active unless their independent proof obligations are separately met. Not parser, temporal, registry or ontology readiness, and not product acceptance."
+    },
+    {
+      "range": "M207-M207",
+      "theme": "Independent NPA annotation and measurable verification (codebook, two-coder machinery, frozen evaluation, hybrid records contract, automatic evaluation, operational successor)",
+      "status": "complete",
+      "boundary": "S01-S04 frozen with the human contour honestly absent (HUMAN_PILOT_ABSENT exit 3, no fabricated stores, no published rates); S05-S07 add the versioned hybrid records contract, the automatic synthetic/differential/metamorphic evaluation and the operational successor with a failure sidecar. Validated pass after the success criterion was reassessed so that Rust-series consumption is owned by the declared M211 S01/S02 boundary rather than by M207 itself. R035 and R070 stay on HOLD; R038/R063/R064/R071/R077/R081 advanced as supporting only, status unchanged; no requirement validated."
     }
   ],
   "current_milestone": {
-    "id": "M206-jnbhlz",
+    "id": "M207-b2i96m",
     "status": "complete",
-    "title": "Корректные grammar context и binding кандидаты",
-    "goal": "Исправить подтверждённые дефекты RC28-F06..F12 с reproduction first после завершения M204/M205 и human-adopted затронутых политик. Rust-only продукт; Pullenti не портируется. R035, R038, R070, R074 и R081 остаются active, пока их независимые доказательства не получены отдельно."
+    "title": "Независимая разметка и измеримая проверка NPA",
+    "goal": "Source-bound independent gold, Work-family holdout and real metrics for NPA annotation, plus optional license-approved differential analysis, without enlarging the 180-fragment seed automatically. D519 removes the mandatory human pilot from the new scope while historical S01-S04 stay frozen; R035/R070 are not closed and requirements of other milestones are not resolved without their own evidence."
   },
   "recommended_next": {
     "title": "Execute M203 S01 Review disposition and control baseline",
