@@ -1,0 +1,291 @@
+{
+  "schema": "m207-s07-schemas/v1",
+  "schema_version": 1,
+  "protocol": "prd/annotation/m207-s07-c4-protocol.md",
+  "receipt_schema_id": "m207-s07-c4-operational-successor/v1",
+  "sidecar_schema_id": "npa-contour-failure-trace/v1",
+  "digest_format": "bare lowercase hex sha256, no algorithm prefix",
+  "frozen_sources": {
+    "m207_s04_c4_protocol": {
+      "path": "prd/annotation/m207-s04-c4-protocol.md",
+      "sha256": "11dd5e0bbd29ecd398469be95321fc854d3da323bed2b3b0042c1c6f595642fb"
+    },
+    "m207_s04_schemas": {
+      "path": "prd/annotation/m207-s04-schemas.json",
+      "sha256": "7d494b55f5bd7b5a6ee5dd7818f4ca3aa61a26dcfb81d1b1c4d2de27df217293"
+    },
+    "m207_s04_c4_operational_receipt": {
+      "path": "prd/migration/rust-evidence/m207-s04-c4-operational-receipt.json",
+      "sha256": "423d30de06080fce1c3da255d1d03cc3f19548d29e4338c74d913f4771e9e935"
+    },
+    "m204_s06_c4_operational_receipt": {
+      "path": "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+      "sha256": "04e41f896f2bded096061d7caef2ec4abdaaf37cebf88c387d1dd011943b797c"
+    },
+    "m207_s04_battery": {
+      "path": "prd/migration/rust-evidence/m207-s04-battery.json",
+      "sha256": "cc6dbb3933bc8e5d91c3cf7866ed28e40061a5740c77429b923d4e487ade91fc"
+    },
+    "m207_s03_battery": {
+      "path": "prd/migration/rust-evidence/m207-s03-battery.json",
+      "sha256": "76b9a78e3e83772be3ca3e46b83a89b3b3baaf690ffe6aa0c72f77aa6d56b533"
+    },
+    "m199_s01_sample_manifest": {
+      "path": "prd/migration/rust-evidence/m199-s01-gold-sample-manifest.json",
+      "sha256": "134751f49db1858329248be1857ada669097f1860609090028c7b5af8975574f"
+    },
+    "m199_seed_sidecar": {
+      "path": "crates/ln-decode/tests/fixtures/npa-lawref/lawref_seed.json",
+      "sha256": "b88e5af14bcc9496c4d35627afda058d58956f459106c147f1cc7959a6930f28"
+    }
+  },
+  "corpus_pins": {
+    "consultant_root": "consru_export/consru_export/exports",
+    "consultant_root_is_declared_not_derived": true,
+    "consultant_xml_suffix": ".xml",
+    "consultant_xml_count": 43785,
+    "garant_root": "law-source/garant",
+    "garant_file_count": 12,
+    "count_basis": "recursive file count under the declared root, identical to the M204/S06 basis",
+    "count_is_a_corpus_pin_not_promotion_evidence": true,
+    "drift_diagnostic": "CORPUS_COUNT_DRIFT"
+  },
+  "predicates": {
+    "outcomes": [
+      "full_walk",
+      "timeout",
+      "nonzero",
+      "launch_error"
+    ],
+    "full_walk": {
+      "requires_no_limit_flag": true,
+      "header_limit_is_null": true,
+      "canonical_payload_limit_is_null": true,
+      "corpus_consultant_xml_count": 43785,
+      "corpus_garant_file_count": 12,
+      "aggregate_files_equals": 43797,
+      "terminal_outcome": "complete",
+      "terminal_exit_code": 0,
+      "terminal_timeout": false,
+      "terminal_signal_is_null": true
+    },
+    "timeout": {
+      "terminal_outcome": "timeout",
+      "terminal_exit_code_is_null": true,
+      "terminal_signal": "SIGTERM",
+      "terminal_timeout": true
+    },
+    "duration_ms_is_recorded": true,
+    "duration_ms_is_not_a_predicate_input": true,
+    "duration_floor_is_not_acceptance": true,
+    "short_complete_is_lawful_full_walk": true,
+    "budget_seconds_is_a_kill_ceiling": true,
+    "budget_seconds_minimum": 3600,
+    "outcome_is_recomputed_not_read_from_a_claim": true,
+    "run_status_is_not_terminal_evidence": true
+  },
+  "failure_policy": {
+    "sidecar_schema_id": "npa-contour-failure-trace/v1",
+    "sidecar_schema_reused_verbatim": true,
+    "sidecar_keys": [
+      "record_kind",
+      "schema",
+      "provider",
+      "path",
+      "class"
+    ],
+    "record_kind_value": "failure",
+    "provider_allowlist": [
+      "consultant",
+      "garant"
+    ],
+    "class_allowlist": [
+      "read",
+      "digest",
+      "decode",
+      "toctou"
+    ],
+    "provider_roots": {
+      "consultant": "consru_export/consru_export/exports/",
+      "garant": "law-source/garant/"
+    },
+    "path_must_be_repo_relative_under_provider_root": true,
+    "sidecar_count_must_equal_aggregate_failed": true,
+    "empty_sidecar_is_lawful_only_when_failed_zero": true,
+    "missing_sidecar_with_positive_failed_is_named_refusal": true,
+    "exit_out_unwritable_code": 3,
+    "allowlist_refusal_outcome": "nonzero",
+    "allowlist_refusal_reason": "allowlist_refusal",
+    "allowlist_refusal_is_lawful_nonzero_without_sidecar": true,
+    "acceptance_effect": "none",
+    "sidecar_is_write_once": true,
+    "failure_identity_is_not_stored_in_the_receipt": true,
+    "historical_failed_file_is_not_recoverable": true,
+    "retry_or_last_error_surface_forbidden": true
+  },
+  "new_attempt_policy": {
+    "attempt_id_template": "m207-s07-<slug>-NNN",
+    "attempt_id_slug_pattern": "^m207-s07-[a-z0-9]+(-[a-z0-9]+)*-[0-9]{3}$",
+    "attempt_dir_prefix": "prd/migration/rust-evidence/m207-s07-c4-attempts/",
+    "receipt_path": "prd/migration/rust-evidence/m207-s07-c4-operational-receipt.json",
+    "sidecar_arg": "--failures-out",
+    "sidecar_path_template": "<attempt-dir>/failures.jsonl",
+    "limit_flag_forbidden": true,
+    "write_once": true,
+    "new_argv_changes_identity": true,
+    "old_argv_must_not_be_edited": true,
+    "forbidden_write_paths": [
+      "prd/annotation/m207-s04-c4-protocol.md",
+      "prd/annotation/m207-s04-schemas.json",
+      "prd/migration/rust-evidence/m207-s04-c4-operational-receipt.json",
+      "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+      "prd/migration/rust-evidence/m207-s04-battery.json",
+      "prd/migration/rust-evidence/m207-s03-battery.json",
+      "prd/migration/rust-evidence/m199-s01-gold-sample-manifest.json",
+      "crates/ln-decode/tests/fixtures/npa-lawref/lawref_seed.json",
+      "prd/migration/rust-evidence/m207-s03-evaluation-report.json"
+    ],
+    "forbidden_write_prefixes": [
+      "prd/migration/rust-evidence/m207-s04-c4-attempts/"
+    ],
+    "forbidden_write_diagnostic": "C4_RECEIPT_DRIFT",
+    "receipt_written_only_after_terminal_facts": true,
+    "receipt_is_never_reconstructed_from_logs": true
+  },
+  "promotion_contract": {
+    "promotion": "none",
+    "classification": "not-authorized",
+    "threshold": null,
+    "human_acceptance": null,
+    "is_gold": false,
+    "model_invoked": false,
+    "legal_claim": "forbidden",
+    "rate_publication": "forbidden",
+    "measurement_status_publication": "forbidden",
+    "acceptance_effect_of_failures": "none",
+    "corpus_complete_is_not_acceptance": true,
+    "marker_is_not_acceptance": true
+  },
+  "s03_isolation": {
+    "evaluation_report_path": "prd/migration/rust-evidence/m207-s03-evaluation-report.json",
+    "evaluation_report_must_be_absent": true,
+    "s03_battery_path": "prd/migration/rust-evidence/m207-s03-battery.json",
+    "s03_battery_human_pilot_performed_required": false,
+    "s03_rates_required_status": "not-measured",
+    "rate_import_forbidden": true,
+    "seed_fragment_root": "crates/ln-decode/tests/fixtures/npa-lawref",
+    "seed_fragment_glob": "*.txt",
+    "seed_fragment_count": 180,
+    "seed_aggregate_sha256": "50b48668cba5b89d75af0604a78004404310e36377679984273fa0a883053c9d",
+    "seed_aggregate_basis": "sha256 over sorted lines '<file name>\\0<file sha256>\\n'",
+    "seed_sidecar_path": "crates/ln-decode/tests/fixtures/npa-lawref/lawref_seed.json",
+    "seed_sidecar_sha256": "b88e5af14bcc9496c4d35627afda058d58956f459106c147f1cc7959a6930f28",
+    "crates_reference_forbidden": true,
+    "crates_reference_patterns": [
+      "m207-s03",
+      "m207_s03",
+      "m207-s04",
+      "m207_s04",
+      "m207-s07",
+      "m207_s07"
+    ],
+    "crates_reference_scope": "every tracked file under crates/, excluding target/ and .git/",
+    "seed_enlarge_diagnostic": "SEED_ENLARGE"
+  },
+  "marker_contract": {
+    "marker": "M207_S07_SCHEMAS_OK",
+    "selftest_marker": "M207_S07_SCHEMAS_SELFTEST_OK",
+    "marker_values": [
+      "M207_S07_SCHEMAS_OK",
+      "M207_S07_SCHEMAS_SELFTEST_OK"
+    ],
+    "meaning": "the frozen S07 protocol and schema agree and match the live frozen sources",
+    "does_not_mean": [
+      "not a C4 pass",
+      "not a walk",
+      "not gold",
+      "not a promotion",
+      "not a measured rate"
+    ],
+    "marker_is_not_acceptance": true
+  },
+  "vocabularies": {
+    "outcome_values": [
+      "full_walk",
+      "timeout",
+      "nonzero",
+      "launch_error"
+    ],
+    "predicate_values": [
+      "full_walk",
+      "timeout"
+    ],
+    "promotion_values": [
+      "none"
+    ],
+    "classification_values": [
+      "not-authorized"
+    ],
+    "provider_values": [
+      "consultant",
+      "garant"
+    ],
+    "failure_class_values": [
+      "read",
+      "digest",
+      "decode",
+      "toctou"
+    ],
+    "marker_values": [
+      "M207_S07_SCHEMAS_OK",
+      "M207_S07_SCHEMAS_SELFTEST_OK"
+    ],
+    "digest_format": "bare lowercase hex sha256, no algorithm prefix",
+    "requirement_status_effect_values": [
+      "unchanged"
+    ]
+  },
+  "diagnostics": [
+    "MISSING_ARTIFACT",
+    "MISSING_SECTION",
+    "UNSAFE_PATH",
+    "SCHEMA_PARSE_ERROR",
+    "SCHEMA_KEY_DRIFT",
+    "SCHEMA_VERSION_DRIFT",
+    "MARKER_CONTRACT_DRIFT",
+    "C4_RECEIPT_DRIFT",
+    "CORPUS_COUNT_DRIFT",
+    "TERMINAL_OUTCOME_DRIFT",
+    "PREDICATE_CONTRADICTION",
+    "DURATION_FLOOR_AS_ACCEPTANCE",
+    "PROMOTION_CLAIM",
+    "GOLD_CLAIM",
+    "PROTOCOL_DIAGNOSTIC_DRIFT",
+    "SEED_ENLARGE",
+    "GATE_INTERNAL_ERROR"
+  ],
+  "non_claims": [
+    "not gold: no S07 artifact, predicate, sidecar row or marker is a gold label",
+    "not a promotion: promotion stays none, classification stays not-authorized, human_acceptance stays null",
+    "not a threshold: no rate threshold, pass/fail cut-off or accept/reject decision is introduced",
+    "not a classification: no classifier is fitted, no D388 gate is selected and no gate is scored",
+    "not independent-measured: S07 runs no human pilot and publishes no measured rate",
+    "not a rewrite of S04/M204: the frozen receipt, its logs, its claims and the M204 timeout receipt stay byte-identical",
+    "not a timeout redefinition: a short complete walk is not renamed timeout and a timeout is never renamed complete",
+    "not a budget achievement: budget_seconds is a kill ceiling, not evidence the corpus envelope was exercised",
+    "not a product surface: S07 is an offline Python harness and crates/** gains no reader and no new Rust type",
+    "not a requirement status change: status_effect stays unchanged and R035/R070 stay HOLD",
+    "not a failure identity for the historical run: the S04 failed = 1 file stays unidentified",
+    "not a human gate: the human pilot is not a gate (D519)",
+    "not a second measurement convention: no S03 aspect or stratum rate is imported or re-derived",
+    "not a seed enlargement: the 180 frozen fragments stay 180"
+  ],
+  "lifecycle": {
+    "human_adoption": "pending",
+    "human_pilot_is_not_a_gate": true,
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none",
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged"
+  }
+}
