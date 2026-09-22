@@ -14,7 +14,14 @@ validation of m207-hybrid-records/v1. It cannot overwrite PATH, the
 synthetic artifact, or frozen S01-S04 stores. Stdlib json only (D328: no
 serde on the future Rust emitter).
 
-Markers: M207_HYBRID_SYNTHETIC_EXPERIMENT_OK, M207_HYBRID_RECORDS_OK
+Third read-only mode: --evaluate-records EXPECTED PREDICTED validates both
+m207-hybrid-records/v1 files, pairs bundles by bundle_id only, and prints an
+m207-hybrid-eval-report/v1 report whose differential and metamorphic evidence
+objects stay siblings. It never writes, and the expected file is a harness
+reference, not human gold (D519/D521).
+
+Markers: M207_HYBRID_SYNTHETIC_EXPERIMENT_OK, M207_HYBRID_RECORDS_OK,
+M207_HYBRID_EVAL_OK (report shape and denominators only, never acceptance)
 """
 
 from __future__ import annotations
@@ -34,6 +41,48 @@ RECORDS_MARKER = "M207_HYBRID_RECORDS_OK"
 RECORDS_SCHEMA = "m207-hybrid-records/v1"
 RECORDS_SCHEMA_VERSION = 1
 RECORDS_ORIGINS = ("synthetic", "rust-runtime")
+EVAL_MARKER = "M207_HYBRID_EVAL_OK"
+EVAL_SCHEMA = "m207-hybrid-eval-report/v1"
+EVAL_SCHEMA_VERSION = 1
+# Eval-only protected paths. PROTECTED_RELS and protected_path_reason are
+# intentionally untouched so --validate-records keeps its S05 behavior.
+EVAL_EXTRA_PROTECTED_RELS = ("prd/migration/rust-evidence/m207-s03-evaluation-report.json",)
+# Closed set of eval diagnostics. The sibling contract document repeats this
+# list between machine-readable markers; the doc-code test compares both ways.
+EVAL_DIAGNOSTICS = (
+    "USAGE",
+    "MISSING_INPUT",
+    "PROTECTED_PATH",
+    "DUPLICATE_BUNDLE_ID",
+    "UNSUPPORTED_VERSION",
+    "MALFORMED_REF",
+    "INVALID_BOUNDS",
+    "CROSS_DOC_REF",
+    "DANGLING_EDGE",
+    "AMBIGUOUS_DUPLICATE",
+    "PROVENANCE_FORBIDDEN",
+    "SOURCE_CLAIM_WITHOUT_BYTES",
+)
+EVAL_LIMITS = (
+    "harness-built records only: the Rust emitter is M211 S02 and has not run",
+    "no size cap on m207-hybrid-records/v1 input (inherited S05 limit, operator-local)",
+    "unmatched bundle ids are explicit bundle FN/FP, never scored against an empty partner",
+    "ambiguity_groups 0 means no validated pair carried a duplicate anchor-key",
+    "local_focus is a secondary plane and hides missing members (synthetic 4/13 vs 9/13)",
+)
+EVAL_NON_CLAIMS = (
+    "Not human gold: neither input is a human label store",
+    "Not parser quality: no Rust emitter has produced these records (M211 S02 pending)",
+    "Not S03 metrics: frozen human-pass rates are not reused as a denominator",
+    "Not Rust parity: provenance_origin rust-runtime is a label, not proof",
+    "Synthetic fixtures are not Rust output and are not presented as such",
+    "Does not read or rewrite protected frozen S01-S04 or S03 stores",
+)
+EVAL_NOT_MEASURED_POLICY = (
+    "a zero denominator yields value null and status not-measured; a not-measured "
+    "block contributes nothing to any numerator or denominator and is never "
+    "coerced into perfect accuracy"
+)
 PROTECTED_RELS = (
     RECORD_REL,
     "prd/annotation/m207-s01-codebook.md",
@@ -1722,6 +1771,266 @@ def summary_line(record: Mapping[str, Any]) -> str:
     )
 
 
+def eval_protected_path_reason(root: Path, path: Path) -> str | None:
+    """protected_path_reason plus the eval-only S03 report path.
+
+    PROTECTED_RELS and protected_path_reason stay untouched so that
+    --validate-records keeps its exact S05 behavior.
+    """
+    reason = protected_path_reason(root, path)
+    if reason is not None:
+        return reason
+    raw = Path(path)
+    bases: list[Path] = []
+    for base in (root, ROOT):
+        resolved_base = Path(base).resolve()
+        if resolved_base not in bases:
+            bases.append(resolved_base)
+    candidates: list[Path] = []
+    if raw.is_absolute():
+        candidates.append(raw)
+    else:
+        candidates.append(raw)
+        for base in bases:
+            candidates.append(base / raw)
+    resolved = [item.resolve() for item in candidates]
+    names = {item.as_posix() for item in candidates}
+    names.update(item.as_posix() for item in resolved)
+    for rel in EVAL_EXTRA_PROTECTED_RELS:
+        if rel in names or any(name.endswith("/" + rel) for name in names):
+            return rel
+        for base in bases:
+            if (base / rel).resolve() in resolved:
+                return rel
+    return None
+
+
+def bundles_by_id(doc: Mapping[str, Any], side: str) -> dict[str, dict[str, Any]]:
+    by_id: dict[str, dict[str, Any]] = {}
+    for index, raw in enumerate(doc["bundles"]):
+        bundle_id = str(raw["bundle_id"])
+        if bundle_id in by_id:
+            raise ExperimentError(
+                "DUPLICATE_BUNDLE_ID",
+                f"{side} bundles[{index}] repeats bundle_id {bundle_id}",
+            )
+        by_id[bundle_id] = dict(raw)
+    return by_id
+
+
+def pair_bundles(
+    expected_doc: Mapping[str, Any], predicted_doc: Mapping[str, Any]
+) -> tuple[list[tuple[dict[str, Any], dict[str, Any]]], dict[str, Any]]:
+    """Pair bundles by bundle_id only; unmatched ids never reach score_pair."""
+    expected_by = bundles_by_id(expected_doc, "expected")
+    predicted_by = bundles_by_id(predicted_doc, "predicted")
+    matched_ids = sorted(set(expected_by) & set(predicted_by))
+    matched = [(expected_by[bundle_id], predicted_by[bundle_id]) for bundle_id in matched_ids]
+    alignment = {
+        "matched": matched_ids,
+        "expected_only": sorted(set(expected_by) - set(predicted_by)),
+        "predicted_only": sorted(set(predicted_by) - set(expected_by)),
+        "expected_bundles": len(expected_by),
+        "predicted_bundles": len(predicted_by),
+    }
+    return matched, alignment
+
+
+def local_focus_block(expected: Mapping[str, Any], predicted: Mapping[str, Any]) -> dict[str, Any]:
+    """score_pair-compatible local-focus view, guarded for an empty bundle.
+
+    The records validator accepts a bundle with zero occurrences, and
+    local_focus_views would then raise StopIteration. Such a bundle is
+    not-measured rather than an exception.
+    """
+    if not expected["occurrences"]:
+        return {
+            "status": "not-measured",
+            "detection": {"tp": 0, "fp": 0, "fn": 0},
+            "field_value": measured_ratio(0, 0),
+            "provenance": measured_ratio(0, 0),
+            "relation_e2e": e2e_block(0, 0, 0, 0, 0),
+            "relation_conditional": measured_ratio(0, 0),
+            "unresolved": measured_ratio(0, 0),
+            "ambiguity": {
+                "groups": 0,
+                "expected_occurrences": 0,
+                "predicted_occurrences": 0,
+                "items": [],
+            },
+            "bundle_exact": False,
+            "alignment": {
+                "unique_pairs": [],
+                "unmatched_expected": [],
+                "unmatched_predicted": [],
+            },
+        }
+    focus_expected, focus_predicted = local_focus_views(expected, predicted)
+    pair = score_pair(focus_expected, focus_predicted)
+    return {
+        "status": "measured",
+        "detection": pair["detection"],
+        "field_value": pair["field_value"],
+        "provenance": pair["provenance"],
+        "relation_e2e": pair["relation_e2e"],
+        "relation_conditional": pair["relation_conditional"],
+        "unresolved": pair["unresolved"],
+        "ambiguity": pair["ambiguity"],
+        "bundle_exact": pair["bundle_exact"],
+        "alignment": pair["alignment"],
+    }
+
+
+def metamorphic_container() -> dict[str, Any]:
+    """Sibling evidence object; properties are wired in M207 S06 T02."""
+    return {
+        "evidence_class": "metamorphic",
+        "properties": [],
+        "properties_executed": 0,
+        "properties_passed": 0,
+        "verdict": measured_ratio(0, 0),
+        "rules": ["properties are reserved here and populated in M207 S06 T02"],
+    }
+
+
+def invalid_metamorphic_container() -> dict[str, Any]:
+    """Shape-only container: an invalid input executes no property and no metric."""
+    return {
+        "evidence_class": "metamorphic",
+        "properties": [],
+        "not_executed": "no property was executed because the input did not validate",
+    }
+
+
+def eval_status(metamorphic: Mapping[str, Any]) -> str:
+    for row in metamorphic.get("properties", ()):  # pragma: no branch - empty in T01
+        if row.get("status") == "failed":
+            return "unstable"
+    return "ok"
+
+
+def eval_report(
+    *,
+    status: str,
+    expected_origin: str | None,
+    predicted_origin: str | None,
+    differential: Mapping[str, Any] | None,
+    metamorphic: Mapping[str, Any],
+    diagnostics: Sequence[Mapping[str, str]],
+) -> dict[str, Any]:
+    return {
+        "schema": EVAL_SCHEMA,
+        "schema_version": EVAL_SCHEMA_VERSION,
+        "status": status,
+        "marker": EVAL_MARKER if status == "ok" else None,
+        "lifecycle": ["proposed"],
+        "authoritative": False,
+        "is_gold": False,
+        "not_human": True,
+        "not_s03_metrics": True,
+        "alignment_policy": "local-anchor-identity-v1",
+        "reference_role": "harness-expected",
+        "evidence_classes": ["differential", "metamorphic"],
+        "expected_provenance_origin": expected_origin,
+        "predicted_provenance_origin": predicted_origin,
+        "differential": differential,
+        "metamorphic": dict(metamorphic),
+        "not_measured_policy": EVAL_NOT_MEASURED_POLICY,
+        "limits": list(EVAL_LIMITS),
+        "non_claims": list(EVAL_NON_CLAIMS),
+        "diagnostics": [dict(row) for row in diagnostics],
+    }
+
+
+def invalid_eval_report(error: ExperimentError) -> dict[str, Any]:
+    return eval_report(
+        status="invalid",
+        expected_origin=None,
+        predicted_origin=None,
+        differential=None,
+        metamorphic=invalid_metamorphic_container(),
+        diagnostics=(({"code": error.diagnostic, "detail": error.detail}),),
+    )
+
+
+def load_eval_records(root: Path, path: Path, side: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    candidate = path if path.is_absolute() else root / path
+    if not candidate.is_file():
+        raise ExperimentError("MISSING_INPUT", f"eval {side} file is missing: {path}")
+    payload = load_hybrid_records_bytes(candidate.read_bytes(), f"{side} {path}")
+    return payload, validate_hybrid_records(payload, f"{side} {path}")
+
+
+def evaluate_records(root: Path, expected_path: Path, predicted_path: Path) -> dict[str, Any]:
+    """Read-only differential evaluation of two validated records files."""
+    for side, path in (("expected", expected_path), ("predicted", predicted_path)):
+        reason = eval_protected_path_reason(root, Path(path))
+        if reason is not None:
+            raise ExperimentError(
+                "PROTECTED_PATH",
+                f"eval CLI cannot read protected {side} path {reason}",
+            )
+    expected_doc, expected_meta = load_eval_records(root, Path(expected_path), "expected")
+    predicted_doc, predicted_meta = load_eval_records(root, Path(predicted_path), "predicted")
+    matched, alignment = pair_bundles(expected_doc, predicted_doc)
+    rows = [
+        {
+            "hybrid": score_pair(exp_bundle, pred_bundle),
+            "local_focus": local_focus_block(exp_bundle, pred_bundle),
+        }
+        for exp_bundle, pred_bundle in matched
+    ]
+    metamorphic = metamorphic_container()
+    differential = {
+        "evidence_class": "differential",
+        "planes": summarize(rows),
+        "bundle_alignment": alignment,
+    }
+    return eval_report(
+        status=eval_status(metamorphic),
+        expected_origin=expected_meta["provenance_origin"],
+        predicted_origin=predicted_meta["provenance_origin"],
+        differential=differential,
+        metamorphic=metamorphic,
+        diagnostics=(),
+    )
+
+
+def eval_summary_line(report: Mapping[str, Any]) -> str:
+    differential = report["differential"]
+    hybrid = differential["planes"]["hybrid"]
+    alignment = differential["bundle_alignment"]
+    return (
+        f"{EVAL_MARKER} status={report['status']} "
+        f"matched={len(alignment['matched'])} "
+        f"expected_only={len(alignment['expected_only'])} "
+        f"predicted_only={len(alignment['predicted_only'])} "
+        f"bundle_exact={hybrid['bundle_exact']['value']} "
+        f"field={hybrid['field_value']['value']} "
+        f"provenance={hybrid['provenance']['value']} "
+        f"rel_e2e={hybrid['relation_e2e']['value']} "
+        f"rel_cond={hybrid['relation_conditional']['value']} "
+        f"unresolved={hybrid['unresolved']['value']} "
+        f"ambiguity_groups={hybrid['ambiguity_groups']}"
+    )
+
+
+def emit_eval_result(report: Mapping[str, Any], error: ExperimentError | None) -> int:
+    sys.stdout.write(canonical_json_bytes(report).decode("utf-8"))
+    if error is not None:
+        print(f"FAIL {error.diagnostic}: {error.detail}", file=sys.stderr)
+        return 2 if error.diagnostic == "USAGE" else 1
+    if report["status"] == "unstable":
+        print(
+            "FAIL UNSTABLE: metamorphic property failed; differential planes are "
+            "still printed on stdout",
+            file=sys.stderr,
+        )
+        return 1
+    print(eval_summary_line(report), file=sys.stderr)
+    return 0
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", default=str(ROOT), help="repository root")
@@ -1741,12 +2050,39 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         default=None,
         help="read-only validate m207-hybrid-records/v1 JSON; never writes",
     )
+    parser.add_argument(
+        "--evaluate-records",
+        nargs=2,
+        metavar=("EXPECTED", "PREDICTED"),
+        default=None,
+        help="read-only evaluate two m207-hybrid-records/v1 files; never writes",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     root = Path(args.root).resolve()
+    if args.evaluate_records is not None:
+        if args.write or args.check or args.validate_records is not None:
+            error = ExperimentError(
+                "USAGE",
+                "eval CLI is read-only; do not combine --evaluate-records with "
+                "--write, --check or --validate-records",
+            )
+            return emit_eval_result(invalid_eval_report(error), error)
+        expected_path, predicted_path = args.evaluate_records
+        try:
+            report = evaluate_records(root, Path(expected_path), Path(predicted_path))
+        except ExperimentError as exc:
+            return emit_eval_result(invalid_eval_report(exc), exc)
+        except Exception as exc:  # noqa: BLE001 - fail closed, never traceback
+            error = ExperimentError(
+                "MALFORMED_REF",
+                f"eval input raised unexpected {type(exc).__name__}: {exc}",
+            )
+            return emit_eval_result(invalid_eval_report(error), error)
+        return emit_eval_result(report, None)
     if args.validate_records is not None:
         if args.write:
             error = ExperimentError(

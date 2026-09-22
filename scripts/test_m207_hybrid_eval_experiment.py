@@ -22,6 +22,9 @@ SCRIPT = ROOT / "scripts" / "m207_hybrid_eval_experiment.py"
 MARKER = "M207_HYBRID_SYNTHETIC_EXPERIMENT_OK"
 RECORDS_MARKER = "M207_HYBRID_RECORDS_OK"
 RECORD_REL = "prd/migration/rust-evidence/m207-hybrid-synthetic-experiment.json"
+EVAL_MARKER = "M207_HYBRID_EVAL_OK"
+EVAL_SCHEMA = "m207-hybrid-eval-report/v1"
+S03_REPORT_REL = "prd/migration/rust-evidence/m207-s03-evaluation-report.json"
 TIMEOUT = 30
 
 FROZEN_PATHS = (
@@ -883,12 +886,256 @@ class HybridRecordsRejectionTests(unittest.TestCase):
                 self.assert_rejected(self.run_cli(root, "--validate-records", str(path)))
 
 
+class HybridEvalReportTests(unittest.TestCase):
+    """Read-only differential evaluator (--evaluate-records) contract."""
+
+    def make_root(self) -> Path:
+        directory = Path(tempfile.mkdtemp(prefix="m207-hybrid-eval-report-"))
+        self.addCleanup(shutil.rmtree, directory, ignore_errors=True)
+        return directory
+
+    def run_cli(self, root: Path, *extra: str) -> subprocess.CompletedProcess[str]:
+        command = [sys.executable, str(SCRIPT), "--root", str(root), *extra]
+        return subprocess.run(
+            command, cwd=ROOT, text=True, capture_output=True, check=False, timeout=TIMEOUT
+        )
+
+    def write_records(
+        self, root: Path, payload: dict[str, Any], name: str = "records.json"
+    ) -> Path:
+        path = root / name
+        path.write_bytes(exp.canonical_json_bytes(payload))
+        return path
+
+    def eval_cli(
+        self, root: Path, expected: Any, predicted: Any
+    ) -> subprocess.CompletedProcess[str]:
+        return self.run_cli(root, "--evaluate-records", str(expected), str(predicted))
+
+    def report_from(self, result: subprocess.CompletedProcess[str]) -> dict[str, Any]:
+        return json.loads(result.stdout)
+
+    def assert_eval_ok(self, result: subprocess.CompletedProcess[str]) -> dict[str, Any]:
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn(EVAL_MARKER, result.stderr)
+        self.assertNotIn(RECORDS_MARKER, result.stderr)
+        report = self.report_from(result)
+        self.assertEqual(report["status"], "ok")
+        self.assertEqual(report["marker"], EVAL_MARKER)
+        self.assertEqual(report["diagnostics"], [])
+        return report
+
+    def assert_eval_fail(
+        self,
+        result: subprocess.CompletedProcess[str],
+        diagnostic: str,
+        *,
+        exit_code: int = 1,
+    ) -> dict[str, Any]:
+        self.assertEqual(result.returncode, exit_code, result.stderr + result.stdout)
+        self.assertIn(f"FAIL {diagnostic}", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertNotIn(EVAL_MARKER, result.stderr)
+        report = self.report_from(result)
+        self.assertEqual(report["status"], "invalid")
+        self.assertIsNone(report["marker"])
+        codes = [row["code"] for row in report["diagnostics"]]
+        self.assertIn(diagnostic, codes)
+        return report
+
+    def write_pair(self, root: Path) -> tuple[Path, Path]:
+        payload = exp.example_hybrid_records()
+        expected = self.write_records(root, payload, "expected.json")
+        predicted = self.write_records(root, payload, "predicted.json")
+        return expected, predicted
+
+    def test_identical_records_are_differential_not_gold(self) -> None:
+        root = self.make_root()
+        expected, predicted = self.write_pair(root)
+        report = self.assert_eval_ok(self.eval_cli(root, expected, predicted))
+        self.assertEqual(report["schema"], EVAL_SCHEMA)
+        self.assertEqual(report["schema_version"], 1)
+        self.assertEqual(report["expected_provenance_origin"], "synthetic")
+        self.assertEqual(report["predicted_provenance_origin"], "synthetic")
+        self.assertEqual(report["lifecycle"], ["proposed"])
+        self.assertEqual(report["evidence_classes"], ["differential", "metamorphic"])
+        self.assertEqual(report["reference_role"], "harness-expected")
+        self.assertEqual(report["alignment_policy"], "local-anchor-identity-v1")
+        self.assertIs(report["authoritative"], False)
+        self.assertIs(report["is_gold"], False)
+        self.assertIs(report["not_human"], True)
+        self.assertIs(report["not_s03_metrics"], True)
+        self.assertIn("not-measured", report["not_measured_policy"])
+        hybrid = report["differential"]["planes"]["hybrid"]
+        self.assertEqual(hybrid["detection"], {"tp": 8, "fp": 0, "fn": 0})
+        for key in (
+            "field_value",
+            "provenance",
+            "relation_e2e",
+            "relation_conditional",
+            "unresolved",
+            "bundle_exact",
+        ):
+            self.assertEqual(hybrid[key]["status"], "measured", key)
+        self.assertEqual(hybrid["field_value"]["value"], "24/24")
+        self.assertEqual(hybrid["provenance"]["value"], "16/16")
+        self.assertEqual(hybrid["relation_e2e"]["value"], "3/3")
+        self.assertEqual(hybrid["relation_conditional"]["value"], "3/3")
+        self.assertEqual(hybrid["unresolved"]["value"], "8/8")
+        self.assertEqual(hybrid["bundle_exact"]["value"], "4/4")
+        self.assertEqual(hybrid["ambiguity_groups"], 0)
+        local = report["differential"]["planes"]["local_focus"]
+        for key in ("field_value", "provenance", "bundle_exact"):
+            self.assertEqual(local[key]["status"], "measured", key)
+        alignment = report["differential"]["bundle_alignment"]
+        self.assertEqual(alignment["matched"], ["agreement", "alias", "annex", "series"])
+        self.assertEqual(alignment["expected_only"], [])
+        self.assertEqual(alignment["predicted_only"], [])
+        self.assertEqual(alignment["expected_bundles"], 4)
+        self.assertEqual(alignment["predicted_bundles"], 4)
+        metamorphic = report["metamorphic"]
+        self.assertEqual(metamorphic["evidence_class"], "metamorphic")
+        self.assertEqual(metamorphic["properties"], [])
+        self.assertEqual(metamorphic["properties_executed"], 0)
+        self.assertIn("T02", metamorphic["rules"][0])
+
+    def test_eval_marker_is_distinct_from_records_marker(self) -> None:
+        self.assertNotEqual(EVAL_MARKER, RECORDS_MARKER)
+        self.assertNotEqual(EVAL_MARKER, exp.MARKER)
+        root = self.make_root()
+        expected, predicted = self.write_pair(root)
+        result = self.eval_cli(root, expected, predicted)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(EVAL_MARKER, result.stderr)
+        self.assertNotIn(RECORDS_MARKER, result.stderr)
+        self.assertNotIn(exp.MARKER, result.stderr)
+
+    def test_usage_guards_reject_forbidden_combinations(self) -> None:
+        root = self.make_root()
+        expected, predicted = self.write_pair(root)
+        for extra in (
+            ("--write",),
+            ("--check",),
+            ("--validate-records", str(expected)),
+        ):
+            with self.subTest(extra=extra):
+                result = self.run_cli(
+                    root, "--evaluate-records", str(expected), str(predicted), *extra
+                )
+                report = self.assert_eval_fail(result, "USAGE", exit_code=2)
+                self.assertIsNone(report["differential"])
+                self.assertFalse((root / RECORD_REL).exists())
+
+    def test_protected_paths_are_refused_on_both_sides(self) -> None:
+        root = self.make_root()
+        safe = self.write_records(root, exp.example_hybrid_records(), "ok.json")
+        for relative in (RECORD_REL, S03_REPORT_REL):
+            with self.subTest(protected=relative, side="expected"):
+                report = self.assert_eval_fail(
+                    self.eval_cli(root, relative, safe), "PROTECTED_PATH"
+                )
+                self.assertIn("expected", report["diagnostics"][0]["detail"])
+            with self.subTest(protected=relative, side="predicted"):
+                report = self.assert_eval_fail(
+                    self.eval_cli(root, safe, relative), "PROTECTED_PATH"
+                )
+                self.assertIn("predicted", report["diagnostics"][0]["detail"])
+        self.assertFalse((ROOT / S03_REPORT_REL).exists())
+
+    def test_missing_input_is_fail_closed(self) -> None:
+        root = self.make_root()
+        safe = self.write_records(root, exp.example_hybrid_records(), "ok.json")
+        absent = root / "absent.json"
+        report = self.assert_eval_fail(self.eval_cli(root, absent, safe), "MISSING_INPUT")
+        self.assertIn("expected", report["diagnostics"][0]["detail"])
+        report = self.assert_eval_fail(self.eval_cli(root, safe, absent), "MISSING_INPUT")
+        self.assertIn("predicted", report["diagnostics"][0]["detail"])
+
+    def test_duplicate_bundle_id_is_refused_on_either_side(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records()
+        safe = self.write_records(root, payload, "ok.json")
+        doubled = exp.clone(payload)
+        doubled["bundles"].append(exp.clone(doubled["bundles"][0]))
+        dup = self.write_records(root, doubled, "dup.json")
+        report = self.assert_eval_fail(self.eval_cli(root, dup, safe), "DUPLICATE_BUNDLE_ID")
+        self.assertIn("expected", report["diagnostics"][0]["detail"])
+        report = self.assert_eval_fail(self.eval_cli(root, safe, dup), "DUPLICATE_BUNDLE_ID")
+        self.assertIn("predicted", report["diagnostics"][0]["detail"])
+
+    def test_unmatched_bundle_is_alignment_not_a_synthetic_pair(self) -> None:
+        root = self.make_root()
+        expected_payload = exp.example_hybrid_records()
+        predicted_payload = exp.clone(expected_payload)
+        predicted_payload["bundles"] = [
+            row for row in predicted_payload["bundles"] if row["bundle_id"] != "alias"
+        ]
+        expected = self.write_records(root, expected_payload, "expected.json")
+        predicted = self.write_records(root, predicted_payload, "predicted.json")
+        report = self.assert_eval_ok(self.eval_cli(root, expected, predicted))
+        alignment = report["differential"]["bundle_alignment"]
+        self.assertEqual(alignment["expected_only"], ["alias"])
+        self.assertEqual(alignment["predicted_only"], [])
+        self.assertEqual(alignment["matched"], ["agreement", "annex", "series"])
+        self.assertEqual(alignment["expected_bundles"], 4)
+        self.assertEqual(alignment["predicted_bundles"], 3)
+        hybrid = report["differential"]["planes"]["hybrid"]
+        self.assertEqual(hybrid["bundles"], 3)
+        self.assertEqual(hybrid["bundle_exact"]["value"], "3/3")
+        self.assertEqual(hybrid["detection"], {"tp": 6, "fp": 0, "fn": 0})
+
+    def test_invalid_records_are_diagnostics_with_side_and_no_metrics(self) -> None:
+        root = self.make_root()
+        bad = exp.example_hybrid_records()
+        bad["is_gold"] = True
+        bad_path = self.write_records(root, bad, "bad.json")
+        safe = self.write_records(root, exp.example_hybrid_records(), "ok.json")
+        report = self.assert_eval_fail(self.eval_cli(root, bad_path, safe), "MALFORMED_REF")
+        self.assertIn("expected", report["diagnostics"][0]["detail"])
+        report = self.assert_eval_fail(self.eval_cli(root, safe, bad_path), "MALFORMED_REF")
+        self.assertIn("predicted", report["diagnostics"][0]["detail"])
+        blob = json.dumps(report)
+        self.assertIsNone(report["differential"])
+        self.assertNotIn('"value":', blob)
+        for key in S03_METRIC_KEYS:
+            self.assertNotIn(key, blob, key)
+
+    def test_eval_stdout_has_no_s03_metric_keys(self) -> None:
+        root = self.make_root()
+        expected, predicted = self.write_pair(root)
+        result = self.eval_cli(root, expected, predicted)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for key in S03_METRIC_KEYS:
+            self.assertNotIn(key, result.stdout, key)
+
+    def test_eval_is_read_only_and_leaves_frozen_stores_alone(self) -> None:
+        before = frozen_fingerprint()
+        synthetic = ROOT / RECORD_REL
+        synthetic_before = synthetic.read_bytes() if synthetic.is_file() else None
+        root = self.make_root()
+        expected, predicted = self.write_pair(root)
+        expected_before = expected.read_bytes()
+        predicted_before = predicted.read_bytes()
+        self.assert_eval_ok(self.eval_cli(root, expected, predicted))
+        self.assertEqual(expected.read_bytes(), expected_before)
+        self.assertEqual(predicted.read_bytes(), predicted_before)
+        self.assertFalse((root / RECORD_REL).exists())
+        self.assertEqual(frozen_fingerprint(), before)
+        if synthetic_before is None:
+            self.assertFalse(synthetic.exists())
+        else:
+            self.assertEqual(synthetic.read_bytes(), synthetic_before)
+        self.assertFalse((ROOT / S03_REPORT_REL).exists())
+
+
 def main() -> int:
     loader = unittest.defaultTestLoader
     suite = unittest.TestSuite()
     suite.addTests(loader.loadTestsFromTestCase(HybridEvalExperimentTests))
     suite.addTests(loader.loadTestsFromTestCase(HybridRecordsContractTests))
     suite.addTests(loader.loadTestsFromTestCase(HybridRecordsRejectionTests))
+    suite.addTests(loader.loadTestsFromTestCase(HybridEvalReportTests))
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     return 0 if result.wasSuccessful() else 1
 
