@@ -1,0 +1,112 @@
+{
+  "schema": "m207-s07-c4-operational-successor/v1",
+  "attempt_id": "m207-s07-c4-full-walk-001",
+  "immutable_attempt_identity": {
+    "attempt_id": "m207-s07-c4-full-walk-001",
+    "argv_sha256": "ac2cfe528eda39b3e48d74ab52ca53487937ed9afb9e2efbf016b50eb89fea47"
+  },
+  "argv": [
+    "/root/law-nexus/target/release/npa-contour-diagnostics",
+    "--root",
+    "/root/law-nexus/consru_export/consru_export/exports",
+    "--garant-root",
+    "/root/law-nexus/law-source/garant",
+    "--profile",
+    "contour",
+    "--jobs",
+    "0",
+    "--acceptance-contract",
+    "/root/law-nexus/prd/architecture/npa-acceptance-contract.yaml",
+    "--source-revision",
+    "m207-s07-c4-caller-pin-2026-09-22",
+    "--failures-out",
+    "/root/law-nexus/prd/migration/rust-evidence/m207-s07-c4-attempts/m207-s07-c4-full-walk-001/failures.jsonl"
+  ],
+  "binary": {
+    "path": "target/release/npa-contour-diagnostics",
+    "sha256": "51442b4e550c760cfb6dbabc213ee15bc85a231b4cef13fe493e31d414305691"
+  },
+  "build_inputs": {
+    "binary_sha256": "51442b4e550c760cfb6dbabc213ee15bc85a231b4cef13fe493e31d414305691",
+    "parser_source_sha256": "e111e1af2f4a64ee639ab3f3a46d4b42c220d7d5e13e0ec42195e28a954cc348",
+    "protocol_sha256": "bb5387399297ebbf20913f855f141ef5fe3e0406ae29d94e30a55a6bab406cd4",
+    "schemas_sha256": "ec8b1ef35981e2c77437321d0900fdb9b60009c955751a0ff91fe85242ac7c34"
+  },
+  "toolchain": {
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "commands_exit_code": {
+      "rustc": 0,
+      "cargo": 0
+    }
+  },
+  "parser_revision": "m204-s04-c4-contour-v1",
+  "source_revision": "m207-s07-c4-caller-pin-2026-09-22",
+  "contract": {
+    "path": "prd/architecture/npa-acceptance-contract.yaml",
+    "sha256": "34e8a38a4bd7619d35e8bc2c1294e3a9bc77179b3385d9b5d9161157220d51e3",
+    "version": "npa-acceptance-contract/v1"
+  },
+  "corpus": {
+    "consultant_xml_count": 43785,
+    "consultant_root": "consru_export/consru_export/exports",
+    "garant_file_count": 12,
+    "garant_root": "law-source/garant"
+  },
+  "observed_output": {
+    "stdout_sha256": "7bd36d60810a516df2b0c8665ae0a8b5e3865721763bea460316a6de3d1774f5",
+    "inventory_digest": "sha256:0a5f8346dce46ec12247856ebc06dfb79747644bcfa1ed8af10ef115b332a086"
+  },
+  "binding": {
+    "profile": "contour",
+    "limit": null,
+    "jobs": 0,
+    "inventory_scope": "consultant XML plus separate Garant files"
+  },
+  "started_at": "2026-09-22T14:14:16Z",
+  "finished_at": "2026-09-22T14:21:16Z",
+  "duration_ms": 420107,
+  "budget_seconds": 3600,
+  "terminal": {
+    "outcome": "complete",
+    "exit_code": 0,
+    "signal": null,
+    "timeout": false
+  },
+  "logs": {
+    "stdout": "prd/migration/rust-evidence/m207-s07-c4-attempts/m207-s07-c4-full-walk-001/stdout.log",
+    "stderr": "prd/migration/rust-evidence/m207-s07-c4-attempts/m207-s07-c4-full-walk-001/stderr.log",
+    "stdout_sha256": "7bd36d60810a516df2b0c8665ae0a8b5e3865721763bea460316a6de3d1774f5",
+    "stderr_sha256": "25e59b0278e2bda081d5b8ce617e29a72e61f3b3ed0748fefe9c5d329d27bc38",
+    "inventory_digest": "sha256:0a5f8346dce46ec12247856ebc06dfb79747644bcfa1ed8af10ef115b332a086"
+  },
+  "failure_policy": {
+    "failures_out_path": "prd/migration/rust-evidence/m207-s07-c4-attempts/m207-s07-c4-full-walk-001/failures.jsonl",
+    "failures_sha256": "e9b09813855dbad460d105143456ae0ed3a1f5e2b75d55596a6ba4bcbcc0da05",
+    "sidecar_rows": 1,
+    "aggregate_failed": 1,
+    "acceptance_effect": "none"
+  },
+  "predicates": {
+    "full_walk": true,
+    "timeout": false,
+    "outcome": "full_walk"
+  },
+  "claims": {
+    "operational_classification": "full_walk",
+    "acceptance_effect": "none",
+    "receipt_is_runtime_attempt": true
+  },
+  "non_claims": [
+    "not an acceptance: the successor receipt classifies an attempt and publishes no verdict",
+    "not gold: no S07 receipt, predicate or sidecar row is a gold label",
+    "not a promotion: promotion stays none and classification stays not-authorized",
+    "not a rewrite of S04/M204: the frozen receipt, its logs and its non-pass claim stay byte-identical",
+    "not a duration floor: a short complete walk is a lawful full walk and duration_ms is never a predicate input",
+    "not a budget achievement: budget_seconds is a kill ceiling, never evidence the envelope was exercised",
+    "not a failure identity for the historical run: the S04 failed = 1 file stays unidentified",
+    "not a product surface: S07 is an offline Python harness and crates/** gains no reader",
+    "not a requirement status change: status_effect stays unchanged and R035/R070 stay HOLD",
+    "not a rate publication: no aspect rate, stratum rate or measurement_status is imported"
+  ]
+}

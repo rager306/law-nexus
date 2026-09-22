@@ -599,6 +599,22 @@ def _argv_not_a_list(root: Path) -> None:
     _edit_receipt(root, lambda document: document.update({"argv": "--root corpus"}))
 
 
+def _argv_sidecar_path_drift(root: Path) -> None:
+    """argv must name the very sidecar the receipt binds -- not merely some repository path.
+
+    The live recorder forwards the absolute sidecar path, so the binding is normalised against
+    the declared root before it is compared.  This case proves the normalisation is not a
+    no-op: redirecting the flag at a sibling file, with the receipt field left alone, is still
+    refused by name.
+    """
+
+    def mutate(document: dict[str, Any]) -> None:
+        argv = document["argv"]
+        argv[argv.index("--failures-out") + 1] = f"{ATTEMPT_DIR_REL}/{ATTEMPT_ID}/other.jsonl"
+
+    _edit_receipt(root, mutate)
+
+
 def _sidecar_count_mismatch(root: Path) -> None:
     _edit_receipt(
         root,
@@ -756,6 +772,7 @@ HOSTILE_CASES: tuple[HostileCase, ...] = (
     HostileCase("binding-limit-not-null", "ARGV_PIN_DRIFT", _binding_limit_not_null),
     HostileCase("argv-missing-sidecar-flag", "ARGV_PIN_DRIFT", _argv_missing_sidecar_flag),
     HostileCase("argv-not-a-list", "ARGV_PIN_DRIFT", _argv_not_a_list),
+    HostileCase("argv-sidecar-path-drift", "ARGV_PIN_DRIFT", _argv_sidecar_path_drift),
     HostileCase("sidecar-count-mismatch", "SIDECAR_COUNT_MISMATCH", _sidecar_count_mismatch),
     HostileCase("sidecar-unexpected", "SIDECAR_UNEXPECTED", _sidecar_unexpected),
     HostileCase(
@@ -989,6 +1006,28 @@ class PositiveControlTests(SuiteBase):
         plant_attempt(root, sidecar=fixture_sidecar(provider="garant", klass="read"))
         report = self.assert_lawful(self.run_policy(root))
         self.assertEqual(report["classification"], "full_walk")
+
+    def test_absolute_argv_sidecar_is_lawful_like_the_recorder_writes_it(self) -> None:
+        """The live recorder forwards an *absolute* ``--failures-out`` and a relative receipt field.
+
+        The walk is launched with resolved roots, so ``argv`` carries the absolute sidecar path
+        while ``failure_policy.failures_out_path`` records the repository-relative file the policy
+        reads.  Both name one file; the binding must hold in the recorder's own shape, not only in
+        the hand-built fixture shape, otherwise the honest attempt is refused by name.
+        """
+        root = temp_root("absolute-argv-sidecar")
+        plant_attempt(root, sidecar=fixture_sidecar())
+        sidecar_abs = root / ATTEMPT_DIR_REL / ATTEMPT_ID / SIDECAR_NAME
+
+        def to_absolute(document: dict[str, Any]) -> None:
+            argv = document["argv"]
+            argv[argv.index("--failures-out") + 1] = str(sidecar_abs)
+
+        _edit_receipt(root, to_absolute)
+        report = self.assert_lawful(self.run_policy(root))
+        self.assertEqual(report["classification"], "full_walk")
+        self.assertEqual(report["sidecar_rows"], 1)
+        self.assertEqual(report["aggregate"]["failed"], 1)
 
 
 # --------------------------------------------------------------------------- #

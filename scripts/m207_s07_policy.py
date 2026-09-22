@@ -839,10 +839,23 @@ def _check_argv_binding(ctx: dict[str, Any]) -> None:
     bound = _dig(receipt, "failure_policy", "failures_out_path")
     if not values:
         _refuse("ARGV_PIN_DRIFT", "--failures-out is present without a value")
-    if values != [bound]:
+    # The live recorder launches the walk with resolved roots, so argv carries the sidecar as an
+    # absolute path while the receipt records the repository-relative file the policy itself
+    # reads.  The binding is therefore compared in the receipt's own vocabulary: each argv value
+    # is normalised against the declared root.  A verbatim comparison of an absolute argv token
+    # against a relative receipt field refuses the honest attempt -- and the fix must not weaken
+    # the check: a value naming any other file (absolute or relative, inside or outside the root)
+    # normalises to something other than ``bound`` and is still refused by name.
+    root = ctx["root"]
+    recorded = [
+        display_under(root, Path(value) if Path(value).is_absolute() else root / value)
+        for value in values
+    ]
+    if recorded != [bound]:
         _refuse(
             "ARGV_PIN_DRIFT",
-            f"--failures-out {values!r} is not bound to failure_policy.failures_out_path {bound!r}",
+            f"--failures-out {recorded!r} is not bound to failure_policy.failures_out_path "
+            f"{bound!r}",
         )
 
 
