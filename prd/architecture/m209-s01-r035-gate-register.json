@@ -1,0 +1,639 @@
+{
+  "schema_version": "law-nexus/r035-gate-register/v1",
+  "kind": "m209-s01-r035-gate-register",
+  "milestone": "M209-2yg6ix",
+  "slice": "S01",
+  "task": "T01",
+  "lifecycle": "[proposed]",
+  "authoritative": false,
+  "requirement_id": "R035",
+  "requirement_disposition": "active",
+  "requirement_disposition_decision": "D430",
+  "gate_count": 7,
+  "canonical_sources": {
+    "gate_table": {
+      "path": "prd/architecture/README.md",
+      "section": "R035 ontology and external-standard promotion gates",
+      "line_range": [152, 160],
+      "sha256": "ca010d2a6aa6acea72ceea8fc5b5e6843d995a99f33a7d1a91d428a5efcaef83",
+      "authority": "canonical gate table: trigger terms, safe bucket, required gate id, minimum validated proof level"
+    },
+    "enforcement_rules": {
+      "path": "scripts/verify-architecture-graph.py",
+      "sections": [
+        "PROOF_LEVEL_REQUIRED_EVIDENCE_CLASSES (line 840)",
+        "PROOF_LEVEL_ORDER (line 933)",
+        "ONTOLOGY_PROMOTION_RULES (line 960)"
+      ],
+      "line_range": [840, 1018],
+      "sha256": "6b8c3a1c7d9f280c623c6395e99ee5a853c4b9d45f3b7d7c31582805e2f5374c",
+      "authority": "canonical enforcement: rule trigger terms, required gate ids, minimum proof level and required evidence classes"
+    },
+    "frozen_snapshot": {
+      "path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json",
+      "selector": "promotion_gates[].gate_verdict",
+      "sha256": "4e95a20e774fa9e551921922cedde7e6bcdd9fbdceb87d2c640ed5795859ca83",
+      "authority": "frozen M202 disposition snapshot; carries gate_id, gate_note, gate_verdict only (no owner, no quantifier, no evidence class)"
+    },
+    "derived_non_authoritative_view": {
+      "path": "prd/architecture/claims_ledger.md",
+      "sections": [
+        "R035 Gate Status crosswalk table (lines 25-37)",
+        "Quarantined/historical rows table Status column"
+      ],
+      "sha256": "fbc8c9967355a28fab663dd509d264bf2f254c967deaf28c2a59bc8b2bcf8c5a",
+      "authority": "derived non-authoritative; cannot satisfy requirements, promote lifecycle, or prove claims"
+    }
+  },
+  "supporting_sources": [
+    {
+      "path": "prd/architecture/architecture_items.jsonl",
+      "role": "owner and registry status of the seven proof_gate rows",
+      "sha256": "3ef86ce1e2c8969d4f919b3cae31621acf0fb3d6d49334bbc05d89ab9c85d966"
+    },
+    {
+      "path": "prd/architecture/kb-hierarchy-registry.yaml",
+      "role": "bounded hierarchy registry projection referenced by frozen M202 source binding",
+      "sha256": "6d7952b716b60d3b15ce302833323375e4964b70bb36b20a608331cfa3193c38"
+    },
+    {
+      "path": "prd/architecture/kb-hierarchy-registry-admissions.yaml",
+      "role": "admission registry referenced by frozen M202 source binding",
+      "sha256": "1707330b202d336046deaf4e94c3836bf8194d16b0f8b9e2fea3bd317ab94b19"
+    },
+    {
+      "path": "prd/architecture/npa-promotion-gates.json",
+      "role": "NPA promotion gate definitions; no R035 promotion gate is admitted there",
+      "sha256": "123b94a9c5d5f0fa49402943f9884aa8686e0d9e95342875d72ac5ce7fc361e7"
+    }
+  ],
+  "register_decisions": {
+    "D536": "canonical source of the seven R035 gates is the live README R035 table plus ONTOLOGY_PROMOTION_RULES in scripts/verify-architecture-graph.py",
+    "D537": "this register is standalone and does not regenerate architecture projections (architecture_items.jsonl / architecture_edges.jsonl untouched)",
+    "D538": "anti-smoothing: each gate carries its own disposition derived from its own recorded states; no shared or averaged disposition",
+    "D539": "quantifier and evidence-class rule: every gate names one quantifier and one evidence class drawn from PROOF_LEVEL_REQUIRED_EVIDENCE_CLASSES for its minimum proof level"
+  },
+  "disposition_vocabulary": [
+    "unsatisfied",
+    "conflicted-requires-decision",
+    "deferred-by-decision",
+    "rejected-as-stated",
+    "satisfied-by-proof-package"
+  ],
+  "default_disposition": "unsatisfied",
+  "normalization_vocabulary": {
+    "blocked": "unsatisfied",
+    "unsatisfied": "unsatisfied",
+    "superseded": "superseded",
+    "deferred": "deferred",
+    "satisfied": "satisfied"
+  },
+  "forbidden_quantifiers": [
+    "registry_rows",
+    "legacy_human",
+    "punkt_admitted",
+    "candidates_extracted",
+    "candidates_unique",
+    "candidates_duplicate",
+    "admitted_candidate_backed",
+    "fz44_glava",
+    "fz44_statya",
+    "suites_cited"
+  ],
+  "inventory_counts_displaced": {
+    "source": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json#mapping_counts",
+    "note": "inventory counts are displaced, not deleted: each count is replaced by a named per-gate quantifier and can never stand as an R035 disposition",
+    "mapping_counts": {
+      "candidates_extracted": 7,
+      "candidates_unique": 6,
+      "candidates_duplicate": 1,
+      "admitted_candidate_backed": 3,
+      "punkt_admitted": 0,
+      "legacy_human": 163,
+      "registry_rows": 166,
+      "fz44_glava": 8,
+      "fz44_statya": 94
+    },
+    "displaced_by": [
+      {
+        "inventory_counter": "candidates_extracted",
+        "value": 7,
+        "named_quantifier": "projection_unmapped_field_count",
+        "rationale": "extraction row counts do not measure normalization completeness; the Akoma/FRBR gate needs unmapped fields over a declared field set"
+      },
+      {
+        "inventory_counter": "candidates_unique",
+        "value": 6,
+        "named_quantifier": "projection_unmapped_field_count",
+        "rationale": "unique candidate rows are still inventory; only unmapped projection fields bound the normalization claim"
+      },
+      {
+        "inventory_counter": "candidates_duplicate",
+        "value": 1,
+        "named_quantifier": "projection_unmapped_field_count",
+        "rationale": "duplicate row bookkeeping is not a normalization measurement"
+      },
+      {
+        "inventory_counter": "admitted_candidate_backed",
+        "value": 3,
+        "named_quantifier": "adjudicated_deontic_acceptance_rate",
+        "rationale": "admitted registry rows are not an adjudicated deontic benchmark"
+      },
+      {
+        "inventory_counter": "punkt_admitted",
+        "value": 0,
+        "named_quantifier": "scoped_class_coverage_ratio",
+        "rationale": "a zero admission count is a blocked state, not a scoped ontology coverage measurement"
+      },
+      {
+        "inventory_counter": "legacy_human",
+        "value": 163,
+        "named_quantifier": "scoped_class_coverage_ratio",
+        "rationale": "legacy row totals do not measure declared ontology class coverage"
+      },
+      {
+        "inventory_counter": "registry_rows",
+        "value": 166,
+        "named_quantifier": "scoped_class_coverage_ratio",
+        "rationale": "registry row totals are the canonical example of an inventory count displacing a quantified measure"
+      },
+      {
+        "inventory_counter": "fz44_glava",
+        "value": 8,
+        "named_quantifier": "fixed_corpus_document_count",
+        "rationale": "glava SKIP-capable sanity is not a fixed-corpus pilot-scale run"
+      },
+      {
+        "inventory_counter": "fz44_statya",
+        "value": 94,
+        "named_quantifier": "fixed_corpus_document_count",
+        "rationale": "statya row counts are not a repeatable fixed-corpus document count"
+      },
+      {
+        "inventory_counter": "suites_cited",
+        "value": "hierarchy_candidates=8, hierarchy_candidate_artifact=37, hierarchy_registry_admission=20, hierarchy_registry_generator=12, hierarchy_registry=20",
+        "named_quantifier": "recorded_runtime_load_metrics",
+        "rationale": "cargo test suite counts are not recorded runtime query plans or resource metrics"
+      }
+    ]
+  },
+  "gates": [
+    {
+      "gate_id": "GATE-AKOMA-FRBR-NORMALIZATION",
+      "trigger_terms": ["Akoma Ntoso", "LegalDocML", "FRBR"],
+      "readme_safe_bucket": "Compatibility/reference projection only",
+      "readme_required_gate_ids": ["GATE-AKOMA-FRBR-NORMALIZATION"],
+      "minimum_validated_proof_level": "static-check",
+      "required_evidence_classes": ["gsd-summary", "source-code", "test-artifact"],
+      "evidence_class": "test-artifact",
+      "evidence_class_basis": "test-artifact is a member of PROOF_LEVEL_REQUIRED_EVIDENCE_CLASSES['static-check'] = {source-code, test-artifact, gsd-summary}; the projected-field normalization proof lands as an executable test artifact.",
+      "owner": "parser + architecture owners",
+      "owner_path": "crates/ln-decode",
+      "quantifier": {
+        "name": "projection_unmapped_field_count",
+        "unit": "declared_projection_fields",
+        "acceptance": "0 unmapped fields and 0 lossy mappings over the declared LegalUnit/ActEdition/EvidenceSpan field set; every unmapped field carries an explicit non-claim"
+      },
+      "frozen_snapshot_note": "no Akoma Ntoso or FRBR normalization proof package was produced in M202",
+      "recorded_states": [
+        {
+          "facet": "registry_status",
+          "source_path": "prd/architecture/architecture_items.jsonl",
+          "selector": "id=GATE-AKOMA-FRBR-NORMALIZATION",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 32}
+        },
+        {
+          "facet": "frozen_snapshot_verdict",
+          "source_path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json",
+          "selector": "promotion_gates[gate_id=GATE-AKOMA-FRBR-NORMALIZATION].gate_verdict",
+          "raw_value": "unsatisfied",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 83}
+        },
+        {
+          "facet": "derived_view_status",
+          "source_path": "prd/architecture/claims_ledger.md",
+          "selector": "R035 Gate Status crosswalk row `GATE-AKOMA-FRBR-NORMALIZATION` column Status",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 31}
+        }
+      ],
+      "disposition": "unsatisfied",
+      "disposition_basis": "GATE-AKOMA-FRBR-NORMALIZATION: no proof package exists; quantifier projection_unmapped_field_count has never been measured over declared_projection_fields at crates/ln-decode, so all recorded states normalize to unsatisfied.",
+      "conflicts": [],
+      "disposition_decision": null,
+      "proof_package": null,
+      "non_claims": [
+        "This register entry does not prove GATE-AKOMA-FRBR-NORMALIZATION; no proof package is attached (proof_package=null).",
+        "Declaring a normalization quantifier does not demonstrate Akoma Ntoso, LegalDocML or FRBR compatibility."
+      ],
+      "source_anchors": [
+        {"path": "prd/architecture/README.md", "section": "R035 ontology and external-standard promotion gates", "line_range": [154, 154]},
+        {"path": "scripts/verify-architecture-graph.py", "section": "ONTOLOGY_PROMOTION_RULES: Akoma Ntoso / LegalDocML compatibility projection", "line_range": [960, 1018]},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "id=GATE-AKOMA-FRBR-NORMALIZATION", "line_range": [32, 32]},
+        {"path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json", "selector": "promotion_gates[gate_id=GATE-AKOMA-FRBR-NORMALIZATION]", "line_range": [80, 84]}
+      ]
+    },
+    {
+      "gate_id": "GATE-LKIF-DEONTIC-BENCHMARK",
+      "trigger_terms": ["LKIF", "deontic"],
+      "readme_safe_bucket": "Proof-gated candidate",
+      "readme_required_gate_ids": ["GATE-LKIF-DEONTIC-BENCHMARK"],
+      "minimum_validated_proof_level": "unit-test",
+      "required_evidence_classes": ["test-artifact"],
+      "evidence_class": "test-artifact",
+      "evidence_class_basis": "test-artifact is the sole member of PROOF_LEVEL_REQUIRED_EVIDENCE_CLASSES['unit-test'] = {test-artifact}; the adjudicated deontic acceptance measure is produced by a unit benchmark artifact.",
+      "owner": "legal-evidence + extraction owners",
+      "owner_path": "crates/ln-kb-ontology",
+      "quantifier": {
+        "name": "adjudicated_deontic_acceptance_rate",
+        "unit": "adjudicated_cases",
+        "acceptance": "1 documented precision/recall or adjudicated acceptance threshold over the labeled case set; every assertion carries span, extractor version and failure state"
+      },
+      "frozen_snapshot_note": "no LKIF deontic benchmark was run in M202",
+      "recorded_states": [
+        {
+          "facet": "registry_status",
+          "source_path": "prd/architecture/architecture_items.jsonl",
+          "selector": "id=GATE-LKIF-DEONTIC-BENCHMARK",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 42}
+        },
+        {
+          "facet": "frozen_snapshot_verdict",
+          "source_path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json",
+          "selector": "promotion_gates[gate_id=GATE-LKIF-DEONTIC-BENCHMARK].gate_verdict",
+          "raw_value": "unsatisfied",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 88}
+        },
+        {
+          "facet": "derived_view_status",
+          "source_path": "prd/architecture/claims_ledger.md",
+          "selector": "R035 Gate Status crosswalk row `GATE-LKIF-DEONTIC-BENCHMARK` column Status",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 34}
+        }
+      ],
+      "disposition": "unsatisfied",
+      "disposition_basis": "GATE-LKIF-DEONTIC-BENCHMARK: no proof package exists; quantifier adjudicated_deontic_acceptance_rate has never been measured over adjudicated_cases at crates/ln-kb-ontology, so all recorded states normalize to unsatisfied.",
+      "conflicts": [],
+      "disposition_decision": null,
+      "proof_package": null,
+      "non_claims": [
+        "This register entry does not prove GATE-LKIF-DEONTIC-BENCHMARK; no proof package is attached (proof_package=null).",
+        "A named adjudicated acceptance rate is not an executed deontic benchmark and does not show extraction precision or recall."
+      ],
+      "source_anchors": [
+        {"path": "prd/architecture/README.md", "section": "R035 ontology and external-standard promotion gates", "line_range": [155, 155]},
+        {"path": "scripts/verify-architecture-graph.py", "section": "ONTOLOGY_PROMOTION_RULES: LKIF / deontic mapping proof gate", "line_range": [960, 1018]},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "id=GATE-LKIF-DEONTIC-BENCHMARK", "line_range": [42, 42]},
+        {"path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json", "selector": "promotion_gates[gate_id=GATE-LKIF-DEONTIC-BENCHMARK]", "line_range": [85, 89]}
+      ]
+    },
+    {
+      "gate_id": "GATE-RUSLEGALCORE-SCOPE",
+      "trigger_terms": ["RusLegalCore"],
+      "readme_safe_bucket": "Proof-gated domain-scope candidate",
+      "readme_required_gate_ids": ["GATE-RUSLEGALCORE-SCOPE"],
+      "minimum_validated_proof_level": "static-check",
+      "required_evidence_classes": ["gsd-summary", "source-code", "test-artifact"],
+      "evidence_class": "source-code",
+      "evidence_class_basis": "source-code is a member of PROOF_LEVEL_REQUIRED_EVIDENCE_CLASSES['static-check'] = {source-code, test-artifact, gsd-summary}; the published included/excluded class table is a static source-backed artifact.",
+      "owner": "architecture + legal domain owners",
+      "owner_path": "prd/architecture",
+      "quantifier": {
+        "name": "scoped_class_coverage_ratio",
+        "unit": "declared_ontology_classes",
+        "acceptance": "1 published included/excluded class table with 0 unclassified competency questions; every competency question answered from source-backed data or listed as unresolved"
+      },
+      "frozen_snapshot_note": "no RusLegalCore scope conformance was shown in M202",
+      "recorded_states": [
+        {
+          "facet": "registry_status",
+          "source_path": "prd/architecture/architecture_items.jsonl",
+          "selector": "id=GATE-RUSLEGALCORE-SCOPE",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 45}
+        },
+        {
+          "facet": "frozen_snapshot_verdict",
+          "source_path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json",
+          "selector": "promotion_gates[gate_id=GATE-RUSLEGALCORE-SCOPE].gate_verdict",
+          "raw_value": "unsatisfied",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 93}
+        },
+        {
+          "facet": "derived_view_status",
+          "source_path": "prd/architecture/claims_ledger.md",
+          "selector": "R035 Gate Status crosswalk row `GATE-RUSLEGALCORE-SCOPE` column Status",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 37}
+        }
+      ],
+      "disposition": "unsatisfied",
+      "disposition_basis": "GATE-RUSLEGALCORE-SCOPE: no proof package exists; quantifier scoped_class_coverage_ratio has never been measured over declared_ontology_classes at prd/architecture, so all recorded states normalize to unsatisfied.",
+      "conflicts": [],
+      "disposition_decision": null,
+      "proof_package": null,
+      "non_claims": [
+        "This register entry does not prove GATE-RUSLEGALCORE-SCOPE; no proof package is attached (proof_package=null).",
+        "A named scoped-class coverage ratio is not a published scope table and does not define final ontology scope."
+      ],
+      "source_anchors": [
+        {"path": "prd/architecture/README.md", "section": "R035 ontology and external-standard promotion gates", "line_range": [156, 156]},
+        {"path": "scripts/verify-architecture-graph.py", "section": "ONTOLOGY_PROMOTION_RULES: RusLegalCore domain ontology scope gate", "line_range": [960, 1018]},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "id=GATE-RUSLEGALCORE-SCOPE", "line_range": [45, 45]},
+        {"path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json", "selector": "promotion_gates[gate_id=GATE-RUSLEGALCORE-SCOPE]", "line_range": [90, 94]}
+      ]
+    },
+    {
+      "gate_id": "GATE-BFO-GOST-ALIGNMENT",
+      "trigger_terms": ["BFO", "GOST", "GOST R 59798-2021", "OWL", "OWL 2", "Common Logic"],
+      "readme_safe_bucket": "Deferred formal-alignment review",
+      "readme_required_gate_ids": ["GATE-BFO-GOST-ALIGNMENT"],
+      "minimum_validated_proof_level": "static-check",
+      "required_evidence_classes": ["gsd-summary", "source-code", "test-artifact"],
+      "evidence_class": "source-code",
+      "evidence_class_basis": "source-code is a member of PROOF_LEVEL_REQUIRED_EVIDENCE_CLASSES['static-check'] = {source-code, test-artifact, gsd-summary}; the named standard subset with mapping examples and counterexamples is a static source artifact.",
+      "owner": "architecture owner",
+      "owner_path": "prd/architecture",
+      "quantifier": {
+        "name": "mapped_concept_example_counterexample_pairs",
+        "unit": "mapped_concepts",
+        "acceptance": "1 named standard subset with >=1 mapping example and >=1 counterexample per mapped concept plus primary-source citations; 0 conformance claims beyond executed checks"
+      },
+      "frozen_snapshot_note": "no BFO or GOST alignment was proven; no OWL or Common Logic rendering was produced in M202",
+      "recorded_states": [
+        {
+          "facet": "registry_status",
+          "source_path": "prd/architecture/architecture_items.jsonl",
+          "selector": "id=GATE-BFO-GOST-ALIGNMENT",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 33}
+        },
+        {
+          "facet": "frozen_snapshot_verdict",
+          "source_path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json",
+          "selector": "promotion_gates[gate_id=GATE-BFO-GOST-ALIGNMENT].gate_verdict",
+          "raw_value": "unsatisfied",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 98}
+        },
+        {
+          "facet": "derived_view_status",
+          "source_path": "prd/architecture/claims_ledger.md",
+          "selector": "R035 Gate Status crosswalk row `GATE-BFO-GOST-ALIGNMENT` column Status",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 32}
+        }
+      ],
+      "disposition": "unsatisfied",
+      "disposition_basis": "GATE-BFO-GOST-ALIGNMENT: no proof package exists; quantifier mapped_concept_example_counterexample_pairs has never been measured over mapped_concepts at prd/architecture, so all recorded states normalize to unsatisfied.",
+      "conflicts": [],
+      "disposition_decision": null,
+      "proof_package": null,
+      "non_claims": [
+        "This register entry does not prove GATE-BFO-GOST-ALIGNMENT; no proof package is attached (proof_package=null).",
+        "Naming a mapping/counterexample quantifier is not formal standard conformance and produces no OWL or Common Logic rendering."
+      ],
+      "source_anchors": [
+        {"path": "prd/architecture/README.md", "section": "R035 ontology and external-standard promotion gates", "line_range": [157, 157]},
+        {"path": "scripts/verify-architecture-graph.py", "section": "ONTOLOGY_PROMOTION_RULES: BFO / GOST / OWL / Common Logic formal alignment", "line_range": [960, 1018]},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "id=GATE-BFO-GOST-ALIGNMENT", "line_range": [33, 33]},
+        {"path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json", "selector": "promotion_gates[gate_id=GATE-BFO-GOST-ALIGNMENT]", "line_range": [95, 99]}
+      ]
+    },
+    {
+      "gate_id": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "trigger_terms": ["Ontology GraphRAG", "ontology-aware GraphRAG", "ontology-driven GraphRAG"],
+      "readme_safe_bucket": "Proof-gated integration candidate",
+      "readme_required_gate_ids": ["GATE-ONTOLOGY-GRAPHRAG-INTEGRATION"],
+      "minimum_validated_proof_level": "integration-test",
+      "required_evidence_classes": ["test-artifact"],
+      "evidence_class": "test-artifact",
+      "evidence_class_basis": "test-artifact is the sole member of PROOF_LEVEL_REQUIRED_EVIDENCE_CLASSES['integration-test'] = {test-artifact}; the GraphRAG integration benchmark report is a test artifact.",
+      "owner": "retrieval + architecture owners",
+      "owner_path": "scripts",
+      "quantifier": {
+        "name": "citation_validation_pass_rate",
+        "unit": "declared_benchmark_queries",
+        "acceptance": "1 benchmark report; citation-validation pass rate = 1.0 on the declared query set and 0 unvalidated generated queries"
+      },
+      "frozen_snapshot_note": "no ontology GraphRAG integration over the registry was built in M202",
+      "recorded_states": [
+        {
+          "facet": "registry_status",
+          "source_path": "prd/architecture/architecture_items.jsonl",
+          "selector": "id=GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 43}
+        },
+        {
+          "facet": "frozen_snapshot_verdict",
+          "source_path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json",
+          "selector": "promotion_gates[gate_id=GATE-ONTOLOGY-GRAPHRAG-INTEGRATION].gate_verdict",
+          "raw_value": "unsatisfied",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 103}
+        },
+        {
+          "facet": "derived_view_status",
+          "source_path": "prd/architecture/claims_ledger.md",
+          "selector": "R035 Gate Status crosswalk row `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` column Status",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 35}
+        }
+      ],
+      "disposition": "unsatisfied",
+      "disposition_basis": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION: no proof package exists; quantifier citation_validation_pass_rate has never been measured over declared_benchmark_queries at scripts, so all recorded states normalize to unsatisfied.",
+      "conflicts": [],
+      "disposition_decision": null,
+      "proof_package": null,
+      "non_claims": [
+        "This register entry does not prove GATE-ONTOLOGY-GRAPHRAG-INTEGRATION; no proof package is attached (proof_package=null).",
+        "A named citation-validation pass rate is not a benchmark report and does not prove retrieval quality."
+      ],
+      "source_anchors": [
+        {"path": "prd/architecture/README.md", "section": "R035 ontology and external-standard promotion gates", "line_range": [158, 158]},
+        {"path": "scripts/verify-architecture-graph.py", "section": "ONTOLOGY_PROMOTION_RULES: Ontology GraphRAG integration proof", "line_range": [960, 1018]},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "id=GATE-ONTOLOGY-GRAPHRAG-INTEGRATION", "line_range": [43, 43]},
+        {"path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json", "selector": "promotion_gates[gate_id=GATE-ONTOLOGY-GRAPHRAG-INTEGRATION]", "line_range": [100, 104]}
+      ]
+    },
+    {
+      "gate_id": "GATE-G015",
+      "trigger_terms": ["graph-vector", "HNSW", "hybrid retrieval"],
+      "readme_safe_bucket": "Deferred runtime behavior claim",
+      "readme_required_gate_ids": ["GATE-G015", "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION"],
+      "minimum_validated_proof_level": "runtime-smoke",
+      "required_evidence_classes": ["runtime-artifact"],
+      "evidence_class": "runtime-artifact",
+      "evidence_class_basis": "runtime-artifact is the sole member of PROOF_LEVEL_REQUIRED_EVIDENCE_CLASSES['runtime-smoke'] = {runtime-artifact}; recorded query plans and resource metrics are runtime artifacts.",
+      "owner": "future-runtime-migration-proof",
+      "owner_path": "crates/ln-product-cli",
+      "quantifier": {
+        "name": "recorded_runtime_load_metrics",
+        "unit": "declared_load_runs",
+        "acceptance": "1 runtime migration/load proof with recorded query plans and resource metrics; superseded gate admits 0 claims"
+      },
+      "frozen_snapshot_note": "graph-vector claim untouched by this slice; no architecture-JSONL row minted",
+      "recorded_states": [
+        {
+          "facet": "registry_status",
+          "source_path": "prd/architecture/architecture_items.jsonl",
+          "selector": "id=GATE-G015",
+          "raw_value": "superseded",
+          "normalized_state": "superseded",
+          "locator": {"line": 38}
+        },
+        {
+          "facet": "frozen_snapshot_verdict",
+          "source_path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json",
+          "selector": "promotion_gates[gate_id=GATE-G015].gate_verdict",
+          "raw_value": "unsatisfied",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 108}
+        },
+        {
+          "facet": "derived_view_status",
+          "source_path": "prd/architecture/claims_ledger.md",
+          "selector": "derived view row `GATE-G015` column Status (crosswalk table lines 25-37 has no GATE-G015 row; this row is in the same derived non-authoritative ledger, historical/superseded section)",
+          "raw_value": "superseded",
+          "normalized_state": "superseded",
+          "locator": {"line": 124}
+        }
+      ],
+      "disposition": "conflicted-requires-decision",
+      "disposition_basis": "GATE-G015: recorded states do not agree; registry_status and derived_view_status normalize to superseded while frozen_snapshot_verdict normalizes to unsatisfied, so the disposition requires an individual owner decision.",
+      "conflicts": [
+        {
+          "normalized_state": "superseded",
+          "raw_value": "superseded",
+          "facet": "registry_status",
+          "source_path": "prd/architecture/architecture_items.jsonl",
+          "locator": {"line": 38}
+        },
+        {
+          "normalized_state": "superseded",
+          "raw_value": "superseded",
+          "facet": "derived_view_status",
+          "source_path": "prd/architecture/claims_ledger.md",
+          "locator": {"line": 124}
+        },
+        {
+          "normalized_state": "unsatisfied",
+          "raw_value": "unsatisfied",
+          "facet": "frozen_snapshot_verdict",
+          "source_path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json",
+          "locator": {"line": 108}
+        }
+      ],
+      "disposition_decision": null,
+      "proof_package": null,
+      "non_claims": [
+        "This register entry does not prove GATE-G015; no proof package is attached (proof_package=null).",
+        "A superseded registry row admits 0 graph-vector claims and is not a runtime load proof; the conflict is recorded, not resolved, by this register."
+      ],
+      "source_anchors": [
+        {"path": "prd/architecture/README.md", "section": "R035 ontology and external-standard promotion gates", "line_range": [159, 159]},
+        {"path": "scripts/verify-architecture-graph.py", "section": "ONTOLOGY_PROMOTION_RULES: graph-vector / HNSW / FalkorDB graph-vector behavior", "line_range": [960, 1018]},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "id=GATE-G015", "line_range": [38, 38]},
+        {"path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json", "selector": "promotion_gates[gate_id=GATE-G015]", "line_range": [105, 109]},
+        {"path": "prd/architecture/claims_ledger.md", "selector": "derived view row `GATE-G015` column Status", "line_range": [124, 124]}
+      ]
+    },
+    {
+      "gate_id": "GATE-PILOT-SCALE-READINESS",
+      "trigger_terms": ["pilot-scale", "1000-document", "1,000-document"],
+      "readme_safe_bucket": "Deferred readiness proof",
+      "readme_required_gate_ids": ["GATE-PILOT-SCALE-READINESS"],
+      "minimum_validated_proof_level": "integration-test",
+      "required_evidence_classes": ["test-artifact"],
+      "evidence_class": "test-artifact",
+      "evidence_class_basis": "test-artifact is the sole member of PROOF_LEVEL_REQUIRED_EVIDENCE_CLASSES['integration-test'] = {test-artifact}; the fixed-corpus 1000-document run is an integration test artifact.",
+      "owner": "architecture + operability owners",
+      "owner_path": "scripts",
+      "quantifier": {
+        "name": "fixed_corpus_document_count",
+        "unit": "declared_corpus_documents",
+        "acceptance": "1000 documents processed in 1 repeatable run with stated success/failure thresholds and every parser anomaly classified"
+      },
+      "frozen_snapshot_note": "fixture XML only, not corpus; pilot-scale readiness not demonstrated in M202",
+      "recorded_states": [
+        {
+          "facet": "registry_status",
+          "source_path": "prd/architecture/architecture_items.jsonl",
+          "selector": "id=GATE-PILOT-SCALE-READINESS",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 44}
+        },
+        {
+          "facet": "frozen_snapshot_verdict",
+          "source_path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json",
+          "selector": "promotion_gates[gate_id=GATE-PILOT-SCALE-READINESS].gate_verdict",
+          "raw_value": "unsatisfied",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 113}
+        },
+        {
+          "facet": "derived_view_status",
+          "source_path": "prd/architecture/claims_ledger.md",
+          "selector": "R035 Gate Status crosswalk row `GATE-PILOT-SCALE-READINESS` column Status",
+          "raw_value": "blocked",
+          "normalized_state": "unsatisfied",
+          "locator": {"line": 36}
+        }
+      ],
+      "disposition": "unsatisfied",
+      "disposition_basis": "GATE-PILOT-SCALE-READINESS: no proof package exists; quantifier fixed_corpus_document_count has never been measured over declared_corpus_documents at scripts, so all recorded states normalize to unsatisfied.",
+      "conflicts": [],
+      "disposition_decision": null,
+      "proof_package": null,
+      "non_claims": [
+        "This register entry does not prove GATE-PILOT-SCALE-READINESS; no proof package is attached (proof_package=null).",
+        "A named fixed-corpus document count is not a 1000-document repeatable run and does not demonstrate pilot readiness."
+      ],
+      "source_anchors": [
+        {"path": "prd/architecture/README.md", "section": "R035 ontology and external-standard promotion gates", "line_range": [160, 160]},
+        {"path": "scripts/verify-architecture-graph.py", "section": "ONTOLOGY_PROMOTION_RULES: pilot-scale / 1000-document readiness", "line_range": [960, 1018]},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "id=GATE-PILOT-SCALE-READINESS", "line_range": [44, 44]},
+        {"path": "prd/migration/rust-evidence/m202-s04-r035-proof-gate.json", "selector": "promotion_gates[gate_id=GATE-PILOT-SCALE-READINESS]", "line_range": [110, 114]}
+      ]
+    }
+  ],
+  "out_of_register_gate_ids": [
+    {"gate_id": "GATE-EMBEDDING-SUPPLY-CHAIN", "reason": "not a README R035 promotion gate and not in ONTOLOGY_PROMOTION_RULES"},
+    {"gate_id": "GATE-G005", "reason": "not a README R035 promotion gate and not in ONTOLOGY_PROMOTION_RULES"},
+    {"gate_id": "GATE-G008", "reason": "not a README R035 promotion gate and not in ONTOLOGY_PROMOTION_RULES"},
+    {"gate_id": "GATE-G011", "reason": "not a README R035 promotion gate and not in ONTOLOGY_PROMOTION_RULES"},
+    {"gate_id": "GATE-GENERATED-CYPHER-SAFETY", "reason": "not a README R035 promotion gate and not in ONTOLOGY_PROMOTION_RULES"},
+    {"gate_id": "GATE-LEGAL-COLLISION-POLICY", "reason": "not a README R035 promotion gate and not in ONTOLOGY_PROMOTION_RULES"},
+    {"gate_id": "GATE-LEGAL-NEXUS-ACCESS-CONTROL", "reason": "not a README R035 promotion gate and not in ONTOLOGY_PROMOTION_RULES"}
+  ],
+  "non_claims": [
+    "This register is not proof for any gate; every gate row carries proof_package=null.",
+    "R035 remains active (D430); this register performs no requirement closure.",
+    "This register performs no promotion and no lifecycle move of any registry record.",
+    "R070 is untouched by this register (owned by S03/S04).",
+    "architecture_items.jsonl and architecture_edges.jsonl are not regenerated; the D7 missing-anchor quarantine of the seven proof_gate rows is not lifted (RC28-F19 owns that workstream).",
+    "claims_ledger.md is a derived non-authoritative view and cannot carry authority or satisfy a requirement.",
+    "Punkt is not admitted; no punkt ComponentConcept is minted by this register (see T03 for the punkt decision checkpoint).",
+    "Declared quantifiers are acceptance contracts, not measurements; no gate records a value for its quantifier.",
+    "Inventory counts (registry_rows, legacy_human, punkt_admitted, candidates_*, admitted_candidate_backed, fz44_glava, fz44_statya, suites_cited) are displaced and cannot stand as an R035 disposition."
+  ],
+  "revisable": "D430 closure condition: each named promotion gate carries its rule-specific proof package per the README R035 table; reopen this register per gate when a proof package is recorded."
+}
