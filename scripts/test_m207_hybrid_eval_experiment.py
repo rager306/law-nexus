@@ -1321,6 +1321,330 @@ class HybridEvalReportTests(unittest.TestCase):
         self.assertEqual(frozen_fingerprint(), before)
         self.assertFalse((ROOT / S03_REPORT_REL).exists())
 
+    def records_with_bundle(self, bundle: dict[str, Any]) -> dict[str, Any]:
+        """Full example payload with one bundle swapped for a mutated copy."""
+        payload = exp.example_hybrid_records()
+        replacement = exp.clone(bundle)
+        for index, row in enumerate(payload["bundles"]):
+            if row["bundle_id"] == replacement["bundle_id"]:
+                payload["bundles"][index] = replacement
+                return payload
+        self.fail(f"example_hybrid_records() has no bundle {replacement['bundle_id']}")
+
+    def run_bundle_pair(
+        self, root: Path, expected_bundle: dict[str, Any], predicted_bundle: dict[str, Any]
+    ) -> dict[str, Any]:
+        expected = self.write_records(
+            root, self.records_with_bundle(expected_bundle), "expected.json"
+        )
+        predicted = self.write_records(
+            root, self.records_with_bundle(predicted_bundle), "predicted.json"
+        )
+        return self.assert_eval_ok(self.eval_cli(root, expected, predicted))
+
+    def test_differential_plane_mutations_are_exact_and_isolated(self) -> None:
+        """Each single-plane mutation moves one block and leaves the others pinned."""
+        root = self.make_root()
+        cases = (
+            (
+                "occurrence_fn",
+                exp.series_expected(),
+                exp.drop_occ(exp.series_expected(), "occ-b"),
+                {
+                    "detection": {"tp": 7, "fp": 0, "fn": 1},
+                    "field_value": "21/24",
+                    "provenance": "14/16",
+                    "relation_e2e": "2/3",
+                    "relation_conditional": "2/2",
+                    "unresolved": "7/7",
+                    "bundle_exact": "3/4",
+                },
+            ),
+            (
+                "wrong_field_moves_only_field_value",
+                exp.agreement_expected(),
+                exp.pred_wrong_field(),
+                {
+                    "detection": {"tp": 8, "fp": 0, "fn": 0},
+                    "field_value": "23/24",
+                    "provenance": "16/16",
+                    "relation_e2e": "3/3",
+                    "unresolved": "8/8",
+                    "bundle_exact": "3/4",
+                },
+            ),
+            (
+                "wrong_provenance_moves_only_provenance",
+                exp.series_expected(),
+                exp.pred_wrong_provenance(),
+                {
+                    "detection": {"tp": 8, "fp": 0, "fn": 0},
+                    "field_value": "24/24",
+                    "provenance": "12/16",
+                    "relation_e2e": "3/3",
+                    "unresolved": "8/8",
+                    "bundle_exact": "3/4",
+                },
+            ),
+            (
+                "wrong_relation_moves_only_relation_e2e",
+                exp.annex_expected(),
+                exp.pred_wrong_relation(),
+                {
+                    "detection": {"tp": 8, "fp": 0, "fn": 0},
+                    "field_value": "24/24",
+                    "provenance": "16/16",
+                    "relation_e2e": "2/3",
+                    "relation_conditional": "2/3",
+                    "unresolved": "8/8",
+                    "bundle_exact": "3/4",
+                },
+            ),
+            (
+                "extra_occurrence_fp",
+                exp.series_expected(),
+                exp.pred_extra_head_as_act(),
+                {
+                    "detection": {"tp": 8, "fp": 1, "fn": 0},
+                    "field_value": "24/24",
+                    "provenance": "16/16",
+                    "relation_e2e": "3/3",
+                    "unresolved": "8/8",
+                    "bundle_exact": "3/4",
+                },
+            ),
+        )
+        for name, expected_bundle, predicted_bundle, wanted in cases:
+            with self.subTest(case=name):
+                report = self.run_bundle_pair(root, expected_bundle, predicted_bundle)
+                hybrid = report["differential"]["planes"]["hybrid"]
+                self.assertEqual(hybrid["detection"], wanted["detection"], name)
+                self.assertEqual(hybrid["occurrence_expected"], 8, name)
+                for key in (
+                    "field_value",
+                    "provenance",
+                    "relation_e2e",
+                    "relation_conditional",
+                    "unresolved",
+                    "bundle_exact",
+                ):
+                    if key in wanted:
+                        self.assertEqual(hybrid[key]["value"], wanted[key], f"{name}.{key}")
+                # exact numerator and denominator, not merely "it got worse"
+                for key in ("field_value", "provenance", "unresolved", "bundle_exact"):
+                    correct, denominator = (int(part) for part in wanted[key].split("/"))
+                    self.assertEqual(hybrid[key]["correct"], correct, f"{name}.{key}.correct")
+                    self.assertEqual(
+                        hybrid[key]["denominator"], denominator, f"{name}.{key}.denominator"
+                    )
+                alignment = report["differential"]["bundle_alignment"]
+                self.assertEqual(
+                    alignment["matched"], ["agreement", "alias", "annex", "series"], name
+                )
+                self.assertEqual(alignment["expected_only"], [], name)
+                self.assertEqual(alignment["predicted_only"], [], name)
+                self.assertEqual(alignment["expected_bundles"], 4, name)
+                self.assertEqual(alignment["predicted_bundles"], 4, name)
+        # The dropped endpoint is an end-to-end relation FN for the series pair
+        # itself (0/1); the aggregate plane reports 2/3 because agreement and
+        # annex still match, which is exactly the plane separation under test.
+        pair = exp.score_pair(exp.series_expected(), exp.drop_occ(exp.series_expected(), "occ-b"))
+        self.assertEqual(pair["relation_e2e"]["value"], "0/1")
+        self.assertEqual(pair["relation_e2e"]["fn"], 1)
+        self.assertEqual(pair["detection"], {"tp": 1, "fp": 0, "fn": 1})
+        self.assertFalse(pair["bundle_exact"])
+
+    def test_whole_bundle_removal_is_alignment_not_a_scored_pair(self) -> None:
+        root = self.make_root()
+        expected_payload = exp.example_hybrid_records()
+        dropped_id = str(expected_payload["bundles"][-1]["bundle_id"])
+        predicted_payload = exp.clone(expected_payload)
+        predicted_payload["bundles"] = predicted_payload["bundles"][:-1]
+        expected = self.write_records(root, expected_payload, "expected.json")
+        predicted = self.write_records(root, predicted_payload, "predicted.json")
+        report = self.assert_eval_ok(self.eval_cli(root, expected, predicted))
+        alignment = report["differential"]["bundle_alignment"]
+        self.assertEqual(alignment["expected_only"], [dropped_id])
+        self.assertEqual(alignment["predicted_only"], [])
+        self.assertNotIn(dropped_id, alignment["matched"])
+        self.assertEqual(alignment["expected_bundles"], 4)
+        self.assertEqual(alignment["predicted_bundles"], 3)
+        hybrid = report["differential"]["planes"]["hybrid"]
+        self.assertEqual(hybrid["detection"], {"tp": 6, "fp": 0, "fn": 0})
+        self.assertEqual(hybrid["field_value"]["value"], "18/18")
+        self.assertEqual(hybrid["unresolved"]["value"], "6/6")
+        # bundle_exact is the matched-pair count, never the expected-bundle count
+        self.assertEqual(hybrid["bundle_exact"]["value"], "3/3")
+        self.assertEqual(hybrid["bundle_exact"]["denominator"], len(alignment["matched"]))
+        self.assertEqual(hybrid["bundles"], len(alignment["matched"]))
+        self.assertNotEqual(hybrid["bundle_exact"]["denominator"], alignment["expected_bundles"])
+
+    def test_extra_bundle_is_predicted_only_and_not_scored(self) -> None:
+        root = self.make_root()
+        expected_payload = exp.example_hybrid_records()
+        predicted_payload = exp.clone(expected_payload)
+        extra = exp.clone(predicted_payload["bundles"][0])
+        extra["bundle_id"] = "series-extra"
+        predicted_payload["bundles"].append(extra)
+        expected = self.write_records(root, expected_payload, "expected.json")
+        predicted = self.write_records(root, predicted_payload, "predicted.json")
+        report = self.assert_eval_ok(self.eval_cli(root, expected, predicted))
+        alignment = report["differential"]["bundle_alignment"]
+        self.assertEqual(alignment["predicted_only"], ["series-extra"])
+        self.assertEqual(alignment["expected_only"], [])
+        self.assertNotIn("series-extra", alignment["matched"])
+        self.assertEqual(alignment["expected_bundles"], 4)
+        self.assertEqual(alignment["predicted_bundles"], 5)
+        hybrid = report["differential"]["planes"]["hybrid"]
+        self.assertEqual(hybrid["bundles"], 4)
+        self.assertEqual(hybrid["detection"], {"tp": 8, "fp": 0, "fn": 0})
+        self.assertEqual(hybrid["bundle_exact"]["value"], "4/4")
+        self.assertEqual(hybrid["bundle_exact"]["denominator"], len(alignment["matched"]))
+
+    def test_not_measured_pair_does_not_move_the_denominator(self) -> None:
+        root = self.make_root()
+        expected, predicted = self.write_pair(root)
+        report = self.assert_eval_ok(self.eval_cli(root, expected, predicted))
+        hybrid = report["differential"]["planes"]["hybrid"]
+        e2e = hybrid["relation_e2e"]
+        self.assertEqual(e2e["status"], "measured")
+        self.assertEqual(e2e["expected_n"], 3)
+        self.assertEqual(e2e["tp"], 3)
+        self.assertEqual(e2e["value"], "3/3")
+        self.assertNotEqual(e2e["value"], "3/4")
+        self.assertEqual(hybrid["unresolved"]["value"], "8/8")
+        self.assertEqual(hybrid["bundle_exact"]["value"], "4/4")
+        # the alias bundle has no relations on either side: not-measured, not 0/0
+        alias_pair = exp.score_pair(exp.alias_expected(), exp.alias_expected())
+        self.assertEqual(alias_pair["relation_e2e"]["status"], "not-measured")
+        self.assertIsNone(alias_pair["relation_e2e"]["value"])
+
+    def test_differential_planes_are_independent_of_record_order(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records()
+        expected = self.write_records(root, payload, "expected.json")
+        baseline = self.assert_eval_ok(self.eval_cli(root, expected, expected))
+        shuffled = exp.clone(payload)
+        for bundle in shuffled["bundles"]:
+            bundle["occurrences"].reverse()
+            bundle["relations"].reverse()
+        self.assertNotEqual(
+            [row["id"] for row in shuffled["bundles"][0]["occurrences"]],
+            [row["id"] for row in payload["bundles"][0]["occurrences"]],
+        )
+        shuffled_path = self.write_records(root, shuffled, "shuffled.json")
+        report = self.assert_eval_ok(self.eval_cli(root, expected, shuffled_path))
+        self.assertEqual(report["differential"]["planes"], baseline["differential"]["planes"])
+        self.assertEqual(
+            report["differential"]["bundle_alignment"],
+            baseline["differential"]["bundle_alignment"],
+        )
+        self.assertEqual(report["metamorphic"]["properties_passed"], 4)
+
+    def invalid_input_cases(self) -> tuple[tuple[str, str, dict[str, Any] | None], ...]:
+        def duplicate_anchor() -> dict[str, Any]:
+            payload = exp.example_hybrid_records()
+            bundle = payload["bundles"][1]
+            twin = exp.clone(bundle["occurrences"][0])
+            twin["id"] = f"{twin['id']}-dup"
+            bundle["occurrences"].append(twin)
+            return payload
+
+        def cross_doc() -> dict[str, Any]:
+            payload = exp.example_hybrid_records(include_alias=False)
+            docs = payload["documents"]
+            series_doc = next(row for row in docs if row["document_id"] == "doc-series")
+            moved = next(
+                row for row in series_doc["fragments"] if row["fragment_id"] == exp.M2_FRAG
+            )
+            series_doc["fragments"] = [
+                row for row in series_doc["fragments"] if row["fragment_id"] != exp.M2_FRAG
+            ]
+            docs.append({"document_id": "doc-other", "fragments": [moved]})
+            return payload
+
+        def forbidden_origin() -> dict[str, Any]:
+            payload = exp.example_hybrid_records()
+            payload["provenance_origin"] = "human-reviewed"
+            return payload
+
+        def gold_claim() -> dict[str, Any]:
+            payload = exp.example_hybrid_records()
+            payload["is_gold"] = True
+            return payload
+
+        def s03_rate_key() -> dict[str, Any]:
+            payload = exp.example_hybrid_records()
+            payload["span_rate"] = 0.5
+            return payload
+
+        def schema_version_two() -> dict[str, Any]:
+            payload = exp.example_hybrid_records()
+            payload["schema_version"] = 2
+            return payload
+
+        def synthetic_schema() -> dict[str, Any]:
+            payload = exp.example_hybrid_records()
+            payload["schema"] = exp.SCHEMA
+            return payload
+
+        def dangling_edge() -> dict[str, Any]:
+            payload = exp.example_hybrid_records()
+            payload["bundles"][0]["relations"][0]["to"] = "missing-occ"
+            return payload
+
+        def invalid_bounds() -> dict[str, Any]:
+            payload = exp.example_hybrid_records()
+            payload["bundles"][0]["occurrences"][0]["anchors"][0]["end"] = 99
+            return payload
+
+        def duplicate_bundle_id() -> dict[str, Any]:
+            payload = exp.example_hybrid_records()
+            payload["bundles"].append(exp.clone(payload["bundles"][0]))
+            return payload
+
+        return (
+            ("ambiguous_duplicate", "AMBIGUOUS_DUPLICATE", duplicate_anchor()),
+            ("cross_doc_ref", "CROSS_DOC_REF", cross_doc()),
+            ("provenance_forbidden", "PROVENANCE_FORBIDDEN", forbidden_origin()),
+            ("is_gold", "MALFORMED_REF", gold_claim()),
+            ("s03_rate_key", "MALFORMED_REF", s03_rate_key()),
+            ("schema_version_2", "UNSUPPORTED_VERSION", schema_version_two()),
+            ("synthetic_schema", "UNSUPPORTED_VERSION", synthetic_schema()),
+            ("dangling_edge", "DANGLING_EDGE", dangling_edge()),
+            ("invalid_bounds", "INVALID_BOUNDS", invalid_bounds()),
+            ("duplicate_bundle_id", "DUPLICATE_BUNDLE_ID", duplicate_bundle_id()),
+            ("missing_input", "MISSING_INPUT", None),
+        )
+
+    def assert_invalid_side(self, report: dict[str, Any], side: str) -> None:
+        self.assertIn(side, report["diagnostics"][0]["detail"])
+        self.assertIsNone(report["differential"])
+        blob = json.dumps(report)
+        self.assertNotIn("bundle_exact", blob)
+        self.assertNotIn('"planes"', blob)
+        self.assertNotIn('"value":', blob)
+        for key in S03_METRIC_KEYS:
+            self.assertNotIn(key, blob, key)
+
+    def test_invalid_inputs_carry_side_and_never_publish_metrics(self) -> None:
+        root = self.make_root()
+        safe = self.write_records(root, exp.example_hybrid_records(), "safe.json")
+        absent = root / "absent.json"
+        for name, code, payload in self.invalid_input_cases():
+            with self.subTest(case=name):
+                self.assertIn(code, exp.EVAL_DIAGNOSTICS)
+                bad = absent if payload is None else self.write_records(root, payload, "bad.json")
+                details: dict[str, str] = {}
+                for side in ("expected", "predicted"):
+                    args = (bad, safe) if side == "expected" else (safe, bad)
+                    report = self.assert_eval_fail(self.eval_cli(root, *args), code)
+                    self.assert_invalid_side(report, side)
+                    self.assertEqual(report["diagnostics"][0]["code"], code)
+                    details[side] = report["diagnostics"][0]["detail"]
+                # same code, opposite side: the diagnostic names the side it saw
+                self.assertNotEqual(details["expected"], details["predicted"], name)
+
 
 def main() -> int:
     loader = unittest.defaultTestLoader
