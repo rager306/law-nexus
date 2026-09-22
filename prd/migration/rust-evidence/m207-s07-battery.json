@@ -1,0 +1,122 @@
+{
+  "classification": "not-authorized",
+  "human_acceptance": null,
+  "human_pilot_performed": false,
+  "is_gold": false,
+  "lifecycle": {
+    "human_adoption": "pending",
+    "human_pilot_is_not_a_gate": true,
+    "requirement_status_effect": "unchanged",
+    "review_disposition_effect": "unchanged",
+    "runtime_stop_active": true,
+    "selected_d388_gates": "none"
+  },
+  "model_invoked": false,
+  "new_receipt_classification": "full_walk",
+  "non_claims": [
+    "not gold: no S07 artifact, predicate, sidecar row or marker is a gold label",
+    "not a promotion: promotion stays none, classification stays not-authorized, human_acceptance stays null",
+    "not a threshold: no rate threshold, pass/fail cut-off or accept/reject decision is introduced",
+    "not a classification: no classifier is fitted, no D388 gate is selected and no gate is scored",
+    "not independent-measured: S07 runs no human pilot and publishes no measured rate",
+    "not a rewrite of S04/M204: the frozen receipt, its logs, its claims and the M204 timeout receipt stay byte-identical",
+    "not a timeout redefinition: a short complete walk is not renamed timeout and a timeout is never renamed complete",
+    "not a budget achievement: budget_seconds is a kill ceiling, not evidence the corpus envelope was exercised",
+    "not a product surface: S07 is an offline Python harness and crates/** gains no reader and no new Rust type",
+    "not a requirement status change: status_effect stays unchanged and R035/R070 stay HOLD",
+    "not a failure identity for the historical run: the S04 failed = 1 file stays unidentified",
+    "not a human gate: the human pilot is not a gate (D519)",
+    "not a second measurement convention: no S03 aspect or stratum rate is imported or re-derived",
+    "not a seed enlargement: the 180 frozen fragments stay 180"
+  ],
+  "operational_acceptance_effect": "none",
+  "pins": {
+    "m204_s06_c4_operational_receipt": {
+      "path": "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+      "sha256": "04e41f896f2bded096061d7caef2ec4abdaaf37cebf88c387d1dd011943b797c"
+    },
+    "m207_s03_battery": {
+      "path": "prd/migration/rust-evidence/m207-s03-battery.json",
+      "sha256": "76b9a78e3e83772be3ca3e46b83a89b3b3baaf690ffe6aa0c72f77aa6d56b533"
+    },
+    "m207_s04_battery": {
+      "path": "prd/migration/rust-evidence/m207-s04-battery.json",
+      "sha256": "cc6dbb3933bc8e5d91c3cf7866ed28e40061a5740c77429b923d4e487ade91fc"
+    },
+    "m207_s04_c4_operational_receipt": {
+      "path": "prd/migration/rust-evidence/m207-s04-c4-operational-receipt.json",
+      "sha256": "423d30de06080fce1c3da255d1d03cc3f19548d29e4338c74d913f4771e9e935"
+    },
+    "s03_human_pilot_performed": false,
+    "seed_fragment_count": 180
+  },
+  "promotion": "none",
+  "rows": [
+    {
+      "command": "uv run python scripts/m207_s07_schemas.py check",
+      "durationMs": null,
+      "exit_code": 0,
+      "id": "s07_schemas",
+      "status": "pass"
+    },
+    {
+      "command": "uv run python scripts/m207_s07_c4_run.py classify",
+      "durationMs": null,
+      "exit_code": 0,
+      "id": "s07_classify",
+      "status": "pass"
+    },
+    {
+      "command": "uv run python scripts/m207_s07_c4_run.py check",
+      "durationMs": null,
+      "exit_code": 0,
+      "id": "s07_c4_receipt",
+      "status": "pass"
+    },
+    {
+      "command": "uv run python scripts/m207_s07_policy.py check",
+      "durationMs": null,
+      "exit_code": 0,
+      "id": "s07_policy",
+      "status": "pass"
+    },
+    {
+      "command": "uv run python scripts/test_m207_s07_policy.py",
+      "durationMs": null,
+      "exit_code": 0,
+      "id": "s07_hostile_suite",
+      "status": "pass"
+    },
+    {
+      "command": "uv run python scripts/m207_s04_c4_run.py check && uv run python scripts/m207_s04_pilot.py check && bash scripts/m207_s04_t04_verify.sh (markers M207_S04_C4_RECEIPT_OK, M207_S04_PROMOTION_NONE_OK and M207_S04_VERIFY_OK required)",
+      "durationMs": null,
+      "exit_code": 0,
+      "id": "s04_regression",
+      "status": "pass"
+    },
+    {
+      "command": "uv run ruff format --check scripts/m207_s07_schemas.py scripts/m207_s07_c4_run.py scripts/m207_s07_policy.py scripts/test_m207_s07_policy.py",
+      "durationMs": null,
+      "exit_code": 0,
+      "id": "ruff_format",
+      "status": "pass"
+    },
+    {
+      "command": "uv run ruff check scripts/m207_s07_schemas.py scripts/m207_s07_c4_run.py scripts/m207_s07_policy.py scripts/test_m207_s07_policy.py",
+      "durationMs": null,
+      "exit_code": 0,
+      "id": "ruff_check",
+      "status": "pass"
+    },
+    {
+      "command": "uv run python scripts/verify-adr-conformance.py",
+      "durationMs": null,
+      "exit_code": 0,
+      "id": "adr_conformance",
+      "status": "pass"
+    }
+  ],
+  "s03_rates_status": "not-measured",
+  "schema": "m207-s07-battery/v1",
+  "schema_version": 1
+}
