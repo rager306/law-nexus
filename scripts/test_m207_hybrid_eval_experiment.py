@@ -7,7 +7,9 @@ M207 pins, human stores, or the legal corpus.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
+import io
 import json
 import shutil
 import subprocess
@@ -16,6 +18,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "m207_hybrid_eval_experiment.py"
@@ -996,9 +999,16 @@ class HybridEvalReportTests(unittest.TestCase):
         self.assertEqual(alignment["predicted_bundles"], 4)
         metamorphic = report["metamorphic"]
         self.assertEqual(metamorphic["evidence_class"], "metamorphic")
-        self.assertEqual(metamorphic["properties"], [])
-        self.assertEqual(metamorphic["properties_executed"], 0)
-        self.assertIn("T02", metamorphic["rules"][0])
+        self.assertEqual(
+            [row["name"] for row in metamorphic["properties"]],
+            [name for name, _ in exp.METAMORPHIC_PROPERTIES],
+        )
+        for row in metamorphic["properties"]:
+            self.assertEqual(row["status"], "passed", row["name"])
+            self.assertTrue(row["detail"], row["name"])
+        self.assertEqual(metamorphic["properties_executed"], 4)
+        self.assertEqual(metamorphic["properties_passed"], 4)
+        self.assertEqual(metamorphic["verdict"]["value"], "4/4")
 
     def test_eval_marker_is_distinct_from_records_marker(self) -> None:
         self.assertNotEqual(EVAL_MARKER, RECORDS_MARKER)
@@ -1126,6 +1136,189 @@ class HybridEvalReportTests(unittest.TestCase):
             self.assertFalse(synthetic.exists())
         else:
             self.assertEqual(synthetic.read_bytes(), synthetic_before)
+        self.assertFalse((ROOT / S03_REPORT_REL).exists())
+
+    def eval_in_process(
+        self, root: Path, expected: Path, predicted: Path, **patches: Any
+    ) -> tuple[int, str, str]:
+        """Run the eval CLI in-process so module-level properties can be patched."""
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            with contextlib.ExitStack() as stack:
+                for target, replacement in patches.items():
+                    stack.enter_context(mock.patch.object(exp, target, replacement))
+                code = exp.main(
+                    ["--root", str(root), "--evaluate-records", str(expected), str(predicted)]
+                )
+        return code, stdout.getvalue(), stderr.getvalue()
+
+    def test_metamorphic_property_denominators_are_explicit(self) -> None:
+        root = self.make_root()
+        expected, predicted = self.write_pair(root)
+        report = self.assert_eval_ok(self.eval_cli(root, expected, predicted))
+        metamorphic = report["metamorphic"]
+        self.assertEqual(metamorphic["rules"], list(exp.METAMORPHIC_RULES))
+        by_name = {row["name"]: row for row in metamorphic["properties"]}
+        self.assertEqual(sorted(by_name), sorted(name for name, _ in exp.METAMORPHIC_PROPERTIES))
+        order = by_name["alignment_invariant_to_record_order"]
+        self.assertEqual((order["denominator"], order["value"]), (4, "4/4"))
+        labels = by_name["labels_do_not_drive_matching"]
+        self.assertEqual((labels["denominator"], labels["value"]), (4, "4/4"))
+        self.assertIn("anchor pairs unchanged", labels["detail"])
+        empty = by_name["empty_denominator_is_not_measured"]
+        self.assertEqual((empty["denominator"], empty["value"]), (1, "1/1"))
+        self.assertIn("not-measured", empty["detail"])
+        duplicate = by_name["duplicate_anchor_key_is_rejected"]
+        self.assertEqual((duplicate["denominator"], duplicate["value"]), (1, "1/1"))
+        self.assertIn("AMBIGUOUS_DUPLICATE", duplicate["detail"])
+
+    def test_forced_property_failure_is_unstable_and_keeps_differential(self) -> None:
+        root = self.make_root()
+        expected, predicted = self.write_pair(root)
+        baseline = self.assert_eval_ok(self.eval_cli(root, expected, predicted))
+        target = "metamorphic_empty_denominator_is_not_measured"
+        real = getattr(exp, target)
+
+        def broken(context: Any) -> dict[str, Any]:
+            row = real(context)
+            row["status"] = "failed"
+            row["correct"] = 0
+            row["detail"] = "forced failure for the independence test"
+            return row
+
+        code, stdout, stderr = self.eval_in_process(root, expected, predicted, **{target: broken})
+        self.assertEqual(code, 1)
+        self.assertIn("FAIL UNSTABLE", stderr)
+        self.assertNotIn(EVAL_MARKER, stderr)
+        self.assertNotIn("Traceback", stderr)
+        report = json.loads(stdout)
+        self.assertEqual(report["status"], "unstable")
+        self.assertIsNone(report["marker"])
+        self.assertEqual(report["metamorphic"]["properties_executed"], 4)
+        self.assertEqual(report["metamorphic"]["properties_passed"], 3)
+        self.assertEqual(report["metamorphic"]["verdict"]["value"], "3/4")
+        self.assertEqual(report["differential"]["planes"], baseline["differential"]["planes"])
+        self.assertEqual(
+            report["differential"]["planes"]["hybrid"]["bundle_exact"],
+            baseline["differential"]["planes"]["hybrid"]["bundle_exact"],
+        )
+        self.assertEqual(
+            report["differential"]["bundle_alignment"],
+            baseline["differential"]["bundle_alignment"],
+        )
+
+    def test_raising_property_is_failed_not_a_traceback(self) -> None:
+        root = self.make_root()
+        expected, predicted = self.write_pair(root)
+        target_func = "metamorphic_duplicate_anchor_key_is_rejected"
+        target_name = "duplicate_anchor_key_is_rejected"
+
+        def boom(context: Any) -> dict[str, Any]:
+            raise RuntimeError("metamorphic boom")
+
+        code, stdout, stderr = self.eval_in_process(
+            root, expected, predicted, **{target_func: boom}
+        )
+        self.assertEqual(code, 1)
+        self.assertNotIn("Traceback", stderr)
+        report = json.loads(stdout)
+        rows = {row["name"]: row for row in report["metamorphic"]["properties"]}
+        self.assertEqual(rows[target_name]["status"], "failed")
+        self.assertIn("RuntimeError", rows[target_name]["detail"])
+        self.assertIn("metamorphic boom", rows[target_name]["detail"])
+        self.assertEqual(report["status"], "unstable")
+        self.assertIsNone(report["marker"])
+
+    def test_green_metamorphic_keeps_ok_while_differential_degrades(self) -> None:
+        root = self.make_root()
+        expected_payload = exp.example_hybrid_records()
+        predicted_payload = exp.clone(expected_payload)
+        predicted_payload["bundles"] = [
+            row for row in predicted_payload["bundles"] if row["bundle_id"] != "alias"
+        ]
+        series = next(row for row in predicted_payload["bundles"] if row["bundle_id"] == "series")
+        series["occurrences"][0]["fields"]["kind"]["value"] = "wrong-kind"
+        expected = self.write_records(root, expected_payload, "expected.json")
+        predicted = self.write_records(root, predicted_payload, "predicted.json")
+        report = self.assert_eval_ok(self.eval_cli(root, expected, predicted))
+        alignment = report["differential"]["bundle_alignment"]
+        self.assertEqual(alignment["expected_only"], ["alias"])
+        hybrid = report["differential"]["planes"]["hybrid"]
+        self.assertEqual(hybrid["bundles"], 3)
+        self.assertEqual(hybrid["bundle_exact"]["value"], "2/3")
+        self.assertEqual(hybrid["field_value"]["value"], "17/18")
+        metamorphic = report["metamorphic"]
+        self.assertEqual(metamorphic["properties_executed"], 4)
+        self.assertEqual(metamorphic["properties_passed"], 4)
+        self.assertEqual(metamorphic["verdict"]["value"], "4/4")
+        self.assertEqual(report["status"], "ok")
+        self.assertEqual(report["marker"], EVAL_MARKER)
+
+    def test_labels_property_fails_when_align_becomes_label_sensitive(self) -> None:
+        root = self.make_root()
+        expected, predicted = self.write_pair(root)
+        real_align = exp.align
+
+        def label_sensitive_align(exp_occs: Any, pred_occs: Any) -> dict[str, Any]:
+            aligned = real_align(exp_occs, pred_occs)
+            if any(row["fields"]["kind"]["value"] == exp.METAMORPHIC_SENTINEL for row in pred_occs):
+                changed = dict(aligned)
+                changed["unique"] = []
+                return changed
+            return aligned
+
+        code, stdout, stderr = self.eval_in_process(
+            root, expected, predicted, align=label_sensitive_align
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("FAIL UNSTABLE", stderr)
+        report = json.loads(stdout)
+        rows = {row["name"]: row for row in report["metamorphic"]["properties"]}
+        self.assertEqual(rows["labels_do_not_drive_matching"]["status"], "failed")
+        self.assertEqual(rows["alignment_invariant_to_record_order"]["status"], "passed")
+        self.assertEqual(report["metamorphic"]["properties_passed"], 3)
+        self.assertEqual(report["metamorphic"]["verdict"]["value"], "3/4")
+
+    def test_no_executed_property_is_not_measured_and_not_unstable(self) -> None:
+        root = self.make_root()
+        expected, predicted = self.write_pair(root)
+        patches: dict[str, Any] = {}
+        for name, func_name in exp.METAMORPHIC_PROPERTIES:
+
+            def skipped(context: Any, _name: str = name) -> dict[str, Any]:
+                return exp.metamorphic_row(_name, 0, 0, "skipped by test")
+
+            patches[func_name] = skipped
+        code, stdout, stderr = self.eval_in_process(root, expected, predicted, **patches)
+        self.assertEqual(code, 0)
+        self.assertIn(EVAL_MARKER, stderr)
+        report = json.loads(stdout)
+        metamorphic = report["metamorphic"]
+        self.assertEqual(metamorphic["properties_executed"], 0)
+        self.assertEqual(metamorphic["properties_passed"], 0)
+        self.assertEqual(
+            metamorphic["verdict"],
+            {"correct": 0, "denominator": 0, "value": None, "status": "not-measured"},
+        )
+        for row in metamorphic["properties"]:
+            self.assertEqual(row["status"], "not-measured", row["name"])
+        self.assertEqual(report["status"], "ok")
+        self.assertEqual(report["marker"], EVAL_MARKER)
+
+    def test_metamorphic_run_writes_nothing_and_keeps_bytes(self) -> None:
+        root = self.make_root()
+        before = frozen_fingerprint()
+        expected, predicted = self.write_pair(root)
+        expected_before = expected.read_bytes()
+        predicted_before = predicted.read_bytes()
+        self.assert_eval_ok(self.eval_cli(root, expected, predicted))
+        self.assertEqual(expected.read_bytes(), expected_before)
+        self.assertEqual(predicted.read_bytes(), predicted_before)
+        self.assertEqual(
+            sorted(path.name for path in root.iterdir()),
+            ["expected.json", "predicted.json"],
+        )
+        self.assertEqual(frozen_fingerprint(), before)
         self.assertFalse((ROOT / S03_REPORT_REL).exists())
 
 

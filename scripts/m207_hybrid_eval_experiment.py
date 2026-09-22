@@ -20,6 +20,12 @@ m207-hybrid-eval-report/v1 report whose differential and metamorphic evidence
 objects stay siblings. It never writes, and the expected file is a harness
 reference, not human gold (D519/D521).
 
+The metamorphic sibling carries four named harness-local scorer properties:
+alignment invariance under record order, labels not driving matching, an empty
+denominator staying not-measured, and the records validator still rejecting a
+duplicate anchor-key. A failed or raising property sets status=unstable and
+nulls the marker, but the differential planes are still printed in full.
+
 Markers: M207_HYBRID_SYNTHETIC_EXPERIMENT_OK, M207_HYBRID_RECORDS_OK,
 M207_HYBRID_EVAL_OK (report shape and denominators only, never acceptance)
 """
@@ -82,6 +88,31 @@ EVAL_NOT_MEASURED_POLICY = (
     "a zero denominator yields value null and status not-measured; a not-measured "
     "block contributes nothing to any numerator or denominator and is never "
     "coerced into perfect accuracy"
+)
+# Metamorphic evidence class (D519): scorer properties checked without a second
+# label as truth. A property verdict is never averaged into differential planes.
+METAMORPHIC_SENTINEL = "m207-metamorphic-sentinel"
+METAMORPHIC_RULES = (
+    "properties are harness-local scorer invariants, not parser quality and not a review gate",
+    "a property with a zero denominator stays not-measured and is never counted as passed",
+    "a failed or raising property sets status=unstable and nulls the marker, but the full "
+    "differential block is still printed to stdout",
+    "metamorphic verdicts are never averaged into differential planes and never move them",
+)
+METAMORPHIC_PROPERTIES: tuple[tuple[str, str], ...] = (
+    (
+        "alignment_invariant_to_record_order",
+        "metamorphic_alignment_invariant_to_record_order",
+    ),
+    ("labels_do_not_drive_matching", "metamorphic_labels_do_not_drive_matching"),
+    (
+        "empty_denominator_is_not_measured",
+        "metamorphic_empty_denominator_is_not_measured",
+    ),
+    (
+        "duplicate_anchor_key_is_rejected",
+        "metamorphic_duplicate_anchor_key_is_rejected",
+    ),
 )
 PROTECTED_RELS = (
     RECORD_REL,
@@ -1881,15 +1912,221 @@ def local_focus_block(expected: Mapping[str, Any], predicted: Mapping[str, Any])
     }
 
 
-def metamorphic_container() -> dict[str, Any]:
-    """Sibling evidence object; properties are wired in M207 S06 T02."""
+def aligned_signature(
+    expected: Sequence[Mapping[str, Any]], predicted: Sequence[Mapping[str, Any]]
+) -> tuple[Any, ...]:
+    """Order-independent align() signature: unique pairs plus every other bucket.
+
+    Reused by the metamorphic properties so that no second pair arithmetic is
+    written by hand: whatever align() decides is what the property compares.
+    """
+    aligned = align(expected, predicted)
+    pairs = tuple(
+        sorted((str(exp_row["id"]), str(pred_row["id"])) for exp_row, pred_row in aligned["unique"])
+    )
+    ambiguous = tuple(
+        sorted(json.dumps(row["key"], sort_keys=True) for row in aligned["ambiguous"])
+    )
+    return (
+        pairs,
+        tuple(sorted(aligned["unmatched_expected"])),
+        tuple(sorted(aligned["unmatched_predicted"])),
+        ambiguous,
+    )
+
+
+def metamorphic_row(name: str, correct: int, denominator: int, detail: str) -> dict[str, Any]:
+    """One property result whose correct/denominator/value/status come from measured_ratio."""
+    ratio = measured_ratio(correct, denominator)
+    if ratio["status"] != "measured":
+        status = "not-measured"
+    elif correct == denominator:
+        status = "passed"
+    else:
+        status = "failed"
+    return {
+        "name": name,
+        "status": status,
+        "correct": ratio["correct"],
+        "denominator": ratio["denominator"],
+        "value": ratio["value"],
+        "detail": detail,
+    }
+
+
+def metamorphic_alignment_invariant_to_record_order(
+    context: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Reversing predicted occurrences/relations must not change align() pairs.
+
+    Denominator: matched bundle pairs where both sides carry at least one
+    occurrence (a pair without occurrences has no alignment to check).
+    """
+    measured = 0
+    correct = 0
+    failed: list[str] = []
+    for expected_bundle, predicted_bundle in context["matched"]:
+        if not expected_bundle["occurrences"] or not predicted_bundle["occurrences"]:
+            continue
+        measured += 1
+        shuffled = clone(predicted_bundle)
+        shuffled["occurrences"].reverse()
+        shuffled["relations"].reverse()
+        before = aligned_signature(expected_bundle["occurrences"], predicted_bundle["occurrences"])
+        after = aligned_signature(expected_bundle["occurrences"], shuffled["occurrences"])
+        if before == after:
+            correct += 1
+        else:
+            failed.append(str(predicted_bundle["bundle_id"]))
+    if failed:
+        detail = f"align pairs changed under record reordering for {failed}"
+    else:
+        detail = "reversed occurrences/relations keep align pairs identical"
+    return metamorphic_row("alignment_invariant_to_record_order", correct, measured, detail)
+
+
+def metamorphic_labels_do_not_drive_matching(context: Mapping[str, Any]) -> dict[str, Any]:
+    """Replacing kind/date/number values must not rematch a different anchor.
+
+    Anchors, ids, sources and unresolved flags are untouched; only the label
+    values become a sentinel. Matching is anchor identity, so the pair set has
+    to stay identical (test_changed_labels_do_not_rematch).
+    """
+    measured = 0
+    correct = 0
+    failed: list[str] = []
+    relabelled = 0
+    for expected_bundle, predicted_bundle in context["matched"]:
+        if not expected_bundle["occurrences"] or not predicted_bundle["occurrences"]:
+            continue
+        measured += 1
+        mutated = clone(predicted_bundle)
+        for item in mutated["occurrences"]:
+            for slot in SLOTS:
+                item["fields"][slot]["value"] = METAMORPHIC_SENTINEL
+            relabelled += 1
+        before = aligned_signature(expected_bundle["occurrences"], predicted_bundle["occurrences"])
+        after = aligned_signature(expected_bundle["occurrences"], mutated["occurrences"])
+        if before == after:
+            correct += 1
+        else:
+            failed.append(str(predicted_bundle["bundle_id"]))
+    if failed:
+        detail = f"sentinel labels rematched anchors for {failed}"
+    else:
+        detail = f"{relabelled} predicted occurrences relabelled; anchor pairs unchanged"
+    return metamorphic_row("labels_do_not_drive_matching", correct, measured, detail)
+
+
+def metamorphic_empty_denominator_is_not_measured(context: Mapping[str, Any]) -> dict[str, Any]:
+    """A zero denominator stays not-measured and never reads as an exact bundle.
+
+    Input-independent: denominator is always 1. The degenerate empty-bundle
+    path is the existing local_focus_block guard (a bundle with zero
+    occurrences reports bundle_exact False), not a second scoring path.
+    """
+    empty_ratio = measured_ratio(0, 0)
+    ratio_ok = empty_ratio["status"] == "not-measured" and empty_ratio["value"] is None
+    template = next((row for row, _ in context["matched"] if row["occurrences"]), None)
+    if template is None:
+        template = example_hybrid_records()["bundles"][0]
+    empty_bundle = clone(template)
+    empty_bundle["occurrences"] = []
+    empty_bundle["relations"] = []
+    block = local_focus_block(empty_bundle, clone(empty_bundle))
+    degenerate_ok = (
+        block["bundle_exact"] is False
+        and block["field_value"]["status"] == "not-measured"
+        and block["field_value"]["value"] is None
+    )
+    correct = 1 if (ratio_ok and degenerate_ok) else 0
+    detail = (
+        f"measured_ratio(0,0) status={empty_ratio['status']}; degenerate empty bundle "
+        f"bundle_exact={block['bundle_exact']} field_value={block['field_value']['status']}"
+    )
+    return metamorphic_row("empty_denominator_is_not_measured", correct, 1, detail)
+
+
+def metamorphic_duplicate_anchor_key_is_rejected(
+    context: Mapping[str, Any],
+) -> dict[str, Any]:
+    """A duplicate anchor-key in one bundle is a diagnostic, not a score.
+
+    Input-independent: denominator is always 1. This is a diagnostic
+    metamorphic check of validate_hybrid_records, not a differential ambiguity
+    group: on the records path ambiguity_groups == 0 only means no validated
+    pair carried a duplicate anchor-key.
+    """
+    payload = example_hybrid_records()
+    bundle = payload["bundles"][0]
+    donor = clone(bundle["occurrences"][0])
+    donor["id"] = f"{donor['id']}-metamorphic-duplicate"
+    bundle["occurrences"].append(donor)
+    try:
+        validate_hybrid_records(payload, "metamorphic-duplicate-anchor")
+    except ExperimentError as exc:
+        if exc.diagnostic == "AMBIGUOUS_DUPLICATE":
+            return metamorphic_row(
+                "duplicate_anchor_key_is_rejected",
+                1,
+                1,
+                "duplicate anchor-key raised AMBIGUOUS_DUPLICATE before any score",
+            )
+        return metamorphic_row(
+            "duplicate_anchor_key_is_rejected",
+            0,
+            1,
+            f"validator raised {exc.diagnostic} instead of AMBIGUOUS_DUPLICATE",
+        )
+    return metamorphic_row(
+        "duplicate_anchor_key_is_rejected",
+        0,
+        1,
+        "validator accepted two occurrences sharing a complete anchor-key",
+    )
+
+
+def metamorphic_properties(context: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Run every named property in-process; a raise is a failed property, not a crash.
+
+    Functions are resolved through module globals by name so the property set
+    stays a stable seam for tests and so one broken property cannot abort the
+    other three.
+    """
+    rows: list[dict[str, Any]] = []
+    for name, func_name in METAMORPHIC_PROPERTIES:
+        func = globals().get(func_name)
+        try:
+            if func is None:
+                raise RuntimeError(f"property function {func_name} is not defined")
+            rows.append(func(context))
+        except Exception as exc:  # noqa: BLE001 - fail closed per property, never traceback
+            ratio = measured_ratio(0, 0)
+            rows.append(
+                {
+                    "name": name,
+                    "status": "failed",
+                    "correct": ratio["correct"],
+                    "denominator": ratio["denominator"],
+                    "value": ratio["value"],
+                    "detail": f"raised {type(exc).__name__}: {exc}",
+                }
+            )
+    return rows
+
+
+def metamorphic_container(properties: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """Sibling evidence object: executed properties form its own denominator."""
+    rows = [dict(row) for row in properties]
+    executed = [row for row in rows if row.get("status") != "not-measured"]
+    passed = [row for row in executed if row.get("status") == "passed"]
     return {
         "evidence_class": "metamorphic",
-        "properties": [],
-        "properties_executed": 0,
-        "properties_passed": 0,
-        "verdict": measured_ratio(0, 0),
-        "rules": ["properties are reserved here and populated in M207 S06 T02"],
+        "properties": rows,
+        "properties_executed": len(executed),
+        "properties_passed": len(passed),
+        "verdict": measured_ratio(len(passed), len(executed)),
+        "rules": list(METAMORPHIC_RULES),
     }
 
 
@@ -1903,7 +2140,7 @@ def invalid_metamorphic_container() -> dict[str, Any]:
 
 
 def eval_status(metamorphic: Mapping[str, Any]) -> str:
-    for row in metamorphic.get("properties", ()):  # pragma: no branch - empty in T01
+    for row in metamorphic.get("properties", ()):
         if row.get("status") == "failed":
             return "unstable"
     return "ok"
@@ -1980,7 +2217,11 @@ def evaluate_records(root: Path, expected_path: Path, predicted_path: Path) -> d
         }
         for exp_bundle, pred_bundle in matched
     ]
-    metamorphic = metamorphic_container()
+    metamorphic = metamorphic_container(
+        metamorphic_properties(
+            {"expected": expected_doc, "predicted": predicted_doc, "matched": matched}
+        )
+    )
     differential = {
         "evidence_class": "differential",
         "planes": summarize(rows),
@@ -2011,7 +2252,9 @@ def eval_summary_line(report: Mapping[str, Any]) -> str:
         f"rel_e2e={hybrid['relation_e2e']['value']} "
         f"rel_cond={hybrid['relation_conditional']['value']} "
         f"unresolved={hybrid['unresolved']['value']} "
-        f"ambiguity_groups={hybrid['ambiguity_groups']}"
+        f"ambiguity_groups={hybrid['ambiguity_groups']} "
+        f"metamorphic={report['metamorphic']['properties_passed']}"
+        f"/{report['metamorphic']['properties_executed']}"
     )
 
 
