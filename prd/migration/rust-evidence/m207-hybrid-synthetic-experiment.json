@@ -1,0 +1,3788 @@
+{
+  "alignment_policy": "local-anchor-identity-v1",
+  "authoritative": false,
+  "comparison": {
+    "disclaimer": "Successor experiment measures for local-focus vs exact-bundle vs hybrid. Not S03 metrics.",
+    "exact_bundle": {
+      "correct": 4,
+      "denominator": 13,
+      "status": "measured",
+      "value": "4/13"
+    },
+    "hybrid": {
+      "ambiguity_groups": 1,
+      "bundle_exact": {
+        "correct": 4,
+        "denominator": 13,
+        "status": "measured",
+        "value": "4/13"
+      },
+      "bundles": 13,
+      "detection": {
+        "fn": 2,
+        "fp": 1,
+        "tp": 22
+      },
+      "field_value": {
+        "correct": 59,
+        "denominator": 75,
+        "status": "measured",
+        "value": "59/75"
+      },
+      "occurrence_expected": 25,
+      "provenance": {
+        "correct": 36,
+        "denominator": 50,
+        "status": "measured",
+        "value": "36/50"
+      },
+      "relation_conditional": {
+        "correct": 7,
+        "denominator": 8,
+        "status": "measured",
+        "value": "7/8"
+      },
+      "relation_e2e": {
+        "expected_n": 10,
+        "fn": 3,
+        "fp": 1,
+        "predicted_n": 8,
+        "status": "measured",
+        "tp": 7,
+        "value": "7/10"
+      },
+      "unresolved": {
+        "correct": 20,
+        "denominator": 22,
+        "status": "measured",
+        "value": "20/22"
+      }
+    },
+    "local_focus": {
+      "bundle_exact": {
+        "correct": 9,
+        "denominator": 13,
+        "status": "measured",
+        "value": "9/13"
+      },
+      "bundles": 13,
+      "detection": {
+        "fn": 0,
+        "fp": 0,
+        "tp": 12
+      },
+      "field_value": {
+        "correct": 33,
+        "denominator": 39,
+        "status": "measured",
+        "value": "33/39"
+      },
+      "provenance": {
+        "correct": 20,
+        "denominator": 26,
+        "status": "measured",
+        "value": "20/26"
+      }
+    }
+  },
+  "constructions": [
+    "shared-head-series",
+    "agreement-refers-to-contract",
+    "annex-approved-by",
+    "alias-this-ref-ambiguity"
+  ],
+  "frozen_pilot_untouched": true,
+  "human_adoption": "pending",
+  "is_gold": false,
+  "lifecycle": "[proposed]",
+  "limits": [
+    "synthetic expected labels only",
+    "provenance=synthetic",
+    "not human, not gold, promotion=none",
+    "shared head is a context source, not necessarily an act",
+    "alignment by local anchor identity, independent of kind and values",
+    "unmatched and duplicate-anchor ambiguity are explicit, not best-match-to-label",
+    "empty denominator is not-measured, not perfect accuracy",
+    "missed relation endpoints count as end-to-end FN",
+    "conditional-on-correct-endpoints is a distinct plane",
+    "correct kind with wrong inheritance is a provenance error",
+    "unavailable context is not a human abstention",
+    "not S03 metrics",
+    "parser implementation remains M211",
+    "no frozen M207 gate or pin is discharged",
+    "no human stores or raw legal corpus"
+  ],
+  "non_claims": [
+    "Does not measure legal correctness",
+    "Does not adopt a successor schema or label inventory",
+    "Does not release a human pilot or presentation",
+    "Does not read or rewrite frozen S01/S02/S03 stores",
+    "Does not reuse the frozen human-pass evaluation rates"
+  ],
+  "not_human": true,
+  "not_s03_metrics": true,
+  "parser_implementation": "out-of-scope-M211",
+  "promotion": "none",
+  "provenance": "synthetic",
+  "scenario_count": 13,
+  "scenarios": [
+    {
+      "construction": "shared-head-series",
+      "expected": {
+        "bundle_id": "series",
+        "construction": "shared-head-series",
+        "context_only": [
+          "syn-head"
+        ],
+        "context_status": "available",
+        "declared_region": [
+          "syn-head",
+          "syn-member-a",
+          "syn-member-b"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-a",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-b",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "same_series",
+            "to": "occ-b"
+          }
+        ]
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ],
+            [
+              "occ-b",
+              "occ-b"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 2
+        },
+        "field_value": {
+          "correct": 6,
+          "denominator": 6,
+          "status": "measured",
+          "value": "6/6"
+        },
+        "provenance": {
+          "correct": 4,
+          "denominator": 4,
+          "status": "measured",
+          "value": "4/4"
+        },
+        "relation_conditional": {
+          "correct": 1,
+          "denominator": 1,
+          "extra_among_aligned": 0,
+          "status": "measured",
+          "value": "1/1"
+        },
+        "relation_e2e": {
+          "expected_n": 1,
+          "fn": 0,
+          "fp": 0,
+          "predicted_n": 1,
+          "status": "measured",
+          "tp": 1,
+          "value": "1/1"
+        },
+        "unresolved": {
+          "correct": 2,
+          "denominator": 2,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "2/2"
+        }
+      },
+      "id": "series-correct",
+      "injected": "none",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 3,
+          "status": "measured",
+          "value": "3/3"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 2,
+          "status": "measured",
+          "value": "2/2"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "series",
+        "construction": "shared-head-series",
+        "context_only": [
+          "syn-head"
+        ],
+        "context_status": "available",
+        "declared_region": [
+          "syn-head",
+          "syn-member-a",
+          "syn-member-b"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-a",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-b",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "same_series",
+            "to": "occ-b"
+          }
+        ]
+      }
+    },
+    {
+      "construction": "agreement-refers-to-contract",
+      "expected": {
+        "bundle_id": "agreement",
+        "construction": "agreement-refers-to-contract",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-agreement",
+          "syn-contract"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 13,
+                "fragment_id": "syn-agreement",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2001-02-02"
+              },
+              "kind": {
+                "source": null,
+                "value": "agreement"
+              },
+              "number": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-contract",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "1999-03-03"
+              },
+              "kind": {
+                "source": null,
+                "value": "contract"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "9"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "refers_to",
+            "to": "occ-b"
+          }
+        ]
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ],
+            [
+              "occ-b",
+              "occ-b"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 2
+        },
+        "field_value": {
+          "correct": 6,
+          "denominator": 6,
+          "status": "measured",
+          "value": "6/6"
+        },
+        "provenance": {
+          "correct": 4,
+          "denominator": 4,
+          "status": "measured",
+          "value": "4/4"
+        },
+        "relation_conditional": {
+          "correct": 1,
+          "denominator": 1,
+          "extra_among_aligned": 0,
+          "status": "measured",
+          "value": "1/1"
+        },
+        "relation_e2e": {
+          "expected_n": 1,
+          "fn": 0,
+          "fp": 0,
+          "predicted_n": 1,
+          "status": "measured",
+          "tp": 1,
+          "value": "1/1"
+        },
+        "unresolved": {
+          "correct": 2,
+          "denominator": 2,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "2/2"
+        }
+      },
+      "id": "agreement-correct",
+      "injected": "none",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 3,
+          "status": "measured",
+          "value": "3/3"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 2,
+          "status": "measured",
+          "value": "2/2"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "agreement",
+        "construction": "agreement-refers-to-contract",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-agreement",
+          "syn-contract"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 13,
+                "fragment_id": "syn-agreement",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2001-02-02"
+              },
+              "kind": {
+                "source": null,
+                "value": "agreement"
+              },
+              "number": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-contract",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "1999-03-03"
+              },
+              "kind": {
+                "source": null,
+                "value": "contract"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "9"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "refers_to",
+            "to": "occ-b"
+          }
+        ]
+      }
+    },
+    {
+      "construction": "annex-approved-by",
+      "expected": {
+        "bundle_id": "annex",
+        "construction": "annex-approved-by",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-annex",
+          "syn-approver"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 9,
+                "fragment_id": "syn-annex",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 9,
+                  "fragment_id": "syn-annex",
+                  "start": 0
+                },
+                "value": "2002-04-04"
+              },
+              "kind": {
+                "source": null,
+                "value": "annex"
+              },
+              "number": {
+                "source": {
+                  "end": 9,
+                  "fragment_id": "syn-annex",
+                  "start": 0
+                },
+                "value": "4"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-approver",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-approver",
+                  "start": 0
+                },
+                "value": "2002-05-05"
+              },
+              "kind": {
+                "source": null,
+                "value": "approving_act"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-approver",
+                  "start": 0
+                },
+                "value": "5"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "approved_by",
+            "to": "occ-b"
+          }
+        ]
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ],
+            [
+              "occ-b",
+              "occ-b"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 2
+        },
+        "field_value": {
+          "correct": 6,
+          "denominator": 6,
+          "status": "measured",
+          "value": "6/6"
+        },
+        "provenance": {
+          "correct": 4,
+          "denominator": 4,
+          "status": "measured",
+          "value": "4/4"
+        },
+        "relation_conditional": {
+          "correct": 1,
+          "denominator": 1,
+          "extra_among_aligned": 0,
+          "status": "measured",
+          "value": "1/1"
+        },
+        "relation_e2e": {
+          "expected_n": 1,
+          "fn": 0,
+          "fp": 0,
+          "predicted_n": 1,
+          "status": "measured",
+          "tp": 1,
+          "value": "1/1"
+        },
+        "unresolved": {
+          "correct": 2,
+          "denominator": 2,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "2/2"
+        }
+      },
+      "id": "annex-correct",
+      "injected": "none",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 3,
+          "status": "measured",
+          "value": "3/3"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 2,
+          "status": "measured",
+          "value": "2/2"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "annex",
+        "construction": "annex-approved-by",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-annex",
+          "syn-approver"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 9,
+                "fragment_id": "syn-annex",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 9,
+                  "fragment_id": "syn-annex",
+                  "start": 0
+                },
+                "value": "2002-04-04"
+              },
+              "kind": {
+                "source": null,
+                "value": "annex"
+              },
+              "number": {
+                "source": {
+                  "end": 9,
+                  "fragment_id": "syn-annex",
+                  "start": 0
+                },
+                "value": "4"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-approver",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-approver",
+                  "start": 0
+                },
+                "value": "2002-05-05"
+              },
+              "kind": {
+                "source": null,
+                "value": "approving_act"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-approver",
+                  "start": 0
+                },
+                "value": "5"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "approved_by",
+            "to": "occ-b"
+          }
+        ]
+      }
+    },
+    {
+      "construction": "alias-this-ref-ambiguity",
+      "expected": {
+        "bundle_id": "alias",
+        "construction": "alias-this-ref-ambiguity",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-this",
+          "syn-alias"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 8,
+                "fragment_id": "syn-this",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": null,
+                "value": null
+              },
+              "kind": {
+                "source": null,
+                "value": "unresolved_ref"
+              },
+              "number": {
+                "source": null,
+                "value": null
+              }
+            },
+            "id": "occ-a",
+            "unresolved": true,
+            "unresolved_reason": "alias-or-this-ref-ambiguous"
+          },
+          {
+            "anchors": [
+              {
+                "end": 9,
+                "fragment_id": "syn-alias",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": null,
+                "value": null
+              },
+              "kind": {
+                "source": null,
+                "value": "unresolved_ref"
+              },
+              "number": {
+                "source": null,
+                "value": null
+              }
+            },
+            "id": "occ-b",
+            "unresolved": true,
+            "unresolved_reason": "alias-or-this-ref-ambiguous"
+          }
+        ],
+        "relations": []
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ],
+            [
+              "occ-b",
+              "occ-b"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 2
+        },
+        "field_value": {
+          "correct": 6,
+          "denominator": 6,
+          "status": "measured",
+          "value": "6/6"
+        },
+        "provenance": {
+          "correct": 4,
+          "denominator": 4,
+          "status": "measured",
+          "value": "4/4"
+        },
+        "relation_conditional": {
+          "correct": 0,
+          "denominator": 0,
+          "extra_among_aligned": 0,
+          "status": "not-measured",
+          "value": null
+        },
+        "relation_e2e": {
+          "expected_n": 0,
+          "fn": 0,
+          "fp": 0,
+          "predicted_n": 0,
+          "status": "not-measured",
+          "tp": 0,
+          "value": null
+        },
+        "unresolved": {
+          "correct": 2,
+          "denominator": 2,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "2/2"
+        }
+      },
+      "id": "alias-unresolved",
+      "injected": "none",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 3,
+          "status": "measured",
+          "value": "3/3"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 2,
+          "status": "measured",
+          "value": "2/2"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "alias",
+        "construction": "alias-this-ref-ambiguity",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-this",
+          "syn-alias"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 8,
+                "fragment_id": "syn-this",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": null,
+                "value": null
+              },
+              "kind": {
+                "source": null,
+                "value": "unresolved_ref"
+              },
+              "number": {
+                "source": null,
+                "value": null
+              }
+            },
+            "id": "occ-a",
+            "unresolved": true,
+            "unresolved_reason": "alias-or-this-ref-ambiguous"
+          },
+          {
+            "anchors": [
+              {
+                "end": 9,
+                "fragment_id": "syn-alias",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": null,
+                "value": null
+              },
+              "kind": {
+                "source": null,
+                "value": "unresolved_ref"
+              },
+              "number": {
+                "source": null,
+                "value": null
+              }
+            },
+            "id": "occ-b",
+            "unresolved": true,
+            "unresolved_reason": "alias-or-this-ref-ambiguous"
+          }
+        ],
+        "relations": []
+      }
+    },
+    {
+      "construction": "shared-head-series",
+      "expected": {
+        "bundle_id": "series",
+        "construction": "shared-head-series",
+        "context_only": [
+          "syn-head"
+        ],
+        "context_status": "available",
+        "declared_region": [
+          "syn-head",
+          "syn-member-a",
+          "syn-member-b"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-a",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-b",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "same_series",
+            "to": "occ-b"
+          }
+        ]
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [
+            "occ-b"
+          ],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 1,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 6,
+          "status": "measured",
+          "value": "3/6"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 4,
+          "status": "measured",
+          "value": "2/4"
+        },
+        "relation_conditional": {
+          "correct": 0,
+          "denominator": 0,
+          "extra_among_aligned": 0,
+          "status": "not-measured",
+          "value": null
+        },
+        "relation_e2e": {
+          "expected_n": 1,
+          "fn": 1,
+          "fp": 0,
+          "predicted_n": 0,
+          "status": "measured",
+          "tp": 0,
+          "value": "0/1"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "id": "series-missing-member",
+      "injected": "missing_occurrence",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 3,
+          "status": "measured",
+          "value": "3/3"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 2,
+          "status": "measured",
+          "value": "2/2"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "series",
+        "construction": "shared-head-series",
+        "context_only": [
+          "syn-head"
+        ],
+        "context_status": "available",
+        "declared_region": [
+          "syn-head",
+          "syn-member-a",
+          "syn-member-b"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-a",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": []
+      }
+    },
+    {
+      "construction": "shared-head-series",
+      "expected": {
+        "bundle_id": "series",
+        "construction": "shared-head-series",
+        "context_only": [
+          "syn-head"
+        ],
+        "context_status": "available",
+        "declared_region": [
+          "syn-head",
+          "syn-member-a",
+          "syn-member-b"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-a",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-b",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "same_series",
+            "to": "occ-b"
+          }
+        ]
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ],
+            [
+              "occ-b",
+              "occ-b"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": [
+            "occ-extra"
+          ]
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 0,
+          "fp": 1,
+          "tp": 2
+        },
+        "field_value": {
+          "correct": 6,
+          "denominator": 6,
+          "status": "measured",
+          "value": "6/6"
+        },
+        "provenance": {
+          "correct": 4,
+          "denominator": 4,
+          "status": "measured",
+          "value": "4/4"
+        },
+        "relation_conditional": {
+          "correct": 1,
+          "denominator": 1,
+          "extra_among_aligned": 0,
+          "status": "measured",
+          "value": "1/1"
+        },
+        "relation_e2e": {
+          "expected_n": 1,
+          "fn": 0,
+          "fp": 0,
+          "predicted_n": 1,
+          "status": "measured",
+          "tp": 1,
+          "value": "1/1"
+        },
+        "unresolved": {
+          "correct": 2,
+          "denominator": 2,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "2/2"
+        }
+      },
+      "id": "series-extra-head-as-act",
+      "injected": "extra_occurrence",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 3,
+          "status": "measured",
+          "value": "3/3"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 2,
+          "status": "measured",
+          "value": "2/2"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "series",
+        "construction": "shared-head-series",
+        "context_only": [
+          "syn-head"
+        ],
+        "context_status": "available",
+        "declared_region": [
+          "syn-head",
+          "syn-member-a",
+          "syn-member-b"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-a",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-b",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 8,
+                "fragment_id": "syn-head",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-extra",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "same_series",
+            "to": "occ-b"
+          }
+        ]
+      }
+    },
+    {
+      "construction": "agreement-refers-to-contract",
+      "expected": {
+        "bundle_id": "agreement",
+        "construction": "agreement-refers-to-contract",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-agreement",
+          "syn-contract"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 13,
+                "fragment_id": "syn-agreement",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2001-02-02"
+              },
+              "kind": {
+                "source": null,
+                "value": "agreement"
+              },
+              "number": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-contract",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "1999-03-03"
+              },
+              "kind": {
+                "source": null,
+                "value": "contract"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "9"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "refers_to",
+            "to": "occ-b"
+          }
+        ]
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ],
+            [
+              "occ-b",
+              "occ-b"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 2
+        },
+        "field_value": {
+          "correct": 5,
+          "denominator": 6,
+          "status": "measured",
+          "value": "5/6"
+        },
+        "provenance": {
+          "correct": 4,
+          "denominator": 4,
+          "status": "measured",
+          "value": "4/4"
+        },
+        "relation_conditional": {
+          "correct": 1,
+          "denominator": 1,
+          "extra_among_aligned": 0,
+          "status": "measured",
+          "value": "1/1"
+        },
+        "relation_e2e": {
+          "expected_n": 1,
+          "fn": 0,
+          "fp": 0,
+          "predicted_n": 1,
+          "status": "measured",
+          "tp": 1,
+          "value": "1/1"
+        },
+        "unresolved": {
+          "correct": 2,
+          "denominator": 2,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "2/2"
+        }
+      },
+      "id": "agreement-wrong-field",
+      "injected": "wrong_field",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 3,
+          "status": "measured",
+          "value": "3/3"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 2,
+          "status": "measured",
+          "value": "2/2"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "agreement",
+        "construction": "agreement-refers-to-contract",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-agreement",
+          "syn-contract"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 13,
+                "fragment_id": "syn-agreement",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2001-02-02"
+              },
+              "kind": {
+                "source": null,
+                "value": "agreement"
+              },
+              "number": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-contract",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "1900-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "contract"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "9"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "refers_to",
+            "to": "occ-b"
+          }
+        ]
+      }
+    },
+    {
+      "construction": "annex-approved-by",
+      "expected": {
+        "bundle_id": "annex",
+        "construction": "annex-approved-by",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-annex",
+          "syn-approver"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 9,
+                "fragment_id": "syn-annex",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 9,
+                  "fragment_id": "syn-annex",
+                  "start": 0
+                },
+                "value": "2002-04-04"
+              },
+              "kind": {
+                "source": null,
+                "value": "annex"
+              },
+              "number": {
+                "source": {
+                  "end": 9,
+                  "fragment_id": "syn-annex",
+                  "start": 0
+                },
+                "value": "4"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-approver",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-approver",
+                  "start": 0
+                },
+                "value": "2002-05-05"
+              },
+              "kind": {
+                "source": null,
+                "value": "approving_act"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-approver",
+                  "start": 0
+                },
+                "value": "5"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "approved_by",
+            "to": "occ-b"
+          }
+        ]
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ],
+            [
+              "occ-b",
+              "occ-b"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 2
+        },
+        "field_value": {
+          "correct": 6,
+          "denominator": 6,
+          "status": "measured",
+          "value": "6/6"
+        },
+        "provenance": {
+          "correct": 4,
+          "denominator": 4,
+          "status": "measured",
+          "value": "4/4"
+        },
+        "relation_conditional": {
+          "correct": 0,
+          "denominator": 1,
+          "extra_among_aligned": 1,
+          "status": "measured",
+          "value": "0/1"
+        },
+        "relation_e2e": {
+          "expected_n": 1,
+          "fn": 1,
+          "fp": 1,
+          "predicted_n": 1,
+          "status": "measured",
+          "tp": 0,
+          "value": "0/1"
+        },
+        "unresolved": {
+          "correct": 2,
+          "denominator": 2,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "2/2"
+        }
+      },
+      "id": "annex-wrong-relation",
+      "injected": "wrong_relation",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 3,
+          "status": "measured",
+          "value": "3/3"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 2,
+          "status": "measured",
+          "value": "2/2"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "annex",
+        "construction": "annex-approved-by",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-annex",
+          "syn-approver"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 9,
+                "fragment_id": "syn-annex",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 9,
+                  "fragment_id": "syn-annex",
+                  "start": 0
+                },
+                "value": "2002-04-04"
+              },
+              "kind": {
+                "source": null,
+                "value": "annex"
+              },
+              "number": {
+                "source": {
+                  "end": 9,
+                  "fragment_id": "syn-annex",
+                  "start": 0
+                },
+                "value": "4"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-approver",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-approver",
+                  "start": 0
+                },
+                "value": "2002-05-05"
+              },
+              "kind": {
+                "source": null,
+                "value": "approving_act"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-approver",
+                  "start": 0
+                },
+                "value": "5"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "refers_to",
+            "to": "occ-b"
+          }
+        ]
+      }
+    },
+    {
+      "construction": "shared-head-series",
+      "expected": {
+        "bundle_id": "series",
+        "construction": "shared-head-series",
+        "context_only": [
+          "syn-head"
+        ],
+        "context_status": "available",
+        "declared_region": [
+          "syn-head",
+          "syn-member-a",
+          "syn-member-b"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-a",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-b",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "same_series",
+            "to": "occ-b"
+          }
+        ]
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ],
+            [
+              "occ-b",
+              "occ-b"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 2
+        },
+        "field_value": {
+          "correct": 6,
+          "denominator": 6,
+          "status": "measured",
+          "value": "6/6"
+        },
+        "provenance": {
+          "correct": 0,
+          "denominator": 4,
+          "status": "measured",
+          "value": "0/4"
+        },
+        "relation_conditional": {
+          "correct": 1,
+          "denominator": 1,
+          "extra_among_aligned": 0,
+          "status": "measured",
+          "value": "1/1"
+        },
+        "relation_e2e": {
+          "expected_n": 1,
+          "fn": 0,
+          "fp": 0,
+          "predicted_n": 1,
+          "status": "measured",
+          "tp": 1,
+          "value": "1/1"
+        },
+        "unresolved": {
+          "correct": 2,
+          "denominator": 2,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "2/2"
+        }
+      },
+      "id": "series-wrong-provenance",
+      "injected": "wrong_provenance",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 3,
+          "status": "measured",
+          "value": "3/3"
+        },
+        "provenance": {
+          "correct": 0,
+          "denominator": 2,
+          "status": "measured",
+          "value": "0/2"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "series",
+        "construction": "shared-head-series",
+        "context_only": [
+          "syn-head"
+        ],
+        "context_status": "available",
+        "declared_region": [
+          "syn-head",
+          "syn-member-a",
+          "syn-member-b"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-a",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-member-a",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-member-a",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-b",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-member-b",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-member-b",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "same_series",
+            "to": "occ-b"
+          }
+        ]
+      }
+    },
+    {
+      "construction": "shared-head-series",
+      "expected": {
+        "bundle_id": "series",
+        "construction": "shared-head-series",
+        "context_only": [
+          "syn-head"
+        ],
+        "context_status": "unavailable",
+        "declared_region": [
+          "syn-head",
+          "syn-member-a",
+          "syn-member-b"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-a",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": null,
+                "value": null
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": null,
+                "value": null
+              }
+            },
+            "id": "occ-a",
+            "unresolved": true,
+            "unresolved_reason": "unavailable-context"
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-b",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": null,
+                "value": null
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": null,
+                "value": null
+              }
+            },
+            "id": "occ-b",
+            "unresolved": true,
+            "unresolved_reason": "unavailable-context"
+          }
+        ],
+        "relations": []
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ],
+            [
+              "occ-b",
+              "occ-b"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 2
+        },
+        "field_value": {
+          "correct": 2,
+          "denominator": 6,
+          "status": "measured",
+          "value": "2/6"
+        },
+        "provenance": {
+          "correct": 0,
+          "denominator": 4,
+          "status": "measured",
+          "value": "0/4"
+        },
+        "relation_conditional": {
+          "correct": 0,
+          "denominator": 0,
+          "extra_among_aligned": 0,
+          "status": "not-measured",
+          "value": null
+        },
+        "relation_e2e": {
+          "expected_n": 0,
+          "fn": 0,
+          "fp": 0,
+          "predicted_n": 0,
+          "status": "not-measured",
+          "tp": 0,
+          "value": null
+        },
+        "unresolved": {
+          "correct": 0,
+          "denominator": 2,
+          "predicted_resolved_when_expected_unresolved": 2,
+          "status": "measured",
+          "value": "0/2"
+        }
+      },
+      "id": "series-unavailable-context",
+      "injected": "unavailable_context",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 1,
+          "denominator": 3,
+          "status": "measured",
+          "value": "1/3"
+        },
+        "provenance": {
+          "correct": 0,
+          "denominator": 2,
+          "status": "measured",
+          "value": "0/2"
+        },
+        "unresolved": {
+          "correct": 0,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 1,
+          "status": "measured",
+          "value": "0/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "series",
+        "construction": "shared-head-series",
+        "context_only": [
+          "syn-head"
+        ],
+        "context_status": "available",
+        "declared_region": [
+          "syn-head",
+          "syn-member-a",
+          "syn-member-b"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-a",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-member-b",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "2000-01-01"
+              },
+              "kind": {
+                "source": null,
+                "value": "series_member"
+              },
+              "number": {
+                "source": {
+                  "end": 8,
+                  "fragment_id": "syn-head",
+                  "start": 0
+                },
+                "value": "1"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": []
+      }
+    },
+    {
+      "construction": "agreement-refers-to-contract",
+      "expected": {
+        "bundle_id": "repeat",
+        "construction": "agreement-refers-to-contract",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-agreement",
+          "syn-contract"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 13,
+                "fragment_id": "syn-agreement",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2010-10-10"
+              },
+              "kind": {
+                "source": null,
+                "value": "agreement"
+              },
+              "number": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "77"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-contract",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "2010-10-10"
+              },
+              "kind": {
+                "source": null,
+                "value": "contract"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "77"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "refers_to",
+            "to": "occ-b"
+          }
+        ]
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ],
+            [
+              "occ-b",
+              "occ-b"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 2
+        },
+        "field_value": {
+          "correct": 4,
+          "denominator": 6,
+          "status": "measured",
+          "value": "4/6"
+        },
+        "provenance": {
+          "correct": 4,
+          "denominator": 4,
+          "status": "measured",
+          "value": "4/4"
+        },
+        "relation_conditional": {
+          "correct": 1,
+          "denominator": 1,
+          "extra_among_aligned": 0,
+          "status": "measured",
+          "value": "1/1"
+        },
+        "relation_e2e": {
+          "expected_n": 1,
+          "fn": 0,
+          "fp": 0,
+          "predicted_n": 1,
+          "status": "measured",
+          "tp": 1,
+          "value": "1/1"
+        },
+        "unresolved": {
+          "correct": 2,
+          "denominator": 2,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "2/2"
+        }
+      },
+      "id": "repeat-values-distinct-spans",
+      "injected": "repeated_values",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 2,
+          "denominator": 3,
+          "status": "measured",
+          "value": "2/3"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 2,
+          "status": "measured",
+          "value": "2/2"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "repeat",
+        "construction": "agreement-refers-to-contract",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-agreement",
+          "syn-contract"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 13,
+                "fragment_id": "syn-agreement",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2010-10-10"
+              },
+              "kind": {
+                "source": null,
+                "value": "contract"
+              },
+              "number": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "77"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-contract",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "2010-10-10"
+              },
+              "kind": {
+                "source": null,
+                "value": "agreement"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "77"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "refers_to",
+            "to": "occ-b"
+          }
+        ]
+      }
+    },
+    {
+      "construction": "agreement-refers-to-contract",
+      "expected": {
+        "bundle_id": "dup-exp",
+        "construction": "agreement-refers-to-contract",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-agreement"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 13,
+                "fragment_id": "syn-agreement",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2001-02-02"
+              },
+              "kind": {
+                "source": null,
+                "value": "agreement"
+              },
+              "number": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": []
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 1,
+          "groups": 1,
+          "predicted_occurrences": 2
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "field_value": {
+          "correct": 0,
+          "denominator": 3,
+          "status": "measured",
+          "value": "0/3"
+        },
+        "provenance": {
+          "correct": 0,
+          "denominator": 2,
+          "status": "measured",
+          "value": "0/2"
+        },
+        "relation_conditional": {
+          "correct": 0,
+          "denominator": 0,
+          "extra_among_aligned": 0,
+          "status": "not-measured",
+          "value": null
+        },
+        "relation_e2e": {
+          "expected_n": 0,
+          "fn": 0,
+          "fp": 0,
+          "predicted_n": 0,
+          "status": "not-measured",
+          "tp": 0,
+          "value": null
+        },
+        "unresolved": {
+          "correct": 0,
+          "denominator": 0,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "not-measured",
+          "value": null
+        }
+      },
+      "id": "duplicate-anchor-ambiguous",
+      "injected": "duplicate_anchor",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 1,
+          "groups": 1,
+          "predicted_occurrences": 2
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "field_value": {
+          "correct": 0,
+          "denominator": 3,
+          "status": "measured",
+          "value": "0/3"
+        },
+        "provenance": {
+          "correct": 0,
+          "denominator": 2,
+          "status": "measured",
+          "value": "0/2"
+        },
+        "unresolved": {
+          "correct": 0,
+          "denominator": 0,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "not-measured",
+          "value": null
+        }
+      },
+      "predicted": {
+        "bundle_id": "dup-pred",
+        "construction": "agreement-refers-to-contract",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-agreement",
+          "syn-contract"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 13,
+                "fragment_id": "syn-agreement",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2001-02-02"
+              },
+              "kind": {
+                "source": null,
+                "value": "agreement"
+              },
+              "number": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 13,
+                "fragment_id": "syn-agreement",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2001-02-02"
+              },
+              "kind": {
+                "source": null,
+                "value": "contract"
+              },
+              "number": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2"
+              }
+            },
+            "id": "occ-dup",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": []
+      }
+    },
+    {
+      "construction": "agreement-refers-to-contract",
+      "expected": {
+        "bundle_id": "agreement",
+        "construction": "agreement-refers-to-contract",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-agreement",
+          "syn-contract"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 13,
+                "fragment_id": "syn-agreement",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2001-02-02"
+              },
+              "kind": {
+                "source": null,
+                "value": "agreement"
+              },
+              "number": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          },
+          {
+            "anchors": [
+              {
+                "end": 12,
+                "fragment_id": "syn-contract",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "1999-03-03"
+              },
+              "kind": {
+                "source": null,
+                "value": "contract"
+              },
+              "number": {
+                "source": {
+                  "end": 12,
+                  "fragment_id": "syn-contract",
+                  "start": 0
+                },
+                "value": "9"
+              }
+            },
+            "id": "occ-b",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": [
+          {
+            "from": "occ-a",
+            "id": "rel-1",
+            "rel": "refers_to",
+            "to": "occ-b"
+          }
+        ]
+      },
+      "hybrid": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [
+            "occ-b"
+          ],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": false,
+        "detection": {
+          "fn": 1,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 6,
+          "status": "measured",
+          "value": "3/6"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 4,
+          "status": "measured",
+          "value": "2/4"
+        },
+        "relation_conditional": {
+          "correct": 0,
+          "denominator": 0,
+          "extra_among_aligned": 0,
+          "status": "not-measured",
+          "value": null
+        },
+        "relation_e2e": {
+          "expected_n": 1,
+          "fn": 1,
+          "fp": 0,
+          "predicted_n": 0,
+          "status": "measured",
+          "tp": 0,
+          "value": "0/1"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "id": "agreement-missed-endpoint",
+      "injected": "missed_endpoint",
+      "local_focus": {
+        "alignment": {
+          "unique_pairs": [
+            [
+              "occ-a",
+              "occ-a"
+            ]
+          ],
+          "unmatched_expected": [],
+          "unmatched_predicted": []
+        },
+        "ambiguity": {
+          "expected_occurrences": 0,
+          "groups": 0,
+          "predicted_occurrences": 0
+        },
+        "bundle_exact": true,
+        "detection": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "field_value": {
+          "correct": 3,
+          "denominator": 3,
+          "status": "measured",
+          "value": "3/3"
+        },
+        "provenance": {
+          "correct": 2,
+          "denominator": 2,
+          "status": "measured",
+          "value": "2/2"
+        },
+        "unresolved": {
+          "correct": 1,
+          "denominator": 1,
+          "predicted_resolved_when_expected_unresolved": 0,
+          "status": "measured",
+          "value": "1/1"
+        }
+      },
+      "predicted": {
+        "bundle_id": "agreement",
+        "construction": "agreement-refers-to-contract",
+        "context_only": [],
+        "context_status": "available",
+        "declared_region": [
+          "syn-agreement",
+          "syn-contract"
+        ],
+        "focus_id": "occ-a",
+        "occurrences": [
+          {
+            "anchors": [
+              {
+                "end": 13,
+                "fragment_id": "syn-agreement",
+                "start": 0
+              }
+            ],
+            "fields": {
+              "date": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2001-02-02"
+              },
+              "kind": {
+                "source": null,
+                "value": "agreement"
+              },
+              "number": {
+                "source": {
+                  "end": 13,
+                  "fragment_id": "syn-agreement",
+                  "start": 0
+                },
+                "value": "2"
+              }
+            },
+            "id": "occ-a",
+            "unresolved": false,
+            "unresolved_reason": null
+          }
+        ],
+        "relations": []
+      }
+    }
+  ],
+  "schema": "m207-hybrid-synthetic-experiment/v1",
+  "schema_version": 1,
+  "summary": {
+    "exact_bundle": {
+      "correct": 4,
+      "denominator": 13,
+      "status": "measured",
+      "value": "4/13"
+    },
+    "hybrid": {
+      "ambiguity_groups": 1,
+      "bundle_exact": {
+        "correct": 4,
+        "denominator": 13,
+        "status": "measured",
+        "value": "4/13"
+      },
+      "bundles": 13,
+      "detection": {
+        "fn": 2,
+        "fp": 1,
+        "tp": 22
+      },
+      "field_value": {
+        "correct": 59,
+        "denominator": 75,
+        "status": "measured",
+        "value": "59/75"
+      },
+      "occurrence_expected": 25,
+      "provenance": {
+        "correct": 36,
+        "denominator": 50,
+        "status": "measured",
+        "value": "36/50"
+      },
+      "relation_conditional": {
+        "correct": 7,
+        "denominator": 8,
+        "status": "measured",
+        "value": "7/8"
+      },
+      "relation_e2e": {
+        "expected_n": 10,
+        "fn": 3,
+        "fp": 1,
+        "predicted_n": 8,
+        "status": "measured",
+        "tp": 7,
+        "value": "7/10"
+      },
+      "unresolved": {
+        "correct": 20,
+        "denominator": 22,
+        "status": "measured",
+        "value": "20/22"
+      }
+    },
+    "local_focus": {
+      "bundle_exact": {
+        "correct": 9,
+        "denominator": 13,
+        "status": "measured",
+        "value": "9/13"
+      },
+      "bundles": 13,
+      "detection": {
+        "fn": 0,
+        "fp": 0,
+        "tp": 12
+      },
+      "field_value": {
+        "correct": 33,
+        "denominator": 39,
+        "status": "measured",
+        "value": "33/39"
+      },
+      "provenance": {
+        "correct": 20,
+        "denominator": 26,
+        "status": "measured",
+        "value": "20/26"
+      }
+    }
+  },
+  "working_kind_field": "kind is a synthetic working label, not adopted legal TYPE vocabulary"
+}

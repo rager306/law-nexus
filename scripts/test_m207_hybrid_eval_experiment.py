@@ -1,0 +1,615 @@
+#!/usr/bin/env python3
+"""Offline suite for the M207 hybrid evaluator and records validator.
+
+Uses throw-away roots for CLI drift and records tests. Does not mutate frozen
+M207 pins, human stores, or the legal corpus.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = ROOT / "scripts" / "m207_hybrid_eval_experiment.py"
+MARKER = "M207_HYBRID_SYNTHETIC_EXPERIMENT_OK"
+RECORDS_MARKER = "M207_HYBRID_RECORDS_OK"
+RECORD_REL = "prd/migration/rust-evidence/m207-hybrid-synthetic-experiment.json"
+TIMEOUT = 30
+
+FROZEN_PATHS = (
+    "prd/annotation/m207-s01-codebook.md",
+    "prd/annotation/m207-s01-schemas.json",
+    "prd/annotation/m207-s02-coder-protocol.md",
+    "prd/annotation/m207-s02-schemas.json",
+    "prd/annotation/m207-s03-eval-protocol.md",
+    "prd/annotation/m207-s03-schemas.json",
+    "prd/migration/rust-evidence/m207-s01-pilot-cases.json",
+    "prd/migration/rust-evidence/m207-s03-eval-manifest.json",
+    "prd/annotation/m207-context-presentation-contract.md",
+    "prd/migration/rust-evidence/m207-context-inventory.json",
+    "scripts/m207_context_inventory.py",
+    "scripts/test_m207_context_inventory.py",
+)
+
+S03_METRIC_KEYS = (
+    '"false_authority"',
+    '"span_rate"',
+    '"slot_rate"',
+    '"scope_rate"',
+    '"binding_rate"',
+    '"abstention_rate"',
+    '"aspect_rates"',
+)
+
+sys.path.insert(0, str(ROOT / "scripts"))
+import m207_hybrid_eval_experiment as exp  # noqa: E402
+
+
+def sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def dump(path: Path, payload: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def frozen_fingerprint() -> dict[str, str]:
+    out: dict[str, str] = {}
+    for relative in FROZEN_PATHS:
+        path = ROOT / relative
+        if path.is_file():
+            out[relative] = sha256_bytes(path.read_bytes())
+        else:
+            out[relative] = "absent"
+    return out
+
+
+class HybridEvalExperimentTests(unittest.TestCase):
+    def make_root(self) -> Path:
+        directory = Path(tempfile.mkdtemp(prefix="m207-hybrid-eval-"))
+        self.addCleanup(shutil.rmtree, directory, ignore_errors=True)
+        return directory
+
+    def run_cli(self, root: Path, *extra: str) -> subprocess.CompletedProcess[str]:
+        command = [sys.executable, str(SCRIPT), "--root", str(root), *extra]
+        return subprocess.run(
+            command, cwd=ROOT, text=True, capture_output=True, check=False, timeout=TIMEOUT
+        )
+
+    def assert_ok(self, result: subprocess.CompletedProcess[str], *needles: str) -> None:
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        blob = result.stdout + result.stderr
+        self.assertIn(MARKER, blob)
+        for needle in needles:
+            self.assertIn(needle, blob)
+
+    def assert_fail_closed(self, result: subprocess.CompletedProcess[str], diagnostic: str) -> None:
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn(f"FAIL {diagnostic}", result.stderr)
+
+    def write_artifact(self, root: Path) -> dict[str, Any]:
+        self.assert_ok(self.run_cli(root, "--write"), "wrote=")
+        return json.loads((root / RECORD_REL).read_text(encoding="utf-8"))
+
+    def empty_bundle(self) -> dict[str, Any]:
+        return exp.bundle(
+            bid="empty",
+            construction="shared-head-series",
+            focus_id="none",
+            context_status="available",
+            declared_region=(),
+            context_only=(),
+            occs=(),
+            rels=(),
+        )
+
+    def test_four_constructions_and_synthetic_limits(self) -> None:
+        record = exp.build_record()
+        self.assertEqual(record["constructions"], list(exp.CONSTRUCTIONS))
+        self.assertEqual(record["schema"], exp.SCHEMA)
+        self.assertEqual(record["lifecycle"], "[proposed]")
+        self.assertIs(record["is_gold"], False)
+        self.assertEqual(record["promotion"], "none")
+        self.assertEqual(record["provenance"], "synthetic")
+        self.assertIs(record["not_human"], True)
+        self.assertIs(record["not_s03_metrics"], True)
+        self.assertEqual(record["scenario_count"], 13)
+        blob = json.dumps(record)
+        for name in S03_METRIC_KEYS:
+            self.assertNotIn(name, blob)
+        series = next(row for row in record["scenarios"] if row["id"] == "series-correct")
+        occ_ids = {item["id"] for item in series["expected"]["occurrences"]}
+        self.assertEqual(occ_ids, {"occ-a", "occ-b"})
+        self.assertEqual(series["expected"]["context_only"], ["syn-head"])
+        for item in series["expected"]["occurrences"]:
+            self.assertNotEqual(item["anchors"][0]["fragment_id"], "syn-head")
+
+    def test_correct_kind_wrong_inheritance_is_provenance_error(self) -> None:
+        record = exp.build_record()
+        row = next(item for item in record["scenarios"] if item["id"] == "series-wrong-provenance")
+        hybrid = row["hybrid"]
+        self.assertEqual(hybrid["detection"], {"tp": 2, "fp": 0, "fn": 0})
+        self.assertEqual(hybrid["field_value"]["value"], "6/6")
+        self.assertEqual(hybrid["provenance"]["value"], "0/4")
+        self.assertIs(hybrid["bundle_exact"], False)
+        self.assertEqual(hybrid["relation_e2e"]["tp"], 1)
+        self.assertEqual(hybrid["relation_e2e"]["fn"], 0)
+
+    def test_missing_extra_wrong_field_relation_and_unavailable(self) -> None:
+        record = exp.build_record()
+        by_id = {row["id"]: row["hybrid"] for row in record["scenarios"]}
+        missing = by_id["series-missing-member"]
+        self.assertEqual(missing["detection"], {"tp": 1, "fp": 0, "fn": 1})
+        extra = by_id["series-extra-head-as-act"]
+        self.assertEqual(extra["detection"], {"tp": 2, "fp": 1, "fn": 0})
+        field = by_id["agreement-wrong-field"]
+        self.assertEqual(field["detection"], {"tp": 2, "fp": 0, "fn": 0})
+        self.assertEqual(field["field_value"]["value"], "5/6")
+        self.assertEqual(field["provenance"]["value"], "4/4")
+        rel = by_id["annex-wrong-relation"]
+        self.assertEqual(rel["field_value"]["value"], "6/6")
+        self.assertEqual(rel["relation_e2e"]["tp"], 0)
+        self.assertEqual(rel["relation_e2e"]["fp"], 1)
+        self.assertEqual(rel["relation_e2e"]["fn"], 1)
+        self.assertEqual(rel["relation_conditional"]["value"], "0/1")
+        unavailable = by_id["series-unavailable-context"]
+        self.assertEqual(unavailable["unresolved"]["value"], "0/2")
+        self.assertEqual(
+            unavailable["unresolved"]["predicted_resolved_when_expected_unresolved"], 2
+        )
+        missed = by_id["agreement-missed-endpoint"]
+        self.assertEqual(missed["relation_e2e"]["fn"], 1)
+        self.assertEqual(missed["relation_conditional"]["status"], "not-measured")
+
+    def test_duplicate_anchor_is_explicit_not_best_match(self) -> None:
+        record = exp.build_record()
+        row = next(
+            item for item in record["scenarios"] if item["id"] == "duplicate-anchor-ambiguous"
+        )
+        hybrid = row["hybrid"]
+        self.assertEqual(hybrid["detection"], {"tp": 0, "fp": 0, "fn": 0})
+        self.assertEqual(hybrid["ambiguity"]["groups"], 1)
+        self.assertEqual(hybrid["alignment"]["unique_pairs"], [])
+        self.assertEqual(hybrid["field_value"]["value"], "0/3")
+        self.assertIs(hybrid["bundle_exact"], False)
+
+    def test_repeated_values_do_not_rematch_by_date_or_number(self) -> None:
+        record = exp.build_record()
+        row = next(
+            item for item in record["scenarios"] if item["id"] == "repeat-values-distinct-spans"
+        )
+        hybrid = row["hybrid"]
+        self.assertEqual(
+            hybrid["alignment"]["unique_pairs"], [["occ-a", "occ-a"], ["occ-b", "occ-b"]]
+        )
+        self.assertEqual(hybrid["field_value"]["value"], "4/6")
+        self.assertEqual(hybrid["detection"], {"tp": 2, "fp": 0, "fn": 0})
+
+    def test_local_focus_conceals_missing_member_hybrid_does_not(self) -> None:
+        record = exp.build_record()
+        row = next(item for item in record["scenarios"] if item["id"] == "series-missing-member")
+        self.assertEqual(row["local_focus"]["detection"], {"tp": 1, "fp": 0, "fn": 0})
+        self.assertIs(row["local_focus"]["bundle_exact"], True)
+        self.assertEqual(row["hybrid"]["detection"]["fn"], 1)
+        self.assertIs(row["hybrid"]["bundle_exact"], False)
+        comparison = record["comparison"]
+        self.assertIn("Not S03 metrics", comparison["disclaimer"])
+        self.assertIn("detection", comparison["local_focus"])
+        self.assertIn("value", comparison["exact_bundle"])
+        self.assertIn("detection", comparison["hybrid"])
+
+    def test_empty_denominator_is_not_measured(self) -> None:
+        empty = self.empty_bundle()
+        scores = exp.score_pair(empty, empty)
+        self.assertEqual(scores["field_value"]["status"], "not-measured")
+        self.assertIsNone(scores["field_value"]["value"])
+        self.assertEqual(scores["provenance"]["status"], "not-measured")
+        self.assertEqual(scores["relation_e2e"]["status"], "not-measured")
+        self.assertEqual(scores["unresolved"]["status"], "not-measured")
+        predicted = exp.clone(empty)
+        predicted["occurrences"] = [
+            exp.occ(
+                "occ-x",
+                [exp.anchor(exp.AG_FRAG, exp.AG_SPAN)],
+                kind=exp.KIND_AGREEMENT,
+                date=exp.DATE_AG,
+                number=exp.NUM_AG,
+                date_src=exp.own_src(exp.AG_FRAG, exp.AG_SPAN),
+                number_src=exp.own_src(exp.AG_FRAG, exp.AG_SPAN),
+            )
+        ]
+        predicted["focus_id"] = "occ-x"
+        extra = exp.score_pair(empty, predicted)
+        self.assertEqual(extra["detection"], {"tp": 0, "fp": 1, "fn": 0})
+        self.assertEqual(extra["field_value"]["status"], "not-measured")
+
+    def test_malformed_refs_fail_closed(self) -> None:
+        base = exp.agreement_expected()
+        broken = exp.clone(base)
+        broken["occurrences"][0]["anchors"] = []
+        with self.assertRaises(exp.ExperimentError) as ctx:
+            exp.validate_bundle(broken, "expected")
+        self.assertEqual(ctx.exception.diagnostic, "MALFORMED_REF")
+        span = exp.clone(base)
+        span["occurrences"][0]["anchors"][0]["end"] = 0
+        with self.assertRaises(exp.ExperimentError) as ctx:
+            exp.validate_bundle(span, "expected")
+        self.assertEqual(ctx.exception.diagnostic, "MALFORMED_REF")
+        fields = exp.clone(base)
+        del fields["occurrences"][0]["fields"]["date"]
+        with self.assertRaises(exp.ExperimentError) as ctx:
+            exp.validate_bundle(fields, "predicted")
+        self.assertEqual(ctx.exception.diagnostic, "MALFORMED_REF")
+
+    def test_dangling_edges_fail_closed(self) -> None:
+        base = exp.agreement_expected()
+        dangling = exp.clone(base)
+        dangling["relations"][0]["to"] = "missing-occ"
+        with self.assertRaises(exp.ExperimentError) as ctx:
+            exp.validate_bundle(dangling, "predicted")
+        self.assertEqual(ctx.exception.diagnostic, "DANGLING_EDGE")
+        focus = exp.clone(base)
+        focus["focus_id"] = "missing-focus"
+        with self.assertRaises(exp.ExperimentError) as ctx:
+            exp.validate_bundle(focus, "expected")
+        self.assertEqual(ctx.exception.diagnostic, "DANGLING_EDGE")
+
+    def test_alignment_invariant_to_record_order(self) -> None:
+        expected = exp.agreement_expected()
+        predicted = exp.agreement_expected()
+        predicted["occurrences"] = list(reversed(predicted["occurrences"]))
+        predicted["relations"] = list(reversed(predicted["relations"]))
+        scores = exp.score_pair(expected, predicted)
+        self.assertEqual(
+            scores["alignment"]["unique_pairs"], [["occ-a", "occ-a"], ["occ-b", "occ-b"]]
+        )
+        self.assertEqual(scores["detection"], {"tp": 2, "fp": 0, "fn": 0})
+        self.assertIs(scores["bundle_exact"], True)
+
+    def test_changed_labels_do_not_rematch(self) -> None:
+        expected = exp.repeat_expected()
+        predicted = exp.pred_swapped_kinds()
+        predicted["occurrences"][0]["id"] = "renamed-a"
+        predicted["occurrences"][1]["id"] = "renamed-b"
+        predicted["relations"][0]["from"] = "renamed-a"
+        predicted["relations"][0]["to"] = "renamed-b"
+        predicted["focus_id"] = "renamed-a"
+        scores = exp.score_pair(expected, predicted)
+        self.assertEqual(
+            scores["alignment"]["unique_pairs"],
+            [["occ-a", "renamed-a"], ["occ-b", "renamed-b"]],
+        )
+        self.assertEqual(scores["field_value"]["value"], "4/6")
+        self.assertEqual(scores["relation_e2e"]["tp"], 1)
+
+    def test_default_is_check_and_does_not_write(self) -> None:
+        root = self.make_root()
+        target = root / RECORD_REL
+        self.assertFalse(target.exists())
+        self.assert_fail_closed(self.run_cli(root), "MISSING_ARTIFACT")
+        self.assertFalse(target.exists())
+        self.assert_fail_closed(self.run_cli(root, "--check"), "MISSING_ARTIFACT")
+        self.assertFalse(target.exists())
+
+    def test_stale_check_does_not_rewrite(self) -> None:
+        root = self.make_root()
+        payload = self.write_artifact(root)
+        target = root / RECORD_REL
+        original = target.read_bytes()
+        stale = json.loads(original.decode("utf-8"))
+        stale["summary"]["hybrid"]["detection"]["tp"] = 99
+        mutated = (json.dumps(stale, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode(
+            "utf-8"
+        )
+        target.write_bytes(mutated)
+        self.assert_fail_closed(self.run_cli(root, "--check"), "STALE_ARTIFACT")
+        self.assertEqual(target.read_bytes(), mutated)
+        self.assert_fail_closed(self.run_cli(root), "STALE_ARTIFACT")
+        self.assertEqual(target.read_bytes(), mutated)
+        self.assertNotEqual(mutated, original)
+        self.assertEqual(payload["schema"], exp.SCHEMA)
+
+    def test_check_and_write_together_is_usage_error(self) -> None:
+        root = self.make_root()
+        result = self.run_cli(root, "--check", "--write")
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn("FAIL USAGE", result.stderr)
+        self.assertFalse((root / RECORD_REL).exists())
+
+    def test_write_then_check_is_stable(self) -> None:
+        root = self.make_root()
+        self.write_artifact(root)
+        self.assert_ok(self.run_cli(root, "--check"), "drift=0")
+        self.assert_ok(self.run_cli(root), "drift=0")
+
+    def test_no_frozen_side_effects(self) -> None:
+        before = frozen_fingerprint()
+        root = self.make_root()
+        self.write_artifact(root)
+        self.assert_ok(self.run_cli(root, "--check"), "drift=0")
+        after = frozen_fingerprint()
+        self.assertEqual(before, after)
+        self.assertFalse((ROOT / RECORD_REL).exists() and root == ROOT)
+
+
+class HybridRecordsContractTests(unittest.TestCase):
+    def make_root(self) -> Path:
+        directory = Path(tempfile.mkdtemp(prefix="m207-hybrid-records-"))
+        self.addCleanup(shutil.rmtree, directory, ignore_errors=True)
+        return directory
+
+    def run_cli(self, root: Path, *extra: str) -> subprocess.CompletedProcess[str]:
+        command = [sys.executable, str(SCRIPT), "--root", str(root), *extra]
+        return subprocess.run(
+            command, cwd=ROOT, text=True, capture_output=True, check=False, timeout=TIMEOUT
+        )
+
+    def write_records(
+        self, root: Path, payload: dict[str, Any], name: str = "records.json"
+    ) -> Path:
+        path = root / name
+        path.write_bytes(exp.canonical_json_bytes(payload))
+        return path
+
+    def report_from(self, result: subprocess.CompletedProcess[str]) -> dict[str, Any]:
+        return json.loads(result.stdout)
+
+    def assert_records_ok(self, result: subprocess.CompletedProcess[str]) -> dict[str, Any]:
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertIn(RECORDS_MARKER, result.stderr)
+        report = self.report_from(result)
+        self.assertEqual(report["status"], "ok")
+        self.assertEqual(report["marker"], RECORDS_MARKER)
+        self.assertEqual(report["diagnostics"], [])
+        return report
+
+    def assert_records_fail(
+        self, result: subprocess.CompletedProcess[str], diagnostic: str
+    ) -> dict[str, Any]:
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn(f"FAIL {diagnostic}", result.stderr)
+        report = self.report_from(result)
+        self.assertEqual(report["status"], "invalid")
+        self.assertIsNone(report["marker"])
+        codes = [row["code"] for row in report["diagnostics"]]
+        self.assertIn(diagnostic, codes)
+        return report
+
+    def test_external_happy_series_bytes_present(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records(origin="synthetic", with_bytes=True)
+        path = self.write_records(root, payload)
+        result = self.run_cli(root, "--validate-records", str(path))
+        report = self.assert_records_ok(result)
+        self.assertEqual(report["provenance_origin"], "synthetic")
+        self.assertEqual(report["source_validation"], "bytes-present")
+        self.assertEqual(report["bundles"], 4)
+        self.assertEqual(report["documents"], 4)
+
+    def test_rust_runtime_origin_is_accepted(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records(origin="rust-runtime", with_bytes=True)
+        path = self.write_records(root, payload, "rust-series.json")
+        result = self.run_cli(root, "--validate-records", str(path))
+        report = self.assert_records_ok(result)
+        self.assertEqual(report["provenance_origin"], "rust-runtime")
+
+    def test_metadata_only_does_not_claim_bytes(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records(origin="synthetic", with_bytes=False)
+        path = self.write_records(root, payload, "meta.json")
+        report = self.assert_records_ok(self.run_cli(root, "--validate-records", str(path)))
+        self.assertEqual(report["source_validation"], "metadata-only")
+        claimed = exp.clone(payload)
+        claimed["source_validation"] = "bytes-present"
+        bad = self.write_records(root, claimed, "claimed.json")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(bad)),
+            "SOURCE_CLAIM_WITHOUT_BYTES",
+        )
+
+    def test_unsupported_version_fails(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records()
+        payload["schema_version"] = 2
+        path = self.write_records(root, payload, "v2.json")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(path)), "UNSUPPORTED_VERSION"
+        )
+        payload["schema_version"] = 1
+        payload["schema"] = exp.SCHEMA
+        other = self.write_records(root, payload, "synthetic-schema.json")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(other)), "UNSUPPORTED_VERSION"
+        )
+
+    def test_invalid_bounds_and_utf8_split(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records()
+        series = next(row for row in payload["bundles"] if row["bundle_id"] == "series")
+        series["occurrences"][0]["anchors"][0]["end"] = 99
+        path = self.write_records(root, payload, "bounds.json")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(path)), "INVALID_BOUNDS"
+        )
+        split = {
+            "schema": exp.RECORDS_SCHEMA,
+            "schema_version": 1,
+            "provenance_origin": "synthetic",
+            "source_validation": "bytes-present",
+            "documents": [
+                {
+                    "document_id": "doc-utf8",
+                    "fragments": [
+                        {
+                            "fragment_id": "frag-e",
+                            "byte_length": 2,
+                            "source_utf8": "é",
+                        }
+                    ],
+                }
+            ],
+            "bundles": [
+                exp.bundle(
+                    bid="utf8",
+                    construction="agreement-refers-to-contract",
+                    focus_id="occ-a",
+                    context_status="available",
+                    declared_region=("frag-e",),
+                    context_only=(),
+                    occs=(
+                        exp.occ(
+                            "occ-a",
+                            [{"fragment_id": "frag-e", "start": 1, "end": 2}],
+                            kind=exp.KIND_AGREEMENT,
+                            date=None,
+                            number=None,
+                            date_src=None,
+                            number_src=None,
+                        ),
+                    ),
+                    rels=(),
+                )
+            ],
+        }
+        split_path = self.write_records(root, split, "split.json")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(split_path)), "INVALID_BOUNDS"
+        )
+
+    def test_cross_doc_refs_fail(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records(include_alias=False)
+        docs = payload["documents"]
+        series_doc = next(row for row in docs if row["document_id"] == "doc-series")
+        moved = next(row for row in series_doc["fragments"] if row["fragment_id"] == exp.M2_FRAG)
+        series_doc["fragments"] = [
+            row for row in series_doc["fragments"] if row["fragment_id"] != exp.M2_FRAG
+        ]
+        docs.append({"document_id": "doc-other", "fragments": [moved]})
+        path = self.write_records(root, payload, "cross.json")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(path)), "CROSS_DOC_REF"
+        )
+
+    def test_dangling_endpoints_fail(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records(include_alias=False)
+        payload["bundles"][0]["relations"][0]["to"] = "missing-occ"
+        path = self.write_records(root, payload, "dangling-rel.json")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(path)), "DANGLING_EDGE"
+        )
+        payload = exp.example_hybrid_records(include_alias=False)
+        payload["bundles"][0]["occurrences"][0]["anchors"][0]["fragment_id"] = "missing-frag"
+        missing = self.write_records(root, payload, "dangling-frag.json")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(missing)), "DANGLING_EDGE"
+        )
+
+    def test_missing_and_malformed_input(self) -> None:
+        root = self.make_root()
+        missing = root / "absent.json"
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(missing)), "MISSING_INPUT"
+        )
+        broken = root / "broken.json"
+        broken.write_text("{not-json", encoding="utf-8")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(broken)), "MALFORMED_REF"
+        )
+        empty = self.write_records(root, {"schema": exp.RECORDS_SCHEMA}, "empty.json")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(empty)), "MALFORMED_REF"
+        )
+        human = exp.example_hybrid_records()
+        human["provenance_origin"] = "human-reviewed"
+        human_path = self.write_records(root, human, "human.json")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(human_path)),
+            "PROVENANCE_FORBIDDEN",
+        )
+
+    def test_duplicate_anchor_is_explicit(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records(include_alias=False)
+        focus = exp.clone(payload["bundles"][1]["occurrences"][0])
+        twin = exp.clone(focus)
+        twin["id"] = "occ-dup"
+        payload["bundles"][1]["occurrences"].append(twin)
+        path = self.write_records(root, payload, "dup.json")
+        self.assert_records_fail(
+            self.run_cli(root, "--validate-records", str(path)), "AMBIGUOUS_DUPLICATE"
+        )
+
+    def test_deterministic_roundtrip(self) -> None:
+        payload = exp.example_hybrid_records(origin="rust-runtime")
+        first = exp.canonical_json_bytes(payload)
+        loaded = json.loads(first.decode("utf-8"))
+        second = exp.canonical_json_bytes(loaded)
+        self.assertEqual(first, second)
+        report_a = exp.validate_hybrid_records(loaded, "records")
+        report_b = exp.validate_hybrid_records(json.loads(second.decode("utf-8")), "records")
+        self.assertEqual(report_a, report_b)
+        self.assertEqual(report_a["status"], "ok")
+        root = self.make_root()
+        path = self.write_records(root, loaded, "roundtrip.json")
+        original = path.read_bytes()
+        self.assert_records_ok(self.run_cli(root, "--validate-records", str(path)))
+        self.assertEqual(path.read_bytes(), original)
+
+    def test_records_cli_is_read_only_and_refuses_protected_paths(self) -> None:
+        root = self.make_root()
+        payload = exp.example_hybrid_records()
+        path = self.write_records(root, payload, "ok.json")
+        original = path.read_bytes()
+        usage = self.run_cli(root, "--validate-records", str(path), "--write")
+        self.assertEqual(usage.returncode, 2, usage.stderr)
+        self.assert_records_fail(usage, "USAGE")
+        self.assertEqual(path.read_bytes(), original)
+        self.assertFalse((root / RECORD_REL).exists())
+        protected = root / RECORD_REL
+        protected.parent.mkdir(parents=True, exist_ok=True)
+        protected.write_bytes(original)
+        relative = self.run_cli(root, "--validate-records", RECORD_REL)
+        self.assert_records_fail(relative, "PROTECTED_PATH")
+        self.assertEqual(protected.read_bytes(), original)
+        frozen = ROOT / "prd/annotation/m207-s01-codebook.md"
+        if frozen.is_file():
+            before = frozen.read_bytes()
+            abs_fail = self.run_cli(root, "--validate-records", str(frozen))
+            self.assert_records_fail(abs_fail, "PROTECTED_PATH")
+            self.assertEqual(frozen.read_bytes(), before)
+
+    def test_records_cli_does_not_touch_frozen_or_synthetic_store(self) -> None:
+        before = frozen_fingerprint()
+        root = self.make_root()
+        path = self.write_records(root, exp.example_hybrid_records())
+        self.assert_records_ok(self.run_cli(root, "--validate-records", str(path)))
+        self.assertEqual(frozen_fingerprint(), before)
+        self.assertFalse((root / RECORD_REL).exists())
+
+
+def main() -> int:
+    loader = unittest.defaultTestLoader
+    suite = unittest.TestSuite()
+    suite.addTests(loader.loadTestsFromTestCase(HybridEvalExperimentTests))
+    suite.addTests(loader.loadTestsFromTestCase(HybridRecordsContractTests))
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    return 0 if result.wasSuccessful() else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
