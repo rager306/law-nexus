@@ -256,6 +256,14 @@ from the closed vocabulary below, never a silent success and never a fabricated 
 that appears in a tool but not in this block — or in this block but not in the schema — is
 `PROTOCOL_DIAGNOSTIC_DRIFT`, checked in both directions.
 
+The block is the vocabulary of the whole successor contract, not of one tool: the schema gate, the
+read-only classifier (`HISTORICAL_BYTES_CHANGED`, `MALFORMED_RECEIPT`, `MISSING_INPUT`), the
+recorder (`ARGV_PIN_DRIFT`, `BUDGET_BELOW_MINIMUM`, `ATTEMPT_LOG_MISSING`, `SUBCLI_FAILURE`) and
+the failure policy (`MISSING_SIDECAR`, `SIDECAR_*`, `ALLOWLIST_REFUSAL`) all draw their refusals
+from it. `scripts/m207_s07_c4_run.py` and `scripts/m207_s07_schemas.py` each declare the full set
+and refuse a protocol block that disagrees — a tool vocabulary that drifts from this block is not a
+new code, it is the same named drift.
+
 The core honesty rules:
 
 - **no artifact, no success.** A missing protocol or schema is `MISSING_ARTIFACT`; the gate never
@@ -272,22 +280,40 @@ The core honesty rules:
 
 ```text
 <!-- s07-diagnostics:begin -->
-MISSING_ARTIFACT
-MISSING_SECTION
-UNSAFE_PATH
+USAGE
 SCHEMA_PARSE_ERROR
 SCHEMA_KEY_DRIFT
 SCHEMA_VERSION_DRIFT
-MARKER_CONTRACT_DRIFT
+MISSING_INPUT
+MALFORMED_RECEIPT
 C4_RECEIPT_DRIFT
+HISTORICAL_BYTES_CHANGED
 CORPUS_COUNT_DRIFT
+ARGV_PIN_DRIFT
+BUDGET_BELOW_MINIMUM
 TERMINAL_OUTCOME_DRIFT
 PREDICATE_CONTRADICTION
 DURATION_FLOOR_AS_ACCEPTANCE
+PROTOCOL_DIAGNOSTIC_DRIFT
+MISSING_SIDECAR
+SIDECAR_UNEXPECTED
+SIDECAR_COUNT_MISMATCH
+SIDECAR_KEY_DRIFT
+SIDECAR_PROVIDER_DRIFT
+SIDECAR_CLASS_DRIFT
+SIDECAR_PATH_ESCAPE
+ALLOWLIST_REFUSAL
 PROMOTION_CLAIM
 GOLD_CLAIM
-PROTOCOL_DIAGNOSTIC_DRIFT
+S03_RATE_IMPORT
 SEED_ENLARGE
+ATTEMPT_LOG_MISSING
+SUBCLI_FAILURE
+MISSING_MARKER
+MISSING_ARTIFACT
+MISSING_SECTION
+UNSAFE_PATH
+MARKER_CONTRACT_DRIFT
 GATE_INTERNAL_ERROR
 <!-- s07-diagnostics:end -->
 ```
