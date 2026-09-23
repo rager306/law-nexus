@@ -76,6 +76,94 @@ impl SqliteCatalog {
             .map_err(|err| map_sqlite("rows", err))
     }
 
+    /// Read-only, bounded read of the relation run that roots an edge set plus
+    /// its explicit `amends` edge rows (M209/S03 T02, R070).
+    ///
+    /// Mirrors [`Self::golden_relation_rows`] SQL discipline: constant
+    /// statements with the `relation_type` / `normalization_status` predicates
+    /// inline and the row bound passed as a *bound* `?2` parameter, never
+    /// interpolated. No prose column is selected (`raw_tooltip` and
+    /// `visible_text` are absent from the projection), so licensed provider
+    /// text cannot leave the catalog through this method. The connection stays
+    /// on `SQLITE_OPEN_READ_ONLY`; nothing here writes or mutates schema, and a
+    /// missing table or run maps to `Ok(None)` / a typed `CatalogError` rather
+    /// than to an empty success.
+    pub fn amends_edge_set(&self, limit: u32) -> Result<Option<AmendsEdgeSet>, CatalogError> {
+        let runs_total: i64 = self
+            .conn
+            .query_row("SELECT COUNT(*) FROM legal_relation_runs", [], |row| {
+                row.get(0)
+            })
+            .map_err(|err| map_sqlite("count-relation-runs", err))?;
+        let run = self
+            .conn
+            .query_row(
+                "SELECT run_id, profile, root_source_id, status,
+                        source_artifact_sha256, table_artifact_sha256
+                 FROM legal_relation_runs
+                 ORDER BY run_id LIMIT 1",
+                [],
+                |row| {
+                    Ok((
+                        row.get::<_, i64>(0)?,
+                        row.get::<_, String>(1)?,
+                        row.get::<_, String>(2)?,
+                        row.get::<_, String>(3)?,
+                        row.get::<_, String>(4)?,
+                        row.get::<_, String>(5)?,
+                    ))
+                },
+            )
+            .optional()
+            .map_err(|err| map_sqlite("query-relation-run", err))?;
+        let Some((run_id, profile, root_source_id, status, source_sha, table_sha)) = run else {
+            return Ok(None);
+        };
+
+        let mut stmt = self
+            .conn
+            .prepare(
+                "SELECT item_id, relation_type, normalization_status, export_status, bank,
+                        document_key, field, destination_json, edition_id
+                 FROM legal_relation_items
+                 WHERE run_id = ?1
+                   AND relation_type = 'amends'
+                   AND normalization_status = 'explicit'
+                 ORDER BY item_id
+                 LIMIT ?2",
+            )
+            .map_err(|err| map_sqlite("prepare-amends", err))?;
+        let rows = stmt
+            .query_map(rusqlite::params![run_id, i64::from(limit)], |row| {
+                Ok(AmendsEdgeRow {
+                    item_id: row.get(0)?,
+                    relation_type: row.get(1)?,
+                    normalization_status: row.get(2)?,
+                    export_status: row.get(3)?,
+                    bank: row.get(4)?,
+                    document_key: row.get(5)?,
+                    field: row.get(6)?,
+                    destination_json: row.get(7)?,
+                    edition_id: row.get(8)?,
+                })
+            })
+            .map_err(|err| map_sqlite("query-amends", err))?;
+        let edges = rows
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|err| map_sqlite("amends-rows", err))?;
+
+        Ok(Some(AmendsEdgeSet {
+            runs_total,
+            run_id,
+            profile,
+            root_source_id,
+            status,
+            source_artifact_sha256: source_sha,
+            table_artifact_sha256: table_sha,
+            edges,
+        }))
+    }
+
     /// Negative titles for precision measurement: normative documents whose
     /// titles are not amending acts. Bounded by `limit`. Excludes both the
     /// plural (`внесении изменений`) and singular (`внесении изменения`)
@@ -138,6 +226,37 @@ impl CatalogPort for SqliteCatalog {
             },
         }
     }
+}
+
+/// One explicit `amends` edge row of a catalog relation run.
+///
+/// Catalog identifiers and status columns only: the projection this struct is
+/// built from never selects `raw_tooltip` or `visible_text`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmendsEdgeRow {
+    pub item_id: i64,
+    pub relation_type: String,
+    pub normalization_status: String,
+    pub export_status: String,
+    pub bank: String,
+    pub document_key: i64,
+    pub field: Option<i64>,
+    pub destination_json: Option<String>,
+    pub edition_id: Option<String>,
+}
+
+/// The relation run that roots an edge set, plus its explicit `amends` edges.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmendsEdgeSet {
+    /// How many `legal_relation_runs` rows the catalog carries.
+    pub runs_total: i64,
+    pub run_id: i64,
+    pub profile: String,
+    pub root_source_id: String,
+    pub status: String,
+    pub source_artifact_sha256: String,
+    pub table_artifact_sha256: String,
+    pub edges: Vec<AmendsEdgeRow>,
 }
 
 struct RawLookup {

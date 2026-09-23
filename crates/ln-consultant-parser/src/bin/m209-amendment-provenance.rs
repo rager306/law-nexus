@@ -1,15 +1,21 @@
 //! Thin CLI over the M209/S03 amendment-provenance evidence boundary (D554).
 //!
-//! Modes arrive one per S03 task; T01 ships `families`, which re-derives the
+//! Modes arrive one per S03 task. T01 ships `families`, which re-derives the
 //! count-only family denominator for the named `cc:44-fz` chain from the live,
-//! untracked provider export and either writes it (`--write`) or byte-compares
-//! it against the tracked artifact without writing (`--check`, D424).
+//! untracked provider export. T02 adds `amends-provisions`, which re-derives the
+//! amending-act and affected-provision leg: the explicit `amends` edges of the
+//! catalog relation run rooted at `cp:LAW:508812`, joined to the layer1 manifest
+//! and to the act exports under `exports/npa`, with statya level candidate
+//! provision targets resolved against the chain needle of the frozen hierarchy
+//! registry. Every mode either writes the artifact (`--write`) or byte-compares
+//! it against the tracked file without writing (`--check`, D424).
 //!
 //! stderr carries a count-only heartbeat (`families=N manifests=N chains=1
-//! editions=N drift=0`) or a typed `drift=<code>` / `error=<class>` line with
-//! the pinned exit code: usage or path drift 2, input absent 3, output
-//! unwritable 4, schema, hash or ascii drift 6. No XML bytes, no article text
-//! and no raw relation tooltips are ever read into an artifact.
+//! editions=N drift=0`, or `amends=N resolved=N unresolved=N layer1=N rows=N
+//! drift=0`) or a typed `drift=<code>` / `error=<class>` line with the pinned
+//! exit code: usage or path drift 2, input absent 3, output unwritable 4,
+//! schema, hash or ascii drift 6. No XML bytes, no article text and no raw
+//! relation tooltips are ever read into an artifact.
 
 use std::path::PathBuf;
 use std::process::ExitCode;

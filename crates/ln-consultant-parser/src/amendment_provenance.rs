@@ -1,9 +1,21 @@
 //! M209/S03 amendment-provenance evidence model (D552 / D554).
 //!
-//! Count-only, ASCII-only, fail-closed. This module declares the S03 family
-//! denominator for the named `cc:44-fz` Work chain: it counts records in the
-//! four provider manifests, inventories the four provider export directories,
-//! and reconciles the `law_2013-04-05_44-fz` edition directory.
+//! Count-only, ASCII-only, fail-closed. Two legs of R070 for the named
+//! `cc:44-fz` Work chain live here:
+//!
+//! - `families` (T01) declares the S03 family denominator: it counts records in
+//!   the four provider manifests, inventories the four provider export
+//!   directories, and reconciles the `law_2013-04-05_44-fz` edition directory.
+//! - `amends-provisions` (T02) walks the amending-act and affected-provision
+//!   leg: the explicit `amends` edges of the catalog relation run rooted at
+//!   `cp:LAW:508812`, joined by `document_key` to the layer1 manifest and by the
+//!   declared identity pair (act number, act date from the layer1 title) to the
+//!   act exports under `exports/npa`, with the catalog `edition_id` hash as the
+//!   corroborating field. Every hyperlink of a pinned act export that names the
+//!   44-FZ Work is resolved at statya level against the chain needle of the
+//!   frozen hierarchy registry using the `(level, number)` identity pair. Each
+//!   edge lands in exactly one outcome code and the outcome partition sums to
+//!   the declared denominator.
 //!
 //! Nothing here reads legal text. Only record counts, repository-relative
 //! paths, byte counts, SHA-256 pins and short categorical keys enter the
@@ -28,6 +40,8 @@ use std::fmt;
 use std::fs;
 use std::io;
 use std::path::{Component, Path, PathBuf};
+
+use crate::catalog_sqlite::SqliteCatalog;
 
 /// Artifact schema for the S03 family denominator.
 pub const SCHEMA: &str = "law-nexus/r070-family-denominator/v1";
@@ -123,6 +137,12 @@ pub enum AmendmentProvenanceError {
     EditionDirUnreadable {
         path: String,
     },
+    /// An outcome code recorded for an edge whose own counts do not justify it,
+    /// or an undocumented outcome. The named code is the emitted one.
+    ReasonCodeInconsistent {
+        code: &'static str,
+        detail: String,
+    },
 }
 
 impl AmendmentProvenanceError {
@@ -136,7 +156,8 @@ impl AmendmentProvenanceError {
             | Self::FamilyCountUnsupported { .. }
             | Self::ZeroDenominator { .. }
             | Self::NonAsciiEvidence { .. }
-            | Self::RawTextLeak { .. } => 6,
+            | Self::RawTextLeak { .. }
+            | Self::ReasonCodeInconsistent { .. } => 6,
         }
     }
 
@@ -152,6 +173,7 @@ impl AmendmentProvenanceError {
             Self::NonAsciiEvidence { .. } => Some("non_ascii_evidence"),
             Self::RawTextLeak { .. } => Some("raw_text_leak"),
             Self::EditionDirUnreadable { .. } => Some("edition_dir_unreadable"),
+            Self::ReasonCodeInconsistent { code, .. } => Some(code),
         }
     }
 
@@ -204,6 +226,9 @@ impl fmt::Display for AmendmentProvenanceError {
             Self::RawTextLeak { detail } => write!(formatter, "raw text leak: {detail}"),
             Self::EditionDirUnreadable { path } => {
                 write!(formatter, "edition directory unreadable: {path}")
+            }
+            Self::ReasonCodeInconsistent { code, detail } => {
+                write!(formatter, "outcome not justified: code={code} {detail}")
             }
         }
     }
@@ -1203,16 +1228,19 @@ pub fn family_denominator_heartbeat(denominator: &FamilyDenominator) -> String {
 // CLI surface
 // ---------------------------------------------------------------------------
 
-/// Evidence mode. Only `families` exists in T01; later S03 tasks add modes.
+/// Evidence mode. T01 ships `families`; T02 adds `amends-provisions`. Later
+/// S03 tasks add the remaining modes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProvenanceMode {
     Families,
+    AmendsProvisions,
 }
 
 impl ProvenanceMode {
     fn parse(value: &str) -> Result<Self, AmendmentProvenanceError> {
         match value {
             "families" => Ok(Self::Families),
+            "amends-provisions" => Ok(Self::AmendsProvisions),
             other => Err(usage(format!("unsupported --mode {other}"))),
         }
     }
@@ -1377,16 +1405,29 @@ pub fn run_provenance(
     cli: &ProvenanceCli,
     repo_root: &Path,
 ) -> Result<ProvenanceOutcome, AmendmentProvenanceError> {
-    match cli.mode {
-        ProvenanceMode::Families => {}
-    }
     ensure_out_containment(repo_root, &cli.out)?;
 
-    let denominator = collect_family_denominator(repo_root, &cli.export_dir)?;
-    validate_family_denominator(&denominator)?;
-    let rendered = render_family_denominator(&denominator);
+    let (rendered, heartbeat, drift) = match cli.mode {
+        ProvenanceMode::Families => {
+            let denominator = collect_family_denominator(repo_root, &cli.export_dir)?;
+            validate_family_denominator(&denominator)?;
+            let rendered = render_family_denominator(&denominator);
+            let heartbeat = family_denominator_heartbeat(&denominator);
+            (rendered, heartbeat, DriftSubject::Families(denominator))
+        }
+        ProvenanceMode::AmendsProvisions => {
+            let evidence = collect_amends_provisions(repo_root, &cli.export_dir)?;
+            validate_amends_provisions(&evidence)?;
+            let rendered = render_amends_provisions(&evidence);
+            let heartbeat = amends_provision_heartbeat(&evidence);
+            (
+                rendered,
+                heartbeat,
+                DriftSubject::Amends(Box::new(evidence)),
+            )
+        }
+    };
     ensure_ascii_and_clean(&rendered)?;
-    let heartbeat = family_denominator_heartbeat(&denominator);
 
     let absolute_out = repo_root.join(&cli.out);
     let display = cli.out.display().to_string();
@@ -1402,10 +1443,1211 @@ pub fn run_provenance(
             if tracked == rendered.as_bytes() {
                 Ok(ProvenanceOutcome { heartbeat })
             } else {
-                Err(diagnose_check_drift(&tracked, &denominator))
+                Err(match &drift {
+                    DriftSubject::Families(denominator) => {
+                        diagnose_check_drift(&tracked, denominator)
+                    }
+                    DriftSubject::Amends(evidence) => {
+                        diagnose_amends_check_drift(&tracked, evidence)
+                    }
+                })
             }
         }
     }
+}
+
+/// Which live render the `--check` byte compare is diagnosing.
+enum DriftSubject {
+    Families(FamilyDenominator),
+    Amends(Box<AmendsProvisionEvidence>),
+}
+
+// ---------------------------------------------------------------------------
+// amends-provisions mode (T02)
+//
+// The amending-act and affected-provision leg of R070 for the named chain.
+// Everything below is count-only, ASCII-only, fail-closed and re-derived live
+// from one named corpus revision: the licensed provider export, the catalog
+// relation database and the frozen hierarchy registry are read, never written.
+// ---------------------------------------------------------------------------
+
+/// Artifact schema for the S03 amending-act and affected-provision leg.
+pub const AMENDS_SCHEMA: &str = "law-nexus/r070-amending-act-provision/v1";
+/// Artifact kind discriminator.
+pub const AMENDS_KIND: &str = "m209-s03-amending-act-provision";
+/// Task discriminator of this artifact.
+pub const AMENDS_TASK: &str = "T02";
+/// Repository-relative path of the frozen hierarchy registry.
+pub const REGISTRY_RELATIVE_PATH: &str = "prd/architecture/kb-hierarchy-registry.yaml";
+/// The registry needle that names the chain Work (`cc:44-fz`).
+pub const REGISTRY_NEEDLE: &str = "law_2013-04-05_44-fz";
+/// Substrings that mark a reference as naming the 44-FZ Work. Two needles only:
+/// the act number and the chain's own short name. Both are declared, so the
+/// reference rule is reproducible and can always be re-derived.
+pub const FZ44_REFERENCE_NEEDLES: [&str; 2] = ["44-ФЗ", "О контрактной системе"];
+/// File-name prefix of the catalog relation database under the export root.
+pub const CATALOG_LINKS_PREFIX: &str = "catalog-links-";
+/// File-name suffix of the catalog relation database.
+pub const CATALOG_LINKS_SUFFIX: &str = ".sqlite";
+/// Tail of the layer1 manifest under the export root.
+pub const LAYER1_MANIFEST_TAIL: &str = "manifest_layer1_44fz_and_amending_laws.jsonl";
+/// Tail of the single-act export directory under the export root.
+pub const NPA_EXPORTS_TAIL: &str = "exports/npa";
+/// Bound on the catalog edge read. A read that reaches the bound fails closed
+/// (`family_count_unsupported`) rather than silently truncating the family.
+pub const AMENDS_EDGE_LIMIT: u32 = 4096;
+/// Maximum distinct statya references a single act may declare before the count
+/// is treated as a parsing blow-up rather than a measurement.
+const MAX_STATYA_REFS_PER_ACT: u64 = 512;
+
+/// Outcome vocabulary of the amends-provisions partition. Every catalog edge
+/// lands in exactly one of these, so the by-outcome counts always sum to the
+/// declared denominator (D552).
+pub const AMENDS_PROVISION_REASON_CODES: [&str; 7] = [
+    "resolved-provision",
+    "provision-not-in-registry",
+    "no-statya-reference",
+    "target-not-44fz",
+    "unparsed-act",
+    "no-export-file",
+    "no-layer1-record",
+];
+
+/// Fail-closed codes this mode can emit: the six structural codes shared with
+/// the families mode plus every outcome code, because an outcome whose recorded
+/// counts do not justify it is itself a refusal.
+pub const AMENDS_PROVISION_FAIL_CLOSED_CODES: [&str; 13] = [
+    "input_absent",
+    "input_hash_mismatch",
+    "family_count_unsupported",
+    "zero_denominator",
+    "non_ascii_evidence",
+    "raw_text_leak",
+    "no-layer1-record",
+    "no-export-file",
+    "unparsed-act",
+    "target-not-44fz",
+    "provision-not-in-registry",
+    "no-statya-reference",
+    "resolved-provision",
+];
+
+// Grounding pins of the accepted corpus revision. They are re-derived live on
+// every run and compared; a mismatch is `family_count_unsupported`, never a
+// silent re-baseline (the emitter measures, it does not inventory).
+const EXPECTED_CHAIN_ROOT_SOURCE_ID: &str = "cp:LAW:508812";
+const EXPECTED_CHAIN_PROFILE: &str = "procurement-core";
+const EXPECTED_CHAIN_STATUS: &str = "complete";
+const EXPECTED_RUNS_TOTAL: i64 = 1;
+const EXPECTED_AMENDS_EDGES_TOTAL: u64 = 120;
+const EXPECTED_LAYER1_RECORDS_TOTAL: u64 = 122;
+const EXPECTED_LAYER1_CORE_ACTS: u64 = 1;
+const EXPECTED_LAYER1_AMENDING_ACTS: u64 = 121;
+const EXPECTED_REGISTRY_STATYA_BINDINGS: u64 = 94;
+const EXPECTED_REGISTRY_BINDINGS_TOTAL: u64 = 102;
+
+/// One pinned input of the amending-act leg.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmendsInputPin {
+    pub input_id: String,
+    pub relative_path: String,
+    pub input_bytes: u64,
+    pub input_sha256: String,
+}
+
+/// The relation run that roots the edge set.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmendsRunPins {
+    pub run_id: i64,
+    pub profile: String,
+    pub root_source_id: String,
+    pub status: String,
+    pub source_artifact_sha256: String,
+    pub table_artifact_sha256: String,
+}
+
+/// One `amends` edge of the named chain, joined to its layer1 record and its
+/// exported act file, carrying counts, catalog identifiers and one outcome
+/// code only. No prose, no XML, no tooltip and no article text.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmendsProvisionRow {
+    pub item_id: i64,
+    pub document_key: i64,
+    pub act_number: String,
+    pub act_date: String,
+    pub layer1_record_present: bool,
+    pub candidate_files: u64,
+    pub edition_id_corroborated: bool,
+    pub export_file_bytes: u64,
+    pub export_links_total: u64,
+    pub export_links_naming_44fz: u64,
+    pub admitted_hyperlink_count: u64,
+    pub admitted_amends_count: u64,
+    pub admitted_cites_count: u64,
+    pub admitted_implements_count: u64,
+    pub admitted_unknown_count: u64,
+    pub statya_refs_distinct: u64,
+    pub statya_refs_resolved: u64,
+    pub outcome: &'static str,
+}
+
+/// The whole amending-act and affected-provision leg.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmendsProvisionEvidence {
+    pub run: AmendsRunPins,
+    pub runs_total: i64,
+    pub layer1_records_total: u64,
+    pub layer1_core_acts: u64,
+    pub layer1_amending_acts: u64,
+    pub amends_edges_total: u64,
+    pub registry_needle: String,
+    pub registry_statya_bindings: u64,
+    pub registry_glava_bindings: u64,
+    pub registry_bindings_total: u64,
+    pub npa_relative_path: String,
+    pub npa_files_total: u64,
+    pub npa_bytes_total: u64,
+    pub npa_listing_sha256: String,
+    pub inputs: Vec<AmendsInputPin>,
+    pub rows: Vec<AmendsProvisionRow>,
+    pub by_outcome: BTreeMap<String, u64>,
+    pub by_layer1_coverage: BTreeMap<String, u64>,
+    pub distinct_statya_refs: u64,
+    pub distinct_statya_refs_resolved: u64,
+}
+
+fn reason_unsupported(code: &'static str, detail: impl Into<String>) -> AmendmentProvenanceError {
+    AmendmentProvenanceError::ReasonCodeInconsistent {
+        code,
+        detail: detail.into(),
+    }
+}
+
+fn join_relative(export_root_relative: &str, name: &str) -> String {
+    format!("{export_root_relative}/{name}")
+}
+
+/// Reads `DD.MM.YYYY` out of a manifest title and normalises it to
+/// `YYYY-MM-DD`. The title itself never leaves this function.
+fn act_date_from_title(title: &str) -> Option<String> {
+    let needle = "от ";
+    let mut search = 0usize;
+    while let Some(offset) = title[search..].find(needle) {
+        let start = search + offset + needle.len();
+        search = start;
+        let candidate: String = title[start..].chars().take(10).collect();
+        let bytes = candidate.as_bytes();
+        if bytes.len() == 10
+            && bytes[2] == b'.'
+            && bytes[5] == b'.'
+            && bytes[0..2].iter().all(u8::is_ascii_digit)
+            && bytes[3..5].iter().all(u8::is_ascii_digit)
+            && bytes[6..10].iter().all(u8::is_ascii_digit)
+        {
+            return Some(format!(
+                "{}-{}-{}",
+                &candidate[6..10],
+                &candidate[3..5],
+                &candidate[0..2]
+            ));
+        }
+    }
+    None
+}
+
+/// Reads the digits of a `N 188-ФЗ` law number. The `ФЗ` tail is never kept.
+fn act_number_from_law_number(law_number: &str) -> Option<String> {
+    let after = law_number.split('N').nth(1)?;
+    let digits: String = after
+        .trim_start()
+        .chars()
+        .take_while(char::is_ascii_digit)
+        .collect();
+    if digits.is_empty() {
+        None
+    } else {
+        Some(digits)
+    }
+}
+
+/// Sorted `(revision, hash, bytes)` candidates of one act under `exports/npa`.
+///
+/// The join key is the declared pair (the chain's act number and the act date
+/// carried by the layer1 title); the `edition_id` hash is the corroborating
+/// field, mirroring the S02 candidate-identity rule (D548/D550) where the pair
+/// is authoritative and `key_path` only corroborates.
+fn npa_export_candidates(
+    npa_dir: &Path,
+    act_date: &str,
+    act_number: &str,
+) -> Result<Vec<(String, String, u64)>, AmendmentProvenanceError> {
+    let prefix = format!("law_{act_date}_{act_number}-fz_rev-");
+    let entries = fs::read_dir(npa_dir).map_err(|_| input_absent(npa_dir.display().to_string()))?;
+    let mut found: Vec<(String, String, u64)> = Vec::new();
+    for entry in entries.flatten() {
+        let metadata = match entry.metadata() {
+            Ok(metadata) => metadata,
+            Err(_) => continue,
+        };
+        if !metadata.is_file() {
+            continue;
+        }
+        let name = entry.file_name().to_string_lossy().into_owned();
+        let Some(rest) = name.strip_prefix(&prefix) else {
+            continue;
+        };
+        let Some(stem) = rest.strip_suffix(".xml") else {
+            continue;
+        };
+        let Some((revision, hash)) = stem.split_once('_') else {
+            continue;
+        };
+        if hash.len() != 8 || !hash.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            continue;
+        }
+        found.push((revision.to_owned(), hash.to_owned(), metadata.len()));
+    }
+    found.sort();
+    Ok(found)
+}
+
+fn is_word_char(character: char) -> bool {
+    character.is_alphanumeric()
+}
+
+/// Reads an unsigned integer field from a flat JSONL line.
+///
+/// These manifests carry the requested numeric keys as bare integers, so a
+/// bounded digit scan is exact. A value that is not a digit run reads as
+/// `None`, which means prose can never be read as a number.
+fn flat_integer(line: &str, key: &str) -> Option<i64> {
+    let needle = format!("\"{key}\":");
+    let start = line.find(&needle)? + needle.len();
+    let rest = line[start..].trim_start();
+    let digits: String = rest.chars().take_while(char::is_ascii_digit).collect();
+    if digits.is_empty() {
+        None
+    } else {
+        digits.parse().ok()
+    }
+}
+
+/// Consumes one Russian statya suffix after the stem `стат`.
+fn strip_statya_suffix(rest: &str) -> Option<&str> {
+    const SUFFIXES: [&str; 14] = [
+        "ьями", "ьям", "ьях", "ьей", "ья", "ьи", "ье", "ью", "ей", "я", "е", "и", "ю", "ь",
+    ];
+    for suffix in SUFFIXES {
+        if let Some(tail) = rest.strip_prefix(suffix) {
+            return Some(tail);
+        }
+    }
+    None
+}
+
+/// Consumes `\s*<digits>[.<digits>]` after a statya suffix.
+fn read_statya_number(rest: &str) -> Option<String> {
+    let trimmed = rest.trim_start();
+    if trimmed.len() == rest.len() {
+        return None;
+    }
+    let mut number = String::new();
+    let mut seen_dot = false;
+    for character in trimmed.chars() {
+        if character.is_ascii_digit() {
+            number.push(character);
+            continue;
+        }
+        if character == '.' && !seen_dot && !number.is_empty() {
+            seen_dot = true;
+            number.push(character);
+            continue;
+        }
+        break;
+    }
+    while number.ends_with('.') {
+        number.pop();
+    }
+    if number.is_empty() {
+        None
+    } else {
+        Some(number)
+    }
+}
+
+/// First full-word statya reference of a link text: the leading locator of the
+/// amendment instruction, for example `в статье 8:` yields `8`.
+fn first_statya_reference(text: &str) -> Option<String> {
+    let stem = "стат";
+    let mut search = 0usize;
+    while let Some(offset) = text[search..].find(stem) {
+        let start = search + offset;
+        search = start + stem.len();
+        if text[..start].chars().next_back().is_some_and(is_word_char) {
+            continue;
+        }
+        let Some(rest) = strip_statya_suffix(&text[start + stem.len()..]) else {
+            continue;
+        };
+        if let Some(number) = read_statya_number(rest) {
+            return Some(number);
+        }
+    }
+    None
+}
+
+/// Parses the chain's `(level, number)` bindings out of the flat registry YAML.
+///
+/// Only lines that carry all four of `path_needle`, `level`, `number` and `cc`
+/// are bindings; the expression and works entries further down the file carry
+/// different keys and are skipped. A repeated `(level, number)` pair for the
+/// chain needle is an identity conflict and fails closed (D548/D550).
+fn parse_registry_bindings(
+    text: &str,
+) -> Result<BTreeMap<(String, String), String>, AmendmentProvenanceError> {
+    let mut bindings: BTreeMap<(String, String), String> = BTreeMap::new();
+    for line in text.lines() {
+        let Some(body) = line.trim().strip_prefix("- {") else {
+            continue;
+        };
+        let body = body.strip_suffix('}').unwrap_or(body);
+        let mut path_needle: Option<String> = None;
+        let mut level: Option<String> = None;
+        let mut number: Option<String> = None;
+        let mut cc: Option<String> = None;
+        for part in body.split(',') {
+            let Some((key, value)) = part.split_once(':') else {
+                continue;
+            };
+            let value = value.trim().trim_matches('"').trim();
+            match key.trim() {
+                "path_needle" => path_needle = Some(value.to_owned()),
+                "level" => level = Some(value.to_owned()),
+                "number" => number = Some(value.to_owned()),
+                "cc" => cc = Some(value.to_owned()),
+                _ => {}
+            }
+        }
+        let (Some(path_needle), Some(level), Some(number), Some(cc)) =
+            (path_needle, level, number, cc)
+        else {
+            continue;
+        };
+        if path_needle != REGISTRY_NEEDLE {
+            continue;
+        }
+        if bindings
+            .insert((level.clone(), number.clone()), cc)
+            .is_some()
+        {
+            return Err(family_unsupported(
+                "kb-hierarchy-registry",
+                format!("the chain needle repeats the {level} {number} identity"),
+            ));
+        }
+    }
+    Ok(bindings)
+}
+
+fn find_single_catalog_links(
+    export_root: &Path,
+) -> Result<(String, PathBuf), AmendmentProvenanceError> {
+    let entries =
+        fs::read_dir(export_root).map_err(|_| input_absent(export_root.display().to_string()))?;
+    let mut names: Vec<String> = Vec::new();
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if name.starts_with(CATALOG_LINKS_PREFIX) && name.ends_with(CATALOG_LINKS_SUFFIX) {
+            names.push(name);
+        }
+    }
+    names.sort();
+    match names.len() {
+        0 => Err(input_absent(
+            "catalog-links-*.sqlite under the export root".to_owned(),
+        )),
+        1 => {
+            let name = names.remove(0);
+            let path = export_root.join(&name);
+            Ok((name, path))
+        }
+        _ => Err(family_unsupported(
+            "catalog-links",
+            "the export root carries more than one catalog relation database",
+        )),
+    }
+}
+
+fn pin_of(
+    input_id: &str,
+    path: &Path,
+    relative_path: String,
+) -> Result<AmendsInputPin, AmendmentProvenanceError> {
+    let bytes = fs::read(path).map_err(|_| input_absent(path.display().to_string()))?;
+    Ok(AmendsInputPin {
+        input_id: input_id.to_owned(),
+        relative_path,
+        input_bytes: bytes.len() as u64,
+        input_sha256: format!("sha256:{}", sha256_hex(&bytes)),
+    })
+}
+
+/// Re-derives the amending-act and affected-provision leg from the live corpus.
+pub fn collect_amends_provisions(
+    repo_root: &Path,
+    export_dir: &str,
+) -> Result<AmendsProvisionEvidence, AmendmentProvenanceError> {
+    let export_root_relative = export_root_relative_path(export_dir);
+    let export_root = resolve_export_root(repo_root, export_dir);
+
+    // 1. Catalog relation run plus the explicit `amends` edge set (read-only).
+    let (sqlite_name, sqlite_path) = find_single_catalog_links(&export_root)?;
+    let sqlite_relative = join_relative(&export_root_relative, &sqlite_name);
+    let catalog = SqliteCatalog::open_read_only(&sqlite_path)
+        .map_err(|_| input_absent(sqlite_relative.clone()))?;
+    if !catalog.is_read_only().unwrap_or(false) {
+        return Err(family_unsupported(
+            "catalog-links",
+            "the catalog relation database did not open read-only",
+        ));
+    }
+    let edge_set = catalog
+        .amends_edge_set(AMENDS_EDGE_LIMIT)
+        .map_err(|_| family_unsupported("catalog-links", "the amends edge set is unreadable"))?
+        .ok_or_else(|| input_absent(sqlite_relative.clone()))?;
+    if edge_set.edges.len() as u32 >= AMENDS_EDGE_LIMIT {
+        return Err(family_unsupported(
+            "amends-edges",
+            "the edge read reached its declared bound, so the family is not measured",
+        ));
+    }
+
+    // 2. Layer1 manifest: documents keyed by the declared identity pair.
+    let manifest_relative = join_relative(&export_root_relative, LAYER1_MANIFEST_TAIL);
+    let manifest_path = export_root.join(LAYER1_MANIFEST_TAIL);
+    let manifest_text =
+        fs::read_to_string(&manifest_path).map_err(|_| input_absent(manifest_relative.clone()))?;
+    let mut layer1_records_total = 0u64;
+    let mut layer1_core_acts = 0u64;
+    let mut layer1_amending_acts = 0u64;
+    let mut layer1: BTreeMap<i64, (String, String)> = BTreeMap::new();
+    let mut layer1_amending_keys: Vec<i64> = Vec::new();
+    let mut layer1_present_keys: Vec<i64> = Vec::new();
+    for line in manifest_text.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        layer1_records_total += 1;
+        let key = flat_integer(line, "document_key").ok_or_else(|| {
+            family_unsupported(
+                LAYER1_MANIFEST_TAIL,
+                "a layer1 record carries no numeric document_key",
+            )
+        })?;
+        let law_number = match flat_field(line, "law_number") {
+            Some(FlatValue::Str(value)) => value,
+            _ => {
+                return Err(family_unsupported(
+                    LAYER1_MANIFEST_TAIL,
+                    "a layer1 record carries no string law_number",
+                ))
+            }
+        };
+        let title = match flat_field(line, "title") {
+            Some(FlatValue::Str(value)) => value,
+            _ => {
+                return Err(family_unsupported(
+                    LAYER1_MANIFEST_TAIL,
+                    "a layer1 record carries no string title",
+                ))
+            }
+        };
+        let core = match flat_field(line, "is_core_act") {
+            Some(FlatValue::Bool(value)) => value,
+            _ => {
+                return Err(family_unsupported(
+                    LAYER1_MANIFEST_TAIL,
+                    "a layer1 record carries no boolean is_core_act",
+                ))
+            }
+        };
+        layer1_present_keys.push(key);
+        if core {
+            layer1_core_acts += 1;
+        } else {
+            layer1_amending_acts += 1;
+            layer1_amending_keys.push(key);
+        }
+        // The family counts every layer1 record, but only a record that carries
+        // the declared law identity pair can join an act export. A record such
+        // as a Constitutional Court ruling carries a case-style `law_number`
+        // and therefore contributes to the denominators without entering the
+        // join map; an edge that did reference it records `no-export-file`.
+        let (Some(date), Some(number)) = (
+            act_date_from_title(title),
+            act_number_from_law_number(law_number),
+        ) else {
+            continue;
+        };
+        layer1.insert(key, (date, number));
+    }
+
+    // 3. Registry: the statya level of the chain needle is the admitted identity
+    //    vocabulary for candidate provision targets.
+    let registry_path = repo_root.join(REGISTRY_RELATIVE_PATH);
+    let registry_text = fs::read_to_string(&registry_path)
+        .map_err(|_| input_absent(REGISTRY_RELATIVE_PATH.to_owned()))?;
+    let bindings = parse_registry_bindings(&registry_text)?;
+    let registry_statya_bindings = bindings
+        .keys()
+        .filter(|(level, _)| level == "statya")
+        .count() as u64;
+    let registry_glava_bindings = bindings
+        .keys()
+        .filter(|(level, _)| level == "glava")
+        .count() as u64;
+    let registry_bindings_total = bindings.len() as u64;
+
+    // 4. The single-act export directory inventory (join surface, pinned).
+    let npa_relative = join_relative(&export_root_relative, NPA_EXPORTS_TAIL);
+    let npa_dir = export_root.join(NPA_EXPORTS_TAIL);
+    let npa_inventory = inventory_directory(&npa_dir).map_err(|_| {
+        AmendmentProvenanceError::EditionDirUnreadable {
+            path: npa_relative.clone(),
+        }
+    })?;
+
+    // 5. Per-edge join and resolution.
+    let mut rows: Vec<AmendsProvisionRow> = Vec::with_capacity(edge_set.edges.len());
+    let mut by_outcome: BTreeMap<String, u64> = AMENDS_PROVISION_REASON_CODES
+        .iter()
+        .map(|code| ((*code).to_owned(), 0u64))
+        .collect();
+    let mut distinct_refs: BTreeMap<String, u64> = BTreeMap::new();
+    let mut edges_with_layer1: Vec<i64> = Vec::new();
+
+    for edge in &edge_set.edges {
+        let edition = edge.edition_id.clone().unwrap_or_default();
+        let corroborating_hash = edition
+            .strip_prefix("edition-")
+            .and_then(|value| value.get(..8))
+            .map(str::to_owned);
+
+        let identity = layer1.get(&edge.document_key).cloned();
+        if identity.is_none() && !layer1_present_keys.contains(&edge.document_key) {
+            *by_outcome.entry("no-layer1-record".to_owned()).or_insert(0) += 1;
+            rows.push(AmendsProvisionRow {
+                item_id: edge.item_id,
+                document_key: edge.document_key,
+                act_number: String::new(),
+                act_date: String::new(),
+                layer1_record_present: false,
+                candidate_files: 0,
+                edition_id_corroborated: false,
+                export_file_bytes: 0,
+                export_links_total: 0,
+                export_links_naming_44fz: 0,
+                admitted_hyperlink_count: 0,
+                admitted_amends_count: 0,
+                admitted_cites_count: 0,
+                admitted_implements_count: 0,
+                admitted_unknown_count: 0,
+                statya_refs_distinct: 0,
+                statya_refs_resolved: 0,
+                outcome: "no-layer1-record",
+            });
+            continue;
+        }
+        let act_date = identity
+            .as_ref()
+            .map(|(date, _)| date.clone())
+            .unwrap_or_default();
+        let act_number = identity
+            .as_ref()
+            .map(|(_, number)| number.clone())
+            .unwrap_or_default();
+        edges_with_layer1.push(edge.document_key);
+        let candidates = npa_export_candidates(&npa_dir, &act_date, &act_number)?;
+        let corroborated: Vec<(String, String, u64)> = candidates
+            .iter()
+            .filter(|(_, hash, _)| Some(hash) == corroborating_hash.as_ref())
+            .cloned()
+            .collect();
+        let corroborated_flag = !corroborated.is_empty();
+        let selected: Vec<(String, String, u64)> = if corroborated_flag {
+            corroborated
+        } else {
+            candidates.clone()
+        };
+        let candidate_files = candidates.len() as u64;
+
+        if selected.is_empty() {
+            *by_outcome.entry("no-export-file".to_owned()).or_insert(0) += 1;
+            rows.push(AmendsProvisionRow {
+                item_id: edge.item_id,
+                document_key: edge.document_key,
+                act_number,
+                act_date,
+                layer1_record_present: true,
+                candidate_files,
+                edition_id_corroborated: false,
+                export_file_bytes: 0,
+                export_links_total: 0,
+                export_links_naming_44fz: 0,
+                admitted_hyperlink_count: 0,
+                admitted_amends_count: 0,
+                admitted_cites_count: 0,
+                admitted_implements_count: 0,
+                admitted_unknown_count: 0,
+                statya_refs_distinct: 0,
+                statya_refs_resolved: 0,
+                outcome: "no-export-file",
+            });
+            continue;
+        }
+        let mut export_file_bytes = 0u64;
+        let mut links_total = 0u64;
+        let mut naming = 0u64;
+        let mut admitted_hyperlink_count = 0u64;
+        let mut admitted_amends_count = 0u64;
+        let mut admitted_cites_count = 0u64;
+        let mut admitted_implements_count = 0u64;
+        let mut admitted_unknown_count = 0u64;
+        let mut refs: BTreeMap<String, u64> = BTreeMap::new();
+        for (revision, hash, bytes) in &selected {
+            let file_name = format!("law_{act_date}_{act_number}-fz_rev-{revision}_{hash}.xml");
+            let file_path = npa_dir.join(&file_name);
+            let xml = fs::read(&file_path).map_err(|_| input_absent(file_name.clone()))?;
+            export_file_bytes += *bytes;
+            let source_path = file_path.to_string_lossy().into_owned();
+            let admitted =
+                crate::multi_edition::process_edition_for_path(&xml, 0, revision, &source_path);
+            admitted_hyperlink_count += admitted.hyperlink_count as u64;
+            admitted_amends_count += admitted.amends_count as u64;
+            admitted_cites_count += admitted.cites_count as u64;
+            admitted_implements_count += admitted.implements_count as u64;
+            admitted_unknown_count += admitted.unknown_count as u64;
+            let links = crate::hyperlink::extract_hyperlinks(&xml);
+            links_total += links.len() as u64;
+            for link in &links {
+                let names_44fz = FZ44_REFERENCE_NEEDLES
+                    .iter()
+                    .any(|needle| link.text.contains(needle) || link.context.contains(needle));
+                if !names_44fz {
+                    continue;
+                }
+                naming += 1;
+                if let Some(number) = first_statya_reference(&link.text) {
+                    *refs.entry(number).or_insert(0) += 1;
+                }
+            }
+        }
+
+        let statya_refs_distinct = refs.len() as u64;
+        if statya_refs_distinct > MAX_STATYA_REFS_PER_ACT {
+            return Err(family_unsupported(
+                "amends-provisions",
+                "a single act declares more statya references than the declared bound",
+            ));
+        }
+        let mut statya_refs_resolved = 0u64;
+        for number in refs.keys() {
+            distinct_refs.entry(number.clone()).or_insert(0);
+            if bindings.contains_key(&("statya".to_owned(), number.clone())) {
+                statya_refs_resolved += 1;
+            }
+        }
+
+        let outcome: &'static str = if links_total == 0 {
+            "unparsed-act"
+        } else if naming == 0 {
+            "target-not-44fz"
+        } else if statya_refs_distinct == 0 {
+            "no-statya-reference"
+        } else if statya_refs_resolved == 0 {
+            "provision-not-in-registry"
+        } else {
+            "resolved-provision"
+        };
+        *by_outcome.entry(outcome.to_owned()).or_insert(0) += 1;
+
+        rows.push(AmendsProvisionRow {
+            item_id: edge.item_id,
+            document_key: edge.document_key,
+            act_number,
+            act_date,
+            layer1_record_present: true,
+            candidate_files,
+            edition_id_corroborated: corroborated_flag,
+            export_file_bytes,
+            export_links_total: links_total,
+            export_links_naming_44fz: naming,
+            admitted_hyperlink_count,
+            admitted_amends_count,
+            admitted_cites_count,
+            admitted_implements_count,
+            admitted_unknown_count,
+            statya_refs_distinct,
+            statya_refs_resolved,
+            outcome,
+        });
+    }
+
+    let mut distinct_statya_refs_resolved = 0u64;
+    for number in distinct_refs.keys() {
+        if bindings.contains_key(&("statya".to_owned(), number.clone())) {
+            distinct_statya_refs_resolved += 1;
+        }
+    }
+
+    let edges_without_layer1 = layer1_amending_keys
+        .iter()
+        .filter(|key| !edges_with_layer1.contains(key))
+        .count() as u64;
+    let mut by_layer1_coverage: BTreeMap<String, u64> = BTreeMap::new();
+    by_layer1_coverage.insert(
+        "with-amends-edge".to_owned(),
+        layer1_amending_keys.len() as u64 - edges_without_layer1,
+    );
+    by_layer1_coverage.insert("without-amends-edge".to_owned(), edges_without_layer1);
+
+    let inputs = vec![
+        pin_of("catalog_links_sqlite", &sqlite_path, sqlite_relative)?,
+        pin_of("layer1_manifest", &manifest_path, manifest_relative.clone())?,
+        pin_of(
+            "kb_hierarchy_registry",
+            &registry_path,
+            REGISTRY_RELATIVE_PATH.to_owned(),
+        )?,
+    ];
+
+    Ok(AmendsProvisionEvidence {
+        run: AmendsRunPins {
+            run_id: edge_set.run_id,
+            profile: edge_set.profile.clone(),
+            root_source_id: edge_set.root_source_id.clone(),
+            status: edge_set.status.clone(),
+            source_artifact_sha256: format!("sha256:{}", edge_set.source_artifact_sha256),
+            table_artifact_sha256: format!("sha256:{}", edge_set.table_artifact_sha256),
+        },
+        runs_total: edge_set.runs_total,
+        layer1_records_total,
+        layer1_core_acts,
+        layer1_amending_acts,
+        amends_edges_total: edge_set.edges.len() as u64,
+        registry_needle: REGISTRY_NEEDLE.to_owned(),
+        registry_statya_bindings,
+        registry_glava_bindings,
+        registry_bindings_total,
+        npa_relative_path: npa_relative,
+        npa_files_total: npa_inventory.files_total,
+        npa_bytes_total: npa_inventory.bytes_total,
+        npa_listing_sha256: npa_inventory.listing_sha256,
+        inputs,
+        rows,
+        by_outcome,
+        by_layer1_coverage,
+        distinct_statya_refs: distinct_refs.len() as u64,
+        distinct_statya_refs_resolved,
+    })
+}
+
+/// Fails closed when the artifact does not measure what it declares: a zero
+/// denominator, a partition that does not sum to its total, a grounding pin
+/// that drifted, an outcome whose recorded counts do not justify it, or an
+/// anchor that is not repository-relative.
+pub fn validate_amends_provisions(
+    evidence: &AmendsProvisionEvidence,
+) -> Result<(), AmendmentProvenanceError> {
+    if evidence.amends_edges_total == 0 || evidence.layer1_amending_acts == 0 {
+        return Err(AmendmentProvenanceError::ZeroDenominator {
+            family_id: "amends-provisions".to_owned(),
+        });
+    }
+    if evidence.registry_statya_bindings == 0 {
+        return Err(AmendmentProvenanceError::ZeroDenominator {
+            family_id: "kb-hierarchy-registry".to_owned(),
+        });
+    }
+    if evidence.runs_total != EXPECTED_RUNS_TOTAL {
+        return Err(family_unsupported(
+            "catalog-links",
+            format!(
+                "the catalog carries {} relation runs but one is declared",
+                evidence.runs_total
+            ),
+        ));
+    }
+    if evidence.run.root_source_id != EXPECTED_CHAIN_ROOT_SOURCE_ID
+        || evidence.run.profile != EXPECTED_CHAIN_PROFILE
+        || evidence.run.status != EXPECTED_CHAIN_STATUS
+    {
+        return Err(family_unsupported(
+            "catalog-links",
+            "the relation run no longer roots the declared chain",
+        ));
+    }
+    if evidence.amends_edges_total != EXPECTED_AMENDS_EDGES_TOTAL
+        || evidence.layer1_records_total != EXPECTED_LAYER1_RECORDS_TOTAL
+        || evidence.layer1_core_acts != EXPECTED_LAYER1_CORE_ACTS
+        || evidence.layer1_amending_acts != EXPECTED_LAYER1_AMENDING_ACTS
+    {
+        return Err(family_unsupported(
+            "amends-provisions",
+            "the declared denominators drifted from the accepted revision",
+        ));
+    }
+    if evidence.registry_bindings_total != EXPECTED_REGISTRY_BINDINGS_TOTAL
+        || evidence.registry_statya_bindings != EXPECTED_REGISTRY_STATYA_BINDINGS
+    {
+        return Err(family_unsupported(
+            "kb-hierarchy-registry",
+            "the chain needle binding count drifted from the accepted revision",
+        ));
+    }
+    if evidence.rows.len() as u64 != evidence.amends_edges_total {
+        return Err(family_unsupported(
+            "amends-provisions",
+            "the per-edge rows do not cover the declared denominator",
+        ));
+    }
+
+    for row in &evidence.rows {
+        if !AMENDS_PROVISION_REASON_CODES.contains(&row.outcome) {
+            return Err(reason_unsupported(
+                "no-layer1-record",
+                format!("edge {} carries an undocumented outcome", row.item_id),
+            ));
+        }
+        if row.document_key <= 0 || row.item_id <= 0 {
+            return Err(reason_unsupported(
+                row.outcome,
+                "a row carries a non-positive catalog identifier",
+            ));
+        }
+        if row.layer1_record_present {
+            if !row.act_number.is_empty()
+                && (!row.act_number.bytes().all(|byte| byte.is_ascii_digit())
+                    || row.act_date.len() != 10
+                    || !row
+                        .act_date
+                        .bytes()
+                        .all(|byte| byte.is_ascii_digit() || byte == b'-'))
+            {
+                return Err(reason_unsupported(
+                    row.outcome,
+                    "a joined row carries a non-token act identity",
+                ));
+            }
+            if row.act_number.is_empty() && row.outcome != "no-export-file" {
+                return Err(reason_unsupported(
+                    row.outcome,
+                    "a row without a law identity pair must record no-export-file",
+                ));
+            }
+        } else if row.outcome != "no-layer1-record" {
+            return Err(reason_unsupported(
+                row.outcome,
+                "a row without a layer1 record must record no-layer1-record",
+            ));
+        }
+        if row.outcome == "no-layer1-record" && row.layer1_record_present {
+            return Err(reason_unsupported(
+                "no-layer1-record",
+                "no-layer1-record is recorded for a joined row",
+            ));
+        }
+        if row.outcome == "no-export-file" && row.candidate_files != 0 {
+            return Err(reason_unsupported(
+                "no-export-file",
+                "no-export-file is recorded while candidate files exist",
+            ));
+        }
+        if row.outcome == "unparsed-act" && row.export_links_total != 0 {
+            return Err(reason_unsupported(
+                "unparsed-act",
+                "unparsed-act is recorded while links were parsed",
+            ));
+        }
+        if row.outcome == "target-not-44fz"
+            && (row.export_links_naming_44fz != 0 || row.export_links_total == 0)
+        {
+            return Err(reason_unsupported(
+                "target-not-44fz",
+                "target-not-44fz is recorded while a 44-FZ reference is present",
+            ));
+        }
+        if row.outcome == "no-statya-reference"
+            && (row.export_links_naming_44fz == 0 || row.statya_refs_distinct != 0)
+        {
+            return Err(reason_unsupported(
+                "no-statya-reference",
+                "no-statya-reference is recorded while a statya reference is present",
+            ));
+        }
+        if row.outcome == "provision-not-in-registry"
+            && (row.statya_refs_distinct == 0 || row.statya_refs_resolved != 0)
+        {
+            return Err(reason_unsupported(
+                "provision-not-in-registry",
+                "provision-not-in-registry is recorded while a target resolved",
+            ));
+        }
+        if row.outcome == "resolved-provision" && row.statya_refs_resolved == 0 {
+            return Err(reason_unsupported(
+                "resolved-provision",
+                "resolved-provision is recorded with zero resolved targets",
+            ));
+        }
+        if row.statya_refs_resolved > row.statya_refs_distinct {
+            return Err(reason_unsupported(
+                row.outcome,
+                "a row resolves more targets than it declares",
+            ));
+        }
+    }
+
+    let outcome_total: u64 = evidence.by_outcome.values().sum();
+    if evidence
+        .by_outcome
+        .keys()
+        .any(|code| !AMENDS_PROVISION_REASON_CODES.contains(&code.as_str()))
+        || outcome_total != evidence.amends_edges_total
+    {
+        return Err(family_unsupported(
+            "amends-provisions",
+            format!(
+                "the outcome partition sums to {outcome_total} but the denominator is {}",
+                evidence.amends_edges_total
+            ),
+        ));
+    }
+    let coverage_total: u64 = evidence.by_layer1_coverage.values().sum();
+    if coverage_total != evidence.layer1_amending_acts {
+        return Err(family_unsupported(
+            "amends-provisions",
+            format!(
+                "the layer1 coverage partition sums to {coverage_total} but the amending family is {}",
+                evidence.layer1_amending_acts
+            ),
+        ));
+    }
+    if evidence.distinct_statya_refs_resolved > evidence.distinct_statya_refs {
+        return Err(family_unsupported(
+            "amends-provisions",
+            "more distinct targets resolved than were declared",
+        ));
+    }
+    check_repo_relative(&evidence.npa_relative_path)?;
+    for pin in &evidence.inputs {
+        check_repo_relative(&pin.relative_path)?;
+        if !pin.input_sha256.starts_with("sha256:") || pin.input_sha256.len() != 71 {
+            return Err(AmendmentProvenanceError::InputHashMismatch {
+                family_id: pin.input_id.clone(),
+                path: pin.relative_path.clone(),
+                detail: "a declared input pin is not a sha256 digest".to_owned(),
+            });
+        }
+    }
+    Ok(())
+}
+
+/// Canonical compact render. Fixed top-level key order, no timestamps, ASCII by
+/// construction: every scalar is a count, a catalog identifier, a validated
+/// token or a named reason code (D424).
+pub fn render_amends_provisions(evidence: &AmendsProvisionEvidence) -> String {
+    let mut writer = ObjectWriter::new();
+    writer.string("schema", AMENDS_SCHEMA);
+    writer.number("schema_version", 2);
+    writer.string("kind", AMENDS_KIND);
+    writer.string("milestone", MILESTONE);
+    writer.string("slice", SLICE);
+    writer.string("task", AMENDS_TASK);
+    writer.string("lifecycle", LIFECYCLE);
+    writer.boolean("authoritative", false);
+    writer.string("requirement_id", REQUIREMENT_ID);
+    writer.string("disposition", DISPOSITION);
+    writer.string("disposition_decision", DISPOSITION_DECISION);
+    writer.boolean("count_only", true);
+    writer.boolean("ascii_only", true);
+    writer.string("count_basis", AMENDS_COUNT_BASIS);
+
+    writer.key("relation_run");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.number("run_id", evidence.run.run_id as u64);
+        entry.string("profile", &evidence.run.profile);
+        entry.string("root_source_id", &evidence.run.root_source_id);
+        entry.string("status", &evidence.run.status);
+        entry.string(
+            "source_artifact_sha256",
+            &evidence.run.source_artifact_sha256,
+        );
+        entry.string("table_artifact_sha256", &evidence.run.table_artifact_sha256);
+        entry.number("runs_total", evidence.runs_total as u64);
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("denominator");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.number("amends_edges_total", evidence.amends_edges_total);
+        entry.number("layer1_records_total", evidence.layer1_records_total);
+        entry.number("layer1_core_acts", evidence.layer1_core_acts);
+        entry.number("layer1_amending_acts", evidence.layer1_amending_acts);
+        entry.number("rows_total", evidence.rows.len() as u64);
+        entry.counts("by_outcome", &evidence.by_outcome);
+        entry.counts("by_layer1_coverage", &evidence.by_layer1_coverage);
+        entry.number("distinct_statya_refs", evidence.distinct_statya_refs);
+        entry.number(
+            "distinct_statya_refs_resolved",
+            evidence.distinct_statya_refs_resolved,
+        );
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("registry");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.string("relative_path", REGISTRY_RELATIVE_PATH);
+        entry.string("needle", &evidence.registry_needle);
+        entry.number("statya_bindings", evidence.registry_statya_bindings);
+        entry.number("glava_bindings", evidence.registry_glava_bindings);
+        entry.number("bindings_total", evidence.registry_bindings_total);
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("npa_exports");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.string("relative_path", &evidence.npa_relative_path);
+        entry.number("files_total", evidence.npa_files_total);
+        entry.number("bytes_total", evidence.npa_bytes_total);
+        entry.string("listing_sha256", &evidence.npa_listing_sha256);
+        entry.string("file_name_pattern", AMENDS_EXPORT_PATTERN);
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("inputs");
+    writer.buffer.push('[');
+    for (index, pin) in evidence.inputs.iter().enumerate() {
+        if index > 0 {
+            writer.buffer.push(',');
+        }
+        let mut entry = ObjectWriter::new();
+        entry.string("input_id", &pin.input_id);
+        entry.string("relative_path", &pin.relative_path);
+        entry.number("input_bytes", pin.input_bytes);
+        entry.string("input_sha256", &pin.input_sha256);
+        writer.buffer.push_str(&entry.finish());
+    }
+    writer.buffer.push(']');
+
+    writer.key("edges");
+    writer.buffer.push('[');
+    for (index, row) in evidence.rows.iter().enumerate() {
+        if index > 0 {
+            writer.buffer.push(',');
+        }
+        let mut entry = ObjectWriter::new();
+        entry.number("item_id", row.item_id as u64);
+        entry.number("document_key", row.document_key as u64);
+        entry.string("act_number", &row.act_number);
+        entry.string("act_date", &row.act_date);
+        entry.boolean("layer1_record_present", row.layer1_record_present);
+        entry.number("candidate_files", row.candidate_files);
+        entry.boolean("edition_id_corroborated", row.edition_id_corroborated);
+        entry.number("export_file_bytes", row.export_file_bytes);
+        entry.number("export_links_total", row.export_links_total);
+        entry.number("export_links_naming_44fz", row.export_links_naming_44fz);
+        entry.number("admitted_hyperlink_count", row.admitted_hyperlink_count);
+        entry.number("admitted_amends_count", row.admitted_amends_count);
+        entry.number("admitted_cites_count", row.admitted_cites_count);
+        entry.number("admitted_implements_count", row.admitted_implements_count);
+        entry.number("admitted_unknown_count", row.admitted_unknown_count);
+        entry.number("statya_refs_distinct", row.statya_refs_distinct);
+        entry.number("statya_refs_resolved", row.statya_refs_resolved);
+        entry.string("outcome", row.outcome);
+        writer.buffer.push_str(&entry.finish());
+    }
+    writer.buffer.push(']');
+
+    writer.fixed_strings("reason_codes", &AMENDS_PROVISION_REASON_CODES);
+    writer.fixed_strings("fail_closed_codes", &AMENDS_PROVISION_FAIL_CLOSED_CODES);
+    writer.fixed_strings("non_claims", &AMENDS_NON_CLAIMS);
+    writer.finish()
+}
+
+/// Count-only stderr heartbeat for the amends-provisions leg.
+pub fn amends_provision_heartbeat(evidence: &AmendsProvisionEvidence) -> String {
+    let resolved = evidence
+        .by_outcome
+        .get("resolved-provision")
+        .copied()
+        .unwrap_or(0);
+    let unresolved = evidence.amends_edges_total.saturating_sub(resolved);
+    format!(
+        "amends={} resolved={} unresolved={} layer1={} rows={} drift=0",
+        evidence.amends_edges_total,
+        resolved,
+        unresolved,
+        evidence.layer1_amending_acts,
+        evidence.rows.len()
+    )
+}
+
+/// File-name pattern of the act exports the join rule accepts.
+pub const AMENDS_EXPORT_PATTERN: &str = "law_<act-date>_<act-number>-fz_rev-<rev>_<hash8>.xml";
+
+/// Denominator definition prose for the amending-act leg.
+const AMENDS_COUNT_BASIS: &str = "The denominator is re-derived live on every run: the explicit amends edges of the catalog relation run rooted at cp:LAW:508812, joined by document_key to the layer1 manifest and by the declared pair (act number, act date) to the act exports under exports/npa, with the catalog edition_id hash as the corroborating field. Every edge lands in exactly one outcome, the outcome partition sums to the declared denominator, and candidate provision targets are resolved at statya level against the chain needle of prd/architecture/kb-hierarchy-registry.yaml using the (level, number) identity pair. Nothing here is typed by hand and no zero denominator is a measurement.";
+
+/// Claim bounds carried by the amending-act and affected-provision artifact.
+const AMENDS_NON_CLAIMS: [&str; 9] = [
+    "This leg is scoped to the named cc:44-fz chain and the amending family rooted at its catalog document cp:LAW:508812; it is not every amending act of the corpus and not every-edition coverage.",
+    "Candidate provision targets are candidates, not legal determinations: a resolved statya identity means the reference could be bound to an admitted ComponentConcept of the chain needle, not that any provision was legally amended.",
+    "No commencement is inferred from this leg: an act date, a revision date and a file name are not commencement evidence, and no commencement or transitional rule is stated here (D289/D406).",
+    "No corpus text is copied into this artifact: no XML bytes, no article text, no document titles, no offline URIs and no raw relation tooltips; only counts, catalog identifiers, repository-relative paths, byte counts, sha256 pins and named reason codes.",
+    "The frozen M201 R070 proof gate is not widened, reopened or restated here, and the three frozen M201 pins stay byte-identical.",
+    "A zero denominator is not a measurement and fails closed as zero_denominator; no declared total may be presented as a measurement when its partition does not sum to it (D552).",
+    "R070 stays active (D416); no promotion gate is promoted, satisfied or moved off unsatisfied by this artifact and no requirement record is mutated.",
+    "No M202 inventory count may stand as a quantifier in this artifact (D539); every declared total is a live-derived count bound to a named input path, its byte count and its sha256 pin.",
+    "The catalog destination_json column is carried only as a bounded catalog identifier and is not treated as an affected provision: it does not resolve to a 44-FZ ComponentConcept.",
+];
+
+fn diagnose_amends_check_drift(
+    tracked: &[u8],
+    evidence: &AmendsProvisionEvidence,
+) -> AmendmentProvenanceError {
+    if tracked.iter().any(|byte| *byte >= 0x80) {
+        return AmendmentProvenanceError::NonAsciiEvidence {
+            detail: "tracked artifact is not ascii".to_owned(),
+        };
+    }
+    let tracked_text = String::from_utf8_lossy(tracked);
+    for pin in &evidence.inputs {
+        if !tracked_text.contains(&pin.input_sha256) {
+            return AmendmentProvenanceError::InputHashMismatch {
+                family_id: pin.input_id.clone(),
+                path: pin.relative_path.clone(),
+                detail: "tracked pin differs from the live input pin".to_owned(),
+            };
+        }
+    }
+    if !tracked_text.contains(&format!(
+        "\"amends_edges_total\":{}",
+        evidence.amends_edges_total
+    )) {
+        return family_unsupported(
+            "amends-provisions",
+            "tracked denominator differs from the live denominator",
+        );
+    }
+    family_unsupported(
+        "<artifact>",
+        "artifact bytes differ from the live render while every declared pin matches",
+    )
 }
 
 #[cfg(test)]
@@ -1835,5 +3077,104 @@ mod tests {
         assert_eq!(error.exit_code(), 3);
 
         fs::remove_dir_all(&repo).expect("clean fixture repo");
+    }
+
+    #[test]
+    fn act_identity_is_derived_from_title_and_law_number_only() {
+        assert_eq!(
+            act_date_from_title("Федеральный закон от 02.07.2013 N 188-ФЗ \"О внесении\""),
+            Some("2013-07-02".to_owned())
+        );
+        assert_eq!(act_date_from_title("Постановление без даты"), None);
+        assert_eq!(
+            act_number_from_law_number("N 188-ФЗ"),
+            Some("188".to_owned())
+        );
+        assert_eq!(act_number_from_law_number("Постановлением"), None);
+        assert_eq!(act_number_from_law_number(""), None);
+    }
+
+    #[test]
+    fn first_statya_reference_reads_full_word_locators_only() {
+        assert_eq!(
+            first_statya_reference("статье 8: а) в части 14").as_deref(),
+            Some("8")
+        );
+        assert_eq!(
+            first_statya_reference("в абзаце втором подпункта 31 статьи 5").as_deref(),
+            Some("5")
+        );
+        assert_eq!(
+            first_statya_reference("статью 110.1").as_deref(),
+            Some("110.1")
+        );
+        assert_eq!(
+            first_statya_reference("статьями 93, 95").as_deref(),
+            Some("93")
+        );
+        assert_eq!(first_statya_reference("закон"), None);
+        assert_eq!(first_statya_reference("статью"), None);
+    }
+
+    #[test]
+    fn registry_bindings_are_scoped_to_the_chain_needle() {
+        let text = concat!(
+            "bindings:\n",
+            "- {path_needle: law_2013-04-05_44-fz, level: statya, number: \"93\", cc: cc:44-fz:statya-93}\n",
+            "- {path_needle: n-44-fz, level: statya, number: \"31\", cc: n-44-fz:statya-31}\n",
+            "  - {path_needle: law_2024-12-26_484-fz, authority: federal, enactment_date: \"2024-12-26\"}\n",
+        );
+        let bindings = parse_registry_bindings(text).expect("bindings");
+        assert_eq!(bindings.len(), 1);
+        assert_eq!(
+            bindings
+                .get(&("statya".to_owned(), "93".to_owned()))
+                .map(String::as_str),
+            Some("cc:44-fz:statya-93")
+        );
+    }
+
+    #[test]
+    fn duplicate_registry_identity_fails_closed() {
+        let text = concat!(
+            "- {path_needle: law_2013-04-05_44-fz, level: statya, number: \"93\", cc: cc:44-fz:statya-93}\n",
+            "- {path_needle: law_2013-04-05_44-fz, level: statya, number: \"93\", cc: cc:44-fz:statya-93-again}\n",
+        );
+        assert!(matches!(
+            parse_registry_bindings(text),
+            Err(AmendmentProvenanceError::FamilyCountUnsupported { .. })
+        ));
+    }
+
+    #[test]
+    fn amends_code_sets_are_documented_ascii_and_nested() {
+        for code in AMENDS_PROVISION_FAIL_CLOSED_CODES {
+            assert!(code.is_ascii());
+            assert!(is_allowed_key_token(code), "code shape: {code}");
+        }
+        for code in AMENDS_PROVISION_REASON_CODES {
+            assert!(AMENDS_PROVISION_FAIL_CLOSED_CODES.contains(&code));
+        }
+        assert_eq!(AMENDS_PROVISION_REASON_CODES.len(), 7);
+        assert_eq!(AMENDS_PROVISION_FAIL_CLOSED_CODES.len(), 13);
+        assert!(!AMENDS_EXPORT_PATTERN.is_empty());
+    }
+
+    #[test]
+    fn an_unjustified_outcome_carries_its_own_reason_code() {
+        let error = reason_unsupported("no-export-file", "counts do not justify the outcome");
+        assert_eq!(error.code(), Some("no-export-file"));
+        assert_eq!(error.exit_code(), 6);
+        assert!(error.cli_line().starts_with("drift=no-export-file"));
+        let flat = flat_integer(
+            "{\"document_key\": 148498, \"bank\": \"LAW\"}",
+            "document_key",
+        );
+        assert_eq!(flat, Some(148498));
+        assert_eq!(
+            flat_integer("{\"document_key\": \"text\"}", "document_key"),
+            None
+        );
+        assert_eq!(flat_integer("{\"other\": 1}", "document_key"), None);
     }
 }
