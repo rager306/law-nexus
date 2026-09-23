@@ -4314,6 +4314,61 @@ def test_compat_marker_hygiene_healthy_marker_is_single_pass(tmp_path: Path) -> 
     assert "empty_entities=0" in findings[0].observed
 
 
+def test_compat_marker_hygiene_root_artifact_without_entities_is_counted_not_flagged(
+    tmp_path: Path,
+) -> None:
+    """Root canonical artifacts carry no entity list by engine construction.
+
+    The root writer is declared as
+    ``writeGsdProjection(basePath, filePath, content, entities = [])`` and no
+    root caller passes a list, so flagging an empty list here would make the
+    check unsatisfiable for DECISIONS.md and REQUIREMENTS.md. The count stays
+    visible in the counters instead of becoming a permanent warn.
+    """
+    gsd_dir = tmp_path / ".gsd"
+    gsd_dir.mkdir()
+    (gsd_dir / "DECISIONS.md").write_text("# Decisions Register\n", encoding="utf-8")
+    (gsd_dir / "REQUIREMENTS.md").write_text("# Requirements\n", encoding="utf-8")
+    (gsd_dir / ".compat.json").write_text(
+        _compat_marker_json(
+            {
+                "DECISIONS.md": {"sha": "0123456789abcdef", "entities": []},
+                "REQUIREMENTS.md": {"sha": "fedcba9876543210", "entities": []},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    findings = check_compat_marker_hygiene(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "empty_entities=0" in findings[0].observed
+    assert "root_artifacts_without_entities=2" in findings[0].observed
+
+
+def test_compat_marker_hygiene_scoped_projection_without_entities_still_fails(
+    tmp_path: Path,
+) -> None:
+    gsd_dir = tmp_path / ".gsd"
+    (gsd_dir / "phases" / "m1").mkdir(parents=True)
+    (gsd_dir / "phases" / "m1" / "S01-T01-SUMMARY.md").write_text("ok\n", encoding="utf-8")
+    (gsd_dir / ".compat.json").write_text(
+        _compat_marker_json(
+            {"phases/m1/S01-T01-SUMMARY.md": {"sha": "0123456789abcdef", "entities": []}}
+        ),
+        encoding="utf-8",
+    )
+
+    findings = check_compat_marker_hygiene(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "empty_entities=1" in findings[0].observed
+    assert "root_artifacts_without_entities=0" in findings[0].observed
+    assert "first_offender=phases/m1/S01-T01-SUMMARY.md" in findings[0].observed
+
+
 def test_compat_marker_hygiene_flags_stale_projection_path(tmp_path: Path) -> None:
     gsd_dir = tmp_path / ".gsd"
     gsd_dir.mkdir()

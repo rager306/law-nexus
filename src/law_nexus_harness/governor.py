@@ -7013,16 +7013,38 @@ _COMPAT_SHA_RE = re.compile(r"^[0-9a-f]{16}$")
 _COMPAT_PATH_PREVIEW_LIMIT = 5
 
 
+def _compat_projection_is_scoped(relpath: str) -> bool:
+    """True when a compat projection key names a milestone-scoped artifact.
+
+    Entity lists are only ever supplied by the engine's milestone-scoped
+    writer (``saveArtifactToDbByScope``), which builds them from the
+    milestone/slice/task triplet. Root canonical artifacts (``DECISIONS.md``,
+    ``REQUIREMENTS.md``, ``PROJECT.md``) are written through
+    ``writeGsdProjection(basePath, filePath, content, entities = [])`` and no
+    root caller passes a list, so an empty list is the engine's construction
+    rather than marker damage. Scope is read from the key shape: scoped keys
+    carry a path separator under ``.gsd/``, root artifacts do not.
+    """
+    return "/" in relpath
+
+
 def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
     """Read-only hygiene over .gsd/.compat.json projection markers (S01).
 
     The compat marker is engine state maintained by a single-writer WAL, so
     this check never repairs it: it only audits the schema version,
-    per-projection sha format, non-empty entity lists, and whether each
-    registered relpath still exists on disk under .gsd/. Stale or malformed
-    entries surface as a warn finding with a truncated stale-path preview;
-    a missing or unreadable marker is "not assessable" (corpus-grounding
-    precedent) and must never turn into a tool error or a disk write.
+    per-projection sha format, entity lists, and whether each registered
+    relpath still exists on disk under .gsd/. Stale or malformed entries
+    surface as a warn finding with a truncated stale-path preview; a missing
+    or unreadable marker is "not assessable" (corpus-grounding precedent) and
+    must never turn into a tool error or a disk write.
+
+    Empty entity lists are only a defect for milestone-scoped projections,
+    where the engine always supplies the milestone/slice/task triplet. Root
+    canonical artifacts have no triplet to carry, so their empty list is
+    counted in ``root_artifacts_without_entities`` instead of being flagged:
+    flagging it would make the check unsatisfiable for the engine's own
+    root-writer path and hide a real scoped regression behind a permanent warn.
     """
 
     check_id = "compat-marker-hygiene"
@@ -7113,6 +7135,7 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
     stale: list[str] = []
     bad_sha: list[str] = []
     empty_entities: list[str] = []
+    unscoped_empty_entities: list[str] = []
     malformed: list[str] = []
     for relpath, entry in sorted(projections.items()):
         if not isinstance(entry, dict):
@@ -7123,7 +7146,10 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
             bad_sha.append(relpath)
         entities = entry.get("entities")
         if not isinstance(entities, list) or not entities:
-            empty_entities.append(relpath)
+            if _compat_projection_is_scoped(relpath):
+                empty_entities.append(relpath)
+            else:
+                unscoped_empty_entities.append(relpath)
         if not (root / ".gsd" / relpath).exists():
             stale.append(relpath)
 
@@ -7132,7 +7158,8 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
         f"projections={len(projections)} "
         f"phases={len(phase_roots)} "
         f"stale={len(stale)} bad_sha={len(bad_sha)} "
-        f"empty_entities={len(empty_entities)} malformed={len(malformed)}"
+        f"empty_entities={len(empty_entities)} malformed={len(malformed)} "
+        f"root_artifacts_without_entities={len(unscoped_empty_entities)}"
     )
     if not (stale or bad_sha or empty_entities or malformed):
         return [
@@ -7707,7 +7734,7 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "process",
         "deterministic",
         check_compat_marker_hygiene,
-        "Read-only stale/schema hygiene over .gsd/.compat.json projection markers: schema version, sha format, non-empty entities, and on-disk existence of every registered relpath; signal only, never engine repair (single-writer WAL state).",
+        "Read-only stale/schema hygiene over .gsd/.compat.json projection markers: schema version, sha format, non-empty entities for milestone-scoped projections, and on-disk existence of every registered relpath; root artifacts carry no entity list by engine construction and are counted, not flagged; signal only, never engine repair (single-writer WAL state).",
         (".gsd/.compat.json",),
         "warn",
     ),
