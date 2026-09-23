@@ -7,15 +7,21 @@
 //! catalog relation run rooted at `cp:LAW:508812`, joined to the layer1 manifest
 //! and to the act exports under `exports/npa`, with statya level candidate
 //! provision targets resolved against the chain needle of the frozen hierarchy
-//! registry. Every mode either writes the artifact (`--write`) or byte-compares
-//! it against the tracked file without writing (`--check`, D424).
+//! registry. T03 adds `commencement`, which re-derives the commencement and
+//! transitional leg: one slot per layer1 record of the T02 amending-act
+//! denominator, carrying a closed-vocabulary evidence class, slot verdict,
+//! reason code and transitional value, and failing closed on any Legislative
+//! upgrade attempt, any minted M208 vocabulary and any date or file name read as
+//! a commencement source. Every mode either writes the artifact (`--write`) or
+//! byte-compares it against the tracked file without writing (`--check`, D424).
 //!
 //! stderr carries a count-only heartbeat (`families=N manifests=N chains=1
-//! editions=N drift=0`, or `amends=N resolved=N unresolved=N layer1=N rows=N
-//! drift=0`) or a typed `drift=<code>` / `error=<class>` line with the pinned
-//! exit code: usage or path drift 2, input absent 3, output unwritable 4,
-//! schema, hash or ascii drift 6. No XML bytes, no article text and no raw
-//! relation tooltips are ever read into an artifact.
+//! editions=N drift=0`, `amends=N resolved=N unresolved=N layer1=N rows=N
+//! drift=0`, or `commencement=N named=N amending=N filled=N absent=N
+//! class_matched=N drift=0`) or a typed `drift=<code>` / `error=<class>` line
+//! with the pinned exit code: usage or path drift 2, input absent 3, output
+//! unwritable 4, schema, hash or ascii drift 6. No XML bytes, no article text and
+//! no raw relation tooltips are ever read into an artifact.
 
 use std::path::PathBuf;
 use std::process::ExitCode;

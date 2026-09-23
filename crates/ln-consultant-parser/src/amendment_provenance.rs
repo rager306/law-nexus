@@ -143,6 +143,22 @@ pub enum AmendmentProvenanceError {
         code: &'static str,
         detail: String,
     },
+    /// A commencement slot tries to carry the string `legislative` as a value.
+    /// A Legislative evidence class is corpus-scale evidence this boundary does
+    /// not have and must not be minted (D415).
+    LegislativeUpgradeAttempt {
+        detail: String,
+    },
+    /// The artifact mints one of the M208 vocabulary identifiers this boundary
+    /// must never create (D216).
+    VocabularyMinted {
+        detail: String,
+    },
+    /// A commencement slot reads an enactment date, an edition date or a file
+    /// name as a commencement source (D289).
+    DateAsCommencement {
+        detail: String,
+    },
 }
 
 impl AmendmentProvenanceError {
@@ -157,7 +173,10 @@ impl AmendmentProvenanceError {
             | Self::ZeroDenominator { .. }
             | Self::NonAsciiEvidence { .. }
             | Self::RawTextLeak { .. }
-            | Self::ReasonCodeInconsistent { .. } => 6,
+            | Self::ReasonCodeInconsistent { .. }
+            | Self::LegislativeUpgradeAttempt { .. }
+            | Self::VocabularyMinted { .. }
+            | Self::DateAsCommencement { .. } => 6,
         }
     }
 
@@ -174,6 +193,9 @@ impl AmendmentProvenanceError {
             Self::RawTextLeak { .. } => Some("raw_text_leak"),
             Self::EditionDirUnreadable { .. } => Some("edition_dir_unreadable"),
             Self::ReasonCodeInconsistent { code, .. } => Some(code),
+            Self::LegislativeUpgradeAttempt { .. } => Some("legislative_upgrade_attempt"),
+            Self::VocabularyMinted { .. } => Some("vocabulary_minted"),
+            Self::DateAsCommencement { .. } => Some("date-as-commencement"),
         }
     }
 
@@ -229,6 +251,15 @@ impl fmt::Display for AmendmentProvenanceError {
             }
             Self::ReasonCodeInconsistent { code, detail } => {
                 write!(formatter, "outcome not justified: code={code} {detail}")
+            }
+            Self::LegislativeUpgradeAttempt { detail } => {
+                write!(formatter, "legislative upgrade attempted: {detail}")
+            }
+            Self::VocabularyMinted { detail } => {
+                write!(formatter, "m208 vocabulary minted: {detail}")
+            }
+            Self::DateAsCommencement { detail } => {
+                write!(formatter, "date read as commencement: {detail}")
             }
         }
     }
@@ -1228,12 +1259,13 @@ pub fn family_denominator_heartbeat(denominator: &FamilyDenominator) -> String {
 // CLI surface
 // ---------------------------------------------------------------------------
 
-/// Evidence mode. T01 ships `families`; T02 adds `amends-provisions`. Later
-/// S03 tasks add the remaining modes.
+/// Evidence mode. T01 ships `families`; T02 adds `amends-provisions`; T03 adds
+/// `commencement`. Later S03 tasks add the remaining modes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProvenanceMode {
     Families,
     AmendsProvisions,
+    Commencement,
 }
 
 impl ProvenanceMode {
@@ -1241,6 +1273,7 @@ impl ProvenanceMode {
         match value {
             "families" => Ok(Self::Families),
             "amends-provisions" => Ok(Self::AmendsProvisions),
+            "commencement" => Ok(Self::Commencement),
             other => Err(usage(format!("unsupported --mode {other}"))),
         }
     }
@@ -1426,6 +1459,17 @@ pub fn run_provenance(
                 DriftSubject::Amends(Box::new(evidence)),
             )
         }
+        ProvenanceMode::Commencement => {
+            let evidence = collect_commencement_transition(repo_root, &cli.export_dir)?;
+            validate_commencement_transition(&evidence)?;
+            let rendered = render_commencement_transition(&evidence);
+            let heartbeat = commencement_heartbeat(&evidence);
+            (
+                rendered,
+                heartbeat,
+                DriftSubject::Commencement(Box::new(evidence)),
+            )
+        }
     };
     ensure_ascii_and_clean(&rendered)?;
 
@@ -1450,6 +1494,9 @@ pub fn run_provenance(
                     DriftSubject::Amends(evidence) => {
                         diagnose_amends_check_drift(&tracked, evidence)
                     }
+                    DriftSubject::Commencement(evidence) => {
+                        diagnose_commencement_check_drift(&tracked, evidence)
+                    }
                 })
             }
         }
@@ -1460,6 +1507,7 @@ pub fn run_provenance(
 enum DriftSubject {
     Families(FamilyDenominator),
     Amends(Box<AmendsProvisionEvidence>),
+    Commencement(Box<CommencementTransitionEvidence>),
 }
 
 // ---------------------------------------------------------------------------
@@ -2650,6 +2698,1055 @@ fn diagnose_amends_check_drift(
     )
 }
 
+// ---------------------------------------------------------------------------
+// commencement mode (T03)
+//
+// The third leg of R070 for the named chain: applicable commencement and
+// transitional rules. No admitted commencement source exists — the M208/S03
+// commencement admission checkpoint stands at `not-adopted` with
+// `owner_admission_ref: none`, the M208/S04 checkpoint stands the same way, and
+// the M207/S04 C4 human pilot was not run — so this mode records the absence
+// explicitly instead of inferring commencement from a date, a file name or an
+// edition (D289 / D406 / D415). Every emitted slot is a count, a categorical
+// code and a catalog identifier.
+// ---------------------------------------------------------------------------
+
+/// Artifact schema for the S03 commencement and transitional leg.
+pub const COMMENCEMENT_SCHEMA: &str = "law-nexus/r070-commencement-transition/v1";
+/// Artifact kind discriminator.
+pub const COMMENCEMENT_KIND: &str = "m209-s03-commencement-transition";
+/// Task discriminator of this artifact.
+pub const COMMENCEMENT_TASK: &str = "T03";
+/// The T02 artifact whose amending-act denominator this leg must reproduce.
+pub const T02_EVIDENCE_RELATIVE_PATH: &str =
+    "prd/migration/rust-evidence/m209-s03-amending-act-provision-evidence.json";
+/// The frozen M201 R070 proof gate that carries the bounded commencement boundary.
+pub const M201_R070_GATE_RELATIVE_PATH: &str =
+    "prd/migration/rust-evidence/m201-s04-r070-proof-gate.json";
+/// The M208/S03 admission checkpoint that governs the commencement surface.
+pub const M208_S03_ADMISSION_RELATIVE_PATH: &str =
+    "prd/architecture/m208-s03-admission-commencement.md";
+/// The M208/S04 admission checkpoint that governs the replay surface.
+pub const M208_S04_ADMISSION_RELATIVE_PATH: &str =
+    "prd/architecture/m208-s04-admission-bounded-replay.md";
+/// The M207/S04 C4 protocol: delivered as a protocol, never as accepted annotation.
+pub const M207_C4_PROTOCOL_RELATIVE_PATH: &str = "prd/annotation/m207-s04-c4-protocol.md";
+/// The M207/S04 C4 operational receipt pinned as the human-pilot-absent witness.
+pub const M207_C4_RECEIPT_RELATIVE_PATH: &str =
+    "prd/migration/rust-evidence/m207-s04-c4-operational-receipt.json";
+
+/// The declared admission value the two M208 checkpoints must still carry.
+pub const M208_DECLARED_NOT_ADOPTED: &str = "not-adopted";
+/// The declared owner admission reference both checkpoints must still carry.
+pub const M208_DECLARED_NO_OWNER: &str = "none";
+/// The declared runtime work value both checkpoints must still carry.
+pub const M208_DECLARED_RUNTIME_NOT_STARTED: &str = "not-started";
+/// The declared operational acceptance the M207/S04 C4 receipt carries.
+pub const M207_DECLARED_C4_NON_PASS: &str = "non-pass";
+/// The declared human-pilot status of the M207/S04 C4 contour.
+pub const M207_DECLARED_HUMAN_PILOT_ABSENT: &str = "absent";
+/// The declared pilot rate status of the M207/S04 C4 contour.
+pub const M207_DECLARED_RATE_NOT_MEASURED: &str = "not-measured";
+/// Declared marker text the M208/S04 checkpoint must still carry verbatim.
+pub const M207_DECLARED_PILOT_MARKER: &str = "the human pilot was not run";
+/// Declared marker text for the unmeasured pilot rates.
+pub const M207_DECLARED_RATE_MARKER: &str = "rates are `not-measured`";
+/// Declared marker text for the non-pass operational acceptance.
+pub const M207_DECLARED_ACCEPTANCE_MARKER: &str = "`operational_acceptance=non-pass`";
+
+/// Evidence class vocabulary of one commencement slot. `absent` is the only
+/// class this leg may derive for itself; the two unproven classes are carried
+/// only from the frozen M201 boundary and are never minted here (D415).
+pub const COMMENCEMENT_EVIDENCE_CLASSES: [&str; 3] =
+    ["hypothesized_from_oracle_diff", "editorial_hint", "absent"];
+
+/// Slot verdict vocabulary. `slot-filled-not-proven` is a slot filled with an
+/// unproven class; `explicitly-absent` is an affirmative boundary record.
+pub const COMMENCEMENT_SLOT_VERDICTS: [&str; 2] = ["slot-filled-not-proven", "explicitly-absent"];
+
+/// Proximate per-slot reason vocabulary, in declaration order. The two gate
+/// codes are global admission facts recorded once in `admission_gate`; a slot's
+/// own proximate cause is never the global gate.
+pub const COMMENCEMENT_REASON_CODES: [&str; 4] = [
+    "no-legislative-commencement-source",
+    "m207-human-pilot-absent",
+    "m208-s03-not-adopted",
+    "act-text-not-admitted",
+];
+
+/// Transitional slot vocabulary: an affirmative source-bound absence, or an
+/// unresolved slot. Neither value is a chronology-only default (ADR-0021).
+pub const COMMENCEMENT_TRANSITIONAL_VALUES: [&str; 2] = ["explicitly_absent", "unresolved"];
+
+/// Slot kind vocabulary: the named chain itself, or one amending act of the
+/// T02 amending-act denominator.
+pub const COMMENCEMENT_SLOT_KINDS: [&str; 2] = ["named-chain", "amending-act"];
+
+/// M208 vocabulary this artifact must never mint (D216 / D457).
+pub const MINTED_VOCABULARY_TOKENS: [&str; 4] = [
+    "ActivationTrigger",
+    "TransitionalResolver",
+    "EvidenceAnchor",
+    "LegislativeEffect",
+];
+
+/// The declared evidence class this leg requires and does not have.
+pub const COMMENCEMENT_REQUIRED_EVIDENCE_CLASS: &str = "human-annotation";
+/// The declared status of the required evidence class.
+pub const COMMENCEMENT_REQUIRED_EVIDENCE_STATUS: &str = "absent";
+
+/// Stable identifier of the single source-bound absence justification.
+pub const COMMENCEMENT_TRANSITIONAL_JUSTIFICATION_ID: &str = "m201-frozen-commencement-boundary";
+
+/// Fail-closed codes this mode can emit: the six structural codes shared with
+/// the families mode, the three commencement guards, and the four per-slot
+/// reason codes, because a slot whose recorded counts do not justify it is
+/// itself a refusal.
+pub const COMMENCEMENT_FAIL_CLOSED_CODES: [&str; 13] = [
+    "input_absent",
+    "input_hash_mismatch",
+    "family_count_unsupported",
+    "zero_denominator",
+    "non_ascii_evidence",
+    "raw_text_leak",
+    "legislative_upgrade_attempt",
+    "vocabulary_minted",
+    "date-as-commencement",
+    "no-legislative-commencement-source",
+    "m207-human-pilot-absent",
+    "m208-s03-not-adopted",
+    "act-text-not-admitted",
+];
+
+/// One commencement slot of the named chain or of one amending act.
+///
+/// Identity is the catalog `document_key`; `slot_kind` says whether it is the
+/// named chain itself or one amending act of the T02 denominator. The
+/// categorical codes are all closed vocabularies, and `commencement_rule_ref`
+/// is empty unless the frozen M201 boundary fills the slot.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CommencementSlot {
+    pub document_key: i64,
+    pub slot_kind: &'static str,
+    pub act_number: String,
+    pub act_date: String,
+    pub act_text_admitted: bool,
+    pub evidence_class: String,
+    pub slot_verdict: &'static str,
+    pub reason_code: &'static str,
+    pub transitional: &'static str,
+    pub commencement_rule_ref: String,
+    pub transitional_basis_id: String,
+}
+
+/// Live-read admission gate facts. Every field is re-derived on each run from a
+/// named tracked document, and any drift fails closed rather than silently
+/// re-baselining the boundary.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CommencementAdmissionGate {
+    pub m208_s03_admission: String,
+    pub m208_s03_owner_admission_ref: String,
+    pub m208_s03_runtime_work: String,
+    pub m208_s04_admission: String,
+    pub m208_s04_owner_admission_ref: String,
+    pub m208_s04_runtime_work: String,
+    pub m207_human_pilot: &'static str,
+    pub m207_c4_operational_acceptance: String,
+    pub m207_c4_rate_status: &'static str,
+    pub m207_c4_protocol_relative_path: String,
+    pub m207_c4_receipt_relative_path: String,
+}
+
+/// The whole commencement and transitional leg.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CommencementTransitionEvidence {
+    pub admission_gate: CommencementAdmissionGate,
+    pub slots_total: u64,
+    pub named_chain_slots: u64,
+    pub amending_act_slots: u64,
+    pub t02_layer1_records_total: u64,
+    pub t02_layer1_amending_acts: u64,
+    pub t02_amends_edges_total: u64,
+    pub t02_input_sha256: String,
+    pub frozen_gate_evidence_class: String,
+    pub frozen_gate_commencement_rule_ref: String,
+    pub frozen_gate_transitional: String,
+    pub inputs: Vec<AmendsInputPin>,
+    pub slots: Vec<CommencementSlot>,
+    pub by_evidence_class: BTreeMap<String, u64>,
+    pub by_slot_verdict: BTreeMap<String, u64>,
+    pub by_reason_code: BTreeMap<String, u64>,
+    pub by_transitional: BTreeMap<String, u64>,
+    pub class_matched_ids: Vec<String>,
+}
+
+/// Every closed vocabulary of this mode, pre-seeded to zero so a code that no
+/// slot realises is still a measured zero rather than an absent key.
+fn seed_counts(codes: &[&'static str]) -> BTreeMap<String, u64> {
+    codes
+        .iter()
+        .map(|code| ((*code).to_owned(), 0u64))
+        .collect()
+}
+
+/// Reads a `**name: value**` or `**name:** value` declaration out of a tracked
+/// admission document. Only the first match is returned, and the character
+/// after `name` must be a separator so a longer key never matches by prefix.
+fn star_field<'a>(text: &'a str, name: &str) -> Option<&'a str> {
+    for line in text.lines() {
+        let line = line.trim();
+        let Some(rest) = line.strip_prefix("**") else {
+            continue;
+        };
+        let Some(after) = rest.strip_prefix(name) else {
+            continue;
+        };
+        if !after.starts_with([':', '*']) {
+            continue;
+        }
+        let after = after.trim_start_matches([':', '*', ' ']);
+        let value = after.split("**").next().unwrap_or(after).trim();
+        if !value.is_empty() {
+            return Some(value);
+        }
+    }
+    None
+}
+
+/// True when a value looks like a date or a corpus file name (including an
+/// `edition-` identity hash) rather than an admitted rule reference. Such a
+/// value may never be a commencement source.
+fn is_date_or_filename(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    let date_shaped = bytes.len() == 10
+        && bytes[4] == b'-'
+        && bytes[7] == b'-'
+        && bytes[0..4].iter().all(u8::is_ascii_digit)
+        && bytes[5..7].iter().all(u8::is_ascii_digit)
+        && bytes[8..10].iter().all(u8::is_ascii_digit);
+    date_shaped
+        || value.starts_with("law_")
+        || value.starts_with("edition-")
+        || value.ends_with(".xml")
+        || value.contains("rev-unknown")
+}
+
+/// Re-derives the commencement and transitional leg from the live repository.
+pub fn collect_commencement_transition(
+    repo_root: &Path,
+    export_dir: &str,
+) -> Result<CommencementTransitionEvidence, AmendmentProvenanceError> {
+    let export_root_relative = export_root_relative_path(export_dir);
+    let export_root = resolve_export_root(repo_root, export_dir);
+
+    // 1. The frozen M201 R070 proof gate: the only filled commencement slot.
+    let gateway_path = repo_root.join(M201_R070_GATE_RELATIVE_PATH);
+    let gate_text = fs::read_to_string(&gateway_path)
+        .map_err(|_| input_absent(M201_R070_GATE_RELATIVE_PATH.to_owned()))?;
+    let frozen_gate_evidence_class = match flat_field(&gate_text, "evidence_class") {
+        Some(FlatValue::Str(value)) => value.to_owned(),
+        _ => {
+            return Err(family_unsupported(
+                "m201-r070-proof-gate",
+                "the frozen gate carries no string evidence_class in its commencement boundary",
+            ))
+        }
+    };
+    let frozen_gate_commencement_rule_ref = match flat_field(&gate_text, "commencement_rule_ref") {
+        Some(FlatValue::Str(value)) => value.to_owned(),
+        _ => {
+            return Err(family_unsupported(
+                "m201-r070-proof-gate",
+                "the frozen gate carries no string commencement_rule_ref",
+            ))
+        }
+    };
+    let frozen_gate_transitional = match flat_field(&gate_text, "transitional") {
+        Some(FlatValue::Str(value)) => value.to_owned(),
+        _ => {
+            return Err(family_unsupported(
+                "m201-r070-proof-gate",
+                "the frozen gate carries no string transitional slot value",
+            ))
+        }
+    };
+    if !COMMENCEMENT_EVIDENCE_CLASSES.contains(&frozen_gate_evidence_class.as_str()) {
+        return Err(AmendmentProvenanceError::LegislativeUpgradeAttempt {
+            detail: format!(
+                "the frozen gate carries the evidence class {} outside the declared vocabulary",
+                frozen_gate_evidence_class
+            ),
+        });
+    }
+    if !COMMENCEMENT_TRANSITIONAL_VALUES.contains(&frozen_gate_transitional.as_str()) {
+        return Err(family_unsupported(
+            "m201-r070-proof-gate",
+            "the frozen gate carries a transitional value outside the declared vocabulary",
+        ));
+    }
+
+    // 2. The M208/S03 and M208/S04 admission checkpoints must still be
+    //    not-adopted with no owner admission; an adopted premise changes the
+    //    boundary, so it fails closed instead of silently re-baselining.
+    let s03_path = repo_root.join(M208_S03_ADMISSION_RELATIVE_PATH);
+    let s03_text = fs::read_to_string(&s03_path)
+        .map_err(|_| input_absent(M208_S03_ADMISSION_RELATIVE_PATH.to_owned()))?;
+    let s04_path = repo_root.join(M208_S04_ADMISSION_RELATIVE_PATH);
+    let s04_text = fs::read_to_string(&s04_path)
+        .map_err(|_| input_absent(M208_S04_ADMISSION_RELATIVE_PATH.to_owned()))?;
+    let mut declared = Vec::new();
+    for (label, text) in [
+        (M208_S03_ADMISSION_RELATIVE_PATH, s03_text.as_str()),
+        (M208_S04_ADMISSION_RELATIVE_PATH, s04_text.as_str()),
+    ] {
+        let admission = star_field(text, "admission");
+        let owner = star_field(text, "owner_admission_ref");
+        let runtime_work = star_field(text, "runtime_work");
+        if admission != Some(M208_DECLARED_NOT_ADOPTED) {
+            return Err(reason_unsupported(
+                "m208-s03-not-adopted",
+                format!("{label} no longer declares admission: not-adopted"),
+            ));
+        }
+        if owner != Some(M208_DECLARED_NO_OWNER) {
+            return Err(reason_unsupported(
+                "m208-s03-not-adopted",
+                format!("{label} no longer declares owner_admission_ref: none"),
+            ));
+        }
+        if runtime_work != Some(M208_DECLARED_RUNTIME_NOT_STARTED) {
+            return Err(reason_unsupported(
+                "m208-s03-not-adopted",
+                format!("{label} no longer declares runtime_work: not-started"),
+            ));
+        }
+        declared.push((
+            admission.unwrap_or_default().to_owned(),
+            owner.unwrap_or_default().to_owned(),
+            runtime_work.unwrap_or_default().to_owned(),
+        ));
+    }
+
+    // 3. The M207/S04 human pilot: the protocol is delivered, the pilot was not
+    //    run, the rates stay not-measured and the operational acceptance is a
+    //    non-pass. Every leg is asserted against a named tracked document.
+    let protocol_path = repo_root.join(M207_C4_PROTOCOL_RELATIVE_PATH);
+    if !protocol_path.is_file() {
+        return Err(input_absent(M207_C4_PROTOCOL_RELATIVE_PATH.to_owned()));
+    }
+    for marker in [
+        M207_DECLARED_PILOT_MARKER,
+        M207_DECLARED_RATE_MARKER,
+        M207_DECLARED_ACCEPTANCE_MARKER,
+    ] {
+        if !s04_text.contains(marker) {
+            return Err(reason_unsupported(
+                "m207-human-pilot-absent",
+                format!(
+                    "{M208_S04_ADMISSION_RELATIVE_PATH} no longer declares the marker {marker}"
+                ),
+            ));
+        }
+    }
+    let receipt_path = repo_root.join(M207_C4_RECEIPT_RELATIVE_PATH);
+    let receipt_text = fs::read_to_string(&receipt_path)
+        .map_err(|_| input_absent(M207_C4_RECEIPT_RELATIVE_PATH.to_owned()))?;
+    let mut acceptance = String::new();
+    for line in receipt_text.lines() {
+        if let Some(FlatValue::Str(value)) = flat_field(line, "operational_acceptance") {
+            acceptance = value.to_owned();
+            break;
+        }
+    }
+    if acceptance != M207_DECLARED_C4_NON_PASS {
+        return Err(reason_unsupported(
+            "m207-human-pilot-absent",
+            "the C4 operational receipt no longer claims a non-pass acceptance",
+        ));
+    }
+
+    // 4. The T02 artifact is the declared amending-act denominator of this leg.
+    let t02_path = repo_root.join(T02_EVIDENCE_RELATIVE_PATH);
+    let t02_text = fs::read_to_string(&t02_path)
+        .map_err(|_| input_absent(T02_EVIDENCE_RELATIVE_PATH.to_owned()))?;
+    let t02_layer1_records_total = flat_integer(&t02_text, "layer1_records_total")
+        .and_then(|value| u64::try_from(value).ok())
+        .ok_or_else(|| {
+            family_unsupported(
+                "m209-s03-amending-act-provision-evidence",
+                "the T02 artifact declares no layer1 record total",
+            )
+        })?;
+    let t02_layer1_amending_acts = flat_integer(&t02_text, "layer1_amending_acts")
+        .and_then(|value| u64::try_from(value).ok())
+        .ok_or_else(|| {
+            family_unsupported(
+                "m209-s03-amending-act-provision-evidence",
+                "the T02 artifact declares no amending-act total",
+            )
+        })?;
+    let t02_amends_edges_total = flat_integer(&t02_text, "amends_edges_total")
+        .and_then(|value| u64::try_from(value).ok())
+        .ok_or_else(|| {
+            family_unsupported(
+                "m209-s03-amending-act-provision-evidence",
+                "the T02 artifact declares no amends edge total",
+            )
+        })?;
+    let t02_input_sha256 = format!("sha256:{}", sha256_hex(t02_text.as_bytes()));
+
+    // 5. The layer1 manifest: one slot per record, the core record being the
+    //    named chain and every other record an amending act.
+    let manifest_relative = join_relative(&export_root_relative, LAYER1_MANIFEST_TAIL);
+    let manifest_path = export_root.join(LAYER1_MANIFEST_TAIL);
+    let manifest_text =
+        fs::read_to_string(&manifest_path).map_err(|_| input_absent(manifest_relative.clone()))?;
+    let npa_dir = export_root.join(NPA_EXPORTS_TAIL);
+    let mut slots: Vec<CommencementSlot> = Vec::new();
+    let mut named_chain_slots = 0u64;
+    let mut amending_act_slots = 0u64;
+    let mut by_evidence_class = seed_counts(&COMMENCEMENT_EVIDENCE_CLASSES);
+    let mut by_slot_verdict = seed_counts(&COMMENCEMENT_SLOT_VERDICTS);
+    let mut by_reason_code = seed_counts(&COMMENCEMENT_REASON_CODES);
+    let mut by_transitional = seed_counts(&COMMENCEMENT_TRANSITIONAL_VALUES);
+    for line in manifest_text.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        let document_key = flat_integer(line, "document_key").ok_or_else(|| {
+            family_unsupported(
+                LAYER1_MANIFEST_TAIL,
+                "a layer1 record carries no numeric document_key",
+            )
+        })?;
+        let core = match flat_field(line, "is_core_act") {
+            Some(FlatValue::Bool(value)) => value,
+            _ => {
+                return Err(family_unsupported(
+                    LAYER1_MANIFEST_TAIL,
+                    "a layer1 record carries no boolean is_core_act",
+                ))
+            }
+        };
+        let law_number = match flat_field(line, "law_number") {
+            Some(FlatValue::Str(value)) => value,
+            _ => {
+                return Err(family_unsupported(
+                    LAYER1_MANIFEST_TAIL,
+                    "a layer1 record carries no string law_number",
+                ))
+            }
+        };
+        let title = match flat_field(line, "title") {
+            Some(FlatValue::Str(value)) => value,
+            _ => {
+                return Err(family_unsupported(
+                    LAYER1_MANIFEST_TAIL,
+                    "a layer1 record carries no string title",
+                ))
+            }
+        };
+        let act_date = act_date_from_title(title).unwrap_or_default();
+        let act_number = act_number_from_law_number(law_number).unwrap_or_default();
+        // A slot is "act text admitted" when its declared identity pair
+        // resolves to act text in the evaluated revision: either a single-act
+        // export under exports/npa, or the numbered chain edition directory of
+        // that same declared pair. That is an identity question only: an act
+        // date and a file name are never read as commencement evidence.
+        let act_text_admitted = if act_date.is_empty() || act_number.is_empty() {
+            false
+        } else {
+            let chain_directory = npa_dir.join(format!("law_{act_date}_{act_number}-fz"));
+            !npa_export_candidates(&npa_dir, &act_date, &act_number)?.is_empty()
+                || chain_directory.is_dir()
+        };
+        let (slot_kind, evidence_class, slot_verdict, reason_code, transitional, rule_ref, basis) =
+            if core {
+                named_chain_slots += 1;
+                (
+                    "named-chain",
+                    frozen_gate_evidence_class.clone(),
+                    COMMENCEMENT_SLOT_VERDICTS[0],
+                    COMMENCEMENT_REASON_CODES[0],
+                    COMMENCEMENT_TRANSITIONAL_VALUES[0],
+                    frozen_gate_commencement_rule_ref.clone(),
+                    COMMENCEMENT_TRANSITIONAL_JUSTIFICATION_ID.to_owned(),
+                )
+            } else {
+                amending_act_slots += 1;
+                let reason = if act_text_admitted {
+                    COMMENCEMENT_REASON_CODES[0]
+                } else {
+                    COMMENCEMENT_REASON_CODES[3]
+                };
+                (
+                    "amending-act",
+                    COMMENCEMENT_EVIDENCE_CLASSES[2].to_owned(),
+                    COMMENCEMENT_SLOT_VERDICTS[1],
+                    reason,
+                    COMMENCEMENT_TRANSITIONAL_VALUES[1],
+                    String::new(),
+                    String::new(),
+                )
+            };
+        *by_evidence_class
+            .entry(evidence_class.to_owned())
+            .or_insert(0) += 1;
+        *by_slot_verdict.entry(slot_verdict.to_owned()).or_insert(0) += 1;
+        *by_reason_code.entry(reason_code.to_owned()).or_insert(0) += 1;
+        *by_transitional.entry(transitional.to_owned()).or_insert(0) += 1;
+        slots.push(CommencementSlot {
+            document_key,
+            slot_kind,
+            act_number,
+            act_date,
+            act_text_admitted,
+            evidence_class,
+            slot_verdict,
+            reason_code,
+            transitional,
+            commencement_rule_ref: rule_ref,
+            transitional_basis_id: basis,
+        });
+    }
+
+    // 6. Input pins: the manifest plus every tracked document this leg reads.
+    let inputs = vec![
+        pin_of("layer1_manifest", &manifest_path, manifest_relative.clone())?,
+        pin_of(
+            "t02_amending_act_evidence",
+            &t02_path,
+            T02_EVIDENCE_RELATIVE_PATH.to_owned(),
+        )?,
+        pin_of(
+            "m201_r070_proof_gate",
+            &gateway_path,
+            M201_R070_GATE_RELATIVE_PATH.to_owned(),
+        )?,
+        pin_of(
+            "m208_s03_admission",
+            &s03_path,
+            M208_S03_ADMISSION_RELATIVE_PATH.to_owned(),
+        )?,
+        pin_of(
+            "m208_s04_admission",
+            &s04_path,
+            M208_S04_ADMISSION_RELATIVE_PATH.to_owned(),
+        )?,
+        pin_of(
+            "m207_c4_protocol",
+            &protocol_path,
+            M207_C4_PROTOCOL_RELATIVE_PATH.to_owned(),
+        )?,
+        pin_of(
+            "m207_c4_receipt",
+            &receipt_path,
+            M207_C4_RECEIPT_RELATIVE_PATH.to_owned(),
+        )?,
+    ];
+
+    let slots_total = slots.len() as u64;
+    Ok(CommencementTransitionEvidence {
+        admission_gate: CommencementAdmissionGate {
+            m208_s03_admission: declared[0].0.clone(),
+            m208_s03_owner_admission_ref: declared[0].1.clone(),
+            m208_s03_runtime_work: declared[0].2.clone(),
+            m208_s04_admission: declared[1].0.clone(),
+            m208_s04_owner_admission_ref: declared[1].1.clone(),
+            m208_s04_runtime_work: declared[1].2.clone(),
+            m207_human_pilot: M207_DECLARED_HUMAN_PILOT_ABSENT,
+            m207_c4_operational_acceptance: acceptance,
+            m207_c4_rate_status: M207_DECLARED_RATE_NOT_MEASURED,
+            m207_c4_protocol_relative_path: M207_C4_PROTOCOL_RELATIVE_PATH.to_owned(),
+            m207_c4_receipt_relative_path: M207_C4_RECEIPT_RELATIVE_PATH.to_owned(),
+        },
+        slots_total,
+        named_chain_slots,
+        amending_act_slots,
+        t02_layer1_records_total,
+        t02_layer1_amending_acts,
+        t02_amends_edges_total,
+        t02_input_sha256,
+        frozen_gate_evidence_class,
+        frozen_gate_commencement_rule_ref,
+        frozen_gate_transitional,
+        inputs,
+        slots,
+        by_evidence_class,
+        by_slot_verdict,
+        by_reason_code,
+        by_transitional,
+        class_matched_ids: Vec::new(),
+    })
+}
+
+/// Fails closed on any drift of the declared boundary, any minted vocabulary
+/// and any attempt to read a date or a file name as a commencement source.
+pub fn validate_commencement_transition(
+    evidence: &CommencementTransitionEvidence,
+) -> Result<(), AmendmentProvenanceError> {
+    if evidence.slots_total == 0 || evidence.amending_act_slots == 0 {
+        return Err(AmendmentProvenanceError::ZeroDenominator {
+            family_id: "commencement".to_owned(),
+        });
+    }
+    if evidence.named_chain_slots != 1 {
+        return Err(family_unsupported(
+            "commencement",
+            "the named chain must contribute exactly one slot",
+        ));
+    }
+
+    // 0. The two global premises this boundary is premised on. When either stops
+    //    holding, the declared reason code itself is what changed.
+    let gate = &evidence.admission_gate;
+    if gate.m208_s03_admission != M208_DECLARED_NOT_ADOPTED
+        || gate.m208_s03_owner_admission_ref != M208_DECLARED_NO_OWNER
+        || gate.m208_s03_runtime_work != M208_DECLARED_RUNTIME_NOT_STARTED
+        || gate.m208_s04_admission != M208_DECLARED_NOT_ADOPTED
+        || gate.m208_s04_owner_admission_ref != M208_DECLARED_NO_OWNER
+        || gate.m208_s04_runtime_work != M208_DECLARED_RUNTIME_NOT_STARTED
+    {
+        return Err(reason_unsupported(
+            "m208-s03-not-adopted",
+            "the M208 commencement gate no longer carries an unadopted premise",
+        ));
+    }
+    if gate.m207_human_pilot != M207_DECLARED_HUMAN_PILOT_ABSENT
+        || gate.m207_c4_operational_acceptance != M207_DECLARED_C4_NON_PASS
+        || gate.m207_c4_rate_status != M207_DECLARED_RATE_NOT_MEASURED
+    {
+        return Err(reason_unsupported(
+            "m207-human-pilot-absent",
+            "the M207 human pilot absence no longer holds",
+        ));
+    }
+
+    // 1. Whole-artifact guards, checked on the canonical render so a prohibited
+    //    token cannot hide behind a field the checks below do not enumerate.
+    let rendered = render_commencement_transition(evidence);
+    if rendered.contains("\"legislative\"") {
+        return Err(AmendmentProvenanceError::LegislativeUpgradeAttempt {
+            detail: "the artifact carries the string legislative as a value".to_owned(),
+        });
+    }
+    for token in MINTED_VOCABULARY_TOKENS {
+        if rendered.contains(token) {
+            return Err(AmendmentProvenanceError::VocabularyMinted {
+                detail: format!("the artifact mints the identifier {token}"),
+            });
+        }
+    }
+    for slot in &evidence.slots {
+        for value in [
+            slot.commencement_rule_ref.as_str(),
+            slot.transitional_basis_id.as_str(),
+        ] {
+            if !value.is_empty() && is_date_or_filename(value) {
+                return Err(AmendmentProvenanceError::DateAsCommencement {
+                    detail: "a commencement slot reads a date or a file name as a rule reference"
+                        .to_owned(),
+                });
+            }
+        }
+        if slot.evidence_class != COMMENCEMENT_EVIDENCE_CLASSES[2]
+            && slot.commencement_rule_ref.trim().is_empty()
+        {
+            return Err(AmendmentProvenanceError::DateAsCommencement {
+                detail: "a filled commencement class carries no declared rule reference".to_owned(),
+            });
+        }
+    }
+
+    // 2. The declared denominator: the T02 amending-act denominator, unchanged.
+    if evidence.t02_layer1_records_total != EXPECTED_LAYER1_RECORDS_TOTAL
+        || evidence.t02_layer1_amending_acts != EXPECTED_LAYER1_AMENDING_ACTS
+        || evidence.t02_amends_edges_total != EXPECTED_AMENDS_EDGES_TOTAL
+    {
+        return Err(family_unsupported(
+            "commencement",
+            "the T02 amending-act denominator drifted from the accepted revision",
+        ));
+    }
+    if evidence.slots_total != evidence.t02_layer1_records_total
+        || evidence.amending_act_slots != evidence.t02_layer1_amending_acts
+    {
+        return Err(family_unsupported(
+            "commencement",
+            "the commencement slots do not reproduce the T02 amending-act denominator",
+        ));
+    }
+    if evidence.named_chain_slots + evidence.amending_act_slots != evidence.slots_total {
+        return Err(family_unsupported(
+            "commencement",
+            "the declared slot kinds do not sum to the declared denominator",
+        ));
+    }
+    if evidence.slots.len() as u64 != evidence.slots_total {
+        return Err(family_unsupported(
+            "commencement",
+            "the per-slot rows do not cover the declared denominator",
+        ));
+    }
+
+    // 3. Closed vocabularies, per slot.
+    let mut named_chain_seen = 0u64;
+    let mut amending_seen = 0u64;
+    for slot in &evidence.slots {
+        if !COMMENCEMENT_SLOT_KINDS.contains(&slot.slot_kind) {
+            return Err(reason_unsupported(
+                slot.reason_code,
+                "a slot carries an undocumented slot kind",
+            ));
+        }
+        if !COMMENCEMENT_EVIDENCE_CLASSES.contains(&slot.evidence_class.as_str()) {
+            return Err(AmendmentProvenanceError::LegislativeUpgradeAttempt {
+                detail: "a slot carries an evidence class outside the declared vocabulary"
+                    .to_owned(),
+            });
+        }
+        if !COMMENCEMENT_SLOT_VERDICTS.contains(&slot.slot_verdict) {
+            return Err(reason_unsupported(
+                slot.reason_code,
+                "a slot carries an undocumented slot verdict",
+            ));
+        }
+        if !COMMENCEMENT_REASON_CODES.contains(&slot.reason_code) {
+            return Err(reason_unsupported(
+                "no-legislative-commencement-source",
+                "a slot carries an undocumented reason code",
+            ));
+        }
+        if !COMMENCEMENT_TRANSITIONAL_VALUES.contains(&slot.transitional) {
+            return Err(reason_unsupported(
+                slot.reason_code,
+                "a slot carries an undocumented transitional value",
+            ));
+        }
+        if slot.document_key <= 0 {
+            return Err(reason_unsupported(
+                slot.reason_code,
+                "a slot carries a non-positive catalog identifier",
+            ));
+        }
+        match slot.slot_kind {
+            "named-chain" => {
+                named_chain_seen += 1;
+                if slot.evidence_class != evidence.frozen_gate_evidence_class
+                    || slot.commencement_rule_ref != evidence.frozen_gate_commencement_rule_ref
+                    || slot.transitional != evidence.frozen_gate_transitional
+                {
+                    return Err(family_unsupported(
+                        "commencement",
+                        "the named-chain slot drifted from the frozen M201 boundary",
+                    ));
+                }
+            }
+            "amending-act" => {
+                amending_seen += 1;
+                if slot.evidence_class != COMMENCEMENT_EVIDENCE_CLASSES[2]
+                    || !slot.commencement_rule_ref.is_empty()
+                    || !slot.transitional_basis_id.is_empty()
+                {
+                    return Err(AmendmentProvenanceError::LegislativeUpgradeAttempt {
+                        detail: "an amending-act slot claims commencement evidence".to_owned(),
+                    });
+                }
+                let expected = if slot.act_text_admitted {
+                    COMMENCEMENT_REASON_CODES[0]
+                } else {
+                    COMMENCEMENT_REASON_CODES[3]
+                };
+                if slot.reason_code != expected {
+                    return Err(reason_unsupported(
+                        slot.reason_code,
+                        "an amending-act slot does not justify its own reason code",
+                    ));
+                }
+            }
+            _ => {}
+        }
+    }
+    if named_chain_seen != evidence.named_chain_slots
+        || amending_seen != evidence.amending_act_slots
+    {
+        return Err(family_unsupported(
+            "commencement",
+            "the per-kind slot counts do not reproduce the declared denominators",
+        ));
+    }
+
+    // 4. The partitions must sum to the declared denominator, and the required
+    //    evidence class must be an explicit empty set.
+    for (label, partition) in [
+        ("by_evidence_class", &evidence.by_evidence_class),
+        ("by_slot_verdict", &evidence.by_slot_verdict),
+        ("by_reason_code", &evidence.by_reason_code),
+        ("by_transitional", &evidence.by_transitional),
+    ] {
+        let sum: u64 = partition.values().sum();
+        if sum != evidence.slots_total {
+            return Err(family_unsupported(
+                "commencement",
+                format!("the {label} partition sums to {sum}, not the declared denominator"),
+            ));
+        }
+        for key in partition.keys() {
+            if key.bytes().any(|byte| !byte.is_ascii()) {
+                return Err(AmendmentProvenanceError::NonAsciiEvidence {
+                    detail: format!("a {label} key is not ascii"),
+                });
+            }
+            if !is_allowed_key_token(key) {
+                return Err(AmendmentProvenanceError::RawTextLeak {
+                    detail: format!("a {label} key is outside the count-only token rule"),
+                });
+            }
+        }
+    }
+    if !evidence.class_matched_ids.is_empty() {
+        return Err(family_unsupported(
+            "commencement",
+            "class_matched_ids must be an explicit empty set on this boundary",
+        ));
+    }
+    Ok(())
+}
+
+/// Source-bound justification of the single affirmative absence claim.
+pub const COMMENCEMENT_TRANSITIONAL_JUSTIFICATION: &str = "The named chain's bounded 484-FZ to cc:44-fz:statya-93 edge carries the transitional value explicitly_absent verbatim from the frozen M201 R070 proof gate (prd/migration/rust-evidence/m201-s04-r070-proof-gate.json, commencement_boundary.transitional), whose own non-claim states that it is an affirmative fixture slot and not an ADR-0021 resolver. This is a boundary record of that frozen gate: it is not a determination that no transitional rule exists, and no transitional-rule source is admitted for any slot of this leg.";
+
+/// Denominator definition prose for the commencement and transitional leg.
+const COMMENCEMENT_COUNT_BASIS: &str = "The denominator is re-derived live on every run: one slot for the named cc:44-fz chain (the core layer1 record) plus one slot per amending act of the T02 amending-act denominator, declared equal to layer1_records_total of prd/migration/rust-evidence/m209-s03-amending-act-provision-evidence.json. act_text_admitted records whether the slot's declared identity pair resolves to act text in the evaluated revision, either as a single-act export under exports/npa or as its numbered chain edition directory; it is an identity field and never a commencement source. reason_code is the proximate per-slot cause and is drawn from a closed four-code vocabulary; the two global gate codes are never a per-slot cause and are recorded once in admission_gate with their live values. evidence_class is absent for every slot this leg derives for itself: the frozen M201 boundary is the only filled slot and it is carried verbatim, never upgraded. Nothing here is typed by hand and no zero denominator is a measurement.";
+
+/// Claim bounds carried by the commencement and transitional artifact.
+const COMMENCEMENT_NON_CLAIMS: [&str; 9] = [
+    "This leg is scoped to the named cc:44-fz chain and its amending family; it is not every edition of the chain and not every commencement question of the corpus.",
+    "No Legislative upgrade (D415): no slot carries a legislative evidence class, the frozen M201 boundary is carried verbatim as an unproven class, and no class is upgraded by this artifact.",
+    "The single explicitly_absent transitional value is an affirmative boundary slot carried from the frozen M201 gate and is not an ADR-0021 resolver; ADR-0021 stays [proposed] and every other slot stays unresolved rather than defaulted (D406/TSG-009).",
+    "No resolver runtime exists: no effect-selector token, no transitional-resolver runtime, no evidence-anchor and no legislative-effect identifier is minted by this artifact, and the D252 selector vocabulary stays YAML-only (D216).",
+    "No commencement is inferred from a date, a file name or an edition: an act date and a file name are act-identity fields for the export join, not commencement evidence (D289).",
+    "No corpus text is copied into this artifact: no XML bytes, no article text, no document titles, no offline URIs and no raw relation tooltips; only counts, catalog identifiers, repository-relative paths, byte counts, sha256 pins and named categorical codes.",
+    "The frozen M201 R070 proof gate and the three frozen M201 pins are not widened, reopened or restated here, and the declared M208 startup surfaces stay absent.",
+    "A zero denominator is not a measurement and fails closed as zero_denominator; no declared total may be presented as a measurement when its partition does not sum to it (D552).",
+    "R070 stays active (D416): no promotion gate is promoted, satisfied or moved off unsatisfied by this artifact, no requirement record is mutated, and class_matched_ids is an explicit empty set because the required human-annotation evidence class is absent.",
+];
+
+/// Canonical compact render. Fixed top-level key order, no timestamps, ASCII by
+/// construction: every scalar is a count, a catalog identifier, a validated
+/// categorical code or a repository-relative path (D424).
+pub fn render_commencement_transition(evidence: &CommencementTransitionEvidence) -> String {
+    let mut writer = ObjectWriter::new();
+    writer.string("schema", COMMENCEMENT_SCHEMA);
+    writer.number("schema_version", 3);
+    writer.string("kind", COMMENCEMENT_KIND);
+    writer.string("milestone", MILESTONE);
+    writer.string("slice", SLICE);
+    writer.string("task", COMMENCEMENT_TASK);
+    writer.string("lifecycle", LIFECYCLE);
+    writer.boolean("authoritative", false);
+    writer.string("requirement_id", REQUIREMENT_ID);
+    writer.string("disposition", DISPOSITION);
+    writer.string("disposition_decision", DISPOSITION_DECISION);
+    writer.boolean("count_only", true);
+    writer.boolean("ascii_only", true);
+    writer.string("count_basis", COMMENCEMENT_COUNT_BASIS);
+
+    writer.key("admission_gate");
+    {
+        let gate = &evidence.admission_gate;
+        let mut entry = ObjectWriter::new();
+        entry.string("m208_s03_admission", &gate.m208_s03_admission);
+        entry.string(
+            "m208_s03_owner_admission_ref",
+            &gate.m208_s03_owner_admission_ref,
+        );
+        entry.string("m208_s03_runtime_work", &gate.m208_s03_runtime_work);
+        entry.string("m208_s04_admission", &gate.m208_s04_admission);
+        entry.string(
+            "m208_s04_owner_admission_ref",
+            &gate.m208_s04_owner_admission_ref,
+        );
+        entry.string("m208_s04_runtime_work", &gate.m208_s04_runtime_work);
+        entry.string("m207_human_pilot", gate.m207_human_pilot);
+        entry.string(
+            "m207_c4_operational_acceptance",
+            &gate.m207_c4_operational_acceptance,
+        );
+        entry.string("m207_c4_rate_status", gate.m207_c4_rate_status);
+        entry.string(
+            "m207_c4_protocol_relative_path",
+            &gate.m207_c4_protocol_relative_path,
+        );
+        entry.string(
+            "m207_c4_receipt_relative_path",
+            &gate.m207_c4_receipt_relative_path,
+        );
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("frozen_m201_boundary");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.string("gate_relative_path", M201_R070_GATE_RELATIVE_PATH);
+        entry.string("evidence_class", &evidence.frozen_gate_evidence_class);
+        entry.string(
+            "commencement_rule_ref",
+            &evidence.frozen_gate_commencement_rule_ref,
+        );
+        entry.string("transitional", &evidence.frozen_gate_transitional);
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("denominator");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.number("slots_total", evidence.slots_total);
+        entry.number("named_chain_slots", evidence.named_chain_slots);
+        entry.number("amending_act_slots", evidence.amending_act_slots);
+        entry.number("rows_total", evidence.slots.len() as u64);
+        entry.number(
+            "t02_layer1_records_total",
+            evidence.t02_layer1_records_total,
+        );
+        entry.number(
+            "t02_layer1_amending_acts",
+            evidence.t02_layer1_amending_acts,
+        );
+        entry.number("t02_amends_edges_total", evidence.t02_amends_edges_total);
+        entry.counts("by_evidence_class", &evidence.by_evidence_class);
+        entry.counts("by_slot_verdict", &evidence.by_slot_verdict);
+        entry.counts("by_reason_code", &evidence.by_reason_code);
+        entry.counts("by_transitional", &evidence.by_transitional);
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("required_evidence");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.string(
+            "required_evidence_class",
+            COMMENCEMENT_REQUIRED_EVIDENCE_CLASS,
+        );
+        entry.string(
+            "required_evidence_status",
+            COMMENCEMENT_REQUIRED_EVIDENCE_STATUS,
+        );
+        entry.strings("class_matched_ids", &evidence.class_matched_ids);
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("transitional_basis");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.string("basis_id", COMMENCEMENT_TRANSITIONAL_JUSTIFICATION_ID);
+        entry.string("source_relative_path", M201_R070_GATE_RELATIVE_PATH);
+        entry.string("justification", COMMENCEMENT_TRANSITIONAL_JUSTIFICATION);
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("inputs");
+    writer.buffer.push('[');
+    for (index, pin) in evidence.inputs.iter().enumerate() {
+        if index > 0 {
+            writer.buffer.push(',');
+        }
+        let mut entry = ObjectWriter::new();
+        entry.string("input_id", &pin.input_id);
+        entry.string("relative_path", &pin.relative_path);
+        entry.number("input_bytes", pin.input_bytes);
+        entry.string("input_sha256", &pin.input_sha256);
+        writer.buffer.push_str(&entry.finish());
+    }
+    writer.buffer.push(']');
+
+    writer.key("slots");
+    writer.buffer.push('[');
+    for (index, slot) in evidence.slots.iter().enumerate() {
+        if index > 0 {
+            writer.buffer.push(',');
+        }
+        let mut entry = ObjectWriter::new();
+        entry.number("document_key", slot.document_key as u64);
+        entry.string("slot_kind", slot.slot_kind);
+        entry.string("act_number", &slot.act_number);
+        entry.string("act_date", &slot.act_date);
+        entry.boolean("act_text_admitted", slot.act_text_admitted);
+        entry.string("evidence_class", &slot.evidence_class);
+        entry.string("slot_verdict", slot.slot_verdict);
+        entry.string("reason_code", slot.reason_code);
+        entry.string("transitional", slot.transitional);
+        entry.string("commencement_rule_ref", &slot.commencement_rule_ref);
+        entry.string("transitional_basis_id", &slot.transitional_basis_id);
+        writer.buffer.push_str(&entry.finish());
+    }
+    writer.buffer.push(']');
+
+    writer.fixed_strings("slot_kinds", &COMMENCEMENT_SLOT_KINDS);
+    writer.fixed_strings("evidence_classes", &COMMENCEMENT_EVIDENCE_CLASSES);
+    writer.fixed_strings("slot_verdicts", &COMMENCEMENT_SLOT_VERDICTS);
+    writer.fixed_strings("transitional_values", &COMMENCEMENT_TRANSITIONAL_VALUES);
+    writer.fixed_strings("reason_codes", &COMMENCEMENT_REASON_CODES);
+    writer.fixed_strings("fail_closed_codes", &COMMENCEMENT_FAIL_CLOSED_CODES);
+    writer.fixed_strings("non_claims", &COMMENCEMENT_NON_CLAIMS);
+    writer.finish()
+}
+
+/// Count-only stderr heartbeat for the commencement and transitional leg.
+pub fn commencement_heartbeat(evidence: &CommencementTransitionEvidence) -> String {
+    let filled = evidence
+        .by_slot_verdict
+        .get(COMMENCEMENT_SLOT_VERDICTS[0])
+        .copied()
+        .unwrap_or(0);
+    let absent = evidence
+        .by_slot_verdict
+        .get(COMMENCEMENT_SLOT_VERDICTS[1])
+        .copied()
+        .unwrap_or(0);
+    format!(
+        "commencement={} named={} amending={} filled={} absent={} class_matched={} drift=0",
+        evidence.slots_total,
+        evidence.named_chain_slots,
+        evidence.amending_act_slots,
+        filled,
+        absent,
+        evidence.class_matched_ids.len()
+    )
+}
+
+fn diagnose_commencement_check_drift(
+    tracked: &[u8],
+    evidence: &CommencementTransitionEvidence,
+) -> AmendmentProvenanceError {
+    if tracked.iter().any(|byte| *byte >= 0x80) {
+        return AmendmentProvenanceError::NonAsciiEvidence {
+            detail: "tracked artifact is not ascii".to_owned(),
+        };
+    }
+    let tracked_text = String::from_utf8_lossy(tracked);
+    for pin in &evidence.inputs {
+        if !tracked_text.contains(&pin.input_sha256) {
+            return AmendmentProvenanceError::InputHashMismatch {
+                family_id: pin.input_id.clone(),
+                path: pin.relative_path.clone(),
+                detail: "tracked pin differs from the live input pin".to_owned(),
+            };
+        }
+    }
+    if !tracked_text.contains(&format!("\"slots_total\":{}", evidence.slots_total)) {
+        return family_unsupported(
+            "commencement",
+            "tracked denominator differs from the live denominator",
+        );
+    }
+    family_unsupported(
+        "<artifact>",
+        "artifact bytes differ from the live render while every declared pin matches",
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3176,5 +4273,298 @@ mod tests {
             None
         );
         assert_eq!(flat_integer("{\"other\": 1}", "document_key"), None);
+    }
+
+    // ----------------------------------------------------------------------
+    // T03 commencement guards
+    // ----------------------------------------------------------------------
+
+    /// A boundary-shaped fixture that reproduces the live partition exactly:
+    /// one filled named-chain slot plus the T02 amending-act denominator.
+    fn commencement_fixture() -> CommencementTransitionEvidence {
+        let mut by_evidence_class = seed_counts(&COMMENCEMENT_EVIDENCE_CLASSES);
+        let mut by_slot_verdict = seed_counts(&COMMENCEMENT_SLOT_VERDICTS);
+        let mut by_reason_code = seed_counts(&COMMENCEMENT_REASON_CODES);
+        let mut by_transitional = seed_counts(&COMMENCEMENT_TRANSITIONAL_VALUES);
+        let mut slots = Vec::new();
+        slots.push(CommencementSlot {
+            document_key: 508_812,
+            slot_kind: "named-chain",
+            act_number: "44".to_owned(),
+            act_date: "2013-04-05".to_owned(),
+            act_text_admitted: true,
+            evidence_class: "hypothesized_from_oracle_diff".to_owned(),
+            slot_verdict: "slot-filled-not-proven",
+            reason_code: "no-legislative-commencement-source",
+            transitional: "explicitly_absent",
+            commencement_rule_ref: "rec:commencement:484-93:hypothesized".to_owned(),
+            transitional_basis_id: COMMENCEMENT_TRANSITIONAL_JUSTIFICATION_ID.to_owned(),
+        });
+        *by_evidence_class
+            .get_mut("hypothesized_from_oracle_diff")
+            .unwrap() += 1;
+        *by_slot_verdict.get_mut("slot-filled-not-proven").unwrap() += 1;
+        *by_reason_code
+            .get_mut("no-legislative-commencement-source")
+            .unwrap() += 1;
+        *by_transitional.get_mut("explicitly_absent").unwrap() += 1;
+        for index in 0..EXPECTED_LAYER1_AMENDING_ACTS {
+            let admitted = index + 1 < EXPECTED_LAYER1_AMENDING_ACTS;
+            let reason = if admitted {
+                "no-legislative-commencement-source"
+            } else {
+                "act-text-not-admitted"
+            };
+            slots.push(CommencementSlot {
+                document_key: 100_000 + index as i64,
+                slot_kind: "amending-act",
+                act_number: (index + 1).to_string(),
+                act_date: "2014-01-01".to_owned(),
+                act_text_admitted: admitted,
+                evidence_class: "absent".to_owned(),
+                slot_verdict: "explicitly-absent",
+                reason_code: reason,
+                transitional: "unresolved",
+                commencement_rule_ref: String::new(),
+                transitional_basis_id: String::new(),
+            });
+            *by_evidence_class.get_mut("absent").unwrap() += 1;
+            *by_slot_verdict.get_mut("explicitly-absent").unwrap() += 1;
+            *by_reason_code.get_mut(reason).unwrap() += 1;
+            *by_transitional.get_mut("unresolved").unwrap() += 1;
+        }
+        CommencementTransitionEvidence {
+            admission_gate: CommencementAdmissionGate {
+                m208_s03_admission: "not-adopted".to_owned(),
+                m208_s03_owner_admission_ref: "none".to_owned(),
+                m208_s03_runtime_work: "not-started".to_owned(),
+                m208_s04_admission: "not-adopted".to_owned(),
+                m208_s04_owner_admission_ref: "none".to_owned(),
+                m208_s04_runtime_work: "not-started".to_owned(),
+                m207_human_pilot: "absent",
+                m207_c4_operational_acceptance: "non-pass".to_owned(),
+                m207_c4_rate_status: "not-measured",
+                m207_c4_protocol_relative_path: M207_C4_PROTOCOL_RELATIVE_PATH.to_owned(),
+                m207_c4_receipt_relative_path: M207_C4_RECEIPT_RELATIVE_PATH.to_owned(),
+            },
+            slots_total: EXPECTED_LAYER1_RECORDS_TOTAL,
+            named_chain_slots: 1,
+            amending_act_slots: EXPECTED_LAYER1_AMENDING_ACTS,
+            t02_layer1_records_total: EXPECTED_LAYER1_RECORDS_TOTAL,
+            t02_layer1_amending_acts: EXPECTED_LAYER1_AMENDING_ACTS,
+            t02_amends_edges_total: EXPECTED_AMENDS_EDGES_TOTAL,
+            t02_input_sha256: format!("sha256:{NIST_ABC}"),
+            frozen_gate_evidence_class: "hypothesized_from_oracle_diff".to_owned(),
+            frozen_gate_commencement_rule_ref: "rec:commencement:484-93:hypothesized".to_owned(),
+            frozen_gate_transitional: "explicitly_absent".to_owned(),
+            inputs: vec![AmendsInputPin {
+                input_id: "layer1_manifest".to_owned(),
+                relative_path: "consru_export/consru_export/manifest.jsonl".to_owned(),
+                input_bytes: 12,
+                input_sha256: format!("sha256:{NIST_ABC}"),
+            }],
+            slots,
+            by_evidence_class,
+            by_slot_verdict,
+            by_reason_code,
+            by_transitional,
+            class_matched_ids: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn the_commencement_fixture_is_a_valid_boundary() {
+        let evidence = commencement_fixture();
+        validate_commencement_transition(&evidence).expect("a boundary-shaped fixture validates");
+        let rendered = render_commencement_transition(&evidence);
+        assert!(rendered.is_ascii());
+        assert!(!rendered.contains("\"legislative\""));
+        for token in MINTED_VOCABULARY_TOKENS {
+            assert!(
+                !rendered.contains(token),
+                "the render must not mint {token}"
+            );
+        }
+        assert_eq!(
+            commencement_heartbeat(&evidence),
+            "commencement=122 named=1 amending=121 filled=1 absent=121 class_matched=0 drift=0"
+        );
+        assert!(validate_commencement_transition(&evidence).is_ok());
+        assert!(ensure_ascii_and_clean(&rendered).is_ok());
+    }
+
+    #[test]
+    fn a_legislative_slot_value_fails_closed_as_a_legislative_upgrade_attempt() {
+        let mut evidence = commencement_fixture();
+        evidence.slots[0].evidence_class = "legislative".to_owned();
+        let error = validate_commencement_transition(&evidence)
+            .expect_err("a legislative value must not be emitted");
+        assert_eq!(error.code(), Some("legislative_upgrade_attempt"));
+        assert_eq!(error.exit_code(), 6);
+    }
+
+    #[test]
+    fn a_minted_m208_identifier_fails_closed_as_vocabulary_minted() {
+        for token in MINTED_VOCABULARY_TOKENS {
+            let mut evidence = commencement_fixture();
+            evidence.slots[1].slot_kind = token;
+            let error = validate_commencement_transition(&evidence)
+                .expect_err("a minted identifier must fail closed");
+            assert_eq!(error.code(), Some("vocabulary_minted"), "token {token}");
+        }
+    }
+
+    #[test]
+    fn a_date_or_a_file_name_as_a_rule_reference_fails_closed() {
+        for value in [
+            "2013-04-05",
+            "law_2013-04-05_44-fz_rev-unknown_1a599b98.xml",
+            "law_2013-04-05_44-fz",
+        ] {
+            let mut evidence = commencement_fixture();
+            evidence.slots[0].commencement_rule_ref = value.to_owned();
+            let error = validate_commencement_transition(&evidence)
+                .expect_err("a date is not a commencement source");
+            assert_eq!(error.code(), Some("date-as-commencement"), "value {value}");
+        }
+    }
+
+    #[test]
+    fn a_filled_class_without_a_rule_reference_fails_closed() {
+        let mut evidence = commencement_fixture();
+        evidence.slots[0].commencement_rule_ref = String::new();
+        let error = validate_commencement_transition(&evidence)
+            .expect_err("a filled class needs a declared reference");
+        assert_eq!(error.code(), Some("date-as-commencement"));
+    }
+
+    #[test]
+    fn an_amending_act_slot_may_not_claim_commencement_evidence() {
+        let mut evidence = commencement_fixture();
+        evidence.slots[1].evidence_class = "hypothesized_from_oracle_diff".to_owned();
+        evidence.slots[1].commencement_rule_ref = "rec:commencement:1".to_owned();
+        let error = validate_commencement_transition(&evidence)
+            .expect_err("only the named chain may carry the frozen boundary");
+        assert_eq!(error.code(), Some("legislative_upgrade_attempt"));
+    }
+
+    #[test]
+    fn an_amending_act_slot_must_justify_its_own_reason_code() {
+        let mut evidence = commencement_fixture();
+        evidence.slots[1].act_text_admitted = false;
+        let error = validate_commencement_transition(&evidence)
+            .expect_err("the reason code must follow the admitted act text");
+        assert_eq!(error.code(), Some("no-legislative-commencement-source"));
+    }
+
+    #[test]
+    fn a_denominator_that_does_not_reproduce_t02_fails_closed() {
+        let mut evidence = commencement_fixture();
+        evidence.amending_act_slots += 1;
+        let error = validate_commencement_transition(&evidence)
+            .expect_err("the T02 denominator is not negotiable");
+        assert_eq!(error.code(), Some("family_count_unsupported"));
+
+        let mut evidence = commencement_fixture();
+        evidence.t02_layer1_records_total += 1;
+        let error =
+            validate_commencement_transition(&evidence).expect_err("T02 drift is a refusal");
+        assert_eq!(error.code(), Some("family_count_unsupported"));
+    }
+
+    #[test]
+    fn a_partition_that_does_not_sum_fails_closed() {
+        let mut evidence = commencement_fixture();
+        evidence
+            .by_reason_code
+            .insert("act-text-not-admitted".to_owned(), 7);
+        let error = validate_commencement_transition(&evidence)
+            .expect_err("a partition must sum to the denominator");
+        assert_eq!(error.code(), Some("family_count_unsupported"));
+    }
+
+    #[test]
+    fn class_matched_ids_must_stay_an_explicit_empty_set() {
+        let mut evidence = commencement_fixture();
+        evidence.class_matched_ids.push("annotation:1".to_owned());
+        let error = validate_commencement_transition(&evidence)
+            .expect_err("class-matched evidence is absent on this boundary");
+        assert_eq!(error.code(), Some("family_count_unsupported"));
+    }
+
+    #[test]
+    fn star_field_reads_a_declared_admission_line_only() {
+        let text = "**admission: not-adopted**\n**admission_basis:** prose\n**owner_admission_ref:** none\n**runtime_work:** not-started";
+        assert_eq!(star_field(text, "admission"), Some("not-adopted"));
+        assert_eq!(star_field(text, "owner_admission_ref"), Some("none"));
+        assert_eq!(star_field(text, "runtime_work"), Some("not-started"));
+        assert_eq!(star_field(text, "absent"), None);
+        assert_eq!(star_field("admission: not-adopted", "admission"), None);
+    }
+
+    #[test]
+    fn a_date_or_a_file_name_is_refused_as_a_rule_reference() {
+        for value in [
+            "2013-04-05",
+            "law_2013-04-05_44-fz",
+            "law_2013-04-05_44-fz_rev-unknown_1a599b98.xml",
+            "edition-abc",
+        ] {
+            assert!(
+                is_date_or_filename(value),
+                "{value} must read as a date or file name"
+            );
+        }
+        for value in [
+            "rec:commencement:484-93:hypothesized",
+            "m201-frozen-commencement-boundary",
+        ] {
+            assert!(!is_date_or_filename(value), "{value} is a rule reference");
+        }
+    }
+
+    #[test]
+    fn an_adopted_m208_premise_fails_closed_as_the_declared_reason_code() {
+        for mutate in [
+            (|gate: &mut CommencementAdmissionGate| gate.m208_s03_admission = "adopted".to_owned())
+                as fn(&mut CommencementAdmissionGate),
+            |gate: &mut CommencementAdmissionGate| {
+                gate.m208_s03_owner_admission_ref = "owner:1".to_owned()
+            },
+            |gate: &mut CommencementAdmissionGate| {
+                gate.m208_s03_runtime_work = "started".to_owned()
+            },
+            |gate: &mut CommencementAdmissionGate| gate.m208_s04_admission = "adopted".to_owned(),
+            |gate: &mut CommencementAdmissionGate| {
+                gate.m208_s04_owner_admission_ref = "owner:1".to_owned()
+            },
+            |gate: &mut CommencementAdmissionGate| {
+                gate.m208_s04_runtime_work = "started".to_owned()
+            },
+        ] {
+            let mut evidence = commencement_fixture();
+            mutate(&mut evidence.admission_gate);
+            let error = validate_commencement_transition(&evidence)
+                .expect_err("an adopted premise invalidates the declared reason");
+            assert_eq!(error.code(), Some("m208-s03-not-adopted"));
+        }
+    }
+
+    #[test]
+    fn a_present_m207_pilot_fails_closed_as_the_declared_reason_code() {
+        for mutate in [
+            (|gate: &mut CommencementAdmissionGate| gate.m207_human_pilot = "present")
+                as fn(&mut CommencementAdmissionGate),
+            |gate: &mut CommencementAdmissionGate| {
+                gate.m207_c4_operational_acceptance = "pass".to_owned()
+            },
+            |gate: &mut CommencementAdmissionGate| gate.m207_c4_rate_status = "measured",
+        ] {
+            let mut evidence = commencement_fixture();
+            mutate(&mut evidence.admission_gate);
+            let error = validate_commencement_transition(&evidence)
+                .expect_err("a measured pilot invalidates the declared reason");
+            assert_eq!(error.code(), Some("m207-human-pilot-absent"));
+        }
     }
 }
