@@ -7,6 +7,7 @@
 //! ln-decode) and does NOT own the edge vocabulary (that's ln-kb-ontology).
 
 pub mod acceptance_retry_contract;
+pub mod amendment_provenance;
 pub mod catalog;
 pub mod catalog_sqlite;
 pub mod classifier;

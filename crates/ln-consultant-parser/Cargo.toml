@@ -11,6 +11,10 @@ ln-temporal = { path = "../ln-temporal" }
 rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"] }
 
 [[bin]]
+name = "m209-amendment-provenance"
+path = "src/bin/m209-amendment-provenance.rs"
+
+[[bin]]
 name = "npa-contour-diagnostics"
 path = "src/bin/npa-contour-diagnostics.rs"
 
