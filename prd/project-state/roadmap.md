@@ -27,11 +27,16 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M208-wrz6fg is the active milestone; M207-b2i96m
+- **Local GSD workflow marker:** M210-3afp79 is the active milestone; M209-2yg6ix
   is the latest completed milestone in GSD registry (M204/M205/M206 completed
   2026-09-14..15; M207-b2i96m completed 2026-09-22, validated pass after its
   success criterion was reassessed so that Rust-series consumption is owned by
-  the declared M211 S01/S02 boundary). Note: the `milestones.status` column in
+  the declared M211 S01/S02 boundary; M209-2yg6ix completed 2026-09-23, validated
+  pass after the owner's authenticated human legal acceptance closed the planned
+  UAT class whose plan text was `HOLD if absent`). M208-wrz6fg is parked with a
+  recorded reason and is deliberately **not** claimed complete: M208's validation
+  left five criteria unsatisfied, so no honest `pass` existed and the milestone
+  was deferred instead of smoothed into completion. Note: the `milestones.status` column in
   the GSD database still reads `active` for M211-hkknug — a stale column the
   dispatcher and the governor do not use; the .gsd/STATE.md registry above is
   the derived truth. Prior band: M203-cx1j7t controlled the canonical

@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-09-22T16:09:31Z",
+  "generated_at": "2026-09-23T16:05:00Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -531,13 +531,19 @@
       "theme": "Independent NPA annotation and measurable verification (codebook, two-coder machinery, frozen evaluation, hybrid records contract, automatic evaluation, operational successor)",
       "status": "complete",
       "boundary": "S01-S04 frozen with the human contour honestly absent (HUMAN_PILOT_ABSENT exit 3, no fabricated stores, no published rates); S05-S07 add the versioned hybrid records contract, the automatic synthetic/differential/metamorphic evaluation and the operational successor with a failure sidecar. Validated pass after the success criterion was reassessed so that Rust-series consumption is owned by the declared M211 S01/S02 boundary rather than by M207 itself. R035 and R070 stay on HOLD; R038/R063/R064/R071/R077/R081 advanced as supporting only, status unchanged; no requirement validated."
+    },
+    {
+      "range": "M209-M209",
+      "theme": "Registry corpus evidence and temporal coverage (named R035 gate quantifiers, candidate-backed registry, amendment provenance, corpus battery and independent acceptance)",
+      "status": "complete",
+      "boundary": "Replaced inventory counters with per-gate named quantifiers: seven R035 gates (GATE-G001..GATE-G007) with an explicit conflicted GATE-G015 and a separate punkt decision (`admission: not-adopted`, `owner_admission_ref: none`, zero punkt rows). S02 declared the 1901 denominator from one named tracked source and keyed candidate identity by the pair (catalog_token, number) rather than bare key_path, so the canonical registry regenerates byte-identical at 6d7952b716b60d3b with 166 admission rows (102 candidate-backed, 64 legacy, punkt 0). S03 built amendment provenance over act families: 120 amends edges (40 resolved / 80 named reason codes), 122 commencement slots and 118 editions with a chain digest matching the T01 pin. S04 carried the corpus-budgeted battery (36 mandatory checks, failed 0) and an acceptance ledger that promotes nothing (gates_promoted 0, legs_promoted 0, proof_packages_attached 0, requirement_records_mutated 0, authoritative false, debt_total 11, empty_debt_rows 0). Validated pass on the owner's authenticated human legal acceptance recorded at sha256:e52399a1, which closes the planned UAT class whose own plan text was 'Human legal acceptance for named gates and chain scope; HOLD if absent'. R035 and R070 remain active without promotion by design. M208-wrz6fg remains parked with a recorded reason in .gsd (deferred, deliberately not claimed complete); R038 carries a self-disclosed record-sync omission, and the S04 delegated-to-t02 carrier weakness plus six owner decisions stay visible debt. No parser, temporal, registry or ontology readiness claim."
     }
   ],
   "current_milestone": {
-    "id": "M207-b2i96m",
+    "id": "M209-2yg6ix",
     "status": "complete",
-    "title": "Независимая разметка и измеримая проверка NPA",
-    "goal": "Source-bound independent gold, Work-family holdout and real metrics for NPA annotation, plus optional license-approved differential analysis, without enlarging the 180-fragment seed automatically. D519 removes the mandatory human pilot from the new scope while historical S01-S04 stay frozen; R035/R070 are not closed and requirements of other milestones are not resolved without their own evidence."
+    "title": "Корпусные доказательства реестра и temporal coverage",
+    "goal": "Named per-gate quantifiers for the R035 gates plus a candidate-backed registry whose identity is keyed by the pair (catalog_token, number), amendment provenance over act families, and a corpus-budgeted battery closed by independent acceptance. R035 and R070 stay active without promotion; the acceptance ledger promotes nothing and keeps debt_total 11 and empty_debt_rows 0 visible. M208-wrz6fg stays parked and R038 keeps a disclosed record-sync gap. No parser, temporal, registry or ontology readiness."
   },
   "recommended_next": {
     "title": "Execute M203 S01 Review disposition and control baseline",
