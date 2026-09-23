@@ -4493,3 +4493,77 @@ def test_live_governor_reports_compat_marker_hygiene() -> None:
     assert "empty_entities=" in finding.observed
     assert report.error_count == 0
     assert report.status == "ok"
+
+
+def test_parked_next_wave_with_recorded_reason_is_sanctioned_deferral(tmp_path: Path) -> None:
+    """A parked wave whose PARKED marker records a reason is an owner deferral.
+
+    Regression: STATE.md renders parked milestones with an emoji presentation
+    selector (`\u23f8\ufe0f`). The registry regex matched bare `\u23f8`, so the row
+    was dropped from the parse entirely and the check reported misleading debt.
+    """
+    state = tmp_path / ".gsd"
+    state.mkdir()
+    (state / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Last Completed Milestone:** M207-b2i96m: Independent annotation\n"
+        "**Active Milestone:** M209-2yg6ix: Corpus proofs\n"
+        "**Phase:** executing\n\n"
+        "## Milestone Registry\n"
+        "- \u2705 **M207-b2i96m:** Independent annotation\n"
+        "- \u23f8\ufe0f **M208-wrz6fg:** Change grammar and temporal vertical\n"
+        "- \U0001f504 **M209-2yg6ix:** Corpus proofs\n"
+        "- \u2b1c **M210-3afp79:** Normative semantics\n",
+        encoding="utf-8",
+    )
+    phase = state / "phases" / "208-wrz6fg-temporal"
+    phase.mkdir(parents=True)
+    (phase / "208-PARKED.md").write_text(
+        "---\n"
+        "parked_at: 2026-09-22T16:40:36.419Z\n"
+        'reason: "Design-only no-start; needs owner admission decision."\n'
+        "---\n\n"
+        "# M208-wrz6fg \u2014 Parked\n",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import _registry_milestones, check_gsd_residual_debt
+
+    rows = _registry_milestones((state / "STATE.md").read_text(encoding="utf-8"))
+    assert (208, "\u23f8") in [(seq, marker) for seq, marker, _ in rows]
+
+    findings = check_gsd_residual_debt(tmp_path)
+    by_id = {item.check_id: item for item in findings}
+    debt = by_id["gsd-no-open-registry-debt"]
+    assert debt.status == "pass"
+    assert debt.severity == "ok"
+    assert "deferred=[(208," in debt.observed
+    assert "open=[(209," in debt.observed
+
+
+def test_parked_next_wave_without_reason_remains_hard_debt(tmp_path: Path) -> None:
+    """Without a recorded reason a parked wave is abandoned work, not a deferral."""
+    state = tmp_path / ".gsd"
+    state.mkdir()
+    (state / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Last Completed Milestone:** M207-b2i96m: Independent annotation\n"
+        "**Active Milestone:** M209-2yg6ix: Corpus proofs\n"
+        "**Phase:** executing\n\n"
+        "## Milestone Registry\n"
+        "- \u2705 **M207-b2i96m:** Independent annotation\n"
+        "- \u23f8\ufe0f **M208-wrz6fg:** Change grammar and temporal vertical\n"
+        "- \U0001f504 **M209-2yg6ix:** Corpus proofs\n",
+        encoding="utf-8",
+    )
+    phase = state / "phases" / "208-wrz6fg-temporal"
+    phase.mkdir(parents=True)
+    (phase / "208-PARKED.md").write_text(
+        '---\nreason: ""\n---\n\n# M208-wrz6fg \u2014 Parked\n',
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_gsd_residual_debt
+
+    findings = check_gsd_residual_debt(tmp_path)
+    by_id = {item.check_id: item for item in findings}
+    assert by_id["gsd-no-open-registry-debt"].status == "fail"
+    assert by_id["gsd-no-open-registry-debt"].severity == "error"

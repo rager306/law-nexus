@@ -38,8 +38,11 @@ CheckStatus = Literal["pass", "fail"]
 
 # Markers: ✅ complete, 🔄 active, ⏸ paused, 🟡 blocked, ⚪/⬜ planned.
 # ⬜ (white large square) is the live STATE.md planned glyph; ⚪ is legacy.
+# Emoji presentation selectors (U+FE0F) are emitted by some STATE.md renderers and
+# their absence in this alternation silently dropped whole registry rows (a parked
+# milestone became invisible to every check built on _registry_milestones).
 _REGISTRY_ROW_RE = re.compile(
-    r"^\s*-\s*(?P<marker>✅|🔄|⏸|🟡|⚪|⬜)\s*\*\*M(?P<seq>\d+)(?:-[a-z0-9]+)?:\*\*\s*(?P<title>.+?)\s*$"
+    r"^\s*-\s*(?P<marker>✅|🔄|⏸|🟡|⚪|⬜)\ufe0f?\s*\*\*M(?P<seq>\d+)(?:-[a-z0-9]+)?:\*\*\s*(?P<title>.+?)\s*$"
 )
 _ACTIVE_MILESTONE_RE = re.compile(
     r"^\*\*Active Milestone:\*\*\s*M(?P<seq>\d+)(?:-(?P<rand>[a-z0-9]+))?",
@@ -846,6 +849,69 @@ def check_hostile_proof_chain(root: Path) -> list[GovernorFinding]:
 _HARD_OPEN_MARKERS = frozenset({"🔄", "⏸", "🟡"})
 # Planned-only markers: inventory visibility, not hard residual debt by themselves.
 _PLANNED_MARKERS = frozenset({"⬜", "⚪"})
+# A parked wave is a sanctioned deferral only when a PARKED marker records why. The
+# reason is what separates an owner decision from abandoned work, so a parked row
+# without one stays hard debt.
+_PARKED_MARKER = "⏸"
+_PARKED_REASON_RE = re.compile(r"^reason:[ \t]*(?P<reason>.*)$", re.MULTILINE)
+
+
+def _recorded_parked_reason(text: str) -> str:
+    """Extract the PARKED.md reason, treating a quoted-empty value as absent."""
+
+    match = _PARKED_REASON_RE.search(text)
+    if not match:
+        return ""
+    raw = match.group("reason").strip()
+    if len(raw) >= 2 and raw.startswith('"') and raw.endswith('"'):
+        raw = raw[1:-1]
+    return raw.strip()
+
+
+def _parked_deferral_seqs(root: Path, seqs: set[int]) -> set[int]:
+    """Sequences whose parked row carries a recorded PARKED.md reason.
+
+    Handles both milestone layouts: flat-phase (`.gsd/phases/<seq>-<slug>/<seq>-PARKED.md`)
+    and legacy (`/.gsd/milestones/M<seq>-<rand>/M<seq>*-PARKED.md`).
+    """
+
+    confirmed: set[int] = set()
+    candidates: list[Path] = []
+    phases_root = root / ".gsd" / "phases"
+    if phases_root.is_dir():
+        for seq in sorted(seqs):
+            candidates.extend(sorted(phases_root.glob(f"{seq}-*")))
+    milestones_root = root / ".gsd" / "milestones"
+    if milestones_root.is_dir():
+        for seq in sorted(seqs):
+            candidates.extend(sorted(milestones_root.glob(f"M{seq}-*")))
+    for mdir in candidates:
+        if not mdir.is_dir():
+            continue
+        for marker in sorted(mdir.glob("*-PARKED.md")):
+            try:
+                text = marker.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            recorded_reason = _recorded_parked_reason(text)
+            if recorded_reason:
+                seq_match = re.match(r"^(?:M)?(\d+)", mdir.name)
+                if seq_match:
+                    confirmed.add(int(seq_match.group(1)))
+    return confirmed
+
+
+def _next_required_wave(latest_completed: int, deferral_seqs: set[int]) -> int:
+    """First wave slot after `latest_completed` not already covered by a deferral.
+
+    Sanctioned parked deferrals may occupy consecutive wave slots; the single
+    hard-open milestone is expected at the first slot they do not cover.
+    """
+
+    seq = latest_completed + 1
+    while seq in deferral_seqs:
+        seq += 1
+    return seq
 
 
 def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
@@ -880,16 +946,31 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     latest_completed = max(completed_seqs) if completed_seqs else _last_completed_seq(state_text)
     active = _active_milestone_seq(state_text)
 
+    # A parked milestone whose PARKED marker records a reason is an explicit owner
+    # deferral, not abandoned work. It is reported as deferred inventory instead of
+    # hard debt, and it may occupy the next-wave slot that would otherwise be debt.
+    parked_seqs = {seq for seq, marker, _ in rows if marker == _PARKED_MARKER}
+    deferral_seqs = _parked_deferral_seqs(root, parked_seqs)
+    deferred = [(seq, title) for seq, marker, title in rows if seq in deferral_seqs]
+    if deferral_seqs:
+        hard_open = [(seq, title) for seq, title in hard_open if seq not in deferral_seqs]
+
+    deferral_note = "; deferred=" + str(deferred) if deferred else ""
+
     if not hard_open:
         findings.append(
             GovernorFinding(
                 check_id="gsd-no-open-registry-debt",
                 status="pass",
                 severity="ok",
-                message="GSD registry has no hard-open incomplete milestones",
+                message=(
+                    "GSD registry has no hard-open incomplete milestones"
+                    if not deferred
+                    else "GSD registry holds only sanctioned parked deferrals"
+                ),
                 observed=(
                     f"last_completed={latest_completed}; active={active}; "
-                    f"planned_inventory={len(planned)}"
+                    f"planned_inventory={len(planned)}{deferral_note}"
                 ),
                 remediation="none",
             )
@@ -897,7 +978,7 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     elif (
         len(hard_open) == 1
         and latest_completed is not None
-        and hard_open[0][0] == latest_completed + 1
+        and hard_open[0][0] == _next_required_wave(latest_completed, deferral_seqs)
     ):
         findings.append(
             GovernorFinding(
@@ -909,7 +990,7 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
                 ),
                 observed=(
                     f"open={hard_open}; last_completed=M{latest_completed}; active={active}; "
-                    f"planned_inventory={len(planned)}"
+                    f"planned_inventory={len(planned)}{deferral_note}"
                 ),
                 remediation="none",
             )
@@ -923,13 +1004,15 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
                 message="GSD registry has residual hard-open milestone debt",
                 observed=(
                     f"open={hard_open}; last_completed={latest_completed}; active={active}; "
-                    f"planned_inventory={len(planned)}"
+                    f"planned_inventory={len(planned)}{deferral_note}"
                 ),
                 remediation=(
                     "Close leftover hard-open milestones (🔄/⏸/🟡) at or behind the last "
                     "completed wave, or collapse multiple hard-open milestones to a single "
-                    "next-wave active milestone before product work continues. Planned-only "
-                    "⬜/⚪ rows are inventory and require GSD engine reconcile, not silent drop."
+                    "next-wave active milestone before product work continues. A parked "
+                    "milestone counts as a sanctioned deferral only when its PARKED marker "
+                    "records a reason; without one it stays hard debt. Planned-only ⬜/⚪ "
+                    "rows are inventory and require GSD engine reconcile, not silent drop."
                 ),
             )
         )
