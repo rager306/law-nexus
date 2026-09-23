@@ -1290,6 +1290,7 @@ pub enum ProvenanceMode {
     AmendsProvisions,
     Commencement,
     EditionChain,
+    Ledger,
 }
 
 impl ProvenanceMode {
@@ -1299,6 +1300,7 @@ impl ProvenanceMode {
             "amends-provisions" => Ok(Self::AmendsProvisions),
             "commencement" => Ok(Self::Commencement),
             "edition-chain" => Ok(Self::EditionChain),
+            "ledger" => Ok(Self::Ledger),
             other => Err(usage(format!("unsupported --mode {other}"))),
         }
     }
@@ -1506,6 +1508,16 @@ pub fn run_provenance(
                 DriftSubject::EditionChain(Box::new(evidence)),
             )
         }
+        ProvenanceMode::Ledger => {
+            let evidence = collect_scope_ledger(repo_root)?;
+            let rendered = render_scope_ledger(&evidence);
+            let heartbeat = scope_ledger_heartbeat(&evidence);
+            (
+                rendered,
+                heartbeat,
+                DriftSubject::Ledger(Box::new(evidence)),
+            )
+        }
     };
     ensure_ascii_and_clean(&rendered)?;
 
@@ -1536,6 +1548,9 @@ pub fn run_provenance(
                     DriftSubject::EditionChain(evidence) => {
                         diagnose_edition_delta_check_drift(&tracked, evidence)
                     }
+                    DriftSubject::Ledger(evidence) => {
+                        diagnose_scope_ledger_check_drift(&tracked, evidence)
+                    }
                 })
             }
         }
@@ -1548,6 +1563,7 @@ enum DriftSubject {
     Amends(Box<AmendsProvisionEvidence>),
     Commencement(Box<CommencementTransitionEvidence>),
     EditionChain(Box<EditionDeltaEvidence>),
+    Ledger(Box<ScopeLedgerEvidence>),
 }
 
 // ---------------------------------------------------------------------------
@@ -4611,6 +4627,689 @@ fn diagnose_edition_delta_check_drift(
     }
     family_unsupported(
         "<artifact>",
+        "artifact bytes differ from the live render while every declared pin matches",
+    )
+}
+
+// ---------------------------------------------------------------------------
+// ledger mode (T05)
+//
+// One source-bound aggregation of the four S03 leg artifacts into the scoped
+// R070 coverage ledger that S04 accepts or holds scope by scope. Every value is
+// re-derived from the tracked artifacts on each run: no leg is promoted, no
+// requirement is closed, and the frozen M201 R070 gate is cited by path and
+// sha256 rather than widened (D416 / D430 / D539).
+// ---------------------------------------------------------------------------
+
+/// Artifact schema for the S03 R070 scoped coverage ledger.
+pub const LEDGER_SCHEMA: &str = "law-nexus/r070-scope-ledger/v1";
+/// Artifact kind discriminator.
+pub const LEDGER_KIND: &str = "m209-s03-r070-scope-ledger";
+/// Task discriminator of this artifact.
+pub const LEDGER_TASK: &str = "T05";
+/// The T03 artifact whose commencement and transitional leg this ledger scopes.
+pub const T03_EVIDENCE_RELATIVE_PATH: &str =
+    "prd/migration/rust-evidence/m209-s03-commencement-transition-evidence.json";
+/// The T04 artifact whose edition-delta leg this ledger scopes.
+pub const T04_EVIDENCE_RELATIVE_PATH: &str =
+    "prd/migration/rust-evidence/m209-s03-edition-delta-evidence.json";
+/// The frozen M201 R070 proof gate this ledger cites and never widens.
+pub const M201_R070_GATE_PIN: &str =
+    "sha256:02db1cf033ec987bcca90bdb3a5d7d90a13f999048c41ef2d8999448e2ff3704";
+
+/// The only leg verdicts this ledger may carry: bounded supporting evidence, or
+/// a slot filled with evidence that is not proven.
+pub const LEDGER_LEG_BOUNDED_SUPPORTING: &str = "bounded-supporting";
+/// A slot filled with an unproven class.
+pub const LEDGER_LEG_SLOT_FILLED: &str = "slot-filled-not-proven";
+/// Closed leg-verdict vocabulary.
+pub const LEDGER_LEG_VERDICTS: [&str; 2] = [LEDGER_LEG_BOUNDED_SUPPORTING, LEDGER_LEG_SLOT_FILLED];
+/// The four R070 legs, in declaration order.
+pub const LEDGER_LEG_IDS: [&str; 4] = [
+    "amending-acts",
+    "affected-provisions",
+    "commencement-and-transitional",
+    "edition-delta",
+];
+/// The aggregate coverage verdict: one bounded chain is not every edition.
+pub const LEDGER_COVERAGE_VERDICT: &str = "incomplete-because-not-every-edition";
+/// No proof gate is promoted by this ledger.
+pub const LEDGER_GATES_PROMOTED: u64 = 0;
+/// The evidence class this ledger requires and does not have.
+pub const LEDGER_REQUIRED_EVIDENCE_CLASS: &str = "human-annotation";
+/// The declared status of that class.
+pub const LEDGER_REQUIRED_EVIDENCE_STATUS: &str = "absent";
+
+/// M202 inventory keys that may never stand as an R070 quantifier (D539).
+pub const LEDGER_FORBIDDEN_QUANTIFIER_KEYS: [&str; 10] = [
+    "registry_rows",
+    "legacy_human",
+    "punkt_admitted",
+    "candidates_extracted",
+    "candidates_unique",
+    "candidates_duplicate",
+    "admitted_candidate_backed",
+    "fz44_glava",
+    "fz44_statya",
+    "suites_cited",
+];
+
+/// Fail-closed codes this mode can emit. The node contract asserts its
+/// documented code block equals this array, which is also emitted verbatim as
+/// the artifact's `fail_closed_codes` field.
+pub const LEDGER_FAIL_CLOSED_CODES: [&str; 11] = [
+    "input_absent",
+    "input_hash_mismatch",
+    "family_count_unsupported",
+    "zero_denominator",
+    "non_ascii_evidence",
+    "raw_text_leak",
+    "leg_verdict_upgraded",
+    "disposition_upgraded",
+    "quantifier_unsupported",
+    "denominator_source_absent",
+    "m201_boundary_drift",
+];
+
+/// Denominator definition prose for the scoped coverage ledger.
+const LEDGER_COUNT_BASIS: &str = "The ledger is re-derived on every run from the four tracked S03 leg artifacts (family denominator, amending-act and provision, commencement and transition, edition delta) and from the frozen M201 R070 proof gate. Each leg declares one named quantifier with a unit, a numeric acceptance threshold and a denominator source path that must exist, its tracked artifact path with the declared counts read out of that artifact, and the class-matched evidence it requires and does not have. No value is typed by hand; a zero threshold is not a measurement; and no M202 inventory count may stand as a quantifier.";
+
+/// Per-leg claim bounds carried verbatim by the ledger.
+const LEDGER_AMENDING_ACT_NON_CLAIMS: [&str; 1] = ["The amending-act quantifier is the declared layer1 family and the catalog amends edges of one named revision; it is not every amending act of the corpus and it is not a legal amendment determination."];
+const LEDGER_AFFECTED_PROVISION_NON_CLAIMS: [&str; 1] = ["A resolved statya target is a registry binding of the named chain; it is not a legal effect, an obligation or an applicability finding."];
+const LEDGER_COMMENCEMENT_NON_CLAIMS: [&str; 1] = ["A slot verdict is neither a legal commencement determination nor an ADR-0021 transitional resolver; the class-matched human annotation this leg requires is absent."];
+const LEDGER_EDITION_DELTA_NON_CLAIMS: [&str; 1] = ["A hyperlink delta count is not a normative text delta and not commencement evidence; the walk covers one bounded chain, not every edition of the requirement."];
+
+/// The exact unmet conditions S04 must accept or hold scope by scope.
+const LEDGER_S04_UNMET_CONDITIONS: [&str; 4] = [
+    "corpus-scale Legislative commencement and transitional evidence is absent: the T03 leg keeps every amending-act slot explicitly-absent and the single named-chain slot slot-filled-not-proven",
+    "class-matched human evidence is absent because the M207 human pilot was not run",
+    "the canonical admission-pair swap still requires superseding the frozen pin suite",
+    "punkt admission D540 remains out of scope of S03",
+];
+
+/// Claim bounds carried by the scoped coverage ledger.
+const LEDGER_NON_CLAIMS: [&str; 8] = [
+    "This ledger is scoped to the named cc:44-fz chain and its amending family; it is not every consolidated legal edition and not every commencement question of the corpus (coverage_verdict incomplete-because-not-every-edition).",
+    "No leg is validated, complete or authoritative: every leg verdict is bounded-supporting or slot-filled-not-proven, gates_promoted is 0 and R070 stays active (D416).",
+    "A quantifier is a named measure with a numeric acceptance threshold and a declared denominator source path; no M202 inventory count (registry_rows, legacy_human, punkt_admitted, candidates_*, admitted_candidate_backed, fz44_glava, fz44_statya, suites_cited) may stand as a quantifier (D539).",
+    "A zero denominator is not a measurement; a quantifier threshold of zero fails closed (D552).",
+    "The frozen M201 R070 proof gate is cited by path and sha256 and is never widened or re-derived by this ledger.",
+    "No M208 runtime selector vocabulary is minted by this ledger (D216).",
+    "class_matched_ids is an explicit empty set on every leg: no class-matched human annotation exists because the M207 human pilot was not run.",
+    "No requirement record is mutated and no proof gate is promoted by this ledger; S04 accepts or holds scope by scope.",
+];
+
+/// One named quantified measure of a leg (D539).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ScopeLedgerQuantifier {
+    pub name: String,
+    pub unit: String,
+    pub acceptance: String,
+    pub threshold: u64,
+    pub denominator_source_path: String,
+}
+
+/// One scoped leg of the R070 coverage ledger.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ScopeLedgerLeg {
+    pub leg_id: &'static str,
+    pub leg_verdict: &'static str,
+    pub quantifier: ScopeLedgerQuantifier,
+    pub tracked_evidence_path: String,
+    pub tracked_evidence_counts: BTreeMap<String, u64>,
+    pub required_evidence_class: String,
+    pub required_evidence_status: String,
+    pub class_matched_ids: Vec<String>,
+    pub non_claims: &'static [&'static str],
+}
+
+/// The whole scoped coverage ledger.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ScopeLedgerEvidence {
+    pub legs: Vec<ScopeLedgerLeg>,
+    pub inputs: Vec<AmendsInputPin>,
+    pub m201_gate_relative_path: String,
+    pub m201_gate_sha256: String,
+    pub m201_gate_coverage_verdict: String,
+}
+
+fn ledger_read_artifact(
+    repo_root: &Path,
+    relative: &str,
+    input_id: &str,
+) -> Result<(String, AmendsInputPin), AmendmentProvenanceError> {
+    let path = repo_root.join(relative);
+    let bytes = fs::read(&path).map_err(|_| input_absent(relative.to_owned()))?;
+    if bytes.iter().any(|byte| *byte >= 0x80) {
+        return Err(AmendmentProvenanceError::NonAsciiEvidence {
+            detail: format!("{relative} is not ascii"),
+        });
+    }
+    let pin = AmendsInputPin {
+        input_id: input_id.to_owned(),
+        relative_path: relative.to_owned(),
+        input_bytes: bytes.len() as u64,
+        input_sha256: format!("sha256:{}", sha256_hex(&bytes)),
+    };
+    Ok((String::from_utf8_lossy(&bytes).into_owned(), pin))
+}
+
+/// Reads the scalar that follows `"key":` in a canonical compact artifact.
+/// Counts and short categorical values only; the caller asserts the type.
+fn ledger_scalar(text: &str, key: &str) -> Option<String> {
+    let needle = format!("\"{key}\":");
+    let start = text.find(&needle)? + needle.len();
+    let rest = text[start..].trim_start();
+    if let Some(stripped) = rest.strip_prefix('"') {
+        let end = stripped.find('"')?;
+        return Some(stripped[..end].to_owned());
+    }
+    let end = rest.find(['}', ',', ']']).unwrap_or(rest.len());
+    Some(rest[..end].trim().to_owned())
+}
+
+fn ledger_count(text: &str, key: &str) -> Result<u64, AmendmentProvenanceError> {
+    let raw = ledger_scalar(text, key).ok_or_else(|| {
+        family_unsupported(
+            "ledger",
+            format!("the tracked artifact declares no {key} count"),
+        )
+    })?;
+    raw.parse::<u64>().map_err(|_| {
+        family_unsupported(
+            "ledger",
+            format!("the declared {key} is not an unsigned count"),
+        )
+    })
+}
+
+/// Aggregates the four tracked S03 leg artifacts plus the frozen M201 gate into
+/// one scoped coverage ledger.
+pub fn collect_scope_ledger(
+    repo_root: &Path,
+) -> Result<ScopeLedgerEvidence, AmendmentProvenanceError> {
+    let (t01_text, t01_pin) = ledger_read_artifact(
+        repo_root,
+        T01_EVIDENCE_RELATIVE_PATH,
+        "t01_family_denominator",
+    )?;
+    let (t02_text, t02_pin) = ledger_read_artifact(
+        repo_root,
+        T02_EVIDENCE_RELATIVE_PATH,
+        "t02_amending_act_provision",
+    )?;
+    let (t03_text, t03_pin) = ledger_read_artifact(
+        repo_root,
+        T03_EVIDENCE_RELATIVE_PATH,
+        "t03_commencement_transition",
+    )?;
+    let (t04_text, t04_pin) =
+        ledger_read_artifact(repo_root, T04_EVIDENCE_RELATIVE_PATH, "t04_edition_delta")?;
+    let (gate_text, gate_pin) = ledger_read_artifact(
+        repo_root,
+        M201_R070_GATE_RELATIVE_PATH,
+        "m201_r070_proof_gate",
+    )?;
+
+    // 0. No upstream S03 artifact may have promoted its own disposition.
+    for text in [&t01_text, &t02_text, &t03_text, &t04_text] {
+        if text.contains("\"authoritative\":true") {
+            return Err(reason_unsupported(
+                "disposition_upgraded",
+                "an S03 leg artifact claims authoritative true",
+            ));
+        }
+    }
+
+    // 1. Ledger leg 1: the declared amending-act family of the named chain.
+    let mut amending_counts = BTreeMap::new();
+    amending_counts.insert(
+        "layer1_records_total".to_owned(),
+        ledger_count(&t02_text, "layer1_records_total")?,
+    );
+    amending_counts.insert(
+        "layer1_amending_acts".to_owned(),
+        ledger_count(&t02_text, "layer1_amending_acts")?,
+    );
+    amending_counts.insert(
+        "amends_edges_total".to_owned(),
+        ledger_count(&t02_text, "amends_edges_total")?,
+    );
+    let amends_edges = amending_counts["amends_edges_total"];
+    let layer1_records = amending_counts["layer1_records_total"];
+
+    // 2. Ledger leg 2: the affected-provision targets resolved for that family.
+    let mut provision_counts = BTreeMap::new();
+    provision_counts.insert(
+        "distinct_statya_refs".to_owned(),
+        ledger_count(&t02_text, "distinct_statya_refs")?,
+    );
+    provision_counts.insert(
+        "distinct_statya_refs_resolved".to_owned(),
+        ledger_count(&t02_text, "distinct_statya_refs_resolved")?,
+    );
+    provision_counts.insert(
+        "resolved-provision".to_owned(),
+        ledger_count(&t02_text, "resolved-provision")?,
+    );
+    let statya_refs = provision_counts["distinct_statya_refs"];
+    let statya_resolved = provision_counts["distinct_statya_refs_resolved"];
+
+    // 3. Ledger leg 3: the commencement and transitional slots, explicitly
+    //    absent. An adopted required evidence class is a verdict upgrade.
+    let mut commencement_counts = BTreeMap::new();
+    commencement_counts.insert(
+        "slots_total".to_owned(),
+        ledger_count(&t03_text, "slots_total")?,
+    );
+    commencement_counts.insert(
+        "named_chain_slots".to_owned(),
+        ledger_count(&t03_text, "named_chain_slots")?,
+    );
+    commencement_counts.insert("absent".to_owned(), ledger_count(&t03_text, "absent")?);
+    let slots_total = commencement_counts["slots_total"];
+    let named_chain_slots = commencement_counts["named_chain_slots"];
+    let required_status = ledger_scalar(&t03_text, "required_evidence_status").unwrap_or_default();
+    if required_status != LEDGER_REQUIRED_EVIDENCE_STATUS
+        || !t03_text.contains("\"class_matched_ids\":[]")
+        || named_chain_slots != 1
+        || slots_total != layer1_records
+    {
+        return Err(reason_unsupported(
+            "leg_verdict_upgraded",
+            "the commencement leg no longer declares an absent required evidence class",
+        ));
+    }
+
+    // 4. Ledger leg 4: the consecutive edition-delta windows of the chain.
+    let mut edition_counts = BTreeMap::new();
+    edition_counts.insert(
+        "editions_total".to_owned(),
+        ledger_count(&t04_text, "editions_total")?,
+    );
+    edition_counts.insert(
+        "editions_processed".to_owned(),
+        ledger_count(&t04_text, "editions_processed")?,
+    );
+    edition_counts.insert(
+        "windows_total".to_owned(),
+        ledger_count(&t04_text, "windows_total")?,
+    );
+    let editions_total = edition_counts["editions_total"];
+    let windows_total = edition_counts["windows_total"];
+    if editions_total != ledger_count(&t01_text, "editions_total")? {
+        return Err(family_unsupported(
+            "ledger",
+            "the edition-delta leg no longer reproduces the T01 chain declaration",
+        ));
+    }
+
+    let legs = vec![
+        ScopeLedgerLeg {
+            leg_id: LEDGER_LEG_IDS[0],
+            leg_verdict: LEDGER_LEG_BOUNDED_SUPPORTING,
+            quantifier: ScopeLedgerQuantifier {
+                name: "declared-amends-edge-partition".to_owned(),
+                unit: "catalog-amends-edges".to_owned(),
+                acceptance: format!(
+                    "every declared amends edge carries exactly one outcome code: >= {amends_edges} of {amends_edges}"
+                ),
+                threshold: amends_edges,
+                denominator_source_path: T02_EVIDENCE_RELATIVE_PATH.to_owned(),
+            },
+            tracked_evidence_path: T02_EVIDENCE_RELATIVE_PATH.to_owned(),
+            tracked_evidence_counts: amending_counts,
+            required_evidence_class: LEDGER_REQUIRED_EVIDENCE_CLASS.to_owned(),
+            required_evidence_status: LEDGER_REQUIRED_EVIDENCE_STATUS.to_owned(),
+            class_matched_ids: Vec::new(),
+            non_claims: &LEDGER_AMENDING_ACT_NON_CLAIMS,
+        },
+        ScopeLedgerLeg {
+            leg_id: LEDGER_LEG_IDS[1],
+            leg_verdict: LEDGER_LEG_BOUNDED_SUPPORTING,
+            quantifier: ScopeLedgerQuantifier {
+                name: "resolved-statya-provision-targets".to_owned(),
+                unit: "statya-targets".to_owned(),
+                acceptance: format!(
+                    ">= {statya_resolved} resolved statya provision targets of {statya_refs} distinct statya references"
+                ),
+                threshold: statya_resolved,
+                denominator_source_path: T02_EVIDENCE_RELATIVE_PATH.to_owned(),
+            },
+            tracked_evidence_path: T02_EVIDENCE_RELATIVE_PATH.to_owned(),
+            tracked_evidence_counts: provision_counts,
+            required_evidence_class: LEDGER_REQUIRED_EVIDENCE_CLASS.to_owned(),
+            required_evidence_status: LEDGER_REQUIRED_EVIDENCE_STATUS.to_owned(),
+            class_matched_ids: Vec::new(),
+            non_claims: &LEDGER_AFFECTED_PROVISION_NON_CLAIMS,
+        },
+        ScopeLedgerLeg {
+            leg_id: LEDGER_LEG_IDS[2],
+            leg_verdict: LEDGER_LEG_SLOT_FILLED,
+            quantifier: ScopeLedgerQuantifier {
+                name: "class-matched-human-commencement-slots".to_owned(),
+                unit: "commencement-slots".to_owned(),
+                acceptance: format!(
+                    ">= 1 of {slots_total} declared slots carry class-matched human commencement evidence"
+                ),
+                threshold: 1,
+                denominator_source_path: T03_EVIDENCE_RELATIVE_PATH.to_owned(),
+            },
+            tracked_evidence_path: T03_EVIDENCE_RELATIVE_PATH.to_owned(),
+            tracked_evidence_counts: commencement_counts,
+            required_evidence_class: LEDGER_REQUIRED_EVIDENCE_CLASS.to_owned(),
+            required_evidence_status: LEDGER_REQUIRED_EVIDENCE_STATUS.to_owned(),
+            class_matched_ids: Vec::new(),
+            non_claims: &LEDGER_COMMENCEMENT_NON_CLAIMS,
+        },
+        ScopeLedgerLeg {
+            leg_id: LEDGER_LEG_IDS[3],
+            leg_verdict: LEDGER_LEG_BOUNDED_SUPPORTING,
+            quantifier: ScopeLedgerQuantifier {
+                name: "consecutive-edition-delta-windows".to_owned(),
+                unit: "edition-delta-windows".to_owned(),
+                acceptance: format!(
+                    ">= {windows_total} consecutive delta windows over {editions_total} declared editions"
+                ),
+                threshold: windows_total,
+                denominator_source_path: T04_EVIDENCE_RELATIVE_PATH.to_owned(),
+            },
+            tracked_evidence_path: T04_EVIDENCE_RELATIVE_PATH.to_owned(),
+            tracked_evidence_counts: edition_counts,
+            required_evidence_class: LEDGER_REQUIRED_EVIDENCE_CLASS.to_owned(),
+            required_evidence_status: LEDGER_REQUIRED_EVIDENCE_STATUS.to_owned(),
+            class_matched_ids: Vec::new(),
+            non_claims: &LEDGER_EDITION_DELTA_NON_CLAIMS,
+        },
+    ];
+
+    let m201_gate_coverage_verdict =
+        ledger_scalar(&gate_text, "coverage_verdict").unwrap_or_default();
+    let m201_gate_disposition = ledger_scalar(&gate_text, "disposition").unwrap_or_default();
+    if gate_pin.input_sha256 != M201_R070_GATE_PIN
+        || m201_gate_coverage_verdict != LEDGER_COVERAGE_VERDICT
+        || m201_gate_disposition != DISPOSITION
+    {
+        return Err(reason_unsupported(
+            "m201_boundary_drift",
+            "the frozen M201 R070 proof gate drifted from its pinned bytes or verdict",
+        ));
+    }
+
+    let evidence = ScopeLedgerEvidence {
+        legs,
+        inputs: vec![t01_pin, t02_pin, t03_pin, t04_pin],
+        m201_gate_relative_path: M201_R070_GATE_RELATIVE_PATH.to_owned(),
+        m201_gate_sha256: gate_pin.input_sha256,
+        m201_gate_coverage_verdict,
+    };
+    validate_scope_ledger(&evidence, repo_root)?;
+    Ok(evidence)
+}
+
+/// Structural validation of a collected ledger. Every quantifier must be a
+/// named measure with a non-zero numeric threshold and an existing denominator
+/// source path; no leg may be promoted and no inventory key may be a measure
+/// (D539 / D552).
+pub fn validate_scope_ledger(
+    evidence: &ScopeLedgerEvidence,
+    repo_root: &Path,
+) -> Result<(), AmendmentProvenanceError> {
+    if evidence.legs.len() != LEDGER_LEG_IDS.len() {
+        return Err(family_unsupported(
+            "ledger",
+            "the ledger must carry exactly the four declared R070 legs",
+        ));
+    }
+    for (index, leg) in evidence.legs.iter().enumerate() {
+        if leg.leg_id != LEDGER_LEG_IDS[index] {
+            return Err(family_unsupported(
+                "ledger",
+                "the ledger legs are not in declaration order",
+            ));
+        }
+        if !LEDGER_LEG_VERDICTS.contains(&leg.leg_verdict) {
+            return Err(reason_unsupported(
+                "leg_verdict_upgraded",
+                "a leg carries a verdict outside the closed vocabulary",
+            ));
+        }
+        if leg.leg_id == LEDGER_LEG_IDS[2] && leg.leg_verdict != LEDGER_LEG_SLOT_FILLED {
+            return Err(reason_unsupported(
+                "leg_verdict_upgraded",
+                "the commencement leg may only be slot-filled-not-proven",
+            ));
+        }
+        if !leg.class_matched_ids.is_empty() {
+            return Err(reason_unsupported(
+                "leg_verdict_upgraded",
+                "class_matched_ids must be an explicit empty set on this boundary",
+            ));
+        }
+        let quantifier = &leg.quantifier;
+        if quantifier.name.is_empty()
+            || LEDGER_FORBIDDEN_QUANTIFIER_KEYS.contains(&quantifier.name.as_str())
+        {
+            return Err(reason_unsupported(
+                "quantifier_unsupported",
+                "a quantifier is unnamed or is a forbidden M202 inventory key",
+            ));
+        }
+        if quantifier.threshold == 0 {
+            return Err(AmendmentProvenanceError::ZeroDenominator {
+                family_id: "ledger".to_owned(),
+            });
+        }
+        if !quantifier
+            .acceptance
+            .contains(&quantifier.threshold.to_string())
+        {
+            return Err(reason_unsupported(
+                "quantifier_unsupported",
+                "a quantifier acceptance does not carry its numeric threshold",
+            ));
+        }
+        let path = Path::new(&quantifier.denominator_source_path);
+        if path.is_absolute() || quantifier.denominator_source_path.is_empty() {
+            return Err(reason_unsupported(
+                "denominator_source_absent",
+                "a denominator source path is absolute or empty",
+            ));
+        }
+        if !repo_root.join(path).exists() {
+            return Err(reason_unsupported(
+                "denominator_source_absent",
+                "a declared denominator source path does not resolve on disk",
+            ));
+        }
+    }
+
+    let rendered = render_scope_ledger(evidence);
+    if rendered.contains("\"legislative\"") {
+        return Err(AmendmentProvenanceError::LegislativeUpgradeAttempt {
+            detail: "the ledger carries the string legislative as a value".to_owned(),
+        });
+    }
+    for token in MINTED_VOCABULARY_TOKENS {
+        if rendered.contains(token) {
+            return Err(AmendmentProvenanceError::VocabularyMinted {
+                detail: format!("the ledger mints the identifier {token}"),
+            });
+        }
+    }
+    for banned in [
+        "\"disposition\":\"validated\"",
+        "\"disposition\":\"complete\"",
+        "\"leg_verdict\":\"validated\"",
+        "\"leg_verdict\":\"complete\"",
+        "\"leg_verdict\":\"proven\"",
+        "\"authoritative\":true",
+    ] {
+        if rendered.contains(banned) {
+            return Err(reason_unsupported(
+                "disposition_upgraded",
+                format!("the ledger carries a promoted value: {banned}"),
+            ));
+        }
+    }
+    Ok(())
+}
+
+/// Canonical render of the scoped coverage ledger (D424: compact, fixed key
+/// order, no timestamps).
+pub fn render_scope_ledger(evidence: &ScopeLedgerEvidence) -> String {
+    let mut writer = ObjectWriter::new();
+    writer.string("schema", LEDGER_SCHEMA);
+    writer.number("schema_version", 5);
+    writer.string("kind", LEDGER_KIND);
+    writer.string("milestone", MILESTONE);
+    writer.string("slice", SLICE);
+    writer.string("task", LEDGER_TASK);
+    writer.string("lifecycle", LIFECYCLE);
+    writer.boolean("authoritative", false);
+    writer.string("requirement_id", REQUIREMENT_ID);
+    writer.string("disposition", DISPOSITION);
+    writer.string("disposition_decision", DISPOSITION_DECISION);
+    writer.boolean("count_only", true);
+    writer.boolean("ascii_only", true);
+    writer.string("count_basis", LEDGER_COUNT_BASIS);
+    writer.string("coverage_verdict", LEDGER_COVERAGE_VERDICT);
+    writer.number("gates_promoted", LEDGER_GATES_PROMOTED);
+
+    writer.key("frozen_m201_boundary");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.string("gate_relative_path", &evidence.m201_gate_relative_path);
+        entry.string("gate_sha256", &evidence.m201_gate_sha256);
+        entry.string(
+            "gate_coverage_verdict",
+            &evidence.m201_gate_coverage_verdict,
+        );
+        entry.string("gate_disposition", DISPOSITION);
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("legs");
+    writer.buffer.push('[');
+    for (index, leg) in evidence.legs.iter().enumerate() {
+        if index > 0 {
+            writer.buffer.push(',');
+        }
+        let mut entry = ObjectWriter::new();
+        entry.string("leg_id", leg.leg_id);
+        entry.string("leg_verdict", leg.leg_verdict);
+        entry.key("quantifier");
+        {
+            let mut quantifier = ObjectWriter::new();
+            quantifier.string("name", &leg.quantifier.name);
+            quantifier.string("unit", &leg.quantifier.unit);
+            quantifier.string("acceptance", &leg.quantifier.acceptance);
+            quantifier.number("threshold", leg.quantifier.threshold);
+            quantifier.string(
+                "denominator_source_path",
+                &leg.quantifier.denominator_source_path,
+            );
+            entry.buffer.push_str(&quantifier.finish());
+        }
+        entry.key("tracked_evidence");
+        {
+            let mut tracked = ObjectWriter::new();
+            tracked.string("artifact_relative_path", &leg.tracked_evidence_path);
+            tracked.counts("declared_counts", &leg.tracked_evidence_counts);
+            entry.buffer.push_str(&tracked.finish());
+        }
+        entry.string("required_evidence_class", &leg.required_evidence_class);
+        entry.string("required_evidence_status", &leg.required_evidence_status);
+        entry.strings("class_matched_ids", &leg.class_matched_ids);
+        entry.fixed_strings("non_claims", leg.non_claims);
+        writer.buffer.push_str(&entry.finish());
+    }
+    writer.buffer.push(']');
+
+    writer.key("s04_handoff");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.string("coverage_verdict", LEDGER_COVERAGE_VERDICT);
+        entry.string("disposition", DISPOSITION);
+        entry.string("disposition_decision", DISPOSITION_DECISION);
+        entry.fixed_strings("unmet_conditions", &LEDGER_S04_UNMET_CONDITIONS);
+        entry.string(
+            "accept_or_hold",
+            "S04 accepts or holds scope by scope; no leg is promoted and no requirement record is mutated by this ledger.",
+        );
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("inputs");
+    writer.buffer.push('[');
+    for (index, pin) in evidence.inputs.iter().enumerate() {
+        if index > 0 {
+            writer.buffer.push(',');
+        }
+        let mut entry = ObjectWriter::new();
+        entry.string("input_id", &pin.input_id);
+        entry.string("relative_path", &pin.relative_path);
+        entry.number("input_bytes", pin.input_bytes);
+        entry.string("input_sha256", &pin.input_sha256);
+        writer.buffer.push_str(&entry.finish());
+    }
+    writer.buffer.push(']');
+
+    writer.fixed_strings("fail_closed_codes", &LEDGER_FAIL_CLOSED_CODES);
+    writer.fixed_strings("non_claims", &LEDGER_NON_CLAIMS);
+    writer.finish()
+}
+
+/// Count-only stderr heartbeat for the scoped coverage ledger.
+pub fn scope_ledger_heartbeat(evidence: &ScopeLedgerEvidence) -> String {
+    let bounded = evidence
+        .legs
+        .iter()
+        .filter(|leg| leg.leg_verdict == LEDGER_LEG_BOUNDED_SUPPORTING)
+        .count();
+    let slot_filled = evidence
+        .legs
+        .iter()
+        .filter(|leg| leg.leg_verdict == LEDGER_LEG_SLOT_FILLED)
+        .count();
+    format!(
+        "ledger={} bounded={} slot-filled-not-proven={} gates-promoted={} drift=0",
+        evidence.legs.len(),
+        bounded,
+        slot_filled,
+        LEDGER_GATES_PROMOTED
+    )
+}
+
+fn diagnose_scope_ledger_check_drift(
+    tracked: &[u8],
+    evidence: &ScopeLedgerEvidence,
+) -> AmendmentProvenanceError {
+    if tracked.iter().any(|byte| *byte >= 0x80) {
+        return AmendmentProvenanceError::NonAsciiEvidence {
+            detail: "tracked artifact is not ascii".to_owned(),
+        };
+    }
+    let tracked_text = String::from_utf8_lossy(tracked);
+    for pin in &evidence.inputs {
+        if !tracked_text.contains(&pin.input_sha256) {
+            return AmendmentProvenanceError::InputHashMismatch {
+                family_id: "ledger".to_owned(),
+                path: pin.relative_path.clone(),
+                detail: "the tracked ledger pin differs from the live leg artifact pin".to_owned(),
+            };
+        }
+    }
+    if !tracked_text.contains(&evidence.m201_gate_sha256) {
+        return AmendmentProvenanceError::InputHashMismatch {
+            family_id: "ledger".to_owned(),
+            path: evidence.m201_gate_relative_path.clone(),
+            detail: "the tracked ledger does not cite the frozen M201 gate pin".to_owned(),
+        };
+    }
+    family_unsupported(
+        "ledger",
         "artifact bytes differ from the live render while every declared pin matches",
     )
 }
