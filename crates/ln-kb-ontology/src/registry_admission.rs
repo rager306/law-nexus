@@ -52,13 +52,19 @@ pub struct CandidateEvidence {
     pub candidates: Vec<CandidateIdentity>,
 }
 
-/// Where an admission row came from. `m202-candidate-backed` rows must carry
-/// a `key_path` that resolves against the candidate evidence; legacy rows
-/// are the pre-existing human-admitted registry rows.
+/// Where an admission row came from. Candidate-backed rows (`m202-` and the
+/// additive M209 generation, D545) must carry a `key_path` that resolves
+/// against the candidate evidence; legacy rows are the pre-existing
+/// human-admitted registry rows.
+///
+/// `M209` is a separate literal, never a relabel of `M202`: a row admitted
+/// against the M209 successor generation is marked `m209-candidate-backed`
+/// so the frozen M202 evidence keeps its own pin (D544 / D546).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AdmissionProvenance {
     LegacyHuman,
     CandidateBackedM202,
+    CandidateBackedM209,
 }
 
 impl AdmissionProvenance {
@@ -66,8 +72,18 @@ impl AdmissionProvenance {
         match value {
             "legacy-human" => Some(Self::LegacyHuman),
             "m202-candidate-backed" => Some(Self::CandidateBackedM202),
+            "m209-candidate-backed" => Some(Self::CandidateBackedM209),
             _ => None,
         }
+    }
+
+    /// Every candidate-backed generation requires the same resolution gates
+    /// (candidate key_path present, candidate exists, level/number/path
+    /// agree, unchanged `MissingCandidate` / `IdentityMismatch` /
+    /// `ConflictingDuplicate` codes). The CC is still taken from the row;
+    /// neither generation mints a ComponentConcept.
+    pub fn is_candidate_backed(self) -> bool {
+        matches!(self, Self::CandidateBackedM202 | Self::CandidateBackedM209)
     }
 }
 
@@ -79,8 +95,8 @@ pub struct AdmissionBinding {
     pub path_needle: String,
     pub level: String,
     pub number: String,
-    /// Candidate key_path for `m202-candidate-backed` rows; `None` for
-    /// legacy human-admitted rows.
+    /// Candidate key_path for candidate-backed rows (`m202-candidate-backed`
+    /// or `m209-candidate-backed`); `None` for legacy human-admitted rows.
     pub key_path: Option<String>,
     pub cc: String,
     pub provenance: AdmissionProvenance,
@@ -347,18 +363,36 @@ pub fn admit_candidates(
         }
     }
 
-    // Candidate index; a duplicated candidate key in the evidence is a
-    // conflicting duplicate, not an input-order artifact.
-    let mut candidates: BTreeMap<&str, &CandidateIdentity> = BTreeMap::new();
+    // Candidate index keyed by the D548 identity pair
+    // `(catalog_token, number)`. The pair is the resolution key; the
+    // candidate's recorded `key_path` and its `path` ladder stay cross-check
+    // fields. A bare `key_path` is not unique across levels in the live
+    // artifact (`"1"` names glava-1, statya-1 and paragraph-1), so keying the
+    // index by `key_path` made a legitimate evidence set unresolvable instead
+    // of strict (D548).
+    //
+    // The index is a multimap because a pair is only unique *within* one
+    // identity: `punkt` 1 legitimately recurs under different parent ladders
+    // (the M209 44-FZ artifact carries 88 repeated pairs; the frozen M202
+    // artifact carries `punkt` 1 twice). A repeated pair is therefore not by
+    // itself a conflict. What is still a conflicting duplicate is a second
+    // candidate record claiming the same identity — same pair, same
+    // `key_path`, same `path` — because no row can then resolve
+    // unambiguously.
+    let mut candidates: BTreeMap<(&str, &str), Vec<&CandidateIdentity>> = BTreeMap::new();
     for candidate in &evidence.candidates {
-        if candidates
-            .insert(candidate.key_path.as_str(), candidate)
-            .is_some()
-        {
+        let bucket = candidates
+            .entry((candidate.catalog_token.as_str(), candidate.number.as_str()))
+            .or_default();
+        let duplicate = bucket.iter().any(|existing| {
+            existing.key_path == candidate.key_path && existing.path == candidate.path
+        });
+        if duplicate {
             return Err(RegistryAdmissionError::ConflictingDuplicate {
-                key: candidate.key_path.clone(),
+                key: format!("{}/{}", candidate.catalog_token, candidate.number),
             });
         }
+        bucket.push(candidate);
     }
 
     // CC well-formedness is checked for every row, regardless of provenance.
@@ -368,39 +402,52 @@ pub fn admit_candidates(
         }
     }
 
-    // Candidate-backed rows must resolve to a real candidate identity and
-    // agree with it on level and number (D426). The CC still comes from the
-    // row, never from level/number.
+    // Candidate-backed rows (either generation) must resolve against a real
+    // candidate identity (D426 / D545). Resolution is driven by the row's own
+    // `(level, number)` (D548), never by the bare `key_path`, which is shared
+    // across levels; the candidate's recorded `key_path` and `path` stay
+    // cross-check fields, so a row whose `key_path` names a different identity
+    // still fails closed. The CC still comes from the row, never from
+    // level/number.
     for row in &source.bindings {
-        if row.provenance != AdmissionProvenance::CandidateBackedM202 {
+        if !row.provenance.is_candidate_backed() {
             continue;
         }
-        let Some(key_path) = row.key_path.as_deref() else {
+        let Some(row_key_path) = row.key_path.as_deref() else {
             return Err(RegistryAdmissionError::MissingCandidate {
                 key_path: format!("{}/{}", row.level, row.number),
             });
         };
-        let Some(candidate) = candidates.get(key_path) else {
+        let Some(bucket) = candidates.get(&(row.level.as_str(), row.number.as_str())) else {
             return Err(RegistryAdmissionError::MissingCandidate {
-                key_path: key_path.to_owned(),
+                key_path: row_key_path.to_owned(),
             });
         };
-        if candidate.catalog_token != row.level || candidate.number != row.number {
+        let matched = bucket
+            .iter()
+            .filter(|candidate| {
+                candidate.catalog_token == row.level
+                    && candidate.number == row.number
+                    && candidate.key_path == row_key_path
+                    && candidate
+                        .path
+                        .as_deref()
+                        .is_none_or(|path| path == row_key_path)
+            })
+            .count();
+        if matched == 0 {
             return Err(RegistryAdmissionError::IdentityMismatch {
-                key_path: key_path.to_owned(),
+                key_path: row_key_path.to_owned(),
                 detail: format!(
-                    "row {}/{} does not match candidate {}/{}",
-                    row.level, row.number, candidate.catalog_token, candidate.number
+                    "row {}/{} key_path {row_key_path:?} matches no candidate identity",
+                    row.level, row.number
                 ),
             });
         }
-        if let Some(path) = candidate.path.as_deref() {
-            if path != key_path {
-                return Err(RegistryAdmissionError::IdentityMismatch {
-                    key_path: key_path.to_owned(),
-                    detail: format!("candidate path {path:?} disagrees with key_path"),
-                });
-            }
+        if matched > 1 {
+            return Err(RegistryAdmissionError::ConflictingDuplicate {
+                key: format!("{}/{}", row.level, row.number),
+            });
         }
     }
 

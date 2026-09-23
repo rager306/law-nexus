@@ -1,0 +1,200 @@
+# Successor candidate-backed admission source for the kb-hierarchy registry
+# projection (M209-2yg6ix S02 T02, D545 / D546).
+#
+# Predecessor (frozen, byte-pinned, never edited): prd/architecture/kb-hierarchy-registry-admissions.yaml
+#   sha256 1707330b202d336046deaf4e94c3836bf8194d16b0f8b9e2fea3bd317ab94b19
+# The frozen pair is include_str!-pinned by
+# crates/ln-kb-ontology/tests/r035_proof_gate.rs and its sha256 hex is
+# embedded in m202-s04-r035-proof-gate.json, so the widened coverage is
+# published as this separate successor generation (D545) instead of an
+# in-place edit of frozen evidence (D544 / D431).
+#
+# Lifecycle: [proposed]
+# Non-authority: an admission decision, not legal truth, not InForce, not
+# Applicable. Every row binds the already-existing CC identifier named by
+# its own `cc:` field; level/number never mint a ComponentConcept.
+# Rows are sorted by (path_needle, level, number), byte-lexicographic.
+# Candidate-backed rows resolve through FLAT candidate identities (bare
+# number key_path, path null); nested ladders never admit here (D546).
+# Punkt rows are absent by construction; nested candidacy stays unadmitted
+# (D546). The closed row schema is exactly
+# {path_needle, level, number, key_path, cc, provenance}; a generation link
+# to the M202 generation is recorded in evidence, not as an extra YAML key.
+#
+# Regenerate: node scripts/m209_s02_build_admissions.mjs --write
+# Verify:     node scripts/m209_s02_build_admissions.mjs --check
+
+schema: law-nexus-kb-hierarchy-admission/v1
+lifecycle: "[proposed]"
+authoritative: false
+candidate_artifact_path: prd/migration/rust-evidence/m209-s02-hierarchy-candidates-fz44.json
+candidate_artifact_sha256: d0dcb90726619f551e8c14115f28fb8733be399c90ae3bb8290cafdf74410388
+candidate_source_digest: fnv1a64:490f75a20886f160
+candidate_identity_digest: fnv1a64:778beb9832032d4e
+admissions:
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "1", key_path: "1", cc: cc:44-fz:glava-1, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "2", key_path: "2", cc: cc:44-fz:glava-2, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "3", key_path: "3", cc: cc:44-fz:glava-3, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "4", key_path: "4", cc: cc:44-fz:glava-4, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "5", key_path: "5", cc: cc:44-fz:glava-5, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "6", key_path: "6", cc: cc:44-fz:glava-6, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "7", key_path: "7", cc: cc:44-fz:glava-7, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "8", key_path: "8", cc: cc:44-fz:glava-8, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "1", key_path: "1", cc: cc:44-fz:statya-1, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "10", key_path: "10", cc: cc:44-fz:statya-10, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "100", key_path: "100", cc: cc:44-fz:statya-100, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "101", key_path: "101", cc: cc:44-fz:statya-101, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "102", key_path: "102", cc: cc:44-fz:statya-102, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "103", key_path: "103", cc: cc:44-fz:statya-103, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "104", key_path: "104", cc: cc:44-fz:statya-104, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "105", key_path: "105", cc: cc:44-fz:statya-105, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "106", key_path: "106", cc: cc:44-fz:statya-106, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "107", key_path: "107", cc: cc:44-fz:statya-107, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "108", key_path: "108", cc: cc:44-fz:statya-108, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "109", key_path: "109", cc: cc:44-fz:statya-109, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "11", key_path: "11", cc: cc:44-fz:statya-11, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "110", key_path: "110", cc: cc:44-fz:statya-110, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "110.1", key_path: "110.1", cc: cc:44-fz:statya-110.1, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "110.2", key_path: "110.2", cc: cc:44-fz:statya-110.2, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "111", key_path: "111", cc: cc:44-fz:statya-111, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "111.1", key_path: "111.1", cc: cc:44-fz:statya-111.1, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "111.2", key_path: "111.2", cc: cc:44-fz:statya-111.2, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "111.3", key_path: "111.3", cc: cc:44-fz:statya-111.3, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "111.4", key_path: "111.4", cc: cc:44-fz:statya-111.4, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "112", key_path: "112", cc: cc:44-fz:statya-112, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "113", key_path: "113", cc: cc:44-fz:statya-113, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "114", key_path: "114", cc: cc:44-fz:statya-114, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "12", key_path: "12", cc: cc:44-fz:statya-12, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "13", key_path: "13", cc: cc:44-fz:statya-13, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "14", key_path: "14", cc: cc:44-fz:statya-14, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "15", key_path: "15", cc: cc:44-fz:statya-15, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "16", key_path: "16", cc: cc:44-fz:statya-16, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "17", key_path: "17", cc: cc:44-fz:statya-17, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "18", key_path: "18", cc: cc:44-fz:statya-18, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "19", key_path: "19", cc: cc:44-fz:statya-19, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "2", key_path: "2", cc: cc:44-fz:statya-2, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "20", key_path: "20", cc: cc:44-fz:statya-20, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "21", key_path: "21", cc: cc:44-fz:statya-21, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "22", key_path: "22", cc: cc:44-fz:statya-22, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "23", key_path: "23", cc: cc:44-fz:statya-23, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "24", key_path: "24", cc: cc:44-fz:statya-24, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "24.1", key_path: "24.1", cc: cc:44-fz:statya-24.1, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "24.2", key_path: "24.2", cc: cc:44-fz:statya-24.2, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "25", key_path: "25", cc: cc:44-fz:statya-25, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "26", key_path: "26", cc: cc:44-fz:statya-26, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "27", key_path: "27", cc: cc:44-fz:statya-27, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "28", key_path: "28", cc: cc:44-fz:statya-28, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "29", key_path: "29", cc: cc:44-fz:statya-29, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "3", key_path: "3", cc: cc:44-fz:statya-3, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "30", key_path: "30", cc: cc:44-fz:statya-30, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "30.1", key_path: "30.1", cc: cc:44-fz:statya-30.1, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "31", key_path: "31", cc: cc:44-fz:statya-31, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "32", key_path: "32", cc: cc:44-fz:statya-32, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "33", key_path: "33", cc: cc:44-fz:statya-33, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "34", key_path: "34", cc: cc:44-fz:statya-34, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "35", key_path: "35", cc: cc:44-fz:statya-35, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "36", key_path: "36", cc: cc:44-fz:statya-36, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "37", key_path: "37", cc: cc:44-fz:statya-37, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "38", key_path: "38", cc: cc:44-fz:statya-38, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "39", key_path: "39", cc: cc:44-fz:statya-39, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "4", key_path: "4", cc: cc:44-fz:statya-4, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "40", key_path: "40", cc: cc:44-fz:statya-40, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "41", key_path: "41", cc: cc:44-fz:statya-41, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "42", key_path: "42", cc: cc:44-fz:statya-42, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "43", key_path: "43", cc: cc:44-fz:statya-43, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "44", key_path: "44", cc: cc:44-fz:statya-44, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "45", key_path: "45", cc: cc:44-fz:statya-45, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "46", key_path: "46", cc: cc:44-fz:statya-46, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "47", key_path: "47", cc: cc:44-fz:statya-47, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "48", key_path: "48", cc: cc:44-fz:statya-48, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "49", key_path: "49", cc: cc:44-fz:statya-49, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "5", key_path: "5", cc: cc:44-fz:statya-5, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "50", key_path: "50", cc: cc:44-fz:statya-50, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "51", key_path: "51", cc: cc:44-fz:statya-51, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "52", key_path: "52", cc: cc:44-fz:statya-52, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "6", key_path: "6", cc: cc:44-fz:statya-6, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "60", key_path: "60", cc: cc:44-fz:statya-60, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "61", key_path: "61", cc: cc:44-fz:statya-61, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "62", key_path: "62", cc: cc:44-fz:statya-62, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "7", key_path: "7", cc: cc:44-fz:statya-7, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "70", key_path: "70", cc: cc:44-fz:statya-70, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "71", key_path: "71", cc: cc:44-fz:statya-71, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "72", key_path: "72", cc: cc:44-fz:statya-72, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "73", key_path: "73", cc: cc:44-fz:statya-73, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "74", key_path: "74", cc: cc:44-fz:statya-74, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "75", key_path: "75", cc: cc:44-fz:statya-75, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "76", key_path: "76", cc: cc:44-fz:statya-76, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "77", key_path: "77", cc: cc:44-fz:statya-77, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "8", key_path: "8", cc: cc:44-fz:statya-8, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "9", key_path: "9", cc: cc:44-fz:statya-9, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "93", key_path: "93", cc: cc:44-fz:statya-93, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "94", key_path: "94", cc: cc:44-fz:statya-94, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "95", key_path: "95", cc: cc:44-fz:statya-95, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "96", key_path: "96", cc: cc:44-fz:statya-96, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "97", key_path: "97", cc: cc:44-fz:statya-97, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "98", key_path: "98", cc: cc:44-fz:statya-98, provenance: m209-candidate-backed}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "99", key_path: "99", cc: cc:44-fz:statya-99, provenance: m209-candidate-backed}
+  - {path_needle: n-402-fz, level: glava, number: "1", cc: cc:402fz:glava-1, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: glava, number: "2", cc: cc:402fz:glava-2, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: glava, number: "3", cc: cc:402fz:glava-3, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: glava, number: "4", cc: cc:402fz:glava-4, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "1", cc: cc:402fz:statya-1, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "10", cc: cc:402fz:statya-10, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "11", cc: cc:402fz:statya-11, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "12", cc: cc:402fz:statya-12, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "13", cc: cc:402fz:statya-13, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "14", cc: cc:402fz:statya-14, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "15", cc: cc:402fz:statya-15, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "16", cc: cc:402fz:statya-16, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "17", cc: cc:402fz:statya-17, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "18", cc: cc:402fz:statya-18, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "19", cc: cc:402fz:statya-19, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "2", cc: cc:402fz:statya-2, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "20", cc: cc:402fz:statya-20, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "21", cc: cc:402fz:statya-21, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "22", cc: cc:402fz:statya-22, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "23", cc: cc:402fz:statya-23, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "24", cc: cc:402fz:statya-24, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "25", cc: cc:402fz:statya-25, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "25.1", cc: cc:402fz:statya-25.1, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "26", cc: cc:402fz:statya-26, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "27", cc: cc:402fz:statya-27, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "28", cc: cc:402fz:statya-28, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "29", cc: cc:402fz:statya-29, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "3", cc: cc:402fz:statya-3, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "30", cc: cc:402fz:statya-30, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "31", cc: cc:402fz:statya-31, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "32", cc: cc:402fz:statya-32, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "4", cc: cc:402fz:statya-4, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "5", cc: cc:402fz:statya-5, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "6", cc: cc:402fz:statya-6, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "7", cc: cc:402fz:statya-7, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "8", cc: cc:402fz:statya-8, provenance: legacy-human}
+  - {path_needle: n-402-fz, level: statya, number: "9", cc: cc:402fz:statya-9, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "1", cc: cc:435fz:statya-1, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "10", cc: cc:435fz:statya-10, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "11", cc: cc:435fz:statya-11, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "12", cc: cc:435fz:statya-12, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "13", cc: cc:435fz:statya-13, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "14", cc: cc:435fz:statya-14, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "15", cc: cc:435fz:statya-15, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "16", cc: cc:435fz:statya-16, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "17", cc: cc:435fz:statya-17, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "18", cc: cc:435fz:statya-18, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "19", cc: cc:435fz:statya-19, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "2", cc: cc:435fz:statya-2, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "20", cc: cc:435fz:statya-20, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "21", cc: cc:435fz:statya-21, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "22", cc: cc:435fz:statya-22, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "3", cc: cc:435fz:statya-3, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "4", cc: cc:435fz:statya-4, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "5", cc: cc:435fz:statya-5, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "6", cc: cc:435fz:statya-6, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "7", cc: cc:435fz:statya-7, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "8", cc: cc:435fz:statya-8, provenance: legacy-human}
+  - {path_needle: n-435-fz, level: statya, number: "9", cc: cc:435fz:statya-9, provenance: legacy-human}
+  - {path_needle: n-44-fz, level: glava, number: "3", cc: cc:44-fz:glava-3, provenance: legacy-human}
+  - {path_needle: n-44-fz, level: glava, number: "6", cc: cc:44-fz:glava-6, provenance: legacy-human}
+  - {path_needle: n-44-fz, level: statya, number: "31", cc: cc:44-fz:statya-31, provenance: legacy-human}
+  - {path_needle: n-44-fz, level: statya, number: "43", cc: cc:44-fz:statya-43, provenance: legacy-human}
+  - {path_needle: n-44-fz, level: statya, number: "95", cc: cc:44-fz:statya-95, provenance: legacy-human}

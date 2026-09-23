@@ -478,13 +478,13 @@ pub fn render_projection(
         interlude_comment: interlude.as_deref(),
     });
 
+    // Both candidate-backed generations count here (D545): the M209
+    // successor generation marks its admitted rows `m209-candidate-backed`,
+    // and the heartbeat must not silently report them as legacy.
     let candidate_backed = admitted
         .bindings
         .iter()
-        .filter(|row| {
-            row.provenance
-                == ln_kb_ontology::registry_admission::AdmissionProvenance::CandidateBackedM202
-        })
+        .filter(|row| row.provenance.is_candidate_backed())
         .count();
     let legacy = admitted.bindings.len() - candidate_backed;
     Ok((rendered, admitted.bindings.len(), legacy, candidate_backed))
