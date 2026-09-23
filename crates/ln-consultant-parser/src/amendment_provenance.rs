@@ -1,6 +1,6 @@
 //! M209/S03 amendment-provenance evidence model (D552 / D554).
 //!
-//! Count-only, ASCII-only, fail-closed. Two legs of R070 for the named
+//! Count-only, ASCII-only, fail-closed. Four legs of R070 for the named
 //! `cc:44-fz` Work chain live here:
 //!
 //! - `families` (T01) declares the S03 family denominator: it counts records in
@@ -16,6 +16,18 @@
 //!   frozen hierarchy registry using the `(level, number)` identity pair. Each
 //!   edge lands in exactly one outcome code and the outcome partition sums to
 //!   the declared denominator.
+//! - `commencement` (T03) records the applicable commencement and transitional
+//!   leg as a source-bound absence: one slot per layer1 record of the T02
+//!   amending-act denominator, each carrying a closed-vocabulary evidence class,
+//!   slot verdict, reason code and transitional value, with the single frozen
+//!   M201 boundary carried verbatim and never upgraded (D415/D416/D553).
+//! - `edition-chain` (T04) walks the one multi-edition chain of the corpus
+//!   (`exports/npa/law_2013-04-05_44-fz`, 118 edition files) with the unmodified
+//!   admitted `multi_edition` runtime, reconciles the declared edition
+//!   inventory against the live directory listing and the frozen T01
+//!   declaration, and declares the resulting link-topology delta windows
+//!   between consecutive editions plus a per-edition and chain determinism
+//!   digest.
 //!
 //! Nothing here reads legal text. Only record counts, repository-relative
 //! paths, byte counts, SHA-256 pins and short categorical keys enter the
@@ -42,6 +54,9 @@ use std::io;
 use std::path::{Component, Path, PathBuf};
 
 use crate::catalog_sqlite::SqliteCatalog;
+use crate::multi_edition::{
+    delta, parse_edition_filename, process_editions_directory, EditionSummary,
+};
 
 /// Artifact schema for the S03 family denominator.
 pub const SCHEMA: &str = "law-nexus/r070-family-denominator/v1";
@@ -1116,6 +1131,13 @@ impl ObjectWriter {
         self.buffer.push_str(if value { "true" } else { "false" });
     }
 
+    /// Signed count: a JSON number by magnitude and sign, never a string and
+    /// never routed through a float.
+    fn signed(&mut self, key: &str, value: i64) {
+        self.key(key);
+        self.buffer.push_str(&value.to_string());
+    }
+
     fn counts(&mut self, key: &str, counts: &BTreeMap<String, u64>) {
         self.key(key);
         self.buffer.push('{');
@@ -1260,12 +1282,14 @@ pub fn family_denominator_heartbeat(denominator: &FamilyDenominator) -> String {
 // ---------------------------------------------------------------------------
 
 /// Evidence mode. T01 ships `families`; T02 adds `amends-provisions`; T03 adds
-/// `commencement`. Later S03 tasks add the remaining modes.
+/// `commencement`; T04 adds `edition-chain`. Later S03 tasks add the remaining
+/// modes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProvenanceMode {
     Families,
     AmendsProvisions,
     Commencement,
+    EditionChain,
 }
 
 impl ProvenanceMode {
@@ -1274,6 +1298,7 @@ impl ProvenanceMode {
             "families" => Ok(Self::Families),
             "amends-provisions" => Ok(Self::AmendsProvisions),
             "commencement" => Ok(Self::Commencement),
+            "edition-chain" => Ok(Self::EditionChain),
             other => Err(usage(format!("unsupported --mode {other}"))),
         }
     }
@@ -1470,6 +1495,17 @@ pub fn run_provenance(
                 DriftSubject::Commencement(Box::new(evidence)),
             )
         }
+        ProvenanceMode::EditionChain => {
+            let evidence = collect_edition_delta(repo_root, &cli.export_dir)?;
+            validate_edition_delta(&evidence)?;
+            let rendered = render_edition_delta(&evidence);
+            let heartbeat = edition_delta_heartbeat(&evidence);
+            (
+                rendered,
+                heartbeat,
+                DriftSubject::EditionChain(Box::new(evidence)),
+            )
+        }
     };
     ensure_ascii_and_clean(&rendered)?;
 
@@ -1497,6 +1533,9 @@ pub fn run_provenance(
                     DriftSubject::Commencement(evidence) => {
                         diagnose_commencement_check_drift(&tracked, evidence)
                     }
+                    DriftSubject::EditionChain(evidence) => {
+                        diagnose_edition_delta_check_drift(&tracked, evidence)
+                    }
                 })
             }
         }
@@ -1508,6 +1547,7 @@ enum DriftSubject {
     Families(FamilyDenominator),
     Amends(Box<AmendsProvisionEvidence>),
     Commencement(Box<CommencementTransitionEvidence>),
+    EditionChain(Box<EditionDeltaEvidence>),
 }
 
 // ---------------------------------------------------------------------------
@@ -3740,6 +3780,834 @@ fn diagnose_commencement_check_drift(
             "commencement",
             "tracked denominator differs from the live denominator",
         );
+    }
+    family_unsupported(
+        "<artifact>",
+        "artifact bytes differ from the live render while every declared pin matches",
+    )
+}
+
+// ---------------------------------------------------------------------------
+// edition-chain mode (T04)
+//
+// The fourth leg of R070 for the named chain: the resulting edition delta. The
+// corpus carries exactly one multi-edition chain, the tracked 44-FZ Work under
+// `exports/npa/law_2013-04-05_44-fz` (118 `edition-*.xml` files), so this leg
+// walks that one chain with the unmodified admitted `multi_edition` runtime and
+// declares the link-topology delta between consecutive editions. The declared
+// inventory is re-derived from the directory listing and reconciled against the
+// frozen T01 declaration, so the 118-edition figure is a measurement and never
+// a carried-over number. Every parser count here is a link classification of
+// the admitted runtime, never a normative text delta and never legal effect.
+// ---------------------------------------------------------------------------
+
+/// Artifact schema for the S03 edition-delta leg.
+pub const EDITION_DELTA_SCHEMA: &str = "law-nexus/r070-edition-delta/v1";
+/// Artifact kind discriminator.
+pub const EDITION_DELTA_KIND: &str = "m209-s03-edition-delta";
+/// Task discriminator of this artifact.
+pub const EDITION_DELTA_TASK: &str = "T04";
+/// The frozen T01 declaration whose edition inventory this leg reconciles.
+pub const T01_EVIDENCE_RELATIVE_PATH: &str =
+    "prd/migration/rust-evidence/m209-s03-family-denominator.json";
+/// Declared bound on the reported top-N windows by absolute amends change.
+pub const EDITION_DELTA_TOP_N: usize = 10;
+
+/// Fail-closed codes this mode can emit. The node contract asserts its
+/// documented code block equals this array, which is also emitted verbatim as
+/// the artifact's `fail_closed_codes` field, so a code can never be documented
+/// without being reachable and never be reachable without being documented.
+pub const EDITION_DELTA_FAIL_CLOSED_CODES: [&str; 7] = [
+    "input_absent",
+    "input_hash_mismatch",
+    "family_count_unsupported",
+    "zero_denominator",
+    "non_ascii_evidence",
+    "raw_text_leak",
+    "edition_dir_unreadable",
+];
+
+/// One edition of the named chain, as measured by the admitted runtime. Every
+/// field is a count or a validated categorical label; no link destination, no
+/// link text and no XML byte is carried.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EditionDeltaRow {
+    pub edition_number: u32,
+    pub revision_label: String,
+    pub hyperlink_count: u64,
+    pub classified_count: u64,
+    pub amends_count: u64,
+    pub cites_count: u64,
+    pub implements_count: u64,
+    pub unknown_count: u64,
+    /// FNV-1a diagnostic digest over the canonical summary tuple. It is a
+    /// determinism fingerprint, never integrity or authority evidence (D424).
+    pub digest: String,
+}
+
+/// One consecutive-edition delta window: the admitted `delta()` of two adjacent
+/// editions of the sorted summary list.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EditionWindowRow {
+    pub from_edition: u32,
+    pub to_edition: u32,
+    pub revision_from: String,
+    pub revision_to: String,
+    pub amends_change: i64,
+    pub cites_change: i64,
+    pub implements_change: i64,
+    pub unknown_change: i64,
+}
+
+/// Sum of every declared window's change, per classification.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EditionDeltaAggregate {
+    pub amends_change: i64,
+    pub cites_change: i64,
+    pub implements_change: i64,
+    pub unknown_change: i64,
+}
+
+/// The whole edition-delta leg of R070.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EditionDeltaEvidence {
+    pub edition_directory_relative_path: String,
+    pub editions_total: u64,
+    pub editions_processed: u64,
+    pub editions_unreadable: u64,
+    pub editions_unparsed_filename: u64,
+    pub windows_total: u64,
+    pub edition_dir_files_total: u64,
+    pub edition_dir_bytes_total: u64,
+    pub edition_dir_listing_sha256: String,
+    pub t01_editions_total: u64,
+    pub t01_edition_matching: u64,
+    pub t01_input_sha256: String,
+    pub chain_digest: String,
+    pub rows: Vec<EditionDeltaRow>,
+    pub windows: Vec<EditionWindowRow>,
+    pub aggregate: EditionDeltaAggregate,
+    pub top_amends_windows: Vec<EditionWindowRow>,
+    pub inputs: Vec<AmendsInputPin>,
+}
+
+/// FNV-1a (64-bit) over bytes. A deterministic diagnostic fingerprint used only
+/// to prove determinism by byte compare; it is not an integrity digest and not
+/// authority evidence, and the artifact says so.
+fn fnv1a64(bytes: &[u8]) -> u64 {
+    let mut hash = 0xcbf2_9ce4_8422_2325_u64;
+    for byte in bytes {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(0x0000_0100_0000_01b3_u64);
+    }
+    hash
+}
+
+/// Canonical tuple the per-edition digest is taken over. Field order and
+/// separators are fixed here, so a digest change means a summary change.
+fn edition_digest_tuple(summary: &EditionSummary) -> String {
+    format!(
+        "{}|{}|{}|{}|{}|{}|{}|{}",
+        summary.edition_number,
+        summary.revision_date,
+        summary.hyperlink_count,
+        summary.classified_count,
+        summary.amends_count,
+        summary.cites_count,
+        summary.implements_count,
+        summary.unknown_count
+    )
+}
+
+fn edition_summary_digest(summary: &EditionSummary) -> String {
+    format!(
+        "fnv1a64:{:016x}",
+        fnv1a64(edition_digest_tuple(summary).as_bytes())
+    )
+}
+
+/// Chain digest over the ordered per-edition digests: one fingerprint for the
+/// whole walk, so `--check` can prove determinism without a second walk.
+fn edition_chain_digest(rows: &[EditionDeltaRow]) -> String {
+    let mut stream = String::new();
+    for row in rows {
+        stream.push_str(&row.digest);
+        stream.push('\n');
+    }
+    format!("fnv1a64:{:016x}", fnv1a64(stream.as_bytes()))
+}
+
+/// Reads one flat field out of a named top-level object of a compact artifact.
+/// Brace- and string-aware, so a nested object never truncates the scan and a
+/// field of the first family can never be mistaken for a field of the chain
+/// block.
+fn object_body<'a>(text: &'a str, block: &str) -> Option<&'a str> {
+    let marker = format!("\"{block}\":{{");
+    let start = text.find(&marker)? + marker.len();
+    let bytes = text.as_bytes();
+    let mut depth = 0usize;
+    let mut in_string = false;
+    let mut escaped = false;
+    let mut index = start;
+    while index < bytes.len() {
+        let byte = bytes[index];
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'"' {
+                in_string = false;
+            }
+        } else if byte == b'"' {
+            in_string = true;
+        } else if byte == b'{' {
+            depth += 1;
+        } else if byte == b'}' {
+            if depth == 0 {
+                return Some(&text[start..index]);
+            }
+            depth -= 1;
+        }
+        index += 1;
+    }
+    None
+}
+
+/// The admitted edition files of one chain directory, listed read-only.
+struct EditionListing {
+    /// File names that parse as an edition, sorted, and therefore reachable by
+    /// the admitted walk.
+    names: Vec<String>,
+    /// File names the filter admits but `parse_edition_filename` rejects.
+    unparsed: u64,
+}
+
+impl EditionListing {
+    fn parsed_total(&self) -> u64 {
+        self.names.len() as u64
+    }
+
+    fn total(&self) -> u64 {
+        self.names.len() as u64 + self.unparsed
+    }
+}
+
+/// Lists the admitted edition files of one chain directory read-only.
+///
+/// The filter mirrors `multi_edition::process_editions_directory` exactly: an
+/// immediate child whose extension is `xml` and whose name starts with
+/// `edition-`. A file whose name does not parse as an edition is counted as
+/// `edition_unparsed_filename` and is never read.
+fn list_edition_files(directory: &Path) -> Result<EditionListing, AmendmentProvenanceError> {
+    let display = directory.display().to_string();
+    let unreadable = || AmendmentProvenanceError::EditionDirUnreadable {
+        path: display.clone(),
+    };
+    let entries = fs::read_dir(directory).map_err(|_| unreadable())?;
+    let mut candidates: Vec<String> = Vec::new();
+    for entry in entries {
+        let entry = entry.map_err(|_| unreadable())?;
+        let path = entry.path();
+        if !path.is_file() || !path.extension().is_some_and(|ext| ext == "xml") {
+            continue;
+        }
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if !name.starts_with(EDITION_FILE_PREFIX) {
+            continue;
+        }
+        candidates.push(name);
+    }
+    candidates.sort();
+    let mut names = Vec::with_capacity(candidates.len());
+    let mut unparsed = 0u64;
+    for name in candidates {
+        if parse_edition_filename(&name).is_none() {
+            unparsed += 1;
+        } else {
+            names.push(name);
+        }
+    }
+    Ok(EditionListing { names, unparsed })
+}
+
+/// Re-derives the edition-delta leg from the live repository: the declared
+/// inventory from the directory listing, the walk from the unmodified admitted
+/// runtime, the consecutive windows, and the determinism digests.
+pub fn collect_edition_delta(
+    repo_root: &Path,
+    export_dir: &str,
+) -> Result<EditionDeltaEvidence, AmendmentProvenanceError> {
+    let export_root_relative = export_root_relative_path(export_dir);
+    let export_root = resolve_export_root(repo_root, export_dir);
+    let chain_relative = join_relative(&export_root_relative, EDITION_DIR_TAIL);
+    let chain_dir = export_root.join(EDITION_DIR_TAIL);
+
+    // 1. The declared inventory, re-derived from the live directory listing.
+    let listing = list_edition_files(&chain_dir)?;
+    let editions_total = listing.total();
+    let editions_unparsed_filename = listing.unparsed;
+    if editions_total == 0 {
+        return Err(AmendmentProvenanceError::ZeroDenominator {
+            family_id: CHAIN_ID.to_owned(),
+        });
+    }
+    let inventory = inventory_directory(&chain_dir).map_err(|_| {
+        AmendmentProvenanceError::EditionDirUnreadable {
+            path: chain_relative.clone(),
+        }
+    })?;
+    if inventory.files_total != editions_total {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the directory subtree and the admitted edition filter disagree on the edition count",
+        ));
+    }
+
+    // 2. The admitted runtime walks the chain, unmodified.
+    let summaries = process_editions_directory(&chain_dir);
+    let editions_processed = summaries.len() as u64;
+    if editions_processed > listing.parsed_total() {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the admitted walk returned more summaries than the listing declares",
+        ));
+    }
+    // An edition the runtime could not read is a declared count, never a silent
+    // gap. It is the residual of the parsed listing, corroborated by an
+    // independent readability probe (an open, not a second payload read).
+    let editions_unreadable = listing.parsed_total() - editions_processed;
+    let unreadable_probe = listing
+        .names
+        .iter()
+        .filter(|name| fs::File::open(chain_dir.join(name)).is_err())
+        .count() as u64;
+    if unreadable_probe != editions_unreadable {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the declared unreadable count does not reproduce the independent readability probe",
+        ));
+    }
+
+    // 3. Per-edition rows plus the determinism block.
+    let mut rows = Vec::with_capacity(summaries.len());
+    let mut previous_number: Option<u32> = None;
+    for summary in &summaries {
+        if summary.revision_date.is_empty() || !is_allowed_key_token(&summary.revision_date) {
+            return Err(AmendmentProvenanceError::RawTextLeak {
+                detail: "an edition revision label is outside the count-only token rule".to_owned(),
+            });
+        }
+        if previous_number.is_some_and(|previous| summary.edition_number <= previous) {
+            return Err(family_unsupported(
+                CHAIN_ID,
+                "the admitted walk is not ordered by a strictly increasing edition number",
+            ));
+        }
+        previous_number = Some(summary.edition_number);
+        rows.push(EditionDeltaRow {
+            edition_number: summary.edition_number,
+            revision_label: summary.revision_date.clone(),
+            hyperlink_count: summary.hyperlink_count as u64,
+            classified_count: summary.classified_count as u64,
+            amends_count: summary.amends_count as u64,
+            cites_count: summary.cites_count as u64,
+            implements_count: summary.implements_count as u64,
+            unknown_count: summary.unknown_count as u64,
+            digest: edition_summary_digest(summary),
+        });
+    }
+
+    // 4. Consecutive delta windows over the sorted summary list.
+    let mut windows = Vec::with_capacity(summaries.len().saturating_sub(1));
+    for pair in summaries.windows(2) {
+        let change = delta(&pair[0], &pair[1]);
+        windows.push(EditionWindowRow {
+            from_edition: pair[0].edition_number,
+            to_edition: pair[1].edition_number,
+            revision_from: pair[0].revision_date.clone(),
+            revision_to: pair[1].revision_date.clone(),
+            amends_change: change.amends_change,
+            cites_change: change.cites_change,
+            implements_change: change.implements_change,
+            unknown_change: change.unknown_change,
+        });
+    }
+    let windows_total = windows.len() as u64;
+    let aggregate = EditionDeltaAggregate {
+        amends_change: windows.iter().map(|window| window.amends_change).sum(),
+        cites_change: windows.iter().map(|window| window.cites_change).sum(),
+        implements_change: windows.iter().map(|window| window.implements_change).sum(),
+        unknown_change: windows.iter().map(|window| window.unknown_change).sum(),
+    };
+
+    // Bounded declared top-N by absolute amends change, ties broken by the
+    // earlier window so the order is total and reproducible.
+    let mut order: Vec<usize> = (0..windows.len()).collect();
+    order.sort_by(|left, right| {
+        windows[*right]
+            .amends_change
+            .unsigned_abs()
+            .cmp(&windows[*left].amends_change.unsigned_abs())
+            .then_with(|| {
+                windows[*left]
+                    .from_edition
+                    .cmp(&windows[*right].from_edition)
+            })
+    });
+    let top_amends_windows: Vec<EditionWindowRow> = order
+        .into_iter()
+        .take(EDITION_DELTA_TOP_N)
+        .map(|index| windows[index].clone())
+        .collect();
+
+    // 5. The frozen T01 declaration must still reconcile with the live listing,
+    //    so the 118-edition inventory is a measurement and not a carried number.
+    let t01_path = repo_root.join(T01_EVIDENCE_RELATIVE_PATH);
+    let t01_text = fs::read_to_string(&t01_path)
+        .map_err(|_| input_absent(T01_EVIDENCE_RELATIVE_PATH.to_owned()))?;
+    let chain_body = object_body(&t01_text, "chain").ok_or_else(|| {
+        family_unsupported(
+            "m209-s03-family-denominator",
+            "the T01 artifact declares no chain block",
+        )
+    })?;
+    let t01_editions_total = flat_integer(chain_body, "editions_total")
+        .and_then(|value| u64::try_from(value).ok())
+        .ok_or_else(|| {
+            family_unsupported(
+                "m209-s03-family-denominator",
+                "the T01 chain block declares no editions_total",
+            )
+        })?;
+    let t01_edition_matching = flat_integer(chain_body, "edition_matching")
+        .and_then(|value| u64::try_from(value).ok())
+        .ok_or_else(|| {
+            family_unsupported(
+                "m209-s03-family-denominator",
+                "the T01 chain block declares no edition_matching count",
+            )
+        })?;
+    let t01_chain_sha256 = match flat_field(chain_body, "input_sha256") {
+        Some(FlatValue::Str(value)) => value.to_owned(),
+        _ => {
+            return Err(family_unsupported(
+                "m209-s03-family-denominator",
+                "the T01 chain block declares no listing digest",
+            ))
+        }
+    };
+    if t01_editions_total != editions_total || t01_edition_matching != editions_total {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the live edition inventory no longer reproduces the frozen T01 declaration",
+        ));
+    }
+    if t01_chain_sha256 != inventory.listing_sha256 {
+        return Err(AmendmentProvenanceError::InputHashMismatch {
+            family_id: CHAIN_ID.to_owned(),
+            path: chain_relative.clone(),
+            detail: "the live edition-directory listing digest differs from the frozen T01 pin"
+                .to_owned(),
+        });
+    }
+    let t01_input_sha256 = format!("sha256:{}", sha256_hex(t01_text.as_bytes()));
+
+    let inputs = vec![pin_of(
+        "t01_family_denominator",
+        &t01_path,
+        T01_EVIDENCE_RELATIVE_PATH.to_owned(),
+    )?];
+    let chain_digest = edition_chain_digest(&rows);
+
+    Ok(EditionDeltaEvidence {
+        edition_directory_relative_path: chain_relative,
+        editions_total,
+        editions_processed,
+        editions_unreadable,
+        editions_unparsed_filename,
+        windows_total,
+        edition_dir_files_total: inventory.files_total,
+        edition_dir_bytes_total: inventory.bytes_total,
+        edition_dir_listing_sha256: inventory.listing_sha256,
+        t01_editions_total,
+        t01_edition_matching,
+        t01_input_sha256,
+        chain_digest,
+        rows,
+        windows,
+        aggregate,
+        top_amends_windows,
+        inputs,
+    })
+}
+
+/// Fails closed on any inventory that does not reconcile, any digest that does
+/// not cover its own rows, and any window that does not reproduce the admitted
+/// delta of its own two editions.
+pub fn validate_edition_delta(
+    evidence: &EditionDeltaEvidence,
+) -> Result<(), AmendmentProvenanceError> {
+    if evidence.editions_total == 0 || evidence.editions_processed == 0 {
+        return Err(AmendmentProvenanceError::ZeroDenominator {
+            family_id: CHAIN_ID.to_owned(),
+        });
+    }
+    check_repo_relative(&evidence.edition_directory_relative_path)?;
+    if !evidence
+        .edition_directory_relative_path
+        .ends_with(EDITION_DIR_TAIL)
+    {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the declared edition directory is not the named chain directory",
+        ));
+    }
+    if evidence.edition_dir_files_total != evidence.editions_total {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the walked subtree total does not reproduce the declared edition total",
+        ));
+    }
+    if evidence.editions_processed
+        + evidence.editions_unreadable
+        + evidence.editions_unparsed_filename
+        != evidence.editions_total
+    {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the declared edition counts do not reconcile to the declared edition total",
+        ));
+    }
+    if evidence.t01_editions_total != evidence.editions_total
+        || evidence.t01_edition_matching != evidence.editions_total
+    {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the declared edition total does not reconcile with the frozen T01 declaration",
+        ));
+    }
+    if evidence.rows.len() as u64 != evidence.editions_processed {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the per-edition rows do not cover the declared processed total",
+        ));
+    }
+    if evidence.windows_total != evidence.editions_processed - 1
+        || evidence.windows.len() as u64 != evidence.windows_total
+    {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the declared windows are not one fewer than the processed editions",
+        ));
+    }
+
+    // Every window must reproduce the ordered pair of the rows around it, so a
+    // window can never be detached from the editions it claims to compare.
+    for (index, window) in evidence.windows.iter().enumerate() {
+        let from = evidence
+            .rows
+            .get(index)
+            .ok_or_else(|| family_unsupported(CHAIN_ID, "a window has no preceding edition row"))?;
+        let to = evidence
+            .rows
+            .get(index + 1)
+            .ok_or_else(|| family_unsupported(CHAIN_ID, "a window has no following edition row"))?;
+        if window.from_edition != from.edition_number
+            || window.to_edition != to.edition_number
+            || window.revision_from != from.revision_label
+            || window.revision_to != to.revision_label
+        {
+            return Err(family_unsupported(
+                CHAIN_ID,
+                "a declared window does not name its own two adjacent editions",
+            ));
+        }
+        let expected_amends = to.amends_count as i64 - from.amends_count as i64;
+        let expected_cites = to.cites_count as i64 - from.cites_count as i64;
+        let expected_implements = to.implements_count as i64 - from.implements_count as i64;
+        let expected_unknown = to.unknown_count as i64 - from.unknown_count as i64;
+        if window.amends_change != expected_amends
+            || window.cites_change != expected_cites
+            || window.implements_change != expected_implements
+            || window.unknown_change != expected_unknown
+        {
+            return Err(family_unsupported(
+                CHAIN_ID,
+                "a declared window does not reproduce the counted change of its two editions",
+            ));
+        }
+    }
+
+    // The aggregate is the sum of the windows, and the top-N is a bounded,
+    // ordered prefix of exactly them.
+    let aggregate = EditionDeltaAggregate {
+        amends_change: evidence.windows.iter().map(|w| w.amends_change).sum(),
+        cites_change: evidence.windows.iter().map(|w| w.cites_change).sum(),
+        implements_change: evidence.windows.iter().map(|w| w.implements_change).sum(),
+        unknown_change: evidence.windows.iter().map(|w| w.unknown_change).sum(),
+    };
+    if evidence.aggregate != aggregate {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the declared aggregate is not the sum of the declared windows",
+        ));
+    }
+    let expected_top = evidence.windows.len().min(EDITION_DELTA_TOP_N);
+    if evidence.top_amends_windows.len() != expected_top {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the declared top-N is not a bounded prefix of the declared windows",
+        ));
+    }
+
+    // Determinism block: every per-edition digest must cover its own row, and
+    // the chain digest must cover the ordered per-edition digests.
+    for row in &evidence.rows {
+        let tuple = format!(
+            "{}|{}|{}|{}|{}|{}|{}|{}",
+            row.edition_number,
+            row.revision_label,
+            row.hyperlink_count,
+            row.classified_count,
+            row.amends_count,
+            row.cites_count,
+            row.implements_count,
+            row.unknown_count
+        );
+        let expected = format!("fnv1a64:{:016x}", fnv1a64(tuple.as_bytes()));
+        if row.digest != expected {
+            return Err(family_unsupported(
+                CHAIN_ID,
+                "a per-edition digest does not cover its own row",
+            ));
+        }
+        if !is_allowed_key_token(&row.revision_label) {
+            return Err(AmendmentProvenanceError::RawTextLeak {
+                detail: "an edition revision label is outside the count-only token rule".to_owned(),
+            });
+        }
+    }
+    if evidence.chain_digest != edition_chain_digest(&evidence.rows) {
+        return Err(family_unsupported(
+            CHAIN_ID,
+            "the chain digest does not cover the ordered per-edition digests",
+        ));
+    }
+    Ok(())
+}
+
+/// Denominator and metric definition prose for the edition-delta leg.
+const EDITION_DELTA_COUNT_BASIS: &str = "The declared inventory is re-derived live on every run from the immediate children of the named chain edition directory that the admitted runtime admits: extension xml and name prefix edition-. editions_processed is the number of summaries the unmodified admitted multi_edition::process_editions_directory returned, editions_unreadable is the residual of the parsed listing, corroborated by an independent open probe, and editions_unparsed_filename counts admitted names whose edition number and revision do not parse. windows_total is editions_processed minus one, because the leg reports one consecutive delta per adjacent pair of the sorted summary list. The per-edition digest is an FNV-1a fingerprint over the fixed tuple (edition_number, revision label, hyperlink, classified, amends, cites, implements, unknown counts) and the chain digest is the same fingerprint over the ordered per-edition digests; both are determinism fingerprints used to prove re-render equality by byte compare, never integrity or authority digests. Nothing here is typed by hand and no zero denominator is a measurement.";
+
+/// Claim bounds carried by the edition-delta artifact.
+const EDITION_DELTA_NON_CLAIMS: [&str; 9] = [
+    "This leg measures link-topology deltas of the admitted multi-edition runtime over the one multi-edition chain of the corpus; it is not a normative text delta, not commencement evidence and not a determination that any provision became applicable.",
+    "The parser counts are link classifications of the admitted runtime, not legal effect: an amends, cites, implements or unknown count is a classification outcome and never an amendment, an obligation or an applicability finding.",
+    "This leg is scoped to the named cc:44-fz chain and its 118 admitted editions; it is not every-edition coverage beyond the reconciled counts and it is not another chain.",
+    "No corpus text is copied into this artifact: no XML bytes, no article text, no document titles, no link destinations, no link text, no offline URIs and no raw relation tooltips; only counts, edition numbers, revision labels, repository-relative paths, byte counts, sha256 pins and named categorical codes.",
+    "The edition delta is bounded supporting evidence for the named chain only and does not close R070: no promotion gate is promoted, satisfied or moved off unsatisfied (D416).",
+    "The frozen M201 R070 proof gate and the three frozen M201 pins are not widened, reopened or restated here, and the declared M208 startup surfaces stay absent.",
+    "A zero denominator is not a measurement and fails closed as zero_denominator; no declared total may be presented as a measurement when its counts do not reconcile to it (D552).",
+    "No new runtime vocabulary is minted: no effect-selector token, no transitional-resolver runtime, no evidence-anchor and no legislative-effect identifier (D216).",
+    "The declared top-N by absolute amends change is a bounded report of the largest absolute windows, not a ranking of legal significance and not a claim about the remaining windows.",
+];
+
+/// Canonical compact render. Fixed top-level key order, no timestamps, ASCII by
+/// construction: every scalar is a count, a validated categorical label, a
+/// repository-relative path or a declared digest (D424).
+pub fn render_edition_delta(evidence: &EditionDeltaEvidence) -> String {
+    let mut writer = ObjectWriter::new();
+    writer.string("schema", EDITION_DELTA_SCHEMA);
+    writer.number("schema_version", 4);
+    writer.string("kind", EDITION_DELTA_KIND);
+    writer.string("milestone", MILESTONE);
+    writer.string("slice", SLICE);
+    writer.string("task", EDITION_DELTA_TASK);
+    writer.string("lifecycle", LIFECYCLE);
+    writer.boolean("authoritative", false);
+    writer.string("requirement_id", REQUIREMENT_ID);
+    writer.string("disposition", DISPOSITION);
+    writer.string("disposition_decision", DISPOSITION_DECISION);
+    writer.boolean("count_only", true);
+    writer.boolean("ascii_only", true);
+    writer.string("count_basis", EDITION_DELTA_COUNT_BASIS);
+
+    writer.key("chain");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.string("chain_id", CHAIN_ID);
+        entry.string(
+            "edition_directory_relative_path",
+            &evidence.edition_directory_relative_path,
+        );
+        entry.string(
+            "admitted_runtime",
+            "multi_edition::process_editions_directory",
+        );
+        entry.string(
+            "delta_metric",
+            "multi_edition::delta of adjacent sorted editions",
+        );
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("denominator");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.number("editions_total", evidence.editions_total);
+        entry.number("editions_processed", evidence.editions_processed);
+        entry.number("editions_unreadable", evidence.editions_unreadable);
+        entry.number(
+            "editions_unparsed_filename",
+            evidence.editions_unparsed_filename,
+        );
+        entry.number("windows_total", evidence.windows_total);
+        entry.number("edition_dir_files_total", evidence.edition_dir_files_total);
+        entry.number("edition_dir_bytes_total", evidence.edition_dir_bytes_total);
+        entry.string(
+            "edition_dir_listing_sha256",
+            &evidence.edition_dir_listing_sha256,
+        );
+        entry.number("t01_editions_total", evidence.t01_editions_total);
+        entry.number("t01_edition_matching", evidence.t01_edition_matching);
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("determinism");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.string("per_edition_digest", "fnv1a64 over the fixed summary tuple");
+        entry.string(
+            "chain_digest_basis",
+            "fnv1a64 over the ordered per-edition digests",
+        );
+        entry.string("chain_digest", &evidence.chain_digest);
+        entry.boolean("diagnostic_only", true);
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("aggregate");
+    {
+        let mut entry = ObjectWriter::new();
+        entry.signed("amends_change", evidence.aggregate.amends_change);
+        entry.signed("cites_change", evidence.aggregate.cites_change);
+        entry.signed("implements_change", evidence.aggregate.implements_change);
+        entry.signed("unknown_change", evidence.aggregate.unknown_change);
+        writer.buffer.push_str(&entry.finish());
+    }
+
+    writer.key("windows");
+    writer.buffer.push('[');
+    for (index, window) in evidence.windows.iter().enumerate() {
+        if index > 0 {
+            writer.buffer.push(',');
+        }
+        writer.buffer.push_str(&render_window(window));
+    }
+    writer.buffer.push(']');
+
+    writer.key("top_amends_windows");
+    writer.buffer.push('[');
+    for (index, window) in evidence.top_amends_windows.iter().enumerate() {
+        if index > 0 {
+            writer.buffer.push(',');
+        }
+        writer.buffer.push_str(&render_window(window));
+    }
+    writer.buffer.push(']');
+
+    writer.key("editions");
+    writer.buffer.push('[');
+    for (index, row) in evidence.rows.iter().enumerate() {
+        if index > 0 {
+            writer.buffer.push(',');
+        }
+        let mut entry = ObjectWriter::new();
+        entry.number("edition_number", u64::from(row.edition_number));
+        entry.string("revision_label", &row.revision_label);
+        entry.number("hyperlink_count", row.hyperlink_count);
+        entry.number("classified_count", row.classified_count);
+        entry.number("amends_count", row.amends_count);
+        entry.number("cites_count", row.cites_count);
+        entry.number("implements_count", row.implements_count);
+        entry.number("unknown_count", row.unknown_count);
+        entry.string("digest", &row.digest);
+        writer.buffer.push_str(&entry.finish());
+    }
+    writer.buffer.push(']');
+
+    writer.key("inputs");
+    writer.buffer.push('[');
+    for (index, pin) in evidence.inputs.iter().enumerate() {
+        if index > 0 {
+            writer.buffer.push(',');
+        }
+        let mut entry = ObjectWriter::new();
+        entry.string("input_id", &pin.input_id);
+        entry.string("relative_path", &pin.relative_path);
+        entry.number("input_bytes", pin.input_bytes);
+        entry.string("input_sha256", &pin.input_sha256);
+        writer.buffer.push_str(&entry.finish());
+    }
+    writer.buffer.push(']');
+
+    writer.fixed_strings("fail_closed_codes", &EDITION_DELTA_FAIL_CLOSED_CODES);
+    writer.fixed_strings("non_claims", &EDITION_DELTA_NON_CLAIMS);
+    writer.finish()
+}
+
+/// One delta window, rendered identically in both window blocks.
+fn render_window(window: &EditionWindowRow) -> String {
+    let mut entry = ObjectWriter::new();
+    entry.number("from_edition", u64::from(window.from_edition));
+    entry.number("to_edition", u64::from(window.to_edition));
+    entry.string("revision_from", &window.revision_from);
+    entry.string("revision_to", &window.revision_to);
+    entry.signed("amends_change", window.amends_change);
+    entry.signed("cites_change", window.cites_change);
+    entry.signed("implements_change", window.implements_change);
+    entry.signed("unknown_change", window.unknown_change);
+    entry.finish()
+}
+
+/// Count-only stderr heartbeat for the edition-delta leg.
+pub fn edition_delta_heartbeat(evidence: &EditionDeltaEvidence) -> String {
+    format!(
+        "edition-chain={} processed={} unreadable={} unparsed={} windows={} drift=0",
+        evidence.editions_total,
+        evidence.editions_processed,
+        evidence.editions_unreadable,
+        evidence.editions_unparsed_filename,
+        evidence.windows_total
+    )
+}
+
+fn diagnose_edition_delta_check_drift(
+    tracked: &[u8],
+    evidence: &EditionDeltaEvidence,
+) -> AmendmentProvenanceError {
+    if tracked.iter().any(|byte| *byte >= 0x80) {
+        return AmendmentProvenanceError::NonAsciiEvidence {
+            detail: "tracked artifact is not ascii".to_owned(),
+        };
+    }
+    let tracked_text = String::from_utf8_lossy(tracked);
+    for pin in &evidence.inputs {
+        if !tracked_text.contains(&pin.input_sha256) {
+            return AmendmentProvenanceError::InputHashMismatch {
+                family_id: pin.input_id.clone(),
+                path: pin.relative_path.clone(),
+                detail: "tracked pin differs from the live input pin".to_owned(),
+            };
+        }
+    }
+    if !tracked_text.contains(&evidence.chain_digest) {
+        return AmendmentProvenanceError::InputHashMismatch {
+            family_id: CHAIN_ID.to_owned(),
+            path: evidence.edition_directory_relative_path.clone(),
+            detail: "tracked chain digest differs from the live chain digest".to_owned(),
+        };
     }
     family_unsupported(
         "<artifact>",

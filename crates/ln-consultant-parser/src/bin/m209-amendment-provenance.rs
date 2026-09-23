@@ -12,13 +12,19 @@
 //! denominator, carrying a closed-vocabulary evidence class, slot verdict,
 //! reason code and transitional value, and failing closed on any Legislative
 //! upgrade attempt, any minted M208 vocabulary and any date or file name read as
-//! a commencement source. Every mode either writes the artifact (`--write`) or
-//! byte-compares it against the tracked file without writing (`--check`, D424).
+//! a commencement source. T04 adds `edition-chain`, which walks the one
+//! multi-edition chain of the corpus with the unmodified admitted `multi_edition`
+//! runtime, reconciles the declared edition inventory against the live directory
+//! listing and the frozen T01 declaration, and declares the consecutive
+//! link-topology delta windows plus a per-edition and chain determinism digest.
+//! Every mode either writes the artifact (`--write`) or byte-compares it against
+//! the tracked file without writing (`--check`, D424).
 //!
 //! stderr carries a count-only heartbeat (`families=N manifests=N chains=1
 //! editions=N drift=0`, `amends=N resolved=N unresolved=N layer1=N rows=N
-//! drift=0`, or `commencement=N named=N amending=N filled=N absent=N
-//! class_matched=N drift=0`) or a typed `drift=<code>` / `error=<class>` line
+//! drift=0`, `commencement=N named=N amending=N filled=N absent=N
+//! class_matched=N drift=0`, or `edition-chain=N processed=N unreadable=N
+//! unparsed=N windows=N drift=0`) or a typed `drift=<code>` / `error=<class>` line
 //! with the pinned exit code: usage or path drift 2, input absent 3, output
 //! unwritable 4, schema, hash or ascii drift 6. No XML bytes, no article text and
 //! no raw relation tooltips are ever read into an artifact.
