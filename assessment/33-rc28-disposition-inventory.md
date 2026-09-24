@@ -103,6 +103,30 @@ by the owning slice before a disposition is written.
   Independent automated evaluation may measure a declared bounded contract, but is neither
   human gold nor legal correctness.
 
+## Minimal interactive review contract (candidate, not authority)
+
+An operator-facing session may group related findings to reduce reading, but it must not turn
+one blanket confirmation into 19 decisions. Before any choice, show for each finding its source
+span and source revision, proof class, tested revision, actual check outcome, residual scope,
+non-claims, proposed disposition with rationale, and at least the alternatives **change** and
+**defer**. A recommendation is not preselected consent. The human can inspect source/evidence,
+correct the proposal, defer an uncertain finding or stop the session. After each actual choice,
+read back the selected finding/outcome/revision/rationale; require a fresh confirmation before a
+human-controlled submission. Drift of a source, evidence or packet fingerprint between display
+and submission invalidates the proposal and requires a new review. Persist only the findings
+actually confirmed, and verify the ledger read-back against each specific choice.
+
+Automate source-span reconstruction, hashes, contract/negative tests, proof-class compatibility,
+revision and drift checks, proposed outcomes and grouping. Do not require a human to rerun those
+checks. Legal IR adoption in M210/S02 is a separate focused interactive decision on a presented
+bounded scope; a chat answer alone is not adoption of an ADR or authorization to impersonate a
+Review Case actor. Independent human labels are necessary only for a claim that relies on human
+gold or measured legal accuracy. Without them the proof ceiling stays bounded, not accepted.
+
+This is a UI/process specification, not an implemented identity or ledger feature. At present the
+application accepts caller-supplied `actor_class`/`actor_id`, so the proposed interactive session
+must fail closed at event submission until an actor-bound, human-controlled path is demonstrated.
+
 ## How a disposition is recorded
 
 Only through the sanctioned application APIs, by a human owner, with a rationale and a source
