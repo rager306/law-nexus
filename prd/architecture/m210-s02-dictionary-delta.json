@@ -1,0 +1,152 @@
+{
+  "schema": "law-nexus/m210-s02-dictionary-delta/v1",
+  "schema_version": 1,
+  "kind": "m210-s02-dictionary-delta",
+  "milestone": "M210-3afp79",
+  "slice": "S02",
+  "task": "T05",
+  "lifecycle": ["proposed"],
+  "authoritative": false,
+  "ascii_only": true,
+  "requirement_refs": ["RC28-F18", "R074"],
+  "checkpoint_ref": "prd/architecture/m210-s02-adoption-checkpoint.md",
+  "source_revision": "sha256:618aaf127decb28e211b9fbb044516f442c55b25be90d47e197abaf5311c6eb7",
+  "target_file": "prd/temporal-legal-model.md",
+  "target_section": "section 3 Glossary and ownership",
+  "target_file_sha256_pin": "a8f7184d38c9a48605c1c91f16fa64a33644a949ff83a8066efb97bd3f3cebd6",
+  "selection_state": "unselected",
+  "selected_variant": null,
+  "selection_note": "No variant is selected: the answer record is a sanctioned pending stop and the checkpoint is not-adopted. This delta therefore proposes no row for application and only materializes the candidate rows per variant, so a granted checkpoint can apply exactly the terms of the selected variant.",
+  "gate": {
+    "applied": false,
+    "applied_requires": "admission: granted",
+    "reason": "The adoption checkpoint records admission: not-adopted. While the verdict is not granted this delta must stay applied false and prd/temporal-legal-model.md must stay byte-identical to target_file_sha256_pin; applying without a grant is delta_applied_without_grant and mutating section 3 is section3_mutated."
+  },
+  "proposed_rows": [],
+  "proposed_rows_note": "Empty by construction: no variant is selected, so no section 3 row may be proposed for application. Rows materialize only after a fresh granted checkpoint names the variant.",
+  "conditional_rows_by_variant": {
+    "family_typed_record_ir": [
+      {
+        "term": "Condition",
+        "proposed_definition_scope": "Define the NormRule predicate and guard role as a deferred-undefined section 3 row with an undecided owning ADR; no schema and no runtime type.",
+        "owning_adr": null,
+        "status": "proposed-unapplied",
+        "non_claims": [
+          "Ordinary prose labelled as a condition is not a domain fact and does not define this term.",
+          "This row is not applied and does not create a schema, an owning ADR or a runtime surface."
+        ]
+      },
+      {
+        "term": "Exception",
+        "proposed_definition_scope": "Define the NormRule exception role as a deferred-undefined section 3 row with an undecided owning ADR; lexical exception markers alone cannot establish it.",
+        "owning_adr": null,
+        "status": "proposed-unapplied",
+        "non_claims": [
+          "Absence or lexical markers cannot establish exception semantics.",
+          "This row is not applied and does not create a schema, an owning ADR or a runtime surface."
+        ]
+      },
+      {
+        "term": "Defeater",
+        "proposed_definition_scope": "Define the NormRule defeat role as a deferred-undefined section 3 row with an undecided owning ADR; defeat is not exception and is not inferred from marker order.",
+        "owning_adr": null,
+        "status": "proposed-unapplied",
+        "non_claims": [
+          "Defeat semantics cannot be inferred from text order or marker presence.",
+          "This row is not applied and does not create a schema, an owning ADR or a runtime surface."
+        ]
+      }
+    ],
+    "single_facet_slot_rule_record": [
+      {
+        "term": "NormRule",
+        "proposed_definition_scope": "Define the normative-rule intermediate representation row as deferred-undefined with an undecided owning ADR under the ADR-0023 prerequisites.",
+        "owning_adr": null,
+        "status": "proposed-unapplied",
+        "non_claims": [
+          "Parser candidates and LLM text cannot become rules.",
+          "This row is not applied and does not create a schema, an owning ADR or a runtime surface."
+        ]
+      },
+      {
+        "term": "Condition",
+        "proposed_definition_scope": "Define the NormRule predicate and guard role as a deferred-undefined section 3 row with an undecided owning ADR; no schema and no runtime type.",
+        "owning_adr": null,
+        "status": "proposed-unapplied",
+        "non_claims": [
+          "Ordinary prose labelled as a condition is not a domain fact and does not define this term.",
+          "This row is not applied and does not create a schema, an owning ADR or a runtime surface."
+        ]
+      },
+      {
+        "term": "LegalEffect",
+        "proposed_definition_scope": "Define the NormRule consequence role as a deferred-undefined section 3 row, kept distinct from legal_act_effect, status and applicability.",
+        "owning_adr": null,
+        "status": "proposed-unapplied",
+        "non_claims": [
+          "This term is not legal_act_effect, not a NormativeState and not applicability by name similarity.",
+          "This row is not applied and does not create a schema, an owning ADR or a runtime surface."
+        ]
+      },
+      {
+        "term": "Exception",
+        "proposed_definition_scope": "Define the NormRule exception role as a deferred-undefined section 3 row with an undecided owning ADR; lexical exception markers alone cannot establish it.",
+        "owning_adr": null,
+        "status": "proposed-unapplied",
+        "non_claims": [
+          "Absence or lexical markers cannot establish exception semantics.",
+          "This row is not applied and does not create a schema, an owning ADR or a runtime surface."
+        ]
+      },
+      {
+        "term": "Defeater",
+        "proposed_definition_scope": "Define the NormRule defeat role as a deferred-undefined section 3 row with an undecided owning ADR; defeat is not exception and is not inferred from marker order.",
+        "owning_adr": null,
+        "status": "proposed-unapplied",
+        "non_claims": [
+          "Defeat semantics cannot be inferred from text order or marker presence.",
+          "This row is not applied and does not create a schema, an owning ADR or a runtime surface."
+        ]
+      },
+      {
+        "term": "ApplicabilitySelector",
+        "proposed_definition_scope": "Define the applicability expression and AST row as deferred-undefined while ADR-0023 owns only protocol boundaries.",
+        "owning_adr": null,
+        "status": "proposed-unapplied",
+        "non_claims": [
+          "No AST field may be invented and no case decision may be emitted.",
+          "This row is not applied and does not create a schema, an owning ADR or a runtime surface."
+        ]
+      }
+    ],
+    "abstention_first_candidates_only": []
+  },
+  "section3_deferred_terms": [
+    "NormRule",
+    "Condition",
+    "LegalEffect",
+    "Exception",
+    "Defeater",
+    "ApplicabilitySelector"
+  ],
+  "drift_guard": {
+    "target_byte_identical_required_while_not_granted": true,
+    "check": "sha256(target_file) equals target_file_sha256_pin",
+    "on_mismatch": "section3_mutated"
+  },
+  "non_claims": [
+    "This delta is proposed and unapplied: it changes no section 3 row and no file byte.",
+    "No variant is selected and no term is adopted or promoted; the candidate rows are conditional and carry owning_adr null.",
+    "Applying this delta requires a checkpoint that records admission: granted; applied true without that grant is fail-closed.",
+    "The delta is not an ADR, not a decision, not a Review Case disposition and not an authorization to start S03.",
+    "No requirement is promoted, no Review Case event is written and no crate is touched.",
+    "Section 3 stays deferred-undefined and prd/temporal-legal-model.md stays byte-identical to its pin."
+  ],
+  "fail_closed_codes": [
+    "delta_applied_without_grant",
+    "section3_mutated",
+    "proposed_rows_mismatch",
+    "non_ascii_artifact",
+    "runtime_claim_present"
+  ]
+}
