@@ -4102,6 +4102,53 @@ _JOURNAL_WEDGE_RAW_REASON = (
 )
 
 
+def _journal_wedge_reason(backstop: str, unit: str, wedge_id: str) -> str:
+    """Engine-shaped wedge rawReason (source-bound to gsd auto exits)."""
+
+    return (
+        f"Blocked: liveness backstop tripped: {backstop} recurred 2x with "
+        f"unchanged inputs for orchestration {unit} (wedge {wedge_id})"
+    )
+
+
+def _journal_wedge_exit_broadcast(base: datetime, reason: str, unit: str) -> list[dict]:
+    """Full 4-line engine wedge-exit broadcast (2026-09-22 W-83e3163e shape).
+
+    Every line repeats the wedge rawReason; the guard-block line even carries
+    data.unitId == the wedge unit, so these lines are exit broadcast, not
+    proof that the unit moved on.
+    """
+
+    return [
+        _journal_event(
+            base.isoformat(),
+            "orchestrator-guard-block",
+            {
+                "source": "auto-orchestrator",
+                "name": "advance-blocked",
+                "reason": reason,
+                "unitType": "orchestration",
+                "unitId": unit,
+            },
+        ),
+        _journal_event(
+            (base + timedelta(seconds=4)).isoformat(),
+            "iteration-end",
+            {"iteration": 1, "status": "stopped", "reason": reason},
+        ),
+        _journal_event(
+            (base + timedelta(seconds=20)).isoformat(),
+            "auto-exit",
+            {"reason": "blocked", "rawReason": reason},
+        ),
+        _journal_event(
+            (base + timedelta(seconds=28)).isoformat(),
+            "orchestrator-terminal",
+            {"source": "auto-orchestrator", "name": "stop", "reason": reason},
+        ),
+    ]
+
+
 def _journal_event(ts: str, event_type: str, data: dict) -> dict:
     return {
         "ts": ts,
@@ -4141,10 +4188,15 @@ def test_journal_retry_loops_flags_recent_wedge(tmp_path: Path) -> None:
     assert failed[0].severity == "warn"
     assert "W-abc12345" in failed[0].observed
     assert "M195-mdvctn/S01/T01" in failed[0].observed
+    # No later journal activity for the wedge unit: closure unproven, so the
+    # inspect-before-resume remediation is kept (fail closed the safe way).
+    assert "closure_signal=none-after-exit" in failed[0].observed
+    assert "--resume-wedge W-abc12345" in failed[0].remediation
     passed = [item for item in findings if item.status == "pass"]
     assert len(passed) == 1
-    assert "wedge_exits=1" in passed[0].observed
-    assert "recent_wedges=1" in passed[0].observed
+    assert "wedge_exit_lines_total=1" in passed[0].observed
+    assert "window_wedges=1" in passed[0].observed
+    assert "window_wedges_superseded=0" in passed[0].observed
 
 
 def test_journal_retry_loops_healthy_journal_is_single_pass(tmp_path: Path) -> None:
@@ -4155,8 +4207,8 @@ def test_journal_retry_loops_healthy_journal_is_single_pass(tmp_path: Path) -> N
             _journal_event(base.isoformat(), "unit-start", {"unitId": "M1/S1/T1"}),
             _journal_event(
                 (base + timedelta(hours=1)).isoformat(),
-                "pre-execution-retry",
-                {"unitId": "M1/S1/T1", "attempt": 1},
+                "unit-end",
+                {"unitId": "M1/S1/T1"},
             ),
             _journal_event((base + timedelta(hours=2)).isoformat(), "terminal", {"ok": True}),
         ],
@@ -4166,9 +4218,182 @@ def test_journal_retry_loops_healthy_journal_is_single_pass(tmp_path: Path) -> N
     assert len(findings) == 1
     assert findings[0].status == "pass"
     assert findings[0].severity == "ok"
-    assert "wedge_exits=0" in findings[0].observed
-    assert "retry_events=0" in findings[0].observed
+    assert "wedge_exit_lines_total=0" in findings[0].observed
+    assert "retry_events_total=0" in findings[0].observed
+    assert "retry_loops_total=0" in findings[0].observed
     assert "window_days=3" in findings[0].observed
+
+
+def test_journal_retry_loops_counts_verification_retry_with_attempt_one(
+    tmp_path: Path,
+) -> None:
+    # Regression for the named bug: the durable verification-retry phase is
+    # real retry traffic (journal 2026-09-23 shape, attempt=1 on every event)
+    # and must appear in retry_events despite attempt=1.
+    base = datetime(2026, 9, 23, 2, 0, 43, tzinfo=UTC)
+    _write_journal_file(
+        tmp_path,
+        [
+            _journal_event(
+                base.isoformat(),
+                "verification-retry",
+                {"unitType": "execute-task", "unitId": "M209-2yg6ix/S02/T03", "attempt": 1},
+            ),
+        ],
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    observed = findings[0].observed
+    assert "retry_events_total=1" in observed
+    assert "retry_loops_total=0" in observed
+    assert "window_retry_events=1" in observed
+
+
+def test_journal_retry_loops_first_retries_count_but_are_not_loops(
+    tmp_path: Path,
+) -> None:
+    # Source-bound to the engine retry vocabulary (gsd auto finalize.js /
+    # auto-verification.js): data.attempt is the 1-based retry ordinal, so
+    # attempt=1 is a real first retry. Only attempt >= 2 is a retry loop.
+    base = datetime(2026, 9, 23, 2, 0, 0, tzinfo=UTC)
+    _write_journal_file(
+        tmp_path,
+        [
+            _journal_event(
+                base.isoformat(),
+                "pre-execution-retry",
+                {"unitType": "plan-milestone", "unitId": "M209-2yg6ix", "attempt": 1},
+            ),
+            _journal_event(
+                (base + timedelta(minutes=1)).isoformat(),
+                "artifact-verification-retry",
+                {"unitType": "execute-task", "unitId": "M209-2yg6ix/S03/T01", "attempt": 1},
+            ),
+            _journal_event(
+                (base + timedelta(minutes=2)).isoformat(),
+                "verification-retry",
+                {"unitType": "execute-task", "unitId": "M209-2yg6ix/S02/T03", "attempt": 1},
+            ),
+            _journal_event(
+                (base + timedelta(minutes=3)).isoformat(),
+                "pre-execution-retry",
+                {"unitType": "plan-milestone", "unitId": "M209-2yg6ix", "attempt": 2},
+            ),
+        ],
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    observed = findings[0].observed
+    assert "retry_events_total=4" in observed
+    assert "retry_loops_total=1" in observed
+    assert "retry_malformed_total=0" in observed
+    assert "window_retry_events=4" in observed
+    assert "window_retry_loops=1" in observed
+
+
+def test_journal_retry_loops_malformed_retry_attempt_fails_closed(
+    tmp_path: Path,
+) -> None:
+    # A retry event is counted as a retry (its type is the engine's own
+    # signal), but a missing/non-int/bool attempt can never be asserted as a
+    # loop and is tallied visibly instead of being guessed.
+    base = datetime(2026, 9, 23, 12, 0, 0, tzinfo=UTC)
+    _write_journal_file(
+        tmp_path,
+        [
+            _journal_event(
+                base.isoformat(),
+                "verification-retry",
+                {"unitType": "execute-task", "unitId": "M1/S1/T1"},
+            ),
+            _journal_event(
+                (base + timedelta(minutes=1)).isoformat(),
+                "pre-execution-retry",
+                {"unitType": "plan-milestone", "unitId": "M1", "attempt": "2"},
+            ),
+            _journal_event(
+                (base + timedelta(minutes=2)).isoformat(),
+                "artifact-verification-retry",
+                {"unitType": "execute-task", "unitId": "M1/S1/T2", "attempt": True},
+            ),
+        ],
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    assert len(findings) == 1
+    observed = findings[0].observed
+    assert findings[0].status == "pass"
+    assert "retry_events_total=3" in observed
+    assert "retry_loops_total=0" in observed
+    assert "retry_malformed_total=3" in observed
+
+
+def test_journal_retry_loops_separates_total_and_window_counts(tmp_path: Path) -> None:
+    # Observed must never mix all-time and window counts under unlabelled
+    # names: *_total is journal-wide, window_* is the 3-day window anchored
+    # at the newest journaled ts (never wall clock).
+    old = datetime(2026, 9, 20, 12, 0, 0, tzinfo=UTC)
+    new = old + timedelta(days=5)
+    _write_journal_file(
+        tmp_path,
+        [
+            # Outside the window (anchor - 5d).
+            _journal_event(
+                old.isoformat(),
+                "pre-execution-retry",
+                {"unitType": "plan-milestone", "unitId": "M1", "attempt": 2},
+            ),
+            _journal_event(
+                (old + timedelta(minutes=1)).isoformat(),
+                "worktree-orphaned",
+                {"worktree": "/tmp/old"},
+            ),
+            _journal_event(
+                (old + timedelta(minutes=2)).isoformat(),
+                "orchestrator-guard-block",
+                {
+                    "unitId": "M1",
+                    "reason": "attempt M1/S1/T1 is settled, but executor worker is gone",
+                },
+            ),
+            # Inside the window (anchor - 1h).
+            _journal_event(
+                (new - timedelta(hours=1)).isoformat(),
+                "verification-retry",
+                {"unitType": "execute-task", "unitId": "M1/S1/T1", "attempt": 1},
+            ),
+            _journal_event(
+                (new - timedelta(minutes=30)).isoformat(),
+                "worktree-orphaned",
+                {"worktree": "/tmp/new"},
+            ),
+            _journal_event(
+                (new - timedelta(minutes=20)).isoformat(),
+                "orchestrator-guard-block",
+                {
+                    "unitId": "M1",
+                    "reason": "attempt M1/S1/T2 is settled, but executor worker is gone",
+                },
+            ),
+            _journal_event(new.isoformat(), "terminal", {"ok": True}),
+        ],
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    assert len(findings) == 1
+    observed = findings[0].observed
+    assert "retry_events_total=2" in observed
+    assert "window_retry_events=1" in observed
+    assert "retry_loops_total=1" in observed
+    assert "window_retry_loops=0" in observed
+    assert "stale_active_total=2" in observed
+    assert "window_stale_active=1" in observed
+    assert "orphaned_worktrees_total=2" in observed
+    assert "window_orphaned_worktrees=1" in observed
 
 
 def test_journal_retry_loops_stale_wedge_outside_window_stays_pass(
@@ -4195,8 +4420,8 @@ def test_journal_retry_loops_stale_wedge_outside_window_stays_pass(
     assert len(findings) == 1
     assert findings[0].status == "pass"
     assert findings[0].severity == "ok"
-    assert "wedge_exits=1" in findings[0].observed
-    assert "recent_wedges=0" in findings[0].observed
+    assert "wedge_exit_lines_total=1" in findings[0].observed
+    assert "window_wedges=0" in findings[0].observed
 
 
 def test_journal_retry_loops_counts_retries_and_orphans(tmp_path: Path) -> None:
@@ -4213,6 +4438,11 @@ def test_journal_retry_loops_counts_retries_and_orphans(tmp_path: Path) -> None:
                 (base + timedelta(minutes=1)).isoformat(),
                 "artifact-verification-retry",
                 {"unitId": "M1/S1/T1", "attempt": 3},
+            ),
+            _journal_event(
+                (base + timedelta(minutes=1, seconds=30)).isoformat(),
+                "verification-retry",
+                {"unitType": "execute-task", "unitId": "M1/S1/T1", "attempt": 1},
             ),
             _journal_event(
                 (base + timedelta(minutes=2)).isoformat(),
@@ -4234,9 +4464,116 @@ def test_journal_retry_loops_counts_retries_and_orphans(tmp_path: Path) -> None:
     assert len(findings) == 1
     assert findings[0].status == "pass"
     observed = findings[0].observed
-    assert "retry_events=2" in observed
-    assert "stale_active=1" in observed
-    assert "orphaned_worktrees=1" in observed
+    # All three retry phases count as retries; only attempt >= 2 is a loop.
+    assert "retry_events_total=3" in observed
+    assert "retry_loops_total=2" in observed
+    assert "retry_malformed_total=0" in observed
+    assert "stale_active_total=1" in observed
+    assert "orphaned_worktrees_total=1" in observed
+    # Everything lands within the window, so window_* mirrors *_total here.
+    assert "window_retry_events=3" in observed
+    assert "window_stale_active=1" in observed
+    assert "window_orphaned_worktrees=1" in observed
+
+
+def test_journal_retry_loops_historical_wedge_drops_resume_remediation(
+    tmp_path: Path,
+) -> None:
+    # Issue (journal 2026-09-21..24): in-window wedges whose unit moved on
+    # were told to `/gsd auto --resume-wedge` -- false remediation for a
+    # historical closed wedge (all four live wedges were of this kind).
+    base = datetime(2026, 9, 22, 3, 58, 47, tzinfo=UTC)
+    reason = _journal_wedge_reason("dispatch-rule-stop", "M207-b2i96m", "W-83e3163e")
+    _write_journal_file(
+        tmp_path,
+        [
+            *_journal_wedge_exit_broadcast(base, reason, "M207-b2i96m"),
+            # The unit demonstrably moved on after the final exit line.
+            _journal_event(
+                (base + timedelta(hours=1)).isoformat(),
+                "orchestrator-dispatch-match",
+                {
+                    "source": "auto-orchestrator",
+                    "name": "advance",
+                    "unitType": "execute-task",
+                    "unitId": "M207-b2i96m/S05/T01",
+                },
+            ),
+        ],
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    failed = [item for item in findings if item.status == "fail"]
+    assert len(failed) == 1
+    # Status policy preserved: the wedge is still a warn signal ...
+    assert failed[0].severity == "warn"
+    # ... but later activity alone cannot prove that the wedge has closed.
+    assert "--resume-wedge" not in failed[0].remediation
+    assert "does not prove closure" in failed[0].remediation
+    assert "never resume a closed wedge" in failed[0].remediation
+    assert "closure_signal=later-activity" in failed[0].observed
+    assert "later_unit_events=1" in failed[0].observed
+    passed = [item for item in findings if item.status == "pass"]
+    assert len(passed) == 1
+    assert "window_wedges=1" in passed[0].observed
+    assert "window_wedges_superseded=1" in passed[0].observed
+
+
+def test_journal_retry_loops_wedge_exit_broadcast_is_not_later_activity(
+    tmp_path: Path,
+) -> None:
+    # Fail-closed guard: the wedge's own exit broadcast repeats the unit on
+    # up to four lines (the guard-block line even carries data.unitId) and
+    # must never count as proof that the unit moved on.
+    base = datetime(2026, 9, 22, 3, 58, 47, tzinfo=UTC)
+    reason = _journal_wedge_reason("dispatch-rule-stop", "M207-b2i96m", "W-83e3163e")
+    _write_journal_file(
+        tmp_path,
+        _journal_wedge_exit_broadcast(base, reason, "M207-b2i96m"),
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    failed = [item for item in findings if item.status == "fail"]
+    assert len(failed) == 1
+    assert "closure_signal=none-after-exit" in failed[0].observed
+    assert "--resume-wedge W-83e3163e" in failed[0].remediation
+    passed = [item for item in findings if item.status == "pass"]
+    assert len(passed) == 1
+    # One logical wedge, four exit-broadcast lines: both facts are labelled.
+    assert "wedge_exit_lines_total=4" in passed[0].observed
+    assert "wedges_total=1" in passed[0].observed
+    assert "window_wedges_superseded=0" in passed[0].observed
+
+
+def test_journal_retry_loops_unparsed_unit_wedge_requires_verification(
+    tmp_path: Path,
+) -> None:
+    # Fail closed: with no attributable unit there is no closure evidence to
+    # be had, so the check makes no closure claim and conditions the resume
+    # command on verification instead of presenting it as the next step.
+    base = datetime(2026, 9, 23, 12, 0, 0, tzinfo=UTC)
+    _write_journal_file(
+        tmp_path,
+        [
+            _journal_event(
+                base.isoformat(),
+                "auto-exit",
+                {
+                    "reason": "blocked",
+                    "rawReason": (
+                        "Blocked: liveness backstop tripped: unit-break recurred "
+                        "2x (wedge W-01234567)"
+                    ),
+                },
+            ),
+        ],
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    failed = [item for item in findings if item.status == "fail"]
+    assert len(failed) == 1
+    assert "closure_signal=unit-unparsed" in failed[0].observed
+    assert "verify the wedge is still open" in failed[0].remediation
 
 
 def test_journal_retry_loops_skips_broken_json_line(tmp_path: Path) -> None:
@@ -4252,7 +4589,7 @@ def test_journal_retry_loops_skips_broken_json_line(tmp_path: Path) -> None:
     findings = check_journal_retry_loops(tmp_path)
     assert len(findings) == 1
     assert findings[0].status == "pass"
-    assert "skipped_lines=1" in findings[0].observed
+    assert "skipped_lines_total=1" in findings[0].observed
 
 
 def test_journal_retry_loops_missing_journal_dir_is_not_assessable(
@@ -4509,13 +4846,16 @@ def test_live_governor_reports_journal_retry_loops() -> None:
     # Structural tokens only: live counters drift as journal events land and
     # wedges age out of the window, so exact numbers stay fixture territory.
     observed_all = "\n".join(item.observed for item in journal_findings)
-    assert "wedge_exits=" in observed_all
-    assert "retry_events=" in observed_all
-    assert "stale_active=" in observed_all
-    assert "orphaned_worktrees=" in observed_all
-    assert "skipped_lines=" in observed_all
+    assert "wedge_exit_lines_total=" in observed_all
+    assert "retry_events_total=" in observed_all
+    assert "retry_loops_total=" in observed_all
+    assert "stale_active_total=" in observed_all
+    assert "orphaned_worktrees_total=" in observed_all
+    assert "skipped_lines_total=" in observed_all
     assert "window_days=3" in observed_all
     assert "journal_files=" in observed_all
+    assert "window_wedges=" in observed_all
+    assert "window_retry_events=" in observed_all
     # A recent wedge surfaces as fail+warn findings next to exactly one pass
     # summary; warn never fails the report and --fail-on-warn stays opt-in.
     assert {item.status for item in journal_findings} <= {"pass", "fail"}

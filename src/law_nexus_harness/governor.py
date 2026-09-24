@@ -6836,21 +6836,90 @@ _JOURNAL_RECURRING_BACKSTOP_RE = re.compile(r"liveness backstop tripped: (\S+) r
 _JOURNAL_WEDGE_ID_RE = re.compile(r"wedge (W-[0-9a-f]+)")
 _JOURNAL_WEDGE_UNIT_RE = re.compile(r"with unchanged inputs for (\S+) ([^\s(]+)")
 _JOURNAL_ORPHANED_ATTEMPT_MARKER = "is settled, but executor worker"
-_JOURNAL_RETRY_EVENT_TYPES = frozenset({"artifact-verification-retry", "pre-execution-retry"})
+# Engine retry-event vocabulary (gsd auto extensions: auto/finalize.js emits
+# artifact-verification-retry / verification-retry / pre-execution-retry;
+# durable task retries live in auto-verification.js). Each event is one
+# executed retry and data.attempt is that retry's 1-based ordinal, so
+# attempt=1 is a real first retry. The attempt value therefore classifies
+# loops (attempt >= 2) but must never gate the retry count itself: the old
+# attempt >= 2 gate dropped every first retry, and with "verification-retry"
+# missing from this set it hid the whole durable verification-retry phase
+# (journal 2026-09-21..24: 21 events, all attempt=1).
+_JOURNAL_RETRY_EVENT_TYPES = frozenset(
+    {"artifact-verification-retry", "pre-execution-retry", "verification-retry"}
+)
+
+
+def _journal_retry_attempt(data: object) -> int | None:
+    """Positive int attempt ordinal from retry-event data, else None (fail closed).
+
+    bool is deliberately rejected (isinstance(True, int) is True in Python):
+    a boolean attempt is malformed data, not attempt 1.
+    """
+
+    if not isinstance(data, dict):
+        return None
+    attempt = data.get("attempt")
+    if isinstance(attempt, bool) or not isinstance(attempt, int) or attempt < 1:
+        return None
+    return attempt
+
+
+def _journal_wedge_closure_signal(
+    unit: str,
+    after: datetime | None,
+    records: list[tuple[datetime | None, str | None, str, Any, bool]],
+) -> tuple[str, int, tuple[str, datetime] | None]:
+    """Source-bound later-activity evidence for one wedge, not a closure verdict.
+
+    Returns (closure_signal, later_event_count, latest) where latest is the
+    (eventType, ts) of the newest qualifying later event. "Later" means:
+    strictly after the wedge's final exit-broadcast line (so the exit
+    broadcast itself and same-id re-trips never count) and carrying a
+    data.unitId equal to the wedge unit or nested under it (unit + "/").
+    Later activity does not prove that the DB wedge is closed: the same unit
+    can recur. No evidence stays "none-after-exit"; an unparsed unit stays
+    "unit-unparsed". Only the current engine state can establish closure.
+    """
+
+    if unit == "unknown":
+        return "unit-unparsed", 0, None
+    if after is None:
+        return "none-after-exit", 0, None
+    later: list[tuple[str, datetime]] = []
+    for when, event_type, _serialized, data, _wedge_exit in records:
+        if when is None or when <= after or not isinstance(data, dict):
+            continue
+        event_unit = data.get("unitId")
+        if not isinstance(event_unit, str):
+            continue
+        if event_unit != unit and not event_unit.startswith(f"{unit}/"):
+            continue
+        later.append((event_type or "unknown", when))
+    if not later:
+        return "none-after-exit", 0, None
+    return "later-activity", len(later), max(later, key=lambda item: item[1])
 
 
 def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
     """Read-only observability over journal retry/wedge/orphan surfaces (S01).
 
-    Counts liveness-backstop wedge exits, retry events (attempt >= 2),
-    orphaned attempts, and orphaned worktrees across .gsd/journal/*.jsonl,
-    and warns only for wedges whose timestamp falls inside a 3-day window
-    anchored to the newest journaled timestamp (never wall clock). Broken
-    lines are skipped with a counter instead of raising so run_governor
-    never turns journal noise into a tool error. Interactive wedge closure
-    is not journaled, so resolved/unresolved is intentionally not derived
-    (false-positive precedent W-7a2cc230/M193); this check signals, never
-    repairs the engine.
+    Counts retry events across the engine's retry vocabulary
+    (pre-execution-retry, artifact-verification-retry, verification-retry --
+    each event is one executed retry, data.attempt being its 1-based
+    ordinal), repeat-retry loops (attempt >= 2), malformed retry attempts,
+    orphaned attempts, orphaned worktrees, and liveness-backstop wedge exits
+    across .gsd/journal/*.jsonl. Every counter is scope-labelled: *_total is
+    journal-wide, window_* is inside a 3-day window anchored to the newest
+    journaled timestamp (never wall clock). Broken lines are skipped with a
+    counter instead of raising so run_governor never turns journal noise
+    into a tool error. Interactive wedge closure is not journaled, so
+    closed/open is never inferred from journal activity alone (false-positive
+    precedent W-7a2cc230/M193). A later event for the same unit means the
+    historical exit has been followed by more activity, not that its wedge
+    is closed. Every remediation requires a current engine-state check before
+    any resume; this check signals and never mutates the engine. This
+    check signals, never repairs the engine, and never reads the DB.
     """
 
     check_id = "journal-retry-loops"
@@ -6871,13 +6940,13 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
         ]
 
     journal_files = sorted(journal_dir.glob("*.jsonl"))
-    wedge_exits = 0
-    retry_events = 0
-    stale_active = 0
-    orphaned_worktrees = 0
     skipped_lines = 0
-    wedges: dict[str, dict[str, Any]] = {}
     parsed_ts: list[datetime] = []
+    # (when, eventType, serialized, data, is_wedge_exit) per parsed line;
+    # totals, window subsets and wedge closure evidence all derive from this
+    # one list so the two passes can never disagree.
+    records: list[tuple[datetime | None, str | None, str, Any, bool]] = []
+    wedges: dict[str, dict[str, Any]] = {}
 
     for journal_file in journal_files:
         try:
@@ -6914,19 +6983,20 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
             else:
                 serialized = str(data)
             event_type = event.get("eventType")
-            if event_type == "worktree-orphaned":
-                orphaned_worktrees += 1
-            if event_type in _JOURNAL_RETRY_EVENT_TYPES and isinstance(data, dict):
-                attempt = data.get("attempt")
-                if isinstance(attempt, int) and attempt >= 2:
-                    retry_events += 1
-            if _JOURNAL_ORPHANED_ATTEMPT_MARKER in serialized:
-                stale_active += 1
             backstop_match = _JOURNAL_RECURRING_BACKSTOP_RE.search(serialized)
             wedge_id_match = _JOURNAL_WEDGE_ID_RE.search(serialized)
-            if backstop_match is None or wedge_id_match is None:
+            is_wedge_exit = backstop_match is not None and wedge_id_match is not None
+            records.append(
+                (
+                    when,
+                    event_type if isinstance(event_type, str) else None,
+                    serialized,
+                    data,
+                    is_wedge_exit,
+                )
+            )
+            if not is_wedge_exit:
                 continue
-            wedge_exits += 1
             wedge_id = wedge_id_match.group(1)
             unit_match = _JOURNAL_WEDGE_UNIT_RE.search(serialized)
             unit_id = (
@@ -6938,17 +7008,68 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
                     else "unknown"
                 )
             )
-            if wedge_id not in wedges or (
-                when is not None
-                and (wedges[wedge_id]["when"] is None or when < wedges[wedge_id]["when"])
-            ):
+            info = wedges.get(wedge_id)
+            if info is None:
                 wedges[wedge_id] = {
                     "when": when,
+                    "last_when": when,
                     "unit": unit_id,
                     "backstop": backstop_match.group(1),
                 }
+            elif when is not None:
+                if info["when"] is None or when < info["when"]:
+                    info["when"] = when
+                    info["unit"] = unit_id
+                    info["backstop"] = backstop_match.group(1)
+                if info["last_when"] is None or when > info["last_when"]:
+                    info["last_when"] = when
 
     anchor = max(parsed_ts) if parsed_ts else None
+
+    def _in_window(when: datetime | None) -> bool:
+        return (
+            when is not None
+            and anchor is not None
+            and anchor - when <= timedelta(days=_JOURNAL_RETRY_WINDOW_DAYS)
+        )
+
+    retry_events = 0
+    retry_loops = 0
+    retry_malformed = 0
+    stale_active = 0
+    orphaned_worktrees = 0
+    wedge_exit_lines = 0
+    window_retry_events = 0
+    window_retry_loops = 0
+    window_stale_active = 0
+    window_orphaned_worktrees = 0
+    window_wedge_exit_lines = 0
+    for when, event_type, serialized, data, is_wedge_exit in records:
+        windowed = _in_window(when)
+        if event_type == "worktree-orphaned":
+            orphaned_worktrees += 1
+            if windowed:
+                window_orphaned_worktrees += 1
+        if event_type in _JOURNAL_RETRY_EVENT_TYPES:
+            retry_events += 1
+            if windowed:
+                window_retry_events += 1
+            attempt = _journal_retry_attempt(data)
+            if attempt is None:
+                retry_malformed += 1
+            elif attempt >= 2:
+                retry_loops += 1
+                if windowed:
+                    window_retry_loops += 1
+        if _JOURNAL_ORPHANED_ATTEMPT_MARKER in serialized:
+            stale_active += 1
+            if windowed:
+                window_stale_active += 1
+        if is_wedge_exit:
+            wedge_exit_lines += 1
+            if windowed:
+                window_wedge_exit_lines += 1
+
     recent = sorted(
         (
             (wedge_id, info)
@@ -6961,8 +7082,40 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
     )
 
     findings: list[GovernorFinding] = []
+    window_wedges_superseded = 0
     for wedge_id, info in recent:
         age_days = max((anchor - info["when"]).days, 0) if anchor else 0
+        closure_signal, later_count, latest = _journal_wedge_closure_signal(
+            info["unit"], info["last_when"], records
+        )
+        if closure_signal == "later-activity" and latest is not None:
+            window_wedges_superseded += 1
+            latest_token = f"{latest[0]}@{latest[1].isoformat()}"
+            observed_closure = (
+                f"closure_signal=later-activity later_unit_events={later_count} "
+                f"latest_unit_event={latest_token}"
+            )
+            remediation = (
+                f"Unit {info['unit']} shows later journal activity after this "
+                f"wedge's final exit line ({later_count} event(s), latest "
+                f"{latest_token}). This does not prove closure: inspect current "
+                "engine wedge state and cause before any resume; never resume "
+                "a closed wedge."
+            )
+        elif closure_signal == "unit-unparsed":
+            observed_closure = "closure_signal=unit-unparsed"
+            remediation = (
+                "Wedge unit unparsed, closure not assessable from the journal; "
+                "verify the wedge is still open before any "
+                f"`/gsd auto --resume-wedge {wedge_id}`."
+            )
+        else:
+            observed_closure = "closure_signal=none-after-exit"
+            remediation = (
+                f"Inspect the wedge before resuming: "
+                f"`/gsd auto --resume-wedge {wedge_id}`; fix the cause, "
+                "do not mute the signal."
+            )
         findings.append(
             GovernorFinding(
                 check_id=check_id,
@@ -6975,16 +7128,14 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
                 ),
                 observed=(
                     f"wedge={wedge_id} unit={info['unit']} "
-                    f"backstop={info['backstop']} age_days={age_days}"
+                    f"backstop={info['backstop']} age_days={age_days} "
+                    f"{observed_closure}"
                 ),
-                remediation=(
-                    f"Inspect the wedge before resuming: "
-                    f"`/gsd auto --resume-wedge {wedge_id}`; fix the cause, "
-                    "do not mute the signal."
-                ),
+                remediation=remediation,
                 evidence=[GovernorEvidence(path=".gsd/journal/")],
             )
         )
+    wedges_unanchored = sum(1 for info in wedges.values() if info["when"] is None)
     findings.append(
         GovernorFinding(
             check_id=check_id,
@@ -6995,12 +7146,25 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
                 f"across {len(journal_files)} file(s)"
             ),
             observed=(
-                f"wedge_exits={wedge_exits} retry_events={retry_events} "
-                f"stale_active={stale_active} "
-                f"orphaned_worktrees={orphaned_worktrees} "
-                f"skipped_lines={skipped_lines} "
+                f"retry_events_total={retry_events} "
+                f"retry_loops_total={retry_loops} "
+                f"retry_malformed_total={retry_malformed} "
+                f"stale_active_total={stale_active} "
+                f"orphaned_worktrees_total={orphaned_worktrees} "
+                f"wedge_exit_lines_total={wedge_exit_lines} "
+                f"wedges_total={len(wedges)} "
+                f"wedges_unanchored_total={wedges_unanchored} "
+                f"skipped_lines_total={skipped_lines} "
+                f"journal_files={len(journal_files)} "
                 f"window_days={_JOURNAL_RETRY_WINDOW_DAYS} "
-                f"recent_wedges={len(recent)} journal_files={len(journal_files)}"
+                f"window_anchor={anchor.isoformat() if anchor is not None else 'none'} "
+                f"window_retry_events={window_retry_events} "
+                f"window_retry_loops={window_retry_loops} "
+                f"window_stale_active={window_stale_active} "
+                f"window_orphaned_worktrees={window_orphaned_worktrees} "
+                f"window_wedge_exit_lines={window_wedge_exit_lines} "
+                f"window_wedges={len(recent)} "
+                f"window_wedges_superseded={window_wedges_superseded}"
             ),
             remediation="",
         )
@@ -7725,7 +7889,7 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "process",
         "deterministic",
         check_journal_retry_loops,
-        "Read-only observability over journal retry loops, liveness-backstop wedge exits, orphaned attempts, and orphaned worktrees within a 3-day window anchored to the newest journaled timestamp; signal only, never engine repair.",
+        "Read-only observability over journal retry events and loops (pre-execution-retry / artifact-verification-retry / verification-retry, attempt ordinal-based), liveness-backstop wedge exits, orphaned attempts, and orphaned worktrees; every counter is scope-labelled (*_total journal-wide, window_* inside a 3-day window anchored to the newest journaled timestamp), and in-window wedges whose unit shows later journal activity are marked historical and never told to resume; signal only, never engine repair.",
         (".gsd/journal/",),
         "warn",
     ),

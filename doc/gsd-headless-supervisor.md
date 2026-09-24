@@ -155,8 +155,10 @@ Do this in order. Do not skip to a second `gsd auto`.
 ## FSM actions (do / do not)
 
 1. `action=dispatch` + live pid → **never SIGTERM** unless the zombie
-   predicate below is true. LLM/journal silence is expected (S09
-   `refine-slice` died 13× on a 1200s stall because
+   predicate or the pre-dispatch hung predicate below is true. The
+   pre-dispatch window is measured from the continuous dispatch unit,
+   not process age (“Bounded confirmations”). LLM/journal silence is
+   expected (S09 `refine-slice` died 13× on a 1200s stall because
    `refine-slice` / `complete-slice` / `run-uat` were missing from an
    old unit-type whitelist). Stall-exempt is **`action=dispatch`**, not
    a unit-type list.
@@ -173,8 +175,11 @@ Do this in order. Do not skip to a second `gsd auto`.
    modules declared in `lib.rs`. Format **before** retry. Never
    `#[allow]` as the first clippy fix. Never
    `cargo fmt --all --config imports_granularity=Crate`.
-5. `headless_result.status=blocked` → one DB resume, else STOP.
-   Crash / timeout / signal increment `crash_restarts` (cap 12).
+5. `headless_result.status=blocked` → one DB resume, else STOP — with
+   two bounded exceptions (see “Bounded confirmations” below): a
+   `recovery-required` state never restarts at all, and an unchanged
+   wedge after a resume is waited out alive instead of being resumed
+   again. Crash / timeout / signal increment `crash_restarts` (cap 12).
 6. Journal lag without today's file is **not** a stall if dispatch is
    live (2026-09-10.jsonl appeared late; stall used 09-09 mtime).
 7. `completed-no-advance` is not fixed by `--resume-wedge` alone: the
@@ -201,6 +206,54 @@ Do this in order. Do not skip to a second `gsd auto`.
 
 Selftest cases: `zombie:T03-vs-T02-blocked`, `zombie:live-unit-start`,
 `zombie:product-bin-exempt`, `zombie:short-wall`, `zombie:high-utime`.
+
+## Bounded confirmations (2026-09-24)
+
+Three FSM refinements, each a pure, selftested predicate. All are
+fail-closed in the same direction: one noisy sample must neither drop
+supervision nor kill a healthy child, and no state may spin restarts.
+
+1. **Blocked confirm (transitional `query.blocked`).** A `query.blocked`
+   sample with **no open DB wedge** is transitional more often than
+   real — the engine emits `guard-block` / `auto-exit blocked`
+   mid-recovery and can still advance (2026-09-22/23 verification-retry
+   transitions). The FSM exits on `blocked` only when an open wedge
+   backs the blocker or when the **same text** is observed
+   `BLOCKED_CONFIRM_SAMPLES` (default 3) consecutive samples
+   (`blocked_streak_update` + `blocked_confirm_verdict`). A changed
+   text resets the streak. Selftest: `blocked-streak:*`,
+   `blocked-transitional:*`.
+2. **Pre-dispatch hung window from the continuous dispatch unit.** The
+   `HUNG_DISPATCH_SECS` window is measured from the current continuous
+   `action|unitType|unitId` dispatch signature
+   (`dispatch_timer_update`), **not** from process age: a headless that
+   has served units for hours always has process wall ≫ 900 s and
+   could kill a healthy pre-dispatch transition on a quiet journal.
+   Any non-dispatch query or unit change resets the timer. Process
+   wall/utime remain zombie-predicate inputs and stay in the log for
+   observability. Selftest: `dispatch-timer:*`,
+   `hung:dispatch-elapsed-not-process-age`.
+3. **Recovery-required: never loop an unchanged wedge.** When the
+   **this child's stderr** matches `recovery already aborted` /
+   `task-recovery-abort` / `gsd recover` / `gsd_task_recovery_resume`,
+   a canonical Task Attempt recovery is aborted and only the sanctioned
+   recovery action can unblock it. Do not search an unscoped journal tail:
+   a historical abort for another unit would poison later dispatches.
+   Re-running auto repeats the same guard-block with unchanged inputs —
+   that is what tripped the engine liveness backstop and minted
+   `W-2fc2c52a` (2026-09-23). In this state the FSM **never restarts**
+   and **never re-resumes** an unchanged wedge: it waits alive in
+   `RECOVERY_WAIT_SECS` (default 120) cycles up to
+   `MAX_WEDGE_WAIT_CYCLES` (default 30), then stops with reason
+   `recovery-required` and the extracted `recoveryActionId`. An
+   unchanged wedge after a resume gets the same alive-wait treatment
+   instead of an instant stop or a second identical `--resume-wedge`.
+   A fresh wedge is still resumed exactly once (`resume` verdict).
+   Selftest: `recovery-required:*`, `wedge-wait:*`.
+
+None of these predicates ever kills a process: only the zombie and
+pre-dispatch predicates SIGTERM, and both keep the product-bin guard
+(`is_product_bin_live`) intact.
 
 A supervisor process that was started **before** this predicate was
 added still runs the old script in memory. Disk edit ≠ live FSM until
@@ -250,6 +303,8 @@ archive Python `LegalDomain` remain prohibited.
 | Plan-slice artifact verification | research cites a path outside the project root | rewrite the citation with project-local evidence and rerun sanctioned verification; do not read the external path |
 | Execute-task completion abort | `gsd_task_complete` receives unsupported `escalation`; durable adapter rejects it | retry without `escalation`, preserving supported closeout fields; this is a compatibility workaround, not an engine fix |
 | Second auto | pidfile live | do not start |
+| Recovery-required (`canonical Task Attempt recovery already aborted`, `task-recovery-abort`) | engine refuses dispatch until `/gsd recover <id>` | never restart, never re-resume the unchanged wedge; alive-wait bounded, then STOP `recovery-required` printing the `recoveryActionId` (2026-09-22: two re-runs tripped the engine liveness backstop and minted `W-2fc2c52a`) |
+| Transitional `query.blocked` | one sample, no open wedge, engine mid-recovery | confirm `BLOCKED_CONFIRM_SAMPLES` identical samples before exit; wedge-backed blocker still exits at once |
 | `pkill -f 'gsd headless'` | kills the launcher | kill by pidfile |
 | `query.wedge` | always null | snapshot |
 | Validate technical-verdict deadlock | `validate-milestone` aborts because the technical verdict requires the current criterion and matching settled attempt | engine HARD BLOCK: do not restart auto for another validate, do not sqlite-patch, and do not mark C4 pass; preserve the deadlock evidence and stop |
