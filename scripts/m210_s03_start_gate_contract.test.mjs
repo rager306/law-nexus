@@ -46,6 +46,8 @@ import {
   ADOPTED_CONSTRUCT_SET,
   ADOPTED_VARIANT,
   ADOPTED_VARIANT_LABEL,
+  AUTHENTICATED_CHANNEL,
+  AUTHENTICATED_CHANNEL_RE,
   CHECK_OK_MARKER,
   CONTRACT_MARKER,
   CONTRACT_PATH,
@@ -89,6 +91,7 @@ import {
   fileLookup,
   findModRegistrations,
   headerValue,
+  isAuthenticatedChannel,
   normalizePin,
   renderStartGate,
   runStartGate,
@@ -668,6 +671,109 @@ contract("the grant rule refuses a grant without the authenticated interactive s
   );
 });
 
+// The genuine v2 answer record carries exactly one channel value on the ir
+// interactive ref. Every other spelling - a negation, a bare word, a substring,
+// a case or separator variant, a padded string or an unknown value - must be
+// refused by the closed channel contract. The pre-rework /authenticated/i test
+// wrongly accepted `unauthenticated`, `not authenticated` and `authenticated`.
+const REFUSED_CHANNELS = [
+  "unauthenticated",
+  "not authenticated",
+  "authenticated",
+  "unauthenticated subjective-UAT",
+  "not authenticated subjective-UAT",
+  "nauthenticated subjective-UAT",
+  "authenticatedXsubjective-UAT",
+  "Authenticated Subjective-UAT",
+  "authenticated subjective-uat",
+  "authenticated-subjective-UAT",
+  "authenticated subjective-UAT extended",
+  " authenticated subjective-UAT",
+  "authenticated subjective-UAT ",
+  "subjective-UAT",
+  "manual",
+  "",
+];
+
+contract("the authenticated channel is a closed exact value, not a substring match", () => {
+  assert.equal(AUTHENTICATED_CHANNEL, "authenticated subjective-UAT");
+  assert.equal(isAuthenticatedChannel(AUTHENTICATED_CHANNEL), true);
+  assert.equal(AUTHENTICATED_CHANNEL_RE.test(AUTHENTICATED_CHANNEL), true);
+  assert.equal(
+    AUTHENTICATED_CHANNEL_RE.test(`${AUTHENTICATED_CHANNEL}\n`),
+    false,
+    "the anchored contract must not match a trailing newline",
+  );
+  for (const value of REFUSED_CHANNELS) {
+    assert.equal(isAuthenticatedChannel(value), false, `${JSON.stringify(value)} must be refused`);
+    assert.equal(
+      AUTHENTICATED_CHANNEL_RE.test(String(value)),
+      false,
+      `${JSON.stringify(value)} must not match the anchored channel contract`,
+    );
+  }
+  assert.equal(isAuthenticatedChannel(null), false);
+  assert.equal(isAuthenticatedChannel(undefined), false);
+  assert.equal(isAuthenticatedChannel(42), false);
+});
+
+contract("the report validator refuses every non-genuine channel spelling", () => {
+  for (const value of REFUSED_CHANNELS) {
+    expectCode(
+      mutated((rep) => {
+        rep.binding.answer.channel = value;
+      }),
+      "grant_without_interactive_ref",
+    );
+    expectCode(
+      mutated((rep) => {
+        rep.answer_provenance.channel = value;
+      }),
+      "grant_without_interactive_ref",
+    );
+  }
+  // Only the exact genuine value keeps the granted record clean.
+  const genuine = mutated((rep) => {
+    rep.binding.answer.channel = AUTHENTICATED_CHANNEL;
+    rep.answer_provenance.channel = AUTHENTICATED_CHANNEL;
+  });
+  assert.deepEqual(codesFor(genuine), []);
+});
+
+contract("channel recognition in derivation refuses negation, substrings and unknown strings", () => {
+  for (const value of REFUSED_CHANNELS) {
+    const answer = clone(liveAnswer);
+    answer.interactive_refs.ir.channel = value;
+    const rendered = renderStartGate({
+      rootDir: root,
+      lookup,
+      sourceRevision: report.source_revision,
+      answer,
+    });
+    assert.equal(
+      rendered.report.admission_verdict,
+      "admission_absent",
+      `channel ${JSON.stringify(value)} must not derive a grant`,
+    );
+    assert.equal(
+      rendered.report.answer_provenance.interactive_ref_present,
+      false,
+      `channel ${JSON.stringify(value)} must not count as an authenticated direction`,
+    );
+    assert.equal(rendered.report.runtime_implementation_permitted, false);
+    assert.equal(rendered.report.binding.answer.channel, value);
+  }
+  const genuine = renderStartGate({
+    rootDir: root,
+    lookup,
+    sourceRevision: report.source_revision,
+    answer: clone(liveAnswer),
+  });
+  assert.equal(genuine.report.admission_verdict, "admission_granted");
+  assert.equal(genuine.report.answer_provenance.interactive_ref_present, true);
+  assert.equal(genuine.report.answer_provenance.channel, AUTHENTICATED_CHANNEL);
+});
+
 contract("a lock, an integrity result, a closeout or an ADR status is never the basis of a grant", () => {
   const cases = [
     ["lock_as_admission", `D499 GSD_MILESTONE_LOCK authorises this adoption (${INTERACTION_REF}).`],
@@ -802,7 +908,7 @@ const CODE_COVERAGE = [
   },
   {
     code: "grant_without_interactive_ref",
-    report: () => mutated((rep) => { rep.owner_admission_ref = "none"; }),
+    report: () => mutated((rep) => { rep.binding.answer.channel = "unauthenticated"; }),
   },
   {
     code: "grant_without_governing_surface",

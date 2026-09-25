@@ -246,7 +246,17 @@ export const AUTHENTICATED_ANSWER_SOURCES = ["interactive", "subjective_uat_crit
 // `answered` spelling, and that misreading has its own named code.
 export const OWNER_DECISION_RECORDED = "owner_decision_recorded";
 export const ACCEPTED_ANSWER_STATUSES = [OWNER_DECISION_RECORDED];
-export const AUTHENTICATED_CHANNEL_RE = /authenticated/i;
+// The channel is a closed enumerated value, not a word to be found in a string.
+// The genuine v2 answer record carries exactly `authenticated subjective-UAT` on
+// the ir interactive ref, so the contract is exact equality. An unanchored
+// /authenticated/i test wrongly accepted `unauthenticated`, `not authenticated`,
+// `authenticated` and every foreign string that merely contained the word.
+export const AUTHENTICATED_CHANNEL = "authenticated subjective-UAT";
+export const AUTHENTICATED_CHANNEL_RE = /^authenticated subjective-UAT$/;
+
+export function isAuthenticatedChannel(value) {
+  return typeof value === "string" && value === AUTHENTICATED_CHANNEL;
+}
 
 export const F13_HOLD = "hold";
 export const F13_DEFERRED_EXPLICIT = "deferred-explicit";
@@ -681,7 +691,7 @@ export function deriveStartGate(options = {}) {
   const v1Checkpoint = parseS02Checkpoint(v1CheckpointText);
   const v1Answer = parseAnswerRecord(v1AnswerRecord);
 
-  const channelAuthenticated = AUTHENTICATED_CHANNEL_RE.test(String(answer.channel ?? ""));
+  const channelAuthenticated = isAuthenticatedChannel(answer.channel);
   const dispositionAccepted = String(answer.disposition ?? "").toLowerCase() === "accepted";
   const statusAccepted = ACCEPTED_ANSWER_STATUSES.includes(answer.status);
   const authenticatedDirection =
@@ -1143,8 +1153,11 @@ export function validateStartGate(report, env = {}) {
         `provenance.ir_criterion_ref=${JSON.stringify(provenance.ir_criterion_ref)}`,
       );
     }
-    if (!AUTHENTICATED_CHANNEL_RE.test(String(binding?.answer?.channel ?? ""))) {
+    if (!isAuthenticatedChannel(binding?.answer?.channel)) {
       add("grant_without_interactive_ref", `channel=${JSON.stringify(binding?.answer?.channel)}`);
+    }
+    if (!isAuthenticatedChannel(provenance.channel)) {
+      add("grant_without_interactive_ref", `provenance channel=${JSON.stringify(provenance.channel)}`);
     }
     if (String(binding?.answer?.disposition ?? "").toLowerCase() !== "accepted") {
       add("grant_without_interactive_ref", `disposition=${JSON.stringify(binding?.answer?.disposition)}`);

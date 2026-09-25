@@ -519,6 +519,60 @@ contract("negative: the preserved fail-closed codes are not weakened", () => {
   expectCode(report, "verdict_ambiguous", mdText.replace("**admission: granted**", "**admission: granted**\n**admission: not-adopted**"));
 });
 
+contract("negative: the authenticated channel is exact, never a substring", () => {
+  const refused = [
+    "unauthenticated",
+    "not authenticated",
+    "authenticated",
+    "unauthenticated subjective-UAT",
+    "not authenticated subjective-UAT",
+    "Authenticated Subjective-UAT",
+    "authenticated subjective-uat",
+    "authenticated-subjective-UAT",
+    "authenticatedXsubjective-UAT",
+    "authenticated subjective-UAT extended",
+    "authenticated subjective-UAT ",
+    "manual",
+    "",
+  ];
+  for (const value of refused) {
+    expectCode(
+      mutated((rep) => {
+        rep.binding.answer.channel = value;
+      }),
+      "grant_without_interactive_ref",
+    );
+    expectCode(
+      mutated((rep) => {
+        rep.answer_provenance.channel = value;
+      }),
+      "grant_without_interactive_ref",
+    );
+    const answer = clone(answerRecord);
+    answer.interactive_refs.ir.channel = value;
+    const rendered = renderStartGate({
+      rootDir: root,
+      lookup,
+      sourceRevision: report.source_revision,
+      answer,
+    });
+    assert.equal(
+      rendered.report.admission_verdict,
+      "admission_absent",
+      `channel ${JSON.stringify(value)} must not derive a grant`,
+    );
+    assert.equal(
+      rendered.report.answer_provenance.interactive_ref_present,
+      false,
+      `channel ${JSON.stringify(value)} must not count as an authenticated direction`,
+    );
+  }
+  // The genuine v2 channel still derives the grant on live data.
+  assert.equal(live.report.admission_verdict, "admission_granted");
+  assert.equal(live.report.answer_provenance.channel, "authenticated subjective-UAT");
+  assert.equal(live.report.answer_provenance.interactive_ref_present, true);
+});
+
 contract("negative: re-pointing the gate at the superseded v1 sources fails closed", () => {
   const absentRender = renderStartGate({
     rootDir: root,
