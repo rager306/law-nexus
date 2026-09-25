@@ -904,10 +904,31 @@ test("negative: the activation command whitelist refuses injection, traversal an
   expectCode((delta) => {
     delta.activation_requires[1].step_id = "rebind_inputs";
   }, "activation_step_missing");
-  expectCode((delta) => {
-    delta.activation_commands[0].argv[1] = "scripts/m210_s03_slice_battery.mjs";
+  // provenance: an `existing` claim must be backed by a tracked, present script.
+  // T05 has since minted scripts/m210_s03_slice_battery.mjs, so the absent-on-disk
+  // branch can no longer be produced from the live tree; the rule is exercised with
+  // an env where that runner is not tracked instead of against a transient absence.
+  {
+    const delta = clone();
     delta.activation_commands[0].created_by = "existing";
-  }, "activation_step_missing");
+    const env = envFor(delta);
+    const untrackedEnv = {
+      ...env,
+      tracked: new Set([...env.tracked].filter((rel) => rel !== "scripts/m210_s03_slice_battery.mjs")),
+    };
+    const result = validateDelta(delta, untrackedEnv);
+    assert.ok(
+      codesOf(result).includes("activation_step_missing"),
+      `an existing claim on an untracked runner must fail closed; got ${JSON.stringify(result.errors)}`,
+    );
+    assert.ok(
+      result.errors.some(
+        (error) => error.name === "activation_step_missing" && /is not tracked/.test(error.detail),
+      ),
+      `the untracked-runner branch must be the one that fired; got ${JSON.stringify(result.errors)}`,
+    );
+    assert.equal(result.ok, false, "an existing claim on an untracked runner must fail closed");
+  }
 });
 
 // ---------------------------------------------------------------------------
