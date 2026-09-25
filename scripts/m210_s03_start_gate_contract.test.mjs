@@ -3,24 +3,29 @@
 // Offline and fail-closed. The artifacts under test are
 // prd/architecture/m210-s03-start-gate.json (the derived start gate) and
 // prd/architecture/m210-s03-runtime-admission.md (the runtime admission
-// checkpoint). Both are start-gate records, not grants: while the verdict is
-// `admission: not-adopted` nothing is adopted, no runtime surface exists and no
-// requirement is promoted.
+// checkpoint). The gate is bound to the superseding S02 v2 admission: the v2
+// checkpoint carries the single verdict line `admission: granted` for the
+// adopted candidate layer of variant C, and the superseded v1 checkpoint and v1
+// answer record stay byte-identical as history.
 //
 // The claims under test are that exactly one verdict line matches
 // /^\*\*admission: (granted|not-adopted)\*\*$/m, that the mandatory header fields
 // and level-## sections are present and non-empty, that every cited S02 source
-// resolves repository-relative and still hashes to its recorded digest, that a
-// grant is accepted only with a real authenticated interactive reference AND a
-// verified governing surface (a lock, an integrity or battery PASS, a milestone
-// closeout, an ADR status or a bare name is refused), that while admission is
-// absent the runtime is not permitted, the stop stays active, the demo stays
-// not-proven, every declared runtime surface is absent and no crate module is
-// registered, that section 3 of prd/temporal-legal-model.md is byte-identical to
-// its pin, that out-of-scope surfaces and F13 are not claimed, that `--check`
-// re-renders byte-identically, that both artifacts carry no runtime marker, no
-// raw text and no non-ASCII byte, and that each documented fail-closed code is
-// empirically emitted by a mutation.
+// resolves repository-relative and still hashes to its recorded digest in either
+// digest spelling (bare 64-hex and `sha256:`-prefixed, normalized before
+// comparison), that a grant is accepted only with the authenticated interactive
+// reference recorded in the v2 answer record bound to the tested revision (a
+// lock, an integrity or battery PASS, a milestone closeout, an ADR status or a
+// bare name is refused), that adoption is recorded separately from execution, that
+// the runtime stop is lifted for the adopted candidate layer only while the
+// composed-rule runtime, the applicability runtime and any section 3 promotion
+// stay stopped, that the superseded v1 bytes were not rewritten, that every
+// declared runtime surface is absent and no crate module is registered, that
+// section 3 of prd/temporal-legal-model.md is byte-identical to its pin, that
+// out-of-scope surfaces are not claimed, that `--check` re-renders
+// byte-identically, that both artifacts carry no runtime marker, no raw text and
+// no non-ASCII byte, and that each documented fail-closed code is empirically
+// emitted by a mutation.
 //
 // All subprocesses are limited to `git ls-files --error-unmatch` (tracked-file
 // proof), `git status --porcelain` (no-write proof) and the generator's live
@@ -38,16 +43,19 @@ import path from "node:path";
 
 import {
   ADMISSION_RELATIVE_PATH,
-  AUTHENTICATED_ANSWER_SOURCES,
+  ADOPTED_CONSTRUCT_SET,
+  ADOPTED_VARIANT,
+  ADOPTED_VARIANT_LABEL,
   CHECK_OK_MARKER,
   CONTRACT_MARKER,
   CONTRACT_PATH,
   DECLARED_ABSENT_RUNTIME_SURFACES,
   EMITTABLE_CODES,
+  F13_DEFERRED_EXPLICIT,
+  GRANTED_PERMITTED_WORK,
   INTERACTIVE_REF_RE,
   KIND,
   LIFECYCLE,
-  MD_ABSENT_NOTE,
   MILESTONE,
   MIN_MD_SOURCES,
   MIN_S02_SOURCES,
@@ -56,10 +64,16 @@ import {
   REPO_ROOT,
   REQUIREMENT_REFS,
   RUNTIME_PERMITTED_WORK,
+  RUNTIME_STOP_ACTIVE,
+  RUNTIME_STOP_LIFTED,
+  RUNTIME_STOP_STILL_ACTIVE,
   S02_ANSWER_PATH,
+  S02_ANSWER_V1_PATH,
   S02_CHECKPOINT_PATH,
+  S02_CHECKPOINT_V1_PATH,
   S02_GOVERNING_PATH,
   SCHEMA,
+  SCHEMA_VERSION,
   SECTION3_PATH,
   SECTION3_PIN,
   SLICE,
@@ -75,6 +89,7 @@ import {
   fileLookup,
   findModRegistrations,
   headerValue,
+  normalizePin,
   renderStartGate,
   runStartGate,
   sha256Text,
@@ -91,18 +106,18 @@ import {
 // sources_insufficient: a source table carries fewer rows than the declared minimum.
 // source_unresolved: a cited source is not repository-relative, is ignored, is absolute, traverses or does not exist.
 // source_hash_mismatch: a cited source digest does not match the live file content.
-// source_revision_mismatch: the source revision is absent, malformed or differs from the live capture or the checkpoint echo.
-// admission_verdict_mismatch: the admission verdict is unknown, or it contradicts the checkpoint verdict or the permit flag.
-// grant_without_interactive_ref: a grant lacks an authenticated interactive reference, or an absent verdict carries one.
-// grant_without_governing_surface: a grant is recorded without a verified governing surface.
+// source_revision_mismatch: the source revision is absent or malformed, differs from the live capture, or the grant is not bound to the tested revision.
+// admission_verdict_mismatch: the admission verdict is unknown, or it contradicts the checkpoint verdict, the permit flag or the permitted work.
+// grant_without_interactive_ref: a grant lacks the authenticated interactive reference, the authenticated channel or the accepted disposition.
+// grant_without_governing_surface: a grant is recorded without the v2 re-read of the governing-surface check.
 // non_owner_surface_as_grantor: an ADR status, a contract PASS, a bare name or a role title is used as the basis of a grant.
 // lock_as_admission: a GSD milestone lock is used as the basis of a grant.
 // integrity_pass_as_admission: an integrity or battery PASS is used as the basis of a grant.
 // milestone_closeout_as_admission: a milestone closeout is used as the basis of a grant.
 // runtime_permitted_without_admission: the runtime is permitted, or an adopted set or variant is claimed, while admission is absent.
-// runtime_stop_inverted: the runtime stop is not recorded as active, or the checkpoint does not state it is active.
+// runtime_stop_inverted: the runtime stop is not recorded as active while admission is absent, or the checkpoint does not state it is active.
 // no_start_directive_missing: the permitted work is not the fail-closed no-start contour, or the checkpoint carries no no-start directive.
-// runtime_demo_claimed: the runtime demo is not exactly not-proven while admission is absent.
+// runtime_demo_claimed: the runtime demo or the runtime work is not exactly not-proven and not-started.
 // s03_surface_present: a declared runtime surface exists on disk.
 // lib_rs_registration_present: a declared runtime module is registered in a crate lib.rs.
 // crate_touched: the crates_touched guard is non-empty.
@@ -110,11 +125,23 @@ import {
 // review_case_event_written: the Review Case event guard is non-zero.
 // section3_mutated: section 3 of prd/temporal-legal-model.md no longer matches its pin, or the recorded pin is wrong.
 // out_of_scope_surface_claimed: an out-of-scope surface is claimed or the declared out-of-scope set does not match the required set.
-// f13_scope_borrowed: the F13 status is not hold, so F13 scope was borrowed.
+// f13_scope_borrowed: the F13 status is neither hold nor deferred-explicit, so F13 scope was borrowed.
 // runtime_claim_present: an artifact carries a Rust implementation marker.
 // check_not_byte_identical: --check rendered bytes differ from the committed report.
 // non_ascii_artifact: an artifact carries a non-ASCII byte.
 // raw_text_leak: an artifact carries an angle bracket or a provider text marker.
+// v2_source_not_wired: the report does not carry the v2 binding block or the binding is incomplete.
+// superseded_source_selected: a superseded v1 S02 artifact is selected as the binding source.
+// superseded_hash_accepted: a digest that belongs to a superseded v1 artifact is accepted as a binding digest.
+// superseded_ref_accepted: a superseded, foreign or not-yet-recorded answer reference is accepted as the owner admission ref.
+// scope_overclaim: the adopted scope reaches beyond the adopted candidate layer of variant C.
+// owner_decision_read_as_answered: the recorded owner_decision_recorded status is read or reported as answered.
+// f13_hold_misread: the deferred-explicit F13 status is read as hold.
+// source_pin_form_rejected: a digest-shaped cell is in neither accepted spelling, so no pin could be formed.
+// runtime_stop_blanket_lifted: the runtime stop is lifted without the adopted candidate-layer bound.
+// adoption_read_as_execution: the recorded adoption is treated as if the runtime had executed.
+// execution_read_as_adoption: an execution claim, or anything other than the authenticated v2 adoption, is treated as the adoption.
+// receipt_silently_rewritten: a superseded receipt is presented as preserved while its bytes moved or its binding was dropped.
 // DOCUMENTED_CODES_END
 
 const root = REPO_ROOT;
@@ -146,41 +173,23 @@ const lookup = fileLookup(root);
 // re-derived from disk, so this is the exact byte compare the --check mode makes.
 const live = renderStartGate({ rootDir: root, lookup, sourceRevision: report.source_revision });
 
-const VERDICT_LINE = "**admission: not-adopted**";
-const GRANTED_LINE = "**admission: granted**";
-const RECORDED_PREFIX = "**recorded:**";
+const VERDICT_LINE = "**admission: granted**";
+const ABSENT_LINE = "**admission: not-adopted**";
+const F13_CRITERION_REF = "subjective-UAT criterion 70e39300-851b-4412-a322-a8f0c51ca71c";
 const INTERACTION_REF = "interaction 33333333-3333-3333-3333-333333333333";
-const GRANT_CRITERION = "criterion:m210-s03-ir-adoption";
 const ZERO_SHA = `sha256:${"0".repeat(64)}`;
-const ANSWER_RECORD_SHA =
-  "sha256:efc1b820506dabadde87d1ff8f338b95d6bd85417bce127ca17a07e5b3f9528b";
 const MD_ANSWER_ROW_PATH = `\`${S02_ANSWER_PATH}\``;
 const MD_ABSENT_ROW_PATH = "`prd/architecture/m210-s03-absent.json`";
-const GRANTED_BASIS =
-  "The owner granted this admission through an authenticated interactive source naming the bounded normative IR scope and its owning surfaces.";
 
-const cleanAnswer = {
-  ...liveAnswer,
-  status: "answered",
-  answer_source: AUTHENTICATED_ANSWER_SOURCES[0],
-  ir_answer: {
-    ...liveAnswer.ir_answer,
-    criterion_id: GRANT_CRITERION,
-    interaction_id: "",
-  },
-};
-const uuidAnswer = {
-  ...liveAnswer,
-  status: "answered",
-  answer_source: AUTHENTICATED_ANSWER_SOURCES[0],
-  ir_answer: {
-    ...liveAnswer.ir_answer,
-    criterion_id: "",
-    interaction_id: INTERACTION_REF,
-  },
-};
-const cleanGoverning = { ...liveGoverning, verdict: "governing_surface_verified" };
-const grantedCheckpointText = liveCheckpointText.replace(VERDICT_LINE, GRANTED_LINE);
+// Tapping the superseded v1 sources is the fail-closed fallback contour: it must
+// still derive the absent verdict and name the superseded selection.
+const absentRender = renderStartGate({
+  rootDir: root,
+  lookup,
+  sourceRevision: report.source_revision,
+  binding: { checkpoint: S02_CHECKPOINT_V1_PATH, answer: S02_ANSWER_V1_PATH },
+});
+const absentReport = absentRender.report;
 
 function replaceHeaderValue(text, key, value) {
   const lines = text.split("\n");
@@ -212,32 +221,6 @@ function replaceSectionBody(text, heading, body) {
   }
   return [...lines.slice(0, start + 1), "", body, "", ...lines.slice(end)].join("\n");
 }
-
-function grantedMd(overrides = {}) {
-  let md = liveMdText.replace(VERDICT_LINE, GRANTED_LINE);
-  md = replaceHeaderValue(md, "owner_admission_ref", overrides.ownerRef ?? GRANT_CRITERION);
-  md = replaceHeaderValue(md, "admission_basis", overrides.basis ?? GRANTED_BASIS);
-  md = replaceHeaderValue(md, "runtime_stop", overrides.runtimeStop ?? "lifted by this record.");
-  return md;
-}
-
-const grantedRender = renderStartGate({
-  rootDir: root,
-  lookup,
-  sourceRevision: report.source_revision,
-  checkpointText: grantedCheckpointText,
-  answer: cleanAnswer,
-  governing: cleanGoverning,
-});
-
-const uuidRender = renderStartGate({
-  rootDir: root,
-  lookup,
-  sourceRevision: report.source_revision,
-  checkpointText: grantedCheckpointText,
-  answer: uuidAnswer,
-  governing: cleanGoverning,
-});
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -314,6 +297,7 @@ function baseEnv(overrides = {}) {
     exists: lookup.exists,
     sha256: lookup.sha256,
     insideRoot: lookup.insideRoot,
+    checkpointText: liveCheckpointText,
     ...overrides,
   };
 }
@@ -333,8 +317,8 @@ function expectCode(renderedOrReport, expected, md = liveMdText, env = {}) {
   return codes;
 }
 
-function mutated(overrides) {
-  const rep = clone(report);
+function mutated(overrides, base = report) {
+  const rep = clone(base);
   overrides(rep);
   return rep;
 }
@@ -356,7 +340,7 @@ contract("the start gate is canonical ASCII JSON and declares the M210 envelope"
     "the report must round-trip byte-identically",
   );
   assert.equal(report.schema, SCHEMA);
-  assert.equal(report.schema_version, 1);
+  assert.equal(report.schema_version, SCHEMA_VERSION);
   assert.equal(report.kind, KIND);
   assert.equal(report.milestone, MILESTONE);
   assert.equal(report.slice, SLICE);
@@ -367,6 +351,7 @@ contract("the start gate is canonical ASCII JSON and declares the M210 envelope"
   assert.deepEqual(report.requirement_refs, REQUIREMENT_REFS);
   assert.deepEqual(report.fail_closed_codes, EMITTABLE_CODES);
   assert.ok(Array.isArray(report.non_claims) && report.non_claims.length >= 5);
+  assert.equal(EMITTABLE_CODES.length, 43);
   assert.equal(live.text, committedText, "a live re-render must be byte-identical to the committed report");
   assert.deepEqual(
     validateStartGate(report, baseEnv({ text: committedText })).errors,
@@ -375,21 +360,30 @@ contract("the start gate is canonical ASCII JSON and declares the M210 envelope"
   );
 });
 
-contract("the gate records the admission-absent no-start contour", () => {
-  assert.equal(report.admission_verdict, "admission_absent");
-  assert.equal(report.runtime_implementation_permitted, false);
-  assert.deepEqual(report.permitted_work, [RUNTIME_PERMITTED_WORK]);
-  assert.deepEqual(report.adopted_construct_set, []);
-  assert.equal(report.adopted_variant, null);
-  assert.equal(report.owner_admission_ref, "none");
-  assert.equal(report.runtime_stop, "active");
+contract("the gate records the granted bounded candidate-layer admission", () => {
+  assert.equal(report.admission_verdict, "admission_granted");
+  assert.equal(report.runtime_implementation_permitted, true);
+  assert.deepEqual(report.permitted_work, [GRANTED_PERMITTED_WORK]);
+  assert.equal(report.adopted_variant, ADOPTED_VARIANT);
+  assert.equal(report.adopted_variant_label, ADOPTED_VARIANT_LABEL);
+  assert.deepEqual(report.adopted_construct_set, ADOPTED_CONSTRUCT_SET);
+  assert.equal(report.owner_admission_ref, "subjective-UAT criterion 37181c25-88b0-4896-bffe-d10642970e6f");
+  assert.equal(INTERACTIVE_REF_RE.test(report.owner_admission_ref), true);
+  assert.equal(report.runtime_stop, RUNTIME_STOP_LIFTED);
+  assert.equal(report.runtime_stop_scope.lifted_for, "adopted candidate layer");
+  for (const surface of RUNTIME_STOP_STILL_ACTIVE) {
+    assert.ok(report.runtime_stop_scope.still_active_for.includes(surface), `${surface} must stay stopped`);
+  }
   assert.equal(report.runtime_work, "not-started");
   assert.equal(report.runtime_demo, "not-proven");
-  assert.equal(report.f13_status, "hold");
-  assert.equal(report.answer_provenance.status, "pending_human_decision");
-  assert.equal(report.answer_provenance.answer_source, "none");
-  assert.equal(report.answer_provenance.interactive_ref_present, false);
+  assert.equal(report.f13_status, F13_DEFERRED_EXPLICIT);
+  assert.equal(report.answer_provenance.status, "owner_decision_recorded");
+  assert.equal(report.answer_provenance.answer_source, "interactive");
+  assert.equal(report.answer_provenance.interactive_ref_present, true);
+  assert.equal(report.answer_provenance.owner_ref_matches_criterion, true);
   assert.equal(report.answer_provenance.governing_surface_verdict, "governing_surface_absent");
+  assert.equal(report.answer_provenance.governing_surface_reread, "v2_supersession");
+  assert.equal(report.answer_provenance.governing_blocking, false);
   assert.deepEqual(report.guards.crates_touched, []);
   assert.equal(report.guards.requirements_promoted, 0);
   assert.equal(report.guards.review_case_events_written, 0);
@@ -404,11 +398,26 @@ contract("the gate records the admission-absent no-start contour", () => {
   assert.match(report.source_revision, SOURCE_REVISION_PATTERN);
 });
 
+contract("adoption is recorded separately from execution", () => {
+  assert.equal(report.adoption_state.adoption_established, true);
+  assert.equal(report.adoption_state.adopted_variant, ADOPTED_VARIANT);
+  assert.equal(report.adoption_state.authenticated_via, "authenticated subjective-UAT v2");
+  assert.equal(report.adoption_state.normative_semantics_adopted, false);
+  assert.equal(report.adoption_state.section3_terms, "deferred-undefined");
+  assert.equal(report.adoption_state.execution_separated, true);
+  assert.equal(report.execution_state.executed, false);
+  assert.equal(report.execution_state.candidates_emitted, 0);
+  assert.equal(report.execution_state.conflicts, 0);
+  assert.equal(report.execution_state.runtime_work, "not-started");
+  assert.equal(report.execution_state.runtime_demo, "not-proven");
+  assert.deepEqual(codesFor(live, liveMdText), [], "a granted-and-not-executed record must validate clean");
+});
+
 contract("the checkpoint carries exactly one verdict line and the mandatory structure", () => {
   const lines = liveMdText.split("\n").filter((line) => line.startsWith("**admission: "));
   assert.equal(lines.length, 1, "exactly one verdict line");
   assert.match(liveMdText, VERDICT_RE);
-  assert.match(liveMdText, /^\*\*admission: not-adopted\*\*$/m);
+  assert.match(liveMdText, /^\*\*admission: granted\*\*$/m);
   for (const heading of [
     "## Purpose and boundary",
     "## Sources checked",
@@ -445,16 +454,17 @@ contract("the checkpoint carries exactly one verdict line and the mandatory stru
   }
   assert.equal(headerValue(liveMdText, "contract"), CONTRACT);
   assert.equal(headerValue(liveMdText, "source_revision"), report.source_revision);
-  assert.equal(headerValue(liveMdText, "owner_admission_ref"), "none");
-  assert.equal(headerValue(liveMdText, "adopted_variant"), "none");
-  assert.equal(headerValue(liveMdText, "adopted_construct_set"), "[]");
+  assert.equal(headerValue(liveMdText, "owner_admission_ref"), report.owner_admission_ref);
+  assert.equal(headerValue(liveMdText, "adopted_variant"), "C (abstention_first_candidates_only)");
+  assert.equal(headerValue(liveMdText, "adopted_construct_set"), ADOPTED_CONSTRUCT_SET.join(", "));
   assert.equal(headerValue(liveMdText, "runtime_work"), "not-started");
   assert.equal(headerValue(liveMdText, "runtime_demo"), "not-proven");
   assert.equal(headerValue(liveMdText, "review_case_events_written"), "0");
   assert.equal(headerValue(liveMdText, "requirements_promoted"), "0");
   assert.equal(headerValue(liveMdText, "section3_pin"), SECTION3_PIN);
-  assert.equal(headerValue(liveMdText, "f13_status"), "hold");
-  assert.match(headerValue(liveMdText, "runtime_stop"), /remains active/i);
+  assert.match(headerValue(liveMdText, "f13_status"), /^deferred-explicit/);
+  assert.match(headerValue(liveMdText, "runtime_stop"), /lifted for the adopted candidate-layer scope only/i);
+  assert.match(headerValue(liveMdText, "runtime_stop"), /stays active for composed-rule runtime/i);
   assert.match(liveMdText, /no-start/i, "the checkpoint must carry a no-start directive");
   assert.deepEqual(
     validateAdmissionCheckpoint(liveMdText, report, baseEnv()).errors,
@@ -464,7 +474,7 @@ contract("the checkpoint carries exactly one verdict line and the mandatory stru
 });
 
 contract("every cited S02 source is repository-relative and hash-bound", () => {
-  assert.equal(report.s02_sources.length, MIN_S02_SOURCES, "the S02 checkpoint cites ten sources");
+  assert.equal(report.s02_sources.length, MIN_S02_SOURCES, "the v2 checkpoint cites eight sources");
   assert.equal(new Set(report.s02_sources.map((row) => row.path)).size, MIN_S02_SOURCES);
   for (const row of report.s02_sources) {
     assert.ok(!row.path.startsWith("/"), `${row.path} must be repository-relative`);
@@ -474,22 +484,117 @@ contract("every cited S02 source is repository-relative and hash-bound", () => {
     assert.equal(row.verdict, "match", `${row.path} must be a bound match`);
     assert.equal(sha256File(row.path), row.recorded_sha256, `${row.path} must match its recorded digest`);
     assert.equal(row.live_sha256, row.recorded_sha256, `${row.path} live digest must equal the recorded one`);
+    assert.equal(normalizePin(row.recorded_sha256), row.recorded_sha256, `${row.path} must normalize`);
+    assert.ok(["bare64", "sha256_prefixed"].includes(row.pin_form), `${row.path} pin form must be known`);
   }
   assert.equal(report.s02_checkpoint.path, S02_CHECKPOINT_PATH);
-  assert.equal(report.s02_checkpoint.verdict, "not-adopted");
+  assert.equal(report.s02_checkpoint.verdict, "granted");
   assert.equal(sha256File(S02_CHECKPOINT_PATH), report.s02_checkpoint.recorded_sha256);
+  assert.equal(report.s02_answer.path, S02_ANSWER_PATH);
+  assert.equal(report.s02_answer.status, "owner_decision_recorded");
+  assert.equal(sha256File(S02_ANSWER_PATH), report.s02_answer.recorded_sha256);
 
   const mdRows = admissionSourceRows(liveMdText);
-  assert.equal(mdRows.length, MIN_MD_SOURCES, "the checkpoint table cites the checkpoint plus ten sources");
+  assert.ok(mdRows.length >= MIN_MD_SOURCES, `the checkpoint table must cite at least ${MIN_MD_SOURCES} sources`);
   const mdPaths = mdRows.map((row) => row.path);
-  assert.equal(new Set(mdPaths).size, MIN_MD_SOURCES);
-  assert.ok(mdPaths.includes(S02_CHECKPOINT_PATH), "the checkpoint table must cite the S02 checkpoint");
+  assert.equal(new Set(mdPaths).size, mdPaths.length, "the checkpoint table must carry no duplicate row");
+  assert.ok(mdPaths.includes(S02_CHECKPOINT_PATH), "the checkpoint table must cite the v2 checkpoint");
   for (const row of report.s02_sources) {
     assert.ok(mdPaths.includes(row.path), `${row.path} must appear in the checkpoint table`);
   }
   for (const row of mdRows) {
     assert.equal(lookup.exists(row.path), true, `${row.path} must exist`);
     assert.equal(sha256File(row.path), row.sha256, `${row.path} must match its recorded digest`);
+  }
+});
+
+contract("both digest spellings are accepted and normalized on live sources", () => {
+  const bareBare = report.s02_sources.every((row) => row.pin_form === "bare64");
+  assert.equal(bareBare, true, "the v2 checkpoint table uses the bare spelling");
+  const mdRows = admissionSourceRows(liveMdText);
+  assert.equal(
+    mdRows.every((row) => row.pin_form === "sha256_prefixed"),
+    true,
+    "the admission table uses the prefixed spelling",
+  );
+  assert.deepEqual(report.source_pin_form.accepted_forms, ["bare64", "sha256_prefixed"]);
+  assert.deepEqual(report.source_pin_form.checkpoint_forms, ["bare64"]);
+  assert.deepEqual(report.source_pin_form.rejected, []);
+
+  // The same v2 table in the other accepted spelling must still resolve and grant.
+  const prefixedCheckpoint = liveCheckpointText.replace(/\| ([0-9a-f]{64}) \|/g, "| sha256:$1 |");
+  assert.notEqual(prefixedCheckpoint, liveCheckpointText, "the fixture must change the table");
+  const prefixedRender = renderStartGate({
+    rootDir: root,
+    lookup,
+    sourceRevision: report.source_revision,
+    checkpointText: prefixedCheckpoint,
+  });
+  assert.equal(prefixedRender.report.admission_verdict, "admission_granted");
+  assert.deepEqual(
+    prefixedRender.report.s02_sources.map((row) => row.recorded_sha256),
+    report.s02_sources.map((row) => row.recorded_sha256),
+    "normalization must produce the same digests",
+  );
+  assert.equal(
+    prefixedRender.report.source_pin_form.checkpoint_forms.join(","),
+    "sha256_prefixed",
+    "the prefixed spelling must be recognized",
+  );
+  assert.deepEqual(codesFor(prefixedRender, liveMdText, { checkpointText: prefixedCheckpoint }), []);
+});
+
+contract("a digest-shaped pin in any other spelling is rejected by name", () => {
+  const badPin = liveCheckpointText.replace(
+    /(\| )([0-9a-f]{64})( \|)/,
+    (match, before, digest, after) => `${before}sha256:${digest.slice(0, 60)}${after}`,
+  );
+  assert.notEqual(badPin, liveCheckpointText);
+  const badRender = renderStartGate({
+    rootDir: root,
+    lookup,
+    sourceRevision: report.source_revision,
+    checkpointText: badPin,
+  });
+  assert.equal(badRender.report.source_pin_form.rejected.length, 1, "the malformed pin must be reported");
+  const codes = expectCode(badRender, "source_pin_form_rejected", liveMdText, { checkpointText: badPin });
+  assert.ok(codes.includes("sources_insufficient"), "the rejected row must not count as a source");
+});
+
+contract("the superseded v1 bytes are preserved and hash-bound", () => {
+  const superseded = report.binding.superseded;
+  assert.equal(superseded.checkpoint_v1.path, S02_CHECKPOINT_V1_PATH);
+  assert.equal(superseded.checkpoint_v1.verdict, "preserved");
+  assert.equal(superseded.checkpoint_v1.v1_verdict, "not-adopted");
+  assert.equal(sha256File(S02_CHECKPOINT_V1_PATH), superseded.checkpoint_v1.live_sha256);
+  assert.equal(superseded.checkpoint_v1.live_sha256, superseded.checkpoint_v1.expected_sha256);
+  assert.equal(superseded.answer_v1.path, S02_ANSWER_V1_PATH);
+  assert.equal(superseded.answer_v1.verdict, "preserved");
+  assert.equal(superseded.answer_v1.v1_status, "pending_human_decision");
+  assert.equal(sha256File(S02_ANSWER_V1_PATH), superseded.answer_v1.live_sha256);
+  assert.equal(superseded.answer_v1.live_sha256, superseded.answer_v1.expected_sha256);
+  assert.equal(superseded.answer_v1.table_sha256, superseded.answer_v1.expected_sha256);
+  assert.equal(report.superseded_receipts.checkpoint_v1, S02_CHECKPOINT_V1_PATH);
+  assert.equal(report.superseded_receipts.answer_v1, S02_ANSWER_V1_PATH);
+  assert.ok(report.superseded_receipts.policy.includes("rewrites nothing"));
+  assert.ok(
+    readFileSync(path.join(root, S02_CHECKPOINT_V1_PATH), "utf8").includes(ABSENT_LINE),
+    "the v1 checkpoint must still carry its original verdict",
+  );
+});
+
+contract("binding the gate back to the superseded v1 sources fails closed", () => {
+  assert.equal(absentReport.admission_verdict, "admission_absent");
+  assert.deepEqual(absentReport.permitted_work, [RUNTIME_PERMITTED_WORK]);
+  assert.equal(absentReport.runtime_implementation_permitted, false);
+  assert.equal(absentReport.runtime_stop, RUNTIME_STOP_ACTIVE);
+  assert.equal(absentReport.f13_status, "hold");
+  assert.deepEqual(absentReport.adopted_construct_set, []);
+  assert.equal(absentReport.adopted_variant, null);
+  assert.equal(absentReport.owner_admission_ref, "none");
+  const codes = codesFor(absentRender, liveMdText, { checkpointText: absentRender.checkpointText });
+  for (const expected of ["superseded_source_selected", "superseded_ref_accepted", "superseded_hash_accepted"]) {
+    assert.ok(codes.includes(expected), `binding to v1 must emit ${expected}, got ${JSON.stringify(codes)}`);
   }
 });
 
@@ -512,51 +617,72 @@ contract("section 3 is byte-identical to its pin", () => {
   assert.equal(sha256Text(liveSection3Text), SECTION3_PIN);
   assert.equal(sha256File(SECTION3_PATH), SECTION3_PIN);
   assert.equal(report.guards.section3_pin, SECTION3_PIN);
+  assert.equal(liveGoverning.verdict, "governing_surface_absent");
+  assert.equal(liveGoverning.answer_record_ref, S02_ANSWER_V1_PATH);
+  assert.equal(liveGoverning.actor_bound_path_available, false);
 });
 
-contract("the grant rule refuses a grant without an answered interactive source", () => {
-  assert.equal(grantedRender.report.admission_verdict, "admission_granted");
-  // Both authenticated reference forms are accepted: a subjective-UAT criterion
-  // id and an owner interaction id with a UUID shape.
-  assert.equal(grantedRender.report.owner_admission_ref, GRANT_CRITERION);
-  assert.equal(INTERACTIVE_REF_RE.test(grantedRender.report.owner_admission_ref), true);
-  assert.equal(uuidRender.report.owner_admission_ref, INTERACTION_REF);
-  assert.equal(INTERACTIVE_REF_RE.test(uuidRender.report.owner_admission_ref), true);
-  const clean = codesFor(grantedRender, grantedMd(), {});
-  assert.deepEqual(clean, [], `a fully referenced grant must be accepted: ${JSON.stringify(clean)}`);
-  const cleanUuid = codesFor(uuidRender, grantedMd({ ownerRef: INTERACTION_REF }), {});
-  assert.deepEqual(cleanUuid, [], `a UUID-referenced grant must be accepted: ${JSON.stringify(cleanUuid)}`);
-  // A grant under the live pending answer and absent surface is refused.
+contract("the grant rule refuses a grant without the authenticated interactive source", () => {
   expectCode(
     mutated((rep) => {
-      rep.admission_verdict = "admission_granted";
       rep.answer_provenance.interactive_ref_present = false;
-      rep.owner_admission_ref = "none";
-      rep.runtime_implementation_permitted = true;
     }),
     "grant_without_interactive_ref",
-    grantedMd(),
   );
   expectCode(
     mutated((rep) => {
-      rep.admission_verdict = "admission_granted";
-      rep.answer_provenance.governing_surface_verdict = "governing_surface_absent";
-      rep.runtime_implementation_permitted = true;
+      rep.owner_admission_ref = "none";
+    }),
+    "grant_without_interactive_ref",
+  );
+  expectCode(
+    mutated((rep) => {
+      rep.binding.answer.channel = "manual";
+    }),
+    "grant_without_interactive_ref",
+  );
+  expectCode(
+    mutated((rep) => {
+      rep.binding.answer.disposition = "rejected";
+    }),
+    "grant_without_interactive_ref",
+  );
+  expectCode(
+    mutated((rep) => {
+      rep.binding.answer.status = "pending_human_decision";
+      rep.answer_provenance.status = "pending_human_decision";
+    }),
+    "superseded_ref_accepted",
+  );
+  expectCode(
+    mutated((rep) => {
+      rep.answer_provenance.governing_surface_reread = "not-reread";
     }),
     "grant_without_governing_surface",
-    grantedMd(),
+  );
+  expectCode(
+    mutated((rep) => {
+      rep.binding.governing.answer_record_ref = S02_ANSWER_PATH;
+    }),
+    "grant_without_governing_surface",
   );
 });
 
 contract("a lock, an integrity result, a closeout or an ADR status is never the basis of a grant", () => {
   const cases = [
     ["lock_as_admission", `D499 GSD_MILESTONE_LOCK authorises this adoption (${INTERACTION_REF}).`],
-    ["integrity_pass_as_admission", `The M206 runtime battery integrity PASS authorises this adoption (${INTERACTION_REF}).`],
-    ["milestone_closeout_as_admission", `The M210 milestone closeout authorises this adoption (${INTERACTION_REF}).`],
+    [
+      "integrity_pass_as_admission",
+      `The M206 runtime battery integrity PASS authorises this adoption (${INTERACTION_REF}).`,
+    ],
+    [
+      "milestone_closeout_as_admission",
+      `The M210 milestone closeout authorises this adoption (${INTERACTION_REF}).`,
+    ],
     ["non_owner_surface_as_grantor", `The ADR-0028 Accepted status authorises this adoption (${INTERACTION_REF}).`],
   ];
   for (const [code, basis] of cases) {
-    expectCode(grantedRender, code, grantedMd(), { grantBasisText: basis });
+    expectCode(report, code, liveMdText, { grantBasisText: basis });
   }
 });
 
@@ -580,7 +706,7 @@ contract("--print captures a live revision without writing the report", () => {
   assert.ok(run.stderr.includes(PRINT_MARKER), "the print marker must be printed");
   const printed = JSON.parse(run.stdout.join("\n"));
   assert.match(printed.source_revision, SOURCE_REVISION_PATTERN);
-  assert.equal(printed.admission_verdict, "admission_absent");
+  assert.equal(printed.admission_verdict, "admission_granted");
   assert.equal(printed.s02_sources.length, MIN_S02_SOURCES);
 });
 
@@ -598,6 +724,7 @@ contract("write mode validates and would write exactly the report", () => {
   assert.equal(JSON.stringify(reparsed), run.text, "the write render must be canonical JSON");
   assert.equal(reparsed.admission_verdict, report.admission_verdict);
   assert.equal(reparsed.runtime_implementation_permitted, report.runtime_implementation_permitted);
+  assert.equal(reparsed.runtime_stop, report.runtime_stop);
   assert.deepEqual(reparsed.s02_sources, report.s02_sources);
   assert.deepEqual(reparsed.guards, report.guards);
   assert.match(reparsed.source_revision, SOURCE_REVISION_PATTERN);
@@ -638,7 +765,7 @@ contract("the documented code set equals the declared code set", () => {
   const documented = documentedBlock();
   assert.equal(new Set(documented).size, documented.length, "the documented block must carry no duplicate");
   assert.deepEqual(documented.slice().sort(), EMITTABLE_CODES.slice().sort());
-  assert.equal(EMITTABLE_CODES.length, 31);
+  assert.equal(EMITTABLE_CODES.length, 43);
   const boundary = liveMdText.slice(liveMdText.indexOf("## Fail-closed boundary"));
   for (const code of EMITTABLE_CODES) {
     assert.ok(boundary.includes(`\`${code}\``), `${code} must be documented in the checkpoint boundary`);
@@ -650,7 +777,7 @@ const CODE_COVERAGE = [
     code: "verdict_missing",
     md: () => liveMdText.replace(VERDICT_LINE, "**admission_state: pending**"),
   },
-  { code: "verdict_ambiguous", md: () => liveMdText.replace(VERDICT_LINE, `${VERDICT_LINE}\n${GRANTED_LINE}`) },
+  { code: "verdict_ambiguous", md: () => liveMdText.replace(VERDICT_LINE, `${VERDICT_LINE}\n${ABSENT_LINE}`) },
   { code: "header_field_missing", md: () => replaceHeaderValue(liveMdText, "recorded", "") },
   { code: "section_missing", md: () => liveMdText.replace("## Marker semantics", "## Marker semantics note") },
   {
@@ -663,7 +790,7 @@ const CODE_COVERAGE = [
   },
   {
     code: "source_hash_mismatch",
-    report: () => mutated((rep) => { rep.s02_sources[0].recorded_sha256 = `sha256:${"0".repeat(64)}`; }),
+    report: () => mutated((rep) => { rep.s02_sources[0].recorded_sha256 = ZERO_SHA; }),
   },
   {
     code: "source_revision_mismatch",
@@ -675,64 +802,50 @@ const CODE_COVERAGE = [
   },
   {
     code: "grant_without_interactive_ref",
-    report: () =>
-      mutated((rep) => {
-        rep.admission_verdict = "admission_granted";
-        rep.answer_provenance.interactive_ref_present = false;
-        rep.owner_admission_ref = "none";
-        rep.runtime_implementation_permitted = true;
-      }),
-    md: () => grantedMd(),
+    report: () => mutated((rep) => { rep.owner_admission_ref = "none"; }),
   },
   {
     code: "grant_without_governing_surface",
-    report: () =>
-      mutated((rep) => {
-        rep.admission_verdict = "admission_granted";
-        rep.answer_provenance.governing_surface_verdict = "governing_surface_absent";
-        rep.runtime_implementation_permitted = true;
-      }),
-    md: () => grantedMd(),
+    report: () => mutated((rep) => { rep.answer_provenance.governing_surface_reread = "not-reread"; }),
   },
   {
     code: "non_owner_surface_as_grantor",
-    rendered: () => grantedRender,
-    md: () => grantedMd(),
     env: { grantBasisText: `The ADR-0028 Accepted status authorises this adoption (${INTERACTION_REF}).` },
   },
   {
     code: "lock_as_admission",
-    rendered: () => grantedRender,
-    md: () => grantedMd(),
     env: { grantBasisText: `D499 GSD_MILESTONE_LOCK authorises this adoption (${INTERACTION_REF}).` },
   },
   {
     code: "integrity_pass_as_admission",
-    rendered: () => grantedRender,
-    md: () => grantedMd(),
     env: { grantBasisText: "The M206 runtime battery integrity PASS authorises this adoption." },
   },
   {
     code: "milestone_closeout_as_admission",
-    rendered: () => grantedRender,
-    md: () => grantedMd(),
     env: { grantBasisText: "The M210 milestone closeout authorises this adoption." },
   },
   {
     code: "runtime_permitted_without_admission",
-    report: () => mutated((rep) => { rep.runtime_implementation_permitted = true; }),
+    report: () => mutated((rep) => { rep.runtime_implementation_permitted = true; }, absentReport),
   },
   {
     code: "runtime_stop_inverted",
-    report: () => mutated((rep) => { rep.runtime_stop = "lifted"; }),
+    report: () =>
+      mutated((rep) => {
+        rep.admission_verdict = "admission_absent";
+        rep.runtime_implementation_permitted = false;
+        rep.runtime_stop = RUNTIME_STOP_ACTIVE;
+      }),
     md: () => replaceHeaderValue(liveMdText, "runtime_stop", "lifted for the bounded semantic runtime."),
   },
   {
     code: "no_start_directive_missing",
-    md: () =>
-      replaceSectionBody(liveMdText, "## Start gate verdict", "The gate records the derived verdict only."),
+    md: () => replaceSectionBody(liveMdText, "## Start gate verdict", "The gate records the derived verdict only."),
   },
-  { code: "runtime_demo_claimed", report: () => mutated((rep) => { rep.runtime_demo = "proven"; }) },
+  {
+    code: "runtime_demo_claimed",
+    report: () => mutated((rep) => { rep.runtime_demo = "proven"; }, absentReport),
+  },
   { code: "s03_surface_present", env: { exists: () => true } },
   { code: "lib_rs_registration_present", env: { modRegistrations: ["candidate_emission"] } },
   {
@@ -746,7 +859,7 @@ const CODE_COVERAGE = [
   },
   {
     code: "section3_mutated",
-    report: () => mutated((rep) => { rep.guards.section3_pin = `sha256:${"0".repeat(64)}`; }),
+    report: () => mutated((rep) => { rep.guards.section3_pin = ZERO_SHA; }),
   },
   {
     code: "out_of_scope_surface_claimed",
@@ -757,6 +870,55 @@ const CODE_COVERAGE = [
   { code: "check_not_byte_identical", env: { committedText: `${committedText} ` } },
   { code: "non_ascii_artifact", md: () => `${liveMdText}\n\u041d\u043e\u0440\u043c\u0430\n` },
   { code: "raw_text_leak", md: () => `${liveMdText}\n<p>raw</p>\n` },
+  {
+    code: "v2_source_not_wired",
+    report: () => {
+      const rep = clone(report);
+      delete rep.binding;
+      return rep;
+    },
+  },
+  {
+    code: "superseded_source_selected",
+    report: () => mutated((rep) => { rep.binding.checkpoint.path = S02_CHECKPOINT_V1_PATH; }),
+  },
+  {
+    code: "superseded_hash_accepted",
+    report: () =>
+      mutated((rep) => {
+        rep.binding.answer.recorded_sha256 = rep.binding.superseded.answer_v1.live_sha256;
+      }),
+  },
+  {
+    code: "superseded_ref_accepted",
+    report: () => mutated((rep) => { rep.owner_admission_ref = F13_CRITERION_REF; }),
+  },
+  {
+    code: "scope_overclaim",
+    report: () => mutated((rep) => { rep.binding.checkpoint.scope_bounded_to_variant_c = false; }),
+  },
+  {
+    code: "owner_decision_read_as_answered",
+    report: () => mutated((rep) => { rep.answer_provenance.status = "answered"; }),
+  },
+  { code: "f13_hold_misread", report: () => mutated((rep) => { rep.f13_status = "hold"; }) },
+  {
+    code: "source_pin_form_rejected",
+    report: () => mutated((rep) => { rep.binding.superseded.answer_v1.expected_sha256 = "efc1b820"; }),
+  },
+  { code: "runtime_stop_blanket_lifted", report: () => mutated((rep) => { rep.runtime_stop = "lifted"; }) },
+  {
+    code: "adoption_read_as_execution",
+    report: () => mutated((rep) => { rep.execution_state.executed = true; }),
+  },
+  {
+    code: "execution_read_as_adoption",
+    report: () => mutated((rep) => { rep.adoption_state.adoption_established = false; }),
+  },
+  {
+    code: "receipt_silently_rewritten",
+    report: () => mutated((rep) => { rep.binding.superseded.answer_v1.verdict = "rewritten"; }),
+  },
 ];
 
 contract("every documented fail-closed code is empirically exercised", () => {
@@ -806,58 +968,65 @@ contract("negative: unresolvable and mismatched source references", () => {
     mutated((rep) => { rep.s02_checkpoint.path = "prd/architecture/m210-s03-absent.md"; }),
     "source_unresolved",
   );
-  expectCode(
-    mutated((rep) => { rep.s02_sources[0].verdict = "unresolved"; }),
-    "source_hash_mismatch",
-  );
+  expectCode(mutated((rep) => { rep.s02_sources[0].verdict = "unresolved"; }), "source_hash_mismatch");
   expectCode(report, "source_unresolved", liveMdText.replace(MD_ANSWER_ROW_PATH, MD_ABSENT_ROW_PATH));
-  expectCode(report, "source_hash_mismatch", liveMdText.replace(ANSWER_RECORD_SHA, ZERO_SHA));
+  expectCode(
+    report,
+    "source_hash_mismatch",
+    liveMdText.replace(report.binding.answer.live_sha256, ZERO_SHA),
+  );
 });
 
 contract("negative: the checkpoint verdict and the report verdict must agree", () => {
-  expectCode(report, "admission_verdict_mismatch", liveMdText.replace(VERDICT_LINE, GRANTED_LINE));
-  expectCode(grantedRender, "admission_verdict_mismatch", liveMdText);
+  expectCode(report, "admission_verdict_mismatch", liveMdText.replace(VERDICT_LINE, ABSENT_LINE));
+  expectCode(absentRender, "admission_verdict_mismatch", liveMdText);
 });
 
-contract("negative: the no-start contour cannot be softened", () => {
+contract("negative: the candidate-layer bound cannot be softened or widened", () => {
+  expectCode(mutated((rep) => { rep.adopted_construct_set.push("rule_composition"); }), "scope_overclaim");
+  expectCode(mutated((rep) => { rep.adoption_state.adopted_variant = "A"; }), "execution_read_as_adoption");
+  expectCode(mutated((rep) => { rep.adopted_variant_label = "full_normative_runtime"; }), "scope_overclaim");
   expectCode(
-    mutated((rep) => { rep.permitted_work = ["bounded_semantic_runtime_implementation"]; }),
-    "no_start_directive_missing",
+    mutated((rep) => { rep.runtime_stop_scope.lifted_for = "the whole bounded semantic runtime"; }),
+    "runtime_stop_blanket_lifted",
   );
   expectCode(
-    mutated((rep) => { rep.adopted_construct_set = ["NormRule"]; }),
-    "runtime_permitted_without_admission",
+    mutated((rep) => { rep.runtime_stop_scope.still_active_for = ["composed-rule runtime"]; }),
+    "runtime_stop_blanket_lifted",
+  );
+  expectCode(report, "runtime_stop_blanket_lifted", replaceHeaderValue(liveMdText, "runtime_stop", "lifted."));
+  expectCode(report, "scope_overclaim", replaceHeaderValue(liveMdText, "adopted_variant", "none"));
+  expectCode(report, "scope_overclaim", replaceHeaderValue(liveMdText, "adopted_construct_set", "candidate_emission"));
+});
+
+contract("negative: the superseded history cannot be rewritten", () => {
+  assert.equal(codesFor(live).includes("receipt_silently_rewritten"), false);
+  expectCode(
+    mutated((rep) => { rep.superseded_receipts.answer_v1 = S02_ANSWER_PATH; }),
+    "receipt_silently_rewritten",
   );
   expectCode(
-    mutated((rep) => { rep.adopted_variant = "abstention_first_candidates_only"; }),
-    "runtime_permitted_without_admission",
+    mutated((rep) => { rep.binding.superseded.checkpoint_v1.expected_sha256 = "31ed55b9f5db"; }),
+    "source_pin_form_rejected",
   );
   expectCode(
-    mutated((rep) => { rep.owner_admission_ref = INTERACTION_REF; }),
-    "grant_without_interactive_ref",
+    mutated((rep) => { rep.binding.superseded.answer_v1.table_sha256 = ZERO_SHA; }),
+    "superseded_hash_accepted",
+  );
+  expectCode(
+    mutated((rep) => { rep.binding.answer.supersedes_path = S02_CHECKPOINT_V1_PATH; }),
+    "superseded_ref_accepted",
   );
 });
 
 contract("negative: section 3 and the guard headers", () => {
   expectCode(report, "section3_mutated", liveMdText, { section3Sha: `${SECTION3_PIN}x` });
-  expectCode(
-    report,
-    "requirements_promoted",
-    replaceHeaderValue(liveMdText, "requirements_promoted", "2"),
-  );
-  expectCode(
-    report,
-    "review_case_event_written",
-    replaceHeaderValue(liveMdText, "review_case_events_written", "1"),
-  );
-  expectCode(
-    mutated((rep) => { rep.out_of_scope_surfaces = []; }),
-    "out_of_scope_surface_claimed",
-  );
-  expectCode(
-    mutated((rep) => { rep.out_of_scope_surfaces[3].name = "F13 grammar"; }),
-    "out_of_scope_surface_claimed",
-  );
+  expectCode(report, "requirements_promoted", replaceHeaderValue(liveMdText, "requirements_promoted", "2"));
+  expectCode(report, "review_case_event_written", replaceHeaderValue(liveMdText, "review_case_events_written", "1"));
+  expectCode(mutated((rep) => { rep.out_of_scope_surfaces = []; }), "out_of_scope_surface_claimed");
+  expectCode(mutated((rep) => { rep.out_of_scope_surfaces[3].name = "F13 grammar"; }), "out_of_scope_surface_claimed");
+  expectCode(report, "f13_hold_misread", replaceHeaderValue(liveMdText, "f13_status", "hold"));
+  expectCode(report, "f13_scope_borrowed", replaceHeaderValue(liveMdText, "f13_status", "resolved"));
 });
 
 // ---------------------------------------------------------------------------
@@ -909,6 +1078,7 @@ contract("the marker is emitted only when every earlier case passed", () => {
   process.stdout.write(
     `${CONTRACT_MARKER} checks=${caseCount} codes=${EMITTABLE_CODES.length} ` +
       `sources=${report.s02_sources.length + 1} gate_admission=${report.admission_verdict} ` +
-      `runtime_implementation_permitted=${report.runtime_implementation_permitted}\n`,
+      `runtime_implementation_permitted=${report.runtime_implementation_permitted} ` +
+      `owner_ref_bound=${report.answer_provenance.owner_ref_matches_criterion}\n`,
   );
 });
