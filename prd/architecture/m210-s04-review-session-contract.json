@@ -1,0 +1,274 @@
+{
+  "schema": "law-nexus/m210-s04-review-session-contract/v1",
+  "schema_version": 1,
+  "kind": "m210-s04-review-session-contract",
+  "milestone": "M210-3afp79",
+  "slice": "S04",
+  "task": "T04",
+  "lifecycle": ["proposed"],
+  "authoritative": false,
+  "ascii_only": true,
+  "status_effect": "unchanged",
+  "requirement_refs": ["RC28-F18", "RC28-F13", "R074"],
+  "packet_id": "RC-2026-09-10-001",
+  "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+  "cards_binding": {
+    "path": "prd/architecture/m210-s04-rc28-review-cards.json",
+    "schema": "law-nexus/m210-s04-rc28-review-cards/v1",
+    "card_count": 19,
+    "sha256": "sha256:f67972fb9aa398eb9b52399e13adea3487d057a48bcc3343d3eb0fb15a1721d2"
+  },
+  "matrix_binding": {
+    "path": "prd/architecture/m210-s04-finding-evidence-matrix.json",
+    "schema": "law-nexus/m210-s04-finding-evidence-matrix/v1",
+    "row_count": 19,
+    "sha256": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5"
+  },
+  "packet_binding": {
+    "path": "prd/architecture/review-cases/packets/RC-2026-09-10-001.json",
+    "content_sha256": "sha256:b75c0c228b10811399e5bad1b0649b7d33591597d433fca13dadb425c76eea64",
+    "source_path": "doc/review/review-28-10-09-2026.md",
+    "source_content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+  },
+  "session_state_binding": {
+    "path": "prd/architecture/m210-s04-review-session-state.json",
+    "schema": "law-nexus/m210-s04-review-session-state/v1",
+    "sha256": "sha256:4a10941fd5bb6f69b8efaf9d0d11307b5e07ec91a39cdcfcbd939d123b6f12df"
+  },
+  "adoption_basis": {
+    "variant": "C",
+    "state": "established-bounded-candidate-layer",
+    "ref": "prd/architecture/m210-s02-adoption-checkpoint-v2.md",
+    "criterion_id": "37181c25-88b0-4896-bffe-d10642970e6f",
+    "is_disposition_authority": false,
+    "note": "Variant C is established for the bounded candidate layer through the authenticated subjective-UAT path. That acceptance is not authority for record_human_disposition and does not satisfy, close or answer any RC28 finding."
+  },
+  "rules": {
+    "per_finding_individual_choice_required": true,
+    "blanket_confirmation_forbidden": true,
+    "preselect_forbidden": true,
+    "agent_confirmation_forbidden": true,
+    "recommendation_is_not_consent": true,
+    "persist_only_confirmed": true,
+    "ledger_readback_verified_per_choice": true
+  },
+  "allowed_choices": [
+    "accept_as_proposed",
+    "change_disposition",
+    "defer",
+    "stop_session"
+  ],
+  "read_back": {
+    "required": true,
+    "after_each_answer": true,
+    "echo_fields": [
+      "finding_id",
+      "selected_disposition",
+      "rationale",
+      "tested_source_revision",
+      "packet_content_sha256",
+      "card_set_sha256",
+      "event_id"
+    ],
+    "event_id": {
+      "role": "deterministic_identity_of_future_event",
+      "artifact_status": "specification_only_no_event_created",
+      "identity_version": "review-case-event-identity/v1",
+      "algorithm": "sha256 over the canonical JSON of the closed field inputs plus the identity version",
+      "closed_field_inputs": [
+        "packet_id",
+        "finding_id",
+        "selected_disposition",
+        "actor_ref",
+        "acceptance_ref",
+        "authority_epoch",
+        "source_revision"
+      ],
+      "closed_field_inputs_note": "The event identity is derived from exactly these inputs and the identity version. Adding, dropping or renaming an input is a new identity version, not a silent change.",
+      "event_created": false
+    },
+    "comparison": {
+      "mode": "exact_event_id_and_confirmed_fields",
+      "must_compare": [
+        "event_id",
+        "finding_id",
+        "selected_disposition",
+        "rationale",
+        "tested_source_revision",
+        "packet_content_sha256",
+        "card_set_sha256"
+      ],
+      "event_id_mismatch_is_failure": true,
+      "missing_event_id_is_failure": true,
+      "compare_confirmed_fields_only": true,
+      "note": "The read-back is accepted only when it echoes the exact event identity and the same confirmed field values. A read-back with a different or absent event_id is a failure, not a fuzzy match."
+    }
+  },
+  "revision_namespaces": {
+    "tested_source_revision": {
+      "namespace": "sha256_content_digest",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "subject": "prd/architecture/m210-s04-finding-evidence-matrix.json",
+      "meaning": "live T02 matrix content digest carried on every review card",
+      "whole_tree_aggregate": false,
+      "interchangeable_with_reviewed_git_revision": false,
+      "note": "This is a content digest of one matrix artifact, not the whole-tree aggregate source revision."
+    },
+    "reviewed_git_revision": {
+      "namespace": "git_commit",
+      "pattern": "^[0-9a-f]{40}$",
+      "subject": "RC28 review packet reviewed revision",
+      "ledger_source_revision_namespace": "git_commit",
+      "interchangeable_with_tested_source_revision": false,
+      "note": "The packet reviewed revision and the future ledger event source_revision share the git40 namespace; neither is the card content digest."
+    },
+    "cross_namespace_mapping": "forbidden",
+    "no_fake_mapping_note": "No function maps a sha256:64 content digest to a git40 commit or back. A claim that either namespace implies the other is a failure."
+  },
+  "required_future_proof": {
+    "confirmed_card_required": true,
+    "bindings": [
+      {
+        "name": "tested_source_revision",
+        "namespace": "sha256_content_digest",
+        "immutable_input": "prd/architecture/m210-s04-finding-evidence-matrix.json"
+      },
+      {
+        "name": "reviewed_git_revision",
+        "namespace": "git_commit",
+        "immutable_input": "doc/review/review-28-10-09-2026.md"
+      }
+    ],
+    "fake_sha256_to_git_mapping_forbidden": true,
+    "unbound_revision_is_failure": true,
+    "note": "A future submission binds both revisions to their own immutable inputs and to the confirmed card. A revision that resolves to no immutable input is unbound and fails."
+  },
+  "drift_policy": {
+    "invalidates_proposal": true,
+    "recording_forbidden": true,
+    "fingerprints": [
+      {
+        "name": "packet_content_sha256",
+        "source": "prd/architecture/review-cases/packets/RC-2026-09-10-001.json",
+        "pattern": "^sha256:[0-9a-f]{64}$"
+      },
+      {
+        "name": "reviewed_git_revision",
+        "source": "doc/review/review-28-10-09-2026.md",
+        "pattern": "^[0-9a-f]{40}$"
+      },
+      {
+        "name": "card_set_sha256",
+        "source": "prd/architecture/m210-s04-rc28-review-cards.json",
+        "pattern": "^sha256:[0-9a-f]{64}$"
+      },
+      {
+        "name": "tested_source_revision",
+        "source": "prd/architecture/m210-s04-finding-evidence-matrix.json",
+        "pattern": "^sha256:[0-9a-f]{64}$"
+      }
+    ],
+    "action_on_drift": "cancel the proposal, discard the read-back and require a new review"
+  },
+  "submission_gate": {
+    "applied": false,
+    "operation": "record_human_disposition",
+    "per_finding_decision": true,
+    "actor_bound_scope": "record_human_disposition",
+    "actor_bound_path_available": false,
+    "agent_may_submit": false,
+    "caller_supplied_identity_insufficient": true,
+    "caller_supplied_fields_insufficient": ["actor_class=HUMAN", "nonempty actor_id"],
+    "existing_s02_acceptance_is_disposition_authority": false,
+    "trust_boundary_ref": "prd/architecture/m210-s02-governing-surface-check.json",
+    "applied_requires": {
+      "path": "future host-controlled actor-bound submission path",
+      "host_authority_verified": true,
+      "session_identity_verified": true,
+      "operation_fenced_actor_ref": true,
+      "operation_fenced_acceptance_ref": true,
+      "authority_epoch_required": true,
+      "per_finding_decision_bound": true,
+      "ledger_readback_same_event_required": true
+    },
+    "forbidden_actor_sources": [
+      "caller_asserted_human",
+      "s02_subjective_uat_acceptance",
+      "agent_self_assertion",
+      "blank_actor_id",
+      "milestone_or_gsd_lock"
+    ],
+    "named_fail_closed": [
+      {
+        "code": "self_asserted_identity",
+        "condition": "an actor_class or actor_id supplied by the caller is treated as authority without a host-derived session binding"
+      },
+      {
+        "code": "authority_binding_missing",
+        "condition": "a submission claims host authority without a verified session identity, an authority epoch or operation-fenced references"
+      },
+      {
+        "code": "submission_without_actor_bound_path",
+        "condition": "a submission is applied while the actor-bound path is unavailable"
+      },
+      {
+        "code": "forbidden_actor_source",
+        "condition": "a submission derives authority from a source on the forbidden list"
+      }
+    ],
+    "limitation_note": "The published review-case application validates a caller-supplied actor_class and actor_id only. That validation is not authentication. It is an inherited runtime weakness and a prerequisite for the future actor-bound scope, not something this design-only task repairs."
+  },
+  "event_submission_delta_binding": {
+    "path": "prd/architecture/m210-s04-event-submission-delta.json",
+    "schema": "law-nexus/m210-s04-event-submission-delta/v1",
+    "note": "The event submission delta binds to this contract by content digest and stays applied=false."
+  },
+  "boundary": {
+    "review_case_events_written": false,
+    "record_human_disposition_called": false,
+    "submit_command_implemented": false,
+    "dispositions_recorded": 0,
+    "options_selected": 0,
+    "requirements_promoted": [],
+    "requirement_status_mutated": false,
+    "runtime_touched": false,
+    "crates_touched": [],
+    "source_artifacts_rewritten": []
+  },
+  "non_claims": [
+    "This is a design-only session contract. It creates no event, writes no ledger, selects no option and records no disposition.",
+    "A recommendation stays advisory; accepting the contract is not accepting any finding.",
+    "Variant C acceptance through S02 subjective-UAT is not authority for record_human_disposition and does not answer any finding.",
+    "The future event identity is a specification with closed inputs and a version; no event with that identity exists.",
+    "The tested_source_revision content digest and the reviewed_git_revision commit are different namespaces and neither may be substituted for the other.",
+    "The submission gate stays applied=false until a host-controlled actor-bound path with a verified session identity exists.",
+    "No requirement is promoted and RC28 stays on hold until valid per-finding dispositions exist through the actor-bound path."
+  ],
+  "fail_closed_codes": [
+    "blanket_confirmation_forbidden",
+    "preselect_forbidden",
+    "agent_confirmation_forbidden",
+    "recommendation_as_consent",
+    "unconfirmed_answer_recorded",
+    "readback_missing",
+    "event_id_missing",
+    "event_id_mismatch",
+    "drift_invalidates_proposal",
+    "revision_namespace_confused",
+    "revision_unbound",
+    "submission_without_actor_bound_path",
+    "actor_bound_scope_confused",
+    "self_asserted_identity",
+    "authority_binding_missing",
+    "forbidden_actor_source",
+    "agent_may_not_submit",
+    "choice_not_allowed",
+    "shell_string_command",
+    "argv_not_array",
+    "contract_hash_mismatch",
+    "session_state_inconsistent",
+    "review_case_event_written",
+    "non_ascii_artifact",
+    "raw_text_leak"
+  ]
+}
