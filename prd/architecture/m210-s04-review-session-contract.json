@@ -33,7 +33,7 @@
   "session_state_binding": {
     "path": "prd/architecture/m210-s04-review-session-state.json",
     "schema": "law-nexus/m210-s04-review-session-state/v1",
-    "sha256": "sha256:4a10941fd5bb6f69b8efaf9d0d11307b5e07ec91a39cdcfcbd939d123b6f12df"
+    "sha256": "sha256:8e0176a5e9c4897b238a8c7a39f9b7ef964290f0bd783810e3fe2f821fd624da"
   },
   "adoption_basis": {
     "variant": "C",
@@ -85,6 +85,24 @@
         "source_revision"
       ],
       "closed_field_inputs_note": "The event identity is derived from exactly these inputs and the identity version. Adding, dropping or renaming an input is a new identity version, not a silent change.",
+      "canonicalization": {
+        "order": "closed_field_inputs_array_order",
+        "encoding": "utf8",
+        "serialization": "json_array_no_insignificant_whitespace",
+        "digest": "sha256",
+        "version_included": true,
+        "implementation_status": "specified_not_implemented",
+        "note": "event_id is sha256 over the utf8 of the JSON array [identity_version, then the closed_field_inputs values in order], serialized with no insignificant whitespace. The canonical bytes are fully determined by the pinned version and the pinned ordered inputs; no runtime implementation exists."
+      },
+      "derivation": {
+        "owner": "host",
+        "host_derived": true,
+        "caller_supplied_event_id_forbidden": true,
+        "derived_before_persistence": true,
+        "verified_against_canonical_inputs_before_readback": true,
+        "missing_derivation_requirement_is_failure": true,
+        "note": "The host derives the event identity from the canonical inputs. A caller-supplied event id is forbidden and is rejected before persistence and before any read-back; a missing or false derivation requirement is a failure."
+      },
       "event_created": false
     },
     "comparison": {
@@ -183,6 +201,8 @@
     "trust_boundary_ref": "prd/architecture/m210-s02-governing-surface-check.json",
     "applied_requires": {
       "path": "future host-controlled actor-bound submission path",
+      "path_owner": "host",
+      "caller_supplied_path_forbidden": true,
       "host_authority_verified": true,
       "session_identity_verified": true,
       "operation_fenced_actor_ref": true,
@@ -240,6 +260,7 @@
     "A recommendation stays advisory; accepting the contract is not accepting any finding.",
     "Variant C acceptance through S02 subjective-UAT is not authority for record_human_disposition and does not answer any finding.",
     "The future event identity is a specification with closed inputs and a version; no event with that identity exists.",
+    "The future event identity is host-derived and verified against the canonical inputs before persistence and read-back; a caller-supplied event id is forbidden.",
     "The tested_source_revision content digest and the reviewed_git_revision commit are different namespaces and neither may be substituted for the other.",
     "The submission gate stays applied=false until a host-controlled actor-bound path with a verified session identity exists.",
     "No requirement is promoted and RC28 stays on hold until valid per-finding dispositions exist through the actor-bound path."
@@ -253,6 +274,11 @@
     "readback_missing",
     "event_id_missing",
     "event_id_mismatch",
+    "event_identity_version_not_pinned",
+    "event_identity_inputs_not_canonical",
+    "event_identity_not_host_derived",
+    "caller_supplied_event_id_forbidden",
+    "host_controlled_path_substituted",
     "drift_invalidates_proposal",
     "revision_namespace_confused",
     "revision_unbound",

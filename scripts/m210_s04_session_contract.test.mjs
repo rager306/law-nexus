@@ -47,6 +47,11 @@ import path from "node:path";
 // readback_missing: a read-back must be required after each answer and echo the full field set.
 // event_id_missing: the read-back must name a deterministic event identity with closed inputs and no created event.
 // event_id_mismatch: the read-back comparison must reject a different or missing event_id.
+// event_identity_version_not_pinned: the event identity version must be the exact pinned value, not an arbitrary nonempty string.
+// event_identity_inputs_not_canonical: the identity inputs must be the exact ordered closed seven and their canonicalization must be pinned.
+// event_identity_not_host_derived: the future event identity must be host-derived and verified against the canonical inputs before persistence.
+// caller_supplied_event_id_forbidden: no caller-supplied event id may enter the identity or the submission argv.
+// host_controlled_path_substituted: the host-controlled executable path token and submission path must not be caller-substituted.
 // drift_invalidates_proposal: drift of a fingerprint must invalidate the proposal and forbid recording.
 // revision_namespace_confused: the tested_source_revision digest and the reviewed_git_revision commit must stay distinct.
 // revision_unbound: every revision claim must resolve to a live immutable input and the confirmed card.
@@ -149,6 +154,19 @@ export const RULE_KEYS = [
   "ledger_readback_verified_per_choice",
 ];
 export const REVISION_NAMESPACES = ["sha256_content_digest", "git_commit"];
+export const EVENT_IDENTITY_VERSION = "review-case-event-identity/v1";
+export const EVENT_IDENTITY_OWNER = "host";
+export const EVENT_IDENTITY_INPUTS = [
+  "packet_id",
+  "finding_id",
+  "selected_disposition",
+  "actor_ref",
+  "acceptance_ref",
+  "authority_epoch",
+  "source_revision",
+];
+export const HOST_PATH_TOKEN = "uv";
+export const HOST_SUBMISSION_PATH = "future host-controlled actor-bound submission path";
 
 export const EMITTABLE_CODES = [
   "blanket_confirmation_forbidden",
@@ -159,6 +177,11 @@ export const EMITTABLE_CODES = [
   "readback_missing",
   "event_id_missing",
   "event_id_mismatch",
+  "event_identity_version_not_pinned",
+  "event_identity_inputs_not_canonical",
+  "event_identity_not_host_derived",
+  "caller_supplied_event_id_forbidden",
+  "host_controlled_path_substituted",
   "drift_invalidates_proposal",
   "revision_namespace_confused",
   "revision_unbound",
@@ -334,6 +357,49 @@ export function validateSession(bundle, env = {}) {
       "the read-back must name a deterministic event identity with closed inputs and no created event",
     );
   }
+  if (eventId?.identity_version !== EVENT_IDENTITY_VERSION) {
+    code(
+      "event_identity_version_not_pinned",
+      `identity_version=${JSON.stringify(eventId?.identity_version)}`,
+    );
+  }
+  if (
+    !Array.isArray(eventId?.closed_field_inputs) ||
+    JSON.stringify(eventId.closed_field_inputs) !== JSON.stringify(EVENT_IDENTITY_INPUTS)
+  ) {
+    code(
+      "event_identity_inputs_not_canonical",
+      `closed_field_inputs=${JSON.stringify(eventId?.closed_field_inputs)}`,
+    );
+  }
+  const canonicalization = eventId?.canonicalization ?? {};
+  if (
+    canonicalization.order !== "closed_field_inputs_array_order" ||
+    canonicalization.encoding !== "utf8" ||
+    canonicalization.serialization !== "json_array_no_insignificant_whitespace" ||
+    canonicalization.digest !== "sha256" ||
+    canonicalization.version_included !== true ||
+    canonicalization.implementation_status !== "specified_not_implemented"
+  ) {
+    code(
+      "event_identity_inputs_not_canonical",
+      "the canonicalization must be pinned and unambiguous",
+    );
+  }
+  const derivation = eventId?.derivation ?? {};
+  if (
+    derivation.owner !== EVENT_IDENTITY_OWNER ||
+    derivation.host_derived !== true ||
+    derivation.caller_supplied_event_id_forbidden !== true ||
+    derivation.derived_before_persistence !== true ||
+    derivation.verified_against_canonical_inputs_before_readback !== true ||
+    derivation.missing_derivation_requirement_is_failure !== true
+  ) {
+    code(
+      "event_identity_not_host_derived",
+      "the future event identity must be host-derived and verified against canonical inputs before persistence",
+    );
+  }
   const comparison = readback.comparison ?? {};
   const mustCompare = Array.isArray(comparison.must_compare) ? comparison.must_compare : [];
   if (
@@ -464,6 +530,16 @@ export function validateSession(bundle, env = {}) {
       `applied_requires must require a verified host authority binding (${HOST_AUTHORITY_FIELDS.join(",")})`,
     );
   }
+  if (
+    appliedRequires.path !== HOST_SUBMISSION_PATH ||
+    appliedRequires.path_owner !== "host" ||
+    appliedRequires.caller_supplied_path_forbidden !== true
+  ) {
+    code(
+      "host_controlled_path_substituted",
+      "the host-controlled submission path must be pinned and not caller-substituted",
+    );
+  }
   const forbidden = Array.isArray(gate.forbidden_actor_sources) ? gate.forbidden_actor_sources : [];
   if (
     forbidden.length === 0 ||
@@ -521,6 +597,26 @@ export function validateSession(bundle, env = {}) {
       code(
         "submission_without_actor_bound_path",
         "a submission command must not be available or executed while the gate is inert",
+      );
+    }
+    if (
+      Array.isArray(command?.argv) &&
+      command.argv.some((token) => token === "--event-id" || token === "{event_id}")
+    ) {
+      code(
+        "caller_supplied_event_id_forbidden",
+        "a caller-supplied event id must not enter the submission argv",
+      );
+    }
+    if (
+      command?.executable_path_token !== HOST_PATH_TOKEN ||
+      command?.executable_path_owner !== "host" ||
+      !Array.isArray(command?.argv) ||
+      command.argv[0] !== HOST_PATH_TOKEN
+    ) {
+      code(
+        "host_controlled_path_substituted",
+        "the executable path token must be pinned host-controlled and not caller-substituted",
       );
     }
   }
@@ -674,14 +770,81 @@ test("the read-back contract carries the full echo set and a deterministic event
   assert.equal(eventId.role, "deterministic_identity_of_future_event");
   assert.equal(eventId.artifact_status, "specification_only_no_event_created");
   assert.equal(eventId.event_created, false);
-  assert.match(eventId.identity_version, /^review-case-event-identity\/v\d+$/);
-  assert.ok(Array.isArray(eventId.closed_field_inputs) && eventId.closed_field_inputs.length >= 7);
+  assert.equal(eventId.identity_version, EVENT_IDENTITY_VERSION);
+  assert.deepEqual(eventId.closed_field_inputs, EVENT_IDENTITY_INPUTS);
+  assert.equal(eventId.closed_field_inputs.length, 7);
   assert.ok(eventId.closed_field_inputs.includes("event_id") === false);
+  assert.equal(eventId.canonicalization.order, "closed_field_inputs_array_order");
+  assert.equal(eventId.canonicalization.serialization, "json_array_no_insignificant_whitespace");
+  assert.equal(eventId.canonicalization.implementation_status, "specified_not_implemented");
   assert.equal(contract.read_back.comparison.mode, "exact_event_id_and_confirmed_fields");
   assert.equal(contract.read_back.comparison.event_id_mismatch_is_failure, true);
   assert.equal(contract.read_back.comparison.missing_event_id_is_failure, true);
   assert.deepEqual([...contract.read_back.comparison.must_compare].sort(), [...READBACK_ECHO_FIELDS].sort());
   assert.ok(!JSON.stringify(contract).includes("event_created\": true"));
+});
+
+test("the event identity pins the exact version and the ordered closed seven inputs", () => {
+  const inputs = [...EVENT_IDENTITY_INPUTS];
+  assert.equal(contract.read_back.event_id.identity_version, EVENT_IDENTITY_VERSION);
+  assert.deepEqual(contract.read_back.event_id.closed_field_inputs, inputs);
+  const cases = [
+    ["version swap", (b) => { b.contract.read_back.event_id.identity_version = "review-case-event-identity/v2"; }, "event_identity_version_not_pinned"],
+    ["input added", (b) => { b.contract.read_back.event_id.closed_field_inputs.push("extra_input"); }, "event_identity_inputs_not_canonical"],
+    ["input dropped", (b) => { b.contract.read_back.event_id.closed_field_inputs.pop(); }, "event_identity_inputs_not_canonical"],
+    ["input renamed", (b) => { b.contract.read_back.event_id.closed_field_inputs[0] = "packet"; }, "event_identity_inputs_not_canonical"],
+    ["input reordered", (b) => { b.contract.read_back.event_id.closed_field_inputs = [...inputs].reverse(); }, "event_identity_inputs_not_canonical"],
+    ["canonicalization unpinned", (b) => { b.contract.read_back.event_id.canonicalization.serialization = "unspecified"; }, "event_identity_inputs_not_canonical"],
+  ];
+  for (const [label, apply, expected] of cases) {
+    const bundle = cloneBundle();
+    apply(bundle);
+    const names = new Set(validateSession(bundle, liveEnv()).errors.map((error) => error.name));
+    assert.ok(
+      names.has(expected),
+      `${label} must emit ${expected}; got [${[...names].sort().join(",")}]`,
+    );
+  }
+});
+
+test("the future event identity is host-derived and never a caller argv input", () => {
+  const eventId = contract.read_back.event_id;
+  assert.equal(eventId.derivation.owner, EVENT_IDENTITY_OWNER);
+  assert.equal(eventId.derivation.host_derived, true);
+  assert.equal(eventId.derivation.caller_supplied_event_id_forbidden, true);
+  assert.equal(eventId.derivation.derived_before_persistence, true);
+  assert.equal(eventId.derivation.verified_against_canonical_inputs_before_readback, true);
+  assert.equal(eventId.derivation.missing_derivation_requirement_is_failure, true);
+  assert.equal(contract.submission_gate.applied_requires.path, HOST_SUBMISSION_PATH);
+  assert.equal(contract.submission_gate.applied_requires.path_owner, "host");
+  assert.equal(contract.submission_gate.applied_requires.caller_supplied_path_forbidden, true);
+  assert.equal(delta.command_policy.executable_path_token, HOST_PATH_TOKEN);
+  assert.equal(delta.command_policy.executable_path_owner, "host");
+  assert.equal(delta.command_policy.caller_supplied_executable_forbidden, true);
+  for (const command of delta.commands) {
+    assert.equal(command.executable_path_token, HOST_PATH_TOKEN, command.id);
+    assert.equal(command.executable_path_owner, "host", command.id);
+    assert.equal(command.argv[0], HOST_PATH_TOKEN, command.id);
+    assert.ok(!command.argv.includes("--event-id"), command.id);
+    assert.ok(!command.argv.includes("{event_id}"), command.id);
+  }
+  const cases = [
+    ["caller event-id injected", (b) => { b.delta.commands[0].argv.push("--event-id", "{event_id}"); }, "caller_supplied_event_id_forbidden"],
+    ["derivation requirement missing", (b) => { delete b.contract.read_back.event_id.derivation.verified_against_canonical_inputs_before_readback; }, "event_identity_not_host_derived"],
+    ["derivation requirement false", (b) => { b.contract.read_back.event_id.derivation.host_derived = false; }, "event_identity_not_host_derived"],
+    ["caller executable substituted", (b) => { b.delta.commands[0].argv[0] = "{caller_executable}"; }, "host_controlled_path_substituted"],
+    ["submission path substituted", (b) => { b.contract.submission_gate.applied_requires.path = "caller-asserted path"; }, "host_controlled_path_substituted"],
+    ["path owner substituted", (b) => { b.contract.submission_gate.applied_requires.path_owner = "caller"; }, "host_controlled_path_substituted"],
+  ];
+  for (const [label, apply, expected] of cases) {
+    const bundle = cloneBundle();
+    apply(bundle);
+    const names = new Set(validateSession(bundle, liveEnv()).errors.map((error) => error.name));
+    assert.ok(
+      names.has(expected),
+      `${label} must emit ${expected}; got [${[...names].sort().join(",")}]`,
+    );
+  }
 });
 
 test("the two revision namespaces stay distinct with no fake mapping", () => {
@@ -858,6 +1021,11 @@ test("CODE_COVERAGE: every documented fail-closed code is emitted by a mutation"
     ["readback_missing", (bundle) => { bundle.contract.rules.ledger_readback_verified_per_choice = false; }],
     ["event_id_missing", (bundle) => { bundle.contract.read_back.event_id.artifact_status = "created"; }],
     ["event_id_mismatch", (bundle) => { bundle.contract.read_back.comparison.event_id_mismatch_is_failure = false; }],
+    ["event_identity_version_not_pinned", (bundle) => { bundle.contract.read_back.event_id.identity_version = "review-case-event-identity/v2"; }],
+    ["event_identity_inputs_not_canonical", (bundle) => { bundle.contract.read_back.event_id.closed_field_inputs = ["packet_id", "finding_id", "selected_disposition", "actor_ref", "acceptance_ref", "authority_epoch"]; }],
+    ["event_identity_not_host_derived", (bundle) => { bundle.contract.read_back.event_id.derivation.owner = "caller"; }],
+    ["caller_supplied_event_id_forbidden", (bundle) => { bundle.delta.commands[0].argv.push("--event-id", "{event_id}"); }],
+    ["host_controlled_path_substituted", (bundle) => { bundle.delta.commands[0].argv[0] = "{caller_executable}"; }],
     ["drift_invalidates_proposal", (bundle) => { bundle.contract.drift_policy.recording_forbidden = false; }],
     ["revision_namespace_confused", (bundle) => { bundle.contract.revision_namespaces.tested_source_revision.pattern = "^[0-9a-f]{40}$"; }],
     ["revision_unbound", (bundle) => { bundle.contract.reviewed_git_revision = "0".repeat(40); }],

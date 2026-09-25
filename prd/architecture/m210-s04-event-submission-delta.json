@@ -13,7 +13,7 @@
   "bound_to_session_contract": {
     "path": "prd/architecture/m210-s04-review-session-contract.json",
     "schema": "law-nexus/m210-s04-review-session-contract/v1",
-    "sha256": "sha256:9cfacfd0e3f32899d86a25d0ef83701cf499f556597d2dbb6a6dd6466dcbdfe9"
+    "sha256": "sha256:886cbf8c1bab9788ec440d3e60f941439ca8673c4bb97f7e4e4cef0d0e57ccff"
   },
   "gate": {
     "applied": false,
@@ -61,8 +61,11 @@
   "command_policy": {
     "argv_only": true,
     "shell_string_forbidden": true,
+    "executable_path_token": "uv",
+    "executable_path_owner": "host",
+    "caller_supplied_executable_forbidden": true,
     "executed_commands": 0,
-    "note": "No submission command exists. The commands below are a future argv-only specification with available=false and executed=false."
+    "note": "No submission command exists. The commands below are a future argv-only specification with available=false and executed=false. The executable path token is host-controlled and a caller-supplied executable or event id is forbidden."
   },
   "commands": [
     {
@@ -72,6 +75,8 @@
       "executed": false,
       "argv_only": true,
       "shell_string": false,
+      "executable_path_token": "uv",
+      "executable_path_owner": "host",
       "argv": [
         "uv",
         "run",
@@ -91,11 +96,9 @@
         "--acceptance-ref",
         "{acceptance_ref}",
         "--authority-epoch",
-        "{authority_epoch}",
-        "--event-id",
-        "{event_id}"
+        "{authority_epoch}"
       ],
-      "note": "Future specification only. The published CLI exposes read-only validate/status/inventory and no record-human-disposition subcommand, so this argv is not runnable and is not run."
+      "note": "Future specification only. The published CLI exposes read-only validate/status/inventory and no record-human-disposition subcommand, so this argv is not runnable and is not run. The event id is host-derived from the canonical identity inputs and is never a caller argv token."
     }
   ],
   "boundary": {
@@ -116,6 +119,7 @@
     "The listed command is not implemented and not run; it documents the argv-only shape a future path would need.",
     "The gate stays applied=false and the actor-bound path stays unavailable, so no event can be submitted from this unit.",
     "The S02 variant C acceptance does not open this gate and is not disposition authority.",
+    "The future event identity is host-derived from the canonical inputs; a caller-supplied event id is forbidden and the executable path token is host-controlled, not caller-substituted.",
     "No requirement is promoted, no ledger is written and no runtime identity layer is created."
   ],
   "fail_closed_codes": [
@@ -127,6 +131,11 @@
     "readback_missing",
     "event_id_missing",
     "event_id_mismatch",
+    "event_identity_version_not_pinned",
+    "event_identity_inputs_not_canonical",
+    "event_identity_not_host_derived",
+    "caller_supplied_event_id_forbidden",
+    "host_controlled_path_substituted",
     "drift_invalidates_proposal",
     "revision_namespace_confused",
     "revision_unbound",
