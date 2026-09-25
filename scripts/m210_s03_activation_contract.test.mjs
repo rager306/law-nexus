@@ -13,6 +13,9 @@
 // The delta is a design-only record: it mints no runtime surface, it activates
 // no variant and it promotes nothing. Applying it without the adopted layer
 // actually implemented and without a green battery is delta_applied_without_grant.
+// Adoption and activation are separate states: the adopted variant may refuse
+// runtime work and still name its adoption, while the unadopted-variant template
+// inside the adopted branch fails closed as adopted_variant_denies_adoption.
 // The activation_commands list is validated as argv arrays, never as shell
 // strings, so the latent command-injection surface named by the slice threat
 // surface (Q3) is closed by construction: no argv element may carry a shell
@@ -47,6 +50,7 @@ const SELF_PATH = fileURLToPath(import.meta.url);
 // activation_without_owner_ref: activation is declared without a required interactive owner reference whose accepted forms are the closed two-element set.
 // activation_without_regression_battery: the regression battery roles or the green_regression_battery step with command references are absent.
 // activation_without_semantics_contract: the delta does not bind the byte-live semantics contract path and sha256.
+// adopted_variant_denies_adoption: the adopted variant, or a top-level non-claim, denies the adoption it belongs to by carrying the unadopted-variant template, so adoption and activation are not read as separate states.
 // delta_applied_without_grant: the delta is applied, the grant is not recorded, the application prerequisites are not both required, or a conditional variant is activated while the delta stays unapplied.
 // grant_read_as_implementation: the grant is read as implementation or readiness, or a not-yet-applied step is marked satisfied by the grant.
 // implementation_fabricated: the grant claims the runtime implementation exists, or a runtime surface is declared created.
@@ -96,6 +100,7 @@ const EMITTABLE_CODES = [
   "activation_without_owner_ref",
   "activation_without_regression_battery",
   "activation_without_semantics_contract",
+  "adopted_variant_denies_adoption",
   "delta_applied_without_grant",
   "grant_read_as_implementation",
   "implementation_fabricated",
@@ -195,6 +200,19 @@ const NON_CLAIM_FRAGMENTS = [
   "whitelist",
 ];
 
+// A non-claim that denies the adoption it belongs to is the unadopted-variant
+// template leaking into an adopted branch: the same object would both affirm and
+// deny the adoption. Adoption and activation are separate states, so refusing
+// runtime work stays legitimate while refusing the adoption itself fails closed.
+const ADOPTION_DENIAL_FRAGMENTS = [
+  "no variant is selected",
+  "no variant is adopted",
+  "nothing is adopted",
+  "is not adopted",
+  "adoption is absent",
+  "adoption is not established",
+];
+
 // ---------------------------------------------------------------------------
 // repository helpers
 // ---------------------------------------------------------------------------
@@ -261,6 +279,18 @@ function envFor(delta) {
 // ---------------------------------------------------------------------------
 // the fail-closed validator
 // ---------------------------------------------------------------------------
+
+// Adoption and activation are distinct states: a non-claim may refuse runtime
+// work, but a non-claim that denies the adoption itself (the unadopted-variant
+// template) fails closed so the object cannot both affirm and deny its adoption.
+function adoptionDenials(claims) {
+  if (!Array.isArray(claims)) return [];
+  return claims.filter(
+    (claim) =>
+      typeof claim !== "string" ||
+      ADOPTION_DENIAL_FRAGMENTS.some((fragment) => claim.toLowerCase().includes(fragment)),
+  );
+}
 
 function validateDelta(delta, env) {
   const errors = [];
@@ -473,6 +503,13 @@ function validateDelta(delta, env) {
   const adopted = variants[ADOPTED_VARIANT];
   if (!adopted || adopted.adopted !== true) {
     add("out_of_scope_activation", "the adopted variant is absent or not marked adopted");
+  } else {
+    for (const claim of adoptionDenials(adopted.non_claims)) {
+      add("adopted_variant_denies_adoption", `the adopted variant denies its own adoption: ${String(claim)}`);
+    }
+  }
+  for (const claim of adoptionDenials(delta?.non_claims)) {
+    add("adopted_variant_denies_adoption", `a top-level non-claim denies the adoption: ${String(claim)}`);
   }
 
   // no runtime surface may be created or exist.
@@ -737,6 +774,27 @@ test("every conditional variant is inactive and bound to the live S01 variant di
   }
 });
 
+test("the adopted variant separates adoption from activation", () => {
+  const adopted = LIVE_DELTA.conditional_surfaces_by_variant[ADOPTED_VARIANT];
+  assert.equal(adopted.adopted, true, "variant C must be adopted");
+  assert.equal(adopted.activated, false, "adoption is not activation: the variant must stay inactive");
+  assert.equal(adopted.activated_in_this_slice, false, "this slice activates nothing");
+  assert.match(adopted.activation_condition, /adopted by the authenticated v2 checkpoint/i);
+
+  const joined = adopted.non_claims.join("\n").toLowerCase();
+  assert.match(joined, /adopted/, "the adopted branch must state its adoption");
+  assert.ok(
+    !ADOPTION_DENIAL_FRAGMENTS.some((fragment) => joined.includes(fragment)),
+    "the adopted branch must not deny its own adoption",
+  );
+
+  for (const [key, variant] of Object.entries(LIVE_DELTA.conditional_surfaces_by_variant)) {
+    if (key === ADOPTED_VARIANT) continue;
+    assert.equal(variant.adopted, false, `${key} is not adopted`);
+    assert.equal(variant.activated, false, `${key} is not activated`);
+  }
+});
+
 test("the out-of-scope surfaces stay inactive and the section 3 pin is live", () => {
   assert.deepEqual(
     LIVE_DELTA.out_of_scope_surfaces.map((surface) => surface.name),
@@ -807,6 +865,13 @@ const CODE_COVERAGE = [
     code: "activation_without_semantics_contract",
     mutate: (delta) => {
       delta.semantics_contract.sha256 = `sha256:${"0".repeat(64)}`;
+    },
+  },
+  {
+    code: "adopted_variant_denies_adoption",
+    mutate: (delta) => {
+      delta.conditional_surfaces_by_variant.abstention_first_candidates_only.non_claims[0] =
+        "No variant is selected today, so this scope is inactive and nothing is created.";
     },
   },
   {
@@ -945,6 +1010,20 @@ test("negative: an applied gate, a fabricated implementation and fabricated read
   expectCode((delta) => {
     delta.conditional_surfaces_by_variant.abstention_first_candidates_only.adopted = false;
   }, "out_of_scope_activation");
+});
+
+test("negative: the adopted variant must not deny its own adoption", () => {
+  expectCode((delta) => {
+    delta.conditional_surfaces_by_variant.abstention_first_candidates_only.non_claims[1] =
+      "A specification table is not an adoption and this variant is not adopted.";
+  }, "adopted_variant_denies_adoption");
+  expectCode((delta) => {
+    delta.conditional_surfaces_by_variant.abstention_first_candidates_only.non_claims[0] =
+      "No variant is selected today, so this scope is inactive and nothing is created.";
+  }, "adopted_variant_denies_adoption");
+  expectCode((delta) => {
+    delta.non_claims.push("No variant is selected today, so nothing is adopted.");
+  }, "adopted_variant_denies_adoption");
 });
 
 test("negative: unowned activation and a red battery are refused", () => {
