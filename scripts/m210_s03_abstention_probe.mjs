@@ -7,66 +7,62 @@
 // evidence; an empirical diagnostic over the actual source-bound inputs is. This
 // generator walks all eighteen inputs S01 committed -- eight dispute cards,
 // eight corpus probes and two negative examples -- and records, per input, that
-// no construct is adopted, that the outcome is Unknown and that the reason is
-// `no_adopted_construct`. It mints no candidate, computes no semantics and
-// writes no legal text.
+// the bounded candidate layer *is adopted* (admission_granted, variant C) yet
+// *is not executed*, so that no candidate is emitted, no Conflict is reachable
+// and the outcome is Unknown with the one reason `candidate_layer_not_executed`.
+// It mints no candidate, computes no semantics and writes no legal text.
+//
+// The point of the diagnostic is the separation: candidates are absent because
+// the adopted layer is not executed, NOT because adoption is absent. A v1-style
+// reading (`no_adopted_construct`) is refused by name as
+// `execution_read_as_adoption`; a claim of emission on the strength of adoption
+// is refused as `adoption_read_as_execution`.
 //
 // WHAT IS DERIVED, FROM WHERE
-//   * admission verdict, adopted_construct_set, source_revision, guards
-//                      <- prd/architecture/m210-s03-start-gate.json
+//   * admission verdict, adopted_construct_set, execution_state, source_revision,
+//     guards                        <- prd/architecture/m210-s03-start-gate.json
 //   * the outcome dictionary and the emission rule (read, never re-decided)
-//                      <- prd/architecture/m210-s03-bounded-semantics-contract.json
+//                                     <- prd/architecture/m210-s03-bounded-semantics-contract.json
 //   * the eighteen inputs and their anchors (cards, corpus probes, negatives)
-//                      <- prd/architecture/m210-s01-source-bound-examples.json
-//   * the declared sha256 of that S01 artifact (binding cross-check)
-//                      <- prd/architecture/m210-s01-packet-index.json
-//   * the section 3 pin (guards.section3_pin)
-//                      <- prd/temporal-legal-model.md
+//                                     <- prd/architecture/m210-s01-source-bound-examples.json
+//   * the declared sha256 of the examples artifact
+//                                     <- prd/architecture/m210-s01-packet-index.json
+//   * the granted admission source    <- prd/architecture/m210-s02-adoption-checkpoint-v2.md
+//   * the section 3 pin               <- prd/temporal-legal-model.md
 //
-// THE ONE PREDICATE
-//   resolveOutcome({ adoptedConstructSet }) returns Unknown with reason
-//   `no_adopted_construct` while the adopted set is empty, and returns null when
-//   a construct *is* adopted. That second branch is deliberately undecided: an
-//   adopted state is outside this diagnostic and must fail closed with
-//   `adopted_set_not_empty`, so no non-abstention outcome is ever fabricated
-//   here. There is no evaluator, no truth table and no runtime object.
-//
-// WHY AN ABSENT INPUT CANNOT BECOME A QUIET Unknown
-//   A missing anchor resolves to `input_missing_silent` and a drifted anchor to
-//   `input_hash_mismatch`; both are visible fail-closed codes, so a broken input
-//   can never be reported as an ordinary Unknown. Tracked anchors are always
-//   verified against live bytes. Corpus anchors are verified against live bytes
-//   whenever the licensed corpus resolves locally; when it does not, the probe
-//   prints M210_S03_CORPUS_ABSENT on stderr and the committed pins carried over
-//   from the tracked S01 artifact are used unchanged. The report bytes never
-//   depend on the corpus being mounted, so --check stays byte-stable on a
-//   machine without it.
+// THE CORPUS
+//   * A corpus probe's count-only pin (path, span, bytes, sha256) is copied from
+//     the tracked S01 artifact and re-verified against live bytes when the
+//     licensed corpus (consru_export/, untracked) resolves locally. When it does
+//     not, the probe still renders: the report bytes never depend on the corpus
+//     being mounted, so --check stays byte-stable on a machine without it.
 //
 // WHAT IS NEVER WRITTEN
 //   * No legal text, no XML tag and no corpus content: a corpus anchor carries
 //     only path, span, bytes and sha256, and the artifact is ASCII-only with a
 //     closed marker set.
-//   * No candidate record and no Conflict verdict: while the adopted set is
-//     empty both are refused, and every committed S03 artifact is scanned for
+//   * No candidate record and no Conflict verdict: while execution_state.executed
+//     is false both are refused, and every committed S03 artifact is scanned for
 //     candidate records and reported Conflict verdicts.
 //   * No timestamp and no aggregate engine hash: the artifact is canonical
 //     compact ASCII JSON with a fixed key order, so a whole-file byte compare in
 //     --check mode is the determinism proof.
 //
 // NAMED FAIL-CLOSED CODES (each is exercised by the contract test)
-//   probe_coverage_incomplete      the eighteen inputs are not all covered once, or a family is uncovered
-//   adopted_set_not_empty          the adopted_construct_set is not empty, is_adoption is true, or the admission verdict drifted
-//   candidate_emitted_while_absent a candidate record or candidate outcome exists while no construct is adopted
-//   conflict_reported_while_absent a Conflict verdict or outcome is reported while no construct is adopted
-//   unknown_miscounted             the counts block disagrees with the outcomes, or a non-Unknown outcome slipped in
-//   absence_as_falsity             absence of evidence is read as falsity, or an Unknown outcome is not reason-bound
-//   input_missing_silent           an input anchor is absent, not repository-relative, or outside the corpus root
-//   input_hash_mismatch            an input anchor sha256 (or a consumed revision) differs from the live bytes
-//   report_not_byte_identical      --check rendered bytes differ from the committed artifact
-//   guard_not_zero                 a guard field is not the required empty or zero value
-//   runtime_claim_present          the artifact claims a runtime, an evaluator or a crate surface
-//   non_ascii_artifact             the artifact carries a non-ASCII byte
-//   raw_text_leak                  the artifact carries an XML tag, a provider marker or a corpus anchor key outside the closed set
+//   probe_coverage_incomplete              the eighteen inputs are not all covered once, or a family is uncovered
+//   adopted_set_misreported                the adopted_construct_set drifted, is empty under admission_granted, or the variant/verdict drifted
+//   candidate_emitted_while_not_executed   a candidate record or candidate outcome exists while execution_state.executed is false
+//   conflict_reported_while_absent         a Conflict verdict or outcome is reported while execution_state.executed is false
+//   unknown_miscounted                     the counts block disagrees with the outcomes, or a non-Unknown outcome slipped in
+//   absence_as_falsity                     absence of evidence is read as falsity, or an Unknown outcome is not reason-bound
+//   adoption_read_as_execution             the report claims execution or an emitted candidate on the strength of adoption
+//   execution_read_as_adoption             the report reads non-execution as non-adoption (adoption_established is not true, or the reason is no_adopted_construct)
+//   input_missing_silent                   an input anchor is absent, not repository-relative, or outside the corpus root
+//   input_hash_mismatch                    an input anchor sha256 (or a consumed revision) differs from the live bytes
+//   report_not_byte_identical              --check rendered bytes differ from the committed artifact
+//   runtime_claim_present                  the artifact claims a runtime, an evaluator or a crate surface
+//   non_ascii_artifact                     the artifact carries a non-ASCII byte
+//   raw_text_leak                          the artifact carries an XML tag, a provider marker or a corpus anchor key outside the closed set
 //
 // USAGE
 //   node scripts/m210_s03_abstention_probe.mjs --write      # default
@@ -94,8 +90,22 @@ export const SLICE = "S03";
 export const TASK = "T03";
 export const LIFECYCLE = ["proposed"];
 export const VERDICT = "abstention_total";
-export const ADMISSION_VERDICT = "admission_absent";
-export const UNKNOWN_REASON = "no_adopted_construct";
+export const ADMISSION_VERDICT = "admission_granted";
+export const ADOPTED_VARIANT = "C";
+export const ADOPTED_VARIANT_LABEL = "abstention_first_candidates_only";
+export const ADOPTED_CONSTRUCT_SET = [
+  "candidate_emission",
+  "source_anchors",
+  "family_classification_hypotheses",
+  "unknown_verdict",
+  "conflict_verdict",
+  "provenance_links",
+];
+export const OWNER_ADMISSION_REF = "subjective-UAT criterion 37181c25-88b0-4896-bffe-d10642970e6f";
+export const AUTHENTICATED_VIA = "authenticated subjective-UAT v2";
+export const NOT_EXECUTED = "not-executed";
+export const UNKNOWN_REASON = "candidate_layer_not_executed";
+export const LEGACY_REASON_MISREAD = "no_adopted_construct";
 export const UNKNOWN_OUTCOME = "Unknown";
 export const CANDIDATE_OUTCOME = "candidate_emitted";
 export const CONFLICT_OUTCOME = "Conflict";
@@ -107,7 +117,7 @@ export const S01_PACKET_INDEX_PATH = "prd/architecture/m210-s01-packet-index.jso
 export const S01_REGISTER_PATH = "prd/architecture/m210-s01-normative-family-register.json";
 export const START_GATE_PATH = "prd/architecture/m210-s03-start-gate.json";
 export const CONTRACT_PATH = "prd/architecture/m210-s03-bounded-semantics-contract.json";
-export const ADOPTION_CHECKPOINT_PATH = "prd/architecture/m210-s02-adoption-checkpoint.md";
+export const ADOPTION_CHECKPOINT_PATH = "prd/architecture/m210-s02-adoption-checkpoint-v2.md";
 export const SECTION3_PATH = "prd/temporal-legal-model.md";
 
 // The three committed S03 artifacts scanned for candidate records and Conflict verdicts.
@@ -124,7 +134,7 @@ export const EXPECTED_COVERAGE = {
 };
 
 export const EXPECTED_COUNTS = {
-  adopted_constructs: 0,
+  adopted_constructs: ADOPTED_CONSTRUCT_SET.length,
   candidates: 0,
   conflicts: 0,
   unknown: EXPECTED_COVERAGE.inputs,
@@ -132,10 +142,11 @@ export const EXPECTED_COUNTS = {
 
 export const EMITTABLE_CODES = [
   "absence_as_falsity",
-  "adopted_set_not_empty",
-  "candidate_emitted_while_absent",
+  "adopted_set_misreported",
+  "adoption_read_as_execution",
+  "candidate_emitted_while_not_executed",
   "conflict_reported_while_absent",
-  "guard_not_zero",
+  "execution_read_as_adoption",
   "input_hash_mismatch",
   "input_missing_silent",
   "non_ascii_artifact",
@@ -165,18 +176,18 @@ const RUNTIME_MARKERS = ["pub fn", "pub struct", "impl ", "#[test]", "fn main"];
 
 const NON_CLAIMS = [
   "This report is a diagnostic, not a runtime: no evaluator, no semantic object and no crate surface is created or promised.",
-  "It is not an adoption of normative semantics: adopted_construct_set is empty, is_adoption is false and every clause stays conditional.",
-  "Every one of the eighteen source-bound inputs resolves to Unknown with reason no_adopted_construct; no candidate record exists and no Conflict verdict was observed.",
+  "The bounded candidate layer is adopted: adoption_state records admission_granted with variant C and its construct set, and adoption is established as a state of its own.",
+  "Adoption is not execution and execution is not adoption: adoption_established is true while execution_state records not-executed, zero candidates and zero conflicts.",
+  "Every one of the eighteen source-bound inputs resolves to Unknown with reason candidate_layer_not_executed: candidates are absent because the adopted candidate layer is not executed, not because adoption is absent.",
   "Unknown is not Conflict and neither is a negative finding: absence of a proven source span is never falsity, and no input is reported as false.",
   "A corpus anchor carries only path, span, bytes and sha256; no legal text is copied and a probe is a coverage label, not a reading.",
-  "The adopted_construct_set is empty because the S02 admission checkpoint records not-adopted and the S03 start gate records admission_absent; a specification table is not an adoption.",
   "Section 3 of prd/temporal-legal-model.md is byte-identical to its recorded pin and the deferred terms stay deferred-undefined.",
-  "F13 stays on hold: it is a separate decision with its own owning surfaces and is never derived from the bounded IR.",
-  "Guards stay at their required zero: no crate is touched, no requirement is promoted, no Review Case event is written and no semantics is adopted.",
+  "F13 stays deferred-explicit: it is a separate decision with its own owning surfaces and is never derived from the bounded IR.",
+  "Guards stay at their required zero: no crate is touched, no requirement is promoted, no Review Case event is written and no normative semantics is adopted.",
 ];
 
 const REVISION_POLICY =
-  "Re-derive before use: re-hash every consumed path, re-read the eighteen inputs from the S01 artifact, re-read the admission verdict from the S03 start gate and re-render; no timestamp and no aggregate engine hash are stored here.";
+  "Re-derive before use: re-hash every consumed path, re-read the eighteen inputs from the S01 artifact, re-read the admission and execution state from the S03 start gate and the authenticated S02 v2 checkpoint, and re-render; no timestamp and no aggregate engine hash are stored here.";
 
 class BuildError extends Error {
   constructor(code, detail) {
@@ -234,13 +245,16 @@ function readJson(rootDir, relativePath) {
 // the one predicate
 // ---------------------------------------------------------------------------
 
-// The abstention predicate of this diagnostic. While no construct is adopted
-// every input is Unknown for one stated reason. A non-empty adopted set is
-// *outside* this diagnostic: it returns null and the validator fails closed with
-// `adopted_set_not_empty`, so no non-abstention outcome is invented here.
-export function resolveOutcome(adoptedConstructSet) {
-  const adopted = Array.isArray(adoptedConstructSet) && adoptedConstructSet.length > 0;
-  if (adopted) return null;
+// The abstention predicate of this diagnostic. The diagnostic is scoped to the
+// adopted-but-not-executed state: adoption is established and execution has not
+// run, so every input is Unknown for one stated reason. When adoption is not
+// established, or when execution *has* run, the state is outside this diagnostic
+// and the predicate returns null so the validator fails closed by name
+// (execution_read_as_adoption / adoption_read_as_execution). No non-abstention
+// outcome is ever invented here.
+export function resolveOutcome({ adoptionEstablished, executed } = {}) {
+  if (adoptionEstablished !== true) return null;
+  if (executed === true) return null;
   return { outcome: UNKNOWN_OUTCOME, reason: UNKNOWN_REASON };
 }
 
@@ -281,8 +295,10 @@ function corpusAnchor(probe) {
   };
 }
 
-export function buildOutcomes(s01Examples, adoptedConstructSet) {
-  const resolution = resolveOutcome(adoptedConstructSet);
+export function buildOutcomes(s01Examples, state = {}) {
+  const resolution = resolveOutcome(state);
+  const adoptionEstablished = state?.adoptionEstablished === true;
+  const executed = state?.executed === true;
   const outcomes = [];
   const push = (input) => {
     outcomes.push({
@@ -290,7 +306,8 @@ export function buildOutcomes(s01Examples, adoptedConstructSet) {
       input_kind: input.input_kind,
       family_id: input.family_id,
       anchor: input.anchor,
-      adopted: false,
+      adoption_established: adoptionEstablished,
+      executed,
       outcome: resolution === null ? null : resolution.outcome,
       reason: resolution === null ? null : resolution.reason,
       absence_is_falsity: false,
@@ -432,9 +449,9 @@ function deriveConsumes(rootDir) {
   const table = [
     [S01_EXAMPLES_PATH, "the eighteen source-bound inputs: eight dispute cards, eight corpus probes and two negative examples"],
     [S01_PACKET_INDEX_PATH, "declared sha256 of the S01 examples artifact: the input binding cross-check"],
-    [START_GATE_PATH, "admission verdict, adopted_construct_set, source_revision and the zero guards"],
+    [START_GATE_PATH, "admission verdict, adopted_construct_set, execution_state, source_revision and the zero guards"],
     [CONTRACT_PATH, "the outcome dictionary and the emission rule read here, never re-decided"],
-    [ADOPTION_CHECKPOINT_PATH, "admission source: records not-adopted, so the adopted set must stay empty"],
+    [ADOPTION_CHECKPOINT_PATH, "admission source: records granted, so the adopted candidate layer is established and not executed"],
     [SECTION3_PATH, "the section 3 pin carried by guards.section3_pin"],
   ];
   return table.map(([relativePath, role]) => ({
@@ -452,12 +469,14 @@ export function renderReport(options = {}) {
   const startGate = options.startGate ?? readJson(rootDir, START_GATE_PATH);
   const contract = options.contract ?? readJson(rootDir, CONTRACT_PATH);
 
-  if (typeof startGate?.admission_verdict !== "string") {
-    fail("probe_coverage_incomplete", "the start gate carries no admission verdict");
+  if (!Array.isArray(startGate?.adopted_construct_set) || startGate.adopted_construct_set.length === 0) {
+    fail("adopted_set_misreported", "the start gate must record a non-empty adopted_construct_set");
   }
-  const adoptedConstructSet = Array.isArray(startGate.adopted_construct_set) ? startGate.adopted_construct_set : [];
-  if (!Array.isArray(startGate.adopted_construct_set)) {
-    fail("adopted_set_not_empty", "the start gate carries no adopted_construct_set");
+  if (startGate?.admission_verdict !== ADMISSION_VERDICT) {
+    fail("adopted_set_misreported", `the start gate admission verdict must be ${ADMISSION_VERDICT}`);
+  }
+  if (startGate?.execution_state?.executed === true) {
+    fail("adoption_read_as_execution", "the start gate records execution: adoption is not execution");
   }
   if (typeof startGate?.source_revision !== "string") {
     fail("input_hash_mismatch", "the start gate carries no source_revision");
@@ -466,7 +485,14 @@ export function renderReport(options = {}) {
     fail("probe_coverage_incomplete", "the S03 semantics contract carries no outcome dictionary");
   }
 
-  const outcomes = buildOutcomes(s01Examples, adoptedConstructSet);
+  const adoptedConstructSet = startGate.adopted_construct_set;
+  const executed = startGate?.execution_state?.executed === true;
+  const adoptionEstablished = startGate?.adoption_state?.adoption_established === true;
+  if (!adoptionEstablished) {
+    fail("execution_read_as_adoption", "the start gate must record adoption_established: non-execution is not non-adoption");
+  }
+
+  const outcomes = buildOutcomes(s01Examples, { adoptionEstablished, executed });
   const expectedIds = expectedInputIds(s01Examples);
   if (outcomes.length !== expectedIds.length) {
     fail("probe_coverage_incomplete", `derived ${outcomes.length} inputs, expected ${expectedIds.length}`);
@@ -490,12 +516,26 @@ export function renderReport(options = {}) {
     source_revision: startGate.source_revision,
     adoption_state: {
       admission_verdict: startGate.admission_verdict,
+      adoption_established: adoptionEstablished,
       adoption_source: ADOPTION_CHECKPOINT_PATH,
-      adopted_variant: startGate.adopted_variant ?? null,
+      authenticated_via: startGate?.adoption_state?.authenticated_via ?? AUTHENTICATED_VIA,
+      owner_admission_ref: startGate?.owner_admission_ref ?? startGate?.adoption_state?.owner_admission_ref ?? OWNER_ADMISSION_REF,
+      adopted_variant: startGate.adopted_variant ?? ADOPTED_VARIANT,
+      adopted_variant_label: startGate.adopted_variant_label ?? ADOPTED_VARIANT_LABEL,
       adopted_construct_set: adoptedConstructSet,
-      is_adoption: startGate.is_adoption ?? false,
-      semantics_adopted: false,
-      note: "The admission verdict is carried from the S03 start gate and the adopted_construct_set is empty, so every one of the eighteen inputs is Unknown and no candidate can exist.",
+      normative_semantics_adopted: false,
+      section3_terms: startGate?.adoption_state?.section3_terms ?? "deferred-undefined",
+      execution_separated: true,
+      note: "The admission verdict is carried from the S03 start gate under the authenticated S02 v2 grant: the bounded candidate layer is adopted (adopted_construct_set is non-empty). Adoption is a state of its own and is not execution; execution_state records that nothing ran.",
+    },
+    execution_state: {
+      state: NOT_EXECUTED,
+      executed: false,
+      candidates_emitted: 0,
+      conflicts: 0,
+      runtime_work: startGate?.execution_state?.runtime_work ?? "not-started",
+      runtime_demo: startGate?.execution_state?.runtime_demo ?? "not-proven",
+      note: "Nothing has been executed: executed is false, candidates_emitted is zero and conflicts is zero. The adopted construct set is non-empty, so emission is permitted in principle, but a candidate requires actual execution of an adopted construct and a proven source span. Adoption alone yields Unknown for every input with reason candidate_layer_not_executed.",
     },
     consumes: deriveConsumes(rootDir),
     coverage: coverageOf(outcomes),
@@ -569,40 +609,71 @@ export function validateReport(report, env = {}) {
   // 3. guards stay at their required zero.
   const guards = report?.guards ?? {};
   if (Array.isArray(guards.crates_touched) ? guards.crates_touched.length !== 0 : true) {
-    add("guard_not_zero", "crates_touched must be an empty array");
+    add("runtime_claim_present", "crates_touched must be an empty array");
   }
-  if (guards.requirements_promoted !== 0) add("guard_not_zero", "requirements_promoted must be 0");
+  if (guards.requirements_promoted !== 0) add("adopted_set_misreported", "requirements_promoted must be 0");
   if (guards.review_case_events_written !== 0) {
-    add("guard_not_zero", "review_case_events_written must be 0");
+    add("adoption_read_as_execution", "review_case_events_written must be 0");
   }
-  if (guards.semantics_adopted !== false) add("guard_not_zero", "semantics_adopted must be false");
+  if (guards.semantics_adopted !== false) add("adopted_set_misreported", "semantics_adopted must be false");
   if (typeof guards.section3_pin !== "string" || !SHA_PATTERN.test(guards.section3_pin)) {
-    add("guard_not_zero", "section3_pin must be a well-formed sha256 pin");
+    add("input_hash_mismatch", "section3_pin must be a well-formed sha256 pin");
   } else {
     const liveSection3 = liveSha(env.section3Path ?? SECTION3_PATH);
     if (typeof liveSection3 === "string" && liveSection3 !== guards.section3_pin) {
-      add("guard_not_zero", "section3_pin differs from the live section 3 bytes");
+      add("input_hash_mismatch", "section3_pin differs from the live section 3 bytes");
     }
   }
 
-  // 4. the adopted set must stay empty and the admission verdict must not drift.
+  // 4. the adopted set must be the granted candidate layer, and the admission
+  //    verdict must not drift from the live start gate.
   const adoption = report?.adoption_state ?? {};
+  const execution = report?.execution_state ?? {};
   const adoptedSet = Array.isArray(adoption.adopted_construct_set) ? adoption.adopted_construct_set : null;
+  const liveAdoptedSet = Array.isArray(startGate?.adopted_construct_set)
+    ? startGate.adopted_construct_set
+    : ADOPTED_CONSTRUCT_SET;
   if (adoptedSet === null) {
-    add("adopted_set_not_empty", "adopted_construct_set must be an array");
-  } else if (adoptedSet.length !== 0) {
-    add("adopted_set_not_empty", "adopted_construct_set must be empty");
+    add("adopted_set_misreported", "adopted_construct_set must be an array");
+  } else if (JSON.stringify(adoptedSet) !== JSON.stringify(liveAdoptedSet)) {
+    add("adopted_set_misreported", "adopted_construct_set drifted from the live start gate");
+  } else if (adoptedSet.length === 0) {
+    add("adopted_set_misreported", "adopted_construct_set must be non-empty under admission_granted");
   }
-  if (adoption.is_adoption !== false) add("adopted_set_not_empty", "is_adoption must be false");
   if (adoption.admission_verdict !== ADMISSION_VERDICT) {
-    add("adopted_set_not_empty", `admission_verdict must be ${ADMISSION_VERDICT}`);
+    add("adopted_set_misreported", `admission_verdict must be ${ADMISSION_VERDICT}`);
   }
   if (typeof startGate?.admission_verdict === "string" && adoption.admission_verdict !== startGate.admission_verdict) {
-    add("adopted_set_not_empty", "admission_verdict drifted from the live start gate");
+    add("adopted_set_misreported", "admission_verdict drifted from the live start gate");
   }
-  if (adoption.adopted_variant !== null) add("adopted_set_not_empty", "adopted_variant must be null");
+  if (adoption.adopted_variant !== ADOPTED_VARIANT) {
+    add("adopted_set_misreported", `adopted_variant must be ${ADOPTED_VARIANT}`);
+  }
+  if (adoption.normative_semantics_adopted === true) {
+    add("adopted_set_misreported", "the bounded construct adoption must not be read as normative semantics adoption");
+  }
+  if (adoption.adoption_established !== true) {
+    add(
+      "execution_read_as_adoption",
+      "adoption_established must be true: non-execution is never read as non-adoption",
+    );
+  }
   if (typeof startGate?.source_revision === "string" && report?.source_revision !== startGate.source_revision) {
     add("input_hash_mismatch", "source_revision drifted from the live start gate");
+  }
+
+  // 4b. execution must stay not-executed: adoption is not execution.
+  if (execution.executed !== false) {
+    add("adoption_read_as_execution", "execution.executed must be false: adoption is not execution");
+  }
+  if (execution.state !== undefined && execution.state !== NOT_EXECUTED) {
+    add("adoption_read_as_execution", `execution.state must be ${NOT_EXECUTED}`);
+  }
+  if (execution.candidates_emitted !== 0) {
+    add("adoption_read_as_execution", "execution.candidates_emitted must be 0");
+  }
+  if (execution.conflicts !== 0) {
+    add("adoption_read_as_execution", "execution.conflicts must be 0");
   }
 
   // 5. absence is never falsity.
@@ -639,26 +710,34 @@ export function validateReport(report, env = {}) {
     }
   }
 
-  // 7. every outcome is Unknown for the one stated reason, and is not falsity.
+  // 7. every outcome is Unknown for the one stated reason, is not falsity, and
+  //    keeps adoption distinct from execution.
+  const executed = execution.executed === true;
   if (outcomes) {
     for (const outcome of outcomes) {
       const scope = `input ${outcome?.input_id ?? "<unnamed>"}`;
-      if (outcome?.adopted !== false) add("candidate_emitted_while_absent", `${scope} adopted must be false`);
+      if (outcome?.adoption_established !== true) {
+        add("execution_read_as_adoption", `${scope} must record adoption_established true`);
+      }
+      if (outcome?.executed === true) {
+        add("adoption_read_as_execution", `${scope} must record executed false`);
+      }
       if (outcome?.absence_is_falsity === true) add("absence_as_falsity", `${scope} reads absence as falsity`);
-      if (adoptedSet !== null && adoptedSet.length === 0) {
-        if (outcome?.outcome === CANDIDATE_OUTCOME) {
-          add("candidate_emitted_while_absent", `${scope} is a candidate while no construct is adopted`);
-        } else if (outcome?.outcome === CONFLICT_OUTCOME) {
-          add("conflict_reported_while_absent", `${scope} is a Conflict while no construct is adopted`);
-        } else if (outcome?.outcome !== UNKNOWN_OUTCOME) {
-          add("unknown_miscounted", `${scope} is not an Unknown outcome`);
+      if (outcome?.outcome === CANDIDATE_OUTCOME) {
+        if (!executed) add("candidate_emitted_while_not_executed", `${scope} is a candidate while execution has not run`);
+      } else if (outcome?.outcome === CONFLICT_OUTCOME) {
+        if (!executed) add("conflict_reported_while_absent", `${scope} is a Conflict while execution has not run`);
+      } else if (outcome?.outcome !== UNKNOWN_OUTCOME) {
+        add("unknown_miscounted", `${scope} is not an Unknown outcome`);
+      }
+      if (outcome?.outcome === UNKNOWN_OUTCOME && outcome?.reason !== UNKNOWN_REASON) {
+        add("absence_as_falsity", `${scope} Unknown is not reason-bound to ${UNKNOWN_REASON}`);
+        if (outcome?.reason === LEGACY_REASON_MISREAD) {
+          add("execution_read_as_adoption", `${scope} reads non-execution as non-adoption`);
         }
-        if (outcome?.outcome === UNKNOWN_OUTCOME && outcome?.reason !== UNKNOWN_REASON) {
-          add("absence_as_falsity", `${scope} Unknown is not reason-bound to ${UNKNOWN_REASON}`);
-        }
-        if (!INPUT_KINDS.includes(outcome?.input_kind)) {
-          add("probe_coverage_incomplete", `${scope} carries an unknown input kind`);
-        }
+      }
+      if (!INPUT_KINDS.includes(outcome?.input_kind)) {
+        add("probe_coverage_incomplete", `${scope} carries an unknown input kind`);
       }
 
       // 8. anchors: missing or drifted inputs are visible, never a quiet Unknown.
@@ -743,16 +822,17 @@ export function validateReport(report, env = {}) {
     add("unknown_miscounted", `verdict must be ${VERDICT}`);
   }
 
-  // 10. no committed S03 artifact carries a candidate record or a Conflict verdict.
+  // 10. no committed S03 artifact carries a candidate record or a Conflict verdict
+  //     while execution has not run.
   const scan = scanCommittedS03(otherArtifacts, report);
   if (scan.candidate_records !== 0 || derivedCounts.candidates !== 0) {
-    add("candidate_emitted_while_absent", "a candidate record exists while no construct is adopted");
+    add("candidate_emitted_while_not_executed", "a candidate record exists while execution has not run");
   }
-  if (scan.conflict_verdicts !== 0) {
-    add("conflict_reported_while_absent", "a Conflict verdict exists while no construct is adopted");
+  if (scan.conflict_verdicts !== 0 || derivedCounts.conflicts !== 0) {
+    add("conflict_reported_while_absent", "a Conflict verdict exists while execution has not run");
   }
   if (report?.scan?.candidate_records !== scan.candidate_records) {
-    add("candidate_emitted_while_absent", "the scan summary disagrees with the live scan");
+    add("candidate_emitted_while_not_executed", "the scan summary disagrees with the live scan");
   }
   if (report?.scan?.conflict_verdicts !== scan.conflict_verdicts) {
     add("conflict_reported_while_absent", "the reported Conflict scan disagrees with the live scan");

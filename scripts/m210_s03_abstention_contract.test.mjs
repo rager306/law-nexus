@@ -3,11 +3,17 @@
 // Offline and fail-closed. The subject is the *diagnostic* the milestone success
 // criterion demands: over every source-bound input S01 committed (eight dispute
 // cards, eight corpus probes, two negative examples) the runtime is shown to
-// abstain -- no construct is adopted, no candidate record exists, no Conflict
-// was observed, every outcome is Unknown for one stated reason, and a missing or
-// drifted input is a visible fail-closed error rather than a quiet Unknown.
+// abstain *while the bounded candidate layer is adopted*. No candidate record
+// exists, no Conflict was observed, every outcome is Unknown for one stated
+// reason (`candidate_layer_not_executed`), and a missing or drifted input is a
+// visible fail-closed error rather than a quiet Unknown.
 //
-// Nothing here is adopted semantics. The report is canonical compact ASCII JSON
+// The whole point is the separation: the absent candidate is absent because the
+// adopted layer is not executed, NOT because adoption is absent. Reading
+// non-execution as non-adoption is refused by name (`execution_read_as_adoption`);
+// reading adoption as execution is refused by name (`adoption_read_as_execution`).
+//
+// Nothing here is executed semantics. The report is canonical compact ASCII JSON
 // with a fixed key order and no timestamp, so `JSON.stringify(JSON.parse(text))
 // === text` and the byte compare in --check mode is the determinism proof.
 // Structural mutations round-trip through JSON, so every mutation stays
@@ -34,6 +40,8 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 import {
+  ADOPTED_CONSTRUCT_SET,
+  ADOPTED_VARIANT,
   ADMISSION_VERDICT,
   ARTIFACT_RELATIVE_PATH,
   CANDIDATE_OUTCOME,
@@ -47,6 +55,7 @@ import {
   KIND,
   LIFECYCLE,
   MILESTONE,
+  NOT_EXECUTED,
   REPO_ROOT,
   REQUIREMENT_REFS,
   S01_EXAMPLES_PATH,
@@ -77,15 +86,16 @@ const SELF_PATH = fileURLToPath(import.meta.url);
 // ## Fail-closed codes (documented set; asserted equal to EMITTABLE_CODES)
 // DOCUMENTED_CODES_BEGIN
 // probe_coverage_incomplete: the eighteen inputs are not all covered once, or a family is uncovered.
-// adopted_set_not_empty: the adopted_construct_set is not empty, is_adoption is true, or the admission verdict drifted.
-// candidate_emitted_while_absent: a candidate record or candidate outcome exists while no construct is adopted.
-// conflict_reported_while_absent: a Conflict verdict or outcome is reported while no construct is adopted.
+// adopted_set_misreported: the adopted_construct_set drifted, is empty under admission_granted, or the variant/verdict drifted.
+// candidate_emitted_while_not_executed: a candidate record or candidate outcome exists while execution_state.executed is false.
+// conflict_reported_while_absent: a Conflict verdict or outcome is reported while execution_state.executed is false.
 // unknown_miscounted: the counts block disagrees with the outcomes, or a non-Unknown outcome slipped in.
 // absence_as_falsity: absence of evidence is read as falsity, or an Unknown outcome is not reason-bound.
+// adoption_read_as_execution: the report claims execution or an emitted candidate on the strength of adoption.
+// execution_read_as_adoption: the report reads non-execution as non-adoption (adoption_established not true, or a no_adopted_construct reason).
 // input_missing_silent: an input anchor is absent, not repository-relative, or outside the corpus root.
 // input_hash_mismatch: an input anchor sha256 (or a consumed revision) differs from the live bytes.
 // report_not_byte_identical: --check rendered bytes differ from the committed artifact.
-// guard_not_zero: a guard field is not the required empty or zero value.
 // runtime_claim_present: the artifact claims a runtime, an evaluator or a crate surface.
 // non_ascii_artifact: the artifact carries a non-ASCII byte.
 // raw_text_leak: the artifact carries an XML tag, a provider marker or a corpus anchor key outside the closed set.
@@ -108,8 +118,8 @@ const CLOSED_FAMILIES = [
 
 const NON_CLAIM_FRAGMENTS = [
   "not a runtime",
-  "not an adoption",
-  "no_adopted_construct",
+  "candidate_layer_not_executed",
+  "adoption is not execution",
   "absence of a proven source span is never falsity",
   "no legal text is copied",
   "section 3",
@@ -238,7 +248,7 @@ test("the report exists, is canonical compact ASCII and carries no raw text", ()
   assert.ok(!/[\u0400-\u04ff]/.test(LIVE_DOC), "the report must carry no Cyrillic (raw legal text)");
 });
 
-test("the envelope is the declared non-adopting abstention diagnostic", () => {
+test("the envelope is the declared adoption-aware abstention diagnostic", () => {
   assert.equal(LIVE_REPORT.schema, SCHEMA);
   assert.equal(LIVE_REPORT.schema_version, 1);
   assert.equal(LIVE_REPORT.kind, KIND);
@@ -295,20 +305,34 @@ test("the committed report is clean under the live environment and is byte-ident
 });
 
 // ---------------------------------------------------------------------------
-// positive: adoption state and coverage
+// positive: adoption state, execution state and coverage
 // ---------------------------------------------------------------------------
 
-test("the adoption state is a conditional no-adoption state bound to the live start gate", () => {
+test("adoption is established from the live S02 v2 grant, not read off execution", () => {
   const { adoption_state: adoption } = LIVE_REPORT;
   assert.equal(adoption.admission_verdict, ADMISSION_VERDICT);
   assert.equal(adoption.admission_verdict, LIVE_START_GATE.admission_verdict);
-  assert.equal(adoption.adoption_source, "prd/architecture/m210-s02-adoption-checkpoint.md");
-  assert.deepEqual(adoption.adopted_construct_set, []);
-  assert.equal(adoption.adopted_variant, null);
-  assert.equal(adoption.is_adoption, false);
-  assert.equal(adoption.semantics_adopted, false);
+  assert.equal(adoption.adoption_established, true);
+  assert.equal(adoption.adoption_source, "prd/architecture/m210-s02-adoption-checkpoint-v2.md");
+  assert.equal(adoption.authenticated_via, "authenticated subjective-UAT v2");
+  assert.equal(adoption.owner_admission_ref, LIVE_START_GATE.owner_admission_ref);
+  assert.equal(adoption.adopted_variant, ADOPTED_VARIANT);
+  assert.deepEqual(adoption.adopted_construct_set, ADOPTED_CONSTRUCT_SET);
+  assert.deepEqual(adoption.adopted_construct_set, LIVE_START_GATE.adopted_construct_set);
+  assert.equal(adoption.normative_semantics_adopted, false);
+  assert.equal(adoption.execution_separated, true);
   assert.ok(typeof adoption.note === "string" && adoption.note.length > 0);
   assert.equal(LIVE_REPORT.source_revision, LIVE_START_GATE.source_revision);
+});
+
+test("execution stays not-executed and is separate from adoption", () => {
+  const { execution_state: execution } = LIVE_REPORT;
+  assert.equal(execution.state, NOT_EXECUTED);
+  assert.equal(execution.executed, false);
+  assert.equal(execution.candidates_emitted, 0);
+  assert.equal(execution.conflicts, 0);
+  assert.equal(LIVE_START_GATE.execution_state.executed, false);
+  assert.ok(typeof execution.note === "string" && execution.note.length > 0);
 });
 
 test("coverage is complete over the eighteen inputs and the eight closed families", () => {
@@ -327,15 +351,17 @@ test("coverage is complete over the eighteen inputs and the eight closed familie
   assert.deepEqual([...LIVE_REGISTER.families.map((family) => family.family_id)].sort(), [...CLOSED_FAMILIES].sort());
 });
 
-test("every input resolves to Unknown for the one stated reason and none is read as falsity", () => {
+test("every input is Unknown for the one stated reason and none is read as falsity", () => {
   assert.equal(LIVE_REPORT.outcomes.length, EXPECTED_COVERAGE.inputs);
   for (const outcome of LIVE_REPORT.outcomes) {
-    assert.equal(outcome.adopted, false, `${outcome.input_id} must not be adopted`);
+    assert.equal(outcome.adoption_established, true, `${outcome.input_id} must record the adopted layer`);
+    assert.equal(outcome.executed, false, `${outcome.input_id} must record not-executed`);
     assert.equal(outcome.outcome, UNKNOWN_OUTCOME, `${outcome.input_id} must be Unknown`);
     assert.equal(outcome.reason, UNKNOWN_REASON, `${outcome.input_id} must state the abstention reason`);
     assert.equal(outcome.absence_is_falsity, false, `${outcome.input_id} must not read absence as falsity`);
   }
   assert.deepEqual(LIVE_REPORT.counts, EXPECTED_COUNTS);
+  assert.equal(LIVE_REPORT.counts.adopted_constructs, ADOPTED_CONSTRUCT_SET.length);
   assert.equal(LIVE_REPORT.counts.candidates, 0);
   assert.equal(LIVE_REPORT.counts.conflicts, 0);
   assert.equal(LIVE_REPORT.counts.unknown, EXPECTED_COVERAGE.inputs);
@@ -443,7 +469,7 @@ test("the declared fail-closed code set matches the documented set", () => {
   assert.deepEqual([...documented].sort(), [...EMITTABLE_CODES].sort(), "documented codes must equal the declared set");
 });
 
-test("non-claims state the abstention contour and refuse adoption and runtime claims", () => {
+test("non-claims state the adopted-but-not-executed contour and refuse runtime claims", () => {
   assert.ok(Array.isArray(LIVE_REPORT.non_claims) && LIVE_REPORT.non_claims.length >= 6);
   const joined = LIVE_REPORT.non_claims.join("\n").toLowerCase();
   for (const fragment of NON_CLAIM_FRAGMENTS) {
@@ -476,13 +502,13 @@ const CODE_COVERAGE = [
     },
   },
   {
-    code: "adopted_set_not_empty",
+    code: "adopted_set_misreported",
     mutate: (report) => {
       report.adoption_state.adopted_construct_set = ["obligation"];
     },
   },
   {
-    code: "candidate_emitted_while_absent",
+    code: "candidate_emitted_while_not_executed",
     mutate: (report) => {
       report.outcomes[0].outcome = CANDIDATE_OUTCOME;
     },
@@ -506,6 +532,19 @@ const CODE_COVERAGE = [
     },
   },
   {
+    code: "adoption_read_as_execution",
+    mutate: (report) => {
+      report.execution_state.executed = true;
+      report.execution_state.state = "executed";
+    },
+  },
+  {
+    code: "execution_read_as_adoption",
+    mutate: (report) => {
+      report.adoption_state.adoption_established = false;
+    },
+  },
+  {
     code: "input_missing_silent",
     mutate: (report) => {
       report.outcomes[0].anchor.path = "prd/architecture/m210-s03-absent-input.json";
@@ -523,12 +562,6 @@ const CODE_COVERAGE = [
     mutate: () => {},
     env: (env, text) => {
       env.committedText = `${text}\n`;
-    },
-  },
-  {
-    code: "guard_not_zero",
-    mutate: (report) => {
-      report.guards.requirements_promoted = 1;
     },
   },
   {
@@ -607,13 +640,25 @@ test("negative: an absent input, a drifted input and a non-abstention outcome ar
   falseOutcome.outcomes[0].outcome = CONFLICT_OUTCOME;
   expectCode(falseOutcome, coverageEnv(JSON.stringify(falseOutcome)), "conflict_reported_while_absent");
 
+  const candidateOutcome = clone();
+  candidateOutcome.outcomes[0].outcome = CANDIDATE_OUTCOME;
+  expectCode(candidateOutcome, coverageEnv(JSON.stringify(candidateOutcome)), "candidate_emitted_while_not_executed");
+
   const falsityReason = clone();
   falsityReason.outcomes[0].reason = "absent_so_false";
   expectCode(falsityReason, coverageEnv(JSON.stringify(falsityReason)), "absence_as_falsity");
 
+  const legacyReason = clone();
+  legacyReason.outcomes[0].reason = "no_adopted_construct";
+  expectCode(legacyReason, coverageEnv(JSON.stringify(legacyReason)), "execution_read_as_adoption");
+
   const adopted = clone();
   adopted.adoption_state.adopted_construct_set = ["obligation"];
-  expectCode(adopted, coverageEnv(JSON.stringify(adopted)), "adopted_set_not_empty");
+  expectCode(adopted, coverageEnv(JSON.stringify(adopted)), "adopted_set_misreported");
+
+  const executed = clone();
+  executed.execution_state.executed = true;
+  expectCode(executed, coverageEnv(JSON.stringify(executed)), "adoption_read_as_execution");
 
   const missingConsume = clone();
   missingConsume.consumes[0].sha256 = `sha256:${"2".repeat(64)}`;
@@ -626,7 +671,9 @@ test("negative: an absent input, a drifted input and a non-abstention outcome ar
 
 test("M210 S03 abstention contract markers", () => {
   assert.deepEqual(validateReport(LIVE_REPORT, LIVE_ENV), { ok: true, errors: [] });
-  assert.deepEqual(LIVE_REPORT.adoption_state.adopted_construct_set, []);
+  assert.deepEqual(LIVE_REPORT.adoption_state.adopted_construct_set, ADOPTED_CONSTRUCT_SET);
+  assert.equal(LIVE_REPORT.adoption_state.adoption_established, true);
+  assert.equal(LIVE_REPORT.execution_state.executed, false);
   assert.equal(LIVE_REPORT.counts.unknown, EXPECTED_COVERAGE.inputs);
   assert.equal(LIVE_REPORT.counts.candidates, 0);
   assert.equal(LIVE_REPORT.counts.conflicts, 0);
