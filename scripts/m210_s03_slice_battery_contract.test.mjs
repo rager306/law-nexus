@@ -1,8 +1,10 @@
 // M210-3afp79 S03 T05 slice battery contract.
 //
 // Offline and fail-closed. The artifact under test is the S03 slice battery
-// (scripts/m210_s03_slice_battery.mjs): it must run the four S03 enforcement
-// contracts and the four regression gates (the S01 packet battery, the S02
+// (scripts/m210_s03_slice_battery.mjs): it must run the five S03 enforcement
+// contracts (the v2 adoption contract, the start gate, the bounded semantics
+// contract, the abstention diagnostic and the activation delta) and the four
+// regression gates (the S01 packet battery, the S02
 // adoption battery, the M209/S04 battery verify mode with the frozen M201/M202
 // zero-delta guard, and the live engine source revision) with a clean aggregate
 // total, and it must fail closed when any contract is failed, crashed, missing or
@@ -14,7 +16,7 @@
 // requirements_promoted=0, review_case_events_written=0, semantics_adopted=false),
 // prd/temporal-legal-model.md stays byte-identical to its pin while the runtime
 // activation delta stays applied:false, the admission checkpoint records the
-// honest not-adopted verdict, no S03 data artifact claims crates/, every S03 data
+// bounded granted v2 verdict with execution still separated, no S03 data artifact claims crates/, every S03 data
 // artifact is ASCII-only and free of Rust runtime markers, and every declared
 // absent runtime surface is still absent.
 //
@@ -40,6 +42,7 @@ import {
   BATTERY_FAILED_MARKER,
   BATTERY_MARKER,
   CONTRACTS,
+  CONTRACT_MARKERS,
   CRATES_ROOT,
   MIN_CHECKS,
   REGRESSIONS,
@@ -246,8 +249,14 @@ function mutations(good) {
   const missingRegression = clone(good);
   missingRegression.regressions = missingRegression.regressions.slice(1);
 
+  // A contract that exits 0 and reports passing checks but never prints its own
+  // OK marker (a truncated or suppressed run) must still fail closed.
+  const markerlessContract = clone(good);
+  markerlessContract.results[0].markerOk = false;
+
   return [
     { code: "contract_failed", result: failedContract },
+    { code: "contract_failed", result: markerlessContract },
     { code: "contract_counts_missing", result: countsMissing },
     { code: "contract_missing", result: missingContract },
     { code: "contract_substituted", result: substitutedContract },
@@ -291,6 +300,14 @@ contract("the battery runs every S03 contract and the regression gates with a cl
   assert.match(spawned.text, /^M210_S02_BATTERY_OK checks=\d+ failed=0$/m);
   assert.match(spawned.text, /^M209_S04_BATTERY_OK .*frozen_paths_unchanged=1 .*drift=0$/m);
   assert.match(spawned.text, /^sha256:[0-9a-f]{64}$/m);
+
+  // The S03 v2 integration is proven by the adoption marker in the aggregate, and
+  // every contract prints its own marker only after all of its cases passed.
+  assert.match(spawned.text, /^M210_S03_ADOPTION_V2_OK /m, "the v2 adoption marker must appear in the aggregate");
+  for (const contractPath of CONTRACTS) {
+    assert.ok(CONTRACT_MARKERS[contractPath], `${contractPath} must declare a marker pattern`);
+    assert.match(spawned.text, CONTRACT_MARKERS[contractPath], `${contractPath} must print its marker`);
+  }
 
   for (const contractPath of CONTRACTS) {
     const line = spawned.text.match(
@@ -401,17 +418,37 @@ contract("negative: mutated copies of the battery fail closed on a raised floor 
 // the S03 stopping-condition guards
 // ---------------------------------------------------------------------------
 
-contract("the start gate guard fields stay unasserted and the checkpoint stays honest", () => {
+contract("the start gate guards stay unasserted and the checkpoint records the bounded v2 grant", () => {
   const gate = readJson(START_GATE_REL);
   assert.deepEqual(gate.guards.crates_touched, [], "the start gate must touch no crate");
   assert.equal(gate.guards.requirements_promoted, 0, "the start gate must promote no requirement");
   assert.equal(gate.guards.review_case_events_written, 0, "the start gate must write no Review Case event");
-  assert.equal(gate.guards.semantics_adopted, false, "the start gate must adopt no semantics");
+  assert.equal(gate.guards.semantics_adopted, false, "the start gate must adopt no normative semantics");
   assert.equal(gate.guards.section3_pin, TEMPORAL_LEGAL_MODEL_PIN, "the start gate must pin section 3");
-  assert.equal(gate.admission_verdict, "admission_absent", "there is no interactive grant, so admission is absent");
-  assert.equal(gate.runtime_implementation_permitted, false, "runtime must stay unpermitted");
+
+  // v2 reality: the authenticated S02 v2 adoption is granted, bounded to the
+  // adopted candidate layer, while execution stays not-started and unproven.
+  assert.equal(gate.admission_verdict, "admission_granted", "the v2 gate must record the granted bounded adoption");
+  assert.equal(gate.adoption_state.adoption_established, true, "the adoption must be established from v2");
+  assert.equal(gate.adoption_state.adopted_variant, "C", "the adopted variant must be C");
+  assert.ok(gate.adopted_construct_set.length > 0, "the adopted construct set must be non-empty");
+  assert.deepEqual(
+    gate.adopted_construct_set,
+    gate.adoption_state.adopted_construct_set,
+    "the adopted construct set must agree with the adoption state",
+  );
+  assert.equal(
+    gate.owner_admission_ref,
+    "subjective-UAT criterion 37181c25-88b0-4896-bffe-d10642970e6f",
+    "the owner admission ref must be the authenticated subjective-UAT criterion",
+  );
+  assert.equal(gate.execution_state.executed, false, "adoption must not be execution");
+  assert.equal(gate.execution_state.candidates_emitted, 0, "adoption alone emits no candidate");
+  assert.equal(gate.runtime_implementation_permitted, true, "the bounded candidate layer is permitted");
   assert.equal(gate.runtime_demo, "not-proven", "runtime demo must stay unproven");
-  assert.equal(gate.runtime_stop, "active", "the runtime stop must stay active");
+  assert.equal(gate.runtime_stop, "lifted_candidate_layer_only", "the stop lifts only for the candidate layer");
+  assert.equal(gate.runtime_stop_scope.lifted_for, "adopted candidate layer", "the lift must be scoped");
+  assert.ok(gate.runtime_stop_scope.still_active_for.length > 0, "the stop must stay active outside the layer");
   assert.equal(gate.runtime_work, "not-started", "runtime work must stay not-started");
   assert.ok(Array.isArray(gate.declared_absent_runtime_surfaces), "the absent surfaces must be declared");
 
@@ -419,12 +456,17 @@ contract("the start gate guard fields stay unasserted and the checkpoint stays h
   const fields = headerFields(md);
   assert.equal(fields.requirements_promoted, "0", "the checkpoint must promote no requirement");
   assert.equal(fields.review_case_events_written, "0", "the checkpoint must write no Review Case event");
-  assert.equal(fields.owner_admission_ref, "none", "no owner admission reference exists");
+  assert.equal(
+    fields.owner_admission_ref,
+    "subjective-UAT criterion 37181c25-88b0-4896-bffe-d10642970e6f",
+    "the checkpoint must bind the authenticated owner ref",
+  );
   assert.equal(fields.runtime_demo, "not-proven", "the checkpoint must record the unproven demo");
-  assert.match(fields.runtime_stop || "", /active/, "the checkpoint must record the active stop");
+  assert.equal(fields.runtime_work, "not-started", "the checkpoint must record not-started work");
+  assert.match(fields.runtime_stop || "", /candidate-layer/i, "the stop must be scoped to the candidate layer");
   const verdicts = admissionVerdicts(md);
   assert.equal(verdicts.length, 1, "exactly one admission verdict line must exist");
-  assert.equal(verdicts[0], "not-adopted", "no interactive answer exists, so the honest verdict is not-adopted");
+  assert.equal(verdicts[0], "granted", "the v2 verdict must be the bounded granted adoption");
 });
 
 contract("the section 3 pin is unchanged and the runtime activation delta stays unapplied", () => {
@@ -432,10 +474,23 @@ contract("the section 3 pin is unchanged and the runtime activation delta stays 
   assert.equal(liveSha256(TEMPORAL_LEGAL_MODEL), TEMPORAL_LEGAL_MODEL_PIN, "section 3 drifted from its pin");
 
   const delta = readJson(ACTIVATION_REL);
-  assert.equal(delta.gate.applied, false, "the activation delta must stay unapplied while the gate is not granted");
-  assert.equal(delta.gate.applied_requires, "admission: granted");
+  // v2 reality: the bounded grant is recorded, yet the delta stays applied false
+  // because the adopted layer is not implemented and the battery has not run.
+  assert.equal(delta.gate.grant_recorded, true, "the bounded grant must be recorded");
+  assert.equal(delta.gate.grant_scope, "candidate_layer_only", "the grant must stay scoped to the candidate layer");
+  assert.equal(delta.gate.applied, false, "the activation delta must stay unapplied");
+  assert.equal(delta.gate.grant_is_not_implementation, true, "the grant must not read as implementation");
+  assert.equal(delta.gate.grant_is_not_readiness, true, "the grant must not read as readiness");
+  assert.equal(delta.gate.implementation_present, false, "no implementation may be claimed");
+  assert.equal(delta.gate.readiness, "not-ready", "readiness must not be fabricated");
+  assert.equal(delta.gate.applied_requires_implementation, true, "application must require implementation");
+  assert.equal(delta.gate.applied_requires_green_battery, true, "application must require a green battery");
   assert.equal(delta.stop.sanctioned, true, "the stop must be sanctioned");
+  assert.equal(delta.stop.runtime_stop, "active_outside_candidate_layer", "the stop must stay active outside the layer");
+  assert.equal(delta.stop.blanket_lifted, false, "the stop must not be blanket-lifted");
+  assert.match(delta.stop.lifted_for || "", /candidate layer/i, "the lift must be scoped");
   assert.equal(delta.stop.runtime_demo, "not-proven", "the delta must keep the demo unproven");
+  assert.equal(delta.stop.runtime_work, "not-started", "the delta must keep the work not-started");
 });
 
 contract("no S03 data artifact claims crates and every S03 data artifact is ASCII and marker-free", () => {

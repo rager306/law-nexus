@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // M210-3afp79 S03 T05 slice battery.
 //
-// Sequentially runs the four S03 enforcement contracts (start_gate, semantics,
-// abstention, activation) in dependency order, then the four regression gates
-// that keep the surrounding proofs alive: the S01 packet battery
+// Sequentially runs the five S03 enforcement contracts (adoption_v2, start_gate,
+// semantics, abstention, activation) in dependency order, then the four
+// regression gates that keep the surrounding proofs alive: the S01 packet
+// battery
 // (`node scripts/m210_s01_slice_battery.mjs`), the S02 slice battery
 // (`node scripts/m210_s02_slice_battery.mjs`, which itself carries the S01
 // battery, the M209/S04 verify mode and the live source revision), the M209/S04
@@ -14,9 +15,11 @@
 // sha256:<64hex>).
 //
 // It prints one `M210_S03_BATTERY_CONTRACT <path> pass=N fail=N exit=M` line per
-// contract, one `M210_S03_BATTERY_REGRESSION <id> exit=M checks=N marker=...`
-// line per regression gate (followed by the gate's own marker line verbatim, so
-// the nested markers are visible in the captured evidence), and one aggregate
+// contract followed by the contract's own OK marker line verbatim (so the S03
+// v2-integration marker `M210_S03_ADOPTION_V2_OK` is visible in the aggregate),
+// one `M210_S03_BATTERY_REGRESSION <id> exit=M checks=N marker=...` line per
+// regression gate (followed by the gate's own marker line verbatim, so the
+// nested markers are visible in the captured evidence), and one aggregate
 // marker `M210_S03_BATTERY_OK checks=N failed=0`. On any failed, missing,
 // substituted or under-floor contract, or any failed regression gate, it prints
 // `M210_S03_BATTERY_FAILED failed=N` (N = failing steps plus 1 for an
@@ -33,7 +36,7 @@
 // Run: node scripts/m210_s03_slice_battery.mjs
 // This script never includes its own contract
 // (`m210_s03_slice_battery_contract.test.mjs`), so there is no recursion: the
-// battery contract drives this runner, and this runner drives the four upstream
+// battery contract drives this runner, and this runner drives the five upstream
 // contracts and the four regressions.
 
 import { spawnSync } from "node:child_process";
@@ -49,16 +52,32 @@ export const BATTERY_TAIL_MARKER = "M210_S03_BATTERY_TAIL";
 export const BATTERY_CONTRACT_MARKER = "M210_S03_BATTERY_CONTRACT";
 export const BATTERY_REGRESSION_MARKER = "M210_S03_BATTERY_REGRESSION";
 
-// The four S03 enforcement contracts, in dependency order (the start gate feeds
-// the semantics contract, which feeds the abstention diagnostic, which feeds the
-// activation delta). The battery contract is deliberately absent: it drives this
-// runner.
+// The five S03 enforcement contracts, in dependency order: the v2 adoption
+// contract proves the rebind onto the authenticated S02 v2 sources, the start
+// gate reads that adoption, the semantics contract separates adoption from
+// execution, the abstention diagnostic proves the not-executed state is
+// observable, and the activation delta keeps the grant unapplied. The battery
+// contract is deliberately absent: it drives this runner.
 export const CONTRACTS = [
+  "scripts/m210_s03_adoption_v2_contract.test.mjs",
   "scripts/m210_s03_start_gate_contract.test.mjs",
   "scripts/m210_s03_semantics_contract.test.mjs",
   "scripts/m210_s03_abstention_contract.test.mjs",
   "scripts/m210_s03_activation_contract.test.mjs",
 ];
+
+// The OK marker each contract prints only after every one of its own cases
+// passed. The battery prints the matched marker line verbatim, so the S03 v2
+// integration is provable from the aggregate log, and a contract that exits 0
+// without printing its marker is refused as a failed contract (a truncated or
+// suppressed run must not look green).
+export const CONTRACT_MARKERS = {
+  "scripts/m210_s03_adoption_v2_contract.test.mjs": /^M210_S03_ADOPTION_V2_OK.*$/m,
+  "scripts/m210_s03_start_gate_contract.test.mjs": /^M210_S03_START_GATE_OK.*$/m,
+  "scripts/m210_s03_semantics_contract.test.mjs": /^M210_S03_SEMANTICS_OK.*$/m,
+  "scripts/m210_s03_abstention_contract.test.mjs": /^M210_S03_ABSTENTION_OK.*$/m,
+  "scripts/m210_s03_activation_contract.test.mjs": /^M210_S03_ACTIVATION_OK.*$/m,
+};
 
 // The regression gates the S03 slice may not break. `marker` is matched against
 // the combined stdout+stderr of the gate; `checks` is read from the marker so the
@@ -100,17 +119,21 @@ export const REGRESSIONS = [
   },
 ];
 
-// Check floor for a meaningful run. The observed aggregate is 309 checks, built
-// as the four S03 contracts (22 start_gate + 14 semantics + 18 abstention + 14
-// activation = 68 contract checks) plus the nested regressions (50 S01 battery
-// checks + 154 S02 battery checks + 36 M209/S04 checks + 1 source-revision
-// assertion = 241 regression checks). The floor is 278, i.e. 90% of 309 rounded
-// down, the same ratio the S01 battery (floor 45 of 50) and the S02 battery
-// (floor 138 of 154) used. It is a coarse backstop against a truncated or
-// silently empty run - every individual contract and regression remains
-// separately gated by its own exit code, marker and positive count, so no lost
-// check can hide behind the floor.
-export const MIN_CHECKS = 278;
+// Check floor for a meaningful run. The observed aggregate is 339 checks, built
+// as the five S03 contracts (20 adoption_v2 + 28 start_gate + 16 semantics + 19
+// abstention + 15 activation = 98 contract checks) plus the regressions (50 S01
+// battery checks + 154 S02 battery checks + 36 M209/S04 checks + 1
+// source-revision assertion = 241 regression checks). The S02 and M209/S04
+// batteries are reached both transitively (inside the S02 run) and standalone,
+// so a few nested checks are counted twice; that is inherited from the S02
+// precedent and is deliberate, because the standalone runs are what gate the
+// regression independently. The floor is 305, i.e. 90% of 339 rounded down, the
+// same ratio the S01 battery (floor 45 of 50) and the S02 battery (floor 138 of
+// 154) used. It is a coarse backstop against a truncated or silently empty run -
+// every individual contract and regression remains separately gated by its own
+// exit code, marker and positive count, so no lost check can hide behind the
+// floor.
+export const MIN_CHECKS = 305;
 
 export const SOURCE_REVISION_SCRIPT = "scripts/m204_s08_source_revision.mjs";
 
@@ -226,13 +249,17 @@ export function runBattery(options = {}) {
     const spawned = spawnStep(execPath, ["--test", absolute], timeoutMs);
     const output = combine(spawned);
     const counts = parseTestCounts(output);
+    const exitCode = exitCodeOf(spawned);
+    const markerMatch = output.match(CONTRACT_MARKERS[contract]);
     results.push({
       contract,
       missing: false,
-      exitCode: exitCodeOf(spawned),
+      exitCode,
       signal: (spawned && spawned.signal) || null,
       pass: counts.pass || 0,
       fail: counts.fail || 0,
+      markerOk: exitCode === 0 && markerMatch !== null,
+      markerLine: markerMatch ? markerMatch[0] : null,
       output,
     });
   }
@@ -290,6 +317,7 @@ export function validateBattery(result) {
     if (CONTRACTS.indexOf(entry.contract) !== index) codes.add("contract_substituted");
     if (entry.exitCode !== 0) codes.add("contract_failed");
     if (entry.fail !== 0) codes.add("contract_failed");
+    if (entry.markerOk !== true) codes.add("contract_failed");
     if (!(typeof entry.pass === "number" && entry.pass > 0)) codes.add("contract_counts_missing");
   }
   if (!(typeof result.checks === "number" && result.checks >= MIN_CHECKS)) codes.add("checks_below_floor");
@@ -328,6 +356,7 @@ function main() {
     process.stdout.write(
       `${BATTERY_CONTRACT_MARKER} ${entry.contract} pass=${entry.pass} fail=${entry.fail} ${state}\n`,
     );
+    if (entry.markerLine) process.stdout.write(`${entry.markerLine}\n`);
   }
   for (const entry of result.regressions) {
     process.stdout.write(
