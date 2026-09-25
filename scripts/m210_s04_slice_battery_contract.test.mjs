@@ -41,14 +41,21 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
+  BATTERY_CHECKPOINT_MARKER,
   BATTERY_FAILED_MARKER,
   BATTERY_MARKER,
   CONTRACTS,
   CONTRACT_MARKERS,
   CRATES_ROOT,
   EVENTS_DIR,
+  FORBIDDEN_PRIOR_DEFER_LITERAL,
   MIN_CHECKS,
+  RC28_COUNT_KEYS,
+  RC28_EXACT_MATCH_VERDICT,
   RC28_FINAL_CHECK,
+  RC28_MATRIX,
+  RC28_PACKET_FILE,
+  RC28_SOURCE_DOCUMENT,
   RC28_VERDICT_PATTERN,
   REGRESSIONS,
   REPO_ROOT,
@@ -59,8 +66,13 @@ import {
   S04_PACKAGE_ARTIFACTS,
   TEMPORAL_LEGAL_MODEL,
   TEMPORAL_LEGAL_MODEL_PIN,
+  deriveRc28Counts,
+  observeRc28Checkpoint,
+  parseCheckpointHeader,
+  parseCheckpointVerdicts,
   runBattery,
   validateBattery,
+  validateRc28Checkpoint,
 } from "./m210_s04_slice_battery.mjs";
 
 const root = REPO_ROOT;
@@ -98,7 +110,24 @@ const OK_LINE = new RegExp(`^${BATTERY_MARKER} checks=(\\d+) failed=0$`, "m");
 // contract_counts_missing: a contract reported no parseable passing checks.
 // regression_missing: a required regression gate is absent from the results.
 // regression_failed: a regression gate exited non-zero or its marker is absent or invalid.
+// checkpoint_failed: the final RC28 checkpoint's own semantics are invalid.
 // DOCUMENTED_CODES_END
+
+// The complete fail-closed code set of the checkpoint validator
+// (`validateRc28Checkpoint`), mirrored independently here and asserted equal to
+// the set documented in the battery module. Every code is asserted to be
+// empirically emitted by a mutation.
+// CHECKPOINT_CODES_BEGIN
+// checkpoint_missing: the observation or one of its required parts is unusable.
+// verdict_invalid: the checkpoint does not carry exactly one hold verdict.
+// count_conflation: a count kind is missing, so the kinds are collapsed.
+// counts_drift: a declared count disagrees with the live T02 rows.
+// matrix_summary_drift: the live T02 summary disagrees with the rows it summarises.
+// digest_namespace_confused: a digest is mislabelled, swapped or not bound to its live bytes.
+// prior_owner_defer_denied: the established prior F13 owner defer is denied or read as absent.
+// prior_decision_ledger_confused: the prior owner decision and the current RC28 ledger are conflated.
+// hold_basis_invalid: the hold rests on something other than the missing dispositions.
+// CHECKPOINT_CODES_END
 
 const SELF_SOURCE = readFileSync(path.join(root, SELF), "utf8");
 const BATTERY_SOURCE = readFileSync(path.join(root, BATTERY), "utf8");
@@ -119,6 +148,16 @@ const BATTERY_DOCUMENTED_CODES = parseDocumentedCodes(
   BATTERY_SOURCE,
   "DOCUMENTED_CODES_BEGIN",
   "DOCUMENTED_CODES_END",
+);
+const CHECKPOINT_DOCUMENTED_CODES = parseDocumentedCodes(
+  SELF_SOURCE,
+  "CHECKPOINT_CODES_BEGIN",
+  "CHECKPOINT_CODES_END",
+);
+const BATTERY_CHECKPOINT_DOCUMENTED_CODES = parseDocumentedCodes(
+  BATTERY_SOURCE,
+  "CHECKPOINT_CODES_BEGIN",
+  "CHECKPOINT_CODES_END",
 );
 
 function readText(rel) {
@@ -273,6 +312,11 @@ function mutations(good) {
   const markerlessContract = clone(good);
   markerlessContract.results[0].markerOk = false;
 
+  // The final RC28 checkpoint is part of the battery's own fail-closed surface:
+  // any invalid checkpoint code refuses the whole run.
+  const failedCheckpoint = clone(good);
+  failedCheckpoint.checkpoint = ["counts_drift"];
+
   return [
     { code: "contract_failed", result: failedContract },
     { code: "contract_failed", result: markerlessContract },
@@ -287,6 +331,48 @@ function mutations(good) {
     { code: "regression_failed", result: failedRegression },
     { code: "regression_failed", result: markerlessRegression },
     { code: "regression_missing", result: missingRegression },
+    { code: "checkpoint_failed", result: failedCheckpoint },
+  ];
+}
+
+// Every checkpoint semantics refusal the contract exercises. Kept in one place
+// so the negative cases and the empirical code-coverage case share the set. An
+// observation is cloned, one field is mutated, and the validator must refuse it.
+function checkpointMutations(observation) {
+  const verdictInvalid = clone(observation);
+  verdictInvalid.verdicts = ["closed"];
+
+  const countConflation = clone(observation);
+  delete countConflation.fields.rereverified_rows;
+
+  const countsDrift = clone(observation);
+  countsDrift.fields.rereverified_rows = "13";
+  countsDrift.fields.exact_class_matched_verdict_rows = "13";
+
+  const summaryDrift = clone(observation);
+  summaryDrift.summary = { ...summaryDrift.summary, class_matched_rows: 99 };
+
+  const digestSwap = clone(observation);
+  digestSwap.digest.packet_file_sha256 = observation.digest.source_content_sha256;
+
+  const priorDenied = clone(observation);
+  priorDenied.fields.f13_prior_owner_decision = FORBIDDEN_PRIOR_DEFER_LITERAL;
+
+  const ledgerConfused = clone(observation);
+  ledgerConfused.fields.f13_current_rc28_disposition = "deferred-explicit owner defer";
+
+  const holdBasis = clone(observation);
+  holdBasis.fields.hold_basis = "missing variant C adoption";
+
+  return [
+    { code: "verdict_invalid", observation: verdictInvalid },
+    { code: "count_conflation", observation: countConflation },
+    { code: "counts_drift", observation: countsDrift },
+    { code: "matrix_summary_drift", observation: summaryDrift },
+    { code: "digest_namespace_confused", observation: digestSwap },
+    { code: "prior_owner_defer_denied", observation: priorDenied },
+    { code: "prior_decision_ledger_confused", observation: ledgerConfused },
+    { code: "hold_basis_invalid", observation: holdBasis },
   ];
 }
 
@@ -320,6 +406,7 @@ contract("the battery runs every S04 contract and the regression gates with a cl
   assert.match(spawned.text, /^M210_S03_BATTERY_OK checks=\d+ failed=0$/m);
   assert.match(spawned.text, /^M209_S04_BATTERY_OK .*frozen_paths_unchanged=1 .*drift=0$/m);
   assert.match(spawned.text, /^sha256:[0-9a-f]{64}$/m);
+  assert.match(spawned.text, new RegExp(`^${BATTERY_CHECKPOINT_MARKER} ok codes=none$`, "m"));
 
   // Every contract prints its own marker only after all of its cases passed.
   for (const contractPath of CONTRACTS) {
@@ -371,6 +458,7 @@ contract("negative: a failed, crashed, missing or substituted contract fails clo
   assert.ok(byCode.get("contract_counts_missing").includes("contract_counts_missing"));
   assert.ok(byCode.get("contract_missing").includes("contract_missing"));
   assert.ok(byCode.get("contract_substituted").includes("contract_substituted"));
+  assert.ok(byCode.get("checkpoint_failed").includes("checkpoint_failed"), "an invalid checkpoint must fail the battery");
   assert.deepEqual(validateBattery(null), ["battery_failed"]);
   assert.deepEqual(validateBattery({}), ["battery_failed"]);
 });
@@ -447,10 +535,30 @@ contract("the RC28 final check carries exactly one hold verdict with a correct b
   assert.match(md, RC28_VERDICT_PATTERN);
 
   const fields = headerFields(md);
+  // The independent parser in the battery module must agree with the local one.
+  assert.deepEqual(parseCheckpointHeader(md), fields, "the checkpoint header parsers must agree");
+  assert.deepEqual(parseCheckpointVerdicts(md), verdicts, "the checkpoint verdict parsers must agree");
+
   assert.equal(fields.packet_id, "RC-2026-09-10-001", "the packet id must be bound");
-  assert.match(fields.packet_content_sha256 || "", /^sha256:[0-9a-f]{64}$/, "the packet content digest must be a sha256");
+  assert.equal(fields.source_path, RC28_SOURCE_DOCUMENT, "the source document path must be named");
+  assert.equal(fields.packet_file_path, RC28_PACKET_FILE, "the packet file path must be named");
+  assert.match(fields.source_content_sha256 || "", /^sha256:[0-9a-f]{64}$/, "the source digest must be a sha256");
+  assert.match(fields.packet_file_sha256 || "", /^sha256:[0-9a-f]{64}$/, "the packet file digest must be a sha256");
+  assert.match(
+    fields.packet_declared_content_sha256 || "",
+    /^sha256:[0-9a-f]{64}$/,
+    "the packet-declared content digest must be a sha256",
+  );
+  assert.ok(
+    !Object.prototype.hasOwnProperty.call(fields, "packet_content_sha256"),
+    "the checkpoint must not label a digest with the bare packet_content_sha256 name",
+  );
   assert.match(fields.reviewed_git_revision || "", /^[0-9a-f]{40}$/, "the reviewed revision must be git40");
   assert.equal(fields.findings_total, "19", "the findings total must be 19");
+  assert.equal(fields.rereverified_rows, "4", "4 rows must be marked re-verified");
+  assert.equal(fields.class_match_compatibility_rows, "13", "13 rows must carry a true compatibility flag");
+  assert.equal(fields.class_mismatch_rows, "6", "6 rows must carry a false compatibility flag");
+  assert.equal(fields.exact_class_matched_verdict_rows, "2", "exactly 2 rows must carry the exact class-matched verdict");
   assert.equal(fields.dispositions_recorded, "0", "no disposition may be recorded");
   assert.equal(fields.review_case_events_written, "0", "no Review Case event may be written");
   assert.equal(fields.human_session_run, "false", "no human session may have run");
@@ -458,7 +566,10 @@ contract("the RC28 final check carries exactly one hold verdict with a correct b
   assert.equal(fields.hold_basis, "valid per-finding dispositions absent", "the hold basis must be the missing dispositions");
   assert.match(fields.adoption_basis || "", /variant C established/, "the adoption basis must record the established variant C");
   assert.equal(fields.f01_f15, "residual_d519_not_proof", "F01/F15 must stay a D519 residual, not proof");
-  assert.match(fields.f13 || "", /deferred-explicit/, "F13 must stay an explicit owner defer");
+  assert.match(fields.f13_prior_owner_decision || "", /deferred-explicit/, "the prior F13 owner defer must stay explicit");
+  assert.match(fields.f13_prior_owner_decision || "", /s02/i, "the prior F13 owner defer must stay namespaced to S02");
+  assert.match(fields.f13_current_rc28_disposition || "", /none recorded/, "the current RC28 F13 slot must stay empty");
+  assert.match(fields.f13_current_rc28_disposition || "", /rc28/i, "the current F13 slot must stay namespaced to RC28");
   assert.match(fields.f18 || "", /bounded_adoption_evidence_present/, "F18 must record the bounded adoption evidence");
   assert.match(fields.f18 || "", /independent_evaluation pending/, "F18 must keep the independent evaluation pending");
   assert.match(fields.f19 || "", /machine_class_match_done/, "F19 must record the machine class match");
@@ -471,9 +582,140 @@ contract("the RC28 final check carries exactly one hold verdict with a correct b
   assert.match(md, /sanctioned fail-closed outcome/, "the hold must be named a sanctioned fail-closed outcome");
   assert.match(md, /does not close RC28/, "the adoption must not read as closing RC28");
 
-  for (const section of ["Findings machine verdicts", "Human sufficiency", "Non-claims", "Fail-closed boundary", "Resume condition"]) {
+  // The reviewer suggestion "no owner defer recorded" is a namespace confusion:
+  // the prior S02 owner defer exists, and only the current RC28 slot is empty.
+  assert.ok(!md.includes(FORBIDDEN_PRIOR_DEFER_LITERAL), "the checkpoint must not deny the prior owner defer");
+  assert.match(md, /prior owner decision/, "the checkpoint must name the prior owner decision namespace");
+  assert.match(md, /current RC28 ledger/, "the checkpoint must name the current RC28 ledger namespace");
+
+  for (const section of [
+    "Findings machine verdicts",
+    "Count semantics",
+    "Digest namespaces",
+    "Prior owner decision and current RC28 ledger",
+    "Human sufficiency",
+    "Non-claims",
+    "Fail-closed boundary",
+    "Resume condition",
+  ]) {
     assert.match(md, new RegExp(`^## ${section}$`, "m"), `the ${section} section must be present`);
   }
+
+  // The whole observation must validate cleanly against the live inputs.
+  assert.deepEqual(validateRc28Checkpoint(observeRc28Checkpoint(root)), []);
+});
+
+contract("the checkpoint counts and digest namespaces are derived live from the T02 matrix", () => {
+  const md = readText(RC28_FINAL_CHECK);
+  const fields = headerFields(md);
+  const matrix = readJson(MATRIX_REL);
+  const derived = deriveRc28Counts(matrix);
+
+  // The four count kinds are derived from the live rows, not copied from prose.
+  assert.equal(derived.findings_total, 19, "the T02 matrix must carry 19 rows");
+  assert.equal(derived.rereverified_rows, 4, "4 rows must be re-verified in live T02");
+  assert.equal(derived.class_match_compatibility_rows, 13, "13 live rows must carry a true compatibility flag");
+  assert.equal(derived.class_mismatch_rows, 6, "6 live rows must carry a false compatibility flag");
+  assert.equal(derived.exact_class_matched_verdict_rows, 2, "2 live rows must carry the exact verdict");
+
+  // The three class counts are distinct kinds; none may stand in for another.
+  assert.equal(
+    new Set([
+      derived.rereverified_rows,
+      derived.class_match_compatibility_rows,
+      derived.exact_class_matched_verdict_rows,
+    ]).size,
+    3,
+    "the re-verified, compatibility and exact-verdict counts must be distinct kinds",
+  );
+  assert.notEqual(
+    derived.class_match_compatibility_rows,
+    derived.exact_class_matched_verdict_rows,
+    "a compatibility flag must not stand in for a class-matched verdict",
+  );
+
+  for (const key of RC28_COUNT_KEYS) {
+    assert.equal(Number(fields[key]), derived[key], `${key} must equal the live-derived count`);
+  }
+  assert.equal(Number(fields.findings_total), derived.findings_total, "findings_total must equal the live row count");
+
+  // The T02 summary and the rows it summarises must agree.
+  assert.equal(matrix.summary.finding_count, derived.findings_total);
+  assert.equal(matrix.summary.rows_rereverified, derived.rereverified_rows);
+  assert.equal(matrix.summary.class_matched_rows, derived.class_match_compatibility_rows);
+  assert.equal(matrix.summary.class_mismatched_rows, derived.class_mismatch_rows);
+  assert.equal(matrix.summary.machine_verdict_counts[RC28_EXACT_MATCH_VERDICT], derived.exact_class_matched_verdict_rows);
+
+  // The digest namespaces are bound to their own live bytes and to each other.
+  assert.equal(fields.source_content_sha256, liveSha256(RC28_SOURCE_DOCUMENT), "the source digest must bind the live source document");
+  assert.equal(fields.packet_file_sha256, liveSha256(RC28_PACKET_FILE), "the packet file digest must bind the live packet file");
+  assert.equal(
+    fields.packet_declared_content_sha256,
+    matrix.review_case.packet_declared_content_sha256,
+    "the declared digest must bind the packet declaration",
+  );
+  assert.equal(
+    fields.source_content_sha256,
+    fields.packet_declared_content_sha256,
+    "the packet-declared content digest is the source document digest",
+  );
+  assert.notEqual(fields.source_content_sha256, fields.packet_file_sha256, "the two digest namespaces must differ");
+
+  // The prose must explain the compatibility flag and must not claim a
+  // class-matched verdict on all 13 compatibility rows.
+  assert.match(md, /compatibility flag/, "the checkpoint must explain the compatibility flag");
+  assert.match(md, /neither a sufficiency claim nor evidence presence/, "compatibility must not read as sufficiency");
+  assert.doesNotMatch(md, /class-matched verdict on 13/, "the checkpoint must not conflate compatibility with a verdict");
+
+  assert.deepEqual(validateRc28Checkpoint(observeRc28Checkpoint(root)), []);
+});
+
+contract("negative: checkpoint count drift, conflation, digest swap and prior-defer denial fail closed", () => {
+  const observation = observeRc28Checkpoint(root);
+  assert.deepEqual(validateRc28Checkpoint(observation), []);
+
+  const byCode = new Map(
+    checkpointMutations(observation).map((mutation) => [mutation.code, validateRc28Checkpoint(mutation.observation)]),
+  );
+  for (const [code, codes] of byCode) {
+    assert.ok(codes.includes(code), `${code} must be emitted; got ${JSON.stringify(codes)}`);
+  }
+
+  // The compatibility count and the exact-verdict count are distinct kinds: a
+  // compatibility number in the exact-verdict slot must drift, not pass.
+  const conflated = clone(observation);
+  conflated.fields.exact_class_matched_verdict_rows = String(observation.derived.class_match_compatibility_rows);
+  assert.ok(validateRc28Checkpoint(conflated).includes("counts_drift"), "a swapped count kind must drift");
+
+  // A digest namespace swap is refused even when both values are valid sha256.
+  const swapped = clone(observation);
+  swapped.digest.packet_file_sha256 = observation.digest.source_content_sha256;
+  const swappedCodes = validateRc28Checkpoint(swapped);
+  assert.ok(swappedCodes.includes("digest_namespace_confused"), "a namespace swap must be refused");
+  assert.ok(!swappedCodes.includes("counts_drift"), "a digest swap is not a count drift");
+
+  // "no owner defer recorded" is the reviewer namespace confusion, refused.
+  const denied = clone(observation);
+  denied.fields.f13_prior_owner_decision = FORBIDDEN_PRIOR_DEFER_LITERAL;
+  const deniedCodes = validateRc28Checkpoint(denied);
+  assert.ok(deniedCodes.includes("prior_owner_defer_denied"), "denying the prior defer must be refused");
+  assert.ok(
+    !deniedCodes.includes("prior_decision_ledger_confused"),
+    "denying the prior defer is not a ledger confusion",
+  );
+
+  // The prior defer read as the current RC28 disposition is a ledger confusion.
+  const confused = clone(observation);
+  confused.fields.f13_current_rc28_disposition = "deferred-explicit owner defer";
+  const confusedCodes = validateRc28Checkpoint(confused);
+  assert.ok(confusedCodes.includes("prior_decision_ledger_confused"), "a ledger confusion must be refused");
+  assert.ok(
+    !confusedCodes.includes("prior_owner_defer_denied"),
+    "a ledger confusion is not a denial of the prior defer",
+  );
+
+  assert.deepEqual(validateRc28Checkpoint(null), ["checkpoint_missing"]);
+  assert.deepEqual(validateRc28Checkpoint({}), ["checkpoint_missing"]);
 });
 
 contract("the 19 machine verdict rows in the final check match the live T02 matrix", () => {
@@ -598,6 +840,26 @@ contract("every documented fail-closed code is empirically exercised", () => {
   }
   for (const code of validateBattery(null)) emitted.add(code);
   assert.deepEqual([...emitted].sort(), DOCUMENTED_CODES.slice().sort());
+});
+
+contract("the checkpoint code block equals the battery's checkpoint documented set", () => {
+  assert.deepEqual(
+    CHECKPOINT_DOCUMENTED_CODES.slice().sort(),
+    BATTERY_CHECKPOINT_DOCUMENTED_CODES.slice().sort(),
+  );
+  assert.equal(
+    new Set(CHECKPOINT_DOCUMENTED_CODES).size,
+    CHECKPOINT_DOCUMENTED_CODES.length,
+    "a documented checkpoint code is duplicated",
+  );
+});
+
+contract("every documented checkpoint fail-closed code is empirically exercised", () => {
+  const emitted = new Set(validateRc28Checkpoint(null));
+  for (const mutation of checkpointMutations(observeRc28Checkpoint(root))) {
+    for (const code of validateRc28Checkpoint(mutation.observation)) emitted.add(code);
+  }
+  assert.deepEqual([...emitted].sort(), CHECKPOINT_DOCUMENTED_CODES.slice().sort());
 });
 
 // ---------------------------------------------------------------------------

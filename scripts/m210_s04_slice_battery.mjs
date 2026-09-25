@@ -39,7 +39,8 @@
 // contracts and the five regressions.
 
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -125,21 +126,23 @@ export const REGRESSIONS = [
   },
 ];
 
-// Check floor for a meaningful run. The observed aggregate is 661 checks, built
-// as the four S04 contracts (22 admission + 21 matrix + 14 cards + 18 session =
-// 75 contract checks) plus the regressions (50 S01 battery checks + 154 S02
+// Check floor for a meaningful run. The observed aggregate is 663 checks, built
+// as the four S04 contracts (22 admission + 21 matrix + 14 cards + 20 session =
+// 77 contract checks) plus the regressions (50 S01 battery checks + 154 S02
 // battery checks + 345 S03 battery checks + 36 M209/S04 checks + 1
 // source-revision assertion = 586 regression checks). The S02 and S03
 // batteries are reached both transitively (inside the S03 run) and standalone,
 // so nested checks are counted more than once; that is inherited from the S03
 // precedent and is deliberate, because the standalone runs are what gate the
-// regression independently. The floor is 594, i.e. 90% of 661 rounded down, the
+// regression independently. The floor is 596, i.e. 90% of 663 rounded down, the
 // same ratio the S01 battery (floor 45 of 50), the S02 battery (floor 138 of
 // 154) and the S03 battery (floor 305 of 339) used. It is a coarse backstop
 // against a truncated or silently empty run - every individual contract and
 // regression remains separately gated by its own exit code, marker and positive
-// count, so no lost check can hide behind the floor.
-export const MIN_CHECKS = 594;
+// count, so no lost check can hide behind the floor. It is a ratio, never a pin
+// on one historic total: when a contract legitimately gains checks the observed
+// total moves and the floor moves with it.
+export const MIN_CHECKS = 596;
 
 export const SOURCE_REVISION_SCRIPT = "scripts/m204_s08_source_revision.mjs";
 
@@ -193,6 +196,53 @@ export const EVENTS_DIR = "prd/architecture/review-cases/packets/RC-2026-09-10-0
 // enforcement layer may name the code it refuses without carrying the literal
 // itself as a claim.
 export const FORBIDDEN_HOLD_RATIONALE = ["rc28_hold_justified_by_", "missing_acceptance"].join("");
+
+// The checkpoint marker printed by this runner once the final RC28 checkpoint's
+// own semantics are validated (its counts re-derived from the live T02 rows and
+// its digests re-hashed live). It makes the checkpoint a visible part of the
+// battery's fail-closed surface instead of a contract-only concern.
+export const BATTERY_CHECKPOINT_MARKER = "M210_S04_BATTERY_CHECKPOINT";
+
+// The T02 evidence matrix is the immutable machine input the final checkpoint is
+// derived from. The packet JSON file and the review source document are two
+// distinct digest namespaces: the packet is the transmitted envelope, while the
+// source document is what the packet declares it reviewed. They must never share
+// a field.
+export const RC28_MATRIX = "prd/architecture/m210-s04-finding-evidence-matrix.json";
+export const RC28_PACKET_FILE = "prd/architecture/review-cases/packets/RC-2026-09-10-001.json";
+export const RC28_SOURCE_DOCUMENT = "doc/review/review-28-10-09-2026.md";
+
+// The four count kinds the final checkpoint must keep separate. A single
+// "class matched" number conflates them: 4 rows were re-verified against live
+// sources, 13 rows carry a true `class_match` compatibility flag, 6 carry a
+// false one, and exactly 2 rows carry the `evidence_present_class_matched`
+// verdict. A true compatibility flag says the evidence is of the required proof
+// class; it is neither a sufficiency claim nor evidence presence.
+export const RC28_COUNT_KEYS = [
+  "rereverified_rows",
+  "class_match_compatibility_rows",
+  "class_mismatch_rows",
+  "exact_class_matched_verdict_rows",
+];
+
+// The exact class-matched machine verdict, and the compatibility flag it must
+// not be conflated with.
+export const RC28_EXACT_MATCH_VERDICT = "evidence_present_class_matched";
+
+// The mandated hold basis and the established adoption basis. The hold rests on
+// the absence of valid per-finding dispositions; it must never rest on an
+// absence of variant C adoption.
+export const RC28_HOLD_BASIS = "valid per-finding dispositions absent";
+export const RC28_ADOPTION_BASIS_PATTERN = /variant C established/;
+
+// The prior owner decision recorded in S02 (an explicit F13 defer) and the note
+// that the current RC28 ledger slot is still empty. The two namespaces must stay
+// separate: "none recorded" on the current ledger is not evidence that the prior
+// owner defer is absent. The forbidden prior-defer literal is the reviewer-side
+// namespace confusion this validator refuses.
+export const RC28_PRIOR_DECISION_PATTERN = /deferred-explicit[\s\S]*\bs02\b/i;
+export const RC28_CURRENT_DISPOSITION_PATTERN = /none recorded[\s\S]*rc28/i;
+export const FORBIDDEN_PRIOR_DEFER_LITERAL = "no owner defer recorded";
 
 const OUTPUT_TAIL_CHARS = 4000;
 
@@ -263,6 +313,174 @@ export function evaluateRegression(gate, output, exitCode) {
   return { checks: fields.checks, markerOk: true, markerLine: match[0] };
 }
 
+// A live sha256 over one repository-relative file, used to bind the checkpoint's
+// digest namespaces to the bytes they claim to describe.
+function sha256File(absolute) {
+  return createHash("sha256").update(readFileSync(absolute)).digest("hex");
+}
+
+// The checkpoint's bold single-line header fields (`**key:** value`).
+export function parseCheckpointHeader(md) {
+  const fields = {};
+  for (const line of String(md).split("\n")) {
+    const match = line.match(/^\*\*([a-z0-9_]+):\*\*\s*(.*)$/);
+    if (match) fields[match[1]] = match[2].trim();
+  }
+  return fields;
+}
+
+// The bold single-line rc28 verdicts; exactly one `hold` is required while no
+// valid disposition exists.
+export function parseCheckpointVerdicts(md) {
+  return [...String(md).matchAll(/^\*\*rc28: (hold|closed)\*\*$/gm)].map((match) => match[1]);
+}
+
+// Derives the four independent count kinds from the live T02 rows. This is the
+// single source of truth for the checkpoint's counts: a declared count is only
+// accepted when it equals the value derived here.
+export function deriveRc28Counts(matrix) {
+  const rows = Array.isArray(matrix && matrix.rows) ? matrix.rows.filter((row) => row && typeof row === "object") : [];
+  const count = (predicate) => rows.filter(predicate).length;
+  return {
+    findings_total: rows.length,
+    rereverified_rows: count((row) => row.rereverified === true),
+    class_match_compatibility_rows: count((row) => row.class_match === true),
+    class_mismatch_rows: count((row) => row.class_match === false),
+    exact_class_matched_verdict_rows: count((row) => row.machine_verdict === RC28_EXACT_MATCH_VERDICT),
+  };
+}
+
+// Reads the checkpoint, the live T02 matrix and the live digest inputs into one
+// plain observation object. Kept pure enough that the sibling contract can clone
+// it, mutate one field and prove each refusal empirically.
+export function observeRc28Checkpoint(root = REPO_ROOT) {
+  const text = readFileSync(path.join(root, RC28_FINAL_CHECK), "utf8");
+  const matrix = JSON.parse(readFileSync(path.join(root, RC28_MATRIX), "utf8"));
+  const fields = parseCheckpointHeader(text);
+  const reviewCase = matrix.review_case && typeof matrix.review_case === "object" ? matrix.review_case : {};
+  return {
+    text,
+    fields,
+    verdicts: parseCheckpointVerdicts(text),
+    derived: deriveRc28Counts(matrix),
+    summary: matrix.summary,
+    digest: {
+      source_content_sha256: fields.source_content_sha256,
+      packet_file_sha256: fields.packet_file_sha256,
+      packet_declared_content_sha256: fields.packet_declared_content_sha256,
+      live_source_content_sha256: `sha256:${sha256File(path.join(root, RC28_SOURCE_DOCUMENT))}`,
+      live_packet_file_sha256: `sha256:${sha256File(path.join(root, RC28_PACKET_FILE))}`,
+      matrix_source_content_sha256: reviewCase.source_content_sha256,
+      matrix_packet_file_sha256: reviewCase.packet_file_sha256,
+      matrix_packet_declared_content_sha256: reviewCase.packet_declared_content_sha256,
+    },
+  };
+}
+
+// Fail-closed validation of the final RC28 checkpoint's own semantics. Kept pure
+// so the sibling contract can exercise it on cloned-and-mutated observations.
+// Returns a sorted, de-duplicated code set; an empty array means the checkpoint
+// keeps its counts separate, its digest namespaces bound and its hold basis
+// right.
+//
+// Documented codes (asserted equal to the contract's documented set):
+// CHECKPOINT_CODES_BEGIN
+// checkpoint_missing: the observation or one of its required parts is unusable.
+// verdict_invalid: the checkpoint does not carry exactly one hold verdict.
+// count_conflation: a count kind is missing, so the kinds are collapsed.
+// counts_drift: a declared count disagrees with the live T02 rows.
+// matrix_summary_drift: the live T02 summary disagrees with the rows it summarises.
+// digest_namespace_confused: a digest is mislabelled, swapped or not bound to its live bytes.
+// prior_owner_defer_denied: the established prior F13 owner defer is denied or read as absent.
+// prior_decision_ledger_confused: the prior owner decision and the current RC28 ledger are conflated.
+// hold_basis_invalid: the hold rests on something other than the missing dispositions.
+// CHECKPOINT_CODES_END
+export function validateRc28Checkpoint(observation) {
+  const codes = new Set();
+  if (!observation || typeof observation !== "object") return ["checkpoint_missing"];
+  const fields = observation.fields;
+  const derived = observation.derived;
+  const digest = observation.digest;
+  if (!fields || typeof fields !== "object" || !derived || typeof derived !== "object" || !digest || typeof digest !== "object") {
+    return ["checkpoint_missing"];
+  }
+
+  const verdicts = Array.isArray(observation.verdicts) ? observation.verdicts : [];
+  const text = typeof observation.text === "string" ? observation.text : "";
+  if (verdicts.length !== 1 || verdicts[0] !== "hold" || !RC28_VERDICT_PATTERN.test(text)) {
+    codes.add("verdict_invalid");
+  }
+
+  // Every count kind must be declared separately. A missing kind means the kinds
+  // are collapsed into one number, which is exactly the conflation this guards.
+  const hasCount = (key) => Object.prototype.hasOwnProperty.call(fields, key);
+  if (!hasCount("findings_total")) codes.add("count_conflation");
+  for (const key of RC28_COUNT_KEYS) {
+    if (!hasCount(key)) codes.add("count_conflation");
+  }
+  // A declared count is accepted only when it equals the live-derived value.
+  if (hasCount("findings_total") && Number(fields.findings_total) !== derived.findings_total) codes.add("counts_drift");
+  for (const key of RC28_COUNT_KEYS) {
+    if (!hasCount(key)) continue;
+    if (Number(fields[key]) !== derived[key]) codes.add("counts_drift");
+  }
+
+  // The live T02 summary must agree with the rows it summarises, so a silently
+  // changed matrix cannot be papered over by the checkpoint prose.
+  const summary = observation.summary && typeof observation.summary === "object" ? observation.summary : {};
+  const summaryVerdicts =
+    summary.machine_verdict_counts && typeof summary.machine_verdict_counts === "object"
+      ? summary.machine_verdict_counts
+      : {};
+  if (
+    Number(summary.finding_count) !== derived.findings_total ||
+    Number(summary.rows_rereverified) !== derived.rereverified_rows ||
+    Number(summary.class_matched_rows) !== derived.class_match_compatibility_rows ||
+    Number(summary.class_mismatched_rows) !== derived.class_mismatch_rows ||
+    Number(summaryVerdicts[RC28_EXACT_MATCH_VERDICT]) !== derived.exact_class_matched_verdict_rows
+  ) {
+    codes.add("matrix_summary_drift");
+  }
+
+  // The digest namespaces must be bound to their own live bytes and agree with
+  // the T02 declaration. A source digest placed in the packet field (or the
+  // reverse) is a namespace confusion, not a cosmetic slip.
+  const source = digest.source_content_sha256;
+  const packet = digest.packet_file_sha256;
+  const declared = digest.packet_declared_content_sha256;
+  const sourceBound = source === digest.live_source_content_sha256 && source === digest.matrix_source_content_sha256;
+  const packetBound = packet === digest.live_packet_file_sha256 && packet === digest.matrix_packet_file_sha256;
+  const declaredBound = declared === digest.matrix_packet_declared_content_sha256 && declared === source;
+  if (!sourceBound || !packetBound || !declaredBound || source === packet) codes.add("digest_namespace_confused");
+
+  // F13: the prior S02 owner defer and the current RC28 ledger slot are separate
+  // namespaces. The prior defer exists and must not be denied; the current RC28
+  // slot is still empty and must not be read as the prior defer.
+  const priorDecision = String(fields.f13_prior_owner_decision || "");
+  const currentDisposition = String(fields.f13_current_rc28_disposition || "");
+  if (
+    !RC28_PRIOR_DECISION_PATTERN.test(priorDecision) ||
+    priorDecision.includes(FORBIDDEN_PRIOR_DEFER_LITERAL) ||
+    text.includes(FORBIDDEN_PRIOR_DEFER_LITERAL)
+  ) {
+    codes.add("prior_owner_defer_denied");
+  }
+  if (!RC28_CURRENT_DISPOSITION_PATTERN.test(currentDisposition) || RC28_PRIOR_DECISION_PATTERN.test(currentDisposition)) {
+    codes.add("prior_decision_ledger_confused");
+  }
+
+  // The hold basis must be the missing dispositions, not a missing adoption.
+  if (
+    String(fields.hold_basis || "") !== RC28_HOLD_BASIS ||
+    !RC28_ADOPTION_BASIS_PATTERN.test(String(fields.adoption_basis || "")) ||
+    text.includes(FORBIDDEN_HOLD_RATIONALE)
+  ) {
+    codes.add("hold_basis_invalid");
+  }
+
+  return [...codes].sort();
+}
+
 export function runBattery(options = {}) {
   const execPath = options.execPath || process.execPath;
   const timeoutMs = options.timeoutMs ?? 600000;
@@ -308,11 +526,32 @@ export function runBattery(options = {}) {
   const contractChecks = results.reduce((sum, entry) => sum + entry.pass, 0);
   const regressionChecks = regressions.reduce((sum, entry) => sum + entry.checks, 0);
   const checks = contractChecks + regressionChecks;
+  // The final RC28 checkpoint is part of the battery's fail-closed surface: its
+  // counts are re-derived from the live T02 rows and its digest namespaces are
+  // re-hashed live. A missing or unreadable input refuses the checkpoint rather
+  // than crashing the run.
+  let checkpoint;
+  try {
+    checkpoint = validateRc28Checkpoint(observeRc28Checkpoint());
+  } catch {
+    checkpoint = ["checkpoint_missing"];
+  }
+
   const failed =
     results.reduce((sum, entry) => sum + entry.fail, 0) +
     results.filter((entry) => entry.missing || entry.exitCode !== 0).length +
-    regressions.filter((entry) => entry.exitCode !== 0 || entry.markerOk !== true).length;
-  return { results, regressions, contractChecks, regressionChecks, checks, failed, ok: failed === 0 && checks >= MIN_CHECKS };
+    regressions.filter((entry) => entry.exitCode !== 0 || entry.markerOk !== true).length +
+    (checkpoint.length > 0 ? 1 : 0);
+  return {
+    results,
+    regressions,
+    checkpoint,
+    contractChecks,
+    regressionChecks,
+    checks,
+    failed,
+    ok: failed === 0 && checks >= MIN_CHECKS,
+  };
 }
 
 // Fail-closed validation of a battery result. Kept pure so the sibling contract
@@ -330,6 +569,7 @@ export function runBattery(options = {}) {
 // contract_counts_missing: a contract reported no parseable passing checks.
 // regression_missing: a required regression gate is absent from the results.
 // regression_failed: a regression gate exited non-zero or its marker is absent or invalid.
+// checkpoint_failed: the final RC28 checkpoint's own semantics are invalid.
 // DOCUMENTED_CODES_END
 export function validateBattery(result) {
   const codes = new Set();
@@ -350,6 +590,7 @@ export function validateBattery(result) {
   if (!(typeof result.checks === "number" && result.checks >= MIN_CHECKS)) codes.add("checks_below_floor");
   if (result.failed !== 0) codes.add("battery_failed");
   if (result.ok !== true) codes.add("battery_failed");
+  if (!Array.isArray(result.checkpoint) || result.checkpoint.length > 0) codes.add("checkpoint_failed");
   if (result.regressions.length !== REGRESSIONS.length) codes.add("regression_missing");
   for (const gate of REGRESSIONS) {
     const entry = result.regressions.find((candidate) => candidate && candidate.id === gate.id);
@@ -392,6 +633,10 @@ function main() {
     );
     if (entry.markerLine) process.stdout.write(`${entry.markerLine}\n`);
   }
+  process.stdout.write(
+    `${BATTERY_CHECKPOINT_MARKER} ${result.checkpoint.length === 0 ? "ok" : "fail"} ` +
+      `codes=${result.checkpoint.length === 0 ? "none" : result.checkpoint.join(",")}\n`,
+  );
 
   const codes = validateBattery(result);
   if (result.ok && codes.length === 0) {
@@ -415,6 +660,11 @@ function main() {
       process.stdout.write(`${tail(entry.output)}\n`);
       tailed = true;
     }
+  }
+  if (result.checkpoint.length > 0) {
+    process.stdout.write(`${BATTERY_TAIL_MARKER} ${RC28_FINAL_CHECK}\n`);
+    process.stdout.write(`checkpoint_codes=${result.checkpoint.join(",")}\n`);
+    tailed = true;
   }
   if (!tailed) {
     // No single step is red, yet the battery is refused: the cause is the
