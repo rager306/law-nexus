@@ -90,6 +90,7 @@
     "choice_not_allowed",
     "shell_string_command",
     "argv_not_array",
+    "command_spec_not_closed",
     "contract_hash_mismatch",
     "session_state_inconsistent",
     "review_case_event_written",

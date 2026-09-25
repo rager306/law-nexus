@@ -64,6 +64,7 @@ import path from "node:path";
 // choice_not_allowed: the allowed choice set must be exactly the closed set.
 // shell_string_command: submission commands must be argv-only and never a shell string.
 // argv_not_array: every submission command must carry a non-empty argv array.
+// command_spec_not_closed: the future command specification must be exactly one canonical command with the closed field set and the ordered typed argv template; unknown, extra, missing, reordered, renamed, aliased, equals-syntax, non-string and additional-command forms fail closed.
 // contract_hash_mismatch: the delta must bind to the live session contract digest.
 // session_state_inconsistent: the current session state must stay not-run, hold and zero.
 // review_case_event_written: no Review Case event may be written and the packet events directory must be absent.
@@ -168,6 +169,58 @@ export const EVENT_IDENTITY_INPUTS = [
 export const HOST_PATH_TOKEN = "uv";
 export const HOST_SUBMISSION_PATH = "future host-controlled actor-bound submission path";
 
+// The unavailable future submission CLI has exactly ONE canonical command. Its
+// argv is an ordered, typed template: literal flag/value tokens plus the five
+// declared placeholders. The validator below deep-equals the artifact against
+// this template, so an added, missing, reordered, renamed, aliased,
+// equals-syntax, non-string or extra-command form fails closed. There is
+// deliberately no growing blacklist of forbidden spellings (such as
+// --event-id): an unavailable future CLI cannot be enumerated, so its one
+// canonical template is the allowlist and everything else is refused.
+export const CANONICAL_COMMAND_COUNT = 1;
+export const CANONICAL_COMMAND_ID = "review_case_record_human_disposition";
+export const CANONICAL_COMMAND_SCOPE = "record_human_disposition";
+export const COMMAND_ARGV_TEMPLATE = [
+  "uv",
+  "run",
+  "python",
+  "-m",
+  "law_nexus_harness",
+  "review-case",
+  "record-human-disposition",
+  "--packet-id",
+  "RC-2026-09-10-001",
+  "--finding-id",
+  "{finding_id}",
+  "--disposition",
+  "{choice}",
+  "--actor-ref",
+  "{actor_ref}",
+  "--acceptance-ref",
+  "{acceptance_ref}",
+  "--authority-epoch",
+  "{authority_epoch}",
+];
+export const COMMAND_PLACEHOLDERS = [
+  "{finding_id}",
+  "{choice}",
+  "{actor_ref}",
+  "{acceptance_ref}",
+  "{authority_epoch}",
+];
+export const COMMAND_FIELDS = [
+  "id",
+  "scope",
+  "available",
+  "executed",
+  "argv_only",
+  "shell_string",
+  "executable_path_token",
+  "executable_path_owner",
+  "argv",
+  "note",
+];
+
 export const EMITTABLE_CODES = [
   "blanket_confirmation_forbidden",
   "preselect_forbidden",
@@ -194,6 +247,7 @@ export const EMITTABLE_CODES = [
   "choice_not_allowed",
   "shell_string_command",
   "argv_not_array",
+  "command_spec_not_closed",
   "contract_hash_mismatch",
   "session_state_inconsistent",
   "review_case_event_written",
@@ -261,6 +315,31 @@ function cloneBundle(bundle = baseBundle) {
 
 function sortedJson(value) {
   return JSON.stringify([...value].sort());
+}
+
+// True only when argv is exactly the ordered typed template: same length, every
+// token a string, and every token equal to the template at its index. A single
+// added, missing, reordered, renamed or non-string token makes it false.
+export function commandArgvMatchesTemplate(argv) {
+  return (
+    Array.isArray(argv) &&
+    argv.length === COMMAND_ARGV_TEMPLATE.length &&
+    argv.every(
+      (token, index) => typeof token === "string" && token === COMMAND_ARGV_TEMPLATE[index],
+    )
+  );
+}
+
+// Any argv token that names a caller-supplied event id fails closed, including
+// the equals syntax (--event-id=value). This is a narrow named signal for the
+// specific no-caller-event-id guarantee; the generic template check above is
+// what refuses every other noncanonical token, so this is not a blacklist the
+// validator grows to guess aliases.
+export function referencesCallerEventId(token) {
+  return (
+    typeof token === "string" &&
+    (token === "--event-id" || token.startsWith("--event-id=") || token === "{event_id}")
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -576,10 +655,33 @@ export function validateSession(bundle, env = {}) {
     code("contract_hash_mismatch", "the delta must bind to the live session contract digest");
   }
 
-  // 9. commands are argv-only and none of them ran.
+  // 9. the command specification is exactly one canonical unavailable command:
+  //    a closed field set and a closed, ordered, typed argv template. A
+  //    validator that only blacklisted a few forbidden tokens would let
+  //    --event-id=value, an alias, a positional id, a reordered pair or an added
+  //    command object through, so every noncanonical form fails closed instead.
+  //    The policy carries the host-owned executable token; the commands are all
+  //    unavailable and unexecuted.
   const commands = Array.isArray(d.commands) ? d.commands : [];
-  if (commands.length === 0 || d.command_policy?.argv_only !== true) {
+  const policy = d.command_policy ?? {};
+  if (commands.length === 0 || policy.argv_only !== true) {
     code("argv_not_array", "the command specification must be present and argv-only");
+  }
+  if (
+    policy.executable_path_token !== HOST_PATH_TOKEN ||
+    policy.executable_path_owner !== "host" ||
+    policy.caller_supplied_executable_forbidden !== true
+  ) {
+    code(
+      "host_controlled_path_substituted",
+      "the command policy executable token must stay pinned, host-owned and not caller-substituted",
+    );
+  }
+  if (commands.length !== CANONICAL_COMMAND_COUNT) {
+    code(
+      "command_spec_not_closed",
+      `the specification must be exactly ${CANONICAL_COMMAND_COUNT} canonical command, got ${commands.length}`,
+    );
   }
   for (const command of commands) {
     if (
@@ -593,16 +695,33 @@ export function validateSession(bundle, env = {}) {
     if (!command || !Array.isArray(command.argv) || command.argv.length === 0) {
       code("argv_not_array", "every submission command must carry a non-empty argv array");
     }
+    if (
+      !command ||
+      typeof command !== "object" ||
+      Array.isArray(command) ||
+      JSON.stringify(Object.keys(command).sort()) !== sortedJson(COMMAND_FIELDS)
+    ) {
+      code(
+        "command_spec_not_closed",
+        "the command object must carry exactly the closed field set",
+      );
+    }
+    if (command?.id !== CANONICAL_COMMAND_ID || command?.scope !== CANONICAL_COMMAND_SCOPE) {
+      code("command_spec_not_closed", "the command id and scope must be the canonical pair");
+    }
+    if (!commandArgvMatchesTemplate(command?.argv)) {
+      code(
+        "command_spec_not_closed",
+        "the command argv must equal the canonical ordered string template exactly",
+      );
+    }
     if (command?.executed === true || command?.available === true) {
       code(
         "submission_without_actor_bound_path",
         "a submission command must not be available or executed while the gate is inert",
       );
     }
-    if (
-      Array.isArray(command?.argv) &&
-      command.argv.some((token) => token === "--event-id" || token === "{event_id}")
-    ) {
+    if (Array.isArray(command?.argv) && command.argv.some(referencesCallerEventId)) {
       code(
         "caller_supplied_event_id_forbidden",
         "a caller-supplied event id must not enter the submission argv",
@@ -620,7 +739,7 @@ export function validateSession(bundle, env = {}) {
       );
     }
   }
-  if (d.command_policy?.executed_commands !== 0) {
+  if (policy.executed_commands !== 0) {
     code("submission_without_actor_bound_path", "no submission command may have executed");
   }
 
@@ -909,6 +1028,70 @@ test("commands are argv-only, unavailable and unexecuted", () => {
   assert.ok(!committedContractText.includes('"executed": true'));
 });
 
+test("the canonical command template is the single closed argv specification", () => {
+  assert.equal(CANONICAL_COMMAND_COUNT, 1);
+  assert.equal(CANONICAL_COMMAND_ID, "review_case_record_human_disposition");
+  assert.equal(CANONICAL_COMMAND_SCOPE, "record_human_disposition");
+  assert.equal(COMMAND_ARGV_TEMPLATE[0], HOST_PATH_TOKEN);
+  assert.equal(COMMAND_ARGV_TEMPLATE.length, 19);
+  const placeholders = COMMAND_ARGV_TEMPLATE.filter((token) => token.startsWith("{"));
+  assert.deepEqual([...placeholders].sort(), [...COMMAND_PLACEHOLDERS].sort());
+  assert.equal(new Set(COMMAND_ARGV_TEMPLATE).size, COMMAND_ARGV_TEMPLATE.length);
+  assert.deepEqual(
+    delta.commands.map((command) => command.id),
+    [CANONICAL_COMMAND_ID],
+  );
+  const command = delta.commands[0];
+  assert.equal(command.scope, CANONICAL_COMMAND_SCOPE);
+  assert.equal(command.executable_path_token, HOST_PATH_TOKEN);
+  assert.equal(command.executable_path_owner, "host");
+  assert.deepEqual(command.argv, COMMAND_ARGV_TEMPLATE);
+  assert.deepEqual([...Object.keys(command).sort()], [...COMMAND_FIELDS].sort());
+  assert.equal(delta.command_policy.executable_path_token, HOST_PATH_TOKEN);
+  assert.equal(delta.command_policy.executable_path_owner, "host");
+  assert.equal(delta.command_policy.caller_supplied_executable_forbidden, true);
+  assert.equal(commandArgvMatchesTemplate(command.argv), true);
+  assert.equal(referencesCallerEventId("--event-id"), true);
+  assert.equal(referencesCallerEventId("--event-id={event_id}"), true);
+  assert.equal(referencesCallerEventId("{event_id}"), true);
+  assert.equal(referencesCallerEventId("{finding_id}"), false);
+  assert.equal(validateSession(baseBundle, liveEnv()).ok, true);
+});
+
+test("the closed command schema rejects noncanonical argv, extra commands and policy mutations", () => {
+  const cases = [
+    ["equals syntax event id", (cmd) => { cmd.argv = [...cmd.argv, "--event-id={event_id}"]; }, "command_spec_not_closed"],
+    ["equals syntax event id is named", (cmd) => { cmd.argv = [...cmd.argv, "--event-id={event_id}"]; }, "caller_supplied_event_id_forbidden"],
+    ["aliased packet flag", (cmd) => { cmd.argv = cmd.argv.map((token) => (token === "--packet-id" ? "-p" : token)); }, "command_spec_not_closed"],
+    ["positional finding id", (cmd) => { cmd.argv = cmd.argv.filter((token) => token !== "--finding-id"); }, "command_spec_not_closed"],
+    ["renamed actor flag", (cmd) => { cmd.argv = cmd.argv.map((token) => (token === "--actor-ref" ? "--actor" : token)); }, "command_spec_not_closed"],
+    ["reordered flag pairs", (cmd) => { const argv = [...cmd.argv]; [argv[9], argv[11]] = [argv[11], argv[9]]; cmd.argv = argv; }, "command_spec_not_closed"],
+    ["missing placeholder", (cmd) => { cmd.argv = cmd.argv.filter((token) => token !== "{acceptance_ref}"); }, "command_spec_not_closed"],
+    ["non-string argument", (cmd) => { const argv = [...cmd.argv]; argv[4] = 7; cmd.argv = argv; }, "command_spec_not_closed"],
+    ["added command field", (cmd) => { cmd.executable = "/bin/sh"; }, "command_spec_not_closed"],
+    ["renamed command id", (cmd) => { cmd.id = "review_case_submit"; }, "command_spec_not_closed"],
+    ["renamed command scope", (cmd) => { cmd.scope = "subjective_uat"; }, "command_spec_not_closed"],
+    ["extra command object", (cmd, bundle) => { bundle.delta.commands.push(JSON.parse(JSON.stringify(cmd))); }, "command_spec_not_closed"],
+    ["policy token substituted", (cmd, bundle) => { bundle.delta.command_policy.executable_path_token = "caller"; }, "host_controlled_path_substituted"],
+    ["policy owner substituted", (cmd, bundle) => { bundle.delta.command_policy.executable_path_owner = "caller"; }, "host_controlled_path_substituted"],
+    ["policy caller executable allowed", (cmd, bundle) => { bundle.delta.command_policy.caller_supplied_executable_forbidden = false; }, "host_controlled_path_substituted"],
+    ["per-command owner substituted", (cmd) => { cmd.executable_path_owner = "caller"; }, "host_controlled_path_substituted"],
+  ];
+  for (const [label, mutate, expected] of cases) {
+    const bundle = cloneBundle();
+    mutate(bundle.delta.commands[0], bundle);
+    const names = new Set(validateSession(bundle, liveEnv()).errors.map((error) => error.name));
+    assert.ok(
+      names.has(expected),
+      `${label} must emit ${expected}; got [${[...names].sort().join(",")}]`,
+    );
+  }
+  const clean = cloneBundle();
+  clean.delta.commands.push(JSON.parse(JSON.stringify(clean.delta.commands[0])));
+  assert.equal(validateSession(clean, liveEnv()).ok, false, "an extra command must not validate clean");
+  assert.equal(validateSession(baseBundle, liveEnv()).ok, true, "the committed delta must stay clean");
+});
+
 test("the fail-closed code set is closed and shared by all three artifacts", () => {
   const expected = sortedJson(EMITTABLE_CODES);
   assert.equal(sortedJson(contract.fail_closed_codes), expected);
@@ -1038,6 +1221,7 @@ test("CODE_COVERAGE: every documented fail-closed code is emitted by a mutation"
     ["choice_not_allowed", (bundle) => { bundle.contract.allowed_choices = ["accept_as_proposed", "defer"]; }],
     ["shell_string_command", (bundle) => { bundle.delta.commands[0].shell_string = true; }],
     ["argv_not_array", (bundle) => { bundle.delta.commands[0].argv = "uv run python"; }],
+    ["command_spec_not_closed", (bundle) => { bundle.delta.commands[0].argv = [...bundle.delta.commands[0].argv, "--extra", "{extra}"]; }],
     ["contract_hash_mismatch", (bundle) => { bundle.delta.bound_to_session_contract.sha256 = `sha256:${"0".repeat(64)}`; }],
     ["session_state_inconsistent", (bundle) => { bundle.state.confirmed_count = 1; }],
     ["review_case_event_written", (bundle) => { bundle.state.events_written = 1; }],

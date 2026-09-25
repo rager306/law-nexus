@@ -13,7 +13,7 @@
   "bound_to_session_contract": {
     "path": "prd/architecture/m210-s04-review-session-contract.json",
     "schema": "law-nexus/m210-s04-review-session-contract/v1",
-    "sha256": "sha256:886cbf8c1bab9788ec440d3e60f941439ca8673c4bb97f7e4e4cef0d0e57ccff"
+    "sha256": "sha256:af54c135379fecaccf4a1b7e950b174bb8a68301265d0c566ed4c515c198a932"
   },
   "gate": {
     "applied": false,
@@ -148,6 +148,7 @@
     "choice_not_allowed",
     "shell_string_command",
     "argv_not_array",
+    "command_spec_not_closed",
     "contract_hash_mismatch",
     "session_state_inconsistent",
     "review_case_event_written",

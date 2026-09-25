@@ -33,7 +33,7 @@
   "session_state_binding": {
     "path": "prd/architecture/m210-s04-review-session-state.json",
     "schema": "law-nexus/m210-s04-review-session-state/v1",
-    "sha256": "sha256:8e0176a5e9c4897b238a8c7a39f9b7ef964290f0bd783810e3fe2f821fd624da"
+    "sha256": "sha256:dd873e0e66a33204659aab6b711c859baf5d790ad79f0f3cbb610824dfd9b342"
   },
   "adoption_basis": {
     "variant": "C",
@@ -291,6 +291,7 @@
     "choice_not_allowed",
     "shell_string_command",
     "argv_not_array",
+    "command_spec_not_closed",
     "contract_hash_mismatch",
     "session_state_inconsistent",
     "review_case_event_written",
