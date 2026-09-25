@@ -3,20 +3,19 @@
 // Offline and fail-closed. The artifact under test is
 // prd/architecture/m210-s03-runtime-activation-delta.json, the gated activation
 // delta for the conditional bounded semantic runtime. The claim under test is
-// that the delta stays applied false while the live runtime admission
-// checkpoint records admission: not-adopted, that the sanctioned stop is
-// recorded rather than replaced by a soft pass, and that activation is named as
-// ordered steps with owners plus a closed argv whitelist of repository-relative
-// scripts, gated on admission: granted, a real interactive owner reference, a
-// verified governing surface, the byte-bound semantics contract and a green
-// regression battery.
+// that the bounded candidate-layer grant is recorded (grant_recorded true,
+// grant_scope candidate_layer_only) while the delta stays applied false, that
+// the grant is never read as implementation or readiness, that the sanctioned
+// stop stays active outside the adopted candidate layer, and that activation is
+// named as ordered steps with owners plus a closed argv whitelist of
+// repository-relative scripts.
 //
-// The delta is a design-only record: it is proposed and unapplied, it creates
-// no runtime surface, it activates no variant and it promotes nothing. Applying
-// it without a granted checkpoint is delta_applied_without_grant. The
-// activation_commands list is validated as argv arrays, never as shell strings,
-// so the latent command-injection surface named by the slice threat surface
-// (Q3) is closed by construction: no argv element may carry a shell
+// The delta is a design-only record: it mints no runtime surface, it activates
+// no variant and it promotes nothing. Applying it without the adopted layer
+// actually implemented and without a green battery is delta_applied_without_grant.
+// The activation_commands list is validated as argv arrays, never as shell
+// strings, so the latent command-injection surface named by the slice threat
+// surface (Q3) is closed by construction: no argv element may carry a shell
 // metacharacter or a whitespace character, argv[0] must be node, exactly one
 // scripts/ path is admissible per command and it must be inside a closed
 // whitelist.
@@ -44,18 +43,21 @@ const SELF_PATH = fileURLToPath(import.meta.url);
 // the artifact's declared `fail_closed_codes`.
 // ## Fail-closed codes (documented set; asserted equal to EMITTABLE_CODES)
 // DOCUMENTED_CODES_BEGIN
-// activation_step_missing: an activation step or command is missing its id, owner, requirement, evidence, argv or expected marker, or names an inadmissible argv, a duplicate id, a non-whitelisted script or a missing tracked script.
-// activation_without_governing_surface: activation is declared without a governing_surface_verified requirement.
+// activation_step_missing: an activation step or command is missing its id, owner, requirement, evidence, argv or expected marker, names an inadmissible argv, a duplicate id, a non-whitelisted script, a missing tracked script or an out-of-order step.
 // activation_without_owner_ref: activation is declared without a required interactive owner reference whose accepted forms are the closed two-element set.
 // activation_without_regression_battery: the regression battery roles or the green_regression_battery step with command references are absent.
 // activation_without_semantics_contract: the delta does not bind the byte-live semantics contract path and sha256.
-// delta_applied_without_grant: the gate is applied, or a conditional variant is activated, while the checkpoint verdict is not granted.
+// delta_applied_without_grant: the delta is applied, the grant is not recorded, the application prerequisites are not both required, or a conditional variant is activated while the delta stays unapplied.
+// grant_read_as_implementation: the grant is read as implementation or readiness, or a not-yet-applied step is marked satisfied by the grant.
+// implementation_fabricated: the grant claims the runtime implementation exists, or a runtime surface is declared created.
 // non_ascii_artifact: the artifact carries a non-ASCII byte.
-// out_of_scope_activation: an out-of-scope surface is activated, or the not_adopted state claims an activation.
+// out_of_scope_activation: an out-of-scope surface is activated, the out-of-scope set differs, or the adopted variant is absent or not marked adopted.
 // raw_text_leak: the artifact carries an XML tag or a provider text marker.
-// resume_condition_missing: the resume condition is absent or does not name an interactive source.
-// runtime_claim_present: the artifact carries a Rust implementation marker, or a runtime surface is declared created or exists on disk.
+// readiness_fabricated: readiness is claimed while the adopted layer is not implemented.
+// resume_condition_missing: the resume condition is absent or does not name the v2 checkpoint and its authenticated refs.
+// runtime_claim_present: the artifact carries a Rust implementation marker, or a declared runtime surface exists on disk.
 // runtime_demo_claimed: runtime_demo is not not-proven.
+// runtime_stop_blanket_lifted: the stop is not sanctioned, blanket_lifted is not false, or the still-active surfaces are absent.
 // DOCUMENTED_CODES_END
 
 const DELTA_REL = "prd/architecture/m210-s03-runtime-activation-delta.json";
@@ -65,7 +67,7 @@ const START_GATE_REL = "prd/architecture/m210-s03-start-gate.json";
 const IR_ALTERNATIVES_REL = "prd/architecture/m210-s01-ir-alternatives.json";
 const SECTION3_REL = "prd/temporal-legal-model.md";
 
-const SCHEMA = "law-nexus/m210-s03-runtime-activation-delta/v1";
+const SCHEMA = "law-nexus/m210-s03-runtime-activation-delta/v2";
 const KIND = "m210-s03-runtime-activation-delta";
 const MILESTONE = "M210-3afp79";
 const SLICE = "S03";
@@ -76,28 +78,43 @@ const SHA_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const VERDICT_PATTERN = /^\*\*admission: (granted|not-adopted)\*\*$/gm;
 const VERDICT_LINE_PATTERN = /^\*\*admission: (granted|not-adopted)\*\*$/m;
 
+const CHECKPOINT_V2 = "prd/architecture/m210-s02-adoption-checkpoint-v2.md";
+const ADOPTED_VARIANT = "abstention_first_candidates_only";
+const IR_CRITERION = "subjective-UAT criterion 37181c25-88b0-4896-bffe-d10642970e6f";
+const F13_CRITERION = "subjective-UAT criterion 70e39300-851b-4412-a322-a8f0c51ca71c";
+const ADOPTED_CONSTRUCT_SET = [
+  "candidate_emission",
+  "source_anchors",
+  "family_classification_hypotheses",
+  "unknown_verdict",
+  "conflict_verdict",
+  "provenance_links",
+];
+
 const EMITTABLE_CODES = [
   "activation_step_missing",
-  "activation_without_governing_surface",
   "activation_without_owner_ref",
   "activation_without_regression_battery",
   "activation_without_semantics_contract",
   "delta_applied_without_grant",
+  "grant_read_as_implementation",
+  "implementation_fabricated",
   "non_ascii_artifact",
   "out_of_scope_activation",
   "raw_text_leak",
+  "readiness_fabricated",
   "resume_condition_missing",
   "runtime_claim_present",
   "runtime_demo_claimed",
+  "runtime_stop_blanket_lifted",
 ];
 
 const REQUIRED_STEPS = [
-  "granted_checkpoint",
-  "governing_surface_verified",
-  "named_variant_and_construct_set",
-  "rebind_inputs",
-  "declare_runtime_surfaces_and_lift_stop",
+  "actual_candidate_layer_implementation",
+  "named_adopted_construct_set_from_v2",
+  "rebind_inputs_by_live_sha256",
   "green_regression_battery",
+  "separate_decision_for_composed_rule_applicability_section3",
 ];
 
 const REQUIRED_COMMAND_ROLES = [
@@ -131,6 +148,7 @@ const COMMAND_WHITELIST = new Set([
 ]);
 
 const OUT_OF_SCOPE = ["Applicable", "RuVector", "TEI", "F13 operation grammar"];
+const STILL_ACTIVE_FOR = ["composed-rule runtime", "applicability runtime", "section 3 promotion"];
 
 const RUNTIME_MARKERS = ["pub fn", "pub struct", "impl ", "#[test]", "fn main"];
 const RAW_TEXT_MARKERS = ["<", ">", "consultantplus://", "screenTip"];
@@ -165,9 +183,12 @@ const FORBIDDEN_ARGV_CHARS = new Set([
 ]);
 
 const NON_CLAIM_FRAGMENTS = [
-  "gate.applied is false",
+  "grant is recorded, not applied",
+  "grant is not implementation",
+  "grant is not readiness",
   "runtime_demo stays not-proven",
-  "admission: granted",
+  "runtime_stop stays active",
+  "v2 checkpoint",
   "not a decision",
   "out-of-scope",
   "no crate is touched",
@@ -245,7 +266,6 @@ function validateDelta(delta, env) {
   const errors = [];
   const add = (name, detail) => errors.push({ name, detail });
   const text = typeof env.text === "string" ? env.text : "";
-  const verdict = env.verdict;
 
   // hygiene: ASCII only, no raw text, no Rust runtime marker.
   if (!/^[\x00-\x7f]*$/.test(text)) add("non_ascii_artifact", "the artifact carries a non-ASCII byte");
@@ -256,49 +276,63 @@ function validateDelta(delta, env) {
     if (text.includes(marker)) add("runtime_claim_present", `runtime marker: ${marker}`);
   }
 
-  // the gate: applied false and gated on admission: granted.
+  // the gate: a recorded bounded grant that stays unapplied and is never read as implementation.
   const gate = delta?.gate ?? {};
-  if (gate.applied_requires !== "admission: granted") {
-    add("delta_applied_without_grant", `applied_requires=${JSON.stringify(gate.applied_requires)}`);
+  if (gate.grant_recorded !== true) add("delta_applied_without_grant", "the bounded grant is not recorded");
+  if (gate.applied !== false) add("delta_applied_without_grant", `applied=${JSON.stringify(gate.applied)}`);
+  if (gate.applied_requires_implementation !== true || gate.applied_requires_green_battery !== true) {
+    add("delta_applied_without_grant", "the application prerequisites are not both required");
   }
-  if (verdict !== "granted" && gate.applied !== false) {
+  if (gate.grant_is_not_implementation !== true || gate.grant_is_not_readiness !== true) {
+    add("grant_read_as_implementation", "the grant is read as implementation or readiness");
+  }
+  if (gate.implementation_present !== false) {
+    add("implementation_fabricated", `implementation_present=${JSON.stringify(gate.implementation_present)}`);
+  }
+  if (gate.readiness !== "not-ready") add("readiness_fabricated", `readiness=${JSON.stringify(gate.readiness)}`);
+
+  // the sanctioned stop, scoped to the candidate layer.
+  const stop = delta?.stop ?? {};
+  if (stop.sanctioned !== true) add("runtime_stop_blanket_lifted", "the stop is not sanctioned");
+  if (stop.runtime_demo !== "not-proven") add("runtime_demo_claimed", `runtime_demo=${JSON.stringify(stop.runtime_demo)}`);
+  if (
+    stop.runtime_stop !== "active_outside_candidate_layer" ||
+    stop.blanket_lifted !== false ||
+    !Array.isArray(stop.still_active_for) ||
+    stop.still_active_for.length === 0
+  ) {
     add(
-      "delta_applied_without_grant",
-      `applied=${JSON.stringify(gate.applied)} while the checkpoint verdict is ${String(verdict)}`,
+      "runtime_stop_blanket_lifted",
+      `runtime_stop=${JSON.stringify(stop.runtime_stop)} blanket_lifted=${JSON.stringify(stop.blanket_lifted)}`,
     );
   }
 
-  // the sanctioned stop and the named resume condition.
-  const stop = delta?.stop ?? {};
-  if (stop.runtime_demo !== "not-proven") {
-    add("runtime_demo_claimed", `runtime_demo=${JSON.stringify(stop.runtime_demo)}`);
-  }
-  const resume = stop.resume_condition;
+  // the resume condition names the v2 checkpoint and its authenticated refs.
+  const resume = stop?.resume_condition;
   if (
     !resume ||
     resume.present !== true ||
-    resume.names_interactive_source !== true ||
-    typeof resume.source_kind !== "string" ||
-    !/authenticated/i.test(resume.source_kind) ||
-    !/interaction id/i.test(resume.source_kind)
+    resume.names_v2 !== true ||
+    resume.names_checkpoint_v2 !== CHECKPOINT_V2 ||
+    !Array.isArray(resume.authenticated_refs) ||
+    resume.authenticated_refs.length === 0
   ) {
-    add("resume_condition_missing", "the resume condition is absent or does not name an interactive source");
+    add("resume_condition_missing", "the resume condition is absent or does not name the v2 checkpoint and its refs");
   }
 
-  // the activation steps: named, owned and ordered.
+  // the activation steps: named, owned, ordered and never satisfied by the grant.
   const steps = Array.isArray(delta?.activation_requires) ? delta.activation_requires : [];
   const stepIds = steps.map((step) => step?.step_id);
-  if (steps.length < REQUIRED_STEPS.length) {
-    add("activation_step_missing", `activation_requires carries ${steps.length} steps`);
-  }
+  if (steps.length !== REQUIRED_STEPS.length) add("activation_step_missing", `activation_requires carries ${steps.length} steps`);
   if (new Set(stepIds).size !== stepIds.length) add("activation_step_missing", "duplicate step_id");
   for (const required of REQUIRED_STEPS) {
     if (!stepIds.includes(required)) add("activation_step_missing", `missing step ${required}`);
   }
-  for (const step of steps) {
+  steps.forEach((step, index) => {
     if (typeof step?.step_id !== "string" || step.step_id === "") {
       add("activation_step_missing", "a step carries no step_id");
     }
+    if (step?.order !== index + 1) add("activation_step_missing", `step ${String(step?.step_id)} is out of order`);
     if (typeof step?.owner !== "string" || step.owner === "") {
       add("activation_step_missing", `a step carries no owner: ${String(step?.step_id)}`);
     }
@@ -308,25 +342,30 @@ function validateDelta(delta, env) {
     if (typeof step?.evidence !== "string" || step.evidence === "") {
       add("activation_step_missing", `a step carries no evidence: ${String(step?.step_id)}`);
     }
-  }
+    if (step?.satisfied_now !== false) {
+      add("grant_read_as_implementation", `step ${String(step?.step_id)} is read as satisfied by the grant`);
+    }
+  });
 
   // activation without an interactive owner reference.
-  const granted = steps.find((step) => step?.step_id === "granted_checkpoint");
-  if (!granted) {
-    add("activation_without_owner_ref", "no granted_checkpoint step");
+  const ownerStep = steps.find((step) => step?.step_id === "separate_decision_for_composed_rule_applicability_section3");
+  if (!ownerStep) {
+    add("activation_without_owner_ref", "no separate_decision step");
   } else {
-    const ref = granted.interactive_ref;
+    const ref = ownerStep.interactive_ref;
     if (!ref || ref.required !== true) {
-      add("activation_without_owner_ref", "the granted_checkpoint step does not require an interactive reference");
+      add("activation_without_owner_ref", "the separate_decision step does not require an interactive reference");
     } else if (!sameSet(ref.accepted_forms, ACCEPTED_FORMS)) {
-      add("activation_without_owner_ref", `accepted_forms=${JSON.stringify(ref.accepted_forms)}`);
+      add(
+        "activation_without_owner_ref",
+        `accepted_forms=${JSON.stringify(ref.accepted_forms)}`,
+      );
+    } else if (!sameSet(ref.rejected_as_grantor, REJECTED_AS_GRANTOR)) {
+      add(
+        "activation_without_owner_ref",
+        `rejected_as_grantor=${JSON.stringify(ref.rejected_as_grantor)}`,
+      );
     }
-  }
-
-  // activation without a verified governing surface.
-  const governing = steps.find((step) => step?.step_id === "governing_surface_verified");
-  if (!governing || governing.required !== true) {
-    add("activation_without_governing_surface", "no governing_surface_verified requirement");
   }
 
   // activation without the byte-live semantics contract.
@@ -413,7 +452,7 @@ function validateDelta(delta, env) {
     }
   }
 
-  // out-of-scope activation and the not_adopted state.
+  // out-of-scope surfaces stay inactive and the adopted variant is marked adopted.
   const outOfScope = Array.isArray(delta?.out_of_scope_surfaces) ? delta.out_of_scope_surfaces : [];
   if (outOfScope.length === 0) add("out_of_scope_activation", "no out_of_scope_surfaces declared");
   for (const surface of outOfScope) {
@@ -425,26 +464,22 @@ function validateDelta(delta, env) {
     add("out_of_scope_activation", "the out-of-scope surface set differs from the declared closed set");
   }
   const variants = delta?.conditional_surfaces_by_variant ?? {};
-  const notAdopted = variants.not_adopted;
-  if (!notAdopted || notAdopted.activated !== false) {
-    add("out_of_scope_activation", "the not_adopted state is absent or claims an activation");
-  } else if (Array.isArray(notAdopted.surfaces_to_create) && notAdopted.surfaces_to_create.length > 0) {
-    add("out_of_scope_activation", "the not_adopted state declares surfaces to create");
-  }
-  if (verdict !== "granted") {
-    for (const [key, variant] of Object.entries(variants)) {
-      if (key === "not_adopted") continue;
-      if (variant?.activated !== false) {
-        add("delta_applied_without_grant", `variant ${key} is activated while the verdict is ${String(verdict)}`);
-      }
+  for (const key of Object.keys(variants)) {
+    const variant = variants[key];
+    if (variant?.activated !== false || variant?.activated_in_this_slice !== false) {
+      add("delta_applied_without_grant", `variant ${key} is activated while the delta stays unapplied`);
     }
+  }
+  const adopted = variants[ADOPTED_VARIANT];
+  if (!adopted || adopted.adopted !== true) {
+    add("out_of_scope_activation", "the adopted variant is absent or not marked adopted");
   }
 
   // no runtime surface may be created or exist.
   const surfaces = Array.isArray(delta?.runtime_surfaces_to_create) ? delta.runtime_surfaces_to_create : [];
   for (const surface of surfaces) {
     if (surface?.created !== false) {
-      add("runtime_claim_present", `runtime surface declared created: ${String(surface?.path)}`);
+      add("implementation_fabricated", `runtime surface declared created: ${String(surface?.path)}`);
     }
     if (typeof surface?.path === "string" && existsSync(path.join(root, surface.path))) {
       add("runtime_claim_present", `runtime surface exists on disk: ${surface.path}`);
@@ -496,9 +531,9 @@ test("the delta exists, is canonical compact ASCII and carries no raw text", () 
   }
 });
 
-test("the envelope is the declared non-adopting activation delta", () => {
+test("the envelope is the declared bounded activation delta", () => {
   assert.equal(LIVE_DELTA.schema, SCHEMA);
-  assert.equal(LIVE_DELTA.schema_version, 1);
+  assert.equal(LIVE_DELTA.schema_version, 2);
   assert.equal(LIVE_DELTA.kind, KIND);
   assert.equal(LIVE_DELTA.milestone, MILESTONE);
   assert.equal(LIVE_DELTA.slice, SLICE);
@@ -512,18 +547,40 @@ test("the envelope is the declared non-adopting activation delta", () => {
   assert.equal(LIVE_DELTA.start_gate_ref, START_GATE_REL);
   assert.match(LIVE_DELTA.source_revision, SHA_PATTERN);
   assert.ok(typeof LIVE_DELTA.originating_review === "string" && LIVE_DELTA.originating_review.length > 0);
+
+  const admission = LIVE_DELTA.admission_ref;
+  assert.equal(admission.checkpoint_v2.path, CHECKPOINT_V2);
+  assert.equal(admission.checkpoint_v2.verdict, "granted");
+  assert.match(admission.checkpoint_v2.sha256, SHA_PATTERN);
+  assert.deepEqual(admission.checkpoint_v2.adopted_construct_set, ADOPTED_CONSTRUCT_SET);
+  assert.equal(admission.checkpoint_v2.adopted_variant, "C");
+  assert.match(admission.authenticated_via, /authenticated/i);
+  assert.equal(admission.owner_admission_ref, IR_CRITERION);
+  assert.deepEqual(admission.interaction_refs, [IR_CRITERION, F13_CRITERION]);
+  assert.equal(admission.superseded_v1.checkpoint_v1, "prd/architecture/m210-s02-adoption-checkpoint.md");
+  assert.equal(admission.superseded_v1.answer_v1, "prd/architecture/m210-s02-answer-record.json");
 });
 
-test("the gate stays applied false and is bound to the live not-adopted checkpoint", () => {
+test("the gate records the bounded grant and stays applied false", () => {
+  assert.equal(LIVE_DELTA.gate.grant_recorded, true, "the bounded grant must be recorded");
+  assert.equal(LIVE_DELTA.gate.grant_scope, "candidate_layer_only");
+  assert.equal(LIVE_DELTA.gate.grant_kind, "bounded_candidate_layer_admission");
+  assert.ok(LIVE_DELTA.gate.grant_ref.includes("37181c25"));
   assert.equal(LIVE_DELTA.gate.applied, false, "the gate must stay applied false");
-  assert.equal(LIVE_DELTA.gate.applied_requires, "admission: granted");
+  assert.equal(LIVE_DELTA.gate.applied_requires_implementation, true);
+  assert.equal(LIVE_DELTA.gate.applied_requires_green_battery, true);
+  assert.equal(LIVE_DELTA.gate.grant_is_not_implementation, true, "a grant is not an implementation");
+  assert.equal(LIVE_DELTA.gate.grant_is_not_readiness, true, "a grant is not readiness");
+  assert.equal(LIVE_DELTA.gate.implementation_present, false);
+  assert.equal(LIVE_DELTA.gate.readiness, "not-ready");
   assert.ok(typeof LIVE_DELTA.gate.reason === "string" && LIVE_DELTA.gate.reason.length > 0);
-  assert.equal(LIVE_DELTA.checkpoint_verdict, "not-adopted");
+
+  assert.equal(LIVE_DELTA.checkpoint_verdict, "granted");
 
   const matches = CHECKPOINT_TEXT.match(VERDICT_PATTERN) || [];
   assert.equal(matches.length, 1, "the checkpoint must carry exactly one verdict line");
   assert.ok(VERDICT_LINE_PATTERN.test(CHECKPOINT_TEXT));
-  assert.equal(VERDICT, "not-adopted", "the live checkpoint verdict must be not-adopted");
+  assert.equal(VERDICT, "granted", "the live checkpoint verdict must be granted");
   assert.equal(LIVE_DELTA.checkpoint_verdict, VERDICT);
   assert.match(LIVE_DELTA.checkpoint_sha256, SHA_PATTERN);
   assert.equal(LIVE_DELTA.checkpoint_sha256, sha256Repo(CHECKPOINT_REL), "the checkpoint pin must match live bytes");
@@ -531,59 +588,65 @@ test("the gate stays applied false and is bound to the live not-adopted checkpoi
   assert.deepEqual(validateDelta(LIVE_DELTA, LIVE_ENV), { ok: true, errors: [] });
 });
 
-test("the sanctioned stop is recorded and the resume condition names an interactive source", () => {
+test("the sanctioned stop is scoped and the resume condition names the v2 refs", () => {
   const { stop } = LIVE_DELTA;
   assert.equal(stop.sanctioned, true, "the stop must be explicitly sanctioned");
   assert.equal(stop.runtime_work, "not-started");
   assert.equal(stop.runtime_demo, "not-proven");
-  assert.equal(stop.classification, "design-only no-start");
-  const effective = stop.resume_condition;
-  assert.equal(effective.present, true);
-  assert.equal(effective.names_interactive_source, true);
-  assert.match(effective.source_kind, /authenticated subjective-UAT criterion id/);
-  assert.match(effective.source_kind, /owner interaction id with a timestamp/);
-  assert.ok(typeof effective.note === "string" && effective.note.length > 0);
+  assert.equal(stop.runtime_stop, "active_outside_candidate_layer");
+  assert.equal(stop.blanket_lifted, false);
+  assert.match(stop.lifted_for, /candidate layer/i);
+  assert.deepEqual(stop.still_active_for, STILL_ACTIVE_FOR);
+
+  const resume = stop.resume_condition;
+  assert.equal(resume.present, true);
+  assert.equal(resume.names_v2, true);
+  assert.equal(resume.names_checkpoint_v2, CHECKPOINT_V2);
+  assert.deepEqual(resume.authenticated_refs, [IR_CRITERION, F13_CRITERION]);
+  assert.match(resume.source_kind, /authenticated/i);
+  assert.match(resume.source_kind, /interaction id/i);
+  assert.ok(typeof resume.note === "string" && resume.note.length > 0);
+  assert.ok(Array.isArray(resume.resume_requires) && resume.resume_requires.length >= 4);
 
   const section = resumeSection(CHECKPOINT_TEXT);
   assert.ok(section, "the live checkpoint must carry a Resume condition section");
-  assert.match(section, /interactive/i, "the checkpoint resume condition must name an interactive source");
+  assert.match(section, /adopted candidate layer/i, "the checkpoint resume condition must name the bounded scope");
+  assert.match(section, /regression battery/i, "the checkpoint resume condition must name the green battery");
 
-  // The sanctioned stop is never a soft pass.
-  assert.ok(!("verdict" in LIVE_DELTA) || LIVE_DELTA.verdict === "not-adopted");
-  assert.ok(!("outcome" in LIVE_DELTA) || LIVE_DELTA.outcome === "not-adopted");
+  // The granted, scoped stop is never a soft pass.
   assert.equal(LIVE_DELTA.gate.applied, false);
+  assert.equal(LIVE_DELTA.gate.readiness, "not-ready");
 });
 
-test("activation is named as ordered steps with owners, a named command and an owner reference", () => {
+test("activation is named as ordered steps with owners and an interactive owner reference", () => {
   const steps = LIVE_DELTA.activation_requires;
-  assert.ok(Array.isArray(steps) && steps.length >= REQUIRED_STEPS.length);
+  assert.ok(Array.isArray(steps) && steps.length === REQUIRED_STEPS.length);
   assert.deepEqual(
     steps.map((step) => step.step_id),
     REQUIRED_STEPS,
-    "the steps must carry the six required ids in order",
+    "the steps must carry the five required ids in order",
   );
-  assert.deepEqual(
-    steps.map((step) => step.order),
-    [1, 2, 3, 4, 5, 6],
-    "the steps must be ordered",
-  );
+  assert.deepEqual(steps.map((step) => step.order), [1, 2, 3, 4, 5], "the steps must be ordered");
   assert.equal(new Set(steps.map((step) => step.step_id)).size, steps.length, "step ids must be unique");
   for (const step of steps) {
     assert.ok(typeof step.owner === "string" && step.owner.length > 0, `${step.step_id} must name an owner`);
     assert.ok(typeof step.requires === "string" && step.requires.length > 0, `${step.step_id} must name what it requires`);
     assert.ok(typeof step.evidence === "string" && step.evidence.length > 0, `${step.step_id} must name its evidence`);
+    assert.equal(step.satisfied_now, false, `${step.step_id} must not be read as satisfied by the grant`);
   }
 
-  const granted = steps[0];
-  assert.equal(granted.step_id, "granted_checkpoint");
-  assert.equal(granted.interactive_ref.required, true);
-  assert.deepEqual(granted.interactive_ref.accepted_forms, ACCEPTED_FORMS);
-  assert.deepEqual(granted.interactive_ref.rejected_as_grantor, REJECTED_AS_GRANTOR);
+  const impl = steps[0];
+  assert.equal(impl.step_id, "actual_candidate_layer_implementation");
+  assert.equal(impl.owner_kind, "slice", "the implementation step must belong to a separate sanctioned slice");
 
-  const governing = steps.find((step) => step.step_id === "governing_surface_verified");
-  assert.equal(governing.required, true, "the governing surface must be a required prerequisite");
+  const owner = steps[4];
+  assert.equal(owner.step_id, "separate_decision_for_composed_rule_applicability_section3");
+  assert.equal(owner.owner_kind, "human");
+  assert.equal(owner.interactive_ref.required, true);
+  assert.deepEqual(owner.interactive_ref.accepted_forms, ACCEPTED_FORMS);
+  assert.deepEqual(owner.interactive_ref.rejected_as_grantor, REJECTED_AS_GRANTOR);
 
-  const rebind = steps.find((step) => step.step_id === "rebind_inputs");
+  const rebind = steps.find((step) => step.step_id === "rebind_inputs_by_live_sha256");
   assert.ok(rebind.command_refs.includes("source_revision"), "rebind_inputs must name the source-revision command");
 
   const green = steps.find((step) => step.step_id === "green_regression_battery");
@@ -644,23 +707,23 @@ test("every conditional variant is inactive and bound to the live S01 variant di
   const liveVariantIds = IR_ALTERNATIVES.variants.map((variant) => variant.variant_id);
   assert.deepEqual(
     Object.keys(variants).slice().sort(),
-    [...liveVariantIds, "not_adopted"].sort(),
-    "the conditional surface map must carry every live S01 variant plus the not_adopted state",
+    [...liveVariantIds].sort(),
+    "the conditional surface map must carry exactly the live S01 variants",
   );
   for (const live of IR_ALTERNATIVES.variants) {
     const entry = variants[live.variant_id];
     assert.equal(entry.variant_id, live.variant_id);
     assert.equal(entry.variant_label, live.label);
     assert.equal(entry.activated, false, `${live.variant_id} must be inactive`);
+    assert.equal(entry.activated_in_this_slice, false, `${live.variant_id} activates nothing in this slice`);
     assert.deepEqual(entry.required_new_adr_terms, live.required_new_adr_terms);
     assert.deepEqual(entry.section3_terms_to_define, live.required_new_adr_terms);
     assert.equal(entry.consequences_for_S03, live.consequences_for_S03);
     assert.ok(Array.isArray(entry.would_touch) && entry.would_touch.length > 0);
     assert.ok(Array.isArray(entry.non_claims) && entry.non_claims.length >= 2);
+    assert.equal(entry.adopted, live.variant_id === ADOPTED_VARIANT);
   }
-  assert.equal(variants.not_adopted.activated, false);
-  assert.equal(variants.not_adopted.variant_id, null);
-  assert.deepEqual(variants.not_adopted.surfaces_to_create, []);
+  assert.equal(variants[ADOPTED_VARIANT].adopted, true);
 
   const surfaces = LIVE_DELTA.runtime_surfaces_to_create;
   assert.deepEqual(
@@ -689,7 +752,7 @@ test("the out-of-scope surfaces stay inactive and the section 3 pin is live", ()
   assert.equal(sha256Repo(SECTION3_REL), START_GATE.guards.section3_pin, "section 3 must stay byte-identical to its pin");
 });
 
-test("non-claims state the sanctioned stop and refuse adoption and runtime claims", () => {
+test("non-claims state the sanctioned stop and refuse fabrication claims", () => {
   assert.ok(Array.isArray(LIVE_DELTA.non_claims) && LIVE_DELTA.non_claims.length >= 8);
   const joined = LIVE_DELTA.non_claims.join("\n").toLowerCase();
   for (const fragment of NON_CLAIM_FRAGMENTS) {
@@ -729,17 +792,9 @@ const CODE_COVERAGE = [
     },
   },
   {
-    code: "activation_without_governing_surface",
-    mutate: (delta) => {
-      delta.activation_requires = delta.activation_requires.filter(
-        (step) => step.step_id !== "governing_surface_verified",
-      );
-    },
-  },
-  {
     code: "activation_without_owner_ref",
     mutate: (delta) => {
-      delete delta.activation_requires.find((step) => step.step_id === "granted_checkpoint").interactive_ref;
+      delete delta.activation_requires[4].interactive_ref;
     },
   },
   {
@@ -761,6 +816,18 @@ const CODE_COVERAGE = [
     },
   },
   {
+    code: "grant_read_as_implementation",
+    mutate: (delta) => {
+      delta.activation_requires[0].satisfied_now = true;
+    },
+  },
+  {
+    code: "implementation_fabricated",
+    mutate: (delta) => {
+      delta.runtime_surfaces_to_create[0].created = true;
+    },
+  },
+  {
     code: "non_ascii_artifact",
     mutate: (delta) => {
       delta.non_claims[0] = `${delta.non_claims[0]} \u00e9`;
@@ -779,9 +846,15 @@ const CODE_COVERAGE = [
     },
   },
   {
+    code: "readiness_fabricated",
+    mutate: (delta) => {
+      delta.gate.readiness = "ready";
+    },
+  },
+  {
     code: "resume_condition_missing",
     mutate: (delta) => {
-      delta.stop.resume_condition.names_interactive_source = false;
+      delta.stop.resume_condition.names_v2 = false;
     },
   },
   {
@@ -794,6 +867,12 @@ const CODE_COVERAGE = [
     code: "runtime_demo_claimed",
     mutate: (delta) => {
       delta.stop.runtime_demo = "proven";
+    },
+  },
+  {
+    code: "runtime_stop_blanket_lifted",
+    mutate: (delta) => {
+      delta.stop.runtime_stop = "lifted";
     },
   },
 ];
@@ -820,54 +899,86 @@ test("every documented fail-closed code is empirically exercised", () => {
   );
 });
 
-test("negative: an applied gate, an unowned step and a red battery are all refused", () => {
+test("negative: an applied gate, a fabricated implementation and fabricated readiness are refused", () => {
   expectCode((delta) => {
     delta.gate.applied = true;
   }, "delta_applied_without_grant");
   expectCode((delta) => {
-    delta.gate.applied_requires = "battery pass";
+    delta.gate.grant_recorded = false;
   }, "delta_applied_without_grant");
   expectCode((delta) => {
-    delta.activation_requires[0].interactive_ref.accepted_forms = ["bare_name"];
+    delta.gate.applied_requires_green_battery = false;
+  }, "delta_applied_without_grant");
+  expectCode((delta) => {
+    delta.gate.grant_is_not_implementation = false;
+  }, "grant_read_as_implementation");
+  expectCode((delta) => {
+    delta.gate.implementation_present = true;
+  }, "implementation_fabricated");
+  expectCode((delta) => {
+    delta.runtime_surfaces_to_create[0].created = true;
+  }, "implementation_fabricated");
+  expectCode((delta) => {
+    delta.gate.readiness = "ready";
+  }, "readiness_fabricated");
+  expectCode((delta) => {
+    delta.stop.runtime_stop = "lifted";
+  }, "runtime_stop_blanket_lifted");
+  expectCode((delta) => {
+    delta.stop.blanket_lifted = true;
+  }, "runtime_stop_blanket_lifted");
+  expectCode((delta) => {
+    delta.stop.still_active_for = [];
+  }, "runtime_stop_blanket_lifted");
+  expectCode((delta) => {
+    delta.stop.runtime_demo = "proven";
+  }, "runtime_demo_claimed");
+  expectCode((delta) => {
+    delta.conditional_surfaces_by_variant.abstention_first_candidates_only.activated = true;
+  }, "delta_applied_without_grant");
+  expectCode((delta) => {
+    delta.conditional_surfaces_by_variant.family_typed_record_ir.activated_in_this_slice = true;
+  }, "delta_applied_without_grant");
+  expectCode((delta) => {
+    delta.out_of_scope_surfaces[0].activated = true;
+  }, "out_of_scope_activation");
+  expectCode((delta) => {
+    delta.conditional_surfaces_by_variant.abstention_first_candidates_only.adopted = false;
+  }, "out_of_scope_activation");
+});
+
+test("negative: unowned activation and a red battery are refused", () => {
+  expectCode((delta) => {
+    delta.activation_requires[4].interactive_ref.accepted_forms = ["bare_name"];
   }, "activation_without_owner_ref");
   expectCode((delta) => {
-    delta.activation_requires = delta.activation_requires.filter(
-      (step) => step.step_id !== "governing_surface_verified",
-    );
-  }, "activation_without_governing_surface");
-  expectCode((delta) => {
-    delete delta.semantics_contract;
-  }, "activation_without_semantics_contract");
+    delta.activation_requires[4].interactive_ref.required = false;
+  }, "activation_without_owner_ref");
   expectCode((delta) => {
     delta.activation_commands = delta.activation_commands.filter((command) => command.role !== "regression_m209_s04");
+  }, "activation_without_regression_battery");
+  expectCode((delta) => {
+    delta.activation_commands = delta.activation_commands.filter((command) => command.role !== "regression_s01");
+  }, "activation_without_regression_battery");
+  expectCode((delta) => {
+    delta.activation_requires[3].command_refs = [];
   }, "activation_without_regression_battery");
   expectCode((delta) => {
     delta.activation_requires[3].owner = "";
   }, "activation_step_missing");
   expectCode((delta) => {
+    delta.activation_requires[3].step_id = "green_regression_battery_renamed";
+  }, "activation_step_missing");
+  expectCode((delta) => {
     delta.stop.resume_condition.source_kind = "when the owner decides";
+    delta.stop.resume_condition.names_v2 = false;
   }, "resume_condition_missing");
   expectCode((delta) => {
-    delta.stop.runtime_demo = "proven";
-  }, "runtime_demo_claimed");
+    delete delta.semantics_contract;
+  }, "activation_without_semantics_contract");
   expectCode((delta) => {
-    delta.conditional_surfaces_by_variant.not_adopted.activated = true;
-  }, "out_of_scope_activation");
-  expectCode((delta) => {
-    delta.conditional_surfaces_by_variant.abstention_first_candidates_only.activated = true;
-  }, "delta_applied_without_grant");
-  expectCode((delta) => {
-    delta.runtime_surfaces_to_create[0].created = true;
-  }, "runtime_claim_present");
-  expectCode((delta) => {
-    delta.non_claims[0] = `${delta.non_claims[0]} pub struct Envelope;`;
-  }, "runtime_claim_present");
-  expectCode((delta) => {
-    delta.non_claims[1] = `${delta.non_claims[1]} consultantplus://x`;
-  }, "raw_text_leak");
-  expectCode((delta) => {
-    delta.non_claims[2] = `${delta.non_claims[2]} \u041d\u043e\u0440\u043c\u0430`;
-  }, "non_ascii_artifact");
+    delta.activation_requires[0].satisfied_now = true;
+  }, "grant_read_as_implementation");
 });
 
 test("negative: the activation command whitelist refuses injection, traversal and out-of-tree paths", () => {
@@ -901,9 +1012,6 @@ test("negative: the activation command whitelist refuses injection, traversal an
   expectCode((delta) => {
     delta.activation_commands[0].created_by = "whenever";
   }, "activation_step_missing");
-  expectCode((delta) => {
-    delta.activation_requires[1].step_id = "rebind_inputs";
-  }, "activation_step_missing");
   // provenance: an `existing` claim must be backed by a tracked, present script.
   // T05 has since minted scripts/m210_s03_slice_battery.mjs, so the absent-on-disk
   // branch can no longer be produced from the live tree; the rule is exercised with
@@ -929,6 +1037,16 @@ test("negative: the activation command whitelist refuses injection, traversal an
     );
     assert.equal(result.ok, false, "an existing claim on an untracked runner must fail closed");
   }
+  // hygiene: a runtime surface that exists on disk is a runtime claim.
+  {
+    const delta = clone();
+    delta.runtime_surfaces_to_create[0].path = "scripts/m210_s03_activation_contract.test.mjs";
+    const result = validateDelta(delta, envFor(delta));
+    assert.ok(
+      codesOf(result).includes("runtime_claim_present"),
+      `an existing declared runtime surface must fail closed; got ${JSON.stringify(result.errors)}`,
+    );
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -937,9 +1055,11 @@ test("negative: the activation command whitelist refuses injection, traversal an
 
 test("M210 S03 activation contract markers", () => {
   assert.deepEqual(validateDelta(LIVE_DELTA, LIVE_ENV), { ok: true, errors: [] });
+  assert.equal(LIVE_DELTA.gate.grant_recorded, true);
   assert.equal(LIVE_DELTA.gate.applied, false);
   assert.equal(LIVE_DELTA.stop.runtime_demo, "not-proven");
-  assert.equal(LIVE_DELTA.conditional_surfaces_by_variant.not_adopted.activated, false);
+  assert.equal(LIVE_DELTA.stop.runtime_stop, "active_outside_candidate_layer");
+  assert.equal(LIVE_DELTA.conditional_surfaces_by_variant[ADOPTED_VARIANT].adopted, true);
   assert.deepEqual(validateDelta(LIVE_DELTA, LIVE_ENV).errors, []);
   console.log("M210_S03_ACTIVATION_OK");
   console.log(`activation_steps=${LIVE_DELTA.activation_requires.length}`);
