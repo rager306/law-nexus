@@ -1,21 +1,23 @@
 // M210/S03 bounded semantics contract (T02).
 //
-// Offline and fail-closed. The subject is a *conditional* contract: while the
-// S02 admission checkpoint records `not-adopted`, `adopted_construct_set` is
-// empty, so no candidate can be emitted and `Conflict` is unreachable. The
-// contract is design-only: it mints no candidate record, composes no rule and
-// edits no section 3 row.
+// Offline and fail-closed. The subject is the semantics of the bounded semantic
+// runtime after the owner established an authenticated adoption (S02 v2):
+// adoption is *established* while execution is *not performed*, and the two are
+// separate states. Adoption alone emits no candidate and makes `Conflict`
+// unreachable, so in the committed state every outcome is `Unknown`.
+//
+// The contract is design-only: it mints no candidate record, composes no rule
+// and edits no section 3 row. The abstract predicate `executed` lives only here,
+// together with the specification truth table over it; it is a specification,
+// not a product evaluator.
 //
 // The artifact is canonical compact ASCII JSON with a fixed key order and no
 // timestamp, so `JSON.stringify(JSON.parse(text)) === text` and the contract
 // never has to guess a formatting convention. Structural mutations round-trip
 // through JSON so every mutation stays parseable on purpose.
 //
-// The abstract predicate `adopted` lives only here, together with the
-// specification truth table over it: it is a specification, not a product
-// evaluator, and the committed artifact must keep `adopted_construct_set`
-// empty. Every documented fail-closed code is provable against a mutated copy
-// of the live artifact, so the suite cannot assert a code it would never emit.
+// Every documented fail-closed code is provable against a mutated copy of the
+// live artifact, so the suite cannot assert a code it would never emit.
 //
 // Subprocesses are limited to one `git ls-files` (tracked-file proof). No
 // cargo, no network, no `.gsd` / ignored / absolute path is read as evidence.
@@ -35,6 +37,9 @@ const root = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const ARTIFACT = "prd/architecture/m210-s03-bounded-semantics-contract.json";
 const COMPANION = "prd/architecture/m210-s03-bounded-semantics-contract.md";
 const REGISTER = "prd/architecture/m210-s01-normative-family-register.json";
+const START_GATE = "prd/architecture/m210-s03-start-gate.json";
+const ADOPTION_V2 = "prd/architecture/m210-s02-adoption-checkpoint-v2.md";
+const ALTERNATIVES = "prd/architecture/m210-s01-ir-alternatives.json";
 
 const SCHEMA = "law-nexus/m210-s03-bounded-semantics-contract/v1";
 const KIND = "m210-s03-bounded-semantics-contract";
@@ -54,6 +59,16 @@ const CLOSED_FAMILIES = [
   "condition",
   "exception",
   "temporal_qualification",
+];
+
+// The adopted candidate-layer construct set (mirrors the live S03 start gate).
+const ADOPTED_CONSTRUCT_SET = [
+  "candidate_emission",
+  "source_anchors",
+  "family_classification_hypotheses",
+  "unknown_verdict",
+  "conflict_verdict",
+  "provenance_links",
 ];
 
 // The closed S01 evidence-class dictionary.
@@ -81,12 +96,14 @@ const OUT_OF_SCOPE_SURFACES = ["Applicable", "RuVector", "TEI", "F13 operation g
 // Every declared fail-closed code, one coverage entry each.
 const EMITTABLE_CODES = [
   "absence_as_falsity",
+  "adoption_read_as_execution",
   "anchor_missing",
   "applicability_evaluated",
   "candidate_without_adopted_construct",
   "composed_rule_emitted",
   "conflict_without_adopted_construct",
   "evidence_class_unknown",
+  "execution_read_as_adoption",
   "f13_scope_borrowed",
   "facet_default_applied",
   "non_ascii_artifact",
@@ -96,7 +113,6 @@ const EMITTABLE_CODES = [
   "raw_text_leak",
   "runtime_claim_present",
   "section3_promoted",
-  "spec_table_as_adoption",
   "unknown_conflict_collapsed",
 ];
 
@@ -109,7 +125,7 @@ const TIMESTAMP_MARKERS = [/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/, /\b1[6-9]\d{11}\b/];
 
 // Fields the committed artifact must never carry: the abstract predicate and its
 // truth table live only in this test, never in a committed artifact.
-const FORBIDDEN_ARTIFACT_KEYS = ["decision_table", "truth_table", "evaluator", "minted_candidates"];
+const FORBIDDEN_ARTIFACT_KEYS = ["decision_table", "truth_table", "executor", "evaluator", "minted_candidates"];
 
 // ---------------------------------------------------------------------------
 // repository helpers
@@ -160,6 +176,7 @@ function normalizePredicate(value) {
 const LIVE_DOC = readRepo(ARTIFACT);
 const LIVE_COMPANION = readRepo(COMPANION);
 const LIVE_REGISTER = JSON.parse(readRepo(REGISTER));
+const LIVE_GATE = JSON.parse(readRepo(START_GATE));
 
 function clone() {
   return JSON.parse(LIVE_DOC);
@@ -197,50 +214,127 @@ function validateContract(rawText) {
   }
 
   // 2. outcome set is exactly the three declared outcomes, no duplicates.
-  const outcomes = Array.isArray(contract?.outcome_dictionary?.outcomes)
-    ? contract.outcome_dictionary.outcomes
-    : [];
+  const dictionary = contract?.outcome_dictionary ?? {};
+  const outcomes = Array.isArray(dictionary.outcomes) ? dictionary.outcomes : [];
   const ids = outcomes.map((outcome) => outcome.outcome_id);
-  if (sortJoin(ids) !== sortJoin(OUTCOME_SET) || new Set(ids).size !== ids.length) {
-    add("outcome_set_incomplete", `outcome ids ${JSON.stringify(ids)}`);
+  if (
+    sortJoin(ids) !== sortJoin(OUTCOME_SET) ||
+    new Set(ids).size !== ids.length ||
+    dictionary.outcome_count !== 3
+  ) {
+    add("outcome_set_incomplete", `outcome ids ${JSON.stringify(ids)} count ${dictionary.outcome_count}`);
   }
   const byId = new Map(outcomes.map((outcome) => [outcome.outcome_id, outcome]));
   const candidate = byId.get("candidate_emitted");
   const unknown = byId.get("Unknown");
   const conflict = byId.get("Conflict");
 
-  // 3. Unknown and Conflict must be distinguishable, never collapsed.
-  if (
-    (unknown && conflict && normalizePredicate(unknown.predicate) === normalizePredicate(conflict.predicate)) ||
-    (candidate && unknown && normalizePredicate(candidate.predicate) === normalizePredicate(unknown.predicate)) ||
-    (candidate && conflict && normalizePredicate(candidate.predicate) === normalizePredicate(conflict.predicate))
-  ) {
-    add("outcome_indistinct", "two outcomes share one predicate");
+  // 3. the outcomes must stay distinguishable, never collapsed.
+  const predicateGroups = [
+    ["candidate_emitted", candidate],
+    ["Unknown", unknown],
+    ["Conflict", conflict],
+  ].filter(([, outcome]) => outcome);
+  for (let i = 0; i < predicateGroups.length; i += 1) {
+    for (let j = i + 1; j < predicateGroups.length; j += 1) {
+      const [, left] = predicateGroups[i];
+      const [, right] = predicateGroups[j];
+      if (normalizePredicate(left?.predicate) === normalizePredicate(right?.predicate)) {
+        add("outcome_indistinct", `two outcomes share one predicate: ${predicateGroups[i][0]}/${predicateGroups[j][0]}`);
+      }
+    }
   }
   if (unknown && conflict && unknown.outcome_code === conflict.outcome_code) {
     add("unknown_conflict_collapsed", "Unknown and Conflict share one outcome code");
   }
 
-  // 4. adoption gating: a candidate and a Conflict both require an adopted construct.
+  // 4. a candidate requires an adopted construct (the adopted_construct_ref).
+  const envelope = contract?.candidate_envelope ?? {};
   if (candidate && candidate.requires_adopted_construct !== true) {
     add("candidate_without_adopted_construct", "candidate_emitted does not require an adopted construct");
-  }
-  if (conflict && conflict.requires_adopted_construct !== true) {
-    add("conflict_without_adopted_construct", "Conflict does not require an adopted construct");
   }
   const emission = contract?.emission_rule ?? {};
   if (emission.candidate_requires_adopted_construct !== true) {
     add("candidate_without_adopted_construct", "the emission rule does not gate candidates on adoption");
   }
-  if (
-    emission.conflict_requires_adopted_construct !== true ||
-    emission.conflict_unreachable_without_adoption !== true ||
-    emission.empty_adopted_set_emits_zero_candidates !== true
-  ) {
+  if (envelope.adopted_construct_ref_required !== true) {
+    add("candidate_without_adopted_construct", "the envelope does not require an adopted_construct_ref");
+  }
+
+  // 5. a Conflict requires an adopted construct.
+  if (conflict && conflict.requires_adopted_construct !== true) {
+    add("conflict_without_adopted_construct", "Conflict does not require an adopted construct");
+  }
+  if (emission.conflict_requires_adopted_construct !== true) {
     add("conflict_without_adopted_construct", "the emission rule does not gate Conflict on adoption");
   }
 
-  // 5. absence of evidence is never falsity.
+  // 6. adoption is separated from execution: adoption alone emits nothing and
+  //    Conflict is unreachable without execution.
+  const adoption = contract?.adoption_state ?? {};
+  const execution = contract?.execution_state ?? {};
+  if (adoption.executed === true) {
+    add("adoption_read_as_execution", "adoption_state carries an execution flag");
+  }
+  if (emission.candidate_requires_execution !== true) {
+    add("adoption_read_as_execution", "the emission rule does not require execution for a candidate");
+  }
+  if (emission.conflict_requires_execution !== true) {
+    add("adoption_read_as_execution", "the emission rule does not require execution for a Conflict");
+  }
+  if (emission.conflict_unreachable_without_execution !== true) {
+    add("adoption_read_as_execution", "the emission rule does not declare Conflict unreachable without execution");
+  }
+  if (emission.adoption_alone_emits_zero_candidates !== true) {
+    add("adoption_read_as_execution", "the emission rule does not declare adoption alone emission-free");
+  }
+  if (emission.adopted_but_not_executed_all_outcomes_unknown !== true) {
+    add("adoption_read_as_execution", "the emission rule does not declare adopted-but-not-executed as Unknown");
+  }
+  if (emission.adoption_is_not_execution !== true) {
+    add("adoption_read_as_execution", "the emission rule does not distinguish adoption from execution");
+  }
+  if (adoption.execution_separated !== true) {
+    add("adoption_read_as_execution", "adoption_state does not declare execution_separated");
+  }
+  if (
+    execution.executed !== true &&
+    (Number(execution.candidates_emitted) > 0 || Number(execution.conflicts) > 0)
+  ) {
+    add("adoption_read_as_execution", "candidates or conflicts exist while execution_state.executed is false");
+  }
+  if (envelope.minted === true) {
+    add("adoption_read_as_execution", "a candidate is minted while execution_state.executed is false");
+  }
+  if (Array.isArray(contract?.candidates) && contract.candidates.length !== 0) {
+    add("adoption_read_as_execution", "committed candidate records exist");
+  }
+
+  // 7. execution is not adoption: the adoption is grounded in the authenticated
+  //    grant, never in an execution result.
+  if (adoption.admission_verdict !== "admission_granted") {
+    add("execution_read_as_adoption", "the admission verdict is not admission_granted");
+  }
+  if (adoption.adoption_established !== true) {
+    add("execution_read_as_adoption", "the adoption is not declared established");
+  }
+  if (adoption.adopted_variant !== "C") {
+    add("execution_read_as_adoption", "the adopted variant is not the granted variant C");
+  }
+  if (!isNonEmptyString(adoption.authenticated_via) || !String(adoption.authenticated_via).toLowerCase().includes("subjective-uat")) {
+    add("execution_read_as_adoption", "the adoption is not bound to an authenticated subjective-UAT reference");
+  }
+  if (adoption.spec_table_is_not_adoption !== true) {
+    add("execution_read_as_adoption", "the outcome table is read as the adoption instrument");
+  }
+  if (execution.adoption_established === true) {
+    add("execution_read_as_adoption", "execution_state carries an adoption flag");
+  }
+  if (emission.execution_is_not_adoption !== true) {
+    add("execution_read_as_adoption", "the emission rule does not distinguish execution from adoption");
+  }
+
+  // 8. absence of evidence is never falsity.
   if (emission.absence_is_not_falsity !== true) {
     add("absence_as_falsity", "the emission rule does not declare absence as non-falsity");
   }
@@ -248,27 +342,27 @@ function validateContract(rawText) {
     add("absence_as_falsity", "Unknown declares absence as falsity");
   }
 
-  // 6. the anchor contract demands a repository-relative path and a sha256.
-  const anchor = contract?.candidate_envelope?.anchor_contract ?? {};
+  // 9. the anchor contract demands a repository-relative path and a sha256.
+  const anchor = envelope.anchor_contract ?? {};
   if (anchor.requires_repository_relative_path !== true || anchor.requires_sha256 !== true) {
     add("anchor_missing", "the anchor contract does not require a repository-relative path and a sha256");
   }
 
-  // 7. the evidence class stays inside the closed dictionary.
-  if (
-    !Array.isArray(contract?.candidate_envelope?.evidence_class_domain) ||
-    sortJoin(contract.candidate_envelope.evidence_class_domain) !== sortJoin(EVIDENCE_CLASSES)
-  ) {
+  // 10. the evidence class stays inside the closed dictionary.
+  if (!Array.isArray(envelope.evidence_class_domain) || sortJoin(envelope.evidence_class_domain) !== sortJoin(EVIDENCE_CLASSES)) {
     add("evidence_class_unknown", "the candidate evidence-class domain is not the closed dictionary");
   }
 
-  // 8. boundaries: no composition, no facet default, no applicability evaluation.
+  // 11. boundaries: no composition, no precedence, no facet default, no applicability.
   const boundaries = contract?.boundaries ?? {};
   if (boundaries.composed_rule_emitted === true || boundaries.composition_performed === true) {
     add("composed_rule_emitted", "a composed rule is emitted");
   }
   if (boundaries.classification_is_not_composition !== true) {
     add("composed_rule_emitted", "classification is not declared distinct from composition");
+  }
+  if (boundaries.precedence_resolved === true) {
+    add("composed_rule_emitted", "precedence is resolved");
   }
   if (boundaries.facet_defaults_applied === true) {
     add("facet_default_applied", "a facet default is applied");
@@ -286,75 +380,66 @@ function validateContract(rawText) {
     add("f13_scope_borrowed", "the F13 scope is borrowed");
   }
 
-  // 9. the specification table is not an adoption and no candidate is committed.
-  const adoption = contract?.adoption_state ?? {};
-  if (
-    adoption.is_adoption === true ||
-    adoption.spec_table_is_not_adoption !== true ||
-    adoption.admission_verdict !== "admission_absent" ||
-    adoption.adopted_variant !== null
-  ) {
-    add("spec_table_as_adoption", "the specification table reads as an adoption");
-  }
-  if (Array.isArray(adoption.adopted_construct_set) && adoption.adopted_construct_set.length !== 0) {
-    add("spec_table_as_adoption", "the adopted_construct_set is not empty");
-  }
-  if (contract?.candidate_envelope?.minted === true) {
-    add("candidate_without_adopted_construct", "a candidate is minted while no construct is adopted");
-  }
-  if (Array.isArray(contract?.candidates) && contract.candidates.length !== 0) {
-    add("candidate_without_adopted_construct", "committed candidate records exist");
-  }
-
   return errors;
 }
 
 // ---------------------------------------------------------------------------
-// specification truth table over the abstract predicate `adopted`
+// specification truth table over the abstract predicates `adopted` / `executed`
 // ---------------------------------------------------------------------------
 
 // This is a specification, not a product evaluator: it exists only in this test
-// to prove that the declared emission rule is falsifiable, and that the
-// committed artifact (whose adopted_construct_set is empty) admits no candidate
-// and no Conflict. Agreement is only falsifiable with at least two anchors: a
-// single proven span cannot diverge from itself, so `anchorsAgree: false` is
-// only meaningful when `provenSpans >= 2`.
-function resolveOutcome({ adopted, provenSpans, anchorsAgree }) {
-  if (provenSpans === 0) return "Unknown";
+// to prove that the declared emission rule is falsifiable. Adoption alone is not
+// execution, so an adopted-but-not-executed construct yields Unknown; Conflict
+// requires execution and two divergent anchors; a single proven span cannot
+// diverge from itself, so `anchorsAgree: false` is only meaningful with
+// `provenSpans >= 2`.
+function resolveOutcome({ adopted, executed, provenSpans, anchorsAgree }) {
   if (!adopted) return "Unknown";
+  if (!executed) return "Unknown";
+  if (provenSpans === 0) return "Unknown";
   if (!anchorsAgree && provenSpans >= 2) return "Conflict";
   return "candidate_emitted";
 }
 
 const TRUTH_TABLE = [
   {
-    name: "not adopted and no proven span yields Unknown",
-    input: { adopted: false, provenSpans: 0, anchorsAgree: false },
+    name: "not adopted and not executed yields Unknown",
+    input: { adopted: false, executed: false, provenSpans: 0, anchorsAgree: false },
     expected: "Unknown",
   },
   {
-    name: "not adopted with disagreement still yields Unknown",
-    input: { adopted: false, provenSpans: 2, anchorsAgree: false },
+    name: "execution without adoption still yields Unknown",
+    input: { adopted: false, executed: true, provenSpans: 2, anchorsAgree: false },
     expected: "Unknown",
   },
   {
-    name: "adopted with no proven span yields Unknown",
-    input: { adopted: true, provenSpans: 0, anchorsAgree: false },
+    name: "adopted but not executed yields Unknown, even with divergent anchors",
+    input: { adopted: true, executed: false, provenSpans: 4, anchorsAgree: false },
     expected: "Unknown",
   },
   {
-    name: "adopted with two divergent anchors yields Conflict",
-    input: { adopted: true, provenSpans: 2, anchorsAgree: false },
+    name: "adopted but not executed yields Unknown, never a candidate",
+    input: { adopted: true, executed: false, provenSpans: 1, anchorsAgree: true },
+    expected: "Unknown",
+  },
+  {
+    name: "executed adoption with no proven span yields Unknown",
+    input: { adopted: true, executed: true, provenSpans: 0, anchorsAgree: false },
+    expected: "Unknown",
+  },
+  {
+    name: "executed adopted construct with two divergent anchors yields Conflict",
+    input: { adopted: true, executed: true, provenSpans: 2, anchorsAgree: false },
     expected: "Conflict",
   },
   {
-    name: "adopted with one agreeing anchor yields a candidate",
-    input: { adopted: true, provenSpans: 1, anchorsAgree: true },
+    name: "executed adopted construct with one agreeing anchor yields a candidate",
+    input: { adopted: true, executed: true, provenSpans: 1, anchorsAgree: true },
     expected: "candidate_emitted",
   },
   {
-    name: "adopted with two agreeing anchors yields a candidate",
-    input: { adopted: true, provenSpans: 2, anchorsAgree: true },
+    name: "executed adopted construct with two agreeing anchors yields a candidate",
+    input: { adopted: true, executed: true, provenSpans: 2, anchorsAgree: true },
     expected: "candidate_emitted",
   },
 ];
@@ -387,16 +472,47 @@ test("artifact is canonical compact ASCII JSON with a fixed identity", () => {
   assert.deepEqual(validateContract(LIVE_DOC), [], "the committed artifact must be clean");
 });
 
-test("adoption_state is a conditional no-adoption contract", () => {
-  const { adoption_state: adoption } = clone();
-  assert.equal(adoption.admission_verdict, "admission_absent");
-  assert.equal(adoption.adoption_source, "prd/architecture/m210-s02-adoption-checkpoint.md");
-  assert.equal(adoption.adopted_variant, null);
-  assert.deepEqual(adoption.adopted_construct_set, []);
-  assert.equal(adoption.is_adoption, false);
+test("adoption_state carries the established grant and keeps execution separate", () => {
+  const { adoption_state: adoption, execution_state: execution } = clone();
+  assert.equal(adoption.admission_verdict, "admission_granted");
+  assert.equal(adoption.adoption_source, ADOPTION_V2);
+  assert.equal(adoption.adopted_variant, "C");
+  assert.equal(adoption.adopted_variant_label, "abstention_first_candidates_only");
+  assert.deepEqual(adoption.adopted_construct_set, ADOPTED_CONSTRUCT_SET);
+  assert.equal(adoption.adoption_established, true);
+  assert.equal(adoption.normative_semantics_adopted, false);
+  assert.equal(adoption.section3_terms, "deferred-undefined");
+  assert.equal(adoption.execution_separated, true);
   assert.equal(adoption.spec_table_is_not_adoption, true);
-  assert.equal(adoption.conditional_contract, true);
+  assert.match(String(adoption.authenticated_via), /subjective-UAT/i);
+  assert.ok(isNonEmptyString(adoption.owner_admission_ref));
+  assert.equal(adoption.executed, undefined, "adoption_state must not carry an execution flag");
   assert.ok(isNonEmptyString(adoption.note));
+
+  assert.equal(execution.executed, false);
+  assert.equal(execution.candidates_emitted, 0);
+  assert.equal(execution.conflicts, 0);
+  assert.equal(execution.adoption_established, undefined, "execution_state must not carry an adoption flag");
+  assert.ok(isNonEmptyString(execution.note));
+});
+
+test("the contract mirrors the live S03 start gate adoption and execution state", () => {
+  const contract = clone();
+  const gateAdoption = LIVE_GATE.adoption_state;
+  const gateExecution = LIVE_GATE.execution_state;
+  assert.equal(contract.adoption_state.admission_verdict, gateAdoption.admission_verdict);
+  assert.equal(contract.adoption_state.adopted_variant, gateAdoption.adopted_variant);
+  assert.equal(contract.adoption_state.adopted_variant_label, gateAdoption.adopted_variant_label);
+  assert.deepEqual(contract.adoption_state.adopted_construct_set, gateAdoption.adopted_construct_set);
+  assert.equal(contract.adoption_state.adoption_established, gateAdoption.adoption_established);
+  assert.equal(contract.adoption_state.authenticated_via, gateAdoption.authenticated_via);
+  assert.equal(contract.adoption_state.owner_admission_ref, gateAdoption.owner_admission_ref);
+  assert.equal(contract.execution_state.executed, gateExecution.executed);
+  assert.equal(contract.execution_state.candidates_emitted, gateExecution.candidates_emitted);
+  assert.equal(contract.execution_state.conflicts, gateExecution.conflicts);
+  // The committed state is adoption-established and execution-absent.
+  assert.equal(gateAdoption.admission_verdict, "admission_granted");
+  assert.equal(gateExecution.executed, false);
 });
 
 // ---------------------------------------------------------------------------
@@ -413,6 +529,7 @@ test("construct dictionary is bound to the live S01 register and redeclares no f
   assert.equal(dictionary.family_count, CLOSED_FAMILIES.length);
   assert.deepEqual(dictionary.vocabulary_status_dictionary, VOCABULARY_STATUSES);
   assert.deepEqual(dictionary.promoted_statuses, []);
+  assert.equal(dictionary.adoption_does_not_promote_families, true);
 
   const liveFamilies = Object.fromEntries(
     LIVE_REGISTER.families.map((family) => [family.family_id, family.vocabulary_status]),
@@ -429,6 +546,10 @@ test("construct dictionary is bound to the live S01 register and redeclares no f
 test("consumes entries are tracked and byte-bound to their live sources", () => {
   const { consumes } = clone();
   assert.ok(Array.isArray(consumes) && consumes.length >= 4, "at least four consumed sources");
+  const paths = new Set(consumes.map((entry) => entry.path));
+  for (const required of [START_GATE, ADOPTION_V2, REGISTER, ALTERNATIVES]) {
+    assert.ok(paths.has(required), `the consumed set must include ${required}`);
+  }
   for (const entry of consumes) {
     assertRepoRelative(entry.path);
     assert.ok(TRACKED.has(entry.path), `consumed source must be tracked: ${entry.path}`);
@@ -484,24 +605,31 @@ test("outcome dictionary declares exactly three distinct outcomes", () => {
   const unknown = dictionary.outcomes.find((outcome) => outcome.outcome_id === "Unknown");
   const conflict = dictionary.outcomes.find((outcome) => outcome.outcome_id === "Conflict");
   const candidate = dictionary.outcomes.find((outcome) => outcome.outcome_id === "candidate_emitted");
-  assert.equal(unknown.requires_adopted_construct, false);
-  assert.equal(conflict.requires_adopted_construct, true);
   assert.equal(candidate.requires_adopted_construct, true);
+  assert.equal(candidate.requires_execution, true);
+  assert.equal(unknown.requires_adopted_construct, false);
+  assert.equal(unknown.requires_execution, false);
+  assert.equal(conflict.requires_adopted_construct, true);
+  assert.equal(conflict.requires_execution, true);
   for (const outcome of dictionary.outcomes) {
     assert.equal(outcome.absence_is_falsity, false);
   }
 });
 
-test("emission rule gates candidates and Conflicts on adoption", () => {
+test("emission rule separates adoption from execution", () => {
   const { emission_rule: emission } = clone();
   assert.equal(emission.candidate_requires_adopted_construct, true);
+  assert.equal(emission.candidate_requires_execution, true);
   assert.equal(emission.candidate_requires_proven_span, true);
   assert.equal(emission.candidate_requires_agreeing_anchors, true);
   assert.equal(emission.conflict_requires_adopted_construct, true);
+  assert.equal(emission.conflict_requires_execution, true);
   assert.equal(emission.conflict_requires_at_least_two_divergent_anchors, true);
-  assert.equal(emission.empty_adopted_set_emits_zero_candidates, true);
-  assert.equal(emission.empty_adopted_set_all_outcomes_unknown, true);
-  assert.equal(emission.conflict_unreachable_without_adoption, true);
+  assert.equal(emission.conflict_unreachable_without_execution, true);
+  assert.equal(emission.adoption_alone_emits_zero_candidates, true);
+  assert.equal(emission.adopted_but_not_executed_all_outcomes_unknown, true);
+  assert.equal(emission.adoption_is_not_execution, true);
+  assert.equal(emission.execution_is_not_adoption, true);
   assert.equal(emission.absence_is_not_falsity, true);
 });
 
@@ -509,11 +637,12 @@ test("emission rule gates candidates and Conflicts on adoption", () => {
 // positive: boundaries, non-claims and the declared code set
 // ---------------------------------------------------------------------------
 
-test("boundaries keep composition, facet defaults and applicability out of scope", () => {
+test("boundaries keep composition, precedence, facet defaults and applicability out of scope", () => {
   const { boundaries } = clone();
   assert.equal(boundaries.classification_is_not_composition, true);
   assert.equal(boundaries.composition_performed, false);
   assert.equal(boundaries.composed_rule_emitted, false);
+  assert.equal(boundaries.precedence_resolved, false);
   assert.equal(boundaries.facet_defaults_applied, false);
   assert.equal(boundaries.applicability_evaluated, false);
   assert.equal(boundaries.normrule_minted, false);
@@ -530,10 +659,11 @@ test("boundaries keep composition, facet defaults and applicability out of scope
 
 test("non-claims and the declared fail-closed code set are complete", () => {
   const contract = clone();
-  assert.ok(Array.isArray(contract.non_claims) && contract.non_claims.length >= 6);
+  assert.ok(Array.isArray(contract.non_claims) && contract.non_claims.length >= 8);
   const joined = contract.non_claims.join("\n").toLowerCase();
   for (const fragment of [
-    "not an adoption",
+    "adoption is not execution",
+    "execution is not adoption",
     "absence of a proven source span is never falsity",
     "classification is not composition",
     "deferred-undefined",
@@ -548,23 +678,29 @@ test("non-claims and the declared fail-closed code set are complete", () => {
 });
 
 // ---------------------------------------------------------------------------
-// positive: the companion documents the conditional contour
+// positive: the companion documents the granted contour
 // ---------------------------------------------------------------------------
 
-test("the markdown companion exists and documents the conditional contour", () => {
+test("the markdown companion exists and documents the granted contour", () => {
   assert.ok(existsSync(path.join(root, COMPANION)), "the companion must exist next to the artifact");
   assert.ok([...LIVE_COMPANION].every((character) => character.charCodeAt(0) <= 0x7f), "the companion must be ASCII");
   const lowered = LIVE_COMPANION.toLowerCase();
   for (const fragment of [
-    "not an adoption",
+    "admission: granted",
+    "adoption_established",
+    "adopted_construct_set",
+    "adoption is not execution",
+    "execution is not adoption",
     "collapsing them into one code",
-    "adopted_construct_set` is empty",
-    "no candidate can be emitted",
-    "conflict_unreachable_without_adoption",
+    "conflict is unreachable without execution",
+    "unknown",
+    "conflict",
+    "proof ceiling",
     "deferred-undefined",
     "f13",
-    "proof ceiling",
     "fail-closed",
+    "adoption_read_as_execution",
+    "execution_read_as_adoption",
   ]) {
     assert.ok(lowered.includes(fragment.toLowerCase()), `the companion must state: ${fragment}`);
   }
@@ -577,44 +713,64 @@ test("the markdown companion exists and documents the conditional contour", () =
 // positive: the specification truth table
 // ---------------------------------------------------------------------------
 
-test("specification truth table proves candidates require adoption and Conflict is unreachable without it", () => {
+test("specification truth table separates adoption from execution and makes Conflict unreachable without it", () => {
   for (const row of TRUTH_TABLE) {
     assert.equal(resolveOutcome(row.input), row.expected, row.name);
   }
 
-  // Exhaustive: without adoption the only reachable outcome is Unknown; every
-  // Conflict and every candidate requires adoption.
+  // Exhaustive: without adoption or without execution the only reachable outcome
+  // is Unknown; every Conflict and every candidate requires both.
   for (const adopted of [false, true]) {
-    for (const provenSpans of [0, 1, 2]) {
-      for (const anchorsAgree of [false, true]) {
-        const input = { adopted, provenSpans, anchorsAgree };
-        const outcome = resolveOutcome(input);
-        assert.ok(OUTCOME_SET.includes(outcome), `the outcome must be in the closed set: ${outcome}`);
-        if (!adopted) {
-          assert.equal(outcome, "Unknown", `no candidate or Conflict without adoption: ${JSON.stringify(input)}`);
-        }
-        if (outcome === "Conflict") {
-          assert.ok(adopted && provenSpans >= 2 && !anchorsAgree, `Conflict requires adoption: ${JSON.stringify(input)}`);
-        }
-        if (outcome === "candidate_emitted") {
-          assert.ok(
-            adopted && provenSpans >= 1 && !(provenSpans >= 2 && !anchorsAgree),
-            `a candidate requires adoption, a proven span and no divergence: ${JSON.stringify(input)}`,
-          );
+    for (const executed of [false, true]) {
+      for (const provenSpans of [0, 1, 2]) {
+        for (const anchorsAgree of [false, true]) {
+          const input = { adopted, executed, provenSpans, anchorsAgree };
+          const outcome = resolveOutcome(input);
+          assert.ok(OUTCOME_SET.includes(outcome), `the outcome must be in the closed set: ${outcome}`);
+          if (!adopted || !executed) {
+            assert.equal(
+              outcome,
+              "Unknown",
+              `no candidate or Conflict without adoption and execution: ${JSON.stringify(input)}`,
+            );
+          }
+          if (outcome === "Conflict") {
+            assert.ok(
+              adopted && executed && provenSpans >= 2 && !anchorsAgree,
+              `Conflict requires adoption, execution and divergence: ${JSON.stringify(input)}`,
+            );
+          }
+          if (outcome === "candidate_emitted") {
+            assert.ok(
+              adopted && executed && provenSpans >= 1 && !(provenSpans >= 2 && !anchorsAgree),
+              `a candidate requires adoption, execution, a proven span and no divergence: ${JSON.stringify(input)}`,
+            );
+          }
         }
       }
     }
   }
 
-  // The committed state is an empty adopted_construct_set: every outcome is
-  // Unknown, so no candidate exists and Conflict is unreachable.
+  // Conflict is unreachable without execution, even with divergent anchors.
+  assert.equal(
+    resolveOutcome({ adopted: true, executed: false, provenSpans: 3, anchorsAgree: false }),
+    "Unknown",
+    "Conflict must be unreachable without execution",
+  );
+
+  // The committed state is adoption-established and execution-absent: every
+  // outcome is Unknown, so no candidate exists and Conflict is unreachable.
   const committedOutcomes = new Set();
   for (const provenSpans of [0, 1, 2]) {
     for (const anchorsAgree of [false, true]) {
-      committedOutcomes.add(resolveOutcome({ adopted: false, provenSpans, anchorsAgree }));
+      committedOutcomes.add(resolveOutcome({ adopted: true, executed: false, provenSpans, anchorsAgree }));
     }
   }
-  assert.deepEqual([...committedOutcomes], ["Unknown"], "with an empty adopted set the only outcome is Unknown");
+  assert.deepEqual(
+    [...committedOutcomes],
+    ["Unknown"],
+    "with an established adoption and no execution the only outcome is Unknown",
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -663,6 +819,18 @@ const CODE_COVERAGE = [
     },
   },
   {
+    code: "adoption_read_as_execution",
+    mutate: (artifact) => {
+      artifact.emission_rule.candidate_requires_execution = false;
+    },
+  },
+  {
+    code: "execution_read_as_adoption",
+    mutate: (artifact) => {
+      artifact.emission_rule.execution_is_not_adoption = false;
+    },
+  },
+  {
     code: "anchor_missing",
     mutate: (artifact) => {
       artifact.candidate_envelope.anchor_contract.requires_sha256 = false;
@@ -702,12 +870,6 @@ const CODE_COVERAGE = [
     code: "section3_promoted",
     mutate: (artifact) => {
       artifact.boundaries.section3_promoted = true;
-    },
-  },
-  {
-    code: "spec_table_as_adoption",
-    mutate: (artifact) => {
-      artifact.adoption_state.is_adoption = true;
     },
   },
   {
@@ -762,6 +924,40 @@ test("every documented fail-closed code is empirically exercised", () => {
   );
 });
 
+test("negative: adoption and execution are never read as one another", () => {
+  const adoptedAsExecuted = clone();
+  adoptedAsExecuted.adoption_state.executed = true;
+  assert.ok(codes(validateContract(JSON.stringify(adoptedAsExecuted))).includes("adoption_read_as_execution"));
+
+  const mintedWithoutExecution = clone();
+  mintedWithoutExecution.candidate_envelope.minted = true;
+  assert.ok(codes(validateContract(JSON.stringify(mintedWithoutExecution))).includes("adoption_read_as_execution"));
+
+  const committedWithoutExecution = clone();
+  committedWithoutExecution.candidates = [{ candidate_id: "c1" }];
+  assert.ok(codes(validateContract(JSON.stringify(committedWithoutExecution))).includes("adoption_read_as_execution"));
+
+  const countedWithoutExecution = clone();
+  countedWithoutExecution.execution_state.candidates_emitted = 1;
+  assert.ok(codes(validateContract(JSON.stringify(countedWithoutExecution))).includes("adoption_read_as_execution"));
+
+  const conflictWithoutExecution = clone();
+  conflictWithoutExecution.emission_rule.conflict_unreachable_without_execution = false;
+  assert.ok(codes(validateContract(JSON.stringify(conflictWithoutExecution))).includes("adoption_read_as_execution"));
+
+  const executedAsAdoption = clone();
+  executedAsAdoption.execution_state.adoption_established = true;
+  assert.ok(codes(validateContract(JSON.stringify(executedAsAdoption))).includes("execution_read_as_adoption"));
+
+  const wrongVariant = clone();
+  wrongVariant.adoption_state.adopted_variant = "A";
+  assert.ok(codes(validateContract(JSON.stringify(wrongVariant))).includes("execution_read_as_adoption"));
+
+  const notEstablished = clone();
+  notEstablished.adoption_state.adoption_established = false;
+  assert.ok(codes(validateContract(JSON.stringify(notEstablished))).includes("execution_read_as_adoption"));
+});
+
 test("negative: a cached anchor and an unknown evidence class are rejected", () => {
   const missingPath = clone();
   missingPath.candidate_envelope.anchor_contract.requires_repository_relative_path = false;
@@ -771,13 +967,13 @@ test("negative: a cached anchor and an unknown evidence class are rejected", () 
   unknownClass.candidate_envelope.evidence_class_domain = ["inert-artifact", "source-bound-span"];
   assert.ok(codes(validateContract(JSON.stringify(unknownClass))).includes("evidence_class_unknown"));
 
-  const minted = clone();
-  minted.candidate_envelope.minted = true;
-  assert.ok(codes(validateContract(JSON.stringify(minted))).includes("candidate_without_adopted_construct"));
+  const noRef = clone();
+  noRef.candidate_envelope.adopted_construct_ref_required = false;
+  assert.ok(codes(validateContract(JSON.stringify(noRef))).includes("candidate_without_adopted_construct"));
 
-  const committed = clone();
-  committed.candidates = [{ candidate_id: "c1" }];
-  assert.ok(codes(validateContract(JSON.stringify(committed))).includes("candidate_without_adopted_construct"));
+  const badOutcomeCount = clone();
+  badOutcomeCount.outcome_dictionary.outcome_count = 2;
+  assert.ok(codes(validateContract(JSON.stringify(badOutcomeCount))).includes("outcome_set_incomplete"));
 });
 
 // ---------------------------------------------------------------------------
@@ -787,15 +983,20 @@ test("negative: a cached anchor and an unknown evidence class are rejected", () 
 test("M210 S03 semantics contract markers", () => {
   assert.deepEqual(validateContract(LIVE_DOC), [], "the committed artifact must be clean");
   const contract = clone();
-  assert.deepEqual(contract.adoption_state.adopted_construct_set, []);
-  assert.equal(contract.adoption_state.is_adoption, false);
+  assert.equal(contract.adoption_state.admission_verdict, "admission_granted");
+  assert.equal(contract.adoption_state.adoption_established, true);
+  assert.deepEqual(contract.adoption_state.adopted_construct_set, ADOPTED_CONSTRUCT_SET);
+  assert.equal(contract.execution_state.executed, false);
+  assert.equal(contract.execution_state.candidates_emitted, 0);
   assert.equal(contract.candidate_envelope.minted, false);
   assert.equal(contract.outcome_dictionary.outcome_count, 3);
   assert.deepEqual(contract.fail_closed_codes, EMITTABLE_CODES);
   console.log("M210_S03_SEMANTICS_OK");
+  console.log("admission=admission_granted");
+  console.log(`adopted_constructs=${contract.adoption_state.adopted_construct_set.length}`);
+  console.log(`executed=${contract.execution_state.executed}`);
   console.log(`outcomes=${contract.outcome_dictionary.outcome_count}`);
   console.log(`families=${contract.construct_dictionary.family_count}`);
   console.log(`fail_closed_codes=${contract.fail_closed_codes.length}`);
-  console.log(`adopted_construct_set=${contract.adoption_state.adopted_construct_set.length}`);
   console.log(`minted=${contract.candidate_envelope.minted}`);
 });
