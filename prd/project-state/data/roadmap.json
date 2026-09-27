@@ -537,13 +537,19 @@
       "theme": "Registry corpus evidence and temporal coverage (named R035 gate quantifiers, candidate-backed registry, amendment provenance, corpus battery and independent acceptance)",
       "status": "complete",
       "boundary": "Replaced inventory counters with per-gate named quantifiers: seven R035 gates (GATE-G001..GATE-G007) with an explicit conflicted GATE-G015 and a separate punkt decision (`admission: not-adopted`, `owner_admission_ref: none`, zero punkt rows). S02 declared the 1901 denominator from one named tracked source and keyed candidate identity by the pair (catalog_token, number) rather than bare key_path, so the canonical registry regenerates byte-identical at 6d7952b716b60d3b with 166 admission rows (102 candidate-backed, 64 legacy, punkt 0). S03 built amendment provenance over act families: 120 amends edges (40 resolved / 80 named reason codes), 122 commencement slots and 118 editions with a chain digest matching the T01 pin. S04 carried the corpus-budgeted battery (36 mandatory checks, failed 0) and an acceptance ledger that promotes nothing (gates_promoted 0, legs_promoted 0, proof_packages_attached 0, requirement_records_mutated 0, authoritative false, debt_total 11, empty_debt_rows 0). Validated pass on the owner's authenticated human legal acceptance recorded at sha256:e52399a1, which closes the planned UAT class whose own plan text was 'Human legal acceptance for named gates and chain scope; HOLD if absent'. R035 and R070 remain active without promotion by design. M208-wrz6fg remains parked with a recorded reason in .gsd (deferred, deliberately not claimed complete); R038 carries a self-disclosed record-sync omission, and the S04 delegated-to-t02 carrier weakness plus six owner decisions stay visible debt. No parser, temporal, registry or ontology readiness claim."
+    },
+    {
+      "range": "M210-M210",
+      "theme": "Bounded normative-semantics adoption and pageindex skeleton (L1) with adoption/execution separation and RC28 hold",
+      "status": "complete",
+      "boundary": "Contract-level evidence only: adoption is not execution, activation stays applied=false, RC28 stays HOLD without human dispositions. No runtime, candidate emission, requirement promotion or legal correctness."
     }
   ],
   "current_milestone": {
-    "id": "M209-2yg6ix",
+    "id": "M210-3afp79",
     "status": "complete",
-    "title": "Корпусные доказательства реестра и temporal coverage",
-    "goal": "Named per-gate quantifiers for the R035 gates plus a candidate-backed registry whose identity is keyed by the pair (catalog_token, number), amendment provenance over act families, and a corpus-budgeted battery closed by independent acceptance. R035 and R070 stay active without promotion; the acceptance ledger promotes nothing and keeps debt_total 11 and empty_debt_rows 0 visible. M208-wrz6fg stays parked and R038 keeps a disclosed record-sync gap. No parser, temporal, registry or ontology readiness."
+    "title": "Отдельное принятие нормативной семантики и bounded IR",
+    "goal": "Отдельное принятие нормативной семантики и bounded IR: source-bound пакет альтернатив, аутентифицированное bounded-принятие варианта C отдельно от исполнения, fail-closed контракт принятого scope, машинная матрица 19 находок RC28 и source-bound карточки с пустыми слотами решений. Runtime и эмиссия кандидатов не доказаны; RC28 остаётся HOLD по отсутствию валидных per-finding dispositions (не по отсутствию принятия); унаследованное отсутствие actor-bound submission пути раскрыто и не расширяется. No parser, temporal, registry or ontology readiness."
   },
   "recommended_next": {
     "title": "Execute M203 S01 Review disposition and control baseline",
