@@ -4407,6 +4407,84 @@ def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def check_law_source_fixture_guard(root: Path) -> list[GovernorFinding]:
+    """Ensure law-source/consultant is marked as a fixture vault, not corpus.
+
+    Fixture vault (82 tracked XML) is not the corpus (43 785 XML under
+    consru_export/exports/). The 2026-09-26 incident: a flat glob of
+    ``exports/npa/*.xml`` saw 798 of 916 files, missed 44-FZ (subdirectory,
+    edition files lack "44-fz" in the name) and treated this vault as the
+    44-FZ source. This check keeps the marker and the untracked .deprecated
+    residue in place so the trap cannot silently return.
+    Lifecycle [bounded]; process anti-drift, not corpus completeness.
+    """
+    check_id = "law-source-fixture-guard"
+    remediation = (
+        "Restore law-source/consultant/README.md (fixture-vault marker), keep "
+        "law-source/consultant/.deprecated/ in .gitignore and untracked, and "
+        "consult consru_export/exports/ for corpus-wide work."
+    )
+
+    marker = root / "law-source" / "consultant" / "README.md"
+    marker_text = marker.read_text(encoding="utf-8", errors="replace") if marker.is_file() else ""
+    missing_marker = not marker.is_file()
+    marker_ok = (
+        not missing_marker
+        and "НЕ КОРПУС" in marker_text
+        and "consru_export" in marker_text
+        and "43 785" in marker_text
+    )
+
+    gitignore_path = root / ".gitignore"
+    gitignore_text = (
+        gitignore_path.read_text(encoding="utf-8", errors="replace")
+        if gitignore_path.is_file()
+        else ""
+    )
+    ignore_ok = _gitignore_covers(gitignore_text, "law-source/consultant/.deprecated/")
+
+    deprecated_tracked = _git_tracked_paths(root, "law-source/consultant/.deprecated")
+
+    problems: list[str] = []
+    if missing_marker:
+        problems.append("README-marker-missing")
+    elif not marker_ok:
+        problems.append("README-marker-incomplete")
+    if not ignore_ok:
+        problems.append("deprecated-not-ignored")
+    if deprecated_tracked:
+        problems.append(f"deprecated-still-tracked:{len(deprecated_tracked)}")
+
+    if problems:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="law-source/consultant fixture-vault marker incomplete",
+                observed=(
+                    f"problems={problems} (lifecycle [bounded]; process "
+                    f"anti-drift; advisory until the marker lands)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="law-source/consultant is marked as a fixture vault",
+            observed=(
+                "README marker present, .deprecated ignored and untracked "
+                "(lifecycle [bounded]; process anti-drift)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def _line_lifecycle_tags(line: str) -> set[str]:
     return {m.group(1).lower() for m in _LIFECYCLE_TAG_RE.finditer(line)}
 
@@ -7644,6 +7722,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         check_archive_path_policy,
         "Keep historical vaults ignored, untracked and unreachable from active symlinks.",
         (".gitignore", "python_archive/", "archive/", "prd/archive/"),
+        "warn",
+    ),
+    _check_spec(
+        "law-source-fixture-guard",
+        "docs",
+        "deterministic",
+        check_law_source_fixture_guard,
+        "Keep law-source/consultant marked as a fixture vault, not the corpus.",
+        ("law-source/consultant/README.md", ".gitignore"),
         "warn",
     ),
     _check_spec(

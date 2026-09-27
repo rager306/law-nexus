@@ -40,6 +40,7 @@ from law_nexus_harness.governor import (
     check_hostile_negative_suite_coverage,
     check_hostile_proof_chain,
     check_journal_retry_loops,
+    check_law_source_fixture_guard,
     check_model_crystal_anchors,
     check_npa_control_artifacts,
     check_npa_fsm_completeness,
@@ -4888,6 +4889,69 @@ def test_live_governor_reports_compat_marker_hygiene() -> None:
     assert "empty_entities=" in finding.observed
     assert report.error_count == 0
     assert report.status == "ok"
+
+
+def test_law_source_fixture_guard_passes_with_marker_and_untracked(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr("law_nexus_harness.governor._git_tracked_paths", lambda root, path: [])
+    (tmp_path / ".gitignore").write_text("law-source/consultant/.deprecated/\n", encoding="utf-8")
+    consultant = tmp_path / "law-source" / "consultant"
+    consultant.mkdir(parents=True)
+    (consultant / "README.md").write_text(
+        "# law-source/consultant — НАБОР ФИКСТУР, НЕ КОРПУС\n"
+        "Полный корпус — consru_export/consru_export/exports/ (43 785 XML).\n",
+        encoding="utf-8",
+    )
+    findings = check_law_source_fixture_guard(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+
+
+def test_law_source_fixture_guard_flags_missing_marker(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("law_nexus_harness.governor._git_tracked_paths", lambda root, path: [])
+    (tmp_path / ".gitignore").write_text("law-source/consultant/.deprecated/\n", encoding="utf-8")
+    findings = check_law_source_fixture_guard(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "README-marker-missing" in findings[0].observed
+
+
+def test_law_source_fixture_guard_flags_incomplete_marker(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("law_nexus_harness.governor._git_tracked_paths", lambda root, path: [])
+    (tmp_path / ".gitignore").write_text("law-source/consultant/.deprecated/\n", encoding="utf-8")
+    consultant = tmp_path / "law-source" / "consultant"
+    consultant.mkdir(parents=True)
+    (consultant / "README.md").write_text("# fixtures\n", encoding="utf-8")
+    findings = check_law_source_fixture_guard(tmp_path)
+    assert findings[0].status == "fail"
+    assert "README-marker-incomplete" in findings[0].observed
+
+
+def test_law_source_fixture_guard_flags_tracked_deprecated(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "law_nexus_harness.governor._git_tracked_paths",
+        lambda root, path: ["law-source/consultant/.deprecated/44-FZ-2026.xml"],
+    )
+    (tmp_path / ".gitignore").write_text("law-source/consultant/.deprecated/\n", encoding="utf-8")
+    consultant = tmp_path / "law-source" / "consultant"
+    consultant.mkdir(parents=True)
+    (consultant / "README.md").write_text(
+        "# law-source/consultant — НАБОР ФИКСТУР, НЕ КОРПУС\n"
+        "Полный корпус — consru_export/consru_export/exports/ (43 785 XML).\n",
+        encoding="utf-8",
+    )
+    findings = check_law_source_fixture_guard(tmp_path)
+    assert findings[0].status == "fail"
+    assert "deprecated-still-tracked" in findings[0].observed
+
+
+def test_law_source_fixture_guard_spec_is_deterministic_warn() -> None:
+    spec = next(s for s in GOVERNOR_CHECK_SPECS if s.check_id == "law-source-fixture-guard")
+    assert spec.kind == "deterministic"
+    assert spec.default_severity == "warn"
 
 
 def test_parked_next_wave_with_recorded_reason_is_sanctioned_deferral(tmp_path: Path) -> None:

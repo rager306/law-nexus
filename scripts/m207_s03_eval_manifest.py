@@ -33,7 +33,12 @@ the concrete instances):
 
 * **Declared provider roots.**  ``consru_export/consru_export/exports`` and
   ``law-source/consultant`` are consultant roots, ``law-source/garant`` is a
-  garant root; anything else -- including ``law-source/consultant/**`` when the
+  garant root.  NOTE (2026-09-26): ``law-source/consultant`` is a **fixture
+  vault** (82 tracked XML), not the corpus -- the corpus lives only under
+  ``consru_export/consru_export/exports`` (43 785 XML).  It is declared here as
+  a provider root only because this pilot's 40 cases were frozen from those
+  fixtures; never treat the vault as corpus for corpus-wide work
+  (see ``law-source/consultant/README.md``); anything else -- including ``law-source/consultant/**`` when the
   third root is not declared -- stays ``unknown`` and is never guessed from
   digits in a file name or a substring of the full path.  The pilot contains
   three ``law-source/consultant/**`` cases, so declaring that root is what makes

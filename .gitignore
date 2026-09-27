@@ -46,6 +46,10 @@ probes/
 .agents/skills/falkordb/evals/*-report.md
 .agents/skills/falkordb/evals/trigger-proxy/
 
+# law-source/consultant/.deprecated — 40 устаревших фикстур: остаются на диске
+# как история, но выводятся из индекса, чтобы агенты не глоббили их как корпус.
+law-source/consultant/.deprecated/
+
 # Generated ConsultantPlus source-discovery runtime outputs
 law-source/consultant/runtime/
 
