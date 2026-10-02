@@ -2107,6 +2107,75 @@ pub fn link_aliases_and_this_refs(
     (members, relations, diagnostics)
 }
 
+// ---------------------------------------------------------------------------
+// Single assembly point (M211 S03 T05, ADR-0029).
+// ---------------------------------------------------------------------------
+
+/// Builds the full derived [`LinkedDocument`] from one document's paragraphs.
+///
+/// This is the single deterministic assembly point over the canonical typed
+/// stream (`npa_typed::scan_typed_diagnosed`) and the intra-block local-grammar
+/// frames. The passes run in a fixed order: letterhead recognition -> typed
+/// anchors -> named annexes with their approving acts -> cross-block series
+/// continuation -> scoped aliases / short references -> this-document
+/// references. Each pass is pure and deterministic: `paras` and the derived
+/// `TypedMember` stream are never mutated, member ids are stable (typed indices,
+/// then annex ids, then alias/this-ref ids), and the result carries no
+/// hash-order dependence (`BTreeMap`/`Vec` only).
+///
+/// [`LinkedDocument::diagnostics`] aggregates the fail-closed signals emitted by
+/// every pass (`OpenSeriesWithoutHead`/`IncompatibleSeriesHead`,
+/// `HeadFamilyCarryRefused`, `AliasWithoutDeclaration`, `HeadUnavailable`). When
+/// the head zone yields no recognizable letterhead, a document-level
+/// `HeadUnavailable` is added without fabricating requisites; the narrow
+/// head-family *positive* surface stays a standalone pass (`carry_head_family`)
+/// because the linked model has no carry slot (ADR-0019: it is a reference
+/// mention, never a Work/Binding).
+///
+/// The narrow `carry_head_family` pass refusal signal is not duplicated here:
+/// a corporate regulation is refused inside [`link_approved_by`] and surfaces as
+/// [`LinkDiagnostic::HeadFamilyCarryRefused`].
+pub fn build_linked_document(paras: &[String]) -> LinkedDocument {
+    // Pass 1: document head. The letterhead outranks matching body mentions
+    // (ADR-0029 §5) and feeds the this-document reference pass.
+    let letterhead = recognize_letterhead(paras);
+
+    // Pass 2: typed anchors (canonical stream, cloned never mutated).
+    let mut members = anchored_members(paras);
+
+    // Pass 3: named annexes and their approving acts.
+    let (annexes, approved_relations, approved_diagnostics) = link_approved_by(paras);
+    members.extend(annexes);
+
+    // Pass 4: cross-block series continuation (RC28-F07).
+    let (series_relations, series_diagnostics) = link_series(paras);
+
+    // Pass 5: scoped aliases, short references and this-document references.
+    let (alias_members, alias_relations, alias_diagnostics) = link_aliases_and_this_refs(paras);
+    members.extend(alias_members);
+
+    let mut relations = Vec::new();
+    relations.extend(series_relations);
+    relations.extend(approved_relations);
+    relations.extend(alias_relations);
+
+    let mut diagnostics = Vec::new();
+    if letterhead.is_none() {
+        // Fail-closed: no head means no requisites may be fabricated.
+        diagnostics.push(LinkDiagnostic::HeadUnavailable);
+    }
+    diagnostics.extend(series_diagnostics);
+    diagnostics.extend(approved_diagnostics);
+    diagnostics.extend(alias_diagnostics);
+
+    LinkedDocument {
+        members,
+        relations,
+        letterhead,
+        diagnostics,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
