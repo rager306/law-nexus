@@ -160,28 +160,155 @@ fn gold_typed_parity_40_docs() {
         missing_sources.join("\n")
     );
 
-    // S02 — измеритель: паритет TYPE растёт итерациями (не гейт).
-    // Минимальный порог: >50% type_match на типизированных want-членах.
-    let want_typed = want_total; // все want entries имеют тип
-    let rate = if want_typed > 0 {
-        (type_match * 100).checked_div(want_typed).unwrap_or(0)
-    } else {
-        0
-    };
-    eprintln!("S02 typed match rate: {rate}% ({type_match}/{want_typed}) — итерации продолжаются");
-    assert!(
-        rate > 50,
-        "S02 typed match rate {rate}% below 50% threshold ({type_match}/{want_typed})"
-    );
+    // S02 — строгий гейт: typed-parity обязан быть нулевым. Дифференциальный
+    // эталон — scripts/m207_context_graph_demo.py (D519), не независимый gold.
     assert_eq!(checked, 40, "gold corpus must contain 40 docs");
-    // детали расхождений — для отладки следующей итерации
-    if !mismatches.is_empty() {
-        eprintln!(
-            "S02 remaining diffs ({}):\n{}",
-            mismatches.len(),
-            mismatches.join("\n")
+    assert_eq!(
+        want_total, 112,
+        "gold corpus must carry 112 typed want-members"
+    );
+    assert!(
+        mismatches.is_empty(),
+        "typed parity residuals must be empty (strict gate; {} diffs):\n{}",
+        mismatches.len(),
+        mismatches.join("\n")
+    );
+    assert_eq!(
+        type_match, want_total,
+        "every want-member must have a matching TYPE ({type_match}/{want_total})"
+    );
+    eprintln!("S02 typed parity strict: {type_match}/{want_total} — zero residual diffs");
+}
+
+// ---------------------------------------------------------------------------
+// T01: поимённые named-тесты по каждой первопричине residual diffs.
+// ---------------------------------------------------------------------------
+
+fn fragment(name: &str) -> String {
+    let path = fixture_dir().join(name);
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("MISSING SOURCE: {}: {e}", path.display()))
+}
+
+fn member<'a>(
+    members: &'a [npa_typed::TypedMember],
+    date: &str,
+    number: &str,
+) -> &'a npa_typed::TypedMember {
+    members
+        .iter()
+        .find(|m| m.date == date && m.number == number)
+        .unwrap_or_else(|| panic!("member ({date}, {number}) not found: {members:?}"))
+}
+
+/// doc-031: «дополнительного соглашения к контракту от 23.03.2023 N 2/4/5»:
+/// char-инкремент перескакивал через «контракт» после «соглашени», победитель
+/// выбирал более ранний `соглашение`. Эталон — контракт.
+#[test]
+fn doc031_contract_after_agreement_wins() {
+    for (frag, number) in [
+        ("npa-frag-136.txt", "2"),
+        ("npa-frag-137.txt", "4"),
+        ("npa-frag-138.txt", "5"),
+    ] {
+        let para = fragment(frag);
+        let members = npa_typed::scan_typed(std::slice::from_ref(&para));
+        let m = member(&members, "23.03.2023", number);
+        assert_eq!(m.type_name, "контракт", "{frag} (N {number})");
+    }
+}
+
+/// char-инкремент не перескакивает «контракт» и не порождает extras: скан
+/// frag-136 даёт ровно два кандидата — соглашение, затем контракт.
+#[test]
+fn doc031_char_scan_reaches_contract_without_false_extras() {
+    let para = fragment("npa-frag-136.txt");
+    let chars: Vec<char> = para.chars().collect();
+    let cands = npa_typed::scan_types(&chars);
+    let canons: Vec<&str> = cands.iter().map(|c| c.canon.as_str()).collect();
+    assert_eq!(
+        canons,
+        vec!["соглашение", "контракт"],
+        "char-increment must reach «контракт» with no extras: {canons:?}"
+    );
+    assert!(
+        cands[1].start > cands[0].start,
+        "контракт candidate must follow соглашение: {cands:?}"
+    );
+}
+
+/// doc-007: аббревиатура «Постановление КС РФ от 21.07.2022 N 34-П».
+#[test]
+fn doc007_constitutional_court_abbreviation() {
+    let para = fragment("npa-frag-027.txt");
+    let members = npa_typed::scan_typed(std::slice::from_ref(&para));
+    assert_eq!(
+        member(&members, "21.07.2022", "34-П").type_name,
+        "Постановление КС РФ"
+    );
+}
+
+/// doc-029: вынесенный эмитент «Конституционным Судом РФ в Постановлении
+/// от 17.02.2022 N 7-П».
+#[test]
+fn doc029_constitutional_court_carried_emitter() {
+    let para = fragment("npa-frag-129.txt");
+    let members = npa_typed::scan_typed(std::slice::from_ref(&para));
+    assert_eq!(
+        member(&members, "17.02.2022", "7-П").type_name,
+        "Постановление КС РФ"
+    );
+}
+
+/// doc-027: стем «лицензи…» («действующей лицензии … от 24.02.2021 N 0001976»).
+#[test]
+fn doc027_license_stem() {
+    let para = fragment("npa-frag-120.txt");
+    let members = npa_typed::scan_typed(std::slice::from_ref(&para));
+    assert_eq!(
+        member(&members, "24.02.2021", "0001976").type_name,
+        "лицензия"
+    );
+}
+
+/// doc-032/033: generic «распоряжен… <issuer>» → «Распоряжение <issuer>»;
+/// чужое «постановление Правительства» — самостоятельный член другого TYPE.
+#[test]
+fn doc032_generic_rasporyazhenie_with_issuer() {
+    for frag in ["npa-frag-143.txt", "npa-frag-147.txt"] {
+        let para = fragment(frag);
+        let members = npa_typed::scan_typed(std::slice::from_ref(&para));
+        assert_eq!(
+            member(&members, "15.08.2024", "74-480-р").type_name,
+            "Распоряжение МТУ Росимущества в Челябинской и Курганской областях",
+            "{frag}: generic распоряжение must win over earlier ПП РФ"
+        );
+        assert_eq!(
+            member(&members, "27.08.2012", "860").type_name,
+            "Постановление Правительства РФ",
+            "{frag}: чужое Правительство сохраняет свой TYPE"
         );
     }
+}
+
+/// Demo-инвариант: чужое «постановление Правительства» ПОСЛЕ реквизита не
+/// меняет TYPE распоряжения (локализованная ветка Правительства, не
+/// block-wide forward search).
+#[test]
+fn foreign_government_after_requisites_does_not_change_type() {
+    let para = "распоряжением МТУ Росимущества в Челябинской и Курганской областях \
+                от 15.08.2024 N 74-480-р, а также постановлением Правительства РФ \
+                от 27.08.2012 N 860."
+        .to_string();
+    let members = npa_typed::scan_typed(std::slice::from_ref(&para));
+    assert_eq!(
+        member(&members, "15.08.2024", "74-480-р").type_name,
+        "Распоряжение МТУ Росимущества в Челябинской и Курганской областях"
+    );
+    assert_eq!(
+        member(&members, "27.08.2012", "860").type_name,
+        "Постановление Правительства РФ"
+    );
 }
 
 /// Единый producer: typed pipeline применяет те же guards, что S01, и несёт
