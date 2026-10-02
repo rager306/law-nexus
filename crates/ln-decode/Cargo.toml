@@ -27,3 +27,7 @@ path = "src/bin/npa-context-baseline.rs"
 name = "hierarchy-candidate-artifact"
 path = "src/bin/hierarchy-candidate-artifact.rs"
 
+[[bin]]
+name = "npa-hybrid-records"
+path = "src/bin/npa-hybrid-records.rs"
+
