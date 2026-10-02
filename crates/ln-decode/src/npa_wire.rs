@@ -279,9 +279,11 @@ fn anchor_json(fragment_id: &str, start: usize, end: usize) -> Json {
     ])
 }
 
-/// Minimal JSON value tree. Private: the module owns the closed wire shape.
+/// Minimal JSON value tree. Crate-visible so sibling report modules reuse the
+/// one canonical writer instead of inventing a second serializer (D622); the
+/// `m207-hybrid-records/v1` shape and bytes are unchanged.
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum Json {
+pub(crate) enum Json {
     Null,
     Bool(bool),
     Int(i64),
@@ -291,7 +293,7 @@ enum Json {
 }
 
 impl Json {
-    fn obj(pairs: Vec<(&str, Json)>) -> Json {
+    pub(crate) fn obj(pairs: Vec<(&str, Json)>) -> Json {
         Json::Obj(pairs.into_iter().map(|(k, v)| (k.to_owned(), v)).collect())
     }
 }
@@ -305,7 +307,7 @@ fn push_indent(out: &mut String, depth: usize) {
 /// Canonical renderer matching `json.dumps(..., indent=2, sort_keys=True)`:
 /// object keys are emitted in ascending order at every level, empty
 /// containers stay inline, and non-empty containers are one entry per line.
-fn render_json(value: &Json, depth: usize, out: &mut String) {
+pub(crate) fn render_json(value: &Json, depth: usize, out: &mut String) {
     match value {
         Json::Null => out.push_str("null"),
         Json::Bool(flag) => out.push_str(if *flag { "true" } else { "false" }),
@@ -357,7 +359,7 @@ fn render_json(value: &Json, depth: usize, out: &mut String) {
 /// Python-compatible string escaping: quote, backslash, the short control
 /// escapes, and `\u00xx` for the remaining C0 controls; legal UTF-8 passes
 /// through verbatim (`ensure_ascii=False`).
-fn write_json_string(text: &str, out: &mut String) {
+pub(crate) fn write_json_string(text: &str, out: &mut String) {
     out.push('"');
     for ch in text.chars() {
         match ch {

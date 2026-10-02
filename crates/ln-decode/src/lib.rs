@@ -30,6 +30,7 @@ pub mod npa_context_baseline;
 pub mod npa_continuation;
 pub mod npa_frames_baseline;
 pub mod npa_link;
+pub mod npa_report;
 pub mod npa_sweep;
 pub mod npa_typed;
 pub mod npa_wire;

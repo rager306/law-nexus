@@ -31,3 +31,7 @@ path = "src/bin/hierarchy-candidate-artifact.rs"
 name = "npa-hybrid-records"
 path = "src/bin/npa-hybrid-records.rs"
 
+[[bin]]
+name = "npa-integration-runner"
+path = "src/bin/npa-integration-runner.rs"
+
