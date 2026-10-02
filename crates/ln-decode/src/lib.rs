@@ -26,6 +26,7 @@ pub mod morphology;
 pub mod npa_anchor;
 pub mod npa_bounds;
 pub mod npa_context_baseline;
+pub mod npa_continuation;
 pub mod npa_frames_baseline;
 pub mod npa_link;
 pub mod npa_sweep;

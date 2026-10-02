@@ -191,6 +191,11 @@ impl OwnerPathStep {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CoordinatingFrame {
     pub frame_kind: FrameKind,
+    /// Source-block document order this frame was extracted from. A frame
+    /// extracted from a single fragment (`extract_act_list_frames`) uses `0`;
+    /// the typed path fills the real `LocalSpan.block` index so cross-block
+    /// linking never compares fragment-local offsets (S03 / RC28-F07).
+    pub block: usize,
     pub local_anchor: TextSpan,
     pub head_roles: Vec<String>,
     pub members: Vec<FrameMember>,
@@ -406,6 +411,7 @@ pub fn extract_act_list_frames(
             let end = candidates.last()?.span().end();
             Some(CoordinatingFrame {
                 frame_kind: FrameKind::ActRequisites,
+                block: 0,
                 local_anchor: TextSpan::try_new(start, end).ok()?,
                 head_roles: type_alternatives,
                 members,
@@ -539,6 +545,7 @@ pub fn extract_act_list_frames_from_typed(paras: &[String]) -> Vec<CoordinatingF
             };
             Some(CoordinatingFrame {
                 frame_kind: FrameKind::ActRequisites,
+                block,
                 local_anchor,
                 head_roles,
                 continuation: frame_members.len() > 1,
@@ -986,6 +993,7 @@ impl CoordinatingFrame {
     ) -> Self {
         Self {
             frame_kind,
+            block: 0,
             local_anchor,
             head_roles,
             members,
