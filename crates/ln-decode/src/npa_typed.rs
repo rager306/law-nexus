@@ -11,6 +11,27 @@
 
 use crate::npa_anchor::{self, AnchorDiagnostic, LocalSpan};
 
+/// Как получен TYPE члена: записан в этом же блоке либо не разрешён.
+///
+/// `InheritedFromSeriesHead` здесь намеренно отсутствует: cross-block
+/// наследование — граница S03, intra-block наследование живёт в
+/// `local_grammar::DerivationSource` (T04). Здесь фиксируется только
+/// provenance самого typed-потока.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum TypeDerivation {
+    /// TYPE-голова найдена среди кандидатов текущего блока.
+    WrittenHere,
+    /// Ни одного кандидата до якоря не выжило — TYPE не разрешён.
+    Unresolved,
+}
+
+/// Конкурирующее чтение TYPE с source-span головы в том же блоке.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct TypeHypothesis {
+    pub canon: String,
+    pub evidence: LocalSpan,
+}
+
 /// Типизированный член: нормализованная дата + номер + TYPE и локальный
 /// byte-span якоря-вхождения (тот же поток, что S01; M207 `{fragment_id,
 /// start, end}` shape, hand-rolled без внешнего (de)serializer'а).
@@ -21,6 +42,15 @@ pub struct TypedMember {
     pub type_name: String,
     pub approved_by: String,
     pub span: LocalSpan,
+    /// Provenance победившего TYPE (RC28-F09: победитель больше не молчит).
+    pub derivation: TypeDerivation,
+    /// Byte-span головы-победителя в блоке (`None` при `Unresolved`).
+    pub type_evidence: Option<LocalSpan>,
+    /// Соперники среди выживших гипотез (без победителя), с source-span.
+    pub alternatives: Vec<TypeHypothesis>,
+    /// `true`, если ни одна гипотеза не выжила: `type_name` пуст,
+    /// `derivation == Unresolved`.
+    pub unresolved: bool,
 }
 
 #[derive(Debug)]
@@ -564,25 +594,52 @@ fn attach_types(paras: &[String], anchors: &[npa_anchor::Anchor]) -> Vec<TypedMe
             // structurally impossible because types/date_starts are built per block
             // (RC28-F07); silent-winner UX (RC28-F09) is addressed by the provenance
             // buffer in T02.
-            let mut before: Vec<&TypeCandidate> = before;
-            if !date_starts.is_empty() {
+            let before: Vec<&TypeCandidate> = before;
+            let survivors: Vec<&TypeCandidate> = if date_starts.is_empty() {
+                before
+            } else {
                 let filtered: Vec<&TypeCandidate> = before
                     .iter()
                     .filter(|t| !date_starts.iter().any(|&ds| t.start < ds && ds < d_start))
                     .copied()
                     .collect();
-                if !filtered.is_empty() {
-                    before = filtered;
+                if filtered.is_empty() {
+                    before
+                } else {
+                    filtered
                 }
-            }
-            let mut canon = before
-                .iter()
-                .max_by_key(|t| t.start)
-                .map(|t| t.canon.clone());
+            };
+            let winner = survivors.iter().max_by_key(|t| t.start).copied();
+            let mut canon = winner.map(|t| t.canon.clone());
             // -ФЗ суффикс → Федеральный закон (Закон РФ override)
             if canon.as_deref() == Some("Закон РФ") && a.number.ends_with("-ФЗ") {
                 canon = Some("Федеральный закон".to_string());
             }
+            // Provenance победителя: byte-span головы в том же блоке.
+            let type_evidence = winner.map(|t| LocalSpan {
+                block,
+                start: offs[t.start],
+                end: offs[t.end],
+            });
+            // Буфер конкурирующих гипотез: все выжившие, кроме победителя.
+            let alternatives: Vec<TypeHypothesis> = survivors
+                .iter()
+                .filter(|t| Some(t.start) != winner.map(|w| w.start))
+                .map(|t| TypeHypothesis {
+                    canon: t.canon.clone(),
+                    evidence: LocalSpan {
+                        block,
+                        start: offs[t.start],
+                        end: offs[t.end],
+                    },
+                })
+                .collect();
+            let unresolved = survivors.is_empty();
+            let derivation = if unresolved {
+                TypeDerivation::Unresolved
+            } else {
+                TypeDerivation::WrittenHere
+            };
             // Occurrences не сливаются по `(date, number)`: каждая запись
             // несёт свой source-local byte span (M207 AMBIGUOUS_DUPLICATE).
             out.push(TypedMember {
@@ -591,6 +648,10 @@ fn attach_types(paras: &[String], anchors: &[npa_anchor::Anchor]) -> Vec<TypedMe
                 type_name: canon.unwrap_or_default(),
                 approved_by: String::new(),
                 span: a.span,
+                derivation,
+                type_evidence,
+                alternatives,
+                unresolved,
             });
         }
     }
