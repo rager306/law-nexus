@@ -43,6 +43,12 @@ pub enum LinkDerivation {
     ThisDocumentRef,
     /// A continuation of an open cross-block series.
     SeriesContinuation,
+    /// A named annex found in text with no requisites of its own and no
+    /// approving act (still a named type, but uncited).
+    NamedTypeText,
+    /// A corporate regulation whose approval was refused (`do_not_project`):
+    /// no normative citation is minted (ADR-0029 §5).
+    Refused,
 }
 
 /// Derived linked member. `TypedMember` fields are cloned, never mutated.
@@ -659,6 +665,567 @@ fn find_word_ci(hay: &str, needle: &str) -> Option<usize> {
         }
     }
     None
+}
+
+// ---------------------------------------------------------------------------
+// Approved-by linking for named annexes (ADR-0029 §4/§5, ADR-0016).
+//
+// A named annex («Правила», «Положение», «Методические рекомендации», …) that
+// has no `date`+`number` of its own is a reference mention: it quotes the
+// approving act but never merges with its Work (Work ≠ approver, ADR-0016).
+// The pass derives new records and never mutates the typed stream. Windows are
+// ±450/700 **characters** (ADR-0029 §5) measured on a flattened view of the
+// paragraphs; evidence is always the two separate source-local anchors.
+// ---------------------------------------------------------------------------
+
+/// A one- or two-word annex stem. `first`/`second` are lowercase prefixes; the
+/// matched word may inflect after the prefix.
+struct AnnexStem {
+    canon: &'static str,
+    first: &'static str,
+    second: Option<&'static str>,
+}
+
+/// Annex types whose bare mention (no own requisites) becomes a named annex.
+/// The set mirrors the differential reference
+/// (`scripts/m207_context_graph_demo.py` `_link_approved_by`).
+const ANNEX_STEMS: &[AnnexStem] = &[
+    AnnexStem {
+        canon: "Правила",
+        first: "правил",
+        second: None,
+    },
+    AnnexStem {
+        canon: "Положение",
+        first: "положени",
+        second: None,
+    },
+    AnnexStem {
+        canon: "Перечень",
+        first: "перечен",
+        second: None,
+    },
+    AnnexStem {
+        canon: "Порядок",
+        first: "порядк",
+        second: None,
+    },
+    AnnexStem {
+        canon: "Требования",
+        first: "требовани",
+        second: None,
+    },
+    AnnexStem {
+        canon: "Методические рекомендации",
+        first: "методическ",
+        second: Some("рекомендац"),
+    },
+    AnnexStem {
+        canon: "Регламент",
+        first: "регламент",
+        second: None,
+    },
+    AnnexStem {
+        canon: "Конкурсная документация",
+        first: "конкурсн",
+        second: Some("документац"),
+    },
+];
+
+/// A bounded named-annex occurrence in a paragraph.
+struct AnnexHit {
+    canon: &'static str,
+    capitalized: bool,
+    span: LocalSpan,
+}
+
+fn is_letter_char(c: char) -> bool {
+    c.is_alphabetic()
+}
+
+/// Matches `prefix` (case-insensitive) at char index `i` and returns the char
+/// index one past the end of the whole word.
+fn match_annex_prefix(chars: &[char], i: usize, prefix: &str) -> Option<usize> {
+    let p: Vec<char> = prefix.chars().collect();
+    if i + p.len() > chars.len() {
+        return None;
+    }
+    for (k, want) in p.iter().enumerate() {
+        let got = chars[i + k].to_lowercase().next().unwrap_or(chars[i + k]);
+        if got != *want {
+            return None;
+        }
+    }
+    let mut end = i + p.len();
+    while end < chars.len() && is_letter_char(chars[end]) {
+        end += 1;
+    }
+    Some(end)
+}
+
+/// Matches an annex stem at char index `i` (left word boundary enforced).
+fn match_annex_at(chars: &[char], i: usize, stem: &AnnexStem) -> Option<usize> {
+    if i > 0 && is_letter_char(chars[i - 1]) {
+        return None;
+    }
+    let end = match_annex_prefix(chars, i, stem.first)?;
+    if let Some(second) = stem.second {
+        let mut j = end;
+        while j < chars.len() && chars[j].is_whitespace() {
+            j += 1;
+        }
+        if j == end {
+            return None;
+        }
+        return match_annex_prefix(chars, j, second);
+    }
+    Some(end)
+}
+
+/// Scans every paragraph for annex-stem occurrences with a source-local span.
+fn find_annex_hits(paras: &[String]) -> Vec<AnnexHit> {
+    let mut hits = Vec::new();
+    for (block, para) in paras.iter().enumerate() {
+        let chars: Vec<char> = para.chars().collect();
+        let mut offs: Vec<usize> = Vec::with_capacity(chars.len() + 1);
+        let mut b = 0usize;
+        for c in &chars {
+            offs.push(b);
+            b += c.len_utf8();
+        }
+        offs.push(b);
+        let mut i = 0usize;
+        'scan: while i < chars.len() {
+            for stem in ANNEX_STEMS {
+                if let Some(end) = match_annex_at(&chars, i, stem) {
+                    hits.push(AnnexHit {
+                        canon: stem.canon,
+                        capitalized: chars[i].is_uppercase(),
+                        span: LocalSpan {
+                            block,
+                            start: offs[i],
+                            end: offs[end],
+                        },
+                    });
+                    i = end;
+                    continue 'scan;
+                }
+            }
+            i += 1;
+        }
+    }
+    hits
+}
+
+/// A named type owns its requisites when a typed anchor directly follows the
+/// mention (only whitespace between): then it is a regular anchored member.
+fn annex_has_own_requisites(para: &str, hit: &AnnexHit, typed: &[TypedMember]) -> bool {
+    typed.iter().any(|m| {
+        m.span.block == hit.span.block
+            && m.span.start >= hit.span.end
+            && m.span.start <= para.len()
+            && para[hit.span.end..m.span.start].trim().is_empty()
+    })
+}
+
+/// The approver verb set of the differential reference.
+fn approve_verb(text: &str) -> bool {
+    find_ci(text, "утвержденн").is_some()
+        || find_ci(text, "об утвержден").is_some()
+        || find_ci(text, "вместе с").is_some()
+}
+
+/// A flattened view of the paragraph slice with a global byte index per local
+/// anchor. Windows are measured in characters (ADR-0029 §5).
+struct FlatDoc {
+    text: String,
+    block_start: Vec<usize>,
+}
+
+impl FlatDoc {
+    fn new(paras: &[String]) -> Self {
+        let mut text = String::new();
+        let mut block_start = Vec::with_capacity(paras.len());
+        for (i, para) in paras.iter().enumerate() {
+            if i > 0 {
+                text.push('\n');
+            }
+            block_start.push(text.len());
+            text.push_str(para);
+        }
+        FlatDoc { text, block_start }
+    }
+
+    fn global_byte(&self, span: LocalSpan) -> usize {
+        self.block_start
+            .get(span.block)
+            .copied()
+            .unwrap_or(0)
+            .saturating_add(span.start)
+    }
+
+    /// Number of `char`s in `text[a..b]` (both on char boundaries).
+    fn char_distance(&self, a: usize, b: usize) -> usize {
+        if a >= b {
+            return 0;
+        }
+        self.text[a..b].chars().count()
+    }
+
+    /// Byte offset `n` characters after `byte_start` (clamped to the end).
+    fn advance_chars(&self, byte_start: usize, n: usize) -> usize {
+        advance_chars_str(&self.text, byte_start, n)
+    }
+}
+
+fn advance_chars_str(s: &str, byte_start: usize, n: usize) -> usize {
+    let mut idx = byte_start;
+    let mut seen = 0usize;
+    while idx < s.len() && seen < n {
+        let c = s[idx..].chars().next().unwrap_or('\0');
+        idx += c.len_utf8();
+        seen += 1;
+    }
+    idx
+}
+
+/// Picks the approving act for an annex.
+///
+/// Direct later window: `0 < approver − annex < 450` chars, verb in the gap.
+/// Otherwise earlier window: `0 < annex − approver < 700` chars, verb in
+/// `approver..annex+80`. Otherwise the «вместе с …» list fallback: the last
+/// dated act before the first `вместе с` token.
+fn find_approver(flat: &FlatDoc, annex: &AnnexHit, typed: &[TypedMember]) -> Option<usize> {
+    let annex_g = flat.global_byte(annex.span);
+
+    let later = typed
+        .iter()
+        .enumerate()
+        .filter_map(|(id, m)| {
+            let g = flat.global_byte(m.span);
+            (g > annex_g && flat.char_distance(annex_g, g) < 450).then_some((g, id))
+        })
+        .min_by_key(|(g, _)| *g);
+    if let Some((g, id)) = later {
+        if approve_verb(&flat.text[annex_g..g]) {
+            return Some(id);
+        }
+    }
+
+    let earlier = typed
+        .iter()
+        .enumerate()
+        .filter_map(|(id, m)| {
+            let g = flat.global_byte(m.span);
+            (g < annex_g && flat.char_distance(g, annex_g) < 700).then_some((g, id))
+        })
+        .max_by_key(|(g, _)| *g);
+    if let Some((g, id)) = earlier {
+        let end = flat.advance_chars(annex_g, 80);
+        if approve_verb(&flat.text[g..end]) {
+            return Some(id);
+        }
+    }
+
+    if let Some(vmeste) = find_ci(&flat.text, "вместе с") {
+        if annex_g > vmeste {
+            let before = typed
+                .iter()
+                .enumerate()
+                .filter_map(|(id, m)| {
+                    let g = flat.global_byte(m.span);
+                    (g < vmeste).then_some((g, id))
+                })
+                .max_by_key(|(g, _)| *g);
+            if let Some((_, id)) = before {
+                return Some(id);
+            }
+        }
+    }
+    None
+}
+
+/// Finds the first `DD.MM.YYYY` in a slice (char-safe).
+fn dot_date_in(slice: &str) -> Option<String> {
+    let chars: Vec<char> = slice.chars().collect();
+    let mut i = 0usize;
+    while i + 10 <= chars.len() {
+        let c = |k: usize| chars[i + k];
+        if c(0).is_ascii_digit()
+            && c(1).is_ascii_digit()
+            && c(2) == '.'
+            && c(3).is_ascii_digit()
+            && c(4).is_ascii_digit()
+            && c(5) == '.'
+            && c(6).is_ascii_digit()
+            && c(7).is_ascii_digit()
+            && c(8).is_ascii_digit()
+            && c(9).is_ascii_digit()
+        {
+            return Some(chars[i..i + 10].iter().collect());
+        }
+        i += 1;
+    }
+    None
+}
+
+/// Case-sensitive whole-word search (the `_CORP_ACTOR` tokens are uppercase).
+fn find_word_cs(hay: &str, needle: &str) -> Option<usize> {
+    let chars: Vec<(usize, char)> = hay.char_indices().collect();
+    let pat: Vec<char> = needle.chars().collect();
+    if pat.is_empty() || chars.len() < pat.len() {
+        return None;
+    }
+    let is_word = |c: char| c.is_alphanumeric() || c == '_';
+    for i in 0..=chars.len() - pat.len() {
+        if (0..pat.len()).all(|k| chars[i + k].1 == pat[k])
+            && (i == 0 || !is_word(chars[i - 1].1))
+            && (i + pat.len() >= chars.len() || !is_word(chars[i + pat.len()].1))
+        {
+            return Some(chars[i].0);
+        }
+    }
+    None
+}
+
+fn corp_actor(window: &str) -> bool {
+    ["ООО", "АО", "ПАО", "ИП", "ЗАО"]
+        .iter()
+        .any(|token| find_word_cs(window, token).is_some())
+}
+
+fn named_annex_member(
+    id: usize,
+    hit: &AnnexHit,
+    approved_by: Option<String>,
+    derivation: LinkDerivation,
+) -> LinkedMember {
+    LinkedMember {
+        id,
+        kind: LinkedMemberKind::NamedType,
+        date: String::new(),
+        number: String::new(),
+        type_name: hit.canon.to_string(),
+        approved_by,
+        alias: None,
+        derivation,
+        evidence: hit.span,
+        provenance: vec![hit.span],
+    }
+}
+
+/// Links named annexes to their approving acts.
+///
+/// Returns the derived `NamedType` members (ids start after the typed-stream
+/// indices so they never collide with `anchored_members`), the `ApprovedBy`
+/// relations, and the fail-closed diagnostics. A corporate regulation is
+/// refused: its `approved_by` is the corporate body, its derivation is
+/// [`LinkDerivation::Refused`], a [`LinkDiagnostic::HeadFamilyCarryRefused`]
+/// is emitted, and **no** normative citation/relation is minted. A lowercase
+/// annex mention without an approving act is not a named annex (ADR-0029 §5).
+pub fn link_approved_by(
+    paras: &[String],
+) -> (Vec<LinkedMember>, Vec<LinkedRelation>, Vec<LinkDiagnostic>) {
+    let (typed, _anchor_diagnostics) = npa_typed::scan_typed_diagnosed(paras);
+    let flat = FlatDoc::new(paras);
+    let hits = find_annex_hits(paras);
+    let annex_base = typed.len();
+
+    let mut members: Vec<LinkedMember> = Vec::new();
+    let mut relations: Vec<LinkedRelation> = Vec::new();
+    let mut diagnostics: Vec<LinkDiagnostic> = Vec::new();
+
+    for hit in &hits {
+        let Some(para) = paras.get(hit.span.block) else {
+            continue;
+        };
+        if annex_has_own_requisites(para, hit, &typed) {
+            continue;
+        }
+        let annex_g = flat.global_byte(hit.span);
+
+        // Corporate regulation: refuse, mint no normative citation.
+        if hit.canon == "Регламент" {
+            let window_end = flat.advance_chars(annex_g, 280);
+            let window = &flat.text[annex_g..window_end];
+            if let Some(offset) = find_ci(window, "генеральным директором") {
+                let tail_start = annex_g + offset;
+                let tail_end = flat.advance_chars(tail_start, 80);
+                let approved = match dot_date_in(&flat.text[tail_start..tail_end]) {
+                    Some(date) => format!("генеральный директор от {date}"),
+                    None => "генеральный директор (дата обрезана в seed)".to_string(),
+                };
+                let id = annex_base + members.len();
+                members.push(named_annex_member(
+                    id,
+                    hit,
+                    Some(approved),
+                    LinkDerivation::Refused,
+                ));
+                diagnostics.push(LinkDiagnostic::HeadFamilyCarryRefused);
+                continue;
+            }
+            if find_ci(window, "генеральный директор").is_some() || corp_actor(window)
+            {
+                let id = annex_base + members.len();
+                members.push(named_annex_member(
+                    id,
+                    hit,
+                    Some("генеральный директор (дата обрезана в seed)".to_string()),
+                    LinkDerivation::Refused,
+                ));
+                diagnostics.push(LinkDiagnostic::HeadFamilyCarryRefused);
+                continue;
+            }
+        }
+
+        let approver = find_approver(&flat, hit, &typed);
+        let approved_by = approver.map(|id| {
+            format!(
+                "{} от {} N {}",
+                typed[id].type_name, typed[id].date, typed[id].number
+            )
+        });
+
+        // Capitalization gate on uncited annexes (ADR-0029 §5): an uncited
+        // lowercase mention is not a named annex.
+        if approved_by.is_none() && !hit.capitalized {
+            continue;
+        }
+
+        let has_approver = approver.is_some();
+        let id = annex_base + members.len();
+        let derivation = if has_approver {
+            LinkDerivation::ApprovedByQuote
+        } else {
+            LinkDerivation::NamedTypeText
+        };
+        members.push(named_annex_member(id, hit, approved_by, derivation));
+        if let Some(approver_id) = approver {
+            relations.push(LinkedRelation {
+                kind: LinkedRelationKind::ApprovedBy,
+                from_id: id,
+                to_id: approver_id,
+                evidence: vec![hit.span, typed[approver_id].span],
+                why: "named annex quotes its approving act; Work is never merged (ADR-0016)",
+            });
+        }
+    }
+
+    (members, relations, diagnostics)
+}
+
+// ---------------------------------------------------------------------------
+// Narrow head-family carry (ADR-0029 §4, differential reference
+// `CTX_CARRY`/`_ctx_carry_type` in `scripts/m207_context_graph_demo.py`).
+// ---------------------------------------------------------------------------
+
+/// Issuer phrases of the narrow carry cliché, longest first.
+const CONTEXT_CARRY_ISSUERS: &[(&str, &str)] = &[
+    ("пленума верховного суда", "Пленума Верховного Суда"),
+    ("конституционного суда", "Конституционного суда"),
+    ("верховного суда", "Верховного Суда"),
+    ("антимонопольного органа", "антимонопольного органа"),
+];
+
+/// A typeless quoted requisite that receives a head family inside the narrow
+/// «правовой позиции … изложенной в Постановлении/Определении от DATE N»
+/// cliché. This is a reference mention, never a Work or a Binding (ADR-0019).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HeadFamilyCarry {
+    pub family: String,
+    pub issuer: String,
+    pub date: String,
+    pub number: String,
+    pub evidence: Vec<LocalSpan>,
+    pub why: &'static str,
+}
+
+fn ctx_carry_type(issuer_kind: &str, kind_word: &str) -> Option<String> {
+    let fold = issuer_kind.to_lowercase();
+    let act = if kind_word.starts_with("Пост") {
+        "Постановление"
+    } else {
+        "Определение"
+    };
+    if fold.contains("конституционн") {
+        Some(format!("{act} КС РФ"))
+    } else if fold.contains("пленума") {
+        (act == "Постановление").then(|| "Постановление Пленума ВС РФ".to_string())
+    } else if fold.contains("верховного") {
+        Some(format!("{act} ВС РФ"))
+    } else if fold.contains("антимонопольн") {
+        Some("Решение УФАС России".to_string())
+    } else {
+        None
+    }
+}
+
+/// Carries a head family onto typeless quoted requisites, but only inside the
+/// narrow cliché. Outside it, a bare requisite keeps its own (absent) type —
+/// proximity is never evidence (fail-closed).
+pub fn carry_head_family(paras: &[String]) -> Vec<HeadFamilyCarry> {
+    let anchors = npa_anchor::scan_anchors(paras);
+    let mut carries = Vec::new();
+    for (block, para) in paras.iter().enumerate() {
+        // Earliest issuer phrase in this block.
+        let mut best: Option<(usize, usize, &'static str)> = None;
+        for (pattern, kind) in CONTEXT_CARRY_ISSUERS {
+            if let Some(start) = find_ci(para, pattern) {
+                let end = start + pattern.len();
+                if best.is_none_or(|(bs, _, _)| start < bs) {
+                    best = Some((start, end, kind));
+                }
+            }
+        }
+        let Some((issuer_start, issuer_end, issuer_kind)) = best else {
+            continue;
+        };
+        let win_end = advance_chars_str(para, issuer_end, 200);
+        let Some(izl_rel) = find_ci(&para[issuer_end..win_end], "изложенн") else {
+            continue;
+        };
+        let after = &para[issuer_end + izl_rel..];
+        let Some(v_rel) = find_ci(after, " в ") else {
+            continue;
+        };
+        let from = issuer_end + izl_rel + v_rel + " в ".len();
+        let kind_end = advance_chars_str(para, from, 60);
+        let slice = &para[from..kind_end];
+        let kind_word = if find_ci(slice, "постановлени").is_some() {
+            "Постановление"
+        } else if find_ci(slice, "определени").is_some() {
+            "Определение"
+        } else {
+            continue;
+        };
+        let Some(anchor) = anchors
+            .iter()
+            .find(|a| a.span.block == block && a.span.start >= from && a.span.start <= kind_end)
+        else {
+            continue;
+        };
+        let Some(family) = ctx_carry_type(issuer_kind, kind_word) else {
+            continue;
+        };
+        let issuer_span = LocalSpan {
+            block,
+            start: issuer_start,
+            end: issuer_end,
+        };
+        if npa_anchor::check_span(para, issuer_span).is_err() {
+            continue;
+        }
+        carries.push(HeadFamilyCarry {
+            family,
+            issuer: issuer_kind.to_string(),
+            date: anchor.date.clone(),
+            number: anchor.number.clone(),
+            evidence: vec![issuer_span, anchor.span],
+            why: "quoted requisite inside a narrow context-carry cliché; a reference mention, never a Binding (ADR-0019)",
+        });
+    }
+    carries
 }
 
 #[cfg(test)]
