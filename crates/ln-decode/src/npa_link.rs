@@ -14,7 +14,7 @@ use std::collections::BTreeMap;
 
 use crate::document_context::PROPOSED_MAX_SERIES_HOPS;
 use crate::local_grammar::{self, FrameStatus};
-use crate::npa_anchor::LocalSpan;
+use crate::npa_anchor::{self, LocalSpan};
 use crate::npa_continuation::{eligible_continuation_head_for, ContinuationEligibility};
 use crate::npa_typed::{self, TypedMember};
 
@@ -107,8 +107,9 @@ pub enum LetterheadStatus {
     Unrecognized,
 }
 
-/// Document letterhead (head zone). Placeholder shape wired in T01; the
-/// recognizer and issuer table land in T02.
+/// Document letterhead (head zone). Recognized from the leading paragraphs;
+/// `Unrecognized` is represented by the recognizer returning `None`, so no
+/// requisites are ever fabricated.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Letterhead {
     pub kind: String,
@@ -275,6 +276,389 @@ fn block_ends_open(text: &str) -> bool {
         return true;
     }
     trimmed.matches('(').count() > trimmed.matches(')').count()
+}
+
+// ---------------------------------------------------------------------------
+// Letterhead recognizer (ADR-0029 §5; differential reference
+// `_LETTERHEAD` / `_document_head_member` in
+// `scripts/m207_context_graph_demo.py`).
+//
+// The issuer table is data, not a regex; matching is case-insensitive word /
+// substring search. The implementation is bounded to the head zone and to
+// kind + issuer + date/N — the full prototype `TYPE_HEAD` is out of scope.
+// ---------------------------------------------------------------------------
+
+/// Leading paragraphs that form the head zone. ADR-0029 §5: the court guard
+/// lives on the letterhead, not on the body, so body mentions never
+/// misclassify the document.
+const LETTERHEAD_HEAD_ZONE: usize = 3;
+
+/// Issuer letterhead table, equivalent to `_LETTERHEAD`
+/// (`scripts/m207_context_graph_demo.py` L2509-2535). Patterns are lowercase
+/// and whitespace-normalized; short names are kept exactly as written there.
+const LETTERHEAD_ISSUERS: &[(&str, &str)] = &[
+    ("министерство внутренних дел", "МВД России"),
+    ("министерство юстиции", "Минюста России"),
+    ("министерство труда", "Минтруда России"),
+    ("министерство финансов", "Минфина России"),
+    ("министерство здравоохранения", "Минздрава России"),
+    (
+        "министерство промышленности и торговли",
+        "Минпромторга России",
+    ),
+    (
+        "министерство экономического развития",
+        "Минэкономразвития России",
+    ),
+    ("министерство природных ресурсов", "Минприроды России"),
+    ("министерство сельского хозяйства", "Минсельхоза России"),
+    ("министерство транспорта", "Минтранса России"),
+    ("министерство строительства", "Минстроя России"),
+    ("министерство цифрового развития", "Минцифры России"),
+    ("министерство связи", "Минкомсвязи России"),
+    ("министерство образования", "Минпросвещения России"),
+    ("министерство науки", "Минобрнауки России"),
+    ("министерство спорта", "Минспорта России"),
+    ("министерство культуры", "Минкультуры России"),
+    ("министерство энергетики", "Минэнерго России"),
+    ("федеральная антимонопольная", "ФАС России"),
+    ("федеральная служба безопасности", "ФСБ России"),
+    ("федеральная служба охраны", "Росгвардия России"),
+    ("федеральная таможенная", "ФТС России"),
+    ("федеральное казначейство", "Федерального казначейства"),
+    (
+        "федеральная пробирная палата",
+        "Федеральной пробирной палаты",
+    ),
+];
+
+/// Recognized head family, used to pick the requisite source.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum HeadClass {
+    Prikaz,
+    Postanovlenie,
+    Rasporyazhenie,
+    Ukaz,
+    Fas,
+}
+
+impl Letterhead {
+    /// The `head_type` consumed by later passes (head-family carry, this_ref).
+    /// ADR-0029 §5: the letterhead outranks matching body mentions, so the
+    /// kind read here is never overridden by a citation from the body.
+    pub fn head_type(&self) -> &str {
+        &self.kind
+    }
+}
+
+/// Recognizes the document letterhead from the leading paragraphs.
+///
+/// Fail-closed: court letterheads, unknown heads, and recognized kinds with no
+/// source requisites all yield `None`; date/number are never fabricated. A
+/// recognized letterhead carries a validated source-local [`LocalSpan`].
+pub fn recognize_letterhead(paras: &[String]) -> Option<Letterhead> {
+    if paras.is_empty() {
+        return None;
+    }
+    let zone = paras.len().min(LETTERHEAD_HEAD_ZONE);
+    let head_paras = &paras[..zone];
+
+    // Court letterhead: fail-closed (ADR-0029 §5). Bounded to the head zone
+    // so a body mention («арбитражных судах») cannot misclassify an act.
+    if is_court_head(&court_tokens(head_paras)) {
+        return None;
+    }
+
+    let head_raw = head_paras.join("\n");
+    let head_lower = lower_ws(&head_raw);
+    let (class, kind, issuer) = detect_letterhead_kind(&head_raw, &head_lower)?;
+
+    let anchors = npa_anchor::scan_anchors(head_paras);
+    let first = anchors.first();
+
+    let (date, number, evidence) = match class {
+        HeadClass::Fas => {
+            let date = first
+                .map(|a| a.date.clone())
+                .unwrap_or_else(|| "—".to_string());
+            match (find_case_number(head_paras), first) {
+                (Some((number, span)), _) => (date, number, span),
+                (None, Some(a)) => (date, a.number.clone(), a.span),
+                (None, None) => return None,
+            }
+        }
+        _ => {
+            let anchor = first?;
+            (anchor.date.clone(), anchor.number.clone(), anchor.span)
+        }
+    };
+
+    let para = paras.get(evidence.block)?;
+    if npa_anchor::check_span(para, evidence).is_err() {
+        return None;
+    }
+
+    Some(Letterhead {
+        kind,
+        issuer,
+        date,
+        number,
+        evidence,
+        status: LetterheadStatus::Recognized,
+    })
+}
+
+fn detect_letterhead_kind(head_raw: &str, head_lower: &str) -> Option<(HeadClass, String, String)> {
+    // Приказ <issuer>: an explicit issuer phrase wins; the table is a fallback
+    // for uppercase ministry letterheads (issuer on its own line).
+    if find_word_ci(head_raw, "приказ").is_some() {
+        let issuer = generic_issuer_after_prikaz(head_raw)
+            .or_else(|| issuer_from_table(head_lower).map(str::to_string))
+            .unwrap_or_default();
+        let kind = if issuer.is_empty() {
+            "Приказ".to_string()
+        } else {
+            format!("Приказ {issuer}")
+        };
+        return Some((HeadClass::Prikaz, kind, issuer));
+    }
+    if head_lower.contains("постановлен") && head_lower.contains("правительств")
+    {
+        return Some((
+            HeadClass::Postanovlenie,
+            "Постановление Правительства РФ".to_string(),
+            "Правительство РФ".to_string(),
+        ));
+    }
+    if head_lower.contains("распоряжен") && head_lower.contains("правительств")
+    {
+        return Some((
+            HeadClass::Rasporyazhenie,
+            "распоряжение Правительства РФ".to_string(),
+            "Правительство РФ".to_string(),
+        ));
+    }
+    if find_word_ci(head_raw, "указ").is_some() && head_lower.contains("президента") {
+        return Some((
+            HeadClass::Ukaz,
+            "Указ Президента РФ".to_string(),
+            "Президент РФ".to_string(),
+        ));
+    }
+    if let Some(label) = fas_label(head_raw, head_lower) {
+        let issuer = if head_lower.contains("уфас")
+            || (head_lower.contains("управлени") && head_lower.contains("федеральн"))
+        {
+            "УФАС России"
+        } else {
+            "ФАС России"
+        };
+        return Some((
+            HeadClass::Fas,
+            format!("{label} {issuer}"),
+            issuer.to_string(),
+        ));
+    }
+    None
+}
+
+/// РЕШЕНИЕ / ПРЕДПИСАНИЕ / ОПРЕДЕЛЕНИЕ in an antitrust letterhead.
+fn fas_label(head_raw: &str, head_lower: &str) -> Option<&'static str> {
+    let fas_context = head_lower.contains("фас")
+        || head_lower.contains("уфас")
+        || head_lower.contains("антимонопольн");
+    if !fas_context {
+        return None;
+    }
+    if find_word_ci(head_raw, "решение").is_some() {
+        Some("Решение")
+    } else if find_word_ci(head_raw, "предписание").is_some() {
+        Some("Предписание")
+    } else if find_word_ci(head_raw, "определение").is_some() {
+        Some("Определение")
+    } else {
+        None
+    }
+}
+
+/// Lowercase, whitespace-collapsed view for the data-table lookup.
+fn lower_ws(s: &str) -> String {
+    s.to_lowercase()
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn issuer_from_table(head_lower: &str) -> Option<&'static str> {
+    LETTERHEAD_ISSUERS
+        .iter()
+        .find(|(pattern, _)| head_lower.contains(pattern))
+        .map(|(_, short)| *short)
+}
+
+/// Captures the `issuer` phrase that follows an explicit `Приказ` token, e.g.
+/// «Приказ Минэкономразвития России от …» -> «Минэкономразвития России».
+/// Stops at the first non-capitalized token (`от`, `об`, `N`, …).
+fn generic_issuer_after_prikaz(head: &str) -> Option<String> {
+    let idx = find_word_ci(head, "приказ")?;
+    let rest = &head[idx + "приказ".len()..];
+    let mut words: Vec<String> = Vec::new();
+    for raw in rest.split_whitespace() {
+        let token = raw.trim_matches(|c: char| !(c.is_alphanumeric() || c == '-'));
+        if token.is_empty() {
+            break;
+        }
+        let first = token.chars().next()?;
+        if !first.is_uppercase() {
+            break;
+        }
+        if token == "N" || token == "n" || token == "№" {
+            break;
+        }
+        words.push(token.to_string());
+        if words.len() >= 8 {
+            break;
+        }
+    }
+    if words.is_empty() {
+        None
+    } else {
+        Some(words.join(" "))
+    }
+}
+
+/// Case number from `по делу N <num>` (antitrust letterheads).
+fn find_case_number(paras: &[String]) -> Option<(String, LocalSpan)> {
+    for (block, para) in paras.iter().enumerate() {
+        let pos = match find_ci(para, "по делу") {
+            Some(pos) => pos,
+            None => continue,
+        };
+        let rest = &para[pos + "по делу".len()..];
+        let mut i = 0usize;
+        while i < rest.len() && rest.as_bytes()[i].is_ascii_whitespace() {
+            i += 1;
+        }
+        if rest[i..].starts_with('N') || rest[i..].starts_with('n') {
+            i += 1;
+        } else if rest[i..].starts_with('№') {
+            i += '№'.len_utf8();
+        }
+        while i < rest.len() && rest.as_bytes()[i].is_ascii_whitespace() {
+            i += 1;
+        }
+        let start = pos + "по делу".len() + i;
+        let mut end = start;
+        while end < para.len() {
+            let ch = para[end..].chars().next().unwrap_or('\0');
+            if ch.is_alphanumeric() || matches!(ch, '/' | '-' | '.') {
+                end += ch.len_utf8();
+            } else {
+                break;
+            }
+        }
+        if end > start {
+            let span = LocalSpan { block, start, end };
+            if npa_anchor::check_span(para, span).is_ok() {
+                return Some((para[start..end].to_string(), span));
+            }
+        }
+    }
+    None
+}
+
+/// Tokens of the head zone (lowercased, punctuation-trimmed) for the court
+/// guard.
+fn court_tokens(paras: &[String]) -> Vec<String> {
+    paras
+        .iter()
+        .flat_map(|p| p.split_whitespace())
+        .map(|w| {
+            w.trim_matches(|c: char| !c.is_alphanumeric())
+                .to_lowercase()
+        })
+        .filter(|w| !w.is_empty())
+        .collect()
+}
+
+/// Court letterhead marker: a court stem followed by «суд…» (or «суд общей
+/// юрисдикции»), mirroring the prototype court regex but bounded to tokens.
+fn is_court_head(words: &[String]) -> bool {
+    const STEMS: &[&str] = &[
+        "верховн",
+        "арбитражн",
+        "кассационн",
+        "апелляционн",
+        "областн",
+        "краев",
+        "районн",
+        "городск",
+        "миров",
+    ];
+    for i in 0..words.len() {
+        if STEMS.iter().any(|stem| words[i].starts_with(stem))
+            && i + 1 < words.len()
+            && words[i + 1].starts_with("суд")
+        {
+            return true;
+        }
+    }
+    for i in 0..words.len().saturating_sub(2) {
+        if words[i] == "суд"
+            && words[i + 1].starts_with("общей")
+            && words[i + 2].starts_with("юрисдикц")
+        {
+            return true;
+        }
+    }
+    false
+}
+
+/// Case-insensitive substring search; returns the byte offset of the first
+/// match. Cyrillic case-folding is applied per char, so the offset is always a
+/// valid char boundary of `hay`.
+fn find_ci(hay: &str, needle: &str) -> Option<usize> {
+    let hay_chars: Vec<(usize, char)> = hay.char_indices().collect();
+    let needle_chars: Vec<char> = needle.chars().collect();
+    if needle_chars.is_empty() || hay_chars.len() < needle_chars.len() {
+        return None;
+    }
+    for i in 0..=hay_chars.len() - needle_chars.len() {
+        let matched = needle_chars.iter().enumerate().all(|(k, nc)| {
+            let hc = hay_chars[i + k].1;
+            hc.to_lowercase().next().unwrap_or(hc) == nc.to_lowercase().next().unwrap_or(*nc)
+        });
+        if matched {
+            return Some(hay_chars[i].0);
+        }
+    }
+    None
+}
+
+/// Whole-word case-insensitive search; returns the byte offset of the match.
+fn find_word_ci(hay: &str, needle: &str) -> Option<usize> {
+    let hay_chars: Vec<(usize, char)> = hay.char_indices().collect();
+    let needle_chars: Vec<char> = needle.chars().collect();
+    if needle_chars.is_empty() || hay_chars.len() < needle_chars.len() {
+        return None;
+    }
+    let is_word = |c: char| c.is_alphanumeric() || c == '_';
+    for i in 0..=hay_chars.len() - needle_chars.len() {
+        let matched = needle_chars.iter().enumerate().all(|(k, nc)| {
+            let hc = hay_chars[i + k].1;
+            hc.to_lowercase().next().unwrap_or(hc) == nc.to_lowercase().next().unwrap_or(*nc)
+        });
+        if !matched {
+            continue;
+        }
+        let before_ok = i == 0 || !is_word(hay_chars[i - 1].1);
+        let end = i + needle_chars.len();
+        let after_ok = end >= hay_chars.len() || !is_word(hay_chars[end].1);
+        if before_ok && after_ok {
+            return Some(hay_chars[i].0);
+        }
+    }
+    None
 }
 
 #[cfg(test)]
