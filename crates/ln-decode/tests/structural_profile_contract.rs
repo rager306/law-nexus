@@ -124,7 +124,7 @@ document_groups:
 // ─── catalog shape and non-claims ──────────────────────────────────────────
 
 #[test]
-fn embedded_profile_exposes_five_groups_and_non_claims() {
+fn embedded_profile_exposes_six_groups_and_non_claims() {
     let profile = profile();
     let ids: Vec<&str> = profile
         .groups
@@ -137,6 +137,7 @@ fn embedded_profile_exposes_five_groups_and_non_claims() {
             "federal_law@v1",
             "code",
             "government_resolution",
+            "presidential_decree",
             "departmental_order",
             "court_practice"
         ]

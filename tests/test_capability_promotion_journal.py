@@ -53,6 +53,7 @@ _DOCUMENT_GROUPS = (
     "federal_law@v1",
     "code",
     "government_resolution",
+    "presidential_decree",
     "departmental_order",
     "court_practice",
 )
@@ -266,7 +267,7 @@ def test_cross_act_c1_axis_pinned() -> None:
     assert "484-ФЗ" in journal and "acquired; edge not executed" in journal
 
 
-def test_support_acts_cover_five_document_groups() -> None:
+def test_support_acts_cover_six_document_groups() -> None:
     section = _section("### Support acts by document_group")
     rows = {
         _cells(line)[0].strip("`"): _cells(line)

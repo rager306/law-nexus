@@ -34,6 +34,7 @@ pub mod ports;
 pub mod prefix_catalog;
 pub mod references;
 pub mod sentence;
+pub mod source_package;
 pub mod structural_profile;
 pub mod temporal;
 mod tokenizer;

@@ -24,7 +24,7 @@ fn group<'a>(catalog: &'a OntologyCatalog, id: &str) -> &'a ln_kb_ontology::cata
 // ─── embedded catalog shape ────────────────────────────────────────────────
 
 #[test]
-fn embedded_catalog_declares_five_document_groups() {
+fn embedded_catalog_declares_six_document_groups() {
     let catalog = catalog();
     let ids: Vec<&str> = catalog
         .document_groups
@@ -37,6 +37,11 @@ fn embedded_catalog_declares_five_document_groups() {
             "federal_law@v1",
             "code",
             "government_resolution",
+            // Замер 2026-09-27: указы Президента (exports/npa/decree_*) норматся
+            // пунктами `1.` с подпунктами `а)` и приложениями — ни federal_law@v1
+            // (unit = statya), ни government_resolution (тот же суффикс `.`, но
+            // другой тип акта) не описывают указ. Профиль добавлен в канон.
+            "presidential_decree",
             "departmental_order",
             "court_practice"
         ]
@@ -244,12 +249,21 @@ fn razdel_is_active_only_in_code_ladder() {
 // ─── per-group structure ───────────────────────────────────────────────────
 
 #[test]
-fn code_group_is_razdel_glava_statya_depth_2() {
+fn code_group_is_razdel_plus_the_federal_law_subunit_ladder_depth_2() {
     let catalog = catalog();
     let code = group(&catalog, "code");
     assert_eq!(code.max_depth, Some(2));
     let tokens: Vec<&str> = code.ladder.iter().map(|e| e.token.as_str()).collect();
-    assert_eq!(tokens, ["razdel", "glava", "statya"]);
+    // Замер 2026-09-27 (КоАП, document_2001-12-30_195-fz): статей 1121, но в
+    // тексте ещё 3165 частей `1.`, 910 пунктов `1)` и 15 подпунктов `а)`. При
+    // усечённой лестнице [razdel, glava, statya] они уходили в границы и терялись.
+    // Кодекс = федеральный закон плюс razdel, поэтому subunit-уровни объявлены
+    // так же, как в federal_law@v1. Отличие code от federal_law@v1 остаётся одно:
+    // razdel (R8-08 — в федеральном законе маркер «Раздел» остаётся fail-closed).
+    assert_eq!(
+        tokens,
+        ["razdel", "glava", "statya", "chast", "punkt", "podpunkt"]
+    );
     assert_eq!(code.granularity.as_deref(), Some("statya"));
 }
 

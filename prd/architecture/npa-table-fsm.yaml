@@ -69,6 +69,9 @@ table_structure_fsm:
     - {from: RowOpen, event: next_row_key_filled, to: RowOpen}
     - {from: RowOpen, event: continuation_single_cell, to: RowContinued}
     - {from: RowOpen, event: continuation_multi_cell, to: SubRowOpen}
+    # Симметрично full_width_row_normal: строка-примечание об изменении может идти
+    # сразу за ключевой строкой (замер 2026-09-27: 1 случай в выборке npa).
+    - {from: RowOpen, event: full_width_row_revision, to: RevisionNoted}
     - {from: RowOpen, event: full_width_row_normal, to: SectionOpened}
     - {from: RowOpen, event: rows_exhausted, to: Resolving}
     - {from: RowContinued, event: continuation_single_cell, to: RowContinued}
@@ -76,6 +79,11 @@ table_structure_fsm:
     - {from: RowContinued, event: next_row_key_filled, to: RowOpen}
     - {from: SubRowOpen, event: continuation_multi_cell, to: SubRowOpen}
     - {from: SubRowOpen, event: continuation_single_cell, to: RowContinued}
+    # Пробел контракта (замер 2026-09-27): у RowContinued/SubRowOpen не было пути назад
+    # в RowScanning, хотя блок продолжения обязан закрыться перед строкой-секцией
+    # (full_width_row_*) или в конце таблицы. Из-за этого раннер эмитил необъявленные
+    # пары SubRowOpen --full_width_row_normal--> (34 раза) и SubRowOpen --rows_exhausted-->.
+    - {from: [RowContinued, SubRowOpen], event: continuation_closed, to: RowScanning}
     - {from: SubRowOpen, event: next_row_key_filled, to: RowOpen}
     - {from: SectionOpened, event: rows_continue, to: RowScanning}
     - {from: RevisionNoted, event: rows_continue, to: RowScanning}
@@ -162,6 +170,13 @@ table_structure_fsm:
       axis_min_values: 3
       axis_value_max_chars: 60
       column_numbers_min_values: 3
+      # Замер 2026-09-27 (npa, 198 таблиц): вёрстка определяется числом заполненных
+      # ячеек в строке, а НЕ классификацией заголовка. У служебных блоков выгрузки
+      # («Документ предоставлен КонсультантПлюс», «Список изменяющих документов»)
+      # сканер собирает одну ПУСТУЮ строку-заголовок, поэтому проверка «нет заголовка»
+      # не срабатывает. Инвариант: вёрстка — вертикальная стопка строк, где ни в одной
+      # строке нет >= layout_max_filled_per_row заполненных ячеек.
+      layout_max_filled_per_row: 1
 
   # -------------------------------------------------------------------------
   # Инвариантный аудит как корпусный гейт (форма ADR-0029 §9).
@@ -182,6 +197,26 @@ table_structure_fsm:
       rule: у каждого TableJunk есть junk_reason из closed-словаря
     - id: A7_context_bound
       rule: каждая TableContent несёт context_ref на структурный узел скелета
+    # --- правила, вскрытые замером 2026-09-27 ---
+    - id: A8_layout_is_vertical_stack
+      rule: >
+        вёрстка (TableLayout) распознаётся по числу заполненных ячеек в строке
+        (layout_max_filled_per_row), а не по отсутствию заголовка: у служебных блоков
+        выгрузки сканер собирает пустую строку-заголовок. До этой правки 69 из 72
+        таблиц выборки npa уходили в TableHold как «колонка без роли», хотя являются
+        вёрсткой (одностолбцовые блоки шапки/подвала, однострочные уведомления).
+    - id: A9_role_chain_incomplete_holds
+      rule: >
+        колонка без покрывающей ячейки заголовка не получает роль (fallback_role: null —
+        не угадывать) и таблица уходит в TableHold по объявленному переходу
+        ColumnRolesResolved --role_chain_incomplete--> TableHold. Остаток после A8: 3 из
+        198 таблиц npa (ncols=5 phys=845, ncols=5 phys=93, ncols=9 phys=14) — настоящие
+        таблицы данных без строки заголовка; для них Hold честен.
+    - id: A10_no_undeclared_rule_names
+      rule: >
+        раннер не вводит правил аудита, отсутствующих в этом контракте: прежнее
+        'A7b: колонка без заголовка' было выдуманным именем, не меняло терминал и
+        маскировало fail-closed переход (тот же класс, что S9/S12 у скелета).
 
 # ---------------------------------------------------------------------------
 # Опциональная стадия промпта для fail-closed остатка (ADR-0029 §10).

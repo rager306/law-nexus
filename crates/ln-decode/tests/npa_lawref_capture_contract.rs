@@ -854,7 +854,19 @@ fn freeze_no_parsing_deps_and_no_lawref_tokenkind() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let cargo_toml = fs::read_to_string(manifest_dir.join("Cargo.toml"))
         .expect("read crates/ln-decode/Cargo.toml");
-    for dependency in ["serde", "clap", "walkdir"] {
+    // D602 permits serde for source_package, not the frozen lexer/LawRef path.
+    for module in ["lexer.rs", "lawref.rs", "lawref_resolve.rs"] {
+        let source = fs::read_to_string(manifest_dir.join("src").join(module))
+            .expect("read frozen lexer or LawRef module");
+        assert!(
+            !source
+                .lines()
+                .filter(|line| !line.trim_start().starts_with("//"))
+                .any(|line| line.contains("serde")),
+            "{module} must retain its D328 no-serde boundary"
+        );
+    }
+    for dependency in ["clap", "walkdir"] {
         assert!(
             !cargo_toml.contains(dependency),
             "ln-decode must not gain a '{dependency}' dependency (D328: hand-rolled JSON)"

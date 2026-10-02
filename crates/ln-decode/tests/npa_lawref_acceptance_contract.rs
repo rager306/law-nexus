@@ -1428,15 +1428,27 @@ fn ds_noise_report_still_binds_no_alpha_number() {
 
 /// The T01 freeze: the capture module stays vocabulary-frozen and ln-decode
 /// gains no reporting dependencies (style copied from the S03
-/// `resolution_freeze_pins_hold`).
+/// `resolution_freeze_pins_hold`). D602 permits serde in source_package only;
+/// the existing lexer and LawRef modules retain the D328 boundary.
 #[test]
 fn acceptance_freeze_pins_hold() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let cargo_toml = fs::read_to_string(manifest_dir.join("Cargo.toml")).expect("read Cargo.toml");
-    for dependency in ["serde", "clap", "walkdir", "krippendorff"] {
+    for dependency in ["clap", "walkdir", "krippendorff"] {
         assert!(
             !cargo_toml.contains(dependency),
             "ln-decode must not gain a '{dependency}' dependency (hand-rolled readers and formulas, D328)"
+        );
+    }
+    for module in ["lexer.rs", "lawref.rs", "lawref_resolve.rs"] {
+        let source = fs::read_to_string(manifest_dir.join("src").join(module))
+            .expect("read frozen lexer or LawRef module");
+        assert!(
+            !source
+                .lines()
+                .filter(|line| !line.trim_start().starts_with("//"))
+                .any(|line| line.contains("serde")),
+            "{module} must retain its D328 no-serde boundary; D602 permits source_package only"
         );
     }
     let lawref_src = fs::read_to_string(manifest_dir.join("src/lawref.rs")).expect("read lawref");

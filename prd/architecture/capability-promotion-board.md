@@ -218,13 +218,14 @@ lifecycle move for ADR-0017 (stays `[proposed]`).
 | 333-ФЗ | 2025-07-31 | ст. 95 | real C1 edge executed (KBO-R049 S1) |
 | 484-ФЗ | 2024-12-26 | general amendments | acquired; edge not executed |
 
-### Support acts by document_group (five groups, M171 catalog)
+### Support acts by document_group (six groups, M171 catalog + M211 presidential_decree)
 
 | document_group | Anchor act | Executed proof |
 |---|---|---|
 | `federal_law@v1` | 402-ФЗ tracked fixture; real 44-ФЗ edition-0118 | full FSM to `S_ready_bounded`, `oracle_drift=0` |
 | `code` | 145-ФЗ (Budget kodeks XML, `law-source/consultant/`) | catalog-only; pipeline never run on `code` |
 | `government_resolution` | PP_60 (real Garant ПП corpus) | inspect: YAML granularity punkt, ctv_resolved>0; punkt units executed; recursive depth 3 |
+| `presidential_decree` | decree_2020-09-14_558 / decree_2021-11-15_657 (exports/npa/) | catalog-only: declared and loaded, never executed by the pipeline |
 | `departmental_order` | Росгвардии приказ № 45 от 15.02.2021 (НМЦК; on disk, pipeline not run) | inline fixture: two punkt units resolve text-CTV (M171) |
 | `court_practice` | — (ADR-0020: practice ≠ AST) | probe-only; no parser surface |
 

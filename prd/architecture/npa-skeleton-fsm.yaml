@@ -57,6 +57,11 @@ skeleton_fsm:
     - {from: HeaderAssembled, event: hierarchy_counted, to: HierarchyDeclared}
     - {from: HierarchyDeclared, event: marker_matched, to: LevelDetecting}
     - {from: HierarchyDeclared, event: no_marker_found, to: SkeletonPartial}
+    # Пробел контракта (замер 2026-09-27): граф не выражал абзац-текст без маркера —
+    # у AstProjecting единственный вход был через AnchorAttaching, поэтому тело документа
+    # (828 абзацев в 44-ФЗ) не имело легального пути и трасса эмитила необъявленную пару
+    # LevelDetecting --document_end-->. Текст проецируется без узла.
+    - {from: LevelDetecting, event: body_text, to: AstProjecting}
     - {from: LevelDetecting, event: level_in_profile, to: NestingResolving}
     - {from: LevelDetecting, event: level_not_in_profile, to: AppendixBoundarySeen}
     - {from: LevelDetecting, event: style_signal_conflict, to: SkeletonHold}
@@ -102,7 +107,7 @@ skeleton_fsm:
       # порядок от верхнего уровня к нижнему (внутри профиля)
       - {level: razdel, pattern: '^Раздел\s+([IVXLC\d]+)[.\s]', token: razdel}
       - {level: glava, pattern: '^Глава\s+(\d+)[.\s]', token: glava}
-      - {level: paragraph, pattern: '^§\s*(\d+)|^Параграф\s+(\d+)', token: paragraph}
+      - {level: paragraph, pattern: '^(?:§|Параграф)\s*([\d.]+)', token: paragraph}
       - {level: statya, pattern: '^Статья\s+([\d.]+)\.?\s*(.*)$', token: statya}
       - {level: chast, pattern: '^(\d+(?:\.\d+)*)\.\s', token: chast}
       - {level: punkt, pattern: '^(\d+(?:\.\d+)*)\)\s', token: punkt}
@@ -121,10 +126,48 @@ skeleton_fsm:
       - {class: shell_less, evidence: 'internal-ссылки; закладок >=0.9 на абзац',
          anchor_scheme: direct_bookmark,
          note: 'dst цели равен закладке (D586)'}
+    doctype_markers:
+      # Третий источник привязки профиля: тип документа из его собственной шапки.
+      # Нужен там, где path-иголки не работают (корпус: exports/xml/law/<key>/edition-*.xml,
+      # exports/fas/decision_*, exports/courts/<bank>/*) и каталог не даёт document_type.
+      #
+      # ПОРЯДОК КРИТИЧЕН (замер 2026-09-27): судебные маркеры идут ПЕРВЫМИ, потому что
+      # постановление Конституционного суда имеет шапку «ПОСТАНОВЛЕНИЕ» и без приоритета
+      # ушло бы в government_resolution — а канон требует court_practice = text-only (ADR-0020).
+      # Родовое «ПРАВИТЕЛЬСТВО РОССИЙСКОЙ ФЕДЕРАЦИИ» идёт последним как fallback для
+      # распоряжений, у которых слово РАСПОРЯЖЕНИЕ стоит ниже первых абзацев шапки.
+      - {pattern: 'ИМЕНЕМ РОССИЙСКОЙ ФЕДЕРАЦИИ|ВЕРХОВНЫЙ СУД|КОНСТИТУЦИОННЫЙ СУД|АРБИТРАЖНЫЙ СУД|АНТИМОНОПОЛЬНАЯ СЛУЖБА', profile: court_practice}
+      - {pattern: 'КОДЕКС', profile: code}
+      - {pattern: 'УКАЗ', profile: presidential_decree}
+      - {pattern: 'ФЕДЕРАЛЬНЫЙ КОНСТИТУЦИОННЫЙ ЗАКОН|ФЕДЕРАЛЬНЫЙ ЗАКОН', profile: federal_law@v1}
+      - {pattern: 'ПРИКАЗ|ИНСТРУКЦИЯ|ПРАВИЛА', profile: departmental_order}
+      - {pattern: 'ПОСТАНОВЛЕНИЕ|РАСПОРЯЖЕНИЕ', profile: government_resolution}
+      - {pattern: 'РЕШЕНИЕ|ОПРЕДЕЛЕНИЕ|ПРЕДПИСАНИЕ', profile: court_practice}
+      - {pattern: 'ПРАВИТЕЛЬСТВО РОССИЙСКОЙ ФЕДЕРАЦИИ', profile: government_resolution}
+    # Типизированный лексикон (ADR-0028): паттерн уровня маркера не задаётся глобально,
+    # а выводится из объявления уровня в ladder конкретного профиля (suffix + number_style).
+    # Без этого `1.` в постановлении распознавался как chast (уровень ФЗ), хотя ladder
+    # government_resolution объявляет unit = punkt с суффиксом «.», и 498 пунктов
+    # распоряжений уходили в границы и терялись (замер 2026-09-27).
+    number_style_patterns:
+      digit: '\d+(?:\.\d+)*'
+      letter_cyrillic: '[а-яё]'
+    suffix_patterns:
+      ".": '\.'
+      ")": '\)'
+    profile_evidence_priority: [catalog_document_type, path_needle, head_doctype]
     appendix_markers:
       - {marker: 'Утвержден', level: annex_root}
       - {marker: 'ПРИЛОЖЕНИЕ', level: annex_root}
       - {marker: 'Приложение N', level: annex_root}
+    # Пробел канона (замер 2026-09-27): лестница federal_law@v1 начинается с glava,
+    # но короткие ФЗ/ФКЗ (принятие субъектов, законы-поправки) состоят ТОЛЬКО из статей:
+    # 7 из 200 файлов npa имеют «Статья 1» первым структурным маркером без единой главы.
+    # Правило: если в документе нет ни одного уровня выше statya, то statya де-факто корень.
+    # Это НЕ отменяет fail-closed для настоящих осиротевших узлов (statya внутри главы без главы).
+    root_level_fallback:
+      - {when: no_level_above_statya_present, treat_as_root: statya}
+      - {when: no_level_above_punkt_present, treat_as_root: punkt}
     thresholds_as_parameters:
       frontmatter_max_paras: 40
       anchor_density_shell_less: 0.9
@@ -150,7 +193,68 @@ skeleton_fsm:
       rule: ни один узел не несёт семью/класс доказательства/юридическую оценку
     - id: S8_annex_is_root
       rule: каждый prilozhenie-узел имеет parent == root документа
+    # --- правила, найденные замером 2026-09-27 (ложные срабатывания предыдущих версий) ---
+    - id: S9_gate_uses_profile_lexicon
+      rule: >
+        гейт «есть ли структура вообще» обязан использовать ТОТ ЖЕ типизированный
+        лексикон, что и основной цикл (выводимый из suffix/number_style лестницы
+        профиля). Проверка по глобальному лексикону объявляла распоряжения и
+        короткие законы-поправки «без структуры» и уводила их в Hold без разбора.
+    - id: S10_audit_order_from_profile
+      rule: >
+        порядок уровней в правиле S1 берётся из ladder профиля, а не из глобального
+        списка; одноуровневое вложение (parent.level == node.level) законно для
+        токенов с recursive: true ИЛИ compound: true; структурные токены
+        (structural_only_tokens) в правиле порядка не участвуют.
+    - id: S11_root_levels_from_document
+      rule: >
+        корневым считается уровень, фактически открытый как корень в этом документе
+        (короткие ФЗ/ФКЗ без глав: корень — statya), а не только ladder[0].
+    - id: S12_style_conflict_fails_closed
+      rule: >
+        если профиль привязан, но узлов уровня granularity нет ни одного, а маркеры
+        чужого стиля (границы) есть — это style_signal_conflict: исход SkeletonHold
+        с причиной, а НЕ SkeletonResolved с сотнями границ (зеркало Rust-контракта
+        departmental_order_wrong_numbering_style_is_conflict).
+    - id: S13_terminal_set_once
+      rule: >
+        терминал выставляется ровно один раз: ветка SkeletonPartial не должна
+        затираться последующим безусловным переходом Resolving --all_nodes_leveled-->
+        SkeletonResolved. Замер 2026-09-27: терминал ставился дважды, и все Partial-исходы
+        (5 xml-документов) молча превращались в Resolved — ложное заявление об успехе.
+    - id: S14_partial_carries_records
+      rule: >
+        SkeletonPartial несёт тот же набор записей, что и Resolved (layer_boundary.emits:
+        document/node/content/table): слои L2/L3 потребляют [node, content], поэтому
+        Partial не может быть пустым результатом без узлов и content-записей.
+    - id: S15_content_covers_body
+      rule: >
+        база S6 — абзацы ОТ ПЕРВОГО СТРУКТУРНОГО МАРКЕРА (items[first:]); шапка и
+        реквизиты являются представлением (invariant title_is_a_view_not_the_content) и
+        считаются отдельно (header_chars). Замер 2026-09-27: раннер безусловно пропускал
+        абзацы без уровня (continue), из-за чего текст тела документа не попадал ни в
+        content-записи, ни в счётчик — 828 абзацев 44-ФЗ терялись молча.
 
+# ---------------------------------------------------------------------------
+# Outcome distinction (design clarification; supersedes the conflict claim in D599).
+# A known level outside the selected profile is NOT an unknown level:
+# level_not_in_profile -> AppendixBoundarySeen -> recognized annex or Hold.
+# No transition authorizes converting that boundary into an unleveled node.
+# An ordinary markerless paragraph is body_text, not an unleveled node.
+# SkeletonPartial describes retained structural candidates whose level remains
+# unresolved; it does not authorize foreign levels, guessed parents, or guessed
+# annex boundaries. The current prototype has no producer for such candidates.
+# This is an implementation/design coverage gap, not two competing outcomes for
+# level_not_in_profile. Keep Partial reserved until candidate evidence, attachment,
+# and a producer transition are specified and tested; do not invent that producer.
+# The separate no_marker_found -> SkeletonPartial path also needs a reachable
+# witness after first_structural_marker; absence of sample coverage proves neither
+# reachability nor impossibility. An invariant itself is not a reachable state.
+# Rust detect() evaluates probe() over all supplied blocks. Zero unit nodes in a
+# prefix is NOT equivalent to ProbeConflict; the prototype's early style-conflict
+# guard must not be cited as Rust parity. resolved_requires mixes complete and
+# partial requirements and needs terminal-specific acceptance before promotion.
+# ---------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
 # Разделение слоёв (D587). Скелет не смешивается с прочими слоями.
 # ---------------------------------------------------------------------------
