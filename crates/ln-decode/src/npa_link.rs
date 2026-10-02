@@ -1228,6 +1228,885 @@ pub fn carry_head_family(paras: &[String]) -> Vec<HeadFamilyCarry> {
     carries
 }
 
+// ---------------------------------------------------------------------------
+// Scoped aliases and this-document references (ADR-0029 §4, D385).
+//
+// Differential reference: `collect_aliases` / `_nearest_member` / `_alias_keys`
+// / `_is_party_alias` / `_short_ref_covered` / `THIS_REF` / `UKAZANNY` in
+// `scripts/m207_context_graph_demo.py`.
+//
+// A `(далее — X)` declaration binds an alias only inside the document that
+// declares it (D385 scoped_alias, not `CurrentDocumentRequisites`). A short
+// reference resolves only through that per-document table; without a
+// declaration there is no binding (fail-closed). A `настоящ…` reference points
+// at this document's own head or annex — never at the nearest foreign act. The
+// pass derives new records; it never mutates `TypedMember`.
+// ---------------------------------------------------------------------------
+
+/// A resolved `(далее — X)` declaration: the alias wording, its search keys,
+/// and the target member it binds to.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AliasBinding {
+    /// The declared alias wording, e.g. `Закон N 2487-1`.
+    pub alias: String,
+    /// Normalized search keys derived from the wording (`_alias_keys`).
+    pub keys: Vec<String>,
+    /// Id of the target in the `anchored_members` + `link_approved_by` space.
+    pub target_id: usize,
+    pub target_type: String,
+    pub target_date: String,
+    pub target_number: String,
+    /// Evidence for the whole `(далее — X)` declaration.
+    pub declaration_evidence: LocalSpan,
+    /// Evidence for the target member occurrence.
+    pub target_evidence: LocalSpan,
+}
+
+/// Searchable member (typed anchor or named annex) with a stable id and a
+/// character position inside its block.
+#[derive(Debug, Clone)]
+struct SearchMember {
+    id: usize,
+    type_name: String,
+    date: String,
+    number: String,
+    span: LocalSpan,
+    char_pos: usize,
+}
+
+struct DaleeHit {
+    wording: String,
+    span: LocalSpan,
+}
+
+struct ShortRefHit {
+    written: String,
+    span: LocalSpan,
+}
+
+struct ThisRefHit {
+    noun: String,
+    span: LocalSpan,
+}
+
+struct UkazannyHit {
+    span: LocalSpan,
+}
+
+fn member_kind(date: &str, number: &str) -> LinkedMemberKind {
+    if date.is_empty() || date == "—" || number.is_empty() || number == "—" {
+        LinkedMemberKind::NamedType
+    } else {
+        LinkedMemberKind::Anchored
+    }
+}
+
+fn fail_closed_this_ref(id: usize, canon: &str, evidence: LocalSpan) -> LinkedMember {
+    LinkedMember {
+        id,
+        kind: LinkedMemberKind::NamedType,
+        date: "—".to_string(),
+        number: "—".to_string(),
+        type_name: canon.to_string(),
+        approved_by: None,
+        alias: None,
+        derivation: LinkDerivation::ThisDocumentRef,
+        evidence,
+        provenance: vec![evidence],
+    }
+}
+
+/// Builds the searchable member set: typed anchors first (ids are the typed
+/// stream indices), then named annexes (ids continue after the typed stream,
+/// matching `link_approved_by`).
+fn build_search_members(paras: &[String]) -> Vec<SearchMember> {
+    let (typed, _) = npa_typed::scan_typed_diagnosed(paras);
+    let (annexes, _, _) = link_approved_by(paras);
+    let mut out = Vec::with_capacity(typed.len() + annexes.len());
+    for (id, member) in typed.iter().enumerate() {
+        out.push(SearchMember {
+            id,
+            type_name: member.type_name.clone(),
+            date: member.date.clone(),
+            number: member.number.clone(),
+            span: member.span,
+            char_pos: char_index(paras, member.span),
+        });
+    }
+    for (offset, member) in annexes.iter().enumerate() {
+        out.push(SearchMember {
+            id: typed.len() + offset,
+            type_name: member.type_name.clone(),
+            date: member.date.clone(),
+            number: member.number.clone(),
+            span: member.evidence,
+            char_pos: char_index(paras, member.evidence),
+        });
+    }
+    out
+}
+
+fn char_index(paras: &[String], span: LocalSpan) -> usize {
+    paras
+        .get(span.block)
+        .map(|para| char_len_before(para, span.start))
+        .unwrap_or(0)
+}
+
+fn char_len_before(text: &str, byte: usize) -> usize {
+    if byte >= text.len() {
+        return text.chars().count();
+    }
+    text[..byte].chars().count()
+}
+
+fn char_offsets(text: &str) -> (Vec<char>, Vec<usize>) {
+    let chars: Vec<char> = text.chars().collect();
+    let mut offs = Vec::with_capacity(chars.len() + 1);
+    let mut byte = 0usize;
+    for c in &chars {
+        offs.push(byte);
+        byte += c.len_utf8();
+    }
+    offs.push(byte);
+    (chars, offs)
+}
+
+fn match_word_ci(chars: &[char], i: usize, needle: &str) -> Option<usize> {
+    let want: Vec<char> = needle.chars().collect();
+    if i + want.len() > chars.len() {
+        return None;
+    }
+    for (k, expected) in want.iter().enumerate() {
+        let got = chars[i + k].to_lowercase().next().unwrap_or(chars[i + k]);
+        let expected = expected.to_lowercase().next().unwrap_or(*expected);
+        if got != expected {
+            return None;
+        }
+    }
+    Some(i + want.len())
+}
+
+fn consume_letters(chars: &[char], mut i: usize) -> usize {
+    while i < chars.len() && is_letter_char(chars[i]) {
+        i += 1;
+    }
+    i
+}
+
+fn is_num_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || ('А'..='Я').contains(&c) || ('а'..='я').contains(&c)
+}
+
+fn collapse_ws(s: &str) -> String {
+    s.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+fn is_number_token(s: &str) -> bool {
+    let chars: Vec<char> = s.chars().collect();
+    if chars.is_empty() {
+        return false;
+    }
+    let mut prev_num = false;
+    for (i, c) in chars.iter().enumerate() {
+        if is_num_char(*c) {
+            prev_num = true;
+            continue;
+        }
+        if (*c == '/' || *c == '-') && prev_num && i + 1 < chars.len() && is_num_char(chars[i + 1])
+        {
+            prev_num = false;
+            continue;
+        }
+        return false;
+    }
+    prev_num
+}
+
+/// Scans `(...)` declarations of the closed `(далее - X)` / `(далее — X)`
+/// surface. Returns the wording and the span of the whole parenthesized group.
+fn find_dalee(block: usize, para: &str) -> Vec<DaleeHit> {
+    let (chars, offs) = char_offsets(para);
+    let mut out = Vec::new();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if chars[i] != '(' {
+            i += 1;
+            continue;
+        }
+        let Some(mut j) = match_word_ci(&chars, i + 1, "далее") else {
+            i += 1;
+            continue;
+        };
+        while j < chars.len() && chars[j].is_whitespace() {
+            j += 1;
+        }
+        if j >= chars.len() || (chars[j] != '-' && chars[j] != '—') {
+            i += 1;
+            continue;
+        }
+        j += 1;
+        while j < chars.len() && chars[j].is_whitespace() {
+            j += 1;
+        }
+        let value_start = j;
+        let mut end = j;
+        while end < chars.len() && chars[end] != ')' {
+            end += 1;
+        }
+        if end >= chars.len() || end == value_start {
+            i += 1;
+            continue;
+        }
+        let wording = collapse_ws(&para[offs[value_start]..offs[end]]);
+        if !wording.is_empty() {
+            out.push(DaleeHit {
+                wording,
+                span: LocalSpan {
+                    block,
+                    start: offs[i],
+                    end: offs[end + 1],
+                },
+            });
+        }
+        i = end + 1;
+    }
+    out
+}
+
+/// A party/role alias wording (`_is_party_alias`): never a scoped alias.
+fn is_party_alias(wording: &str) -> bool {
+    const HEADS: &[&str] = &[
+        "заявитель",
+        "истец",
+        "ответчик",
+        "оператор",
+        "организатор",
+        "продажа",
+        "еис",
+    ];
+    const NEEDLES: &[&str] = &[
+        "организатор",
+        "заявитель",
+        "истец",
+        "ответчик",
+        "оператор",
+        "продажа",
+        "еис",
+        "конкурсный отбор",
+    ];
+    let folded = collapse_ws(&wording.to_lowercase());
+    let head = folded.split_whitespace().next().unwrap_or("");
+    if HEADS.contains(&head) {
+        return true;
+    }
+    NEEDLES.iter().any(|needle| folded.contains(needle))
+}
+
+fn alias_stem(folded: &str) -> Option<String> {
+    let first = folded.split_whitespace().next().unwrap_or("");
+    for prefix in ["закон", "постановлен", "приказ", "указ"] {
+        if first.starts_with(prefix) {
+            let stem = first.trim_end_matches(|c| "ыиауеом".contains(c));
+            return Some(stem.to_string());
+        }
+    }
+    None
+}
+
+fn alias_number(folded: &str) -> Option<String> {
+    let words: Vec<&str> = folded.split_whitespace().collect();
+    for i in 0..words.len().saturating_sub(1) {
+        if words[i] == "n" && is_number_token(words[i + 1]) {
+            return Some(words[i + 1].to_string());
+        }
+    }
+    None
+}
+
+fn alias_annex_key(folded: &str) -> Option<&'static str> {
+    if folded.starts_with("положен") {
+        return Some("положение");
+    }
+    if folded.starts_with("правил") {
+        return Some("правила");
+    }
+    if folded.starts_with("протокол") {
+        return Some("протокол");
+    }
+    if folded == "регламент" || folded == "регламента" {
+        return Some("регламент");
+    }
+    if folded.starts_with("методическ") {
+        return Some("методические рекомендации");
+    }
+    None
+}
+
+/// `_alias_keys`: full name, `закон n 44-фз`, the bare number, and the annex
+/// key. A bare `закон` is deliberately absent — it would merge several acts.
+fn alias_keys(wording: &str) -> Vec<String> {
+    let folded = collapse_ws(&wording.to_lowercase()).replace('№', "n");
+    let mut keys: Vec<String> = Vec::new();
+    if !folded.is_empty() {
+        keys.push(folded.clone());
+    }
+    if let Some(number) = alias_number(&folded) {
+        keys.push(number.clone());
+        keys.push(format!("n {number}"));
+        if let Some(stem) = alias_stem(&folded) {
+            keys.push(format!("{stem} n {number}"));
+        }
+    }
+    if let Some(key) = alias_annex_key(&folded) {
+        keys.push(key.to_string());
+    }
+    let mut out: Vec<String> = Vec::with_capacity(keys.len());
+    for key in keys {
+        if !key.is_empty() && !out.contains(&key) {
+            out.push(key);
+        }
+    }
+    out
+}
+
+/// `_nearest_member`: binds a declaration to the nearest same-block member to
+/// its left. Named annex types only bind to their own kind (never to the
+/// approving act); an explicit `N` only binds to a matching number; otherwise
+/// the last member to the left. No suitable member -> `None` (fail-closed).
+fn nearest_member<'a>(
+    search: &'a [SearchMember],
+    block: usize,
+    decl_pos: usize,
+    wording: &str,
+) -> Option<&'a SearchMember> {
+    let folded = collapse_ws(&wording.to_lowercase());
+    let mut before: Vec<&SearchMember> = search
+        .iter()
+        .filter(|m| m.span.block == block && m.char_pos < decl_pos)
+        .collect();
+    if before.is_empty() {
+        return None;
+    }
+    before.sort_by_key(|m| m.char_pos);
+    let near = |m: &&SearchMember| decl_pos.saturating_sub(m.char_pos) < 500;
+
+    if folded.contains("положен") || folded.contains("правил") {
+        return before
+            .iter()
+            .rev()
+            .find(|m| {
+                near(m)
+                    && (m.type_name.to_lowercase() == "положение"
+                        || m.type_name.to_lowercase() == "правила")
+            })
+            .copied();
+    }
+    if folded.contains("документац") {
+        return before
+            .iter()
+            .rev()
+            .find(|m| near(m) && m.type_name.to_lowercase().contains("документац"))
+            .copied();
+    }
+    if folded.contains("регламент") {
+        return before
+            .iter()
+            .rev()
+            .find(|m| near(m) && m.type_name.to_lowercase() == "регламент")
+            .copied();
+    }
+    if folded.contains("протокол") {
+        return before
+            .iter()
+            .rev()
+            .find(|m| near(m) && m.type_name.to_lowercase() == "протокол")
+            .copied();
+    }
+    if let Some(number) = alias_number(&folded) {
+        return before
+            .iter()
+            .rev()
+            .find(|m| m.number.to_lowercase() == number)
+            .copied();
+    }
+    before.last().copied()
+}
+
+fn collect_aliases_internal(paras: &[String], search: &[SearchMember]) -> Vec<AliasBinding> {
+    let mut out = Vec::new();
+    for (block, para) in paras.iter().enumerate() {
+        for decl in find_dalee(block, para) {
+            if is_party_alias(&decl.wording) {
+                continue;
+            }
+            let decl_pos = char_len_before(para, decl.span.start);
+            let Some(target) = nearest_member(search, block, decl_pos, &decl.wording) else {
+                continue;
+            };
+            out.push(AliasBinding {
+                alias: decl.wording.clone(),
+                keys: alias_keys(&decl.wording),
+                target_id: target.id,
+                target_type: target.type_name.clone(),
+                target_date: target.date.clone(),
+                target_number: target.number.clone(),
+                declaration_evidence: decl.span,
+                target_evidence: target.span,
+            });
+        }
+    }
+    out
+}
+
+/// Collects the `(далее — X)` declarations of one document into a per-document
+/// alias table. Party/role aliases are dropped; declarations with no suitable
+/// same-block member to the left are dropped (fail-closed).
+pub fn collect_aliases(paras: &[String]) -> Vec<AliasBinding> {
+    let search = build_search_members(paras);
+    collect_aliases_internal(paras, &search)
+}
+
+/// Scans the closed short-reference surface
+/// `(Закон|Постановление|Приказ|Указ) N <number>`.
+fn find_short_refs(block: usize, para: &str) -> Vec<ShortRefHit> {
+    const STEMS: &[&str] = &["закон", "постановлен", "приказ", "указ"];
+    let (chars, offs) = char_offsets(para);
+    let mut out = Vec::new();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if !is_letter_char(chars[i]) || (i > 0 && is_letter_char(chars[i - 1])) {
+            i += 1;
+            continue;
+        }
+        let Some(word_end) = STEMS
+            .iter()
+            .find_map(|stem| match_word_ci(&chars, i, stem).map(|e| consume_letters(&chars, e)))
+        else {
+            i += 1;
+            continue;
+        };
+        let mut j = word_end;
+        while j < chars.len() && chars[j].is_whitespace() {
+            j += 1;
+        }
+        if j == word_end || j >= chars.len() || (chars[j] != 'N' && chars[j] != 'n') {
+            i += 1;
+            continue;
+        }
+        j += 1;
+        while j < chars.len() && chars[j].is_whitespace() {
+            j += 1;
+        }
+        let num_start = j;
+        let mut k = num_start;
+        while k < chars.len() {
+            if is_num_char(chars[k]) {
+                k += 1;
+                continue;
+            }
+            if (chars[k] == '/' || chars[k] == '-')
+                && k + 1 < chars.len()
+                && is_num_char(chars[k + 1])
+            {
+                k += 1;
+                continue;
+            }
+            break;
+        }
+        if k == num_start {
+            i += 1;
+            continue;
+        }
+        out.push(ShortRefHit {
+            written: collapse_ws(&para[offs[i]..offs[k]]),
+            span: LocalSpan {
+                block,
+                start: offs[i],
+                end: offs[k],
+            },
+        });
+        i = k;
+    }
+    out
+}
+
+/// `_short_ref_covered`: a reference already carried by an adjacent anchor or
+/// by a `далее —` declaration is not a standalone short reference.
+fn short_ref_covered(para: &str, start_byte: usize, local: &[&SearchMember]) -> bool {
+    let before = window_before(para, start_byte, 40);
+    if ends_with_date_prefix(&before) || ends_with_dalee_dash(&before) {
+        return true;
+    }
+    let start_char = char_len_before(para, start_byte);
+    local
+        .iter()
+        .any(|m| start_char.abs_diff(m.char_pos) < 60 && !m.number.is_empty() && m.number != "—")
+}
+
+fn window_before(text: &str, start_byte: usize, chars: usize) -> String {
+    let prefix: Vec<char> = text[..start_byte].chars().collect();
+    let from = prefix.len().saturating_sub(chars);
+    prefix[from..].iter().collect()
+}
+
+fn ends_with_date_prefix(s: &str) -> bool {
+    let tokens: Vec<&str> = s.split_whitespace().collect();
+    if tokens.len() < 2 {
+        return false;
+    }
+    let is_date = |t: &str| {
+        let b = t.as_bytes();
+        b.len() == 10
+            && b[0].is_ascii_digit()
+            && b[1].is_ascii_digit()
+            && b[2] == b'.'
+            && b[3].is_ascii_digit()
+            && b[4].is_ascii_digit()
+            && b[5] == b'.'
+            && b[6].is_ascii_digit()
+            && b[7].is_ascii_digit()
+            && b[8].is_ascii_digit()
+            && b[9].is_ascii_digit()
+    };
+    tokens[tokens.len() - 2] == "от" && is_date(tokens[tokens.len() - 1])
+}
+
+fn ends_with_dalee_dash(s: &str) -> bool {
+    let trimmed = s.trim_end();
+    for dash in ['-', '—'] {
+        if let Some(head) = trimmed.strip_suffix(dash) {
+            if head.trim_end().to_lowercase().ends_with("далее") {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Scans `настоящ… (Положение|Правила|Федеральный закон|Кодекс)`.
+fn find_this_refs(block: usize, para: &str) -> Vec<ThisRefHit> {
+    let (chars, offs) = char_offsets(para);
+    let mut out = Vec::new();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if !is_letter_char(chars[i]) || (i > 0 && is_letter_char(chars[i - 1])) {
+            i += 1;
+            continue;
+        }
+        let Some(na) = match_word_ci(&chars, i, "настоящ") else {
+            i += 1;
+            continue;
+        };
+        let mut j = consume_letters(&chars, na);
+        let ws_start = j;
+        while j < chars.len() && chars[j].is_whitespace() {
+            j += 1;
+        }
+        if j == ws_start {
+            i += 1;
+            continue;
+        }
+        let (noun_start, noun_end) = if let Some(e) = match_word_ci(&chars, j, "положен") {
+            (j, consume_letters(&chars, e))
+        } else if let Some(e) = match_word_ci(&chars, j, "правил") {
+            (j, consume_letters(&chars, e))
+        } else if let Some(e) = match_word_ci(&chars, j, "кодекс") {
+            (j, consume_letters(&chars, e))
+        } else if let Some(e) = match_word_ci(&chars, j, "федеральн") {
+            let mut k = consume_letters(&chars, e);
+            let ws2 = k;
+            while k < chars.len() && chars[k].is_whitespace() {
+                k += 1;
+            }
+            if k == ws2 {
+                i += 1;
+                continue;
+            }
+            let Some(ze) = match_word_ci(&chars, k, "закон") else {
+                i += 1;
+                continue;
+            };
+            (j, consume_letters(&chars, ze))
+        } else {
+            i += 1;
+            continue;
+        };
+        if noun_end <= noun_start {
+            i += 1;
+            continue;
+        }
+        out.push(ThisRefHit {
+            noun: collapse_ws(&para[offs[noun_start]..offs[noun_end]]),
+            span: LocalSpan {
+                block,
+                start: offs[i],
+                end: offs[noun_end],
+            },
+        });
+        i = noun_end;
+    }
+    out
+}
+
+fn classify_this_ref(noun: &str) -> (&'static str, &'static str) {
+    let folded = noun.to_lowercase();
+    if folded.contains("положен") {
+        ("положение", "Положение")
+    } else if folded.contains("правил") {
+        ("правила", "Правила")
+    } else if folded.contains("кодекс") {
+        ("кодекс", "Кодекс")
+    } else {
+        ("федеральный закон", "Федеральный закон")
+    }
+}
+
+/// Scans `указанн… Федеральн… закон…`.
+fn find_ukazanny(block: usize, para: &str) -> Vec<UkazannyHit> {
+    let (chars, offs) = char_offsets(para);
+    let mut out = Vec::new();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if !is_letter_char(chars[i]) || (i > 0 && is_letter_char(chars[i - 1])) {
+            i += 1;
+            continue;
+        }
+        let Some(u) = match_word_ci(&chars, i, "указанн") else {
+            i += 1;
+            continue;
+        };
+        let mut j = consume_letters(&chars, u);
+        let ws = j;
+        while j < chars.len() && chars[j].is_whitespace() {
+            j += 1;
+        }
+        if j == ws {
+            i += 1;
+            continue;
+        }
+        let Some(f) = match_word_ci(&chars, j, "федеральн") else {
+            i += 1;
+            continue;
+        };
+        let mut k = consume_letters(&chars, f);
+        let ws2 = k;
+        while k < chars.len() && chars[k].is_whitespace() {
+            k += 1;
+        }
+        if k == ws2 {
+            i += 1;
+            continue;
+        }
+        let Some(z) = match_word_ci(&chars, k, "закон") else {
+            i += 1;
+            continue;
+        };
+        let end = consume_letters(&chars, z);
+        out.push(UkazannyHit {
+            span: LocalSpan {
+                block,
+                start: offs[i],
+                end: offs[end],
+            },
+        });
+        i = end;
+    }
+    out
+}
+
+/// Resolves scoped short references and this-document references.
+///
+/// Returns the derived members (ids continue after `anchored_members` and
+/// `link_approved_by`), the `ScopedAlias`/`ThisDocumentRef` relations, and the
+/// fail-closed diagnostics. A short reference with no declaration in this
+/// document mints no member ([`LinkDiagnostic::AliasWithoutDeclaration`]); a
+/// `настоящий` reference with no usable head/annex mints a requisites-free
+/// member ([`LinkDiagnostic::HeadUnavailable`]).
+pub fn link_aliases_and_this_refs(
+    paras: &[String],
+) -> (Vec<LinkedMember>, Vec<LinkedRelation>, Vec<LinkDiagnostic>) {
+    let (typed, _) = npa_typed::scan_typed_diagnosed(paras);
+    let (annexes, _, _) = link_approved_by(paras);
+    let search = build_search_members(paras);
+    let bindings = collect_aliases_internal(paras, &search);
+    let letterhead = recognize_letterhead(paras);
+    let base = typed.len() + annexes.len();
+
+    let mut by_key: BTreeMap<&str, &AliasBinding> = BTreeMap::new();
+    for binding in &bindings {
+        for key in &binding.keys {
+            by_key.entry(key.as_str()).or_insert(binding);
+        }
+    }
+
+    let mut members: Vec<LinkedMember> = Vec::new();
+    let mut relations: Vec<LinkedRelation> = Vec::new();
+    let mut diagnostics: Vec<LinkDiagnostic> = Vec::new();
+
+    // (1) Short references resolved through this document's alias table.
+    for (block, para) in paras.iter().enumerate() {
+        let local: Vec<&SearchMember> = search.iter().filter(|m| m.span.block == block).collect();
+        for hit in find_short_refs(block, para) {
+            if short_ref_covered(para, hit.span.start, &local) {
+                continue;
+            }
+            let keys = alias_keys(&hit.written);
+            let target = keys
+                .iter()
+                .find_map(|key| by_key.get(key.as_str()).copied());
+            let Some(binding) = target else {
+                diagnostics.push(LinkDiagnostic::AliasWithoutDeclaration);
+                continue;
+            };
+            let id = base + members.len();
+            members.push(LinkedMember {
+                id,
+                kind: member_kind(&binding.target_date, &binding.target_number),
+                date: binding.target_date.clone(),
+                number: binding.target_number.clone(),
+                type_name: binding.target_type.clone(),
+                approved_by: None,
+                alias: Some(binding.alias.clone()),
+                derivation: LinkDerivation::ScopedAlias,
+                evidence: hit.span,
+                provenance: vec![hit.span, binding.target_evidence],
+            });
+            relations.push(LinkedRelation {
+                kind: LinkedRelationKind::ScopedAlias,
+                from_id: id,
+                to_id: binding.target_id,
+                evidence: vec![hit.span, binding.target_evidence],
+                why: "short reference resolved through a `(далее — X)` declaration in this document (D385 scoped_alias)",
+            });
+        }
+    }
+
+    // (2) This-document references: this XML's head or annex, never a foreign act.
+    for (block, para) in paras.iter().enumerate() {
+        for hit in find_this_refs(block, para) {
+            let (key, canon) = classify_this_ref(&hit.noun);
+            match key {
+                "федеральный закон" => match &letterhead {
+                    Some(head) => {
+                        let id = base + members.len();
+                        members.push(LinkedMember {
+                            id,
+                            kind: member_kind(&head.date, &head.number),
+                            date: head.date.clone(),
+                            number: head.number.clone(),
+                            type_name: head.kind.clone(),
+                            approved_by: None,
+                            alias: None,
+                            derivation: LinkDerivation::ThisDocumentRef,
+                            evidence: hit.span,
+                            provenance: vec![hit.span, head.evidence],
+                        });
+                    }
+                    None => {
+                        members.push(fail_closed_this_ref(base + members.len(), canon, hit.span));
+                        diagnostics.push(LinkDiagnostic::HeadUnavailable);
+                    }
+                },
+                "положение" | "правила" => {
+                    let target = annexes
+                        .iter()
+                        .find(|m| {
+                            m.type_name.to_lowercase() == canon.to_lowercase()
+                                && m.approved_by.is_some()
+                        })
+                        .or_else(|| {
+                            annexes
+                                .iter()
+                                .find(|m| m.type_name.to_lowercase() == canon.to_lowercase())
+                        });
+                    match target {
+                        Some(annex) => {
+                            let id = base + members.len();
+                            members.push(LinkedMember {
+                                id,
+                                kind: annex.kind,
+                                date: annex.date.clone(),
+                                number: annex.number.clone(),
+                                type_name: annex.type_name.clone(),
+                                approved_by: None,
+                                alias: None,
+                                derivation: LinkDerivation::ThisDocumentRef,
+                                evidence: hit.span,
+                                provenance: vec![hit.span, annex.evidence],
+                            });
+                            relations.push(LinkedRelation {
+                                kind: LinkedRelationKind::ThisDocumentRef,
+                                from_id: id,
+                                to_id: annex.id,
+                                evidence: vec![hit.span, annex.evidence],
+                                why: "«настоящее …» refers to this document's own annex, never a foreign act (ADR-0029 §4)",
+                            });
+                        }
+                        None => {
+                            members.push(fail_closed_this_ref(
+                                base + members.len(),
+                                canon,
+                                hit.span,
+                            ));
+                            diagnostics.push(LinkDiagnostic::HeadUnavailable);
+                        }
+                    }
+                }
+                _ => {
+                    // «настоящего Кодекса»: the codex this XML points at is not
+                    // a member of the linked model here — fail closed.
+                    members.push(fail_closed_this_ref(base + members.len(), canon, hit.span));
+                    diagnostics.push(LinkDiagnostic::HeadUnavailable);
+                }
+            }
+        }
+    }
+
+    // (3) `указанного Федерального закона`: nearest preceding FZ with DATE+N in
+    // the same block; otherwise skipped.
+    for (block, para) in paras.iter().enumerate() {
+        for hit in find_ukazanny(block, para) {
+            let hit_pos = char_len_before(para, hit.span.start);
+            let target = search
+                .iter()
+                .filter(|m| {
+                    m.span.block == block
+                        && m.char_pos < hit_pos
+                        && !m.number.is_empty()
+                        && m.number != "—"
+                        && m.type_name.to_lowercase().starts_with("федеральн")
+                })
+                .max_by_key(|m| m.char_pos);
+            let Some(target) = target else {
+                continue;
+            };
+            let id = base + members.len();
+            members.push(LinkedMember {
+                id,
+                kind: LinkedMemberKind::Anchored,
+                date: target.date.clone(),
+                number: target.number.clone(),
+                type_name: target.type_name.clone(),
+                approved_by: None,
+                alias: None,
+                derivation: LinkDerivation::ScopedAlias,
+                evidence: hit.span,
+                provenance: vec![hit.span, target.span],
+            });
+            relations.push(LinkedRelation {
+                kind: LinkedRelationKind::ScopedAlias,
+                from_id: id,
+                to_id: target.id,
+                evidence: vec![hit.span, target.span],
+                why: "«указанного Федерального закона» resolves to the nearest preceding FZ with DATE+N in the same block",
+            });
+        }
+    }
+
+    (members, relations, diagnostics)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
