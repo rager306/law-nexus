@@ -1,5 +1,11 @@
 //! M211 S02: паритет типизированных членов (дата, номер, TYPE) с
-//! Python-прототипом. Фикстура TSV [bounded], reader hand-rolled (D328).
+//! Python-прототипом. Фикстура TSV [bounded], reader hand-rolled (D602).
+//!
+//! M211 S01/T01: fixtures обязательные — отсутствие seed-фрагмента даёт
+//! провал `MISSING SOURCE`, а не молчаливый skip.
+//!
+//! T02 (следующий task слайса) сведёт `scan_typed` на единый поток якорей
+//! S01 с общими guards; здесь фиксируется только строгость фикстуры.
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -64,25 +70,33 @@ fn gold_typed_parity_40_docs() {
         &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("tests/fixtures/npa-members/typed-parity-fixture.tsv"),
     );
+    assert!(
+        !docs.is_empty(),
+        "MISSING SOURCE: typed parity fixture is mandatory and must be non-empty"
+    );
     let mut mismatches: Vec<String> = Vec::new();
+    let mut missing_sources: Vec<String> = Vec::new();
     let mut checked = 0usize;
-    let mut skipped = 0usize;
     let mut got_total = 0usize;
     let mut want_total = 0usize;
     let mut type_match = 0usize;
 
     for (doc, fixture) in &docs {
+        assert!(
+            !fixture.fragments.is_empty(),
+            "MISSING SOURCE: {doc} has an empty fragment list"
+        );
         let mut paras: Vec<String> = Vec::new();
-        let mut missing_files = 0usize;
+        let mut doc_missing: Vec<String> = Vec::new();
         for fname in &fixture.fragments {
             match std::fs::read_to_string(fixture_dir().join(fname)) {
                 Ok(text) => paras.push(text),
-                Err(_) => missing_files += 1,
+                Err(e) => doc_missing.push(format!("{doc}: {fname}: {e}")),
             }
         }
-        if missing_files == fixture.fragments.len() && !fixture.fragments.is_empty() {
-            skipped += 1;
-            mismatches.push(format!("{doc}: SKIP"));
+        if !doc_missing.is_empty() {
+            // Обязательные fixtures fail closed: missing source — провал, не skip.
+            missing_sources.extend(doc_missing);
             continue;
         }
 
@@ -130,13 +144,15 @@ fn gold_typed_parity_40_docs() {
     }
 
     eprintln!(
-        "typed parity: checked={checked} skipped={skipped} got_total={got_total} want_total={want_total} type_match={type_match}"
+        "typed parity: checked={checked} missing={} got_total={got_total} want_total={want_total} type_match={type_match}",
+        missing_sources.len()
     );
 
-    if checked == 0 {
-        eprintln!("SKIP: seed-фрагменты недоступны");
-        return;
-    }
+    assert!(
+        missing_sources.is_empty(),
+        "MISSING SOURCE (mandatory fixtures fail closed; no silent skip):\n{}",
+        missing_sources.join("\n")
+    );
 
     // S02 — измеритель: паритет TYPE растёт итерациями (не гейт).
     // Минимальный порог: >50% type_match на типизированных want-членах.
