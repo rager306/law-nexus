@@ -1228,6 +1228,42 @@ pub fn carry_head_family(paras: &[String]) -> Vec<HeadFamilyCarry> {
     carries
 }
 
+/// Turns the narrow head-family carry into an observable [`LinkedRelation`]
+/// (T04, D619). `carry_head_family` derives a family from the cliché issuer for
+/// a quoted requisite whose local TYPE is absent; the linked model has no
+/// per-member carry slot, so the carry is recorded as a relation on the
+/// typeless requisite itself, carrying the two separate source-local anchors of
+/// the cliché (the issuer phrase and the requisite). The cliché issuer is not a
+/// linked member, so both relation endpoints resolve to the requisite member;
+/// the family itself stays observable through the carry's `why`.
+///
+/// Only a requisite whose own TYPE is empty receives the relation: a locally
+/// written TYPE is never overridden, and proximity is never evidence.
+fn head_family_carry_relations(paras: &[String], members: &[LinkedMember]) -> Vec<LinkedRelation> {
+    let mut relations = Vec::new();
+    for carry in carry_head_family(paras) {
+        let Some(&target_span) = carry.evidence.get(1) else {
+            continue;
+        };
+        let Some(target) = members.iter().find(|member| {
+            member.kind == LinkedMemberKind::Anchored && member.evidence == target_span
+        }) else {
+            continue;
+        };
+        if !target.type_name.is_empty() {
+            continue;
+        }
+        relations.push(LinkedRelation {
+            kind: LinkedRelationKind::HeadFamilyCarry,
+            from_id: target.id,
+            to_id: target.id,
+            evidence: carry.evidence.clone(),
+            why: "the narrow context-carry cliché supplies a head family to a typeless quoted requisite (ADR-0019 reference mention, never a Binding)",
+        });
+    }
+    relations
+}
+
 // ---------------------------------------------------------------------------
 // Scoped aliases and this-document references (ADR-0029 §4, D385).
 //
@@ -2154,10 +2190,29 @@ pub fn build_linked_document(paras: &[String]) -> LinkedDocument {
     let (alias_members, alias_relations, alias_diagnostics) = link_aliases_and_this_refs(paras);
     members.extend(alias_members);
 
+    // Pass 6: the narrow head-family carry as an observable relation (T04,
+    // D619). `carry_head_family` has no per-member slot in the linked model, so
+    // a typeless quoted requisite receives a `HeadFamilyCarry` relation.
+    let carry_relations = head_family_carry_relations(paras, &members);
+
+    // T04: a cross-block tail keeps its own empty TYPE; the head's TYPE is
+    // never inherited. Recorded beside the continuation edge whose second
+    // anchor is the tail member (`LinkDiagnostic` carries no span payload).
+    let type_not_inherited: Vec<LinkDiagnostic> = series_relations
+        .iter()
+        .filter(|relation| relation.kind == LinkedRelationKind::ContinuesSeries)
+        .filter(|relation| {
+            !members[relation.from_id].type_name.is_empty()
+                && members[relation.to_id].type_name.is_empty()
+        })
+        .map(|_| LinkDiagnostic::TypeNotInherited)
+        .collect();
+
     let mut relations = Vec::new();
     relations.extend(series_relations);
     relations.extend(approved_relations);
     relations.extend(alias_relations);
+    relations.extend(carry_relations);
 
     let mut diagnostics = Vec::new();
     if letterhead.is_none() {
@@ -2167,6 +2222,7 @@ pub fn build_linked_document(paras: &[String]) -> LinkedDocument {
     diagnostics.extend(series_diagnostics);
     diagnostics.extend(approved_diagnostics);
     diagnostics.extend(alias_diagnostics);
+    diagnostics.extend(type_not_inherited);
 
     LinkedDocument {
         members,
