@@ -10,6 +10,7 @@ pub mod adapters;
 pub mod application;
 pub mod article_body;
 pub mod capture_bounds;
+pub mod cleaned_completion;
 pub mod cleaned_nav;
 pub mod cleaned_nav_verifier;
 pub mod cleaned_verifier;
