@@ -38,6 +38,7 @@ pub mod ports;
 pub mod prefix_catalog;
 pub mod reader_contract;
 pub mod reader_projection;
+pub mod reader_verifier;
 pub mod references;
 pub mod sentence;
 pub mod source_package;
