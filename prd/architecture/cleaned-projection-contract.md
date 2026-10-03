@@ -421,13 +421,13 @@ closed syntax:
 
 | surface | owner |
 |---|---|
-| display-cleaning / suppression rule (iteration-21 profiles and omission manifest) | S04 / later |
+| display-cleaning / suppression rule (iteration-21 profiles and omission manifest) | remaining / not-required-for-R1000 |
 | read-back reconstruction of `Record`s and any exporter | S02 |
 | independent verifier over the reconstructed artifact (round-trip, resealed semantic tamper) | S02 |
 | navigation links and node addressability (heading/body/annex/table/footnote, source order) | S03 — delivered (§12) |
-| Hold/TextOnly classification semantics | S04 |
-| representative-corpus acceptance | S04 |
-| CLI, filesystem atomic publish | S04 |
+| Hold/TextOnly classification semantics | S04 — delivered (§13) |
+| representative-corpus acceptance | S04 — delivered (§13) |
+| CLI, filesystem atomic publish | S04 — delivered (§13) |
 
 The S01 contract reserves `completion_basis` / `incomplete_reasons` and their
 closed syntax only; it does not decide what qualifies as Hold or TextOnly. The
@@ -573,3 +573,125 @@ This is **not** a graph projection, **not** citation resolution, **not** region
 classification, **not** CST/AST/CTV, and **not** a legal-completeness or corpus
 coverage claim. `WireError`/seal integrity is S02; Hold/TextOnly classification
 is S04. R1000 stays active.
+
+## 13. Hold/TextOnly semantics, CLI, atomic publish and declared corpus slice (S04)
+
+**Status:** `[bounded]`
+**Owning slice:** M213-t6p7d0 / S04 — delivered in
+`crates/ln-decode/src/cleaned_completion.rs`,
+`crates/ln-decode/src/cleaned_publish.rs`,
+`crates/ln-decode/src/cleaned_cli.rs` and
+`crates/ln-decode/tests/cleaned_projection_corpus.rs`
+**Upstream:** the S01 wire envelope (§8), the S02 read-back and independent
+verifier, and the S03 navigation layer (§12)
+
+### 13.1 Closed scope declaration to completion mapping
+
+§8.1 reserves the `completion_basis` / `incomplete_reasons` syntax; S04 closes
+what qualifies as Hold or TextOnly. `ScopeDeclaration` is a closed
+producer vocabulary: a declaration states what the producer actually projected,
+never a legal claim, and never permits decoded-text loss.
+
+| `ScopeDeclaration` | declaration token | `completion_for` mapping |
+|---|---|---|
+| `WholeProjection` | `complete` | `Complete` |
+| `StructureHold` | `hold` | `Incomplete { basis: Hold, reasons: [Hold] }` |
+| `TextOnlyScope` | `text_only` | `Incomplete { basis: TextOnly, reasons: [TextOnly] }` |
+| `NarrowedScope` | `caller_scope` | `Incomplete { basis: CallerScope, reasons: [CallerScope] }` |
+| `UnsupportedSource` | `unsupported_source` | `Incomplete { basis: UnsupportedSource, reasons: [UnsupportedSource] }` |
+
+`ScopeDeclaration::from_token` is fail-closed: an unknown token is a
+`CompletionError::UnknownToken` that carries no payload string, so a
+caller-supplied token never reaches a wire diagnostic. `limit_reached` is
+**not** a declaration and is never produced by `completion_for`: a reached
+writer cap is discovered by the writer's own validate-before-write (§9), not
+declared by a caller. `Complete` is therefore reachable if and only if the
+source class is `SupportedWordml` and the declaration is `WholeProjection`;
+every other pair yields an `Incomplete` whose non-empty reason set contains its
+basis (§8.1).
+
+`classify_completion(source_class, declaration)` applies one honest correction
+over `completion_for`: a source that is not supported WordML can never be
+`Complete`, so a declared `Complete` becomes
+`Incomplete { basis: UnsupportedSource, reasons: [UnsupportedSource] }`, and an
+already-`Incomplete` completion keeps its basis and gains `UnsupportedSource`
+exactly once (deduplicated, deterministic order).
+
+### 13.2 Hold and TextOnly are honest partial bases
+
+Hold and TextOnly declare that the **structural or normative interpretation** is
+incomplete or inapplicable. They say nothing about the text channel: the decoded
+text channel stays **full** for a `complete`, a `hold` and a `text_only`
+artifact alike, and decoded-text loss remains forbidden
+(`policies.hold_text_only`). The writer's text-loss check runs on the
+`Complete` branch only (§8.2); the S04 battery therefore proves text safety
+independently, on a declared corpus slice, by its own traversal of
+`Package.records()` rather than by trusting the completion marker.
+
+### 13.3 `cleaned-project` CLI
+
+The `ln-decode` crate ships one deterministic, stdlib-only binary,
+`cleaned-project`, over three commands:
+
+| command | inputs | effect |
+|---|---|---|
+| `export` | exactly one of `--from-xml <path>` / `--package <path>`; `--completion <token>`; optional `--out <path>` | capture/gate/project, then export the cleaned artifact to `--out` (atomic) or stdout |
+| `read` | `--artifact <path>` | read back the artifact and print a counts-only summary |
+| `verify` | `--artifact <path> --package <path>` | run the independent verifier over the read-back |
+
+Exit codes are closed: `0` (ok), `2` (usage / unknown flag), `3` (publication
+unwritable), `4` (artifact IO / verification failure), `5` (input XML, package,
+capture or projection unreadable). The CLI reads no clock, locale or environment
+variable and iterates no hash map, so a repeated run on equal inputs is
+byte-identical. Diagnostics carry closed codes and counters only; stderr never
+carries raw decoded text.
+
+`--from-xml` gates through `reader_gate::gate_reader` (supported WordML only),
+while `--package` classifies the decoded records freely. An out-of-profile
+package is therefore exported as an honest
+`Incomplete { basis: UnsupportedSource }` rather than refused.
+
+### 13.4 Atomic publication
+
+`cleaned_publish::write_cleaned_projection_atomic(path, artifact)` writes a
+sibling `<path>.tmp` in the same directory and renames it onto `path`. On any
+error the tmp file is removed and a typed `WireError { kind: WriteFailed }` is
+returned, so a reader never observes a half-written artifact and no `*.tmp`
+survives a successful publication. Only atomic **visibility** is claimed: no
+`fsync`, durability or crash-recovery guarantee is claimed.
+
+### 13.5 Declared corpus slice
+
+The acceptance battery (`cleaned_projection_corpus.rs`) declares a bounded slice
+of the tracked `law-source/consultant` **fixture vault** (not the corpus):
+the 82 top-level `*.xml` fixtures, each at most the `Limits::default()`
+`max_input_bytes` cap (64 MiB), with `.deprecated/` excluded. A bounded sub-slice
+of six explicitly named documents is pinned by sha256 and driven for all three
+of `WholeProjection`, `StructureHold` and `TextOnlyScope`:
+
+- `fs::read` → sha256 pin → `capture` → `gate_reader` (`SupportedWordml`) →
+  `build_projection`;
+- for each declaration: `export_cleaned_projection` → `read_cleaned_wire` →
+  `verify_cleaned_wire`; the read-back completion token, basis and reasons match
+  the handwritten expectation; a second export is byte-identical;
+- an independent traversal of `Package.records()` proves every substrate
+  `TextRecord.value` appears exactly once in the inline text channel, none is
+  missing or duplicated, and the declared `chars` / `text_bytes` are the
+  recomputed `chars()` / `len()`;
+- `build_nav_index_from_wire` + `verify_nav_index` accept the incomplete
+  artifact too (the S03 connection); and
+- `write_cleaned_projection_atomic` publishes and reads back with no leftover
+  `*.tmp`.
+
+A separate `#[ignore]` runner sweeps all 82 fixtures out-of-band (the sweep does
+not fit the 600 s evidence cap): capture, gate, project and one `Complete`
+export → read → verify each, logging counters only.
+
+### 13.6 Non-claims
+
+This is a bounded acceptance over the **declared** slice only. It is **not**
+corpus coverage — `law-source/consultant` is a fixture vault, and the corpus is
+`consru_export/exports/`. Seals and counts remain integrity, not coverage; the
+battery makes no source-authenticity, legal-completeness or citation-resolution
+claim. Display-cleaning/suppression stays out of scope. R1000 stays active, and
+its closure is owned by milestone M213 as a whole, not by S04.
