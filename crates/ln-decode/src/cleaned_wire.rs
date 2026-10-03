@@ -28,9 +28,15 @@ use std::fmt::{self, Write};
 
 use sha2::{Digest, Sha256};
 
-use crate::reader_contract::ReaderSegmentKind;
-use crate::reader_projection::{ProjectedSegment, ReaderProjection, SegmentOrigin};
-use crate::source_package::{Package, Record, TextRecord};
+use crate::reader_contract::{
+    ElementRef, FragmentRef, ReaderDerivedKind, ReaderFragmentSpan, ReaderReferenceType,
+    ReaderSegmentKind, ReaderSemantic, ReaderViewKind,
+};
+use crate::reader_projection::{
+    ProjectedReference, ProjectedSegment, ProjectedView, ReaderProjection, ReferenceId, SegmentId,
+    SegmentOrigin, ViewFlags, ViewId,
+};
+use crate::source_package::{Package, Record, TextRecord, TextSlot};
 
 // -------------------------------------------------------------- constants #
 
@@ -224,6 +230,15 @@ pub enum WireErrorKind {
     UnknownKind,
     /// A hash-shaped field is neither 64 lowercase hex nor an allowed `null`.
     HashShapeInvalid,
+    /// A recomputed seal disagrees with the seal recorded in the footer.
+    HashMismatch,
+    /// The body record groups are not in the order `views → segments → references`.
+    RecordGroupOrder,
+    /// A record line's required field is absent, ill-typed, or the record is
+    /// otherwise not reconstructible.
+    RecordFieldInvalid,
+    /// Writing the rendered artifact to the caller's writer failed.
+    WriteFailed,
 }
 
 impl WireErrorKind {
@@ -251,6 +266,10 @@ impl WireErrorKind {
             WireErrorKind::TrailingRecordAfterFooter => "trailing_record_after_footer",
             WireErrorKind::UnknownKind => "unknown_kind",
             WireErrorKind::HashShapeInvalid => "hash_shape_invalid",
+            WireErrorKind::HashMismatch => "hash_mismatch",
+            WireErrorKind::RecordGroupOrder => "record_group_order",
+            WireErrorKind::RecordFieldInvalid => "record_field_invalid",
+            WireErrorKind::WriteFailed => "write_failed",
         }
     }
 }
@@ -290,6 +309,75 @@ impl fmt::Display for WireError {
 }
 
 impl std::error::Error for WireError {}
+
+// -------------------------------------------------------- read-back model #
+
+/// Substrate source identity pinned by the manifest (`manifest.source`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SourcePin {
+    /// Lowercase-hex sha256 of the frozen source bytes.
+    pub sha256: String,
+    /// Byte length of the frozen source.
+    pub bytes: u64,
+}
+
+/// Parent seals pinned by the manifest (`manifest.parent`). `None` pins an
+/// unsealed parent; the pair is integrity evidence only.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParentSealPin {
+    /// `records_seal_hash` of the frozen parent package, when present.
+    pub records_seal_hash: Option<String>,
+    /// `manifest_hash` of the frozen parent package, when present.
+    pub manifest_hash: Option<String>,
+}
+
+/// One reconstructed inline decoded-text entry. `chars` / `text_bytes` are the
+/// counts **declared on the segment line** (`text_chars` / `text_bytes`), not
+/// recomputed here; the independent text-channel check lives in
+/// `cleaned_verifier`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SegmentText {
+    /// Segment id this text belongs to.
+    pub segment_id: String,
+    /// Source fragment id for a source segment; `None` for a derived segment.
+    pub fragment_ref: Option<String>,
+    /// Full decoded text (source fragment value, or the derived literal).
+    pub text: String,
+    /// Declared `text_chars`.
+    pub chars: u64,
+    /// Declared `text_bytes`.
+    pub text_bytes: u64,
+}
+
+/// A typed read-back of a cleaned-projection artifact.
+///
+/// The embedded `projection` is **verify-shaped**: source-fragment segments
+/// carry `text: None` (as `reader_verifier::verify_source_segment` requires) and
+/// derived segments carry their generated literal. The full wire text is kept in
+/// `inline_texts`, so downstream verification can compare the two channels
+/// independently. Seals are recomputed on read and must match the footer; that
+/// is an accidental-corruption check, never an authenticity claim.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CleanedProjection {
+    /// Declared contract version.
+    pub contract_version: u64,
+    /// Pinned substrate source identity.
+    pub source: SourcePin,
+    /// Pinned parent seals.
+    pub parent: ParentSealPin,
+    /// Verify-shaped reader projection.
+    pub projection: ReaderProjection,
+    /// Full inline text for every segment, in record order.
+    pub inline_texts: Vec<SegmentText>,
+    /// Closed completion marker.
+    pub completion: WireCompletion,
+    /// Footer counts as declared (integrity, not coverage).
+    pub counts: CleanedCounts,
+    /// Footer `records_seal_hash`, recomputed and confirmed.
+    pub records_seal_hash: String,
+    /// Footer `manifest_hash`, recomputed and confirmed.
+    pub manifest_hash: String,
+}
 
 // ------------------------------------------------- canonical JSON (compact) #
 
@@ -602,15 +690,27 @@ fn reference_json(reference: &crate::reader_projection::ProjectedReference) -> J
     ])
 }
 
-struct CleanedCounts {
-    views: u64,
-    segments: u64,
-    references: u64,
-    source_segments: u64,
-    derived_segments: u64,
-    text_chars: u64,
-    text_bytes: u64,
-    records: u64,
+/// Reconstituted footer counts. They are integrity counters, not a coverage
+/// claim: a matching `records_seal_hash` or counts set never proves the
+/// projection covers the source.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CleanedCounts {
+    /// View records.
+    pub views: u64,
+    /// Segment records.
+    pub segments: u64,
+    /// Reference records.
+    pub references: u64,
+    /// Source-fragment segments.
+    pub source_segments: u64,
+    /// Derived segments.
+    pub derived_segments: u64,
+    /// Declared summed `text_chars`.
+    pub text_chars: u64,
+    /// Declared summed `text_bytes`.
+    pub text_bytes: u64,
+    /// `views + segments + references`.
+    pub records: u64,
 }
 
 impl CleanedCounts {
@@ -673,11 +773,11 @@ fn sha256_hex(bytes: &[u8]) -> String {
 
 /// `records_seal_hash = sha256(bytes(policies_line) || bytes(record_line_0) ||
 /// ... || bytes(record_line_{k-1}))` with no extra separator.
-fn records_seal_hash(policies_line: &str, record_lines: &[String]) -> String {
+fn records_seal_hash<S: AsRef<str>>(policies_line: &str, record_lines: &[S]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(policies_line.as_bytes());
     for line in record_lines {
-        hasher.update(line.as_bytes());
+        hasher.update(line.as_ref().as_bytes());
     }
     hex_lower(&hasher.finalize())
 }
@@ -827,7 +927,7 @@ fn resolve_text(
 /// `manifest → policies → views → segments → references → footer`.
 ///
 /// The writer is deterministic (equal input yields byte-identical output),
-/// serde-free, and fail-closed: every declared limit is validated before the
+/// dependency-free, and fail-closed: every declared limit is validated before the
 /// document is returned, a `complete` projection must attribute every substrate
 /// text record exactly once, and no partial projection is ever emitted on a
 /// refusal.
@@ -967,6 +1067,43 @@ pub fn render_cleaned_projection(
     out.push_str(&footer_line);
     out.push('\n');
     Ok(out)
+}
+
+/// Named exporter: renders the artifact and self-checks it by reading the
+/// envelope back. A round-trip failure is a typed refusal, so an exporter can
+/// never publish a document its own reader cannot reconstruct.
+///
+/// This is an in-memory surface: it performs no filesystem publication and owns
+/// no CLI. Callers that need to persist the bytes use
+/// [`write_cleaned_projection`].
+pub fn export_cleaned_projection(
+    package: &Package,
+    projection: &ReaderProjection,
+    completion: &WireCompletion,
+    limits: &WireLimits,
+) -> Result<String, WireError> {
+    let artifact = render_cleaned_projection(package, projection, completion, limits)?;
+    read_cleaned_wire(&artifact).map_err(|error| {
+        WireError::new(
+            error.kind(),
+            format!("exporter self-check failed: {}", error.detail()),
+        )
+    })?;
+    Ok(artifact)
+}
+
+/// Writes an already-rendered artifact to a caller-supplied writer. Mirrors
+/// `source_package::write_package`; the caller owns filesystem publication.
+pub fn write_cleaned_projection<W: std::io::Write>(
+    artifact: &str,
+    writer: &mut W,
+) -> Result<(), WireError> {
+    writer.write_all(artifact.as_bytes()).map_err(|error| {
+        WireError::new(
+            WireErrorKind::WriteFailed,
+            format!("writer refused: {error}"),
+        )
+    })
 }
 
 // ---------------------------------------------------- structural inspection #
@@ -1692,12 +1829,416 @@ pub fn inspect_cleaned_wire(text: &str) -> Result<WireEnvelopeSummary, WireError
     })
 }
 
+// ---------------------------------------------------------------- read-back #
+
+fn record_invalid(key: &str, detail: impl fmt::Display) -> WireError {
+    WireError::new(
+        WireErrorKind::RecordFieldInvalid,
+        format!("record field {key}: {detail}"),
+    )
+}
+
+fn bool_field(fields: &JsonFields<'_>, key: &str) -> Option<bool> {
+    match fields.get(key)?.trim() {
+        "true" => Some(true),
+        "false" => Some(false),
+        _ => None,
+    }
+}
+
+fn record_string(fields: &JsonFields<'_>, key: &str) -> Result<String, WireError> {
+    string_field(fields, key).ok_or_else(|| record_invalid(key, "missing or not a JSON string"))
+}
+
+fn opt_record_string(fields: &JsonFields<'_>, key: &str) -> Result<Option<String>, WireError> {
+    let raw = fields
+        .get(key)
+        .ok_or_else(|| record_invalid(key, "missing"))?;
+    let trimmed = raw.trim();
+    if trimmed == "null" {
+        return Ok(None);
+    }
+    unescape_json_string(trimmed)
+        .map(Some)
+        .ok_or_else(|| record_invalid(key, "not a JSON string or null"))
+}
+
+fn record_u64(fields: &JsonFields<'_>, key: &str) -> Result<u64, WireError> {
+    u64_field(fields, key).ok_or_else(|| record_invalid(key, "missing or not a u64"))
+}
+
+fn record_usize(fields: &JsonFields<'_>, key: &str) -> Result<usize, WireError> {
+    let value = record_u64(fields, key)?;
+    usize::try_from(value).map_err(|_| record_invalid(key, "does not fit usize"))
+}
+
+fn record_bool(fields: &JsonFields<'_>, key: &str) -> Result<bool, WireError> {
+    bool_field(fields, key).ok_or_else(|| record_invalid(key, "missing or not a bool"))
+}
+
+fn record_string_array(fields: &JsonFields<'_>, key: &str) -> Result<Vec<String>, WireError> {
+    string_array_field(fields, key)
+        .ok_or_else(|| record_invalid(key, "missing or not a string array"))
+}
+
+fn parse_text_slot(token: &str) -> Result<TextSlot, WireError> {
+    match token {
+        "text" => Ok(TextSlot::Text),
+        "tail" => Ok(TextSlot::Tail),
+        _ => Err(record_invalid("slot", token)),
+    }
+}
+
+fn parse_segment_origin(fields: &JsonFields<'_>) -> Result<SegmentOrigin, WireError> {
+    let token = record_string(fields, "origin")?;
+    if token == "source_fragment" {
+        return Ok(SegmentOrigin::SourceFragment);
+    }
+    if let Some(rest) = token.strip_prefix("derived:") {
+        return ReaderDerivedKind::from_wire(rest)
+            .map(SegmentOrigin::Derived)
+            .map_err(|_| record_invalid("origin", token.as_str()));
+    }
+    Err(record_invalid("origin", token.as_str()))
+}
+
+fn parse_segment_span(fields: &JsonFields<'_>) -> Result<Option<ReaderFragmentSpan>, WireError> {
+    let raw = fields
+        .get("span")
+        .ok_or_else(|| record_invalid("span", "missing"))?;
+    let trimmed = raw.trim();
+    if trimmed == "null" {
+        return Ok(None);
+    }
+    let inner = JsonFields::parse(trimmed)?;
+    let fragment = record_string(&inner, "fragment")?;
+    let start = record_usize(&inner, "start")?;
+    let end = record_usize(&inner, "end")?;
+    Ok(Some(ReaderFragmentSpan::new(
+        FragmentRef::new(fragment),
+        start,
+        end,
+    )))
+}
+
+fn parse_cleaned_counts(fields: &JsonFields<'_>) -> Result<CleanedCounts, WireError> {
+    let raw = fields
+        .get("counts")
+        .ok_or_else(|| record_invalid("counts", "missing"))?;
+    let counts = JsonFields::parse(raw.trim())?;
+    Ok(CleanedCounts {
+        views: counts_field(&counts, "views")?,
+        segments: counts_field(&counts, "segments")?,
+        references: counts_field(&counts, "references")?,
+        source_segments: counts_field(&counts, "source_segments")?,
+        derived_segments: counts_field(&counts, "derived_segments")?,
+        text_chars: counts_field(&counts, "text_chars")?,
+        text_bytes: counts_field(&counts, "text_bytes")?,
+        records: counts_field(&counts, "records")?,
+    })
+}
+
+fn completion_from_parts(
+    completion: &str,
+    basis: &str,
+    reasons: &[String],
+) -> Result<WireCompletion, WireError> {
+    match completion {
+        "complete" => Ok(WireCompletion::Complete),
+        "incomplete" => {
+            let basis = reason_from_token(basis)
+                .ok_or_else(|| record_invalid("completion_basis", basis))?;
+            let mut parsed = Vec::with_capacity(reasons.len());
+            for reason in reasons {
+                parsed.push(
+                    reason_from_token(reason)
+                        .ok_or_else(|| record_invalid("incomplete_reasons", reason.as_str()))?,
+                );
+            }
+            Ok(WireCompletion::Incomplete {
+                basis,
+                reasons: parsed,
+            })
+        }
+        _ => Err(record_invalid("completion", completion)),
+    }
+}
+
+fn enforce_record_group_order(kinds: &[String]) -> Result<(), WireError> {
+    let mut phase = 0u8;
+    for kind in kinds {
+        match kind.as_str() {
+            KIND_VIEW => {
+                if phase > 0 {
+                    return Err(WireError::new(
+                        WireErrorKind::RecordGroupOrder,
+                        "view record after a segment or reference record",
+                    ));
+                }
+            }
+            KIND_SEGMENT => {
+                if phase > 1 {
+                    return Err(WireError::new(
+                        WireErrorKind::RecordGroupOrder,
+                        "segment record after a reference record",
+                    ));
+                }
+                phase = 1;
+            }
+            KIND_REFERENCE => phase = 2,
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+fn reconstruct_view(fields: &JsonFields<'_>) -> Result<ProjectedView, WireError> {
+    let id = ViewId::new(record_string(fields, "id")?);
+    let view_kind = record_string(fields, "view_kind")?;
+    let kind = ReaderViewKind::from_wire(&view_kind)
+        .map_err(|_| record_invalid("view_kind", view_kind.as_str()))?;
+    let element_ref = ElementRef::new(record_string(fields, "element_ref")?);
+    let parent_view = opt_record_string(fields, "parent_view")?.map(ViewId::new);
+    let children = record_string_array(fields, "children")?
+        .into_iter()
+        .map(ViewId::new)
+        .collect();
+    let segment_refs = record_string_array(fields, "segment_refs")?
+        .into_iter()
+        .map(SegmentId::new)
+        .collect();
+    let reference_refs = record_string_array(fields, "reference_refs")?
+        .into_iter()
+        .map(ReferenceId::new)
+        .collect();
+    let flags_raw = fields
+        .get("flags")
+        .ok_or_else(|| record_invalid("flags", "missing"))?;
+    let flags_fields = JsonFields::parse(flags_raw.trim())?;
+    let flags = ViewFlags::new(record_bool(&flags_fields, "empty")?);
+    Ok(ProjectedView {
+        id,
+        kind,
+        element_ref,
+        parent_view,
+        children,
+        segment_refs,
+        reference_refs,
+        flags,
+    })
+}
+
+fn reconstruct_segment(
+    fields: &JsonFields<'_>,
+) -> Result<(ProjectedSegment, SegmentText), WireError> {
+    let id = SegmentId::new(record_string(fields, "id")?);
+    let view = ViewId::new(record_string(fields, "view")?);
+    let ordinal = record_usize(fields, "ordinal")?;
+    let segment_kind_token = record_string(fields, "segment_kind")?;
+    let segment_kind = ReaderSegmentKind::from_wire(&segment_kind_token)
+        .map_err(|_| record_invalid("segment_kind", segment_kind_token.as_str()))?;
+    let fragment_ref = opt_record_string(fields, "fragment_ref")?.map(FragmentRef::new);
+    let slot = match opt_record_string(fields, "slot")? {
+        None => None,
+        Some(token) => Some(parse_text_slot(&token)?),
+    };
+    let span = parse_segment_span(fields)?;
+    let output_start = record_usize(fields, "output_start")?;
+    let output_end = record_usize(fields, "output_end")?;
+    let chars = record_usize(fields, "chars")?;
+    let origin = parse_segment_origin(fields)?;
+    let semantic_token = record_string(fields, "semantic")?;
+    let semantic = ReaderSemantic::from_wire(&semantic_token)
+        .map_err(|_| record_invalid("semantic", semantic_token.as_str()))?;
+    let contextual = record_bool(fields, "contextual")?;
+    let element_ref = ElementRef::new(record_string(fields, "element_ref")?);
+    let source_pos = record_usize(fields, "source_pos")?;
+    let text = record_string(fields, "text")?;
+    let text_chars = record_u64(fields, "text_chars")?;
+    let text_bytes = record_u64(fields, "text_bytes")?;
+
+    // A source segment must not carry a rendered literal (`verify_source_segment`
+    // rejects `text.is_some()`); the wire text is preserved in `inline_texts`.
+    let projection_text = match origin {
+        SegmentOrigin::SourceFragment => None,
+        SegmentOrigin::Derived(_) => Some(text.clone()),
+    };
+    let segment = ProjectedSegment {
+        id: id.clone(),
+        view,
+        ordinal,
+        segment_kind,
+        fragment_ref: fragment_ref.clone(),
+        slot,
+        span,
+        output_start,
+        output_end,
+        chars,
+        origin,
+        semantic,
+        contextual,
+        element_ref,
+        source_pos,
+        text: projection_text,
+    };
+    let inline = SegmentText {
+        segment_id: id.as_str().to_string(),
+        fragment_ref: fragment_ref.map(|fragment| fragment.as_str().to_string()),
+        text,
+        chars: text_chars,
+        text_bytes,
+    };
+    Ok((segment, inline))
+}
+
+fn reconstruct_reference(fields: &JsonFields<'_>) -> Result<ProjectedReference, WireError> {
+    let id = ReferenceId::new(record_string(fields, "id")?);
+    let view = ViewId::new(record_string(fields, "view")?);
+    let ordinal = record_usize(fields, "ordinal")?;
+    let reference_type_token = record_string(fields, "reference_type")?;
+    let reference_type = ReaderReferenceType::from_wire(&reference_type_token)
+        .map_err(|_| record_invalid("reference_type", reference_type_token.as_str()))?;
+    let element_ref = ElementRef::new(record_string(fields, "element_ref")?);
+    let source_pos = record_usize(fields, "source_pos")?;
+    let resolved = record_bool(fields, "resolved")?;
+    Ok(ProjectedReference {
+        id,
+        view,
+        ordinal,
+        reference_type,
+        element_ref,
+        source_pos,
+        resolved,
+    })
+}
+
+/// Reads a cleaned structural JSONL artifact back into a typed, verify-shaped
+/// [`CleanedProjection`].
+///
+/// The envelope is first checked with exactly the structural rules of
+/// [`inspect_cleaned_wire`] (trailing LF, no CR, no empty line, the fixed
+/// `manifest → policies → records → footer` order, closed `kind`/schema/version),
+/// then every record is reconstructed through the frozen reader vocabulary. The
+/// body must keep the `views → segments → references` group order. Both seals are
+/// recomputed over the exact line bytes and must match the footer, so an
+/// accidentally corrupted document is refused.
+///
+/// This is a structural read-back, not an authenticity or legal-completeness
+/// claim: a re-sealed semantic tamper still parses here and is caught only by
+/// the independent `cleaned_verifier` check.
+pub fn read_cleaned_wire(text: &str) -> Result<CleanedProjection, WireError> {
+    // Same structural envelope check as the S01 inspection.
+    let _summary = inspect_cleaned_wire(text)?;
+
+    // `inspect_cleaned_wire` guarantees: no CR, exactly one trailing LF and no
+    // empty interior line, so this split is total.
+    let body = &text[..text.len() - 1];
+    let lines: Vec<&str> = body.split('\n').collect();
+    let last_index = lines.len() - 1;
+    let mut parsed: Vec<JsonFields<'_>> = Vec::with_capacity(lines.len());
+    let mut kinds: Vec<String> = Vec::with_capacity(lines.len());
+    for line in &lines {
+        let fields = JsonFields::parse(line)?;
+        kinds.push(line_kind(&fields)?);
+        parsed.push(fields);
+    }
+
+    enforce_record_group_order(&kinds[2..last_index])?;
+
+    let manifest = &parsed[0];
+    let source_raw = manifest
+        .get("source")
+        .ok_or_else(|| record_invalid("source", "missing"))?;
+    let source_fields = JsonFields::parse(source_raw.trim())?;
+    let source = SourcePin {
+        sha256: hex_field(&source_fields, "sha256")?,
+        bytes: record_u64(&source_fields, "bytes")?,
+    };
+    let parent_raw = manifest
+        .get("parent")
+        .ok_or_else(|| record_invalid("parent", "missing"))?;
+    let parent_fields = JsonFields::parse(parent_raw.trim())?;
+    let parent = ParentSealPin {
+        records_seal_hash: opt_hex_field(&parent_fields, "records_seal_hash")?,
+        manifest_hash: opt_hex_field(&parent_fields, "manifest_hash")?,
+    };
+
+    let footer = &parsed[last_index];
+    let (completion_token, basis_token, reasons) = parse_completion(footer)?;
+    let completion = completion_from_parts(&completion_token, &basis_token, &reasons)?;
+    let counts = parse_cleaned_counts(footer)?;
+    let footer_records_seal = hex_field(footer, "records_seal_hash")?;
+    let footer_manifest = hex_field(footer, "manifest_hash")?;
+
+    let mut views = Vec::new();
+    let mut segments = Vec::new();
+    let mut references = Vec::new();
+    let mut inline_texts = Vec::new();
+    for index in 2..last_index {
+        let fields = &parsed[index];
+        match kinds[index].as_str() {
+            KIND_VIEW => views.push(reconstruct_view(fields)?),
+            KIND_SEGMENT => {
+                let (segment, inline) = reconstruct_segment(fields)?;
+                segments.push(segment);
+                inline_texts.push(inline);
+            }
+            KIND_REFERENCE => references.push(reconstruct_reference(fields)?),
+            _ => {
+                return Err(WireError::new(
+                    WireErrorKind::UnknownKind,
+                    format!("unexpected record kind {}", kinds[index]),
+                ));
+            }
+        }
+    }
+
+    // Seal recomputation runs after reconstruction so a line that is simply not
+    // reconstructible is reported as a record-field refusal rather than masked by
+    // the seal mismatch it also causes.
+    let record_lines: Vec<&str> = lines[2..last_index].to_vec();
+    let recomputed_records_seal = records_seal_hash(lines[1], &record_lines);
+    if recomputed_records_seal != footer_records_seal {
+        return Err(WireError::new(
+            WireErrorKind::HashMismatch,
+            "records_seal_hash does not recompute over the file lines",
+        ));
+    }
+    let footer_body = render_line(&footer_json(&completion, &counts, None, None));
+    let recomputed_manifest = manifest_hash(lines[0], &footer_records_seal, &footer_body);
+    if recomputed_manifest != footer_manifest {
+        return Err(WireError::new(
+            WireErrorKind::HashMismatch,
+            "manifest_hash does not recompute over the manifest and footer",
+        ));
+    }
+
+    Ok(CleanedProjection {
+        contract_version: u64_field(manifest, "version")
+            .ok_or_else(|| record_invalid("version", "missing or not a u64"))?,
+        source,
+        parent,
+        projection: ReaderProjection {
+            views,
+            segments,
+            references,
+            content_hash: None,
+        },
+        inline_texts,
+        completion,
+        counts,
+        records_seal_hash: footer_records_seal,
+        manifest_hash: footer_manifest,
+    })
+}
+
 // -------------------------------------------------------------------- tests #
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::reader_projection::build_projection;
+    use crate::reader_projection::{build_projection, canonical_projection_bytes};
+    use crate::reader_verifier::verify_projection;
     use crate::source_package::{capture, Limits};
 
     fn fixture_package() -> Package {
@@ -1785,6 +2326,9 @@ mod tests {
         assert!(out.contains("\"completion\":\"incomplete\""));
         assert!(out.contains("\"completion_basis\":\"caller_scope\""));
         assert!(out.contains("\"incomplete_reasons\":[\"caller_scope\",\"limit_reached\"]"));
+
+        let readback = read_cleaned_wire(&out).expect("incomplete read-back");
+        assert_eq!(readback.completion, completion);
     }
 
     #[test]
@@ -1921,5 +2465,193 @@ mod tests {
         assert_eq!(ReaderViewKind::Paragraph.as_str(), "paragraph");
         assert_eq!(ReaderSegmentKind::Text.as_str(), "text");
         assert_eq!(ReaderSemantic::Body.as_str(), "body");
+    }
+
+    // -------------------------------------------------- read-back tests #
+
+    fn render_complete(package: &Package, projection: &ReaderProjection) -> String {
+        render(
+            package,
+            projection,
+            &WireCompletion::Complete,
+            &WireLimits::default(),
+        )
+        .expect("complete render")
+    }
+
+    #[test]
+    fn read_back_reconstructs_verify_shaped_projection() {
+        let package = fixture_package();
+        let projection = fixture_projection(&package);
+        let artifact = render_complete(&package, &projection);
+
+        let readback = read_cleaned_wire(&artifact).expect("read-back must succeed");
+        assert_eq!(readback.contract_version, CONTRACT_VERSION);
+        assert_eq!(readback.source.sha256, package.manifest().source.sha256);
+        assert_eq!(readback.source.bytes, package.manifest().source.bytes);
+        assert_eq!(
+            readback.parent.records_seal_hash,
+            package.footer().records_seal_hash
+        );
+        assert_eq!(
+            readback.parent.manifest_hash,
+            package.footer().manifest_hash
+        );
+        assert_eq!(readback.completion, WireCompletion::Complete);
+        assert_eq!(readback.counts.views, projection.views.len() as u64);
+        assert_eq!(readback.counts.segments, projection.segments.len() as u64);
+        assert_eq!(
+            readback.counts.references,
+            projection.references.len() as u64
+        );
+        assert_eq!(
+            readback.counts.records,
+            readback.counts.views + readback.counts.segments + readback.counts.references
+        );
+        assert_eq!(readback.inline_texts.len(), projection.segments.len());
+        assert!(verify_projection(&readback.projection, package.records()).is_ok());
+        // The read-back projection is byte-identical to the producer projection
+        // under the canonical form, proving the transport is lossless.
+        assert_eq!(
+            canonical_projection_bytes(&readback.projection),
+            canonical_projection_bytes(&projection)
+        );
+        for segment in &readback.projection.segments {
+            if segment.origin == SegmentOrigin::SourceFragment {
+                assert!(
+                    segment.text.is_none(),
+                    "source segments must not carry a rendered literal"
+                );
+            } else {
+                assert!(
+                    segment.text.is_some(),
+                    "derived segments must carry the generated literal"
+                );
+            }
+        }
+    }
+
+    fn flip_seal_hex(artifact: &str, key: &str) -> String {
+        let marker = format!("\"{key}\":\"");
+        let position = artifact.rfind(&marker).expect("seal field present") + marker.len();
+        let mut bytes = artifact.as_bytes().to_vec();
+        bytes[position] = match bytes[position] {
+            b'a' => b'b',
+            _ => b'a',
+        };
+        String::from_utf8(bytes).expect("tampered artifact stays utf-8")
+    }
+
+    #[test]
+    fn read_back_refuses_seal_mismatch() {
+        let package = fixture_package();
+        let projection = fixture_projection(&package);
+        let artifact = render_complete(&package, &projection);
+
+        let bad_records = flip_seal_hex(&artifact, "records_seal_hash");
+        assert_eq!(
+            read_cleaned_wire(&bad_records)
+                .expect_err("records seal mismatch must refuse")
+                .kind(),
+            WireErrorKind::HashMismatch
+        );
+
+        let bad_manifest = flip_seal_hex(&artifact, "manifest_hash");
+        assert_eq!(
+            read_cleaned_wire(&bad_manifest)
+                .expect_err("manifest seal mismatch must refuse")
+                .kind(),
+            WireErrorKind::HashMismatch
+        );
+    }
+
+    fn move_first_reference_before_first_segment(artifact: &str) -> String {
+        let mut lines: Vec<String> = artifact.lines().map(str::to_string).collect();
+        let segment_index = lines
+            .iter()
+            .position(|line| line.contains("\"kind\":\"cleaned_projection_segment\""))
+            .expect("a segment record");
+        let reference_index = lines
+            .iter()
+            .position(|line| line.contains("\"kind\":\"cleaned_projection_reference\""))
+            .expect("a reference record");
+        assert!(
+            reference_index > segment_index,
+            "fixture must place a reference after a segment"
+        );
+        let reference = lines.remove(reference_index);
+        lines.insert(segment_index, reference);
+        let mut out = lines.join("\n");
+        out.push('\n');
+        out
+    }
+
+    #[test]
+    fn read_back_refuses_misordered_record_groups() {
+        let package = fixture_package();
+        let projection = fixture_projection(&package);
+        let artifact = render_complete(&package, &projection);
+        let tampered = move_first_reference_before_first_segment(&artifact);
+        assert_eq!(
+            read_cleaned_wire(&tampered)
+                .expect_err("misordered groups must refuse")
+                .kind(),
+            WireErrorKind::RecordGroupOrder
+        );
+    }
+
+    fn drop_field_from_first_segment(artifact: &str, key: &str) -> String {
+        let mut lines: Vec<String> = artifact.lines().map(str::to_string).collect();
+        let index = lines
+            .iter()
+            .position(|line| line.contains("\"kind\":\"cleaned_projection_segment\""))
+            .expect("a segment record");
+        let line = &lines[index];
+        let marker = format!("\"{key}\":");
+        let start = line.find(&marker).expect("field present");
+        let after = start + marker.len();
+        let comma = line[after..]
+            .find(',')
+            .unwrap_or_else(|| panic!("field {key} must be comma-terminated"));
+        let end = after + comma + 1;
+        let mut new_line = String::with_capacity(line.len());
+        new_line.push_str(&line[..start]);
+        new_line.push_str(&line[end..]);
+        lines[index] = new_line;
+        let mut out = lines.join("\n");
+        out.push('\n');
+        out
+    }
+
+    #[test]
+    fn read_back_refuses_missing_record_field() {
+        let package = fixture_package();
+        let projection = fixture_projection(&package);
+        let artifact = render_complete(&package, &projection);
+        let tampered = drop_field_from_first_segment(&artifact, "contextual");
+        assert_eq!(
+            read_cleaned_wire(&tampered)
+                .expect_err("missing field must refuse")
+                .kind(),
+            WireErrorKind::RecordFieldInvalid
+        );
+    }
+
+    #[test]
+    fn export_self_checks_and_writes() {
+        let package = fixture_package();
+        let projection = fixture_projection(&package);
+        let artifact = export_cleaned_projection(
+            &package,
+            &projection,
+            &WireCompletion::Complete,
+            &WireLimits::default(),
+        )
+        .expect("export must self-check");
+        assert!(read_cleaned_wire(&artifact).is_ok());
+
+        let mut buffer: Vec<u8> = Vec::new();
+        write_cleaned_projection(&artifact, &mut buffer).expect("write must succeed");
+        assert_eq!(buffer, artifact.as_bytes());
     }
 }
