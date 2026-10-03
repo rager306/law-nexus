@@ -1,0 +1,221 @@
+{
+  "schema_version": "law-nexus/source-package-acceptance-evidence/v1",
+  "kind": "m212-s01-source-package-baseline",
+  "milestone": "M212-c25p2o",
+  "slice": "S01",
+  "task": "T02",
+  "generated_at": "2026-10-03",
+  "lifecycle": "[bounded]",
+  "authoritative": false,
+  "language": "en",
+  "scope": "Fresh acceptance of the already-existing bounded source_package capability (XML bytes -> decoded-source JSONL -> verify). No retroactive completion, no product-code change, no corpus-wide scan.",
+  "retroactive_completion": false,
+  "environment": {
+    "os": "Linux 6.8.0-139-generic x86_64",
+    "distribution": "Ubuntu 24.04.5 LTS",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "python": "python 3.12.3",
+    "pyexpat": "pyexpat 2.6.1",
+    "network": "offline (--offline; local registry and Cargo.lock only)",
+    "workspace_packages": 47
+  },
+  "source_pins": {
+    "fixture": {
+      "relative_path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+      "bytes": 193726,
+      "sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d",
+      "tracked": true,
+      "role": "one bounded tracked Consultant WordML fixture; not corpus-wide, not Garant, not legal gold"
+    },
+    "implementation": {
+      "relative_path": "crates/ln-decode/src/source_package.rs",
+      "bytes": 92579,
+      "sha256": "d1c31e1ddcf5543acb8eb7240a3186f57a12ce83ecd7d058b42cebba783f5fea"
+    },
+    "contract": {
+      "relative_path": "prd/architecture/source-jsonl-contract.md",
+      "bytes": 16605,
+      "sha256": "2ddfe7da95e3adc0c341965f709001e2cdd67ccca3b22b7970ee06ad1dc0d9f6"
+    },
+    "tests": {
+      "contract": {
+        "relative_path": "crates/ln-decode/tests/source_package_contract.rs",
+        "bytes": 34355,
+        "sha256": "ab3e84d6df10027215e7cd02a3bd038157791d744e7d13f41c5a7606858c405a",
+        "test_count": 57
+      },
+      "real_source": {
+        "relative_path": "crates/ln-decode/tests/source_package_real_source.rs",
+        "bytes": 2288,
+        "sha256": "7007b54e0b0fb4fd98f0b1886917938fae35e27461ff085f1dd8596f2b10acb8",
+        "test_count": 1
+      }
+    },
+    "oracle_harness": {
+      "relative_path": "prd/migration/rust-evidence/source_package_oracle.py",
+      "bytes": 4426,
+      "sha256": "24639e2544af8696123de872318dfe818dbd8107d76c7179840e7237bc5b597d",
+      "role": "control harness only; NOT product code; not compiled into any crate"
+    }
+  },
+  "rust_slot_pin": {
+    "elements": 3167,
+    "text_slots": 295,
+    "text_bytes": 96161,
+    "slot_hash_sha256": "9bf5339d3151bef78bc84928a1236172a09611d0feb19319db50d7fe00c29672",
+    "hash_construction": "sha256( concat( u64be(len(p)) || utf8(p) for p in (owner, slot, value) ) ) in document order",
+    "asserted_by": "crates/ln-decode/tests/source_package_real_source.rs::tracked_wordml_roundtrip_keeps_oracle_checked_text_slots"
+  },
+  "oracle": {
+    "kind": "independent XML control harness (not product)",
+    "parsers": [
+      "python xml.parsers.expat event reader (start/character-data/end handlers, text/tail frame assembly)",
+      "python xml.etree.ElementTree tree text/tail model (second independent assembly)"
+    ],
+    "invocation": "python3 prd/migration/rust-evidence/source_package_oracle.py <fixture>",
+    "gsd_exec_id": "74cb9ac2-1aee-4545-9a73-1508013b5f09",
+    "observed": {
+      "expat": {
+        "elements": 3167,
+        "slots": 295,
+        "text_bytes": 96161,
+        "slot_hash": "9bf5339d3151bef78bc84928a1236172a09611d0feb19319db50d7fe00c29672"
+      },
+      "elementtree": {
+        "elements": 3167,
+        "slots": 295,
+        "text_bytes": 96161,
+        "slot_hash": "9bf5339d3151bef78bc84928a1236172a09611d0feb19319db50d7fe00c29672"
+      },
+      "oracle_agreement": true,
+      "matches_rust_pin": true
+    },
+    "verdict": "parity",
+    "parity_meaning": "Two independent XML front-ends agree with the Rust-decoded fixture pin over decoded ElementTree-style text/tail slots. Parity, not accuracy: this is not legal truth, coverage, or authenticity."
+  },
+  "acceptance": {
+    "command": "cargo test -p ln-decode --offline",
+    "exit_code": 0,
+    "duration_ms": 227601,
+    "passed": 148,
+    "failed": 0,
+    "ignored": 0,
+    "named_suites": {
+      "source_package_contract": "57 passed / 0 failed",
+      "source_package_real_source": "1 passed / 0 failed"
+    },
+    "gsd_exec_id": "0081b3ca-ca24-43d1-a5e6-1a34caa3c791",
+    "note": "all ln-decode integration suites green; no suite skipped or filtered"
+  },
+  "behavior_checks": {
+    "deterministic_output": [
+      "write_then_read_roundtrips",
+      "tracked_wordml_roundtrip_keeps_oracle_checked_text_slots",
+      "package_is_lf_terminated_and_three_part"
+    ],
+    "strict_nullable_and_malformed": [
+      "read_rejects_every_absent_nullable_key",
+      "read_rejects_duplicate_json_key",
+      "read_rejects_unknown_field",
+      "read_rejects_bool_integer",
+      "read_rejects_unknown_version",
+      "read_rejects_unknown_capture_status",
+      "read_rejects_missing_trailing_lf",
+      "read_rejects_carriage_return",
+      "read_rejects_truncated_footer",
+      "read_rejects_trailing_record_after_footer",
+      "dtd_is_rejected",
+      "unsupported_encoding_is_rejected",
+      "duplicate_attribute_is_rejected",
+      "unbound_prefix_is_rejected",
+      "malformed_close_is_rejected",
+      "multiple_roots_are_rejected",
+      "invalid_xml_char_is_rejected",
+      "rejects_non_name_xml_names",
+      "comment_double_hyphen_rejected",
+      "namespace_declaration_reference_is_rejected",
+      "attribute_value_literal_lt_rejected_but_escaped_allowed",
+      "xml_decl_position_duplicate_and_version"
+    ],
+    "minimum_caller_and_manifest_caps": [
+      "read_rejects_caller_node_cap",
+      "read_rejects_caller_attrs_cap",
+      "verify_rejects_attrs_over_manifest_cap",
+      "node_cap_is_rejected",
+      "depth_cap_is_rejected",
+      "input_byte_cap_is_rejected",
+      "capture_rejects_unexportable_line"
+    ],
+    "deep_iterative_traversal": [
+      "deep_chain_default_cap_rejects_without_abort",
+      "deep_chain_raised_cap_verifies_iteratively",
+      "deep_capture_and_verify_are_iterative"
+    ],
+    "fail_fast": [
+      "read_fails_fast_on_non_manifest_first_line"
+    ],
+    "partial_writer": [
+      "midstream_write_error_returns_error",
+      "write_validates_before_writing",
+      "to_jsonl_validates_before_emitting"
+    ],
+    "tamper_and_verify": [
+      "verify_rejects_duplicate_element_id",
+      "verify_rejects_dangling_parent",
+      "verify_rejects_wrong_counts",
+      "verify_rejects_misplaced_tail",
+      "verify_accepts_untampered_and_rejects_resigned_tamper",
+      "verify_against_source_matches_clean_and_detects_tamper"
+    ],
+    "error_detail_no_leak": [
+      "error_detail_does_not_leak_value",
+      "error_detail_does_not_contain_source_text"
+    ]
+  },
+  "verify_commands": [
+    {"command": "cargo test -p ln-decode --offline", "exit_code": 0, "duration_ms": 227601, "verdict": "pass", "gsd_exec_id": "0081b3ca-ca24-43d1-a5e6-1a34caa3c791"},
+    {"command": "cargo metadata --offline --no-deps --format-version 1", "exit_code": 0, "duration_ms": 96, "verdict": "pass", "packages": 47, "gsd_exec_id": "0081b3ca-ca24-43d1-a5e6-1a34caa3c791"},
+    {"command": "cargo fmt --all --check", "exit_code": 0, "duration_ms": 2759, "verdict": "pass", "gsd_exec_id": "0081b3ca-ca24-43d1-a5e6-1a34caa3c791"},
+    {"command": "cargo clippy --workspace --offline --all-targets -- -D warnings", "exit_code": 0, "duration_ms": 569, "verdict": "pass", "gsd_exec_id": "0081b3ca-ca24-43d1-a5e6-1a34caa3c791"},
+    {"command": "cargo check --workspace --offline", "exit_code": 0, "duration_ms": 312, "verdict": "pass", "gsd_exec_id": "0081b3ca-ca24-43d1-a5e6-1a34caa3c791"},
+    {"command": "uv run python scripts/verify-adr-conformance.py", "exit_code": 0, "duration_ms": 260, "verdict": "pass", "status": "ok", "files_scanned": 27, "finding_count": 0, "missing_adr_refs": 0, "untagged_claims": 0, "gsd_exec_id": "0081b3ca-ca24-43d1-a5e6-1a34caa3c791"},
+    {"command": "python3 prd/migration/rust-evidence/source_package_oracle.py <fixture>", "exit_code": 0, "duration_ms": 173, "verdict": "pass", "gsd_exec_id": "74cb9ac2-1aee-4545-9a73-1508013b5f09"}
+  ],
+  "final_tree_confirmation": {
+    "note": "re-run after this JSON and the oracle harness were written to disk, to confirm the final tracked tree",
+    "gsd_exec_id": "934549ba-9cbd-41f9-b272-06cf8f0571f0",
+    "checks": [
+      {"command": "cargo fmt --all --check", "exit_code": 0, "duration_ms": 2561},
+      {"command": "cargo clippy --workspace --offline --all-targets -- -D warnings", "exit_code": 0, "duration_ms": 631},
+      {"command": "cargo check --workspace --offline", "exit_code": 0, "duration_ms": 327},
+      {"command": "uv run python scripts/verify-adr-conformance.py", "exit_code": 0, "duration_ms": 184, "status": "ok", "files_scanned": 27, "finding_count": 0},
+      {"command": "cargo test -p ln-decode --offline --test source_package_contract", "exit_code": 0, "duration_ms": 6053, "passed": 57, "failed": 0},
+      {"command": "cargo test -p ln-decode --offline --test source_package_real_source", "exit_code": 0, "duration_ms": 4206, "passed": 1, "failed": 0}
+    ]
+  },
+  "fail_closed_evidence": {
+    "missing_fixture": "source_package_real_source uses fs::read(path).expect(...); a missing fixture fails the suite loudly, it is not silently skipped (no #[ignore], no conditional return).",
+    "malformed_or_oversized_input": "capture/read_package return typed SourcePackageError; tests assert ErrorKind and that detail()/to_string() never contain decoded source values.",
+    "oracle_mismatch": "the harness exits 1 when the two independent assemblies disagree; the recorded run exits 0."
+  },
+  "non_claims": [
+    "parity is not accuracy: two independent XML front-ends agreeing with the Rust pin does not establish legal correctness, completeness, or gold quality",
+    "one bounded tracked fixture only: no consru_export corpus scan, no Garant format, no corpus coverage claim",
+    "not an R1000 closure: S01 acceptance is supporting evidence; R1000 stays active and S02-S04 own the remaining closure surface",
+    "integrity is not authenticity or coverage (D600/D601): source_sha256 and record seals are recomputable by any byte-controlling actor",
+    "verify_against_source re-runs the same capture algorithm and is not independent proof",
+    "the oracle harness is a control harness, not product code; it is never compiled, imported, or shipped by any crate",
+    "no raw legal text in this evidence: only relative paths, byte counts, and SHA-256 digests",
+    "M207/M208/M211 frozen pins unchanged; D602 exception stays module-scoped to source_package and old lexer/lawref/lawref_resolve stay serde-free",
+    "tmp/exec artifacts are supplementary; this JSON is the portable record"
+  ],
+  "terminology_notes": [
+    "contract section 10 labels the 96161 figure 'UTF-8 chars', while the code and oracle both count value.len() in UTF-8 bytes; the model distinguishes chars and bytes, and this evidence records text_bytes=96161. Carried from T01; no behavioral effect."
+  ],
+  "limitations": [
+    "acceptance ran offline against the local registry and Cargo.lock",
+    "the fixture characterization is one document; it does not generalize to the corpus",
+    "the oracle reproduces ElementTree-style text/tail slot semantics by specification, not by blind derivation"
+  ]
+}
