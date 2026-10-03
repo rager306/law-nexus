@@ -18,11 +18,12 @@ use std::collections::{HashMap, HashSet};
 use std::fmt;
 
 use crate::reader_contract::{
-    partition_primary_views, view_key, ContractError, ContractErrorKind, ElementRef, FragmentRef,
-    ReaderDerivedKind, ReaderFragmentSpan, ReaderRecordIndex, ReaderReferenceType, ReaderRole,
-    ReaderSegmentKind, ReaderSemantic, ReaderViewKind,
+    check_fragment_span, control_derived_kind, partition_primary_views, reference_type_of,
+    tail_view_key, view_key, whole_fragment_span, ContractError, ContractErrorKind, ElementRef,
+    FragmentRef, ReaderDerivedKind, ReaderFragmentSpan, ReaderRecordIndex, ReaderReferenceType,
+    ReaderRole, ReaderSegmentKind, ReaderSemantic, ReaderViewKey, ReaderViewKind,
 };
-use crate::source_package::{Record, TextSlot};
+use crate::source_package::{ElementRecord, Record, TextSlot};
 
 // ------------------------------------------------------------------- ids #
 
@@ -419,10 +420,226 @@ fn parent_roles(kind: ReaderViewKind) -> &'static [ReaderRole] {
     }
 }
 
-/// Builds the reader view forest over the frozen substrate.
+// --------------------------------------------------------- document events #
+
+/// A single ordered projection event reconstructed from the substrate records
+/// (never re-parsed from XML). Fragments come from `text_ref` / `tail_ref`;
+/// controls and references come from the element roles. [`document_events`]
+/// emits them in document order.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum ProjectionEvent {
+    Fragment {
+        fragment_id: String,
+        slot: TextSlot,
+        owner: String,
+        view: ReaderViewKey,
+    },
+    Control {
+        element: String,
+        kind: ReaderDerivedKind,
+        view: ReaderViewKey,
+    },
+    Reference {
+        element: String,
+        reference_type: ReaderReferenceType,
+        view: ReaderViewKey,
+    },
+}
+
+impl ProjectionEvent {
+    /// The ownership view of the event.
+    fn view_key(&self) -> &ReaderViewKey {
+        match self {
+            ProjectionEvent::Fragment { view, .. }
+            | ProjectionEvent::Control { view, .. }
+            | ProjectionEvent::Reference { view, .. } => view,
+        }
+    }
+}
+
+/// Clark namespace of a tag (`{ns}local`), or `None` for an unbound name.
+/// Mirrors the private helper in `reader_contract`; duplicated here so the
+/// frozen S02 surface does not need to change.
+fn clark_namespace(clark_tag: &str) -> Option<&str> {
+    let rest = clark_tag.strip_prefix('{')?;
+    let close = rest.find('}')?;
+    Some(&rest[..close])
+}
+
+/// True when `element_id` is a maximal `unknown` / `foreign` subtree root (a
+/// namespace or role boundary): its parent is absent, is not unknown/foreign, or
+/// lives in a different namespace. Nested unknown/foreign elements inside the
+/// same subtree are covered by the boundary root and are not emitted again.
+fn unknown_or_foreign_boundary(
+    index: &ReaderRecordIndex,
+    element_id: &str,
+) -> Result<bool, ProjectionError> {
+    let element = index.element(element_id).ok_or_else(|| {
+        ProjectionError::new(
+            ProjectionErrorKind::MissingView,
+            format!("element {element_id} is missing from the substrate index"),
+        )
+    })?;
+    let Some(parent_id) = &element.parent else {
+        return Ok(true);
+    };
+    let parent = index.element(parent_id).ok_or_else(|| {
+        ProjectionError::new(
+            ProjectionErrorKind::MissingView,
+            format!("element {parent_id} is missing from the substrate index"),
+        )
+    })?;
+    if !matches!(
+        role_of(index, parent_id)?,
+        ReaderRole::Unknown | ReaderRole::Foreign
+    ) {
+        return Ok(true);
+    }
+    Ok(clark_namespace(&parent.clark_tag) != clark_namespace(&element.clark_tag))
+}
+
+/// True when `element_id` or any real ancestor has `role`.
+fn ancestor_has_role(
+    index: &ReaderRecordIndex,
+    element_id: &str,
+    role: ReaderRole,
+) -> Result<bool, ProjectionError> {
+    let mut current = element_id.to_string();
+    loop {
+        if role_of(index, &current)? == role {
+            return Ok(true);
+        }
+        match index
+            .element(&current)
+            .and_then(|element| element.parent.clone())
+        {
+            Some(parent) => current = parent,
+            None => return Ok(false),
+        }
+    }
+}
+
+/// Closed semantic for a source fragment: `field_code` when the owner is under
+/// a field, else the revision class, else whitespace, else body.
+fn text_semantic(
+    index: &ReaderRecordIndex,
+    owner: &str,
+    value: &str,
+) -> Result<ReaderSemantic, ProjectionError> {
+    if ancestor_has_role(index, owner, ReaderRole::Field)? {
+        return Ok(ReaderSemantic::FieldCode);
+    }
+    if ancestor_has_role(index, owner, ReaderRole::RevisionInsertion)? {
+        return Ok(ReaderSemantic::RevisionInsertion);
+    }
+    if ancestor_has_role(index, owner, ReaderRole::RevisionDeletion)? {
+        return Ok(ReaderSemantic::RevisionDeletion);
+    }
+    if value.trim().is_empty() {
+        return Ok(ReaderSemantic::Whitespace);
+    }
+    Ok(ReaderSemantic::Body)
+}
+
+/// Reconstructs the ordered document events from substrate records only.
 ///
-/// In T01 the `segments` and `references` vectors are empty and `content_hash`
-/// is `None`; later tasks of the slice fill them. The view set is the union of:
+/// The walk is the same pre-order capture uses: an element's own `text_ref`
+/// first, then its control/reference event, then its children in document
+/// order, each followed by that child's `tail_ref`. It never re-parses XML.
+fn document_events(index: &ReaderRecordIndex) -> Result<Vec<ProjectionEvent>, ProjectionError> {
+    let mut children: HashMap<String, Vec<&ElementRecord>> = HashMap::new();
+    let mut roots: Vec<&ElementRecord> = Vec::new();
+    for element in index.elements() {
+        match &element.parent {
+            Some(parent) => children.entry(parent.clone()).or_default().push(element),
+            None => roots.push(element),
+        }
+    }
+    for kids in children.values_mut() {
+        kids.sort_by_key(|element| index.source_pos(&element.id).unwrap_or(usize::MAX));
+    }
+    roots.sort_by_key(|element| index.source_pos(&element.id).unwrap_or(usize::MAX));
+
+    enum Step<'a> {
+        Node(&'a ElementRecord),
+        Tail(&'a ElementRecord),
+    }
+
+    let mut events: Vec<ProjectionEvent> = Vec::new();
+    let mut stack: Vec<Step<'_>> = roots.iter().rev().map(|root| Step::Node(root)).collect();
+    while let Some(step) = stack.pop() {
+        match step {
+            Step::Node(element) => {
+                let role = role_of(index, &element.id)?;
+                if let Some(text_ref) = &element.text_ref {
+                    events.push(ProjectionEvent::Fragment {
+                        fragment_id: text_ref.clone(),
+                        slot: TextSlot::Text,
+                        owner: element.id.clone(),
+                        view: view_key(index, &ElementRef::new(element.id.as_str()))?,
+                    });
+                }
+                if role == ReaderRole::Control && element.text_ref.is_none() {
+                    if let Some(kind) = control_derived_kind(&element.clark_tag, &element.attrs) {
+                        events.push(ProjectionEvent::Control {
+                            element: element.id.clone(),
+                            kind,
+                            view: view_key(index, &ElementRef::new(element.id.as_str()))?,
+                        });
+                    }
+                }
+                if matches!(
+                    role,
+                    ReaderRole::NoteReference
+                        | ReaderRole::Field
+                        | ReaderRole::Unknown
+                        | ReaderRole::Foreign
+                ) {
+                    let is_boundary = match role {
+                        ReaderRole::Unknown | ReaderRole::Foreign => {
+                            unknown_or_foreign_boundary(index, &element.id)?
+                        }
+                        _ => true,
+                    };
+                    if is_boundary {
+                        if let Some(reference_type) =
+                            reference_type_of(&element.clark_tag, &element.attrs)
+                        {
+                            events.push(ProjectionEvent::Reference {
+                                element: element.id.clone(),
+                                reference_type,
+                                view: view_key(index, &ElementRef::new(element.id.as_str()))?,
+                            });
+                        }
+                    }
+                }
+                if let Some(kids) = children.get(&element.id) {
+                    for child in kids.iter().rev() {
+                        stack.push(Step::Tail(child));
+                        stack.push(Step::Node(child));
+                    }
+                }
+            }
+            Step::Tail(element) => {
+                if let Some(tail_ref) = &element.tail_ref {
+                    events.push(ProjectionEvent::Fragment {
+                        fragment_id: tail_ref.clone(),
+                        slot: TextSlot::Tail,
+                        owner: element.id.clone(),
+                        view: tail_view_key(index, &ElementRef::new(element.id.as_str()))?,
+                    });
+                }
+            }
+        }
+    }
+    Ok(events)
+}
+
+/// Builds the reader projection over the frozen substrate: the view forest plus
+/// the ordered source-fragment / derived segments and unresolved references.
+/// `content_hash` stays `None` until the serialization task recomputes the seal.
+///
+/// The view set is the union of:
 ///
 /// 1. every element whose role is `paragraph` / `table` / `row` / `cell` /
 ///    `note`;
@@ -434,6 +651,12 @@ fn parent_roles(kind: ReaderViewKind) -> &'static [ReaderRole] {
 /// Views are ordered by `source_pos` (with a deterministic kind tie-break),
 /// `parent_view` is the nearest valid container on the real parent chain, and
 /// `children` are ordered by `source_pos`.
+///
+/// Segments and references are produced from the substrate document-event walk
+/// (never an XML re-parse): every text record becomes exactly one source
+/// segment with a re-validated whole-fragment span, a documented control
+/// becomes a derived segment with no source span, and note/field/unknown/
+/// foreign elements become unresolved references.
 pub fn build_projection(records: &[Record]) -> Result<ReaderProjection, ProjectionError> {
     let index = ReaderRecordIndex::new(records)?;
 
@@ -574,6 +797,157 @@ pub fn build_projection(records: &[Record]) -> Result<ReaderProjection, Projecti
         views[parent_position].children = child_ids;
     }
 
+    // Group the ordered document events by owning view so each primary view can
+    // be filled in event order.
+    let mut events_per_view: Vec<Vec<ProjectionEvent>> = vec![Vec::new(); views.len()];
+    for event in document_events(&index)? {
+        let key = event.view_key();
+        let view_id = id_by_key
+            .get(&(key.kind, key.element_ref.as_str().to_string()))
+            .ok_or_else(|| {
+                ProjectionError::new(
+                    ProjectionErrorKind::MissingView,
+                    format!(
+                        "event view {} {} is missing",
+                        key.kind.as_str(),
+                        key.element_ref
+                    ),
+                )
+            })?;
+        let position = pos_by_id.get(view_id).copied().ok_or_else(|| {
+            ProjectionError::new(
+                ProjectionErrorKind::MissingView,
+                format!("event view {view_id} has no projection position"),
+            )
+        })?;
+        events_per_view[position].push(event);
+    }
+
+    // Segments and references are built view-by-view in view order; within a
+    // primary view they follow the document-event order. Ids (`sN` / `rN`) are
+    // therefore assigned in construction order.
+    let mut segments: Vec<ProjectedSegment> = Vec::new();
+    let mut references: Vec<ProjectedReference> = Vec::new();
+    for (position, view) in views.iter_mut().enumerate() {
+        if !view.kind.is_primary() {
+            continue;
+        }
+        let mut output_bytes: usize = 0;
+        let mut segment_ordinal: usize = 0;
+        let mut reference_ordinal: usize = 0;
+        for event in &events_per_view[position] {
+            match event {
+                ProjectionEvent::Fragment {
+                    fragment_id,
+                    slot,
+                    owner,
+                    ..
+                } => {
+                    let text = index.text(fragment_id).ok_or_else(|| {
+                        ProjectionError::new(
+                            ProjectionErrorKind::MissingView,
+                            format!("fragment {fragment_id} is missing from the substrate"),
+                        )
+                    })?;
+                    let fragment = FragmentRef::new(fragment_id.clone());
+                    let span = whole_fragment_span(&fragment, &text.value);
+                    if let Err(error) = check_fragment_span(&text.value, &span) {
+                        return Err(ProjectionError::new(
+                            ProjectionErrorKind::SpanInvalid,
+                            error.detail().to_string(),
+                        ));
+                    }
+                    let semantic = text_semantic(&index, owner, &text.value)?;
+                    let source_pos = index.source_pos(owner).ok_or_else(|| {
+                        ProjectionError::new(
+                            ProjectionErrorKind::MissingView,
+                            format!("text owner {owner} is missing"),
+                        )
+                    })?;
+                    let id = SegmentId::new(format!("s{}", segments.len()));
+                    let output_end = output_bytes + text.value.len();
+                    segments.push(ProjectedSegment {
+                        id: id.clone(),
+                        view: view.id.clone(),
+                        ordinal: segment_ordinal,
+                        segment_kind: ReaderSegmentKind::Text,
+                        fragment_ref: Some(fragment),
+                        slot: Some(*slot),
+                        span: Some(span),
+                        output_start: output_bytes,
+                        output_end,
+                        chars: text.value.chars().count(),
+                        origin: SegmentOrigin::SourceFragment,
+                        semantic,
+                        contextual: semantic != ReaderSemantic::Body,
+                        element_ref: ElementRef::new(owner.clone()),
+                        source_pos,
+                        text: None,
+                    });
+                    view.segment_refs.push(id);
+                    output_bytes = output_end;
+                    segment_ordinal += 1;
+                }
+                ProjectionEvent::Control { element, kind, .. } => {
+                    let literal = kind.literal();
+                    let source_pos = index.source_pos(element).ok_or_else(|| {
+                        ProjectionError::new(
+                            ProjectionErrorKind::MissingView,
+                            format!("control {element} is missing"),
+                        )
+                    })?;
+                    let id = SegmentId::new(format!("s{}", segments.len()));
+                    let output_end = output_bytes + literal.len();
+                    segments.push(ProjectedSegment {
+                        id: id.clone(),
+                        view: view.id.clone(),
+                        ordinal: segment_ordinal,
+                        segment_kind: ReaderSegmentKind::Derived,
+                        fragment_ref: None,
+                        slot: None,
+                        span: None,
+                        output_start: output_bytes,
+                        output_end,
+                        chars: literal.chars().count(),
+                        origin: SegmentOrigin::Derived(*kind),
+                        semantic: ReaderSemantic::DerivedSeparator,
+                        contextual: true,
+                        element_ref: ElementRef::new(element.clone()),
+                        source_pos,
+                        text: Some(literal.to_string()),
+                    });
+                    view.segment_refs.push(id);
+                    output_bytes = output_end;
+                    segment_ordinal += 1;
+                }
+                ProjectionEvent::Reference {
+                    element,
+                    reference_type,
+                    ..
+                } => {
+                    let source_pos = index.source_pos(element).ok_or_else(|| {
+                        ProjectionError::new(
+                            ProjectionErrorKind::MissingView,
+                            format!("reference {element} is missing"),
+                        )
+                    })?;
+                    let id = ReferenceId::new(format!("r{}", references.len()));
+                    references.push(ProjectedReference {
+                        id: id.clone(),
+                        view: view.id.clone(),
+                        ordinal: reference_ordinal,
+                        reference_type: *reference_type,
+                        element_ref: ElementRef::new(element.clone()),
+                        source_pos,
+                        resolved: false,
+                    });
+                    view.reference_refs.push(id);
+                    reference_ordinal += 1;
+                }
+            }
+        }
+    }
+
     // Flags: primary empty = owns no segment; navigation empty = no children.
     for view in &mut views {
         let empty = if view.kind.is_primary() {
@@ -584,10 +958,39 @@ pub fn build_projection(records: &[Record]) -> Result<ReaderProjection, Projecti
         view.flags = ViewFlags::new(empty);
     }
 
+    // Coverage: every substrate text record must be referenced exactly once by a
+    // source-fragment segment, so a substrate whose `text_ref` / `tail_ref`
+    // disagree with the text ownership fails closed instead of losing content.
+    let mut covered: HashSet<&str> = HashSet::new();
+    let mut duplicate = false;
+    for segment in &segments {
+        if let Some(fragment) = &segment.fragment_ref {
+            if !covered.insert(fragment.as_str()) {
+                duplicate = true;
+            }
+        }
+    }
+    if duplicate
+        || covered.len() != index.texts().len()
+        || index
+            .texts()
+            .iter()
+            .any(|text| !covered.contains(text.id.as_str()))
+    {
+        return Err(ProjectionError::new(
+            ProjectionErrorKind::PartitionIncomplete,
+            format!(
+                "coverage is not total and duplicate-free: {} covered of {} text record(s)",
+                covered.len(),
+                index.texts().len()
+            ),
+        ));
+    }
+
     Ok(ReaderProjection {
         views,
-        segments: Vec::new(),
-        references: Vec::new(),
+        segments,
+        references,
         content_hash: None,
     })
 }
@@ -597,7 +1000,7 @@ pub fn build_projection(records: &[Record]) -> Result<ReaderProjection, Projecti
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::source_package::{capture, ElementRecord, Limits, TextRecord};
+    use crate::source_package::{capture, Limits, TextRecord};
     use std::collections::BTreeMap;
 
     const NS: &str = "{http://schemas.microsoft.com/office/word/2003/wordml}";
@@ -637,6 +1040,32 @@ mod tests {
         })
     }
 
+    /// Links hand-built text records back to their owners exactly as `capture`
+    /// does: `text` slots become `text_ref`, `tail` slots `tail_ref`. The real
+    /// substrate always carries these links; a hand-built one must too, because
+    /// the document-event walk reads them.
+    fn link_texts(records: &mut [Record]) {
+        let links: Vec<(String, TextSlot, String)> = records
+            .iter()
+            .filter_map(|record| match record {
+                Record::Text(text) => Some((text.owner.clone(), text.slot, text.id.clone())),
+                Record::Element(_) => None,
+            })
+            .collect();
+        for record in records.iter_mut() {
+            if let Record::Element(element) = record {
+                for (owner, slot, id) in &links {
+                    if &element.id == owner {
+                        match slot {
+                            TextSlot::Text => element.text_ref = Some(id.clone()),
+                            TextSlot::Tail => element.tail_ref = Some(id.clone()),
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     //   e0 wordDocument
     //     e1 body
     //       e2 p (paragraph)
@@ -651,7 +1080,7 @@ mod tests {
     //             e11 r (sibling residual anchor in the cell)
     //               e12 t "Tail"  (t2)
     fn synthetic() -> Vec<Record> {
-        vec![
+        let mut records = vec![
             element("e0", None, "wordDocument"),
             element("e1", Some("e0"), "body"),
             element("e2", Some("e1"), "p"),
@@ -668,7 +1097,9 @@ mod tests {
             element("e11", Some("e7"), "r"),
             element("e12", Some("e11"), "t"),
             text("t2", "e12", TextSlot::Text, "Tail"),
-        ]
+        ];
+        link_texts(&mut records);
+        records
     }
 
     fn view<'a>(
@@ -681,6 +1112,77 @@ mod tests {
             .iter()
             .find(|view| view.kind == kind && view.element_ref.as_str() == element_ref)
             .unwrap_or_else(|| panic!("view {kind:?} {element_ref} missing"))
+    }
+
+    fn strings(values: &[&str]) -> Vec<String> {
+        values.iter().map(|value| value.to_string()).collect()
+    }
+
+    fn segment_tokens(
+        projection: &ReaderProjection,
+        kind: ReaderViewKind,
+        element_ref: &str,
+    ) -> Vec<String> {
+        view(projection, kind, element_ref)
+            .segment_refs
+            .iter()
+            .map(|id| {
+                let segment = projection
+                    .segments
+                    .iter()
+                    .find(|segment| &segment.id == id)
+                    .expect("segment ref must resolve");
+                match segment.origin {
+                    SegmentOrigin::SourceFragment => segment
+                        .fragment_ref
+                        .as_ref()
+                        .expect("source segment carries a fragment")
+                        .as_str()
+                        .to_string(),
+                    SegmentOrigin::Derived(kind) => format!("derived:{}", kind.as_str()),
+                }
+            })
+            .collect()
+    }
+
+    fn reference_tokens(
+        projection: &ReaderProjection,
+        kind: ReaderViewKind,
+        element_ref: &str,
+    ) -> Vec<String> {
+        view(projection, kind, element_ref)
+            .reference_refs
+            .iter()
+            .map(|id| {
+                projection
+                    .references
+                    .iter()
+                    .find(|reference| &reference.id == id)
+                    .expect("reference ref must resolve")
+                    .reference_type
+                    .as_str()
+                    .to_string()
+            })
+            .collect()
+    }
+
+    fn source_segment<'a>(
+        projection: &'a ReaderProjection,
+        fragment: &str,
+    ) -> &'a ProjectedSegment {
+        projection
+            .segments
+            .iter()
+            .find(|segment| {
+                segment.fragment_ref.as_ref().map(FragmentRef::as_str) == Some(fragment)
+            })
+            .unwrap_or_else(|| panic!("fragment segment {fragment} missing"))
+    }
+
+    fn fixture_projection() -> ReaderProjection {
+        const XML: &str = include_str!("../tests/fixtures/reader/mixed-wordml.xml");
+        let package = capture(XML.as_bytes(), &Limits::default()).expect("fixture must capture");
+        build_projection(package.records()).expect("projection must build")
     }
 
     #[test]
@@ -752,19 +1254,32 @@ mod tests {
             .children
             .is_empty());
 
-        // T01: only the forest is built.
-        assert!(projection.segments.is_empty());
+        // T02: the synthetic tree carries three source fragments and no
+        // references; the seal is still unset until the serialization task.
+        assert_eq!(projection.segments.len(), 3);
         assert!(projection.references.is_empty());
         assert_eq!(projection.content_hash(), None);
+        assert_eq!(
+            segment_tokens(&projection, ReaderViewKind::Paragraph, "e2"),
+            ["t0"]
+        );
+        assert_eq!(
+            segment_tokens(&projection, ReaderViewKind::Paragraph, "e8"),
+            ["t1"]
+        );
+        assert_eq!(
+            segment_tokens(&projection, ReaderViewKind::Residual, "e11"),
+            ["t2"]
+        );
 
-        // Primary views carry no segments yet; navigation views are non-empty
-        // exactly when they have children.
+        // flags.empty is recomputed from the final segment/child content.
         for view in &projection.views {
-            if view.kind.is_primary() {
-                assert!(view.flags.empty, "primary view {} must be empty", view.id);
+            let expected_empty = if view.kind.is_primary() {
+                view.segment_refs.is_empty()
             } else {
-                assert_eq!(view.flags.empty, view.children.is_empty(), "{}", view.id);
-            }
+                view.children.is_empty()
+            };
+            assert_eq!(view.flags.empty, expected_empty, "{}", view.id);
         }
     }
 
@@ -870,6 +1385,238 @@ mod tests {
             view(&projection, ReaderViewKind::Note, "e42").children,
             vec![ViewId::from("v15"), ViewId::from("v16")]
         );
+    }
+
+    #[test]
+    fn fixture_segments_and_references_match_handwritten_oracle() {
+        let projection = fixture_projection();
+
+        // Ordered per-view segment lists, hand-derived from the fixture XML
+        // (`derived:<kind>` marks a rendered control).
+        let segments: &[(ReaderViewKind, &str, &[&str])] = &[
+            (ReaderViewKind::Paragraph, "e2", &["t0"]),
+            (
+                ReaderViewKind::Paragraph,
+                "e5",
+                &["t1", "derived:tab", "t2"],
+            ),
+            (ReaderViewKind::Paragraph, "e13", &["t3"]),
+            (ReaderViewKind::Residual, "e13", &["t4"]),
+            (ReaderViewKind::Residual, "e16", &["t5"]),
+            (
+                ReaderViewKind::Paragraph,
+                "e19",
+                &["derived:line_break", "derived:page_break", "t6"],
+            ),
+            (ReaderViewKind::Paragraph, "e24", &["t7", "t8"]),
+            (ReaderViewKind::Paragraph, "e29", &["t9", "t10"]),
+            (ReaderViewKind::Paragraph, "e38", &["t13"]),
+            (ReaderViewKind::Paragraph, "e43", &["t14"]),
+            (ReaderViewKind::Residual, "e46", &[]),
+            (ReaderViewKind::Residual, "e0", &["t11", "t12"]),
+        ];
+        for (kind, element_ref, expected) in segments {
+            assert_eq!(
+                segment_tokens(&projection, *kind, element_ref),
+                strings(expected),
+                "segments for {kind:?} {element_ref}"
+            );
+        }
+
+        // Ordered per-view reference lists.
+        let references: &[(ReaderViewKind, &str, &[&str])] = &[
+            (ReaderViewKind::Paragraph, "e5", &["field"]),
+            (ReaderViewKind::Paragraph, "e24", &["field"]),
+            (
+                ReaderViewKind::Residual,
+                "e0",
+                &[
+                    "unknown_wordml_element",
+                    "foreign_element",
+                    "note_reference",
+                ],
+            ),
+            (ReaderViewKind::Residual, "e46", &["note_reference"]),
+        ];
+        for (kind, element_ref, expected) in references {
+            assert_eq!(
+                reference_tokens(&projection, *kind, element_ref),
+                strings(expected),
+                "references for {kind:?} {element_ref}"
+            );
+        }
+        assert_eq!(projection.references.len(), 6);
+        for reference in &projection.references {
+            assert!(!reference.resolved, "{}", reference.id);
+        }
+    }
+
+    #[test]
+    fn fixture_fragment_semantics_follow_field_revision_and_whitespace() {
+        let projection = fixture_projection();
+        let cases: &[(&str, &str, TextSlot, ReaderSemantic, bool)] = &[
+            ("t0", "e4", TextSlot::Text, ReaderSemantic::Body, false),
+            ("t1", "e7", TextSlot::Text, ReaderSemantic::Body, false),
+            ("t2", "e9", TextSlot::Text, ReaderSemantic::FieldCode, true),
+            (
+                "t4",
+                "e13",
+                TextSlot::Tail,
+                ReaderSemantic::Whitespace,
+                true,
+            ),
+            ("t7", "e27", TextSlot::Text, ReaderSemantic::FieldCode, true),
+            ("t8", "e28", TextSlot::Text, ReaderSemantic::Body, false),
+            (
+                "t9",
+                "e32",
+                TextSlot::Text,
+                ReaderSemantic::RevisionInsertion,
+                true,
+            ),
+            (
+                "t10",
+                "e34",
+                TextSlot::Text,
+                ReaderSemantic::RevisionDeletion,
+                true,
+            ),
+            ("t12", "e37", TextSlot::Text, ReaderSemantic::Body, false),
+            ("t13", "e40", TextSlot::Text, ReaderSemantic::Body, false),
+        ];
+        for (fragment, owner, slot, semantic, contextual) in cases {
+            let segment = source_segment(&projection, fragment);
+            assert_eq!(&segment.element_ref.as_str(), owner, "{fragment}");
+            assert_eq!(segment.slot, Some(*slot), "{fragment}");
+            assert_eq!(segment.semantic, *semantic, "{fragment}");
+            assert_eq!(segment.contextual, *contextual, "{fragment}");
+        }
+    }
+
+    #[test]
+    fn fixture_controls_render_as_derived_segments_without_spans() {
+        let projection = fixture_projection();
+        let derived: Vec<&ProjectedSegment> = projection
+            .segments
+            .iter()
+            .filter(|segment| segment.segment_kind == ReaderSegmentKind::Derived)
+            .collect();
+        assert_eq!(derived.len(), 3);
+        for segment in &derived {
+            assert!(segment.fragment_ref.is_none());
+            assert!(segment.slot.is_none());
+            assert!(segment.span.is_none());
+            assert_eq!(segment.semantic, ReaderSemantic::DerivedSeparator);
+            assert!(segment.contextual);
+            let kind = segment.origin.derived_kind().expect("derived origin");
+            assert_eq!(segment.text.as_deref(), Some(kind.literal()));
+            assert_eq!(segment.chars, kind.literal().chars().count());
+        }
+        let literals: Vec<&str> = derived
+            .iter()
+            .map(|segment| segment.text.as_deref().expect("derived literal"))
+            .collect();
+        assert!(literals.contains(&"\t"));
+        assert_eq!(
+            literals.iter().filter(|literal| **literal == "\n").count(),
+            2
+        );
+    }
+
+    #[test]
+    fn fixture_coverage_is_total_duplicate_free_and_span_valid() {
+        const XML: &str = include_str!("../tests/fixtures/reader/mixed-wordml.xml");
+        let package = capture(XML.as_bytes(), &Limits::default()).expect("fixture must capture");
+        let records = package.records();
+        let projection = build_projection(records).expect("projection must build");
+
+        let mut fragments: Vec<String> = projection
+            .segments
+            .iter()
+            .filter_map(|segment| {
+                segment
+                    .fragment_ref
+                    .as_ref()
+                    .map(|f| f.as_str().to_string())
+            })
+            .collect();
+        fragments.sort_unstable();
+        let mut expected: Vec<String> = (0..15).map(|index| format!("t{index}")).collect();
+        expected.sort_unstable();
+        assert_eq!(fragments, expected);
+
+        for segment in &projection.segments {
+            let Some(fragment) = &segment.fragment_ref else {
+                continue;
+            };
+            let value = records
+                .iter()
+                .find_map(|record| match record {
+                    Record::Text(text) if text.id == fragment.as_str() => Some(text.value.as_str()),
+                    _ => None,
+                })
+                .expect("fragment must name a substrate text record");
+            let span = segment.span.as_ref().expect("text segment carries a span");
+            assert_eq!(span.start, 0);
+            assert_eq!(span.end, value.len());
+            assert!(check_fragment_span(value, span).is_ok());
+            assert_eq!(segment.chars, value.chars().count());
+            assert_eq!(segment.output_end - segment.output_start, value.len());
+        }
+
+        // Per-view output offsets are contiguous from zero.
+        for view in &projection.views {
+            if !view.kind.is_primary() {
+                continue;
+            }
+            let mut cursor = 0usize;
+            for id in &view.segment_refs {
+                let segment = projection
+                    .segments
+                    .iter()
+                    .find(|segment| &segment.id == id)
+                    .expect("segment ref must resolve");
+                assert_eq!(segment.output_start, cursor, "{}", segment.id);
+                cursor = segment.output_end;
+            }
+            // Navigation views never own a segment or a reference.
+        }
+        for view in &projection.views {
+            if view.kind.is_navigation() {
+                assert!(view.segment_refs.is_empty(), "{}", view.id);
+                assert!(view.reference_refs.is_empty(), "{}", view.id);
+            }
+        }
+    }
+
+    #[test]
+    fn empty_fragment_fails_closed_with_span_invalid() {
+        // `capture` never emits an empty text record; a hand-built one must fail
+        // closed at the mandatory whole-fragment span re-validation.
+        let mut records = vec![
+            element("e0", None, "wordDocument"),
+            element("e1", Some("e0"), "p"),
+            element("e2", Some("e1"), "t"),
+            text("t0", "e2", TextSlot::Text, ""),
+        ];
+        link_texts(&mut records);
+        let error = build_projection(&records).unwrap_err();
+        assert_eq!(error.kind(), ProjectionErrorKind::SpanInvalid);
+    }
+
+    #[test]
+    fn unlinked_text_fails_closed_with_partition_incomplete() {
+        // A text record whose owner exists but is not linked through the
+        // element's `text_ref` is a substrate inconsistency: the ownership map
+        // and the document-event walk disagree, so coverage fails closed.
+        let records = vec![
+            element("e0", None, "wordDocument"),
+            element("e1", Some("e0"), "p"),
+            element("e2", Some("e1"), "t"),
+            text("t0", "e2", TextSlot::Text, "Alpha"),
+        ];
+        let error = build_projection(&records).unwrap_err();
+        assert_eq!(error.kind(), ProjectionErrorKind::PartitionIncomplete);
     }
 
     #[test]
