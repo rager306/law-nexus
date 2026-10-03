@@ -1,0 +1,42 @@
+{
+  "schema": "law-nexus-milestone-validation-battery/v1",
+  "milestoneId": "M213-t6p7d0",
+  "slice": "S04",
+  "purpose": "Out-of-band evidence for the one NEEDS-HUMAN UAT check that the 600 s gsd_uat_exec cap cannot hold: the ignore-gated full-82 declared-slice sweep for the cleaned projection.",
+  "command": "cargo test -p ln-decode --offline --test cleaned_projection_corpus -- --ignored --nocapture",
+  "workingDirectory": "/root/law-nexus",
+  "testName": "full_declared_slice_captures_gates_projects_and_exports",
+  "ignoreReason": "out-of-band full-82 sweep exceeds the 600s gsd_exec evidence cap (MEM1488)",
+  "startedAtEpochSeconds": 1791052899,
+  "finishedAtEpochSeconds": 1791054640,
+  "durationSeconds": 1735.37,
+  "exitCode": 0,
+  "result": "1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out",
+  "counters": {
+    "files": 82,
+    "captured": 81,
+    "oversized": 1,
+    "gated": 81,
+    "projected": 81,
+    "exported": 81,
+    "elements": 3251382,
+    "fragments": 317288
+  },
+  "oversizedClosedOutcomes": [
+    "reshenie-soveta-evraziiskoi-ekonomicheskoi-komissii-ot-14-09-2021-n-80-red-ot-01-07-2026-ob-utverzhdenii-edinoi-tovarnoi-nomenklatury-v--1e5dc26f.xml"
+  ],
+  "rawEvidence": {
+    "note": "Raw stdout is bookkeeping under .gsd/exec and is deliberately NOT a durable anchor (project rule: durable proof anchors are tracked repository-relative files). This JSON is the durable anchor; the raw stream is cited only for traceability within the working tree.",
+    "stdoutPath": ".gsd/exec/m213-sweep.stdout",
+    "stderrPath": ".gsd/exec/m213-sweep.stderr",
+    "exitPath": ".gsd/exec/m213-sweep.exit"
+  },
+  "claimedSlice": "The frozen declared slice for this milestone is the top-level XML set of law-source/consultant (82 files). The sweep captures, gates, projects, exports and round-trips each of them; the single oversized fixture is recorded as a closed PackageTooLarge outcome rather than silently accepted or skipped.",
+  "nonClaims": [
+    "This is not corpus-wide acceptance: the swept set is the declared 82-file frozen slice, not the full external corpus.",
+    "Counters are integrity signals for this run, not a full-text coverage metric.",
+    "The sweep logs counters and file names only; it never emits raw decoded text.",
+    "Region classification (heading/body/annex labels) remains an explicit non-claim of the cleaned-projection contract; this run does not change that.",
+    "Nothing here promotes any lifecycle tag or advances any requirement other than the bounded, declared slice of R1000."
+  ]
+}
