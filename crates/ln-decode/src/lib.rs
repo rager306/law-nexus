@@ -37,6 +37,7 @@ pub mod npa_wire;
 pub mod ports;
 pub mod prefix_catalog;
 pub mod reader_contract;
+pub mod reader_gate;
 pub mod reader_projection;
 pub mod reader_verifier;
 pub mod references;

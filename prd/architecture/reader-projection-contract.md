@@ -15,7 +15,9 @@ coverage partition
 ADR-0015 (hexagonal verification architecture), ADR-0029
 (requisites-anchored member assembly — anchor boundary), D631 (S02 reader
 coordinate base), D633 (S03 content seal and resealed semantic-tamper
-semantics), D602/D328 (serde stays module-scoped to `source_package`)
+semantics), D634 (independent verifier recomputes from the substrate), D636/D637
+(S04 root-bound gate and boundary), D602/D328 (serde stays module-scoped to
+`source_package`)
 **Lifecycle ceiling:** this is a bounded reader-navigation projection over
 already-verified decoded source. It is **not** an R1000 closure artifact, not a
 CST/AST, not a temporal `StructuralAst`, and not expert legal gold. It closes no
@@ -204,15 +206,26 @@ after `reseal()`.
 
 ## 6. Slice boundary S03 / S04
 
-| S03 (this slice) | S04 (later) |
-|---|---|
-| view forest, ordered segments, references; canonical record-stream bytes; content seal; `reseal()` | full wire manifest/footer/metrics; read-back; `source_completion` |
-| independent `reader_verifier` with the §5.1 closed `VerifyCode` | gate-level acceptance, randomized/extra fixtures |
-| pinned mixed fixture battery + resealed-tamper battery | diverse frozen fixtures and corpus-bounded evidence |
+S03 delivered the projection and its independent verifier. S04 (M212-c25p2o/S04)
+keeps the authoritative sketch scope — audited diverse fixtures, a root-bound
+reader transfer gate with typed refusal, unsupported-case accounting, and the
+resealed semantic-tamper battery — and deliberately does **not** expand into the
+full reader wire (D637).
 
-Out of scope for S03: clean-view/normalization, XML re-parse, tokenization, CLI,
-temporal `StructuralAst`/CST/CTV, and any R1000 closure or legal-completeness
-claim. R1000 remains active.
+| Surface | Disposition |
+|---|---|
+| view forest, ordered segments, references; canonical record-stream bytes; content seal; `reseal()` | delivered (S03) |
+| independent `reader_verifier` with the §5.1 closed `VerifyCode` (D634) | delivered (S03) |
+| pinned mixed fixture battery + resealed-tamper battery | delivered (S03) |
+| 12 audited frozen self-authored diverse fixtures (sha256-pinned) | delivered (S04) — `prd/architecture/reader-fixture-manifest.md` |
+| root-bound transfer gate + typed refusal + unsupported accounting | delivered (S04) — `prd/architecture/reader-transfer-gate.md` |
+| diverse independent-recomputation battery + diverse resealed tamper battery | S04 T03/T04 |
+| full wire manifest/footer/metrics | remaining (out of S04 scope, D637) |
+| read-back/exporter; Hold/TextOnly; navigation links; `source_completion` | remaining (out of S04 scope, D637) |
+
+Out of scope for S03/S04: clean-view/normalization, XML re-parse, tokenization,
+CLI, temporal `StructuralAst`/CST/CTV, and any R1000 closure or
+legal-completeness claim. R1000 remains active.
 
 ## 7. Verification surface (S03)
 

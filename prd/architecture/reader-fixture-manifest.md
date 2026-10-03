@@ -56,7 +56,7 @@ Audit dimensions applied to every candidate:
 The iteration-16 classification rule ("any unrecognised namespace ⇒
 `unsupported_schema`") applies to that scratch prototype's whole-document model. The
 Rust reader profile `reader_wordml_profile/v1` is **root-bound** (T02,
-`reader_transfer_gate`); foreign *children* are part of the supported profile and do not
+`reader_gate`); foreign *children* are part of the supported profile and do not
 change the source class. That structural divergence is documented in
 `prd/architecture/reader-transfer-gate.md` and is the reason the negative
 `unsupported_schema` fixture is root-bound rather than namespace-set-bound.
