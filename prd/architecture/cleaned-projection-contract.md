@@ -32,9 +32,9 @@ JSONL to carry the **full decoded text** of the source act, not locator-only
 structure.
 
 This contract fixes the wire form of the **cleaned structural JSONL projection**
-so S02 (`cleaned_wire` writer, structural inspection, battery), S03
-(navigation links) and S04 (Hold/TextOnly semantics, read-back and independent
-verification) have one unambiguous specification:
+so S02 (`cleaned_wire` writer, structural inspection, read-back,
+independent verification, battery), S03 (navigation links) and S04
+(Hold/TextOnly semantics) have one unambiguous specification:
 
 - an LF-delimited JSONL envelope `manifest → policies → records → footer`;
 - a declared contract version and profile;
