@@ -683,9 +683,22 @@ of `WholeProjection`, `StructureHold` and `TextOnlyScope`:
 - `write_cleaned_projection_atomic` publishes and reads back with no leftover
   `*.tmp`.
 
-A separate `#[ignore]` runner sweeps all 82 fixtures out-of-band (the sweep does
-not fit the 600 s evidence cap): capture, gate, project and one `Complete`
-export → read → verify each, logging counters only.
+A separate `#[ignore]` runner attempts all 82 fixtures out-of-band (the sweep
+does not fit the 600 s evidence cap): each fixture within the fail-closed
+serialized-package cap runs capture, gate, project and one `Complete` export →
+read → verify, logging counters and file names only. The declared-slice bound is
+on **input** bytes (`max_input_bytes`, 64 MiB); `capture` additionally enforces
+`max_package_bytes` (512 MiB) over the canonical serialized package, so a fixture
+whose expanded package exceeds that cap is recorded as a closed `PackageTooLarge`
+outcome, neither silently accepted nor skipped. At least one of the 82 fixtures
+— the ~32.6 MiB unified-nomenclature decision
+(`reshenie-soveta-evraziiskoi-ekonomicheskoi-komissii-…-nomenklatury-…`) — is
+recorded as oversized rather than processed; the remaining fixtures are captured,
+gated, projected and round-tripped. The per-fixture `PackageTooLarge` boundary
+is therefore a **non-claim** of full-slice processability: the bounded
+six-document sub-slice above is the affirmative text-safety proof, and the
+82-fixture sweep is an honest attempt whose cap-exceeding members are reported,
+not hidden.
 
 ### 13.6 Non-claims
 

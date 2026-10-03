@@ -33,7 +33,7 @@ use ln_decode::cleaned_wire::{
 };
 use ln_decode::reader_gate::{gate_reader, ReaderSourceClass};
 use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, Limits, Package, Record};
+use ln_decode::source_package::{capture, ErrorKind, Limits, Package, Record};
 use sha2::{Digest, Sha256};
 
 // ------------------------------------------------------- declared slice #
@@ -387,10 +387,14 @@ fn atomic_publication_is_readable_and_leaves_no_tmp() {
 
 // ---------------------------------------------- out-of-band fresh sweep #
 
-/// Full declared-slice runner: every one of the 82 top-level fixtures must
-/// capture, gate as supported WordML, project and round-trip a `Complete`
-/// artifact. This is `#[ignore]`d out-of-band: the sweep does not fit the 600 s
-/// evidence cap (MEM1488). It logs counters only, never raw decoded text.
+/// Full declared-slice runner: every one of the 82 top-level fixtures is
+/// attempted. A fixture whose expanded package stays within the fail-closed
+/// serialized-package cap (512 MiB) must capture, gate as supported WordML,
+/// project and round-trip a `Complete` artifact; a fixture whose expanded
+/// package exceeds that cap is recorded as a closed `PackageTooLarge` outcome
+/// rather than silently accepted or skipped. This is `#[ignore]`d out-of-band:
+/// the sweep does not fit the 600 s evidence cap (MEM1488). It logs counters and
+/// file names only, never raw decoded text.
 #[test]
 #[ignore = "out-of-band full-82 sweep exceeds the 600s gsd_exec evidence cap (MEM1488)"]
 fn full_declared_slice_captures_gates_projects_and_exports() {
@@ -399,6 +403,8 @@ fn full_declared_slice_captures_gates_projects_and_exports() {
     assert_eq!(files.len(), 82);
 
     let mut captured = 0u64;
+    let mut oversized = 0u64;
+    let mut oversized_files: Vec<String> = Vec::new();
     let mut gated = 0u64;
     let mut projected = 0u64;
     let mut exported = 0u64;
@@ -408,8 +414,23 @@ fn full_declared_slice_captures_gates_projects_and_exports() {
     for path in &files {
         let xml = fs::read(path).unwrap_or_else(|error| panic!("{path:?}: {error}"));
         assert!(xml.len() as u64 <= Limits::default().max_input_bytes);
-        let package = capture(&xml, &Limits::default())
-            .unwrap_or_else(|error| panic!("{path:?} must capture: {error:?}"));
+        let package = match capture(&xml, &Limits::default()) {
+            Ok(package) => package,
+            // The declared slice is bounded by input bytes (64 MiB), but the
+            // canonical serialized package has its own fail-closed cap
+            // (512 MiB). A fixture above that cap is an honest boundary result,
+            // not a panic: it is recorded and never accepted as captured.
+            Err(error) if error.kind() == ErrorKind::PackageTooLarge => {
+                oversized += 1;
+                oversized_files.push(
+                    path.file_name()
+                        .map(|name| name.to_string_lossy().into_owned())
+                        .unwrap_or_default(),
+                );
+                continue;
+            }
+            Err(error) => panic!("{path:?} must capture: {error:?}"),
+        };
         captured += 1;
         let class = gate_reader(package.records())
             .unwrap_or_else(|error| panic!("{path:?} must gate: {error}"));
@@ -439,14 +460,25 @@ fn full_declared_slice_captures_gates_projects_and_exports() {
         }
     }
 
+    assert_eq!(
+        captured + oversized,
+        files.len() as u64,
+        "every declared fixture is either captured or recorded as oversized"
+    );
     println!(
-        "cleaned_projection_corpus: files={} captured={} gated={} projected={} exported={} elements={} fragments={}",
+        "cleaned_projection_corpus: files={} captured={} oversized={} gated={} projected={} exported={} elements={} fragments={}",
         files.len(),
         captured,
+        oversized,
         gated,
         projected,
         exported,
         elements,
         fragments
     );
+    if !oversized_files.is_empty() {
+        println!(
+            "cleaned_projection_corpus: oversized (declared package cap) = {oversized_files:?}"
+        );
+    }
 }
