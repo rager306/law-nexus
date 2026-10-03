@@ -54,8 +54,8 @@
     },
     "oracle_harness": {
       "relative_path": "prd/migration/rust-evidence/source_package_oracle.py",
-      "bytes": 4426,
-      "sha256": "24639e2544af8696123de872318dfe818dbd8107d76c7179840e7237bc5b597d",
+      "bytes": 4428,
+      "sha256": "afd598b8842629da548135d84d9957020d983531a4d7e0ec03aaa2f7b2512840",
       "role": "control harness only; NOT product code; not compiled into any crate"
     }
   },
