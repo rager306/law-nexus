@@ -424,7 +424,7 @@ closed syntax:
 | display-cleaning / suppression rule (iteration-21 profiles and omission manifest) | S04 / later |
 | read-back reconstruction of `Record`s and any exporter | S02 |
 | independent verifier over the reconstructed artifact (round-trip, resealed semantic tamper) | S02 |
-| navigation links and node addressability (heading/body/annex/table/footnote, source order) | S03 |
+| navigation links and node addressability (heading/body/annex/table/footnote, source order) | S03 — delivered (§12) |
 | Hold/TextOnly classification semantics | S04 |
 | representative-corpus acceptance | S04 |
 | CLI, filesystem atomic publish | S04 |
@@ -433,3 +433,143 @@ The S01 contract reserves `completion_basis` / `incomplete_reasons` and their
 closed syntax only; it does not decide what qualifies as Hold or TextOnly. The
 S01 inspection is structural and is not an independent verifier. R1000 remains
 active.
+
+## 12. Navigation and node addressability (S03)
+
+**Status:** `[bounded]`
+**Owning slice:** M213-t6p7d0 / S03 — delivered in
+`crates/ln-decode/src/cleaned_nav.rs` and
+`crates/ln-decode/src/cleaned_nav_verifier.rs`; battery
+`crates/ln-decode/tests/cleaned_navigation.rs`
+**Upstream:** the S02 read-back `CleanedProjection` plus the frozen
+`source_package::Package`
+
+S02 reconstructs the `ReaderProjection` from the wire artifact; the artifact
+carries view/segment/reference *anchors* but no unified addressable node space.
+S03 adds a **read-only** navigation layer that resolves one node by address,
+follows structural links, walks to a parent or a root, reads the deterministic
+document order, and follows the reverse anchors of an element or a fragment. It
+is a pure offline in-memory library: no filesystem, network, database, or API
+surface, and no runtime monitor.
+
+The navigation layer never mutates the projection:
+`ProjectedReference.resolved` stays `false` (a closed invariant of the frozen
+`reader_verifier`). The reference target, when one exists, lives only in a
+`NavLink`.
+
+### 12.1 Unified node address
+
+`NodeAddress` is a closed three-variant address over three distinct id spaces:
+
+```text
+NodeAddress ∈ { View(ViewId), Segment(SegmentId), Reference(ReferenceId) }
+```
+
+The variant is part of the identity: `vN`, `sN` and `rN` never collide. Every
+projected view, segment and reference is exactly one node; `NavNode` carries the
+address, the XML `element_ref` anchor, the `source_pos` pre-order element
+position taken from the `Package` (never parsed from an `eN` token), the
+per-view `ordinal` for segments and references, the `owning_view` (a view's
+`parent_view`, otherwise the segment/reference `view` field), and a kind-specific
+`NavNodeBody` (`View`/`Segment`/`Reference`).
+
+### 12.2 Link kinds
+
+| kind | from → to | meaning |
+|---|---|---|
+| `Contains` | view → child view | the `children` relation |
+| `Owns` | view → segment, view → reference | the `segment_refs`/`reference_refs` relation |
+| `ResolvesTo` | reference → note view | bounded in-package note resolution (§12.4) |
+| `Precedes` | node → next node | adjacency in document/source order |
+
+Bounds: a node never resolves outside its own `Package`; a resolution is never
+fabricated to satisfy a caller.
+
+### 12.3 Anchors are queries, not nodes
+
+An XML element anchor is not itself a node. Reverse lookups are queries over the
+index: `anchors_of_element(&ElementRef) -> &[NodeAddress]` (every node anchored
+on that element, in record order) and `anchors_of_fragment(&FragmentRef) ->
+Option<&NodeAddress>` (the single source segment that names the fragment).
+
+### 12.4 Bounded note resolution
+
+For `reference_type == note_reference` the definition element is the
+`footnote`; for `endnote_reference` it is the `endnote`. A definition matches
+when its Clark-qualified name has that local name **and** its Clark-attribute
+local name `id` equals the reference anchor's `id` value. Exactly one matching
+definition **and** exactly one `Note` view anchored on it yields one `ResolvesTo`
+link from the reference to that view. The closed outcomes are:
+
+| situation | outcome |
+|---|---|
+| exactly one definition and exactly one note view | `ResolvesTo` link |
+| zero definitions, or zero anchored note views, or no `id` attribute | `resolve_reasons[ref] = NoMatchingNoteDefinition` |
+| more than one definition or more than one note view | `MultipleMatchingNoteDefinitions` |
+| the reference element is absent from the substrate | `MissingAnchorElement` |
+| any other `reference_type` | `NotAResolvableReference` |
+
+`ProjectedReference.resolved` is never set; absence of a target is a recorded
+outcome, not an invented link. `NavResolveReason` is closed and carries `as_str`.
+
+### 12.5 Two deterministic orders
+
+- **Record order** (`record_order`): all views in `projection.views` order, then
+  all segments in `projection.segments` order, then all references in
+  `projection.references` order.
+- **Document/source order** (`source_order`): views sorted by the `Package`
+  pre-order position of their `element_ref`, with a stable tie-break on the
+  `projection.views` index; then, per view, its `segment_refs` ordered by
+  `ordinal`; then, per view, its `reference_refs` ordered by `ordinal`.
+
+Both orders are total over the node set (no duplicates, no omissions) and are
+deterministic across repeated builds on equal input. `Precedes` is exactly the
+adjacency chain of `source_order`.
+
+### 12.6 Fail-closed codes
+
+`build_nav_index` / `build_nav_index_from_wire` return a closed `NavError`:
+
+| `NavErrorKind` | meaning |
+|---|---|
+| `DuplicateNodeId` | two nodes share one address |
+| `DanglingViewRef` | a `children` entry names an absent view |
+| `DanglingSegmentRef` | a `segment_refs` entry names an absent segment |
+| `DanglingReferenceRef` | a `reference_refs` entry names an absent reference |
+| `MissingOwningView` | a segment/reference `view` names an absent view |
+| `DanglingParentView` | a `parent_view` names an absent view |
+| `MissingAnchorElement` | an `element_ref`/`fragment_ref` has no substrate record |
+| `ArtifactUnreadable` | the wire artifact could not be read back (detail is the closed `WireError` kind) |
+| `CyclicViewGraph` | the `parent_view` chain contains a cycle |
+
+`NavError.detail` and `NavFinding.detail` carry ids, closed codes and counters
+only; decoded fragment text is never interpolated.
+
+### 12.7 Independent verification
+
+`cleaned_nav_verifier::verify_nav_index(&NavIndex, &CleanedProjection, &Package)`
+re-derives its oracle from the projection plus the package with a private walk
+(it never calls the builder and never trusts the index's own fields as proof).
+It returns `Ok(())` or one typed `NavFinding` per violated invariant:
+
+| `NavVerifyCode` | meaning |
+|---|---|
+| `NodeSetMismatch` | index node set or grouped record order disagrees with the projection |
+| `SourceOrderMismatch` | index `source_order` disagrees with the independently recomputed one |
+| `LinkDangling` | a link endpoint does not resolve to an indexed node |
+| `LinkDuplicateOrMisordered` | a duplicate link, or the `Precedes` chain differs from the recomputed source order |
+| `AnchorMissing` | an element, fragment or span anchor is absent or out of bounds |
+| `ResolvedFlagViolated` | a projected reference carries `resolved == true` |
+
+The battery (`cleaned_navigation.rs`) is a third, handwritten oracle: it pins
+the `mixed-wordml.xml` fixture and the nine positive reader fixtures by sha256,
+recomputes the node set, both orders and the note resolution independently, and
+proves tamper fail-closed on a mutated index clone and on a hand-tampered
+projection.
+
+### 12.8 Non-claims
+
+This is **not** a graph projection, **not** citation resolution, **not** region
+classification, **not** CST/AST/CTV, and **not** a legal-completeness or corpus
+coverage claim. `WireError`/seal integrity is S02; Hold/TextOnly classification
+is S04. R1000 stays active.
