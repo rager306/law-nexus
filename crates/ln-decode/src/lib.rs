@@ -10,6 +10,7 @@ pub mod adapters;
 pub mod application;
 pub mod article_body;
 pub mod capture_bounds;
+pub mod cleaned_wire;
 pub mod current_requisites;
 pub mod deontic;
 pub mod document_context;
