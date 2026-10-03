@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Self-authored non-legal synthetic fixture. Purpose: negative control — the root element is a default-namespaced note, not a WordML wordDocument, so the reader must refuse it as source_not_wordml rather than silently promote it. Not a corpus sample. See prd/architecture/reader-fixture-manifest.md. -->
+<note xmlns="urn:example:not-a-word-document"><body><p>Sample</p></body></note>

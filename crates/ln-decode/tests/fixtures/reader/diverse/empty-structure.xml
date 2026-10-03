@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Self-authored non-legal synthetic fixture. Purpose: empty paragraphs and an empty table cell are preserved as structural views with no children (flags.empty), not dropped. Provenance: tmp/pageindex/iteration14/reader_fixtures.py cases empty_paragraph, empty_cell. See prd/architecture/reader-fixture-manifest.md. -->
+<w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml"><w:body><w:p/><w:p></w:p><w:tbl><w:tr><w:tc/><w:tc><w:p><w:r><w:t>X</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:body></w:wordDocument>

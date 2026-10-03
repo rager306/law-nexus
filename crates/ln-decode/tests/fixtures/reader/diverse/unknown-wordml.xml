@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Self-authored non-legal synthetic fixture. Purpose: unknown WordML-namespaced elements (an invented pageBreak and a mystery wrapper) must be retained as typed unknown references, never guessed into controls or promoted to views. Provenance: tmp/pageindex/iteration14/reader_fixtures.py cases invented_page_break, unknown_wordml_wrapper. See prd/architecture/reader-fixture-manifest.md. -->
+<w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml"><w:body><w:p><w:r><w:t>A</w:t><w:pageBreak/><w:t>B</w:t></w:r></w:p><w:p><w:r><w:t>T</w:t></w:r><w:mysteryControl/></w:p></w:body></w:wordDocument>

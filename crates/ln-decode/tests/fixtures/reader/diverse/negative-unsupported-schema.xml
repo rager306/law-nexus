@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Self-authored non-legal synthetic fixture. Purpose: negative control — the root is a wordDocument local name bound to a namespace outside WORDML_NAMESPACES, so the reader must refuse it as unsupported_schema rather than guess a WordML profile. Not a corpus sample. See prd/architecture/reader-fixture-manifest.md. -->
+<w:wordDocument xmlns:w="urn:example:unsupported-wordml"><w:body><w:p><w:r><w:t>Sample</w:t></w:r></w:p></w:body></w:wordDocument>

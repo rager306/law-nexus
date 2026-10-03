@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Self-authored non-legal synthetic fixture. Purpose: residual body text with no paragraph ancestor, a cell-level tail after a paragraph, and whitespace-only text kept as a contextual fragment. Provenance: tmp/pageindex/iteration14/reader_fixtures.py cases residual_text, cell_paragraph_tail, whitespace_only. See prd/architecture/reader-fixture-manifest.md. -->
+<w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml"><w:body>BODY-TEXT<w:r><w:t>RUN</w:t></w:r>TAIL-TEXT<w:tbl><w:tr><w:tc><w:p><w:r><w:t>PT</w:t></w:r></w:p>TAIL</w:tc></w:tr></w:tbl><w:p><w:r><w:t>   </w:t></w:r></w:p></w:body></w:wordDocument>

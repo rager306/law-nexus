@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Self-authored non-legal synthetic fixture. Purpose: negative control — the root is a wordDocument local name with no namespace declaration at all, so the reader must refuse it as namespace_absent and make no normal legal claim. Not a corpus sample. See prd/architecture/reader-fixture-manifest.md. -->
+<wordDocument><body><p>Sample</p></body></wordDocument>
