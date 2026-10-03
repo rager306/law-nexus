@@ -15,7 +15,9 @@
 //! R1000 closure and no legal-completeness claim.
 
 use std::collections::{HashMap, HashSet};
-use std::fmt;
+use std::fmt::{self, Write};
+
+use sha2::{Digest, Sha256};
 
 use crate::reader_contract::{
     check_fragment_span, control_derived_kind, partition_primary_views, reference_type_of,
@@ -226,6 +228,16 @@ impl ReaderProjection {
     /// The content seal, when one has been computed.
     pub fn content_hash(&self) -> Option<&str> {
         self.content_hash.as_deref()
+    }
+
+    /// Recomputes the content seal over the canonical representation bytes.
+    ///
+    /// The seal is an integrity/version pin, never an authenticity claim: it is
+    /// computed over the record stream only, so it never feeds back into its own
+    /// input and `reseal()` is idempotent. It is not a legal-completeness claim.
+    pub fn reseal(&mut self) {
+        let digest = Sha256::digest(canonical_projection_bytes(self).as_bytes());
+        self.content_hash = Some(hex_lower(&digest));
     }
 
     /// Look up a view by id.
@@ -995,6 +1007,270 @@ pub fn build_projection(records: &[Record]) -> Result<ReaderProjection, Projecti
     })
 }
 
+// --------------------------------------------------- canonical serialization #
+
+/// Minimal canonical JSON value tree used only by the reader projection. It is
+/// deliberately local: D633 keeps the writer inside `reader_projection.rs`
+/// instead of widening the frozen `source_package` / `npa_wire` wire contracts.
+/// The seam is additive — it does not touch the frozen S02 surface.
+enum Json {
+    Null,
+    Bool(bool),
+    Number(usize),
+    Str(String),
+    Arr(Vec<Json>),
+    Obj(Vec<(&'static str, Json)>),
+}
+
+impl Json {
+    fn string(value: impl Into<String>) -> Json {
+        Json::Str(value.into())
+    }
+
+    fn unsigned(value: usize) -> Json {
+        Json::Number(value)
+    }
+
+    fn array(items: Vec<Json>) -> Json {
+        Json::Arr(items)
+    }
+
+    fn object(entries: Vec<(&'static str, Json)>) -> Json {
+        Json::Obj(entries)
+    }
+}
+
+fn push_indent(out: &mut String, depth: usize) {
+    for _ in 0..depth {
+        out.push_str("  ");
+    }
+}
+
+/// Stable `ensure_ascii=False` escaping: quote, backslash, the short control
+/// escapes and `\u00xx` for the remaining C0 controls; legal UTF-8 passes
+/// through verbatim. Mirrors `npa_wire::write_json_string` and the
+/// `source_package` canonical-JSON discipline.
+fn write_json_string(text: &str, out: &mut String) {
+    out.push('"');
+    for ch in text.chars() {
+        match ch {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\u{8}' => out.push_str("\\b"),
+            '\u{c}' => out.push_str("\\f"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => {
+                let _ = write!(out, "\\u{:04x}", c as u32);
+            }
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+}
+
+/// Canonical renderer: ascending object keys at every level, 2-space indent,
+/// one line per array element or object member, empty containers inline.
+fn render_json(value: &Json, depth: usize, out: &mut String) {
+    match value {
+        Json::Null => out.push_str("null"),
+        Json::Bool(flag) => out.push_str(if *flag { "true" } else { "false" }),
+        Json::Number(number) => {
+            let _ = write!(out, "{number}");
+        }
+        Json::Str(text) => write_json_string(text, out),
+        Json::Arr(items) => {
+            if items.is_empty() {
+                out.push_str("[]");
+                return;
+            }
+            out.push_str("[\n");
+            for (index, item) in items.iter().enumerate() {
+                if index > 0 {
+                    out.push_str(",\n");
+                }
+                push_indent(out, depth + 1);
+                render_json(item, depth + 1, out);
+            }
+            out.push('\n');
+            push_indent(out, depth);
+            out.push(']');
+        }
+        Json::Obj(entries) => {
+            let mut ordered: Vec<&(&'static str, Json)> = entries.iter().collect();
+            ordered.sort_by(|left, right| left.0.cmp(right.0));
+            if ordered.is_empty() {
+                out.push_str("{}");
+                return;
+            }
+            out.push_str("{\n");
+            for (index, (key, value)) in ordered.iter().enumerate() {
+                if index > 0 {
+                    out.push_str(",\n");
+                }
+                push_indent(out, depth + 1);
+                write_json_string(key, out);
+                out.push_str(": ");
+                render_json(value, depth + 1, out);
+            }
+            out.push('\n');
+            push_indent(out, depth);
+            out.push('}');
+        }
+    }
+}
+
+fn span_json(span: &ReaderFragmentSpan) -> Json {
+    Json::object(vec![
+        ("end", Json::unsigned(span.end)),
+        ("fragment", Json::string(span.fragment.as_str())),
+        ("start", Json::unsigned(span.start)),
+    ])
+}
+
+fn view_json(view: &ProjectedView) -> Json {
+    Json::object(vec![
+        (
+            "children",
+            Json::array(
+                view.children
+                    .iter()
+                    .map(|id| Json::string(id.as_str()))
+                    .collect(),
+            ),
+        ),
+        ("element_ref", Json::string(view.element_ref.as_str())),
+        (
+            "flags",
+            Json::object(vec![("empty", Json::Bool(view.flags.empty))]),
+        ),
+        ("id", Json::string(view.id.as_str())),
+        ("kind", Json::string(view.kind.as_str())),
+        (
+            "parent_view",
+            view.parent_view
+                .as_ref()
+                .map(|id| Json::string(id.as_str()))
+                .unwrap_or(Json::Null),
+        ),
+        (
+            "reference_refs",
+            Json::array(
+                view.reference_refs
+                    .iter()
+                    .map(|id| Json::string(id.as_str()))
+                    .collect(),
+            ),
+        ),
+        (
+            "segment_refs",
+            Json::array(
+                view.segment_refs
+                    .iter()
+                    .map(|id| Json::string(id.as_str()))
+                    .collect(),
+            ),
+        ),
+    ])
+}
+
+fn segment_json(segment: &ProjectedSegment) -> Json {
+    Json::object(vec![
+        ("chars", Json::unsigned(segment.chars)),
+        ("contextual", Json::Bool(segment.contextual)),
+        ("element_ref", Json::string(segment.element_ref.as_str())),
+        (
+            "fragment_ref",
+            segment
+                .fragment_ref
+                .as_ref()
+                .map(|fragment| Json::string(fragment.as_str()))
+                .unwrap_or(Json::Null),
+        ),
+        ("id", Json::string(segment.id.as_str())),
+        ("ordinal", Json::unsigned(segment.ordinal)),
+        ("origin", Json::string(segment.origin.as_str())),
+        ("output_end", Json::unsigned(segment.output_end)),
+        ("output_start", Json::unsigned(segment.output_start)),
+        ("segment_kind", Json::string(segment.segment_kind.as_str())),
+        ("semantic", Json::string(segment.semantic.as_str())),
+        (
+            "slot",
+            segment
+                .slot
+                .map(|slot| Json::string(slot.as_str()))
+                .unwrap_or(Json::Null),
+        ),
+        ("source_pos", Json::unsigned(segment.source_pos)),
+        (
+            "span",
+            segment.span.as_ref().map(span_json).unwrap_or(Json::Null),
+        ),
+        (
+            "text",
+            segment
+                .text
+                .as_ref()
+                .map(|text| Json::string(text.as_str()))
+                .unwrap_or(Json::Null),
+        ),
+        ("view", Json::string(segment.view.as_str())),
+    ])
+}
+
+fn reference_json(reference: &ProjectedReference) -> Json {
+    Json::object(vec![
+        ("element_ref", Json::string(reference.element_ref.as_str())),
+        ("id", Json::string(reference.id.as_str())),
+        ("ordinal", Json::unsigned(reference.ordinal)),
+        (
+            "reference_type",
+            Json::string(reference.reference_type.as_str()),
+        ),
+        ("resolved", Json::Bool(reference.resolved)),
+        ("source_pos", Json::unsigned(reference.source_pos)),
+        ("view", Json::string(reference.view.as_str())),
+    ])
+}
+
+/// Canonical, LF-terminated representation of the reader projection record
+/// stream: one JSON record per `ProjectedView` / `ProjectedSegment` /
+/// `ProjectedReference`, grouped under ascending root keys. Keys ascend at every
+/// level, indentation is two spaces and escaping is stable, so two calls on equal
+/// records produce identical bytes. The seal (`content_hash`) is deliberately
+/// excluded; a full wire manifest/footer and metrics are S04.
+pub fn canonical_projection_bytes(projection: &ReaderProjection) -> String {
+    let root = Json::object(vec![
+        (
+            "references",
+            Json::array(projection.references.iter().map(reference_json).collect()),
+        ),
+        (
+            "segments",
+            Json::array(projection.segments.iter().map(segment_json).collect()),
+        ),
+        (
+            "views",
+            Json::array(projection.views.iter().map(view_json).collect()),
+        ),
+    ]);
+    let mut out = String::new();
+    render_json(&root, 0, &mut out);
+    out.push('\n');
+    out
+}
+
+/// Lowercase hex digest, matching the `source_package` seal encoding: bare
+/// 64-character lowercase hex. Never an authenticity claim and never a key.
+fn hex_lower(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(out, "{byte:02x}");
+    }
+    out
+}
+
 // -------------------------------------------------------------------- tests #
 
 #[cfg(test)]
@@ -1686,5 +1962,82 @@ mod tests {
                 "reader projection must not reference {needle}"
             );
         }
+    }
+
+    #[test]
+    fn canonical_bytes_are_deterministic_and_lf_terminated() {
+        let projection = fixture_projection();
+        let first = canonical_projection_bytes(&projection);
+        let second = canonical_projection_bytes(&projection);
+        assert_eq!(first, second);
+        assert!(first.ends_with('\n'));
+        assert!(!first.contains('\r'));
+
+        // Root keys ascend: references < segments < views.
+        let references = first.find("\"references\"").expect("references key");
+        let segments = first.find("\"segments\"").expect("segments key");
+        let views = first.find("\"views\"").expect("views key");
+        assert!(references < segments && segments < views);
+
+        // Derived controls serialize through their closed origin token and the
+        // escaping is stable: no raw TAB byte ever reaches the stream.
+        assert!(first.contains("\"origin\": \"derived:tab\""));
+        assert!(!first.contains('\t'));
+    }
+
+    #[test]
+    fn canonical_bytes_escape_unicode_and_controls() {
+        let mut out = String::new();
+        write_json_string("Право \"x\"\\\n\t\r\u{1}", &mut out);
+        assert_eq!(out, "\"Право \\\"x\\\"\\\\\\n\\t\\r\\u0001\"");
+        // Legal UTF-8 passes through verbatim (`ensure_ascii=False`).
+        assert!(out.contains("Право"));
+    }
+
+    #[test]
+    fn canonical_bytes_exclude_the_seal() {
+        let mut projection = fixture_projection();
+        let before = canonical_projection_bytes(&projection);
+        projection.reseal();
+        let after = canonical_projection_bytes(&projection);
+        assert_eq!(
+            before, after,
+            "the seal must never feed back into its input"
+        );
+        assert!(projection.content_hash().is_some());
+    }
+
+    #[test]
+    fn reseal_is_stable_and_recomputable() {
+        let mut projection = fixture_projection();
+        projection.reseal();
+        let first = projection.content_hash().expect("sealed").to_string();
+        assert_eq!(first.len(), 64);
+        assert!(first.chars().all(|c| c.is_ascii_hexdigit()));
+        assert_eq!(first, first.to_ascii_lowercase());
+
+        // Clearing and recomputing yields the same digest (idempotent).
+        projection.content_hash = None;
+        projection.reseal();
+        assert_eq!(projection.content_hash(), Some(first.as_str()));
+
+        let mut hasher = Sha256::new();
+        hasher.update(canonical_projection_bytes(&projection).as_bytes());
+        assert_eq!(
+            projection.content_hash().unwrap(),
+            hex_lower(&hasher.finalize())
+        );
+    }
+
+    #[test]
+    fn seal_changes_when_a_record_changes() {
+        let mut projection = fixture_projection();
+        projection.reseal();
+        let original = projection.content_hash().expect("sealed").to_string();
+
+        let mut mutated = projection.clone();
+        mutated.segments[0].chars += 1;
+        mutated.reseal();
+        assert_ne!(mutated.content_hash().unwrap(), original);
     }
 }
