@@ -200,6 +200,30 @@ pub enum WireErrorKind {
     /// The `completion` / `completion_basis` / `incomplete_reasons` invariant
     /// is violated.
     CompletionMarkerInvalid,
+    /// The document does not end with exactly one trailing LF.
+    MissingTrailingLf,
+    /// The document contains a carriage return.
+    CarriageReturn,
+    /// The document contains an empty interior line (or is empty).
+    EmptyLine,
+    /// The first line is not a manifest.
+    MissingManifest,
+    /// A manifest appears where it must not (misordered or duplicated).
+    MisorderedManifest,
+    /// The second line is not a policies line.
+    MissingPolicies,
+    /// A policies line appears where it must not (misordered or duplicated).
+    MisorderedPolicies,
+    /// The last line is not a footer.
+    MissingFooter,
+    /// A footer appears where it must not (misordered or duplicated).
+    MisorderedFooter,
+    /// A record line appears after the footer.
+    TrailingRecordAfterFooter,
+    /// A line is not one compact JSON object or carries an unknown `kind`.
+    UnknownKind,
+    /// A hash-shaped field is neither 64 lowercase hex nor an allowed `null`.
+    HashShapeInvalid,
 }
 
 impl WireErrorKind {
@@ -215,6 +239,18 @@ impl WireErrorKind {
             WireErrorKind::FragmentMissing => "fragment_missing",
             WireErrorKind::ProvenanceMismatch => "provenance_mismatch",
             WireErrorKind::CompletionMarkerInvalid => "completion_marker_invalid",
+            WireErrorKind::MissingTrailingLf => "missing_trailing_lf",
+            WireErrorKind::CarriageReturn => "carriage_return",
+            WireErrorKind::EmptyLine => "empty_line",
+            WireErrorKind::MissingManifest => "missing_manifest",
+            WireErrorKind::MisorderedManifest => "misordered_manifest",
+            WireErrorKind::MissingPolicies => "missing_policies",
+            WireErrorKind::MisorderedPolicies => "misordered_policies",
+            WireErrorKind::MissingFooter => "missing_footer",
+            WireErrorKind::MisorderedFooter => "misordered_footer",
+            WireErrorKind::TrailingRecordAfterFooter => "trailing_record_after_footer",
+            WireErrorKind::UnknownKind => "unknown_kind",
+            WireErrorKind::HashShapeInvalid => "hash_shape_invalid",
         }
     }
 }
@@ -931,6 +967,729 @@ pub fn render_cleaned_projection(
     out.push_str(&footer_line);
     out.push('\n');
     Ok(out)
+}
+
+// ---------------------------------------------------- structural inspection #
+
+/// Structure-only summary returned by [`inspect_cleaned_wire`].
+///
+/// It is deliberately *not* a read-back: no `Record`, view, segment or
+/// reference is reconstructed, and the seals are never recomputed here. All
+/// counts are integrity counters, not a coverage claim.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WireEnvelopeSummary {
+    /// Declared contract version (always [`CONTRACT_VERSION`]).
+    pub contract_version: u64,
+    /// Recomputed `view` + `segment` + `reference` record total.
+    pub records: u64,
+    /// Recomputed view records.
+    pub views: u64,
+    /// Recomputed segment records.
+    pub segments: u64,
+    /// Recomputed reference records.
+    pub references: u64,
+    /// Footer `counts.source_segments` (integrity, not coverage).
+    pub source_segments: u64,
+    /// Footer `counts.derived_segments` (integrity, not coverage).
+    pub derived_segments: u64,
+    /// Footer `counts.text_chars` (integrity, not coverage).
+    pub text_chars: u64,
+    /// Footer `counts.text_bytes` (integrity, not coverage).
+    pub text_bytes: u64,
+    /// Closed `completion` token: `complete` or `incomplete`.
+    pub completion: String,
+    /// Closed `completion_basis` token.
+    pub completion_basis: String,
+    /// Ordered closed `incomplete_reasons` tokens (empty for `complete`).
+    pub incomplete_reasons: Vec<String>,
+    /// Footer `records_seal_hash` (shape-checked, never recomputed here).
+    pub records_seal_hash: Option<String>,
+    /// Footer `manifest_hash` (shape-checked, never recomputed here).
+    pub manifest_hash: Option<String>,
+}
+
+/// Top-level members of one compact JSON object, as `(key, raw_value)` slices.
+/// A small strict extractor: no JSON dependency is imported (D328/D602/D633).
+struct JsonFields<'a> {
+    entries: Vec<(&'a str, &'a str)>,
+}
+
+fn is_json_ws(byte: u8) -> bool {
+    matches!(byte, b' ' | b'\t' | b'\n' | b'\r')
+}
+
+fn skip_ws(bytes: &[u8], index: &mut usize) {
+    while *index < bytes.len() && is_json_ws(bytes[*index]) {
+        *index += 1;
+    }
+}
+
+/// Advances `index` past exactly one JSON value starting at `*index`.
+fn scan_value(raw: &str, index: &mut usize) -> Result<(), WireError> {
+    let bytes = raw.as_bytes();
+    if *index >= bytes.len() {
+        return Err(WireError::new(
+            WireErrorKind::UnknownKind,
+            "missing JSON value",
+        ));
+    }
+    match bytes[*index] {
+        b'"' => {
+            *index += 1;
+            while *index < bytes.len() {
+                match bytes[*index] {
+                    b'\\' => *index += 2,
+                    b'"' => {
+                        *index += 1;
+                        return Ok(());
+                    }
+                    _ => *index += 1,
+                }
+            }
+            Err(WireError::new(
+                WireErrorKind::UnknownKind,
+                "unterminated JSON string",
+            ))
+        }
+        b'{' | b'[' => {
+            let mut depth = 0usize;
+            while *index < bytes.len() {
+                match bytes[*index] {
+                    b'"' => {
+                        *index += 1;
+                        while *index < bytes.len() {
+                            match bytes[*index] {
+                                b'\\' => *index += 2,
+                                b'"' => {
+                                    *index += 1;
+                                    break;
+                                }
+                                _ => *index += 1,
+                            }
+                        }
+                    }
+                    b'{' | b'[' => {
+                        depth += 1;
+                        *index += 1;
+                    }
+                    b'}' | b']' => {
+                        depth = depth.saturating_sub(1);
+                        *index += 1;
+                        if depth == 0 {
+                            return Ok(());
+                        }
+                    }
+                    _ => *index += 1,
+                }
+            }
+            Err(WireError::new(
+                WireErrorKind::UnknownKind,
+                "unterminated JSON container",
+            ))
+        }
+        _ => {
+            while *index < bytes.len() {
+                let byte = bytes[*index];
+                if byte == b',' || byte == b'}' || byte == b']' || is_json_ws(byte) {
+                    break;
+                }
+                *index += 1;
+            }
+            Ok(())
+        }
+    }
+}
+
+impl<'a> JsonFields<'a> {
+    /// Parses one compact JSON object into its top-level members. Duplicate
+    /// keys, unquoted keys, unterminated values and trailing bytes are refused.
+    fn parse(raw: &'a str) -> Result<JsonFields<'a>, WireError> {
+        let bytes = raw.as_bytes();
+        let mut index = 0usize;
+        skip_ws(bytes, &mut index);
+        if index >= bytes.len() || bytes[index] != b'{' {
+            return Err(WireError::new(
+                WireErrorKind::UnknownKind,
+                "line is not a JSON object",
+            ));
+        }
+        index += 1;
+        let mut entries: Vec<(&'a str, &'a str)> = Vec::new();
+        loop {
+            skip_ws(bytes, &mut index);
+            if index >= bytes.len() {
+                return Err(WireError::new(
+                    WireErrorKind::UnknownKind,
+                    "unterminated JSON object",
+                ));
+            }
+            if bytes[index] == b'}' {
+                index += 1;
+                break;
+            }
+            if bytes[index] != b'"' {
+                return Err(WireError::new(
+                    WireErrorKind::UnknownKind,
+                    "object key is not a JSON string",
+                ));
+            }
+            let key_start = index + 1;
+            index += 1;
+            let mut key_end = None;
+            while index < bytes.len() {
+                match bytes[index] {
+                    b'\\' => index += 2,
+                    b'"' => {
+                        key_end = Some(index);
+                        index += 1;
+                        break;
+                    }
+                    _ => index += 1,
+                }
+            }
+            let key_end = key_end.ok_or_else(|| {
+                WireError::new(WireErrorKind::UnknownKind, "unterminated object key")
+            })?;
+            let key = &raw[key_start..key_end];
+            skip_ws(bytes, &mut index);
+            if index >= bytes.len() || bytes[index] != b':' {
+                return Err(WireError::new(
+                    WireErrorKind::UnknownKind,
+                    "object member has no colon",
+                ));
+            }
+            index += 1;
+            skip_ws(bytes, &mut index);
+            let value_start = index;
+            scan_value(raw, &mut index)?;
+            let value = &raw[value_start..index];
+            if entries.iter().any(|(existing, _)| *existing == key) {
+                return Err(WireError::new(
+                    WireErrorKind::UnknownKind,
+                    format!("duplicate object key {key}"),
+                ));
+            }
+            entries.push((key, value));
+            skip_ws(bytes, &mut index);
+            if index >= bytes.len() {
+                return Err(WireError::new(
+                    WireErrorKind::UnknownKind,
+                    "unterminated JSON object",
+                ));
+            }
+            match bytes[index] {
+                b',' => index += 1,
+                b'}' => {
+                    index += 1;
+                    break;
+                }
+                _ => {
+                    return Err(WireError::new(
+                        WireErrorKind::UnknownKind,
+                        "malformed object separator",
+                    ));
+                }
+            }
+        }
+        skip_ws(bytes, &mut index);
+        if index != bytes.len() {
+            return Err(WireError::new(
+                WireErrorKind::UnknownKind,
+                "trailing bytes after the JSON object",
+            ));
+        }
+        Ok(JsonFields { entries })
+    }
+
+    fn get(&self, key: &str) -> Option<&'a str> {
+        self.entries
+            .iter()
+            .find(|(existing, _)| *existing == key)
+            .map(|(_, value)| *value)
+    }
+}
+
+/// Decodes one JSON string literal (`"..."`) into its Rust text. Unsupported
+/// escapes are refused (`None`). Mirrors the writer's `ensure_ascii=False` set.
+fn unescape_json_string(raw: &str) -> Option<String> {
+    let inner = raw.strip_prefix('"')?.strip_suffix('"')?;
+    let mut out = String::with_capacity(inner.len());
+    let mut chars = inner.chars();
+    while let Some(ch) = chars.next() {
+        if ch != '\\' {
+            out.push(ch);
+            continue;
+        }
+        match chars.next()? {
+            '"' => out.push('"'),
+            '\\' => out.push('\\'),
+            '/' => out.push('/'),
+            'b' => out.push('\u{8}'),
+            'f' => out.push('\u{c}'),
+            'n' => out.push('\n'),
+            'r' => out.push('\r'),
+            't' => out.push('\t'),
+            'u' => {
+                let mut code = 0u32;
+                for _ in 0..4 {
+                    let digit = chars.next()?.to_digit(16)?;
+                    code = code * 16 + digit;
+                }
+                out.push(char::from_u32(code)?);
+            }
+            _ => return None,
+        }
+    }
+    Some(out)
+}
+
+fn string_field(fields: &JsonFields<'_>, key: &str) -> Option<String> {
+    let raw = fields.get(key)?;
+    if !raw.starts_with('"') || !raw.ends_with('"') {
+        return None;
+    }
+    unescape_json_string(raw)
+}
+
+fn u64_field(fields: &JsonFields<'_>, key: &str) -> Option<u64> {
+    fields.get(key)?.trim().parse::<u64>().ok()
+}
+
+fn string_array_field(fields: &JsonFields<'_>, key: &str) -> Option<Vec<String>> {
+    let raw = fields.get(key)?.trim();
+    let inner = raw.strip_prefix('[')?.strip_suffix(']')?;
+    let bytes = inner.as_bytes();
+    let mut items = Vec::new();
+    let mut index = 0usize;
+    loop {
+        skip_ws(bytes, &mut index);
+        if index >= bytes.len() {
+            break;
+        }
+        if bytes[index] != b'"' {
+            return None;
+        }
+        let start = index;
+        index += 1;
+        while index < bytes.len() {
+            match bytes[index] {
+                b'\\' => index += 2,
+                b'"' => {
+                    index += 1;
+                    break;
+                }
+                _ => index += 1,
+            }
+        }
+        items.push(unescape_json_string(&inner[start..index])?);
+        skip_ws(bytes, &mut index);
+        if index < bytes.len() && bytes[index] == b',' {
+            index += 1;
+        }
+    }
+    Some(items)
+}
+
+fn is_hex64(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
+fn hex_field(fields: &JsonFields<'_>, key: &str) -> Result<String, WireError> {
+    let value = string_field(fields, key).ok_or_else(|| {
+        WireError::new(
+            WireErrorKind::HashShapeInvalid,
+            format!("{key} is not a JSON string"),
+        )
+    })?;
+    if !is_hex64(&value) {
+        return Err(WireError::new(
+            WireErrorKind::HashShapeInvalid,
+            format!("{key} is not 64 lowercase hex"),
+        ));
+    }
+    Ok(value)
+}
+
+fn opt_hex_field(fields: &JsonFields<'_>, key: &str) -> Result<Option<String>, WireError> {
+    let raw = fields.get(key).ok_or_else(|| {
+        WireError::new(WireErrorKind::HashShapeInvalid, format!("{key} is missing"))
+    })?;
+    let trimmed = raw.trim();
+    if trimmed == "null" {
+        return Ok(None);
+    }
+    let value = unescape_json_string(trimmed).ok_or_else(|| {
+        WireError::new(
+            WireErrorKind::HashShapeInvalid,
+            format!("{key} is not a JSON string"),
+        )
+    })?;
+    if !is_hex64(&value) {
+        return Err(WireError::new(
+            WireErrorKind::HashShapeInvalid,
+            format!("{key} is not 64 lowercase hex"),
+        ));
+    }
+    Ok(Some(value))
+}
+
+fn reason_from_token(token: &str) -> Option<IncompleteReason> {
+    match token {
+        "hold" => Some(IncompleteReason::Hold),
+        "text_only" => Some(IncompleteReason::TextOnly),
+        "limit_reached" => Some(IncompleteReason::LimitReached),
+        "unsupported_source" => Some(IncompleteReason::UnsupportedSource),
+        "caller_scope" => Some(IncompleteReason::CallerScope),
+        _ => None,
+    }
+}
+
+fn line_kind(fields: &JsonFields<'_>) -> Result<String, WireError> {
+    string_field(fields, "kind")
+        .ok_or_else(|| WireError::new(WireErrorKind::UnknownKind, "line has no readable kind"))
+}
+
+fn is_closed_kind(kind: &str) -> bool {
+    kind == KIND_MANIFEST
+        || kind == KIND_POLICIES
+        || kind == KIND_VIEW
+        || kind == KIND_SEGMENT
+        || kind == KIND_REFERENCE
+        || kind == KIND_FOOTER
+}
+
+fn expect_schema(fields: &JsonFields<'_>, expected: &str) -> Result<(), WireError> {
+    let schema = string_field(fields, "schema").ok_or_else(|| {
+        WireError::new(WireErrorKind::SchemaMismatch, "line has no readable schema")
+    })?;
+    if schema != expected {
+        return Err(WireError::new(
+            WireErrorKind::SchemaMismatch,
+            format!("expected schema {expected}, found {schema}"),
+        ));
+    }
+    Ok(())
+}
+
+fn expect_version(fields: &JsonFields<'_>) -> Result<(), WireError> {
+    let version = u64_field(fields, "version").ok_or_else(|| {
+        WireError::new(
+            WireErrorKind::VersionMismatch,
+            "line has no readable version",
+        )
+    })?;
+    if version != CONTRACT_VERSION {
+        return Err(WireError::new(
+            WireErrorKind::VersionMismatch,
+            format!("expected version {CONTRACT_VERSION}, found {version}"),
+        ));
+    }
+    Ok(())
+}
+
+fn parse_completion(fields: &JsonFields<'_>) -> Result<(String, String, Vec<String>), WireError> {
+    let completion = string_field(fields, "completion").ok_or_else(|| {
+        WireError::new(
+            WireErrorKind::CompletionMarkerInvalid,
+            "footer has no completion",
+        )
+    })?;
+    let basis = string_field(fields, "completion_basis").ok_or_else(|| {
+        WireError::new(
+            WireErrorKind::CompletionMarkerInvalid,
+            "footer has no completion_basis",
+        )
+    })?;
+    let reasons = string_array_field(fields, "incomplete_reasons").ok_or_else(|| {
+        WireError::new(
+            WireErrorKind::CompletionMarkerInvalid,
+            "footer has no incomplete_reasons array",
+        )
+    })?;
+    match completion.as_str() {
+        "complete" => {
+            if basis != BASIS_COMPLETE || !reasons.is_empty() {
+                return Err(WireError::new(
+                    WireErrorKind::CompletionMarkerInvalid,
+                    "complete requires bounded_projection_complete and no reasons",
+                ));
+            }
+        }
+        "incomplete" => {
+            if reasons.is_empty() {
+                return Err(WireError::new(
+                    WireErrorKind::CompletionMarkerInvalid,
+                    "incomplete requires a non-empty incomplete_reasons set",
+                ));
+            }
+            if reason_from_token(&basis).is_none() {
+                return Err(WireError::new(
+                    WireErrorKind::CompletionMarkerInvalid,
+                    format!("unknown completion_basis {basis}"),
+                ));
+            }
+            for reason in &reasons {
+                if reason_from_token(reason).is_none() {
+                    return Err(WireError::new(
+                        WireErrorKind::CompletionMarkerInvalid,
+                        format!("unknown incomplete_reason {reason}"),
+                    ));
+                }
+            }
+            if !reasons.iter().any(|reason| reason == &basis) {
+                return Err(WireError::new(
+                    WireErrorKind::CompletionMarkerInvalid,
+                    "incomplete_reasons does not contain completion_basis",
+                ));
+            }
+        }
+        _ => {
+            return Err(WireError::new(
+                WireErrorKind::CompletionMarkerInvalid,
+                format!("unknown completion {completion}"),
+            ));
+        }
+    }
+    Ok((completion, basis, reasons))
+}
+
+struct SummaryCounts {
+    source_segments: u64,
+    derived_segments: u64,
+    text_chars: u64,
+    text_bytes: u64,
+}
+
+fn counts_field(counts: &JsonFields<'_>, key: &str) -> Result<u64, WireError> {
+    u64_field(counts, key).ok_or_else(|| {
+        WireError::new(
+            WireErrorKind::UnknownKind,
+            format!("counts.{key} is not a u64"),
+        )
+    })
+}
+
+fn parse_counts(fields: &JsonFields<'_>) -> Result<SummaryCounts, WireError> {
+    let raw = fields
+        .get("counts")
+        .ok_or_else(|| WireError::new(WireErrorKind::UnknownKind, "footer has no counts object"))?;
+    let counts = JsonFields::parse(raw.trim())?;
+    Ok(SummaryCounts {
+        source_segments: counts_field(&counts, "source_segments")?,
+        derived_segments: counts_field(&counts, "derived_segments")?,
+        text_chars: counts_field(&counts, "text_chars")?,
+        text_bytes: counts_field(&counts, "text_bytes")?,
+    })
+}
+
+/// Structure-only inspection of a cleaned structural JSONL envelope.
+///
+/// This is deliberately **not** a read-back: it reconstructs no `Record`, view,
+/// segment or reference and it never recomputes the seals. It checks the S01
+/// envelope structure only (cleaned-projection contract §10): exactly one
+/// trailing LF; no carriage return; no empty interior line; the fixed
+/// `manifest → policies → records → footer` order; closed `kind`/schema/version
+/// on every line; the completion invariants; and the hash-field shapes. Any
+/// violation is a closed typed refusal, never a silent success.
+pub fn inspect_cleaned_wire(text: &str) -> Result<WireEnvelopeSummary, WireError> {
+    if text.contains('\r') {
+        return Err(WireError::new(
+            WireErrorKind::CarriageReturn,
+            "document contains a carriage return",
+        ));
+    }
+    if !text.ends_with('\n') {
+        return Err(WireError::new(
+            WireErrorKind::MissingTrailingLf,
+            "document does not end with LF",
+        ));
+    }
+    let body = &text[..text.len() - 1];
+    if body.is_empty() {
+        return Err(WireError::new(WireErrorKind::EmptyLine, "empty document"));
+    }
+    let lines: Vec<&str> = body.split('\n').collect();
+    if lines.iter().any(|line| line.is_empty()) {
+        return Err(WireError::new(
+            WireErrorKind::EmptyLine,
+            "document contains an empty line",
+        ));
+    }
+
+    let mut parsed: Vec<JsonFields<'_>> = Vec::with_capacity(lines.len());
+    let mut kinds: Vec<String> = Vec::with_capacity(lines.len());
+    for line in &lines {
+        let fields = JsonFields::parse(line)?;
+        let kind = line_kind(&fields)?;
+        if !is_closed_kind(&kind) {
+            return Err(WireError::new(
+                WireErrorKind::UnknownKind,
+                format!("unknown line kind {kind}"),
+            ));
+        }
+        kinds.push(kind);
+        parsed.push(fields);
+    }
+
+    // Positional envelope: line 0 manifest, line 1 policies, last footer.
+    if kinds[0] == KIND_POLICIES {
+        return Err(WireError::new(
+            WireErrorKind::MisorderedPolicies,
+            "policies precedes the manifest",
+        ));
+    }
+    if kinds[0] != KIND_MANIFEST {
+        return Err(WireError::new(
+            WireErrorKind::MissingManifest,
+            "first line is not a manifest",
+        ));
+    }
+    if kinds.len() < 2 {
+        return Err(WireError::new(
+            WireErrorKind::MissingPolicies,
+            "no policies line",
+        ));
+    }
+    if kinds[1] == KIND_MANIFEST {
+        return Err(WireError::new(
+            WireErrorKind::MisorderedManifest,
+            "manifest appears after the first line",
+        ));
+    }
+    if kinds[1] != KIND_POLICIES {
+        return Err(WireError::new(
+            WireErrorKind::MissingPolicies,
+            "second line is not a policies line",
+        ));
+    }
+
+    let last_index = kinds.len() - 1;
+    let footer_positions: Vec<usize> = kinds
+        .iter()
+        .enumerate()
+        .filter(|(_, kind)| kind.as_str() == KIND_FOOTER)
+        .map(|(index, _)| index)
+        .collect();
+    if footer_positions.is_empty() {
+        return Err(WireError::new(
+            WireErrorKind::MissingFooter,
+            "document has no footer",
+        ));
+    }
+    if footer_positions.len() > 1 {
+        return Err(WireError::new(
+            WireErrorKind::MisorderedFooter,
+            "document has more than one footer",
+        ));
+    }
+    if footer_positions[0] != last_index {
+        return Err(WireError::new(
+            WireErrorKind::TrailingRecordAfterFooter,
+            "records follow the footer",
+        ));
+    }
+    if kinds[2..last_index]
+        .iter()
+        .any(|kind| kind == KIND_MANIFEST)
+    {
+        return Err(WireError::new(
+            WireErrorKind::MisorderedManifest,
+            "a manifest line appears inside the body",
+        ));
+    }
+    if kinds[2..last_index]
+        .iter()
+        .any(|kind| kind == KIND_POLICIES)
+    {
+        return Err(WireError::new(
+            WireErrorKind::MisorderedPolicies,
+            "a policies line appears inside the body",
+        ));
+    }
+
+    // Manifest line 0.
+    let manifest = &parsed[0];
+    expect_schema(manifest, MANIFEST_SCHEMA)?;
+    expect_version(manifest)?;
+    let source_raw = manifest.get("source").ok_or_else(|| {
+        WireError::new(
+            WireErrorKind::HashShapeInvalid,
+            "manifest has no source object",
+        )
+    })?;
+    let source = JsonFields::parse(source_raw.trim())?;
+    let _source_sha256 = hex_field(&source, "sha256")?;
+    let parent_raw = manifest.get("parent").ok_or_else(|| {
+        WireError::new(
+            WireErrorKind::HashShapeInvalid,
+            "manifest has no parent object",
+        )
+    })?;
+    let parent = JsonFields::parse(parent_raw.trim())?;
+    let _parent_records = opt_hex_field(&parent, "records_seal_hash")?;
+    let _parent_manifest = opt_hex_field(&parent, "manifest_hash")?;
+
+    // Policies line 1.
+    let policies = &parsed[1];
+    expect_schema(policies, POLICIES_SCHEMA)?;
+    expect_version(policies)?;
+
+    // Record lines.
+    let mut views = 0u64;
+    let mut segments = 0u64;
+    let mut references = 0u64;
+    for index in 2..last_index {
+        let fields = &parsed[index];
+        match kinds[index].as_str() {
+            KIND_VIEW => {
+                expect_schema(fields, VIEW_SCHEMA)?;
+                views += 1;
+            }
+            KIND_SEGMENT => {
+                expect_schema(fields, SEGMENT_SCHEMA)?;
+                segments += 1;
+            }
+            KIND_REFERENCE => {
+                expect_schema(fields, REFERENCE_SCHEMA)?;
+                references += 1;
+            }
+            _ => {
+                return Err(WireError::new(
+                    WireErrorKind::UnknownKind,
+                    format!("unexpected record kind {}", kinds[index]),
+                ));
+            }
+        }
+    }
+
+    // Footer line.
+    let footer = &parsed[last_index];
+    expect_schema(footer, FOOTER_SCHEMA)?;
+    expect_version(footer)?;
+    let (completion, completion_basis, incomplete_reasons) = parse_completion(footer)?;
+    let records_seal_hash = hex_field(footer, "records_seal_hash")?;
+    let manifest_hash = hex_field(footer, "manifest_hash")?;
+    let counts = parse_counts(footer)?;
+
+    Ok(WireEnvelopeSummary {
+        contract_version: CONTRACT_VERSION,
+        records: views + segments + references,
+        views,
+        segments,
+        references,
+        source_segments: counts.source_segments,
+        derived_segments: counts.derived_segments,
+        text_chars: counts.text_chars,
+        text_bytes: counts.text_bytes,
+        completion,
+        completion_basis,
+        incomplete_reasons,
+        records_seal_hash: Some(records_seal_hash),
+        manifest_hash: Some(manifest_hash),
+    })
 }
 
 // -------------------------------------------------------------------- tests #
