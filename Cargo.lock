@@ -192,6 +192,8 @@ dependencies = [
  "ln-kb-ontology",
  "ln-temporal",
  "rusqlite",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

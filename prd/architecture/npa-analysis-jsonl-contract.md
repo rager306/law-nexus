@@ -1055,7 +1055,93 @@ relation — provenance survives the missing span.
 - **Examples:** §11–§12 are normative and must stay consistent with the
   Rust enums they name.
 
-## 15. Out of scope
+## 15. S04 corpus acceptance contract (successor revision)
+
+S04 runs the pinned provider + work-family stratified sample of the full
+corpus through the S01–S03 pipeline and reports **separated** results. It
+fixes three schemas and the closed vocabularies below. Nothing here is a
+semantic oracle: the semantic section is structural-only (D667) and the
+sample is provider + work-family stratified, not year/type stratified (D668).
+
+### 15.1 Declared-before-run rule
+
+The sample manifest records its thresholds **before** the acceptance run:
+`sample_size`, `draw_seed`, the tamper-probe subset size and the resource
+budget. The acceptance report copies them from the manifest. A manifest
+without a `declared_thresholds` block is refused by `load`/`validate`, and a
+threshold may not be inferred from observed results. Declared S04 thresholds:
+`sample_size = 400`, `draw_seed = 20308`
+(`corpus_sample::DEFAULT_DRAW_SEED`), `tamper_probe_entries = 12`,
+`resource_budget_peak_bytes = 4 GiB`, `resource_budget_total_ms = 3600000`,
+`min_verified_ratio_ppm = 990000`, `max_limit_events = 0`.
+
+### 15.2 Schemas
+
+| schema | artifact | contents |
+|---|---|---|
+| `law-nexus/npa-analysis-corpus-sample/v1` | `m214-s04-corpus-sample.json` | declared roots, thresholds, per-entry `relative_path`/`sha256`/`bytes`/`provider`/`document_type`/`work_family`, corpus snapshot sha256, leakage |
+| `law-nexus/npa-analysis-corpus-acceptance/v1` | `m214-s04-corpus-acceptance.json` (+ per-entry JSONL) | separated sections, closed counters, declared-vs-observed, verdict |
+| `law-nexus/npa-analysis-adjudication-packet/v1` | adjudication packet | text-free, count/hash-only index; `promotion=false`, `semantic_reference_status="absent"` |
+
+### 15.3 Separated report sections (mandatory)
+
+The acceptance report carries these top-level sections, never merged:
+
+- `structural_integrity` — per-entry outcome counters, a `verify_codes`
+  histogram, tamper-probe detected/false-negative, `structural_failures`,
+  `pass`.
+- `semantic_adjudication` — `semantic_reference_status` (`absent`),
+  `promotion` (`false`), closed `AdjudicationStatus`, adjudication packet
+  schema + sha256. Structural-only (D667); no C5 promotion.
+- `limits` — closed `LimitKind` histogram and observed `within_threshold`.
+- `resources` — `peak_memory_bytes` (`null` when unavailable, never silently
+  zero), wall-time summary, declared budget and `within_budget`.
+- `corpus_breadth` — bounded stratified sample counts, `coverage_claim`
+  (`null`), `not_year_type_stratified=true`.
+- `horizon` — `r1000_status=active`, `m208_status=parked`, display-cleaning
+  and next-horizon status.
+- `verdict` + `verdict_basis` — closed verdict computed by the declared rules
+  below.
+
+A structural failure, a promotion, or a semantic/breadth overclaim can never
+yield `verdict=pass`.
+
+### 15.4 Closed vocabularies
+
+- `EntryOutcome`: `verified_ok`, `read_back_refused`, `verify_refused`,
+  `decode_refused`, `gate_refused`, `analysis_refused`, `limit_line_bytes`,
+  `limit_records`, `manifest_pin_mismatch`.
+- `LimitKind`: `line_bytes`, `records`.
+- `AdjudicationStatus`: `not_attempted`, `deferred`, `no_reference`.
+- `Verdict`: `pass`, `needs_attention`, `fail`.
+- `ProviderToken`: `consultant_export`, `garant`.
+- `VerifyCode` (within `verify_refused{code}`): the closed
+  `AnalysisVerifyCode` set of §8B.4 (`envelope_structural`, `seal_mismatch`,
+  `fragment_hash_mismatch`, `span_slice_mismatch`, `source_ref_substitution`,
+  `relation_ref_missing`, `relation_substitution`, `member_ref_missing`,
+  `context_outcome_mismatch`, `completion_mismatch`).
+
+An unknown token in any of these positions is a `load`/`validate` refusal.
+
+### 15.5 Fail-closed loading
+
+`npa_corpus_acceptance::{CorpusSampleManifest, AcceptanceReport,
+AdjudicationPacket}` expose `load`/`validate`. `load` refuses: invalid JSON; a
+missing thresholds block; unknown tokens; duplicate entries; `..` or
+absolute paths; and any raw-text-bearing field. `validate` additionally
+refuses internal inconsistency (counters that do not sum, a `pass` section
+with structural failures, a promoted semantic section, a non-null
+`coverage_claim`, a non-`active` R1000).
+
+### 15.6 Non-claims
+
+- the corpus sweep is **not** a semantic oracle; the semantic section is
+  structural-only and `semantic_reference_status=absent`;
+- no C5 promotion, no accuracy claim, no corpus-breadth/coverage claim;
+- **R1000 stays active/unclosed**; M208-wrz6fg stays parked;
+- count/hash only — no decoded corpus text enters tracked evidence.
+
+## 16. Out of scope
 
 Reader/cleaning/normalization changes, XML re-parse, tokenizer
 rewrites, temporal/force/applicability/retrieval semantics, LLM
@@ -1066,7 +1152,7 @@ the independent verifier are fixed in §8B (S03) and are no longer out of
 scope. S02's record schema is fixed in §8A. The M207 Python companion
 format is not adopted as the Rust analysis format.
 
-## 16. References
+## 17. References
 
 - ADR-0013 universal multi-source parser; ADR-0015 hexagonal
   verification; ADR-0028 typed lexer and dual tokenizer; ADR-0029
