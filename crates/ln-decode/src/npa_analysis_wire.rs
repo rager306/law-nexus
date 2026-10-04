@@ -10,9 +10,10 @@
 //! presence, never reconstructs a record and never recomputes a seal (that is
 //! S03's read-back verifier).
 //!
-//! Scope is the six S02 families (§8A.1); the `context` family is deferred to
-//! S03 (D658). No second coordinate system is minted and no analyzer module is
-//! touched: record streams come from [`crate::npa_analysis_records`] and the
+//! Scope is the seven families (§8A.1 + §8B.1): the six S02 families plus the
+//! opt-in `context` family (S03 T03, D662). No second coordinate system is
+//! minted and no analyzer module is touched: record streams come from
+//! [`crate::npa_analysis_records`] and [`crate::npa_context_records`], and the
 //! structural predicates are reused from [`crate::analysis_source_mapping`].
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -25,11 +26,18 @@ use crate::analysis_source_mapping::{
     check_envelope_shape, check_no_corpus_transfer, check_temporal_fields, EnvelopeLineKind,
     EnvelopeLineShape, SourceMapping,
 };
+use crate::document_context::ContextStatus;
 use crate::npa_analysis_records::{
     ClassificationRecord, DiagnosticRecord, DocumentAnalysis, LinkedMemberRecord, RelationRecord,
     SourceRef, TypedMemberRecord,
 };
 use crate::npa_anchor::RejectReason;
+use crate::npa_context_records::{
+    claim_derivation_token, claim_status_token, derivation_relation_token,
+    diagnostic_token as context_diagnostic_token, edge_status_token, request_kind_token,
+    status_token, ContextClaimRecord, ContextDerivationRecord, ContextRecord, ContextResultRecord,
+    ContextRunRecord, KIND_RESULT, KIND_RUN,
+};
 use crate::npa_link::{LinkDerivation, LinkedMemberKind, LinkedRelationKind};
 use crate::npa_typed::TypeDerivation;
 use crate::reader_contract::{FragmentRef, ReaderRecordIndex};
@@ -88,8 +96,14 @@ pub const FAMILY_RELATION: &str = "relation";
 pub const FAMILY_CLASSIFICATION: &str = "classification";
 /// `diagnostic` family token.
 pub const FAMILY_DIAGNOSTIC: &str = "diagnostic";
+/// `context` family token (§8B.1).
+pub const FAMILY_CONTEXT: &str = "context";
 
-/// The six closed S02 families, in envelope order (§8A.1).
+/// Context record schema tag (§8B.1); reuses the T02 module constant.
+pub const SCHEMA_CONTEXT: &str = crate::npa_context_records::SCHEMA_CONTEXT;
+
+/// The seven closed families, in envelope order (§8A.1 + §8B.1). With an empty
+/// context slice the seventh token is admitted but never emitted (D662).
 pub const FAMILIES: &[&str] = &[
     FAMILY_DOCUMENT,
     FAMILY_FRAGMENT,
@@ -97,12 +111,15 @@ pub const FAMILIES: &[&str] = &[
     FAMILY_RELATION,
     FAMILY_CLASSIFICATION,
     FAMILY_DIAGNOSTIC,
+    FAMILY_CONTEXT,
 ];
 
 /// `completion_basis` token for a `complete` analysis envelope.
 pub const BASIS_COMPLETE: &str = "bounded_analysis_complete";
 /// `completion_basis` token forced by a refused analytical record.
 pub const BASIS_REFUSED_RECORD: &str = "refused_record";
+/// `completion_basis` token forced by a non-resolved context result (§8B.3).
+pub const BASIS_CONTEXT_INCOMPLETE: &str = "context_incomplete";
 
 /// Top-level record keys that would re-carry decoded corpus text. The
 /// contracted v1 envelope is count/hash-only (§8.4, §12 H12).
@@ -634,6 +651,104 @@ fn diagnostic_json(record: &DiagnosticRecord) -> Json {
     ])
 }
 
+// ------------------------------------------------------- context JSON #
+
+fn context_claim_json(claim: &ContextClaimRecord) -> Json {
+    Json::object(vec![
+        ("anchor", source_ref_json(&claim.anchor)),
+        (
+            "claim_status",
+            Json::string(claim_status_token(claim.claim_status)),
+        ),
+        (
+            "derivation",
+            Json::string(claim_derivation_token(claim.derivation)),
+        ),
+        ("field", Json::string(claim.field.as_str())),
+        (
+            "source_node_ref",
+            Json::string(claim.source_node_ref.as_str()),
+        ),
+    ])
+}
+
+fn context_derivation_json(edge: &ContextDerivationRecord) -> Json {
+    Json::object(vec![
+        ("anchor", source_ref_json(&edge.anchor)),
+        ("from", Json::string(edge.from.as_str())),
+        (
+            "relation",
+            Json::string(derivation_relation_token(edge.relation)),
+        ),
+        ("status", Json::string(edge_status_token(edge.status))),
+        ("to", Json::string(edge.to.as_str())),
+    ])
+}
+
+fn context_result_json(record: &ContextResultRecord) -> Json {
+    let claims = record.claims.iter().map(context_claim_json).collect();
+    let derivations = record
+        .derivations
+        .iter()
+        .map(context_derivation_json)
+        .collect();
+    let diagnostics = record
+        .diagnostics
+        .iter()
+        .map(|diagnostic| Json::string(context_diagnostic_token(*diagnostic)))
+        .collect();
+    let anchors = record.anchors.iter().map(source_ref_json).collect();
+    Json::object(vec![
+        ("anchors", Json::array(anchors)),
+        ("claims", Json::array(claims)),
+        ("derivations", Json::array(derivations)),
+        ("diagnostics", Json::array(diagnostics)),
+        ("family", Json::string(FAMILY_CONTEXT)),
+        ("kind", Json::string(KIND_RESULT)),
+        ("ref", Json::string(record.reference.as_str())),
+        (
+            "request_kind",
+            Json::string(request_kind_token(record.request_kind)),
+        ),
+        ("request_ref", Json::string(record.request_ref.as_str())),
+        ("schema", Json::string(SCHEMA_CONTEXT)),
+        ("status", Json::string(status_token(record.status))),
+        ("view", opt_string(record.view)),
+    ])
+}
+
+fn context_run_json(record: &ContextRunRecord) -> Json {
+    let status_counts: Vec<(&'static str, Json)> = record
+        .status_counts
+        .iter()
+        .map(|(status, count)| (status_token(*status), Json::index(*count)))
+        .collect();
+    let diagnostics = record
+        .diagnostics
+        .iter()
+        .map(|diagnostic| Json::string(context_diagnostic_token(*diagnostic)))
+        .collect();
+    Json::object(vec![
+        ("diagnostics", Json::array(diagnostics)),
+        ("family", Json::string(FAMILY_CONTEXT)),
+        ("kind", Json::string(KIND_RUN)),
+        ("limit_reached", Json::bool(record.limit_reached)),
+        ("non_resolved", Json::index(record.non_resolved)),
+        ("ref", Json::string(record.reference.as_str())),
+        ("requests", Json::index(record.requests)),
+        ("resolved", Json::index(record.resolved)),
+        ("schema", Json::string(SCHEMA_CONTEXT)),
+        ("status_counts", Json::object(status_counts)),
+    ])
+}
+
+fn context_json(record: &ContextRecord) -> Json {
+    match record {
+        ContextRecord::Result(result) => context_result_json(result),
+        ContextRecord::Run(run) => context_run_json(run),
+    }
+}
+
 // ------------------------------------------------------- envelope lines #
 
 fn manifest_json(request: &AnalysisEnvelopeRequest<'_>) -> Json {
@@ -714,7 +829,8 @@ fn policies_json() -> Json {
     ])
 }
 
-/// The record/footer counts object (§8A.6).
+/// The record/footer counts object (§8A.6). The `contexts` key is present only
+/// when at least one context record is emitted (§8B.1 rule 2).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct AnalysisCounts {
     documents: u64,
@@ -723,11 +839,12 @@ struct AnalysisCounts {
     relations: u64,
     classifications: u64,
     diagnostics: u64,
+    contexts: Option<u64>,
     records: u64,
 }
 
 fn counts_json(counts: AnalysisCounts) -> Json {
-    Json::object(vec![
+    let mut entries: Vec<(&'static str, Json)> = vec![
         ("classifications", Json::number(counts.classifications)),
         ("diagnostics", Json::number(counts.diagnostics)),
         ("documents", Json::number(counts.documents)),
@@ -735,7 +852,11 @@ fn counts_json(counts: AnalysisCounts) -> Json {
         ("members", Json::number(counts.members)),
         ("records", Json::number(counts.records)),
         ("relations", Json::number(counts.relations)),
-    ])
+    ];
+    if let Some(contexts) = counts.contexts {
+        entries.push(("contexts", Json::number(contexts)));
+    }
+    Json::object(entries)
 }
 
 fn footer_body_json(
@@ -863,15 +984,35 @@ fn analysis_has_refusal(analysis: &DocumentAnalysis) -> bool {
             .any(|diagnostic| diagnostic.span.as_ref().is_some_and(source_ref_refused))
 }
 
+/// True when any context anchor carries a closed refusal instead of a span.
+fn context_has_refusal(contexts: &[ContextRecord]) -> bool {
+    contexts.iter().any(|record| {
+        context_source_refs(record)
+            .iter()
+            .any(|source_ref| source_ref_refused(source_ref))
+    })
+}
+
 fn completion_of(
     analysis: &DocumentAnalysis,
     scope: AnalysisScope,
+    contexts: &[ContextRecord],
 ) -> (String, String, Vec<&'static str>) {
-    if analysis_has_refusal(analysis) {
+    // Precedence (§8B.3 rule 3): a refusal (S02 analytical or context anchor)
+    // is never hidden behind a context partial or a scope partial.
+    if analysis_has_refusal(analysis) || context_has_refusal(contexts) {
         return (
             "incomplete".to_string(),
             BASIS_REFUSED_RECORD.to_string(),
             vec![BASIS_REFUSED_RECORD],
+        );
+    }
+    // Before the scope partials: a non-resolved context outranks `hold` etc.
+    if let Some(reasons) = context_incomplete_reasons(contexts) {
+        return (
+            "incomplete".to_string(),
+            BASIS_CONTEXT_INCOMPLETE.to_string(),
+            reasons,
         );
     }
     match scope.partial_basis() {
@@ -884,33 +1025,109 @@ fn completion_of(
     }
 }
 
+/// The context source refs carried by one record (anchors, claim anchors and
+/// derivation anchors), in deterministic producer order.
+fn context_source_refs(record: &ContextRecord) -> Vec<&SourceRef> {
+    match record {
+        ContextRecord::Result(result) => {
+            let mut refs: Vec<&SourceRef> = result.anchors.iter().collect();
+            refs.extend(result.claims.iter().map(|claim| &claim.anchor));
+            refs.extend(result.derivations.iter().map(|edge| &edge.anchor));
+            refs
+        }
+        ContextRecord::Run(_) => Vec::new(),
+    }
+}
+
+/// The closed `incomplete_reasons` forced by non-resolved context results, or
+/// `None` when every emitted result is `resolved` (§8B.3 rule 1).
+fn context_incomplete_reasons(contexts: &[ContextRecord]) -> Option<Vec<&'static str>> {
+    let mut statuses: BTreeSet<ContextStatus> = BTreeSet::new();
+    for record in contexts {
+        if let ContextRecord::Result(result) = record {
+            if result.status != ContextStatus::Resolved {
+                statuses.insert(result.status);
+            }
+        }
+    }
+    if statuses.is_empty() {
+        return None;
+    }
+    let mut reasons: Vec<&'static str> = vec![BASIS_CONTEXT_INCOMPLETE];
+    for status in statuses {
+        let reason = match status {
+            ContextStatus::Partial => "context_partial",
+            ContextStatus::Conflicting => "context_conflicting",
+            ContextStatus::Unavailable => "context_unavailable",
+            ContextStatus::Cycle => "context_cycle",
+            ContextStatus::Limit => "context_limit",
+            ContextStatus::Resolved => continue,
+        };
+        reasons.push(reason);
+    }
+    Some(reasons)
+}
+
+/// Appends one fragment id to the ordered unique set of first appearances.
+fn push_fragment(
+    seen: &mut BTreeSet<String>,
+    fragments: &mut Vec<FragmentRef>,
+    fragment: &FragmentRef,
+) {
+    if seen.insert(fragment.as_str().to_string()) {
+        fragments.push(fragment.clone());
+    }
+}
+
 /// Ordered unique fragments referenced by the analysis blocks (document order
-/// of first appearance).
-fn referenced_fragments(analysis: &DocumentAnalysis) -> Vec<FragmentRef> {
+/// of first appearance) plus any context anchor fragments. With an empty
+/// context slice this is byte-for-byte the S02 fragment set.
+fn referenced_fragments(
+    analysis: &DocumentAnalysis,
+    contexts: &[ContextRecord],
+) -> Vec<FragmentRef> {
     let mut seen: BTreeSet<String> = BTreeSet::new();
     let mut fragments: Vec<FragmentRef> = Vec::new();
     for block in &analysis.layout.blocks {
         for segment in &block.segments {
-            if seen.insert(segment.fragment.as_str().to_string()) {
-                fragments.push(segment.fragment.clone());
+            push_fragment(&mut seen, &mut fragments, &segment.fragment);
+        }
+    }
+    for record in contexts {
+        for source_ref in context_source_refs(record) {
+            if let SourceRef::Bound(span) = source_ref {
+                push_fragment(&mut seen, &mut fragments, &span.fragment);
             }
         }
     }
     fragments
 }
 
-/// Renders the document-scoped analysis envelope (§8A). Every line is
-/// validated against `request.limits` **before** any bytes are returned; a
-/// line over `max_line_bytes` or a record count over `max_records` is a closed
-/// `limit_reached` refusal with no partial envelope. A refused analytical
-/// record forces an honest `incomplete`/`refused_record` footer.
+/// Renders the document-scoped analysis envelope (§8A) with **no** context
+/// records: the byte-identical S02 six-family envelope (D662). Delegates to
+/// [`render_npa_analysis_with_context`] with an empty slice.
 pub fn render_npa_analysis(
     request: &AnalysisEnvelopeRequest<'_>,
+) -> Result<String, AnalysisWireError> {
+    render_npa_analysis_with_context(request, &[])
+}
+
+/// Renders the document-scoped analysis envelope (§8A) plus the opt-in seventh
+/// `context` family (§8B.1). Every line is validated against `request.limits`
+/// **before** any bytes are returned; a line over `max_line_bytes` or a record
+/// count over `max_records` is a closed limit refusal with no partial envelope.
+/// A refused analytical record or context anchor forces an honest
+/// `incomplete`/`refused_record` footer; otherwise a non-resolved context
+/// result forces `incomplete`/`context_incomplete` (§8B.3). With an empty
+/// `contexts` slice the output is byte-identical to the S02 envelope.
+pub fn render_npa_analysis_with_context(
+    request: &AnalysisEnvelopeRequest<'_>,
+    contexts: &[ContextRecord],
 ) -> Result<String, AnalysisWireError> {
     let analysis = request.analysis;
 
     // Fragment records: count/hash-only, no inline decoded text (§8.4, §8.7).
-    let fragments = referenced_fragments(analysis);
+    let fragments = referenced_fragments(analysis, contexts);
     let mut fragment_records: Vec<Json> = Vec::with_capacity(fragments.len());
     for fragment in &fragments {
         let record = request.index.text(fragment.as_str()).ok_or_else(|| {
@@ -926,6 +1143,7 @@ pub fn render_npa_analysis(
         ));
     }
 
+    let context_count = contexts.len() as u64;
     let counts = AnalysisCounts {
         documents: 1,
         fragments: fragment_records.len() as u64,
@@ -933,6 +1151,7 @@ pub fn render_npa_analysis(
         relations: analysis.relations.len() as u64,
         classifications: analysis.classifications.len() as u64,
         diagnostics: analysis.diagnostics.len() as u64,
+        contexts: (context_count > 0).then_some(context_count),
         records: 0,
     };
     let counts = AnalysisCounts {
@@ -941,11 +1160,13 @@ pub fn render_npa_analysis(
             + counts.members
             + counts.relations
             + counts.classifications
-            + counts.diagnostics,
+            + counts.diagnostics
+            + counts.contexts.unwrap_or(0),
         ..counts
     };
 
-    let (completion, completion_basis, incomplete_reasons) = completion_of(analysis, request.scope);
+    let (completion, completion_basis, incomplete_reasons) =
+        completion_of(analysis, request.scope, contexts);
 
     let mut record_lines: Vec<String> = Vec::new();
     record_lines.push(render_line(&document_json(request)));
@@ -966,6 +1187,9 @@ pub fn render_npa_analysis(
     }
     for record in &analysis.diagnostics {
         record_lines.push(render_line(&diagnostic_json(record)));
+    }
+    for record in contexts {
+        record_lines.push(render_line(&context_json(record)));
     }
 
     if record_lines.len() as u64 > request.limits.max_records {
@@ -1042,7 +1266,8 @@ pub fn export_npa_analysis(
 /// reconstructed and no seal is recomputed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AnalysisEnvelopeSummary {
-    /// Record count per family token (the six S02 families).
+    /// Record count per family token (all admitted families; the seventh
+    /// `context` family appears only when context records are emitted).
     pub families: BTreeMap<String, u64>,
     /// Total interior record lines.
     pub records: u64,
@@ -1426,6 +1651,22 @@ fn line_token(fields: &JsonFields<'_>) -> Result<(String, EnvelopeLineKind), Ana
                 format!("unknown record family {family:?}"),
             ));
         }
+        // A context line carries only the `result` | `run` discriminator; an
+        // unknown kind is a structural refusal, never dropped (§8B.1 rule 4).
+        if family == FAMILY_CONTEXT {
+            let kind = string_field(fields, "kind").ok_or_else(|| {
+                err(
+                    AnalysisWireErrorKind::UnknownKind,
+                    "context line has no string kind",
+                )
+            })?;
+            if kind != KIND_RESULT && kind != KIND_RUN {
+                return Err(err(
+                    AnalysisWireErrorKind::UnknownKind,
+                    format!("unknown context kind {kind:?}"),
+                ));
+            }
+        }
         return Ok((family, EnvelopeLineKind::Record));
     }
     if fields.get("kind").is_some() {
@@ -1678,14 +1919,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn family_tokens_are_the_closed_six() {
-        assert_eq!(FAMILIES.len(), 6);
+    fn family_tokens_are_the_closed_seven() {
+        assert_eq!(FAMILIES.len(), 7);
         assert!(FAMILIES.contains(&FAMILY_DOCUMENT));
         assert!(FAMILIES.contains(&FAMILY_FRAGMENT));
         assert!(FAMILIES.contains(&FAMILY_MEMBER));
         assert!(FAMILIES.contains(&FAMILY_RELATION));
         assert!(FAMILIES.contains(&FAMILY_CLASSIFICATION));
         assert!(FAMILIES.contains(&FAMILY_DIAGNOSTIC));
+        assert!(FAMILIES.contains(&FAMILY_CONTEXT));
+        assert_eq!(SCHEMA_CONTEXT, "law-nexus/npa-analysis-context/v1");
     }
 
     #[test]
