@@ -1,12 +1,16 @@
 # NPA source-to-analysis JSONL integration contract
 
-**Status:** `[bounded]` successor revision — S02 record schema (§8A);
+**Status:** `[bounded]` successor revision — S02 record schema (§8A) and
+the S03 context family, read-back and independent verifier (§8B);
 no runtime in this task
 **Owning slice:** `M214-es3jvw` / `S01` — T01 tracked contract;
 executable seam and tests are S01/T02–T03, document output is S02
 **Successor revision:** S02 adds the full record field lists in §8A and
-defers the `context` family to S03 (D658); the S01 discipline (§1–§7)
-is unchanged. `[bounded]`
+defers the `context` family to S03 (D658); S03 adds the opt-in `context`
+family, the `context_incomplete` completion basis and the
+read-back/independent-verifier admission in §8B (D661/D662/D663). The
+S01 discipline (§1–§7) and the S02 six-family envelope are unchanged;
+an empty context stays byte-identical to S02. `[bounded]`
 **Authority:** ADR-0013 (universal multi-source parser), ADR-0015
 (hexagonal verification architecture), ADR-0028 (typed lexer / dual
 tokenizer), ADR-0029 (requisites-anchored member assembly — anchor
@@ -16,7 +20,9 @@ safety contract); decisions D603 (anchor coordinates), D628/D631
 verifier), D638 (R1000 remainder under M213), D640 (cleaned JSONL
 envelope), D650/D651 (horizon correction), D655/D656 (M214 requirement
 binding), D657 (document-scoped analysis block binding), D658 (S02
-envelope format and family scope)
+envelope format and family scope), D661 (reader-native context
+substrate), D662 (opt-in context family + `context_incomplete`), D663
+(read-back/verifier independence)
 **Upstream evidence contracts:**
 `prd/architecture/source-jsonl-contract.md` (`[bounded]`),
 `prd/architecture/reader-view-contract.md` (`[bounded]`),
@@ -296,6 +302,13 @@ Rules:
    text and obey §5.
 6. TYPE/`kind` labels remain **working labels**, never adopted legal
    TYPE vocabulary (ADR-0029, M207 contract).
+7. A context record's nullable `view` follows this rule: token-derived
+   request kinds (`OpenSeriesHead`, `ScopedAlias`,
+   `CurrentDocumentRequisites`, `ExplicitAnchorLookup`) declare
+   `covering` (structural frames and this-ref/LawRef capture derive from
+   `lexer::lex`); structural-only request kinds (`AncestorPath`,
+   `AdjacentBlocks`) declare `view: null` because they carry no
+   token-derived outcome (§8B.2). `[bounded]`
 
 ## 7. Outcomes and provenance
 
@@ -343,15 +356,18 @@ LF-delimited JSONL, exactly one trailing LF:
 line 0        manifest   kind = "npa_analysis_manifest"
 line 1        policies   kind = "npa_analysis_policies"
 lines 2..n-1  records    family in { document, fragment, member, relation,
-                                     classification, diagnostic }
+                                     classification, diagnostic, context }
 line n        footer     kind = "npa_analysis_footer"
 ```
 
-The `context` family is **deferred to S03** (D658); S02 emits the six
-families above only. Every line is one compact JSON object (fixed key
-order, no embedded newline). Structural break (missing/misordered
-manifest/policies/footer, empty interior line, CR, trailing record) is
-a closed typed refusal, never a silent success.
+S02 emits the six families `document`/`fragment`/`member`/`relation`/
+`classification`/`diagnostic`; S03 adds the seventh `context` family as
+an **opt-in** addition (§8B, D662), so an S02 envelope with zero context
+records stays byte-identical. Every line is one compact JSON object
+(fixed key order, no embedded newline). Structural break
+(missing/misordered manifest/policies/footer, empty interior line, CR,
+trailing record) is a closed typed refusal, never a silent success.
+`[bounded]`
 
 ### 8.2 Manifest (mandatory identity)
 
@@ -423,7 +439,8 @@ discriminator; manifest/policies/footer keep `kind` (§8.1).
 Manifest line 0 carries `kind = "npa_analysis_manifest"`, policies line 1
 `kind = "npa_analysis_policies"`, the last line
 `kind = "npa_analysis_footer"` (§8.1). The `context` family is deferred
-to S03 (D658). `[bounded]`
+to S03 (D658) and realized as an opt-in seventh family in §8B (D662).
+`[bounded]`
 
 ### 8A.2 Span object (closed)
 
@@ -529,7 +546,9 @@ and, for an honest partial, `hold`, `text_only`, `refused_record`,
 `limit_reached`, `caller_scope`, `unsupported_source`. A refused
 analytical record (a non-dropped refusal in the record stream) forces
 `incomplete` with basis `refused_record`; a limit or scope partial is
-never presented as complete.
+never presented as complete. S03 extends this closed set with
+`context_incomplete` and, only when context records are present, a
+`contexts` count (§8B.1, §8B.3).
 
 Seals are non-cyclic and recomputable, mirroring `cleaned_wire`:
 `records_seal_hash = sha256(bytes(policies_line) || bytes(record_line_0)
@@ -609,10 +628,11 @@ without provenance and is never swallowed.
 | `analysis_source_mapping::MappingRefusalKind` | record.refusal | `empty_or_inverted`, `out_of_bounds`, `not_char_boundary`, `unknown_fragment`, `cross_document`, `source_identity_mismatch`, `document_version_mismatch`, `token_view_mismatch`, `unsupported_mapping`, `envelope_structural`, `temporal_field_forbidden`, `corpus_transfer_forbidden` |
 
 The S02 outcomes (typing/linking/classification) are not token-view
-derived, so the six families carry no `view` field; a later
-token-derived record (S03 context) must declare `view` per §6 rule 1.
+derived, so the six families carry no `view` field; the S03 `context`
+record declares `view` per §6 rule 1 (nullable, §8B.2).
 Document-context outcomes (`ContextStatus`, `ContextClaimStatus`,
-`DerivationRelation`, `ContextDiagnostic`) stay out of S02 (D658).
+`DerivationRelation`, `ContextDiagnostic`) stay out of S02 (D658) and
+enter only through the opt-in S03 `context` family (D662).
 
 ### 8A.9 Limits, rendering and structural inspect
 
@@ -632,6 +652,199 @@ AnalysisEnvelopeSummary` is structure-only: it reports `families`
 seals. `check_envelope_shape` (§8A.3) rejects a structural break;
 `check_no_corpus_transfer` and `check_temporal_fields` reject an inline
 text channel and a temporal stop-sign field.
+
+## 8B. S03 context family, read-back and independent verifier (successor revision)
+
+`[bounded]` This successor revision fixes the S03 additions (D661/D662/
+D663) on top of the S01 discipline (§8) and the S02 six-family envelope
+(§8A). Status stays `[bounded]`; no Rust type is minted here and the
+exact Rust identifiers remain S03's choice. The S01/S02 surfaces named
+below exist in `crates/ln-decode/src` (T01 grep audit):
+`AnalysisBlockLayout`, `LocalSpan`, `SourceMapping`,
+`MappingRefusalKind`, `ReaderRecordIndex`, `ReaderProjection`,
+`DocumentVersionRef`, `ContextStatus`, `ContextClaimStatus`,
+`DerivationRelation`, `ContextDiagnostic`, `ContextRequestKind`,
+`ContextRequest`, `ContextWorklist`,
+`build_document_structure_index`, `build_document_analysis_overlay`,
+`extract_act_list_frames`, `extract_structural_frames`,
+`capture_lawrefs`, `find_legal_markers`, `recompute_analysis_seals`,
+`analyze_document`, `render_npa_analysis`,
+`inspect_npa_analysis_wire`. The S03-local names `ContextRecord`,
+`ContextClaimRecord`, `ContextDerivationRecord`, `build_context_records`,
+`render_npa_analysis_with_context`, `read_back_npa_analysis`,
+`AnalysisReadback`, `verify_npa_analysis_wire`, `AnalysisVerifyCode` and
+`AnalysisVerifyFinding` are introduced by S03 and do not exist in S02.
+
+### 8B.1 Family set and opt-in
+
+S03 adds the seventh `context` family over the S02 envelope. The family
+is **opt-in** (D662): `render_npa_analysis_with_context(request,
+contexts)` renders it, while `render_npa_analysis(request)` delegates
+with an empty slice and stays the byte-identical S02 six-family
+envelope.
+
+| family | `family` token | per-line `schema` | line `kind` | cardinality |
+|---|---|---|---|---|
+| context | `context` | `law-nexus/npa-analysis-context/v1` | `result` \| `run` | zero or more |
+
+Rules:
+
+1. With an empty `contexts` slice, no `context` record line and no
+   `contexts` key in the footer `counts` are emitted; the rendered bytes
+   equal the S02 envelope, regression-pinned by the S02 receipt.
+2. With at least one context record, the footer `counts` gains the
+   `contexts` key; the six S02 counts are unchanged.
+3. `FAMILIES` admits the seventh family token so structural inspect
+   (`inspect_npa_analysis_wire`) accepts context lines; admission is not
+   emission.
+4. A context line with an unknown `kind` is a structural refusal
+   (`UnknownKind`), never dropped silently. `[bounded]`
+
+### 8B.2 Context tokens, nullable view and anchors
+
+Common to every context line: `family: "context"`, `schema`, `kind`
+(`result` | `run`), `ref` (stable family-local id).
+
+**`kind: "result"`** — one context result derived from one
+`ContextWorklist` request:
+
+- `request_ref` — the request identity (`ContextRequest`);
+- `request_kind` — closed `ContextRequestKind` token: `ancestor_path`,
+  `adjacent_blocks`, `open_series_head`, `scoped_alias`,
+  `current_document_requisites`, `explicit_anchor_lookup`;
+- `view` — nullable closed token per §6 rule 1: `covering` for the
+  token-derived request kinds `open_series_head`, `scoped_alias`,
+  `current_document_requisites`, `explicit_anchor_lookup`; `null` for
+  the structural request kinds `ancestor_path`, `adjacent_blocks`
+  (no token-derived outcome);
+- `status` — closed `ContextStatus` token: `resolved`, `partial`,
+  `conflicting`, `unavailable`, `cycle`, `limit`;
+- `claims` — zero or more context claim records, each carrying `field`,
+  `claim_status` (closed `ContextClaimStatus`: `explicit`, `inherited`,
+  `conflicting`, `unresolved`), `derivation` (closed `DerivationRelation`:
+  `derived_from`, `supports`), `source_node_ref`, and a localized
+  `anchor` (span or closed refusal);
+- `derivations` — zero or more derivation edges, each carrying `from`,
+  `to`, `relation` (`derived_from` | `supports`), `status` and a
+  localized `anchor`;
+- `diagnostics` — zero or more closed `ContextDiagnostic` tokens:
+  `missing_document_structure`, `missing_current_requisites`,
+  `open_series_without_head`, `incompatible_series_head`,
+  `cross_block_continuation_ambiguous`, `scoped_alias_ambiguous`,
+  `inherited_field_conflict`, `context_query_limit_reached`,
+  `unresolved_after_document_pass`;
+- `anchors` — the localized spans consumed by the result.
+
+**`kind: "run"`** — exactly one aggregate line: `requests` (count),
+`resolved`, `non_resolved`, per-status counts, the budget/limit outcome
+and the aggregate `diagnostics`.
+
+**Anchors (reuse §8A.3, never rebase).** A context anchor is a
+block-relative `domain::TextSpan {start,end}` with no fragment id (§5).
+Each anchor carries its analysis `block` index as provenance and is
+localized through the same `AnalysisBlockLayout` as the S02 records:
+`AnalysisBlockLayout::localize(LocalSpan {block,start,end})` →
+fragment-qualified `SourceBoundSpan`, then
+`SourceMapping::resolve_fragment_span` + `SourceMapping::slice`. A
+context anchor is never serialized as a bare `TextSpan` (§5.3). A
+localization failure is a closed refusal token from the §8A.3
+vocabulary (`unmapped_block`, `invalid_span`, `out_of_bounds`,
+`cross_fragment`, or a `MappingRefusalKind` token) carried in place of
+the span; a context anchor is never dropped, never rebased and never
+converted to success. `[bounded]`
+
+### 8B.3 Completion basis `context_incomplete`
+
+S03 extends the §8A.6 closed completion set with `context_incomplete`:
+
+1. Any emitted context result whose `status != resolved` forces
+   `completion = incomplete` with `completion_basis = context_incomplete`
+   and a non-empty `incomplete_reasons` list drawn from the closed set
+   `context_partial`, `context_conflicting`, `context_unavailable`,
+   `context_cycle`, `context_limit` (one reason per distinct
+   non-resolved status), plus the basis token itself.
+2. `ContextStatus::Limit` is never presented as complete (P4).
+3. Fixed precedence, highest first: `limit_reached` (S02 hard limit) >
+   `refused_record` (S02 refused analytical record) > `context_incomplete`
+   (non-resolved context) > the remaining S02 partial bases (`hold`,
+   `text_only`, `caller_scope`, `unsupported_source`) >
+   `bounded_analysis_complete`. A refusal is therefore never hidden
+   behind a context partial.
+4. `complete` is valid only when every emitted context result is
+   `resolved` and no S02 refusal or limit applies. `[bounded]`
+
+### 8B.4 Read-back and independent verifier admission
+
+**Read-back.** `read_back_npa_analysis(text) -> Result<AnalysisReadback,
+AnalysisWireError>` reconstructs all seven families (manifest, policies,
+document, fragment, member, relation, classification, diagnostic,
+context) into a typed model, failing closed on a structural break and
+reusing `inspect_npa_analysis_wire` for the structural pass. Read-back
+does not verify seals.
+
+**Verifier.** `verify_npa_analysis_wire(text, projection: &ReaderProjection,
+index: &ReaderRecordIndex, mapping: &SourceMapping) ->
+Result<(), Vec<AnalysisVerifyFinding>>`:
+
+1. structural pass (`check_envelope_shape`,
+   `inspect_npa_analysis_wire`);
+2. recompute both seals with `recompute_analysis_seals` and compare with
+   the footer (a non-resealed tamper yields `seal_mismatch`);
+3. do not trust the artifact's records or seals: re-derive the canonical
+   records from the pinned parent via
+   `analyze_document(projection, index, mapping)` and
+   `build_context_records(&layout, mapping)`;
+4. re-hash every fragment record's decoded bytes against
+   `ReaderRecordIndex` (`fragment_hash_mismatch`);
+5. re-resolve every span through `SourceMapping::resolve_fragment_span` /
+   `SourceMapping::slice` and require the exact substrate slice
+   (`span_slice_mismatch`);
+6. compare each record's semantic fields (source refs, relations,
+   classification `member_id`, context status/view/claims/derivations)
+   with the canonical re-derivation (`source_ref_substitution`,
+   `relation_substitution`, `context_outcome_mismatch`);
+7. require every relation `from`/`to` and classification `member_id` to
+   name a readback record (`relation_ref_missing`, `member_ref_missing`);
+8. check `completion`/`completion_basis`/`incomplete_reasons` against the
+   re-derived records (`completion_mismatch`).
+
+`build_projection` is not called; the artifact's own seals are never
+accepted as a pass. A valid envelope returns `Ok(())`; otherwise the
+verifier returns `Err(findings)` with at least one finding.
+
+Closed `AnalysisVerifyCode`:
+
+| code | detected condition |
+|---|---|
+| `envelope_structural` | missing/misordered manifest/policies/footer, CR, empty line, unknown kind/family |
+| `seal_mismatch` | footer seals differ from the `recompute_analysis_seals` result (non-resealed tamper) |
+| `fragment_hash_mismatch` | `fragment.content_sha256` differs from `ReaderRecordIndex` |
+| `span_slice_mismatch` | a span does not resolve to its exact substrate slice |
+| `source_ref_substitution` | a source ref differs from the canonical re-derivation (including a resealed in-fragment span move) |
+| `relation_ref_missing` | a relation `from`/`to` names no readback record |
+| `relation_substitution` | a relation `from`/`to`/`kind` differs from the canonical re-derivation |
+| `member_ref_missing` | a classification `member_id` names no readback member |
+| `context_outcome_mismatch` | a context status/view/claim/derivation differs from the canonical re-derivation |
+| `completion_mismatch` | `completion`/`completion_basis`/`incomplete_reasons` inconsistent with the re-derived records |
+
+**Resealed substitution.** Mutating a source span within one fragment, a
+relation target, a fragment `content_sha256`, a context `status`, or
+deleting a record, then recomputing and patching the footer seals, must
+still yield the specific closed code above, because the verifier
+re-derives from the pinned parent instead of trusting the artifact.
+`[bounded]`
+
+### 8B.5 Context substrate reuse (D661)
+
+The context records derive from the existing document-context path, not
+a second coordinate system: for each `AnalysisBlock` a synthetic
+`ParsedBlock` is fed to the unchanged
+`build_document_structure_index` → `build_document_analysis_overlay` →
+`ContextWorklist::new(Default::default()).run(...)` chain, and each
+resulting `SourceBlockNode.local_anchor()` `TextSpan` is localized
+through the same `AnalysisBlockLayout` as §8B.2. `document_context` and
+`npa_context_baseline` are not rewritten, and the synthetic
+`SourceLocation` is never serialized to the wire. `[bounded]`
 
 ## 9. Temporal scope (stop-signs)
 
@@ -671,10 +884,15 @@ Additional gates:
   text, no temporal field and an honest `incomplete` at a refusal or limit.
 - S02 must not claim full analysis/context export or semantic gold and
   must not auto-close R1000.
-- S03's read-back/verifier must recompute from the pinned parent and
-  must not trust the analysis seals (D634 pattern); the resealed
-  semantic-tamper battery must detect substituted source refs and
-  relations.
+- S03 adds the opt-in `context` family and the read-back/verifier
+  admission (§8B). A context record enters only with a localized
+  fragment-qualified anchor (or a closed refusal) and a declared nullable
+  `view`; any non-resolved `ContextStatus` forces `completion=incomplete`
+  with basis `context_incomplete`. `read_back_npa_analysis` reconstructs
+  all seven families and `verify_npa_analysis_wire` recomputes from the
+  pinned parent, does not trust the artifact seals (D634 pattern), and
+  returns a closed `AnalysisVerifyCode`; a resealed substitution of
+  source refs, relations or context outcomes must be detected.
 - S04 acceptance must keep structural integrity, semantic correctness
   and corpus breadth separate (M214 success criteria).
 - Frozen oracles and the M213 cleaned wire bytes are not modified.
@@ -704,7 +922,8 @@ and not promoted. A classification row may lawfully be
 **P4 — context limit is observable.**
 A context request that exceeds `worklist_steps` terminates as
 `ContextStatus::Limit` with `ContextDiagnostic::ContextQueryLimitReached`;
-no partial result is presented as complete. (Context records are S03.)
+no partial result is presented as complete. Context records are the
+opt-in seventh S03 family (§8B.2) and force `context_incomplete`.
 
 **P5 — block binding produces fragment-qualified spans.**
 A primary paragraph view whose ordered source-fragment segments are
@@ -739,6 +958,10 @@ relation — provenance survives the missing span.
 | H14 | `LocalSpan.block` absent from the analysis layout | `unmapped_block` |
 | H15 | line over `max_line_bytes`, or record count over `max_records` | `limit_reached` before any byte is written |
 | H16 | a refused analytical record presented as `completion: complete` | `refused_record`; a silent complete is invalid |
+| H17 | resealed (recompute + footer patch) in-fragment span move of a source ref | `source_ref_substitution` |
+| H18 | resealed relation `from`/`to`/`kind` substitution | `relation_substitution` |
+| H19 | resealed `ContextStatus` other than `resolved` presented with `completion: complete` | `context_outcome_mismatch` / `completion_mismatch` |
+| H20 | a context anchor that leaves its block or straddles two fragments | `out_of_bounds` / `cross_fragment` (never rebased) |
 
 ## 13. Remainder reconciliation
 
@@ -781,7 +1004,7 @@ relation — provenance survives the missing span.
   new suites are `npa_analysis_records_*`, `npa_analysis_wire_*` and
   `npa_analysis_export_integration`.
 
-## 14. Verification surface (S01 + S02)
+## 14. Verification surface (S01 + S02 + S03)
 
 - **ADR conformance:** `uv run python scripts/verify-adr-conformance.py`
   (default surface) and explicitly
@@ -818,6 +1041,17 @@ relation — provenance survives the missing span.
   gates `cargo fmt --all --check`, `cargo clippy --workspace
   --all-targets --offline -- -D warnings`, `cargo check --workspace
   --offline`.
+  gates `cargo fmt --all --check`, `cargo clippy --workspace
+  --all-targets --offline -- -D warnings`, `cargo check --workspace
+  --offline`.
+- **S03 verification surface (§8B):** suites
+  `npa_analysis_context_contract`, `npa_analysis_wire_context`,
+  `npa_analysis_verify_contract`, `npa_analysis_verify_hostile`,
+  `npa_analysis_export_integration`; read-back `read_back_npa_analysis`;
+  independent verifier `verify_npa_analysis_wire` with the closed
+  `AnalysisVerifyCode`; portable count/hash receipt
+  `prd/migration/rust-evidence/m214-s03-context-verify.json`; workspace
+  gates as above.
 - **Examples:** §11–§12 are normative and must stay consistent with the
   Rust enums they name.
 
@@ -825,11 +1059,12 @@ relation — provenance survives the missing span.
 
 Reader/cleaning/normalization changes, XML re-parse, tokenizer
 rewrites, temporal/force/applicability/retrieval semantics, LLM
-extraction, corpus-wide acceptance, the `context` family and its
-`ContextStatus`/`DerivationRelation` semantics (S03), the JSONL
-read-back and independent verifier (S03), and the end-to-end acceptance
-report (S04). S02's record schema is fixed in §8A. The M207 Python
-companion format is not adopted as the Rust analysis format.
+extraction, corpus-wide acceptance, and the end-to-end acceptance
+report (S04). The `context` family, its
+`ContextStatus`/`DerivationRelation` semantics, the JSONL read-back and
+the independent verifier are fixed in §8B (S03) and are no longer out of
+scope. S02's record schema is fixed in §8A. The M207 Python companion
+format is not adopted as the Rust analysis format.
 
 ## 16. References
 
@@ -852,9 +1087,13 @@ companion format is not adopted as the Rust analysis format.
   `source_package.rs`, `domain.rs`.
 - `crates/ln-decode/src/analysis_source_mapping.rs` (S01 seam);
   `npa_analysis_records.rs` and `npa_analysis_wire.rs` (S02 record +
-  envelope modules).
+  envelope modules); `npa_context_records.rs` and
+  `npa_analysis_verify.rs` (S03 context records + read-back/verifier
+  modules).
 - Decisions D655/D656 (M214 requirement binding), D657 (block binding),
-  D658 (S02 envelope/family scope); receipts
-  `prd/migration/rust-evidence/m214-s01-source-mapping.json` and
-  `m214-s02-analysis-export.json`.
+  D658 (S02 envelope/family scope), D661 (reader-native context
+  substrate), D662 (opt-in context family + `context_incomplete`), D663
+  (read-back/verifier independence); receipts
+  `prd/migration/rust-evidence/m214-s01-source-mapping.json`,
+  `m214-s02-analysis-export.json` and `m214-s03-context-verify.json`.
 - `prd/migration/rust-evidence/` (portable evidence; count/hash-only).
