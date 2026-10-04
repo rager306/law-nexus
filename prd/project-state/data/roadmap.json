@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-09-23T16:05:00Z",
+  "generated_at": "2026-10-04T14:58:00Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -543,18 +543,36 @@
       "theme": "Bounded normative-semantics adoption and pageindex skeleton (L1) with adoption/execution separation and RC28 hold",
       "status": "complete",
       "boundary": "Contract-level evidence only: adoption is not execution, activation stays applied=false, RC28 stays HOLD without human dispositions. No runtime, candidate emission, requirement promotion or legal correctness."
+    },
+    {
+      "range": "M211-M211",
+      "theme": "Source-anchored Rust NPA context assembly with proven boundaries (canonical anchors, strict typed parity, executable linked document, non-averaged differential report)",
+      "status": "complete",
+      "boundary": "Four terminal slices form one Rust pipeline: S01 canonical anchor producer with source-local half-open UTF-8 byte spans and FAIL-CLOSED fixtures; S02 strict typed parity 112/112; S03 executable linked pipeline; S04 TypeNotInherited/HeadFamilyCarry. The runner returns exit 0 with run_status=complete classification_rows=78 detection=112/112 refusal_documents=40, two runs byte-identical, and honesty keys authoritative=false/is_gold=false/not_human=true/not_s03_metrics=true preserved. Frozen surfaces were untouched (npa-lawref, typed and anchor parity fixtures, both prd/architecture YAML pins) and the M207/M208 human gates were not declared passed. Supporting-only per D614: R064/R070/R071/R077 are covered as bounded evidence for M211 and none was promoted; no requirement status changed."
+    },
+    {
+      "range": "M212-M212",
+      "theme": "Accepted source_package substrate and verifiable serde-free reader projection (closed vocabularies, sha256 seal and reseal, independent tamper detection, frozen diverse fixtures)",
+      "status": "complete",
+      "boundary": "S01 accepted the existing XML to JSONL to verify substrate through pinned portable acceptance evidence plus an independent XML oracle (control harness, not product code); S02 fixed the first bounded reader-view contract with closed vocabularies and a coordinate base; S03 built the serde-free reader projection with a canonical JSON writer, sha256 content seal/reseal and a separate reader_verifier that recomputes expected structure from the substrate and ignores the content seal, so a re-sealed semantic tamper is still caught; S04 froze twelve audited synthetic diverse fixtures with root-relative SHA256SUMS and a provenance/license/non-transfer manifest (D635: real consru_export rows are not transferred). The evidence ceiling is the reader_wordml_profile/v1 provider profile plus fixtures; R1000 stays active and Consultant != Garant; no requirement status changed."
+    },
+    {
+      "range": "M213-M213",
+      "theme": "R1000 closure remainder: cleaned structural JSONL projection with export, read-back, navigation and Hold/TextOnly",
+      "status": "complete",
+      "boundary": "Four slices over the frozen substrate deliver the serde-free cleaned structural JSONL projection: S01 tracked contract prd/architecture/cleaned-projection-contract.md plus the LF-JSONL envelope law-nexus/cleaned-projection/v1 with a canonical completion classifier; S02 typed read-back, named exporter and independent verification; S03 serde-free navigation index with bounded footnote resolution and a fail-closed CyclicViewGraph; S04 Hold/TextOnly semantics through a closed producer-declared classifier (Complete iff SupportedWordml and WholeProjection) with no decoded-text loss. Verification on revision sha256:d30d5399 records 34 contract, 3 integration (plus 1 ignored in the out-of-band declared-slice sweep), 11 operational and 1076 full-regression tests with 0 failed. Metrics are integrity, not coverage (D600/D601); one fixture exceeds the 512 MiB serialized-package cap and is recorded as a closed PackageTooLarge outcome rather than a silent skip. R1000 stays active (milestone closure is not requirement closure) with its owner record pointing at M213-t6p7d0/S01-S04; frozen surfaces untouched and no requirement promoted."
     }
   ],
   "current_milestone": {
-    "id": "M210-3afp79",
+    "id": "M213-t6p7d0",
     "status": "complete",
-    "title": "Отдельное принятие нормативной семантики и bounded IR",
-    "goal": "Отдельное принятие нормативной семантики и bounded IR: source-bound пакет альтернатив, аутентифицированное bounded-принятие варианта C отдельно от исполнения, fail-closed контракт принятого scope, машинная матрица 19 находок RC28 и source-bound карточки с пустыми слотами решений. Runtime и эмиссия кандидатов не доказаны; RC28 остаётся HOLD по отсутствию валидных per-finding dispositions (не по отсутствию принятия); унаследованное отсутствие actor-bound submission пути раскрыто и не расширяется. No parser, temporal, registry or ontology readiness."
+    "title": "Закрытие R1000: очищенная структурная JSONL-проекция с экспортом, read-back, навигацией и Hold-TextOnly",
+    "goal": "Доставить serde-free очищенную структурную JSONL-проекцию с read-back, независимой проверкой, навигационными связями, сохранением текста Hold/TextOnly и детерминированной приёмкой объявленного среза из 82 файлов. R1000 остаётся active с честным остатком; корпусная полнота, качество retrieval и продуктовый рантайм не заявляются."
   },
   "recommended_next": {
-    "title": "Execute M203 S01 Review disposition and control baseline",
-    "why": "Establish the authority map, machine-readable layered FSM, corpus/metric/ledger schemas and governor enforcement before adding new parser semantics.",
-    "constraint": "Do not promote Review 27, full-corpus diagnostics, fixture hierarchy evidence or one-edition provenance into product readiness; refine every sketch before execution."
+    "title": "Execute M214-es3jvw: temporal typing, coverage taxonomy and fail-closed resolvers",
+    "why": "Graduate the provable L1-L7 temporal layers from [proposed] to [bounded] with a typed Rust domain (transitional vs risk split), a coverage taxonomy with ports and fail-closed resolvers, feeding the NPA context assembly (M211) and the cleaned projection (M213).",
+    "constraint": "Do not smooth ADR-0016..0022 [proposed] layers into readiness; keep corpus breadth, retrieval quality and product claims out of scope. The queue order (M214, then M215..M220) is the sequence because dependsOn may only name completed milestones."
   },
   "downstream_blocked": [
     {
@@ -797,6 +815,11 @@
       "id": "roadmap-sync-20260905-m203-active",
       "lifecycle": "proposed",
       "text": "GSD sync: M200-8s4kwq, M201-w8ljqx and M202-9qf3ta completed with bounded/diagnostic ceilings preserved; M203-cx1j7t is active with S01/S02 concrete and S03-S09 sketch-gated. Review Case RC-2026-09-05-001 is registered authoritative:false against Review 27. R035 and R070 remain active. Projection synchronization is not parser readiness or lifecycle promotion."
+    },
+    {
+      "id": "roadmap-sync-20261004-m213-complete-m214-horizon",
+      "lifecycle": "proposed",
+      "text": "GSD sync (2026-10-04): M211-hkknug, M212-c25p2o and M213-t6p7d0 are complete with validation pass records, so completed_milestone_groups gains M211-M211, M212-M212 and M213-M213 and current_milestone moves M210 -> M213. recommended_next moves off the stale M203 pointer onto the active next wave M214-es3jvw, and the long-horizon queue is recorded as M214..M220 (temporal typing, embedding supply chain, retrieval evidence chain, graph-vector materialization, typed KnowQL plus generated-Cypher safety, access-control boundaries, ODT evidence boundaries). R1000 stays active; M208-wrz6fg stays parked and is deliberately absent from the completed groups."
     }
   ]
 }
