@@ -1,0 +1,94 @@
+{
+  "schema": "law-nexus/npa-analysis-corpus-acceptance/v1",
+  "schema_version": 1,
+  "lifecycle": "[bounded]",
+  "milestone": "M214-es3jvw",
+  "slice": "S04",
+  "count_only": true,
+  "ascii_only": true,
+  "sample_manifest_sha256": "sha256:1123396e3071aeb2908d36e31bca2f18e7f1874949094f936fefafc1df136cd0",
+  "declared_thresholds": {
+    "sample_size": 400,
+    "draw_seed": 20308,
+    "tamper_probe_entries": 12,
+    "resource_budget_peak_bytes": 4294967296,
+    "resource_budget_total_ms": 3600000,
+    "min_verified_ratio_ppm": 990000,
+    "max_limit_events": 0
+  },
+  "structural_integrity": {
+    "entries_total": 400,
+    "verified_ok": 400,
+    "read_back_refused": 0,
+    "verify_refused": 0,
+    "decode_refused": 0,
+    "gate_refused": 0,
+    "analysis_refused": 0,
+    "limit_line_bytes": 0,
+    "limit_records": 0,
+    "manifest_pin_mismatch": 0,
+    "verify_codes": {},
+    "tamper_probe_entries": 12,
+    "tamper_probe_detected": 12,
+    "tamper_probe_false_negative": 0,
+    "structural_failures": 0,
+    "pass": true
+  },
+  "semantic_adjudication": {
+    "semantic_reference_status": "absent",
+    "promotion": false,
+    "adjudication_status": "not_attempted",
+    "packet_schema": "law-nexus/npa-analysis-adjudication-packet/v1",
+    "adjudication_packet_sha256": "sha256:062574e041c679a6099aff872c0af244f79c69078d796f4164002499d0b1b500",
+    "adjudicated_entries": 0,
+    "non_claims": [
+      "structural-only: no semantic reference corpus exists at this horizon",
+      "no C5 promotion; no accuracy and no breadth claim"
+    ]
+  },
+  "limits": {
+    "limit_events_total": 0,
+    "limit_events": {},
+    "within_threshold": true
+  },
+  "resources": {
+    "peak_memory_bytes": 820547584,
+    "peak_memory_available": true,
+    "total_wall_ms": 1154150,
+    "mean_wall_ms": 2885,
+    "max_wall_ms": 494570,
+    "within_budget": true
+  },
+  "corpus_breadth": {
+    "sample_size": 400,
+    "provider_counts": {
+      "consultant_export": 400
+    },
+    "work_family_count": 400,
+    "document_type_counts": {
+      "courts-unspecified": 209,
+      "fas-unspecified": 5,
+      "law": 10,
+      "order": 9,
+      "resolution": 5,
+      "xml-unspecified": 162
+    },
+    "not_year_type_stratified": true,
+    "coverage_claim": null
+  },
+  "horizon": {
+    "r1000_status": "active",
+    "m208_status": "parked",
+    "display_cleaning_status": "remaining (D638)",
+    "next_horizon_status": "M215-M220 parked"
+  },
+  "verdict": "pass",
+  "verdict_basis": "all 400 entries verified; no limits; within budget; no promotion",
+  "non_claims": [
+    "count/hash only; no decoded corpus text",
+    "bounded provider/work-family stratified sample; not a corpus-coverage claim",
+    "the corpus sweep is not a semantic oracle; the semantic section is structural-only",
+    "no C5 promotion; R1000 stays active/unclosed; M208-wrz6fg stays parked",
+    "integrity evidence is not source authenticity and not legal effect"
+  ]
+}
