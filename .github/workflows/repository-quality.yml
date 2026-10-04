@@ -66,9 +66,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7.0.0
 
-      - name: Install Rust stable
+      - name: Install Rust toolchain (pinned by rust-toolchain.toml)
         uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: 1.99.0
           components: rustfmt, clippy
 
       - name: Install uv

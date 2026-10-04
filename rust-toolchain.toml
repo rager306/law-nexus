@@ -1,0 +1,14 @@
+# Pinned Rust toolchain for the law-nexus workspace.
+#
+# Channel is the exact release, not `stable`, so local runs, the pre-commit
+# hooks and CI agree on one compiler/rustfmt/clippy version. rustfmt and clippy
+# are declared because the repository quality gates run
+# `cargo fmt --all --check` and `cargo clippy --workspace --all-targets
+# --offline -- -D warnings`.
+#
+# Switching this channel is a repository-wide change: it invalidates cargo
+# fingerprints (full rebuild) and can surface new rustfmt/clippy findings.
+[toolchain]
+channel = "1.99.0"
+components = ["rustfmt", "clippy"]
+profile = "minimal"
