@@ -7,6 +7,7 @@
 //! minting) and raw payload leakage are rejected by policy.
 
 pub mod adapters;
+pub mod analysis_source_mapping;
 pub mod application;
 pub mod article_body;
 pub mod capture_bounds;
