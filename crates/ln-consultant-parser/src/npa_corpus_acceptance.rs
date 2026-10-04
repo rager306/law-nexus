@@ -25,13 +25,29 @@ use std::fmt::Write as _;
 use std::fs;
 use std::io::Read;
 use std::path::{Component, Path, PathBuf};
+use std::time::Instant;
 
-use ln_decode::npa_analysis_verify::AnalysisVerifyCode;
+use ln_decode::analysis_source_mapping::{SourceIdentity, SourceMapping};
+use ln_decode::document_context::DocumentVersionRef;
+use ln_decode::npa_analysis_records::analyze_document;
+use ln_decode::npa_analysis_verify::{
+    read_back_npa_analysis, verify_npa_analysis_wire, AnalysisVerifyCode,
+};
+use ln_decode::npa_analysis_wire::{
+    recompute_analysis_seals, render_npa_analysis_with_context, AnalysisEnvelopeRequest,
+    AnalysisLimits, AnalysisScope, AnalysisWireErrorKind,
+};
+use ln_decode::npa_context_records::build_context_records;
+use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
+use ln_decode::reader_gate::gate_reader;
+use ln_decode::reader_projection::{build_projection, ReaderProjection};
+use ln_decode::source_package::{capture, Limits as CaptureLimits, MODEL, PROFILE};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 use crate::corpus_sample::{self, SampleCandidate, SourceRootKind};
+use crate::drift_baseline;
 
 // ------------------------------------------------------------- constants #
 
@@ -1438,4 +1454,927 @@ fn reject_forbidden_keys(value: &Value, path: &str) -> Result<(), String> {
         _ => {}
     }
     Ok(())
+}
+
+// ------------------------------------------------------ pipeline runner #
+
+/// Declared per-entry analysis limits for the S04 acceptance run. The run
+/// copies the validate-before-write pipeline defaults; a line or record over
+/// the bound becomes a closed [`LimitKind`] event, never a partial envelope.
+pub const DECLARED_ANALYSIS_LIMITS: AnalysisLimits = AnalysisLimits {
+    max_line_bytes: 64 * 1024 * 1024,
+    max_records: 4_000_000,
+};
+
+/// A small synthetic WordML fixture used only when no rendered sample entry is
+/// available for the tamper probe. It carries no corpus text.
+const TAMPER_PROBE_FIXTURE: &[u8] = b"<w:wordDocument xmlns:w=\"http://schemas.microsoft.com/office/word/2003/wordml\"><w:body><w:p><w:r><w:t>Alpha</w:t></w:r><w:r><w:t>Beta</w:t></w:r></w:p></w:body></w:wordDocument>";
+
+/// Options controlling one S04 acceptance run.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AcceptanceOptions {
+    /// Writer limits applied to every entry envelope.
+    pub limits: AnalysisLimits,
+    /// Tamper-probe budget for the run (probes across all entries).
+    pub tamper_probe_entries: u64,
+}
+
+impl Default for AcceptanceOptions {
+    fn default() -> Self {
+        Self {
+            limits: DECLARED_ANALYSIS_LIMITS,
+            tamper_probe_entries: DECLARED_TAMPER_PROBE_ENTRIES,
+        }
+    }
+}
+
+/// The full acceptance run output: the separated report, the text-free
+/// adjudication packet it hashes and the per-entry JSONL detail.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AcceptanceRun {
+    /// The separated acceptance report (`...corpus-acceptance/v1`).
+    pub report: AcceptanceReport,
+    /// The text-free adjudication packet (`...adjudication-packet/v1`).
+    pub packet: AdjudicationPacket,
+    /// Per-entry JSONL detail; the companion to the report.
+    pub entries: Vec<AcceptanceEntry>,
+}
+
+impl AcceptanceRun {
+    /// Deterministic per-entry JSONL (one compact object per line).
+    pub fn entries_jsonl(&self) -> Result<String, String> {
+        let mut out = String::new();
+        for entry in &self.entries {
+            out.push_str(&entry.to_json_line()?);
+            out.push('\n');
+        }
+        Ok(out)
+    }
+}
+
+impl AcceptanceEntry {
+    /// Deterministic compact JSON rendering of one per-entry record.
+    pub fn to_json_line(&self) -> Result<String, String> {
+        serde_json::to_string(self).map_err(|error| error.to_string())
+    }
+}
+
+/// sha256 of the canonical manifest bytes (`to_json_string`). The tracked
+/// `m214-s04-corpus-sample.json` is exactly that serialization, so this equals
+/// the file's content hash; the CLI passes the actual file hash instead.
+pub fn manifest_content_sha256(sample: &CorpusSampleManifest) -> Result<String, String> {
+    let text = sample.to_json_string()?;
+    Ok(format!(
+        "sha256:{}",
+        hex_lower(&Sha256::digest(text.as_bytes()))
+    ))
+}
+
+/// Non-claims carried by the acceptance report (§15.6).
+pub fn acceptance_non_claims() -> Vec<String> {
+    vec![
+        "count/hash only; no decoded corpus text".into(),
+        "bounded provider/work-family stratified sample; not a corpus-coverage claim".into(),
+        "the corpus sweep is not a semantic oracle; the semantic section is structural-only".into(),
+        "no C5 promotion; R1000 stays active/unclosed; M208-wrz6fg stays parked".into(),
+        "integrity evidence is not source authenticity and not legal effect".into(),
+    ]
+}
+
+/// Run the acceptance pipeline over the pinned sample with the declared
+/// defaults; the report binds the manifest's canonical content hash.
+pub fn run_acceptance(
+    sample: &CorpusSampleManifest,
+    roots: &[SampleRoot],
+) -> Result<AcceptanceRun, String> {
+    let sample_manifest_sha256 = manifest_content_sha256(sample)?;
+    run_acceptance_with(
+        sample,
+        &sample_manifest_sha256,
+        roots,
+        &AcceptanceOptions::default(),
+    )
+}
+
+/// Run the acceptance pipeline over the pinned sample.
+///
+/// For every manifest entry the runner recomputes the content hash and refuses
+/// a size/hash disagreement as a closed `manifest_pin_mismatch` (never a silent
+/// re-pin), drives `source_package::capture -> reader_gate::gate_reader ->
+/// reader_projection::build_projection -> ReaderRecordIndex::new ->
+/// SourceMapping` (every `index.texts()` fragment pinned), then
+/// `npa_analysis_records::analyze_document ->
+/// npa_context_records::build_context_records ->
+/// npa_analysis_wire::render_npa_analysis_with_context`, then
+/// `npa_analysis_verify::read_back_npa_analysis` + `verify_npa_analysis_wire`.
+/// Every failure maps to a closed [`EntryOutcome`]; declared
+/// [`AnalysisLimits`] pressure is recorded as closed [`LimitKind`] events.
+///
+/// The declared tamper probe injects a resealed member-span or fragment
+/// substitution into rendered entries and asserts the independent verifier
+/// detects the expected [`AnalysisVerifyCode`] (a non-detection is a
+/// `tamper_probe_false_negative`). When fewer than the declared subset render,
+/// the probe is completed against a synthetic WordML fixture so the verifier's
+/// detection capability is always exercised.
+pub fn run_acceptance_with(
+    sample: &CorpusSampleManifest,
+    sample_manifest_sha256: &str,
+    roots: &[SampleRoot],
+    options: &AcceptanceOptions,
+) -> Result<AcceptanceRun, String> {
+    sample.validate()?;
+    validate_sha256(sample_manifest_sha256)?;
+    if options.tamper_probe_entries == 0 {
+        return Err("tamper_probe_entries must be positive".into());
+    }
+    let root_by_provider = provider_roots(roots)?;
+
+    let mut entries: Vec<AcceptanceEntry> = Vec::with_capacity(sample.entries.len());
+    let mut probe = ProbeState::new(options.tamper_probe_entries);
+    let mut total_wall_ms: u64 = 0;
+    let mut max_wall_ms: u64 = 0;
+
+    for entry in &sample.entries {
+        let root = *root_by_provider
+            .get(&entry.provider)
+            .ok_or_else(|| format!("no declared root for provider {}", entry.provider.as_str()))?;
+        let started = Instant::now();
+        let (mut record, rendered) = process_entry(entry, root, &options.limits);
+        let wall_ms = elapsed_ms(started);
+        record.wall_ms = wall_ms;
+        total_wall_ms = total_wall_ms.saturating_add(wall_ms);
+        max_wall_ms = max_wall_ms.max(wall_ms);
+        if let Some(rendered) = &rendered {
+            if probe.needs_probe() {
+                let detected = probe_envelope(
+                    &rendered.projection,
+                    &rendered.index,
+                    &rendered.mapping,
+                    &rendered.envelope,
+                );
+                probe.observe(detected);
+            }
+        }
+        entries.push(record);
+    }
+
+    if probe.needs_probe() {
+        let rendered = synthetic_rendered()
+            .ok_or_else(|| "the synthetic tamper-probe fixture failed to render".to_string())?;
+        while probe.needs_probe() {
+            let detected = probe_envelope(
+                &rendered.projection,
+                &rendered.index,
+                &rendered.mapping,
+                &rendered.envelope,
+            );
+            probe.observe(detected);
+        }
+    }
+
+    finish_run(
+        sample,
+        sample_manifest_sha256,
+        entries,
+        probe,
+        total_wall_ms,
+        max_wall_ms,
+    )
+}
+
+fn elapsed_ms(started: Instant) -> u64 {
+    u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX)
+}
+
+fn provider_roots(roots: &[SampleRoot]) -> Result<BTreeMap<ProviderToken, &Path>, String> {
+    let mut map: BTreeMap<ProviderToken, &Path> = BTreeMap::new();
+    for root in roots {
+        let token = ProviderToken::from_root_kind(root.kind);
+        if map.insert(token, root.path.as_path()).is_some() {
+            return Err(format!(
+                "duplicate declared root for provider {}",
+                token.as_str()
+            ));
+        }
+    }
+    if map.is_empty() {
+        return Err("at least one declared root is required".into());
+    }
+    Ok(map)
+}
+
+/// The pipeline objects a rendered entry keeps alive for the tamper probe.
+struct Rendered {
+    envelope: String,
+    projection: ReaderProjection,
+    index: ReaderRecordIndex,
+    mapping: SourceMapping,
+}
+
+enum RenderAttempt {
+    Rendered(Box<Rendered>),
+    Refused {
+        outcome: EntryOutcome,
+        verify_code: Option<VerifyCodeToken>,
+        limit_kind: Option<LimitKind>,
+    },
+}
+
+impl RenderAttempt {
+    fn refused(outcome: EntryOutcome) -> Self {
+        Self::Refused {
+            outcome,
+            verify_code: None,
+            limit_kind: None,
+        }
+    }
+}
+
+/// Read one pinned entry and run the full S01-S03 pipeline over its bytes.
+/// A read/size/hash disagreement is a closed `manifest_pin_mismatch`.
+fn process_entry(
+    entry: &SampleEntry,
+    root: &Path,
+    limits: &AnalysisLimits,
+) -> (AcceptanceEntry, Option<Rendered>) {
+    let digest = normalize_sha256(&entry.sha256);
+    // `DocumentVersionRef` caps the id at 64 chars; a 32-hex content prefix
+    // keeps the ref deterministic and content-bound within that bound.
+    let document_version_ref = format!("corpus-sample:{}", &digest[..32]);
+    let path = root.join(&entry.relative_path);
+    let bytes = match fs::read(&path) {
+        Ok(bytes) => bytes,
+        Err(_) => {
+            return (
+                entry_record(entry, EntryOutcome::ManifestPinMismatch, None, None),
+                None,
+            )
+        }
+    };
+    let observed = hex_lower(&Sha256::digest(&bytes));
+    if bytes.len() as u64 != entry.bytes || observed != normalize_sha256(&entry.sha256) {
+        return (
+            entry_record(entry, EntryOutcome::ManifestPinMismatch, None, None),
+            None,
+        );
+    }
+    match render_entry(&bytes, &document_version_ref, limits) {
+        RenderAttempt::Rendered(rendered) => (
+            entry_record(entry, EntryOutcome::VerifiedOk, None, None),
+            Some(*rendered),
+        ),
+        RenderAttempt::Refused {
+            outcome,
+            verify_code,
+            limit_kind,
+        } => (entry_record(entry, outcome, verify_code, limit_kind), None),
+    }
+}
+
+fn entry_record(
+    entry: &SampleEntry,
+    outcome: EntryOutcome,
+    verify_code: Option<VerifyCodeToken>,
+    limit_kind: Option<LimitKind>,
+) -> AcceptanceEntry {
+    AcceptanceEntry {
+        relative_path: entry.relative_path.clone(),
+        sha256: entry.sha256.clone(),
+        bytes: entry.bytes,
+        provider: entry.provider,
+        document_type: entry.document_type.clone(),
+        work_family: entry.work_family.clone(),
+        outcome,
+        verify_code,
+        limit_kind,
+        wall_ms: 0,
+    }
+}
+
+fn render_entry(
+    bytes: &[u8],
+    document_version_ref: &str,
+    limits: &AnalysisLimits,
+) -> RenderAttempt {
+    let package = match capture(bytes, &CaptureLimits::default()) {
+        Ok(package) => package,
+        Err(_) => return RenderAttempt::refused(EntryOutcome::DecodeRefused),
+    };
+    if gate_reader(package.records()).is_err() {
+        return RenderAttempt::refused(EntryOutcome::GateRefused);
+    }
+    let index = match ReaderRecordIndex::new(package.records()) {
+        Ok(index) => index,
+        Err(_) => return RenderAttempt::refused(EntryOutcome::AnalysisRefused),
+    };
+    let projection = match build_projection(package.records()) {
+        Ok(projection) => projection,
+        Err(_) => return RenderAttempt::refused(EntryOutcome::AnalysisRefused),
+    };
+    let identity = match SourceIdentity::try_new(
+        package.manifest().source.sha256.clone(),
+        package.manifest().source.bytes,
+        MODEL.to_string(),
+        package.footer().records_seal_hash.clone(),
+        package.footer().manifest_hash.clone(),
+    ) {
+        Ok(identity) => identity,
+        Err(_) => return RenderAttempt::refused(EntryOutcome::AnalysisRefused),
+    };
+    let version = match DocumentVersionRef::try_new(
+        document_version_ref.to_string(),
+        package.manifest().source.sha256.clone(),
+        PROFILE.to_string(),
+    ) {
+        Ok(version) => version,
+        Err(_) => return RenderAttempt::refused(EntryOutcome::AnalysisRefused),
+    };
+    let mut mapping = SourceMapping::new(identity.clone(), version);
+    for text in index.texts() {
+        if mapping
+            .pin_fragment(
+                FragmentRef::from(text.id.as_str()),
+                text.value.clone(),
+                &identity,
+            )
+            .is_err()
+        {
+            return RenderAttempt::refused(EntryOutcome::AnalysisRefused);
+        }
+    }
+    let analysis = match analyze_document(&projection, &index, &mapping) {
+        Ok(analysis) => analysis,
+        Err(_) => return RenderAttempt::refused(EntryOutcome::AnalysisRefused),
+    };
+    let contexts = build_context_records(&analysis.layout, &mapping);
+    let request = AnalysisEnvelopeRequest {
+        analysis: &analysis,
+        projection: &projection,
+        index: &index,
+        mapping: &mapping,
+        limits: *limits,
+        scope: AnalysisScope::Bounded,
+    };
+    let envelope = match render_npa_analysis_with_context(&request, &contexts) {
+        Ok(text) => text,
+        Err(error) => {
+            return match error.kind() {
+                AnalysisWireErrorKind::LineBytesLimit => RenderAttempt::Refused {
+                    outcome: EntryOutcome::LimitLineBytes,
+                    verify_code: None,
+                    limit_kind: Some(LimitKind::LineBytes),
+                },
+                AnalysisWireErrorKind::RecordsLimit => RenderAttempt::Refused {
+                    outcome: EntryOutcome::LimitRecords,
+                    verify_code: None,
+                    limit_kind: Some(LimitKind::Records),
+                },
+                _ => RenderAttempt::refused(EntryOutcome::AnalysisRefused),
+            }
+        }
+    };
+    if read_back_npa_analysis(&envelope).is_err() {
+        return RenderAttempt::refused(EntryOutcome::ReadBackRefused);
+    }
+    match verify_npa_analysis_wire(&envelope, &projection, &index, &mapping) {
+        Ok(()) => RenderAttempt::Rendered(Box::new(Rendered {
+            envelope,
+            projection,
+            index,
+            mapping,
+        })),
+        Err(findings) => {
+            let verify_code = findings
+                .first()
+                .map(|finding| VerifyCodeToken::from_code(finding.code()))
+                .unwrap_or(VerifyCodeToken::EnvelopeStructural);
+            RenderAttempt::Refused {
+                outcome: EntryOutcome::VerifyRefused,
+                verify_code: Some(verify_code),
+                limit_kind: None,
+            }
+        }
+    }
+}
+
+fn synthetic_rendered() -> Option<Rendered> {
+    match render_entry(
+        TAMPER_PROBE_FIXTURE,
+        "synthetic:tamper-probe",
+        &DECLARED_ANALYSIS_LIMITS,
+    ) {
+        RenderAttempt::Rendered(rendered) => Some(*rendered),
+        RenderAttempt::Refused { .. } => None,
+    }
+}
+
+// ------------------------------------------------------- tamper probe #
+
+struct ProbeState {
+    target: u64,
+    done: u64,
+    detected: u64,
+    false_negative: u64,
+}
+
+impl ProbeState {
+    fn new(target: u64) -> Self {
+        Self {
+            target,
+            done: 0,
+            detected: 0,
+            false_negative: 0,
+        }
+    }
+
+    fn needs_probe(&self) -> bool {
+        self.done < self.target
+    }
+
+    fn observe(&mut self, detected: bool) {
+        self.done += 1;
+        if detected {
+            self.detected += 1;
+        } else {
+            self.false_negative += 1;
+        }
+    }
+}
+
+/// Inject a resealed tamper and assert the independent verifier detects the
+/// expected code. Member-span substitution is preferred (when a bound member
+/// span exists); otherwise a fragment content-hash substitution is used.
+fn probe_envelope(
+    projection: &ReaderProjection,
+    index: &ReaderRecordIndex,
+    mapping: &SourceMapping,
+    envelope: &str,
+) -> bool {
+    if let Some((tampered, expected)) = mutate_member_span(index, envelope) {
+        if let Some(resealed) = reseal(&tampered) {
+            return verify_detects(projection, index, mapping, &resealed, expected);
+        }
+    }
+    if let Some(tampered) = mutate_first_fragment_hash(envelope) {
+        if let Some(resealed) = reseal(&tampered) {
+            return verify_detects(
+                projection,
+                index,
+                mapping,
+                &resealed,
+                AnalysisVerifyCode::FragmentHashMismatch,
+            );
+        }
+    }
+    false
+}
+
+fn verify_detects(
+    projection: &ReaderProjection,
+    index: &ReaderRecordIndex,
+    mapping: &SourceMapping,
+    text: &str,
+    expected: AnalysisVerifyCode,
+) -> bool {
+    match verify_npa_analysis_wire(text, projection, index, mapping) {
+        Err(findings) => findings.iter().any(|finding| finding.code() == expected),
+        Ok(()) => false,
+    }
+}
+
+fn envelope_lines(text: &str) -> Option<Vec<String>> {
+    if !text.ends_with('\n') {
+        return None;
+    }
+    Some(
+        text[..text.len() - 1]
+            .split('\n')
+            .map(str::to_string)
+            .collect(),
+    )
+}
+
+fn join_envelope(lines: &[String]) -> String {
+    let mut out = lines.join("\n");
+    out.push('\n');
+    out
+}
+
+fn family_of(line: &str) -> Option<String> {
+    let value: Value = serde_json::from_str(line).ok()?;
+    value.get("family")?.as_str().map(str::to_string)
+}
+
+/// Recomputes the two non-cyclic seals over tampered content and patches the
+/// footer, emulating an attacker who reseals after a substitution.
+fn reseal(text: &str) -> Option<String> {
+    let seals = recompute_analysis_seals(text).ok()?;
+    let mut lines = envelope_lines(text)?;
+    let last = lines.len().checked_sub(1)?;
+    let footer = replace_hex(&lines[last], "records_seal_hash", &seals.records_seal_hash)?;
+    let footer = replace_hex(&footer, "manifest_hash", &seals.manifest_hash)?;
+    lines[last] = footer;
+    Some(join_envelope(&lines))
+}
+
+fn replace_hex(line: &str, key: &str, value: &str) -> Option<String> {
+    let needle = format!("\"{key}\":\"");
+    let start = line.find(&needle)? + needle.len();
+    let end = start + 64;
+    if line.len() < end {
+        return None;
+    }
+    let mut out = line.to_string();
+    out.replace_range(start..end, value);
+    Some(out)
+}
+
+/// Replaces the first `"<key>":{...}` object (balanced braces, string-aware).
+fn replace_field_object(line: &str, key: &str, new_obj: &str) -> Option<String> {
+    let needle = format!("\"{key}\":{{");
+    let pos = line.find(&needle)?;
+    let obj_start = pos + format!("\"{key}\":").len();
+    let bytes = line.as_bytes();
+    let mut depth = 0i32;
+    let mut index = obj_start;
+    loop {
+        if index >= bytes.len() {
+            return None;
+        }
+        match bytes[index] {
+            b'"' => {
+                index += 1;
+                while index < bytes.len() && bytes[index] != b'"' {
+                    if bytes[index] == b'\\' {
+                        index += 1;
+                    }
+                    index += 1;
+                }
+            }
+            b'{' => depth += 1,
+            b'}' => {
+                depth -= 1;
+                if depth == 0 {
+                    break;
+                }
+            }
+            _ => {}
+        }
+        index += 1;
+    }
+    let end = index + 1;
+    let mut out = line.to_string();
+    out.replace_range(obj_start..end, new_obj);
+    Some(out)
+}
+
+fn bound_span_of(line: &str, key: &str) -> Option<(String, usize, usize)> {
+    let value: Value = serde_json::from_str(line).ok()?;
+    let object = value.get(key)?;
+    let fragment = object.get("fragment")?.as_str()?.to_string();
+    let start = object.get("start")?.as_u64()? as usize;
+    let end = object.get("end")?.as_u64()? as usize;
+    Some((fragment, start, end))
+}
+
+/// A different, valid, in-fragment span on UTF-8 code point boundaries.
+fn alternate_span(
+    index: &ReaderRecordIndex,
+    fragment: &str,
+    start: usize,
+    end: usize,
+) -> Option<(usize, usize)> {
+    let value = &index.text(fragment)?.value;
+    let length = value.len();
+    if end < length {
+        let mut candidate = end + 1;
+        while candidate < length && !value.is_char_boundary(candidate) {
+            candidate += 1;
+        }
+        if candidate > start && value.is_char_boundary(candidate) {
+            return Some((start, candidate));
+        }
+    }
+    if start > 0 {
+        let mut candidate = start - 1;
+        while candidate > 0 && !value.is_char_boundary(candidate) {
+            candidate -= 1;
+        }
+        if candidate < end && value.is_char_boundary(candidate) {
+            return Some((candidate, end));
+        }
+    }
+    None
+}
+
+/// The first bound member span mutated to a different in-fragment range, then
+/// the first bound member span mutated out of the fragment bounds.
+fn mutate_member_span(
+    index: &ReaderRecordIndex,
+    text: &str,
+) -> Option<(String, AnalysisVerifyCode)> {
+    let mut lines = envelope_lines(text)?;
+    for line in lines.iter_mut() {
+        if family_of(line).as_deref() != Some("member") {
+            continue;
+        }
+        for key in ["span", "evidence"] {
+            if let Some((fragment, start, end)) = bound_span_of(line, key) {
+                if let Some((new_start, new_end)) = alternate_span(index, &fragment, start, end) {
+                    let new_obj = format!(
+                        r#"{{"end":{new_end},"fragment":"{fragment}","start":{new_start}}}"#
+                    );
+                    let replaced = replace_field_object(line, key, &new_obj)?;
+                    *line = replaced;
+                    return Some((
+                        join_envelope(&lines),
+                        AnalysisVerifyCode::SourceRefSubstitution,
+                    ));
+                }
+            }
+        }
+    }
+    for line in lines.iter_mut() {
+        if family_of(line).as_deref() != Some("member") {
+            continue;
+        }
+        for key in ["span", "evidence"] {
+            if let Some((fragment, start, _)) = bound_span_of(line, key) {
+                let length = index.text(&fragment)?.value.len();
+                let new_obj = format!(
+                    r#"{{"end":{},"fragment":"{fragment}","start":{start}}}"#,
+                    length + 5
+                );
+                let replaced = replace_field_object(line, key, &new_obj)?;
+                *line = replaced;
+                return Some((join_envelope(&lines), AnalysisVerifyCode::SpanSliceMismatch));
+            }
+        }
+    }
+    None
+}
+
+fn mutate_first_fragment_hash(text: &str) -> Option<String> {
+    let mut lines = envelope_lines(text)?;
+    for line in lines.iter_mut() {
+        if family_of(line).as_deref() != Some("fragment") {
+            continue;
+        }
+        let value: Value = serde_json::from_str(line).ok()?;
+        let hash = value.get("content_sha256")?.as_str()?.to_string();
+        let mut chars: Vec<char> = hash.chars().collect();
+        if chars.is_empty() {
+            return None;
+        }
+        chars[0] = if chars[0] == 'a' { 'b' } else { 'a' };
+        let new_hash: String = chars.into_iter().collect();
+        *line = line.replacen(&hash, &new_hash, 1);
+        return Some(join_envelope(&lines));
+    }
+    None
+}
+
+// ---------------------------------------------------- report assembly #
+
+#[derive(Debug, Clone, Copy, Default)]
+struct OutcomeCounters {
+    verified_ok: u64,
+    read_back_refused: u64,
+    verify_refused: u64,
+    decode_refused: u64,
+    gate_refused: u64,
+    analysis_refused: u64,
+    limit_line_bytes: u64,
+    limit_records: u64,
+    manifest_pin_mismatch: u64,
+}
+
+impl OutcomeCounters {
+    fn add(&mut self, outcome: EntryOutcome) {
+        match outcome {
+            EntryOutcome::VerifiedOk => self.verified_ok += 1,
+            EntryOutcome::ReadBackRefused => self.read_back_refused += 1,
+            EntryOutcome::VerifyRefused => self.verify_refused += 1,
+            EntryOutcome::DecodeRefused => self.decode_refused += 1,
+            EntryOutcome::GateRefused => self.gate_refused += 1,
+            EntryOutcome::AnalysisRefused => self.analysis_refused += 1,
+            EntryOutcome::LimitLineBytes => self.limit_line_bytes += 1,
+            EntryOutcome::LimitRecords => self.limit_records += 1,
+            EntryOutcome::ManifestPinMismatch => self.manifest_pin_mismatch += 1,
+        }
+    }
+
+    fn failures(&self) -> u64 {
+        self.read_back_refused
+            .saturating_add(self.verify_refused)
+            .saturating_add(self.decode_refused)
+            .saturating_add(self.gate_refused)
+            .saturating_add(self.analysis_refused)
+            .saturating_add(self.limit_line_bytes)
+            .saturating_add(self.limit_records)
+            .saturating_add(self.manifest_pin_mismatch)
+    }
+}
+
+fn build_packet(sample: &CorpusSampleManifest, sample_manifest_sha256: &str) -> AdjudicationPacket {
+    let items = sample
+        .entries
+        .iter()
+        .enumerate()
+        .map(|(index, entry)| AdjudicationItem {
+            entry_index: index as u64,
+            relative_path: entry.relative_path.clone(),
+            sha256: entry.sha256.clone(),
+            document_type: entry.document_type.clone(),
+            work_family: entry.work_family.clone(),
+            adjudication_status: AdjudicationStatus::NotAttempted,
+        })
+        .collect();
+    AdjudicationPacket {
+        schema: ADJUDICATION_SCHEMA.to_string(),
+        schema_version: SCHEMA_VERSION,
+        lifecycle: LIFECYCLE_BOUNDED.to_string(),
+        milestone: MILESTONE.to_string(),
+        slice: SLICE.to_string(),
+        count_only: true,
+        ascii_only: true,
+        sample_manifest_sha256: sample_manifest_sha256.to_string(),
+        promotion: false,
+        semantic_reference_status: SEMANTIC_REFERENCE_STATUS_ABSENT.to_string(),
+        adjudication_status: AdjudicationStatus::NotAttempted,
+        items,
+        non_claims: vec![
+            "text-free, count/hash-only index; no decoded corpus text".into(),
+            "structural-only; no C5 promotion".into(),
+        ],
+    }
+}
+
+fn build_breadth(sample: &CorpusSampleManifest) -> CorpusBreadthSection {
+    let mut provider_counts: BTreeMap<String, u64> = BTreeMap::new();
+    let mut document_type_counts: BTreeMap<String, u64> = BTreeMap::new();
+    let mut families: BTreeSet<&str> = BTreeSet::new();
+    for entry in &sample.entries {
+        *provider_counts
+            .entry(entry.provider.as_str().to_string())
+            .or_default() += 1;
+        *document_type_counts
+            .entry(entry.document_type.clone())
+            .or_default() += 1;
+        families.insert(entry.work_family.as_str());
+    }
+    CorpusBreadthSection {
+        sample_size: sample.entries.len() as u64,
+        provider_counts,
+        work_family_count: families.len() as u64,
+        document_type_counts,
+        not_year_type_stratified: true,
+        coverage_claim: None,
+    }
+}
+
+fn build_verdict_basis(report: &AcceptanceReport) -> String {
+    let structural = &report.structural_integrity;
+    match report.verdict {
+        Verdict::Fail => format!(
+            "hard failure: manifest_pin_mismatch={} verify_refused={} tamper_probe_false_negative={} promotion={} coverage_claim={}",
+            structural.manifest_pin_mismatch,
+            structural.verify_refused,
+            structural.tamper_probe_false_negative,
+            report.semantic_adjudication.promotion,
+            report.corpus_breadth.coverage_claim.is_some(),
+        ),
+        Verdict::NeedsAttention => format!(
+            "no hard failure; structural_failures={} limit_events={} within_budget={} verified_ok={}/{}",
+            structural.structural_failures,
+            report.limits.limit_events_total,
+            report.resources.within_budget,
+            structural.verified_ok,
+            structural.entries_total,
+        ),
+        Verdict::Pass => format!(
+            "all {} entries verified; no limits; within budget; no promotion",
+            structural.verified_ok
+        ),
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn finish_run(
+    sample: &CorpusSampleManifest,
+    sample_manifest_sha256: &str,
+    entries: Vec<AcceptanceEntry>,
+    probe: ProbeState,
+    total_wall_ms: u64,
+    max_wall_ms: u64,
+) -> Result<AcceptanceRun, String> {
+    let packet = build_packet(sample, sample_manifest_sha256);
+    let packet_text = packet.to_json_string()?;
+    let adjudication_packet_sha256 = format!(
+        "sha256:{}",
+        hex_lower(&Sha256::digest(packet_text.as_bytes()))
+    );
+
+    let entries_total = entries.len() as u64;
+    let mut counters = OutcomeCounters::default();
+    let mut verify_codes: BTreeMap<String, u64> = BTreeMap::new();
+    let mut limit_events: BTreeMap<String, u64> = BTreeMap::new();
+    for entry in &entries {
+        counters.add(entry.outcome);
+        if let Some(code) = entry.verify_code {
+            *verify_codes.entry(code.as_str().to_string()).or_default() += 1;
+        }
+        if let Some(kind) = entry.limit_kind {
+            *limit_events.entry(kind.as_str().to_string()).or_default() += 1;
+        }
+    }
+    let structural_failures = counters.failures();
+    let structural_integrity = StructuralIntegritySection {
+        entries_total,
+        verified_ok: counters.verified_ok,
+        read_back_refused: counters.read_back_refused,
+        verify_refused: counters.verify_refused,
+        decode_refused: counters.decode_refused,
+        gate_refused: counters.gate_refused,
+        analysis_refused: counters.analysis_refused,
+        limit_line_bytes: counters.limit_line_bytes,
+        limit_records: counters.limit_records,
+        manifest_pin_mismatch: counters.manifest_pin_mismatch,
+        verify_codes,
+        tamper_probe_entries: probe.done,
+        tamper_probe_detected: probe.detected,
+        tamper_probe_false_negative: probe.false_negative,
+        structural_failures,
+        pass: structural_failures == 0,
+    };
+
+    let limit_events_total: u64 = limit_events.values().copied().sum();
+    let limits = LimitsSection {
+        limit_events_total,
+        limit_events,
+        within_threshold: limit_events_total <= sample.declared_thresholds.max_limit_events,
+    };
+
+    let peak_memory_bytes =
+        drift_baseline::peak_memory_bytes().map_err(|error| format!("peak memory: {error}"))?;
+    let peak_within = peak_memory_bytes
+        .is_none_or(|peak| peak <= sample.declared_thresholds.resource_budget_peak_bytes);
+    let time_within = total_wall_ms <= sample.declared_thresholds.resource_budget_total_ms;
+    let resources = ResourcesSection {
+        peak_memory_bytes,
+        peak_memory_available: peak_memory_bytes.is_some(),
+        total_wall_ms,
+        mean_wall_ms: total_wall_ms.checked_div(entries_total).unwrap_or(0),
+        max_wall_ms,
+        within_budget: peak_within && time_within,
+    };
+
+    let semantic_adjudication = SemanticAdjudicationSection {
+        semantic_reference_status: SEMANTIC_REFERENCE_STATUS_ABSENT.to_string(),
+        promotion: false,
+        adjudication_status: AdjudicationStatus::NotAttempted,
+        packet_schema: ADJUDICATION_SCHEMA.to_string(),
+        adjudication_packet_sha256,
+        adjudicated_entries: 0,
+        non_claims: vec![
+            "structural-only: no semantic reference corpus exists at this horizon".into(),
+            "no C5 promotion; no accuracy and no breadth claim".into(),
+        ],
+    };
+    let horizon = HorizonSection {
+        r1000_status: R1000_STATUS_ACTIVE.to_string(),
+        m208_status: M208_STATUS_PARKED.to_string(),
+        display_cleaning_status: "remaining (D638)".to_string(),
+        next_horizon_status: "M215-M220 parked".to_string(),
+    };
+
+    let mut report = AcceptanceReport {
+        schema: ACCEPTANCE_SCHEMA.to_string(),
+        schema_version: SCHEMA_VERSION,
+        lifecycle: LIFECYCLE_BOUNDED.to_string(),
+        milestone: MILESTONE.to_string(),
+        slice: SLICE.to_string(),
+        count_only: true,
+        ascii_only: true,
+        sample_manifest_sha256: sample_manifest_sha256.to_string(),
+        declared_thresholds: sample.declared_thresholds.clone(),
+        structural_integrity,
+        semantic_adjudication,
+        limits,
+        resources,
+        corpus_breadth: build_breadth(sample),
+        horizon,
+        verdict: Verdict::Pass,
+        verdict_basis: String::new(),
+        non_claims: acceptance_non_claims(),
+    };
+    let verdict = report.compute_verdict();
+    report.verdict = verdict;
+    report.verdict_basis = build_verdict_basis(&report);
+    report.validate()?;
+    Ok(AcceptanceRun {
+        report,
+        packet,
+        entries,
+    })
 }

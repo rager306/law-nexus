@@ -30,6 +30,10 @@ name = "npa-corpus-sample"
 path = "src/bin/npa-corpus-sample.rs"
 
 [[bin]]
+name = "npa-corpus-acceptance"
+path = "src/bin/npa-corpus-acceptance.rs"
+
+[[bin]]
 name = "npa-promotion-eval"
 path = "src/bin/npa-promotion-eval.rs"
 
