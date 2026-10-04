@@ -11,6 +11,7 @@ ln-temporal = { path = "../ln-temporal" }
 rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sha2 = "0.10"
 
 [[bin]]
 name = "m209-amendment-provenance"
@@ -23,6 +24,10 @@ path = "src/bin/npa-contour-diagnostics.rs"
 [[bin]]
 name = "npa-gold-ladder"
 path = "src/bin/npa-gold-ladder.rs"
+
+[[bin]]
+name = "npa-corpus-sample"
+path = "src/bin/npa-corpus-sample.rs"
 
 [[bin]]
 name = "npa-promotion-eval"

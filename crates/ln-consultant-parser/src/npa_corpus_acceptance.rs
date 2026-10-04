@@ -20,14 +20,18 @@
 //! active/unclosed and M208-wrz6fg stays parked. Count/hash only — no decoded
 //! corpus text enters tracked evidence.
 
-use std::collections::BTreeSet;
-use std::path::{Component, Path};
+use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write as _;
+use std::fs;
+use std::io::Read;
+use std::path::{Component, Path, PathBuf};
 
 use ln_decode::npa_analysis_verify::AnalysisVerifyCode;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 
-use crate::corpus_sample::SourceRootKind;
+use crate::corpus_sample::{self, SampleCandidate, SourceRootKind};
 
 // ------------------------------------------------------------- constants #
 
@@ -68,6 +72,13 @@ pub const SEMANTIC_REFERENCE_STATUS_ABSENT: &str = "absent";
 pub const R1000_STATUS_ACTIVE: &str = "active";
 /// M208-wrz6fg remains parked (D651).
 pub const M208_STATUS_PARKED: &str = "parked";
+
+/// Declared C3 exclusion for the diagnostic S04 sample.
+pub const C3_EXCLUSION_NONE: &str = "none (diagnostic sample, not an evaluation holdout)";
+/// Declared Consultant source root (repo-relative).
+pub const CONSULTANT_ROOT_RELATIVE: &str = "consru_export/consru_export/exports";
+/// Declared Garant source root (repo-relative).
+pub const GARANT_ROOT_RELATIVE: &str = "law-source/garant";
 
 /// Top-level keys that would re-carry decoded corpus text (§12 H12). `load`
 /// refuses any of these anywhere in the document, before deserialization.
@@ -1114,6 +1125,244 @@ impl AdjudicationPacket {
     pub fn to_json_string(&self) -> Result<String, String> {
         serde_json::to_string_pretty(self).map_err(|error| error.to_string())
     }
+}
+
+// ------------------------------------------------------- sample builder #
+
+/// One declared source root for [`build_sample`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SampleRoot {
+    /// Repo-relative declared root recorded in the manifest.
+    pub relative_path: String,
+    /// On-disk location walked by the builder.
+    pub path: PathBuf,
+    /// Provider kind of the root.
+    pub kind: SourceRootKind,
+}
+
+impl SampleRoot {
+    /// Build a declared root; the declared path must be normalized and
+    /// relative so the manifest cannot record an absolute/traversing root.
+    pub fn new(
+        relative_path: impl Into<String>,
+        path: impl Into<PathBuf>,
+        kind: SourceRootKind,
+    ) -> Result<Self, String> {
+        let relative_path = relative_path.into();
+        validate_relative_path(&relative_path)?;
+        let path = path.into();
+        if path.as_os_str().is_empty() {
+            return Err("source root disk path must not be empty".into());
+        }
+        Ok(Self {
+            relative_path,
+            path,
+            kind,
+        })
+    }
+}
+
+/// Declared repo-relative S04 roots with optional disk overrides. The
+/// canonical disk locations are `consru_export/consru_export/exports` and
+/// `law-source/garant`; overrides exist only for synthetic runs.
+pub fn declared_sample_roots(
+    consultant_disk: impl Into<PathBuf>,
+    garant_disk: impl Into<PathBuf>,
+) -> Result<Vec<SampleRoot>, String> {
+    Ok(vec![
+        SampleRoot::new(
+            CONSULTANT_ROOT_RELATIVE,
+            consultant_disk,
+            SourceRootKind::ConsultantExport,
+        )?,
+        SampleRoot::new(GARANT_ROOT_RELATIVE, garant_disk, SourceRootKind::Garant)?,
+    ])
+}
+
+/// Walk the declared roots, pin every XML file by content sha256 + byte
+/// length, draw the frozen provider/work-family stratified sample and return
+/// the sealed [`CorpusSampleManifest`] (§15.1, D668).
+///
+/// Fail-closed: an absent declared root, a duplicate declared root or
+/// inventory row, a non-ASCII entry path (the manifest declares
+/// `ascii_only`), an empty file, or an inventory smaller than the declared
+/// `sample_size` is an error — never a silent shrink and never a fabricated
+/// entry.
+pub fn build_sample(roots: &[SampleRoot]) -> Result<CorpusSampleManifest, String> {
+    if roots.is_empty() {
+        return Err("build_sample requires at least one declared root".into());
+    }
+    let mut declared_roots = Vec::with_capacity(roots.len());
+    let mut seen_root_paths = BTreeSet::new();
+    let mut inventory: Vec<SampleCandidate> = Vec::new();
+    let mut bytes_by_key: BTreeMap<(SourceRootKind, String), u64> = BTreeMap::new();
+    for root in roots {
+        if !root.path.is_dir() {
+            return Err(format!(
+                "declared source root is absent: {} ({})",
+                root.relative_path,
+                root.path.display()
+            ));
+        }
+        if !seen_root_paths.insert(root.relative_path.clone()) {
+            return Err(format!("duplicate declared root {}", root.relative_path));
+        }
+        declared_roots.push(DeclaredRoot {
+            relative_path: root.relative_path.clone(),
+            provider: ProviderToken::from_root_kind(root.kind),
+        });
+        let files = ln_decode::npa_sweep::walk_xml_files(&root.path, None)
+            .map_err(|error| format!("walk {}: {error}", root.path.display()))?;
+        for path in files {
+            let meta = corpus_sample::classify_path(&path, &root.path, root.kind)
+                .map_err(|error| format!("classify {}: {error}", path.display()))?;
+            if !meta.relative_path.is_ascii() {
+                return Err(format!(
+                    "ascii_only manifest refuses non-ascii path: {}",
+                    meta.relative_path
+                ));
+            }
+            let (sha256, bytes) = sha256_file(&path)?;
+            if bytes == 0 {
+                return Err(format!("empty corpus file {}", meta.relative_path));
+            }
+            let key = (root.kind, meta.relative_path.clone());
+            if bytes_by_key.insert(key, bytes).is_some() {
+                return Err(format!("duplicate inventory entry {}", meta.relative_path));
+            }
+            inventory.push(SampleCandidate {
+                relative_path: meta.relative_path.clone(),
+                content_hash: sha256,
+                meta,
+            });
+        }
+    }
+    if inventory.is_empty() {
+        return Err("declared roots yielded no XML inventory".into());
+    }
+    let corpus_snapshot_sha256 = inventory_snapshot_sha256(&inventory);
+    let c3_hashes: BTreeSet<String> = BTreeSet::new();
+    let plan = corpus_sample::draw(
+        inventory,
+        &c3_hashes,
+        usize::try_from(DECLARED_SAMPLE_SIZE).unwrap_or(usize::MAX),
+        DECLARED_DRAW_SEED,
+    )
+    .map_err(|error| format!("sample draw refused: {error}"))?;
+    let mut entries = Vec::with_capacity(plan.candidates.len());
+    for candidate in &plan.candidates {
+        let provider = ProviderToken::from_root_kind(candidate.meta.provider);
+        let bytes = bytes_by_key
+            .get(&(candidate.meta.provider, candidate.relative_path.clone()))
+            .copied()
+            .ok_or_else(|| format!("missing byte length for {}", candidate.relative_path))?;
+        entries.push(SampleEntry {
+            relative_path: candidate.relative_path.clone(),
+            sha256: candidate.content_hash.clone(),
+            bytes,
+            provider,
+            document_type: candidate.meta.document_type.clone(),
+            work_family: candidate.meta.work_family.key.clone(),
+        });
+    }
+    let manifest = CorpusSampleManifest {
+        schema: SAMPLE_SCHEMA.into(),
+        schema_version: SCHEMA_VERSION,
+        lifecycle: LIFECYCLE_BOUNDED.into(),
+        milestone: MILESTONE.into(),
+        slice: SLICE.into(),
+        count_only: true,
+        ascii_only: true,
+        declared_before_run: true,
+        declared_thresholds: DeclaredThresholds::declared(),
+        corpus_snapshot_sha256,
+        not_year_type_stratified: true,
+        c3_exclusion: C3_EXCLUSION_NONE.into(),
+        leakage: SampleLeakage::from_report(&plan.leakage),
+        roots: declared_roots,
+        entries,
+        non_claims: sample_non_claims(),
+    };
+    manifest.validate()?;
+    Ok(manifest)
+}
+
+impl SampleLeakage {
+    fn from_report(report: &corpus_sample::LeakageReport) -> Self {
+        Self {
+            input_candidates: report.input_candidates as u64,
+            exact_duplicate_hashes: report.exact_duplicate_hashes as u64,
+            excluded_c3_hashes: report.excluded_c3_hashes as u64,
+            collapsed_editions: report.collapsed_editions as u64,
+            collapsed_families: report.collapsed_families as u64,
+            c3_family_overlap: report.c3_family_overlap as u64,
+            garant_available: report.garant_available as u64,
+            garant_selected: report.garant_selected as u64,
+            consultant_available: report.consultant_available as u64,
+            consultant_selected: report.consultant_selected as u64,
+            garant_cap: report.garant_cap as u64,
+            not_year_type_stratified: report.not_year_type_stratified,
+        }
+    }
+}
+
+/// Non-claims carried by the sample manifest (§15.6).
+pub fn sample_non_claims() -> Vec<String> {
+    vec![
+        "count/hash only; no decoded corpus text".into(),
+        "bounded provider/work-family stratified sample; not a corpus-coverage claim".into(),
+        "the corpus sweep is not a semantic oracle".into(),
+        "no C5 promotion; R1000 stays active/unclosed; M208-wrz6fg stays parked".into(),
+    ]
+}
+
+/// Deterministic sha256 over the sorted `(relative_path, sha256)` inventory.
+fn inventory_snapshot_sha256(inventory: &[SampleCandidate]) -> String {
+    let mut rows: Vec<String> = inventory
+        .iter()
+        .map(|candidate| {
+            format!(
+                "{}\t{}",
+                candidate.relative_path,
+                normalize_sha256(&candidate.content_hash)
+            )
+        })
+        .collect();
+    rows.sort();
+    let mut hasher = Sha256::new();
+    for row in &rows {
+        hasher.update(row.as_bytes());
+        hasher.update(b"\n");
+    }
+    format!("sha256:{}", hex_lower(&hasher.finalize()))
+}
+
+/// Stream one file through sha256 and report its byte length.
+fn sha256_file(path: &Path) -> Result<(String, u64), String> {
+    let mut file =
+        fs::File::open(path).map_err(|error| format!("open {}: {error}", path.display()))?;
+    let mut hasher = Sha256::new();
+    let mut buffer = [0_u8; 64 * 1024];
+    let mut total: u64 = 0;
+    loop {
+        let read = file
+            .read(&mut buffer)
+            .map_err(|error| format!("read {}: {error}", path.display()))?;
+        if read == 0 {
+            break;
+        }
+        hasher.update(&buffer[..read]);
+        total = total.saturating_add(read as u64);
+    }
+    Ok((format!("sha256:{}", hex_lower(&hasher.finalize())), total))
+}
+
+fn hex_lower(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(out, "{byte:02x}");
+    }
+    out
 }
 
 // ----------------------------------------------------------- validation #
