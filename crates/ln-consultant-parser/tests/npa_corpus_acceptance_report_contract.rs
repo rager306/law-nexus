@@ -31,6 +31,8 @@ const REPORT_REL: &str = "prd/migration/rust-evidence/m214-s04-corpus-acceptance
 const PACKET_REL: &str = "prd/migration/rust-evidence/m214-s04-adjudication-packet.json";
 const ENTRIES_REL: &str = "prd/migration/rust-evidence/m214-s04-corpus-acceptance.jsonl";
 const BATTERY_REL: &str = "prd/migration/rust-evidence/m214-s04-acceptance-battery.json";
+const HORIZON_REL: &str = "prd/migration/rust-evidence/m214-s04-horizon-reassessment.md";
+const CONTRACT_REL: &str = "prd/architecture/npa-analysis-jsonl-contract.md";
 
 /// The mandatory separated sections (§15.3); never merged into one blob.
 const SEPARATED_SECTIONS: &[&str] = &[
@@ -384,6 +386,79 @@ fn tracked_battery_is_consistent_with_report() {
         .expect("the battery must carry a re_test_set array");
     assert!(!re_test_set.is_empty());
     assert!(re_test_set.iter().all(|item| item.as_str().is_some()));
+}
+
+/// T05: the horizon reassessment document must be the human-readable mirror of
+/// the report's horizon/semantic boundary. If the report silently promotes the
+/// semantic section, closes R1000, resumes M208, or the doc drops a non-claim,
+/// this test fails without re-running the corpus.
+#[test]
+fn tracked_horizon_doc_matches_report_boundary() {
+    let doc = read_str(HORIZON_REL);
+    assert!(
+        !doc.trim().is_empty(),
+        "the horizon reassessment must be non-empty"
+    );
+    assert!(
+        doc.is_ascii(),
+        "the horizon reassessment must be ascii_only"
+    );
+
+    let report = load_report();
+
+    // R1000 marker: the doc's R1000 statement must agree with the report.
+    assert!(doc.contains("R1000"), "the horizon doc must name R1000");
+    assert!(
+        doc.contains(report.horizon.r1000_status.as_str()),
+        "the horizon doc must carry the report r1000_status `{}`",
+        report.horizon.r1000_status
+    );
+    assert_eq!(report.horizon.r1000_status, R1000_STATUS_ACTIVE);
+
+    // M208 marker.
+    assert!(doc.contains("M208"), "the horizon doc must name M208");
+    assert!(
+        doc.contains(report.horizon.m208_status.as_str()),
+        "the horizon doc must carry the report m208_status `{}`",
+        report.horizon.m208_status
+    );
+    assert_eq!(report.horizon.m208_status, M208_STATUS_PARKED);
+
+    // Semantic section stays structural-only; never promoted.
+    assert!(
+        doc.contains("structural-only"),
+        "the horizon doc must mark the semantic section structural-only"
+    );
+    assert!(
+        !report.semantic_adjudication.promotion,
+        "the semantic section must not be promoted"
+    );
+    assert_eq!(
+        report.semantic_adjudication.semantic_reference_status,
+        SEMANTIC_REFERENCE_STATUS_ABSENT
+    );
+
+    // The explicit non-claims must stay present in the doc.
+    for marker in [
+        "no corpus-wide accuracy claim",
+        "no source authenticity claim",
+        "no legal-effect claim",
+        "not a semantic oracle",
+    ] {
+        assert!(
+            doc.contains(marker),
+            "the horizon doc must carry the non-claim `{marker}`"
+        );
+    }
+
+    // Contract section 13 must record the S04 outcome and confirm D667/D668.
+    let contract = read_str(CONTRACT_REL);
+    assert!(
+        contract.contains("S04 outcome"),
+        "contract section 13 must record the S04 outcome"
+    );
+    assert!(contract.contains("D667"), "the contract must confirm D667");
+    assert!(contract.contains("D668"), "the contract must confirm D668");
 }
 
 fn structured_counters(

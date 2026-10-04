@@ -985,6 +985,16 @@ relation — provenance survives the missing span.
   unit.
 - **D651** is confirmed: M215–M220 stay parked; auto/wakeup stay
   stopped; M214 S01–S04 only.
+- **S04 outcome (this revision):** S04 ran the pinned provider + work-family
+  stratified sample (N=400, seed 20308) through the S01–S03 pipeline and
+  produced the separated acceptance report
+  (`m214-s04-corpus-acceptance.json`, `verdict=pass`, 400/400 verified, no
+  limits, tamper 12/12) plus the durable count/hash-only battery. The
+  semantic section stays structural-only (`semantic_reference_status=absent`,
+  `promotion=false`); D667 and D668 are confirmed unchanged. S04 does not
+  close R1000, does not resume M208 and does not start M215–M220. The
+  remainder and non-claims are reconciled in
+  `prd/migration/rust-evidence/m214-s04-horizon-reassessment.md`.
 - **Requirement binding (D655/D656):** M214 has no DB requirement
   binding (the requirements projection returns no rows for M214). D656
   records the intended binding: **R1000 primary, supporting-only,
