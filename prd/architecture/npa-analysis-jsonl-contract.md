@@ -1,8 +1,12 @@
 # NPA source-to-analysis JSONL integration contract
 
-**Status:** `[bounded]` design contract (no runtime in this task)
+**Status:** `[bounded]` successor revision — S02 record schema (§8A);
+no runtime in this task
 **Owning slice:** `M214-es3jvw` / `S01` — T01 tracked contract;
 executable seam and tests are S01/T02–T03, document output is S02
+**Successor revision:** S02 adds the full record field lists in §8A and
+defers the `context` family to S03 (D658); the S01 discipline (§1–§7)
+is unchanged. `[bounded]`
 **Authority:** ADR-0013 (universal multi-source parser), ADR-0015
 (hexagonal verification architecture), ADR-0028 (typed lexer / dual
 tokenizer), ADR-0029 (requisites-anchored member assembly — anchor
@@ -10,7 +14,9 @@ boundary), ADR-0016 (structural legal identity), ADR-0009 (five-clock
 safety contract); decisions D603 (anchor coordinates), D628/D631
 (reader coordinate base), D633/D634 (reader seal + independent
 verifier), D638 (R1000 remainder under M213), D640 (cleaned JSONL
-envelope), D650/D651 (horizon correction)
+envelope), D650/D651 (horizon correction), D655/D656 (M214 requirement
+binding), D657 (document-scoped analysis block binding), D658 (S02
+envelope format and family scope)
 **Upstream evidence contracts:**
 `prd/architecture/source-jsonl-contract.md` (`[bounded]`),
 `prd/architecture/reader-view-contract.md` (`[bounded]`),
@@ -325,9 +331,9 @@ Rules:
 
 ## 8. Envelope discipline (S01-level shape)
 
-S02 fixes the full record field lists in a successor revision of this
-file; S01 fixes the discipline and the mandatory identity/coordinate/
-outcome fields.
+S01 fixes the discipline and the mandatory identity/coordinate/outcome
+fields. S02 fixes the full record field lists in the successor revision
+**§8A** (D658); the shape below stays the envelope skeleton.
 
 ### 8.1 Layout
 
@@ -337,20 +343,21 @@ LF-delimited JSONL, exactly one trailing LF:
 line 0        manifest   kind = "npa_analysis_manifest"
 line 1        policies   kind = "npa_analysis_policies"
 lines 2..n-1  records    family in { document, fragment, member, relation,
-                                     classification, context, diagnostic }
+                                     classification, diagnostic }
 line n        footer     kind = "npa_analysis_footer"
 ```
 
-Every line is one compact JSON object (fixed key order, no embedded
-newline). Structural break (missing/misordered manifest/policies/
-footer, empty interior line, CR, trailing record) is a closed typed
-refusal, never a silent success.
+The `context` family is **deferred to S03** (D658); S02 emits the six
+families above only. Every line is one compact JSON object (fixed key
+order, no embedded newline). Structural break (missing/misordered
+manifest/policies/footer, empty interior line, CR, trailing record) is
+a closed typed refusal, never a silent success.
 
 ### 8.2 Manifest (mandatory identity)
 
 `source`, `parent`, `document_version_ref`, `source_revision`,
 `decoder_profile`, `profile`, `version`, `generator`,
-`non_authoritative: true`, `limits`.
+`non_authoritative: true`, `limits`. Exact field list: §8A.4.
 
 ### 8.3 Policies (mandatory non-claims)
 
@@ -360,7 +367,7 @@ refusal, never a silent success.
 `promotion: none`,
 `authenticity: integrity_only_not_authenticity`,
 `corpus_transfer: no_restricted_corpus`,
-`non_authoritative: true`.
+`non_authoritative: true`. Exact field list: §8A.5.
 
 ### 8.4 Text channel — companion, not a second corpus
 
@@ -379,7 +386,252 @@ tracked portable evidence.
 
 `completion: complete|incomplete` with `completion_basis` and
 `incomplete_reasons` (non-empty iff incomplete), counts, and the two
-non-cyclic seals mirroring `source_package`/`cleaned_projection`.
+non-cyclic seals mirroring `source_package`/`cleaned_projection`. Exact
+field list: §8A.6.
+
+## 8A. S02 record schema (successor revision)
+
+This successor revision fixes the full S02 record field lists (D658) on
+top of the S01 discipline (§8). Status stays `[bounded]`; no Rust type
+is minted here and the exact Rust identifiers remain S02's choice. The
+S01 surfaces named below (`ReaderProjection`, `ReaderRecordIndex`,
+`SegmentOrigin`, `ReaderViewKind`, `LocalSpan`, `ReaderFragmentSpan`,
+`SourceMapping`, `MappingRefusalKind`, `TypedMember`, `TypeDerivation`,
+`AnchorDiagnostic`, `LinkedMember`, `LinkDerivation`, `LinkDiagnostic`,
+`LinkedRelationKind`, `ClassifiedMember`, `GraphClass`, `IdentityKey`,
+`ClassificationDiagnostic`, `DocumentVersionRef`, `ReaderViewKind::is_primary`)
+exist in `crates/ln-decode/src` (T01 grep audit). The S02-local names
+`AnalysisBlockLayout`, `AnalysisRefusalKind`,
+`render_npa_analysis`, `export_npa_analysis`,
+`inspect_npa_analysis_wire` and `AnalysisEnvelopeSummary` are introduced
+by S02 and do not exist in S01.
+
+### 8A.1 Family set and line kinds
+
+S02 emits exactly six record families. `family` is the record-line
+discriminator; manifest/policies/footer keep `kind` (§8.1).
+
+| family | `family` token | per-line `schema` | cardinality |
+|---|---|---|---|
+| document | `document` | `law-nexus/npa-analysis-document/v1` | exactly one |
+| fragment | `fragment` | `law-nexus/npa-analysis-fragment/v1` | one per referenced fragment |
+| member | `member` | `law-nexus/npa-analysis-member/v1` | zero or more |
+| relation | `relation` | `law-nexus/npa-analysis-relation/v1` | zero or more |
+| classification | `classification` | `law-nexus/npa-analysis-classification/v1` | zero or more |
+| diagnostic | `diagnostic` | `law-nexus/npa-analysis-diagnostic/v1` | zero or more |
+
+Manifest line 0 carries `kind = "npa_analysis_manifest"`, policies line 1
+`kind = "npa_analysis_policies"`, the last line
+`kind = "npa_analysis_footer"` (§8.1). The `context` family is deferred
+to S03 (D658). `[bounded]`
+
+### 8A.2 Span object (closed)
+
+Every source reference on the wire is a fragment-qualified half-open
+UTF-8 byte span:
+
+```json
+{"end":13,"fragment":"t7","start":6}
+```
+
+`fragment` is a `reader_contract::FragmentRef` id (`tN`) pinned in the
+parent; `start`/`end` are half-open byte offsets into that fragment's
+decoded text. A raw `npa_anchor::LocalSpan` (`{block,start,end}`) is
+never serialized; it is localized to one fragment first (§8A.3). A
+`block` index, a character offset, a line offset and an artifact byte
+range are invalid (§5.3).
+
+### 8A.3 Block binding (D657)
+
+`[bounded]` An analysis **block** is one reader primary view
+(`ReaderViewKind::Paragraph` or `ReaderViewKind::Residual`, the
+`reader-view-contract.md` primary set) in document order; `block` is the
+sequential index over non-empty primary views. Navigation views
+(`Table`, `Row`, `Cell`, `Note`) are not analysis blocks; the existing
+`ReaderViewKind::is_primary` predicate selects the two primary kinds.
+
+`[bounded]` For one block, its ordered **source-fragment segments**
+(`SegmentOrigin::SourceFragment`, in `ProjectedView::segment_refs`
+order) are concatenated into `block_text`; `SegmentOrigin::Derived`
+segments are excluded. The decoded fragment text is read from
+`reader_contract::ReaderRecordIndex`
+(`ReaderRecordIndex::new(package.records())`), never from a literal.
+
+`AnalysisBlockLayout` is the ordered list of segment entries
+`(fragment_ref, block_start, block_end, fragment_start, fragment_end)`;
+`block_start`/`block_end` are the segment's half-open offsets in
+`block_text`, `fragment_start`/`fragment_end` its offsets in the
+fragment. Localizing a `LocalSpan {block,start,end}` is closed:
+
+1. `unmapped_block` — `block` is absent from the layout;
+2. `invalid_span` — `start >= end`, or a bound splits a code point;
+3. `out_of_bounds` — `[start,end)` leaves `[0, block_text.len())`;
+4. `cross_fragment` — `[start,end)` is not inside one segment's
+   `[block_start,block_end)`. A span straddling two fragments is a closed
+   refusal — never rebased onto one fragment, never silently promoted.
+
+A localized span maps to `ReaderFragmentSpan::new(fragment,
+fragment_start + (start - block_start), fragment_start + (end -
+block_start))`, then resolves through
+`SourceMapping::resolve_fragment_span` and must reproduce
+`&block_text[start..end]` via `SourceMapping::slice`. A seam
+`MappingRefusalKind` is surfaced with its own stable token.
+
+Closed record refusal vocabulary:
+
+- `AnalysisRefusalKind` (S02-local): `cross_fragment`,
+  `unmapped_block`, `invalid_span`, `out_of_bounds`, `limit_reached`;
+- any `analysis_source_mapping::MappingRefusalKind` token:
+  `empty_or_inverted`, `out_of_bounds`, `not_char_boundary`,
+  `unknown_fragment`, `cross_document`, `source_identity_mismatch`,
+  `document_version_mismatch`, `token_view_mismatch`,
+  `unsupported_mapping`, `envelope_structural`,
+  `temporal_field_forbidden`, `corpus_transfer_forbidden`.
+
+A record whose span cannot be localized carries its refusal token
+instead of a span; refusal kinds are never dropped and never converted
+to success.
+
+### 8A.4 Manifest fields
+
+`kind`, `schema` (`law-nexus/npa-analysis-manifest/v1`), `model`
+(`law-nexus/npa-analysis-model/v1`), `profile`
+(`npa_analysis_wordml/v1`), `version` (`1`), `capability`
+(`npa_analysis_jsonl`), `generator`
+(`{name: "ln-decode.npa_analysis_wire", version}`), `source`
+(`{sha256, bytes}`, copied from the parent manifest), `parent`
+(`{schema, records_seal_hash, manifest_hash}`), `document_version_ref`,
+`source_revision`, `decoder_profile`, `limits`
+(`{max_line_bytes, max_records}`), `non_authoritative: true`.
+
+The reused shape predicate is
+`analysis_source_mapping::check_envelope_shape`; the two optional parent
+seals are `null` for an unsealed parent (§4.1).
+
+### 8A.5 Policies fields
+
+`kind`, `schema` (`law-nexus/npa-analysis-policies/v1`), `counts_scope`
+(`integrity_not_coverage`), `semantic_scope` (`not_legal_gold`),
+`temporal_scope` (`identity_and_coordinates_only`), `promotion`
+(`none`), `authenticity` (`integrity_only_not_authenticity`),
+`corpus_transfer` (`no_restricted_corpus`), `non_authoritative: true`.
+
+### 8A.6 Footer fields
+
+`kind`, `schema` (`law-nexus/npa-analysis-footer/v1`), `completion`
+(`complete` | `incomplete`), `completion_basis`, `incomplete_reasons`
+(empty iff complete; otherwise non-empty and containing the basis),
+`counts` (`{documents, fragments, members, relations, classifications,
+diagnostics, records}`), `records_seal_hash`, `manifest_hash`.
+
+Closed completion bases/reasons: `bounded_analysis_complete` (complete)
+and, for an honest partial, `hold`, `text_only`, `refused_record`,
+`limit_reached`, `caller_scope`, `unsupported_source`. A refused
+analytical record (a non-dropped refusal in the record stream) forces
+`incomplete` with basis `refused_record`; a limit or scope partial is
+never presented as complete.
+
+Seals are non-cyclic and recomputable, mirroring `cleaned_wire`:
+`records_seal_hash = sha256(bytes(policies_line) || bytes(record_line_0)
+|| … || bytes(record_line_k))` over the emitted record lines, and
+`manifest_hash = sha256(bytes(manifest_line) || "\n" ||
+records_seal_hash || "\n" || footer_body)`, where `footer_body` excludes
+the two seal fields.
+
+### 8A.7 Record families
+
+Common to all record lines: `family`, `schema`, `ref` (stable
+family-local id). Cross-references use `ref`.
+
+**document** (one) — `family`, `schema`, `ref: "doc"`,
+`document_version_ref`, `source_revision`, `decoder_profile`,
+`source_sha256`, `projection_content_hash` (nullable; the reader
+projection `content_hash`), `blocks`, `primary_views`.
+
+**fragment** (one per referenced fragment) — `family`, `schema`, `ref`
+(`tN`), `fragment_ref`, `byte_length`, `content_sha256` (sha256 of the
+fragment's decoded UTF-8 bytes). No inline decoded text (§8.4).
+
+**member** — one family, two closed `stage`s (D658):
+
+| stage | fields |
+|---|---|
+| `typed` | `ref` (`mt:<index>`), `typed_index`, `date`, `number`, `type_name`, `approved_by`, `derivation` (`written_here`\|`unresolved`), `unresolved` (bool), `span`, `type_evidence` (span\|null), `alternatives` (`[{canon, span}]`, `npa_typed::TypeHypothesis` order) |
+| `linked` | `ref` (`ml:<member_id>`), `member_id` (`npa_link::LinkedMember.id`), `kind` (`npa_link::LinkedMemberKind`), `derivation` (`npa_link::LinkDerivation`), `alias` (string\|null), `approved_by` (string\|null), `evidence`, `provenance` (array of spans, discovery order) |
+
+Typed records are emitted for every `npa_typed::TypedMember`; linked
+records for every `npa_link::LinkedMember`. Typed provenance
+(`unresolved`, `alternatives`, `type_evidence`) is preserved even when a
+linked record exists for the same anchor.
+
+**relation** — `family`, `schema`, `ref` (`r:<index>`), `kind`
+(`npa_link::LinkedRelationKind`), `from`, `to` (`LinkedMember.id`),
+`evidence` (array of spans, never one cross-block span), `why`
+(producer rule token).
+
+**classification** — `family`, `schema`, `ref` (`c:<member_id>`),
+`member_id` (`LinkedMember.id`), `graph` (`npa_classify::GraphClass`),
+`legal_class` (`npa_classify::LegalClass`), `competence`
+(`npa_classify::Competence`), `identity_key`
+(`npa_classify::IdentityKey`), `evidence`, `why` (producer rule token).
+The document-scoped record carries the `ClassifiedMember` axes
+(A/B/C/identity); the full `ClassificationRow` axes D–H
+(`geo`/`issuer`/`normativity`/`binding`/`admin`) stay out of this
+envelope revision.
+
+**diagnostic** — `family`, `schema`, `ref` (`d:<index>`), `stage`
+(`anchor` | `link` | `classification`), `kind` (closed token, §8A.8),
+`refs` (`[{family, ref}]`), `span` (span | null), `rule` (producer
+token), `reject_reason` (`inbound` | `minjust` | `date_overlap` |
+null), `block` (usize | null).
+
+Provenance rule: a diagnostic that has no producer span carries
+`span: null` and a non-empty `refs` naming the member/relation/fragment
+it concerns plus the producing `rule`; a diagnostic is never emitted
+without provenance and is never swallowed.
+
+### 8A.8 Outcome to wire tokens
+
+| Rust surface | wire field | closed tokens |
+|---|---|---|
+| `npa_typed::TypeDerivation` | member.derivation (`typed`) | `written_here`, `unresolved` |
+| `npa_anchor::AnchorDiagnostic` | diagnostic.kind (`stage=anchor`) | `invalid_span`, `rejected_anchor`, `duplicate_occurrence` |
+| `npa_anchor::RejectReason` | diagnostic.reject_reason | `inbound`, `minjust`, `date_overlap` |
+| `npa_link::LinkedMemberKind` | member.kind (`linked`) | `anchored`, `named_type` |
+| `npa_link::LinkDerivation` | member.derivation (`linked`) | `typed_anchor`, `document_head`, `approved_by_quote`, `scoped_alias`, `this_document_ref`, `series_continuation`, `named_type_text`, `refused` |
+| `npa_link::LinkedRelationKind` | relation.kind | `continues_series`, `approved_by`, `scoped_alias`, `this_document_ref`, `head_family_carry` |
+| `npa_link::LinkDiagnostic` | diagnostic.kind (`stage=link`) | `open_series_without_head`, `incompatible_series_head`, `type_not_inherited`, `head_family_carry_refused`, `alias_without_declaration`, `head_unavailable` |
+| `npa_classify::GraphClass` | classification.graph | `identifying_act`, `hold`, `overlay`, `refuse` |
+| `npa_classify::LegalClass` | classification.legal_class | `npa`, `individual_legal_act`, `clarification_letter`, `judicial_act`, `primary_instrument`, `unknown` |
+| `npa_classify::Competence` | classification.competence | `international`, `federal`, `subject`, `municipal`, `not_applicable`, `unknown` |
+| `npa_classify::IdentityKey` | classification.identity_key | `federal`, `presidential_agency`, `regional_municipal`, `do_not_project`, `overlay_not_rank`, `deferred-undefined`, `hold` |
+| `npa_classify::ClassificationDiagnostic` | diagnostic.kind (`stage=classification`) | `span_invalid`, `type_missing`, `unknown_kind` |
+| `analysis_source_mapping::MappingRefusalKind` | record.refusal | `empty_or_inverted`, `out_of_bounds`, `not_char_boundary`, `unknown_fragment`, `cross_document`, `source_identity_mismatch`, `document_version_mismatch`, `token_view_mismatch`, `unsupported_mapping`, `envelope_structural`, `temporal_field_forbidden`, `corpus_transfer_forbidden` |
+
+The S02 outcomes (typing/linking/classification) are not token-view
+derived, so the six families carry no `view` field; a later
+token-derived record (S03 context) must declare `view` per §6 rule 1.
+Document-context outcomes (`ContextStatus`, `ContextClaimStatus`,
+`DerivationRelation`, `ContextDiagnostic`) stay out of S02 (D658).
+
+### 8A.9 Limits, rendering and structural inspect
+
+`AnalysisLimits {max_line_bytes, max_records}` is validated **before**
+any byte is written: a line over `max_line_bytes` or a record count over
+`max_records` is refused (`limit_reached`) and no partial envelope is
+produced. `AnalysisLimits` defaults and the manifest `limits` object
+stay consistent.
+
+`render_npa_analysis` writes compact sorted-key one-line JSON with a
+single trailing LF and no embedded newline; `export_npa_analysis`
+self-checks the rendered structure. `inspect_npa_analysis_wire(text) ->
+AnalysisEnvelopeSummary` is structure-only: it reports `families`
+(count per family), `records`, `completion`, `completion_basis`,
+`incomplete_reasons` and the presence of `records_seal_hash` /
+`manifest_hash`. It does not reconstruct records and does not recompute
+seals. `check_envelope_shape` (§8A.3) rejects a structural break;
+`check_no_corpus_transfer` and `check_temporal_fields` reject an inline
+text channel and a temporal stop-sign field.
 
 ## 9. Temporal scope (stop-signs)
 
@@ -414,6 +666,9 @@ hold:
 
 Additional gates:
 
+- S02 records obey §8A: fragment-qualified spans only, a `cross_fragment`
+  refusal for a straddling span, closed outcome tokens, no inline decoded
+  text, no temporal field and an honest `incomplete` at a refusal or limit.
 - S02 must not claim full analysis/context export or semantic gold and
   must not auto-close R1000.
 - S03's read-back/verifier must recompute from the pinned parent and
@@ -449,7 +704,20 @@ and not promoted. A classification row may lawfully be
 **P4 — context limit is observable.**
 A context request that exceeds `worklist_steps` terminates as
 `ContextStatus::Limit` with `ContextDiagnostic::ContextQueryLimitReached`;
-no partial result is presented as complete.
+no partial result is presented as complete. (Context records are S03.)
+
+**P5 — block binding produces fragment-qualified spans.**
+A primary paragraph view whose ordered source-fragment segments are
+`t7 = "см. "` and `t8 = "ст. 5"` yields `block_text = "см. ст. 5"` and a
+layout `[(t7,0,6,0,6), (t8,6,13,0,7)]`. A typed member span
+`{block:0,start:6,end:13}` localizes to `{fragment:t8,start:0,end:7}` and
+resolves to `"ст. 5"`, the exact UTF-8 slice.
+
+**P6 — a diagnostic without its own span keeps provenance.**
+`LinkDiagnostic::OpenSeriesWithoutHead` is emitted as a `diagnostic`
+record with `span: null`, `kind: "open_series_without_head"`, `rule`
+naming the `npa_link` pass and `refs` naming the affected member or
+relation — provenance survives the missing span.
 
 ## 12. Hostile examples (normative)
 
@@ -467,6 +735,10 @@ no partial result is presented as complete.
 | H10 | missing footer / trailing record after footer / embedded CR / misordered manifest | envelope-structural refusal |
 | H11 | record carrying an `edition_date`/`effective_from` field | temporal-field-forbidden (§9) |
 | H12 | envelope containing raw full-corpus evidence text as a second source | corpus-transfer-forbidden (§8.4) |
+| H13 | span straddling two source-fragment segments of one block | `cross_fragment` (never rebased) |
+| H14 | `LocalSpan.block` absent from the analysis layout | `unmapped_block` |
+| H15 | line over `max_line_bytes`, or record count over `max_records` | `limit_reached` before any byte is written |
+| H16 | a refused analytical record presented as `completion: complete` | `refused_record`; a silent complete is invalid |
 
 ## 13. Remainder reconciliation
 
@@ -490,21 +762,26 @@ no partial result is presented as complete.
   unit.
 - **D651** is confirmed: M215–M220 stay parked; auto/wakeup stay
   stopped; M214 S01–S04 only.
-- **Requirement binding gap:** M214 has no DB requirement binding
-  (the requirements projection returns no rows for M214). The S02+
-  planner must record the binding through the sanctioned requirements
-  path before S02 begins: R1000 primary; R081/R069/R077/R063/R038/R071
-  supporting-only; nothing auto-closed. This is a planning gate for
-  S02, not a T01 blocker.
+- **Requirement binding (D655/D656):** M214 has no DB requirement
+  binding (the requirements projection returns no rows for M214). D656
+  records the intended binding: **R1000 primary, supporting-only,
+  active/unclosed**; R081/R069/R077/R063/R038/R071 supporting-only;
+  R080 a supporting classification touch. Nothing is auto-closed and no
+  class-matched validation is claimed. The requirements-store write
+  (`supporting_slices`/`notes`) remains a carry-forward for a unit that
+  holds the requirement tool; the execute-task lane is hard-blocked from
+  it (D092). `[bounded]`
 - **S02 handoff (from S01/T03):** the executable seam
   (`analysis_source_mapping.rs`), its contract/hostile/integration
   batteries and the count/hash receipt
   `prd/migration/rust-evidence/m214-s01-source-mapping.json` are the
   admitted S01 inputs. S02 must not re-derive coordinates or token views;
-  it materializes records on top of the seam and records the M214
-  requirement binding before it begins.
+  it materializes records on top of the seam. The requirement binding is
+  recorded in this revision (D656) and §8A fixes the S02 record schema;
+  new suites are `npa_analysis_records_*`, `npa_analysis_wire_*` and
+  `npa_analysis_export_integration`.
 
-## 14. Verification surface (S01)
+## 14. Verification surface (S01 + S02)
 
 - **ADR conformance:** `uv run python scripts/verify-adr-conformance.py`
   (default surface) and explicitly
@@ -532,6 +809,15 @@ no partial result is presented as complete.
   `npa_link_pipeline_integration`, `cleaned_projection_verify`, plus
   `cargo fmt --all --check`, `cargo clippy --workspace --all-targets
   --offline -- -D warnings` and `cargo check --workspace --offline`.
+- **S02 verification surface (§8A):** suites
+  `npa_analysis_records_contract`, `npa_analysis_records_link_classify`,
+  `npa_analysis_wire_contract`, `npa_analysis_wire_hostile`,
+  `npa_analysis_export_integration`; structural inspect
+  `inspect_npa_analysis_wire`; portable count/hash receipt
+  `prd/migration/rust-evidence/m214-s02-analysis-export.json`; workspace
+  gates `cargo fmt --all --check`, `cargo clippy --workspace
+  --all-targets --offline -- -D warnings`, `cargo check --workspace
+  --offline`.
 - **Examples:** §11–§12 are normative and must stay consistent with the
   Rust enums they name.
 
@@ -539,10 +825,11 @@ no partial result is presented as complete.
 
 Reader/cleaning/normalization changes, XML re-parse, tokenizer
 rewrites, temporal/force/applicability/retrieval semantics, LLM
-extraction, corpus-wide acceptance, the full record schema (S02), the
-read-back/verifier implementation (S03), and the end-to-end acceptance
-report (S04). The M207 Python companion format is not adopted as the
-Rust analysis format.
+extraction, corpus-wide acceptance, the `context` family and its
+`ContextStatus`/`DerivationRelation` semantics (S03), the JSONL
+read-back and independent verifier (S03), and the end-to-end acceptance
+report (S04). S02's record schema is fixed in §8A. The M207 Python
+companion format is not adopted as the Rust analysis format.
 
 ## 16. References
 
@@ -563,4 +850,11 @@ Rust analysis format.
   `reader_verifier.rs`, `cleaned_wire.rs`, `cleaned_verifier.rs`,
   `document_context.rs`, `npa_context_baseline.rs`,
   `source_package.rs`, `domain.rs`.
+- `crates/ln-decode/src/analysis_source_mapping.rs` (S01 seam);
+  `npa_analysis_records.rs` and `npa_analysis_wire.rs` (S02 record +
+  envelope modules).
+- Decisions D655/D656 (M214 requirement binding), D657 (block binding),
+  D658 (S02 envelope/family scope); receipts
+  `prd/migration/rust-evidence/m214-s01-source-mapping.json` and
+  `m214-s02-analysis-export.json`.
 - `prd/migration/rust-evidence/` (portable evidence; count/hash-only).
