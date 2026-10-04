@@ -7,17 +7,25 @@
 //! fragment. Every outcome carries either a resolved fragment-qualified span or
 //! a closed typed refusal — never a panic, never a dropped result.
 //!
-//! Scope is blocks and **typed** records only: linking, classification and the
-//! JSONL envelope are later tasks of the same slice. No second coordinate
-//! system is minted; resolution goes through
+//! Scope is blocks plus the typed, **linked** and **classification** record
+//! streams: the JSONL envelope is a later task of the same slice. No second
+//! coordinate system is minted; resolution goes through
 //! `analysis_source_mapping::SourceMapping` and the analyzer modules stay
-//! untouched.
+//! untouched (`npa_link` / `npa_classify` are read-only producers).
 
 use std::collections::HashMap;
 use std::fmt;
 
 use crate::analysis_source_mapping::{MappingRefusal, MappingRefusalKind, SourceMapping};
 use crate::npa_anchor::{check_span, AnchorDiagnostic, LocalSpan, RejectReason, SpanError};
+use crate::npa_classify::{
+    self, ClassificationDiagnostic, ClassifiedMember, Competence, GraphClass, IdentityKey,
+    LegalClass,
+};
+use crate::npa_link::{
+    self, LinkDerivation, LinkDiagnostic, LinkedDocument, LinkedMember, LinkedMemberKind,
+    LinkedRelation, LinkedRelationKind,
+};
 use crate::npa_typed::{self, TypeDerivation};
 use crate::reader_contract::{FragmentRef, ReaderFragmentSpan, ReaderRecordIndex};
 use crate::reader_projection::{
@@ -681,6 +689,316 @@ pub fn analyze_typed(
     Ok(TypedAnalysis {
         layout,
         members,
+        diagnostics,
+    })
+}
+
+// ------------------------------------------------- linking / classification #
+
+/// Producer rule token for the linking stage (`diagnostic.rule`).
+pub const LINK_RULE: &str = "npa_link::build_linked_document";
+
+/// Producer rule token for the classification stage (`diagnostic.rule`).
+pub const CLASSIFY_RULE: &str = "npa_classify::classify_members";
+
+/// A linked member record (family `member`, closed `stage=linked`). Typed
+/// provenance (`unresolved`/`alternatives`/`type_evidence`) is carried beside
+/// it by [`TypedMemberRecord`]; linking clones `npa_link::LinkedMember` and
+/// never mutates it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LinkedMemberRecord {
+    /// `npa_link::LinkedMember.id`; the wire `ref` is `ml:<member_id>`.
+    pub member_id: usize,
+    /// How the member entered the linked model.
+    pub kind: LinkedMemberKind,
+    /// Provenance of the linked fields.
+    pub derivation: LinkDerivation,
+    /// Declared scoped alias, when present.
+    pub alias: Option<String>,
+    /// Quoted approving act, when present.
+    pub approved_by: Option<String>,
+    /// The member's own anchor.
+    pub evidence: SourceRef,
+    /// Every span that backs the member, in discovery order.
+    pub provenance: Vec<SourceRef>,
+}
+
+/// A derived relation record (family `relation`). Evidence is a list of
+/// separate anchors — never one cross-block span.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RelationRecord {
+    /// Position in the relation stream; the wire `ref` is `r:<index>`.
+    pub index: usize,
+    /// The relation kind.
+    pub kind: LinkedRelationKind,
+    /// Source member id.
+    pub from_id: usize,
+    /// Target member id.
+    pub to_id: usize,
+    /// The relation's source anchors, in order.
+    pub evidence: Vec<SourceRef>,
+    /// The producer's rule/explanation text.
+    pub why: String,
+}
+
+/// A classification record (family `classification`); the wire `ref` is
+/// `c:<member_id>`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ClassificationRecord {
+    /// The classified linked member id.
+    pub member_id: usize,
+    /// Axis A graph class.
+    pub graph: GraphClass,
+    /// Axis B legal class.
+    pub legal_class: LegalClass,
+    /// Axis C competence.
+    pub competence: Competence,
+    /// ADR-0016 identity selector.
+    pub identity_key: IdentityKey,
+    /// The member's own anchor.
+    pub evidence: SourceRef,
+    /// The producer's rule/explanation text.
+    pub why: String,
+}
+
+/// Linked and classified records plus their stage diagnostics.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LinkedAnalysis {
+    /// Linked member records.
+    pub members: Vec<LinkedMemberRecord>,
+    /// Relation records.
+    pub relations: Vec<RelationRecord>,
+    /// Classification records.
+    pub classifications: Vec<ClassificationRecord>,
+    /// Link and classification diagnostics, indexed from zero within the
+    /// linked analysis stream (anchor diagnostics belong to the typed stream).
+    pub diagnostics: Vec<DiagnosticRecord>,
+}
+
+/// Full document-scoped analysis: typed, linked, relation and classification
+/// records over one block layout, with a single globally indexed diagnostic
+/// stream (anchor, then link, then classification — each in producer order).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DocumentAnalysis {
+    /// The analysis block layout every record indexes into.
+    pub layout: AnalysisBlockLayout,
+    /// Typed member records (`stage=typed`).
+    pub typed: Vec<TypedMemberRecord>,
+    /// Linked member records (`stage=linked`).
+    pub linked: Vec<LinkedMemberRecord>,
+    /// Relation records.
+    pub relations: Vec<RelationRecord>,
+    /// Classification records.
+    pub classifications: Vec<ClassificationRecord>,
+    /// Anchor, link and classification diagnostics with unique `index`.
+    pub diagnostics: Vec<DiagnosticRecord>,
+}
+
+/// The document-level provenance anchor for a payload-free diagnostic. The
+/// analyzer diagnostics (`LinkDiagnostic`, `ClassificationDiagnostic`) carry no
+/// span and no member/relation id, so this module cannot recover a specific
+/// affected record without re-deriving analyzer internals. The honest,
+/// non-invented provenance is the document record (emitted once by the
+/// envelope task): the diagnostic concerns this document's pass.
+fn document_refs() -> Vec<RecordRef> {
+    vec![RecordRef {
+        family: "document".to_string(),
+        reference: "doc".to_string(),
+    }]
+}
+
+fn link_diagnostic_kind(diagnostic: LinkDiagnostic) -> DiagnosticKind {
+    match diagnostic {
+        LinkDiagnostic::OpenSeriesWithoutHead => DiagnosticKind::OpenSeriesWithoutHead,
+        LinkDiagnostic::IncompatibleSeriesHead => DiagnosticKind::IncompatibleSeriesHead,
+        LinkDiagnostic::TypeNotInherited => DiagnosticKind::TypeNotInherited,
+        LinkDiagnostic::HeadFamilyCarryRefused => DiagnosticKind::HeadFamilyCarryRefused,
+        LinkDiagnostic::AliasWithoutDeclaration => DiagnosticKind::AliasWithoutDeclaration,
+        LinkDiagnostic::HeadUnavailable => DiagnosticKind::HeadUnavailable,
+    }
+}
+
+fn link_diagnostic_record(index: usize, diagnostic: LinkDiagnostic) -> DiagnosticRecord {
+    DiagnosticRecord {
+        index,
+        stage: DiagnosticStage::Link,
+        kind: link_diagnostic_kind(diagnostic),
+        refs: document_refs(),
+        span: None,
+        rule: LINK_RULE.to_string(),
+        reject_reason: None,
+        block: None,
+    }
+}
+
+fn classification_diagnostic_kind(diagnostic: ClassificationDiagnostic) -> DiagnosticKind {
+    match diagnostic {
+        ClassificationDiagnostic::SpanInvalid => DiagnosticKind::SpanInvalid,
+        ClassificationDiagnostic::TypeMissing => DiagnosticKind::TypeMissing,
+        ClassificationDiagnostic::UnknownKind => DiagnosticKind::UnknownKind,
+    }
+}
+
+fn classification_diagnostic_record(
+    index: usize,
+    diagnostic: ClassificationDiagnostic,
+) -> DiagnosticRecord {
+    DiagnosticRecord {
+        index,
+        stage: DiagnosticStage::Classification,
+        kind: classification_diagnostic_kind(diagnostic),
+        refs: document_refs(),
+        span: None,
+        rule: CLASSIFY_RULE.to_string(),
+        reject_reason: None,
+        block: None,
+    }
+}
+
+fn source_refs(
+    layout: &AnalysisBlockLayout,
+    mapping: &SourceMapping,
+    spans: &[LocalSpan],
+) -> Vec<SourceRef> {
+    spans
+        .iter()
+        .map(|span| SourceRef::from(resolve_span(layout, mapping, *span)))
+        .collect()
+}
+
+fn linked_member_record(
+    layout: &AnalysisBlockLayout,
+    mapping: &SourceMapping,
+    member: &LinkedMember,
+) -> LinkedMemberRecord {
+    LinkedMemberRecord {
+        member_id: member.id,
+        kind: member.kind,
+        derivation: member.derivation,
+        alias: member.alias.clone(),
+        approved_by: member.approved_by.clone(),
+        evidence: SourceRef::from(resolve_span(layout, mapping, member.evidence)),
+        provenance: source_refs(layout, mapping, &member.provenance),
+    }
+}
+
+fn relation_record(
+    layout: &AnalysisBlockLayout,
+    mapping: &SourceMapping,
+    index: usize,
+    relation: &LinkedRelation,
+) -> RelationRecord {
+    RelationRecord {
+        index,
+        kind: relation.kind,
+        from_id: relation.from_id,
+        to_id: relation.to_id,
+        evidence: source_refs(layout, mapping, &relation.evidence),
+        why: relation.why.to_string(),
+    }
+}
+
+fn classification_record(
+    layout: &AnalysisBlockLayout,
+    mapping: &SourceMapping,
+    member: &ClassifiedMember,
+) -> ClassificationRecord {
+    ClassificationRecord {
+        member_id: member.member_id,
+        graph: member.graph,
+        legal_class: member.legal_class,
+        competence: member.competence,
+        identity_key: member.identity_key,
+        evidence: SourceRef::from(resolve_span(layout, mapping, member.evidence)),
+        why: member.why.clone(),
+    }
+}
+
+/// Builds linked members, relations and classifications over the analysis
+/// blocks by running the real `npa_link` then `npa_classify` pipelines on the
+/// block texts. Every span resolves through the T02 layout: a span that
+/// straddles two fragments becomes a closed refusal record, never a rebase and
+/// never a drop. The input layout, the derived `LinkedDocument` and the
+/// producer streams are read-only.
+///
+/// A payload-free analyzer diagnostic is emitted as a `diagnostic` record with
+/// `span: null` and the document provenance anchor (see [`document_refs`]); it
+/// is never dropped.
+pub fn build_linked_analysis(
+    layout: &AnalysisBlockLayout,
+    mapping: &SourceMapping,
+) -> LinkedAnalysis {
+    let texts = layout.block_texts();
+    let linked: LinkedDocument = npa_link::build_linked_document(&texts);
+
+    let members: Vec<LinkedMemberRecord> = linked
+        .members
+        .iter()
+        .map(|member| linked_member_record(layout, mapping, member))
+        .collect();
+    let relations: Vec<RelationRecord> = linked
+        .relations
+        .iter()
+        .enumerate()
+        .map(|(index, relation)| relation_record(layout, mapping, index, relation))
+        .collect();
+
+    let (classified, classification_diagnostics) = npa_classify::classify_members(&linked, &texts);
+    let classifications: Vec<ClassificationRecord> = classified
+        .iter()
+        .map(|member| classification_record(layout, mapping, member))
+        .collect();
+
+    let mut diagnostics: Vec<DiagnosticRecord> = linked
+        .diagnostics
+        .iter()
+        .enumerate()
+        .map(|(index, diagnostic)| link_diagnostic_record(index, *diagnostic))
+        .collect();
+    for diagnostic in &classification_diagnostics {
+        diagnostics.push(classification_diagnostic_record(
+            diagnostics.len(),
+            *diagnostic,
+        ));
+    }
+
+    LinkedAnalysis {
+        members,
+        relations,
+        classifications,
+        diagnostics,
+    }
+}
+
+/// Convenience pipeline: projection + index + mapping -> the full document
+/// analysis (blocks, typed, linked, relation, classification, diagnostics).
+/// Diagnostics are renumbered into one stream: anchor, then link, then
+/// classification, so `index` is unique across the whole analysis.
+pub fn analyze_document(
+    projection: &ReaderProjection,
+    index: &ReaderRecordIndex,
+    mapping: &SourceMapping,
+) -> Result<DocumentAnalysis, AnalysisRefusal> {
+    let layout = build_analysis_block_layout(projection, index)?;
+    let (typed, typed_diagnostics) = build_typed_records(&layout, mapping);
+    let linked = build_linked_analysis(&layout, mapping);
+
+    let mut diagnostics: Vec<DiagnosticRecord> = Vec::new();
+    for mut diagnostic in typed_diagnostics {
+        diagnostic.index = diagnostics.len();
+        diagnostics.push(diagnostic);
+    }
+    for mut diagnostic in linked.diagnostics {
+        diagnostic.index = diagnostics.len();
+        diagnostics.push(diagnostic);
+    }
+
+    Ok(DocumentAnalysis {
+        layout,
+        typed,
+        linked: linked.members,
+        relations: linked.relations,
+        classifications: linked.classifications,
         diagnostics,
     })
 }
