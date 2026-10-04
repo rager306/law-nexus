@@ -65,28 +65,7 @@ falkordb=historical-only
 | [ADR-0028](0028-typed-lexer-legal-marker-lexicon.md) | Typed lexer and legal-marker lexicon (LawRef FSM, clause/list_item, act tree). Dual tokenizer living: `lex()` covering vs private alphabetic `tokenize()`; morphology on covering Word. Pullenti 4.34 = development-stage grammar/slot alphabet only (D380). Identifying spans + CurrentDocumentRequisites sidecar, not `lex()` input (D381); GEO beside ORG (D382). Coordinating lists/ranges expose a local-reference-grammar plane above lexer/morph evidence (D383/D384; `prd/architecture/npa-identifying-cycle.yaml`; `assessment/26-pullenti-semantic-morphology-synthesis.md`). Whole-document reach is a version-bound base `DocumentStructureIndex` + immutable analysis overlay + deterministic ContextRequest worklist (D385/D386), not whole-document input or model recursion (`prd/architecture/npa-document-context.yaml`). Canonical D387 process uses orthogonal DocumentReadiness/Mention/ContextDependency/Binding FSMs and isolates meta/prompt authority (`prd/architecture/npa-semantic-process.yaml`; `assessment/28-npa-process-fsm-meta-prompt-audit.md`). D388 adds explicit capture-arbitration and per-source requisites contracts; numeric bounds await full-corpus/hostile evidence (`npa-capture-arbitration.yaml`, `current-document-requisites.yaml`, `assessment/29-npa-bounds-hostile-plan.md`). No cross-block TextAnchor, TokenKind/S01 widening, grammar-frame identity, LLM, or RLM runtime. Dictionary morphology runtime and grammar/context bounds remain deferred | `[proposed]` |
 | ADR-0029 | Requisites-anchored member-assembly FSM for NPA reference capture (M207 model) — design decision for the future Rust implementation of reference capture; no Rust engine code has landed for this layer, the evidence base is the M207 Python prototype and corpus censuses, and demo-only evidence does not promote any claim beyond `[proposed]` (R035-class honesty) | `[proposed]` |
 
-Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as
-active ADR substance.
-
-### M205/S04 documentation reconciliation [proposed]
-
-The design-only pin `prd/architecture/m205-s04-docs-reconciliation.yaml`
-(`m205-s04-docs-reconciliation/v1`) reconciles ADR-0028, the NPA architecture
-contracts and their verification companions. It is `authoritative: false`,
-keeps `human_adoption: pending` and `runtime_stop` active, and does not promote
-lifecycle or alter the frozen S01-S03 and M200 YAML bytes. D459 records the
-clean-room prior-art boundary: no `DecreeChange`, identifying-cycle `Change`,
-G0 adoption, or Pullenti runtime is introduced; PC-X rows remain leave rows.
-
-The selected gates are G01/G02/G14. G02 is already wired in `capture_lawrefs`
-with defaults-only arbitration and the proposed 1024 refusal ceiling; only
-residual resource behavior remains open. G03-G13, G15 and G16 remain
-individually `deferred-undefined`; `not_required` is process-side only and
-`resolved` is not `sufficient`. P9 is `not-s04-after-this` /
-`deferred-to-later`, with no S04 emission or ownership. Candidate glossary
-names are not §3 first-cells: NormRule, Condition, LegalEffect, Exception and
-force remain deferred, and IR belongs to M210. F19 is supporting-only and the
-packet remains open; human adoption and all findings remain pending.
+Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as active ADR substance. M205/S04 reconciliation detail is a design-only pin `prd/architecture/m205-s04-docs-reconciliation.yaml` (`m205-s04-docs-reconciliation/v1`, D459; reconciles ADR-0028; gates G01/G02/G14; P9 `not-s04-after-this/deferred-to-later`; F19 supporting-only; `[proposed]`; human adoption and all findings remain pending).
 
 ## Knowledge-base ontology draft (O1, `[proposed]`)
 

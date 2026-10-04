@@ -255,7 +255,10 @@ tooling are intentionally omitted from cold-reader navigation.
 
 The ADR-0028 document-control projection is the non-authoritative
 `prd/architecture/m205-s04-docs-reconciliation.yaml`
-(`m205-s04-docs-reconciliation/v1`). It is design-only, keeps
+(`m205-s04-docs-reconciliation/v1`). This section and the pinned YAML are the
+human-readable reconciliation surface: since the M205/S04 block was compacted,
+`prd/ARCHITECTURE.md` keeps only a one-line pointer so the living oracle stays
+within its one-page budget. It is design-only, keeps
 `human_adoption: pending` and `runtime_stop` active, and is checked offline by
 the fail-closed verifier plus adversarial and hashed-closeout contracts. D459,
 G02 already-wired residual behavior, the 13 individually deferred gates, P9

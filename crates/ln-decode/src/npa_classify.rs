@@ -406,7 +406,7 @@ fn named_annex(lemma: &str, why: &'static str) -> FormClassification {
     }
 }
 
-/// Hardcoded named-annex branches from Python `classify_type` that fire before
+/// Literal named-annex branches from Python `classify_type` that fire before
 /// the dictionary candidate scan.
 fn hardcoded_named(lemma_folded: &str, canon_folded: &str) -> Option<FormClassification> {
     if lemma_folded.contains("документац")
