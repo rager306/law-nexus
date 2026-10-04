@@ -921,7 +921,7 @@ fn hex_lower(bytes: &[u8]) -> String {
     out
 }
 
-fn sha256_hex(bytes: &[u8]) -> String {
+pub(crate) fn sha256_hex(bytes: &[u8]) -> String {
     hex_lower(&Sha256::digest(bytes))
 }
 
@@ -1285,7 +1285,10 @@ pub struct AnalysisEnvelopeSummary {
 
 /// Top-level members of one compact JSON object, as `(key, raw_value)` slices.
 /// A small strict extractor: no JSON dependency is imported.
-struct JsonFields<'a> {
+///
+/// `pub(crate)` so the S03 read-back/verifier reuses the same strict parser
+/// instead of minting a second one.
+pub(crate) struct JsonFields<'a> {
     entries: Vec<(&'a str, &'a str)>,
 }
 
@@ -1378,7 +1381,7 @@ fn scan_value(raw: &str, index: &mut usize) -> Result<(), AnalysisWireError> {
 impl<'a> JsonFields<'a> {
     /// Parses one compact JSON object into its top-level members. Duplicate
     /// keys, unquoted keys, unterminated values and trailing bytes are refused.
-    fn parse(raw: &'a str) -> Result<JsonFields<'a>, AnalysisWireError> {
+    pub(crate) fn parse(raw: &'a str) -> Result<JsonFields<'a>, AnalysisWireError> {
         let bytes = raw.as_bytes();
         let mut index = 0usize;
         skip_ws(bytes, &mut index);
@@ -1479,14 +1482,14 @@ impl<'a> JsonFields<'a> {
         Ok(JsonFields { entries })
     }
 
-    fn get(&self, key: &str) -> Option<&'a str> {
+    pub(crate) fn get(&self, key: &str) -> Option<&'a str> {
         self.entries
             .iter()
             .find(|(existing, _)| *existing == key)
             .map(|(_, value)| *value)
     }
 
-    fn keys(&self) -> Vec<&'a str> {
+    pub(crate) fn keys(&self) -> Vec<&'a str> {
         self.entries.iter().map(|(key, _)| *key).collect()
     }
 }
@@ -1525,7 +1528,7 @@ fn unescape_json_string(raw: &str) -> Option<String> {
     Some(out)
 }
 
-fn string_field(fields: &JsonFields<'_>, key: &str) -> Option<String> {
+pub(crate) fn string_field(fields: &JsonFields<'_>, key: &str) -> Option<String> {
     let raw = fields.get(key)?;
     if !raw.starts_with('"') || !raw.ends_with('"') {
         return None;
@@ -1533,11 +1536,20 @@ fn string_field(fields: &JsonFields<'_>, key: &str) -> Option<String> {
     unescape_json_string(raw)
 }
 
-fn u64_field(fields: &JsonFields<'_>, key: &str) -> Option<u64> {
+pub(crate) fn u64_field(fields: &JsonFields<'_>, key: &str) -> Option<u64> {
     fields.get(key)?.trim().parse::<u64>().ok()
 }
 
-fn string_array_field(fields: &JsonFields<'_>, key: &str) -> Option<Vec<String>> {
+/// Reads a strict JSON boolean (`true` | `false`). Any other token is `None`.
+pub(crate) fn bool_field(fields: &JsonFields<'_>, key: &str) -> Option<bool> {
+    match fields.get(key)?.trim() {
+        "true" => Some(true),
+        "false" => Some(false),
+        _ => None,
+    }
+}
+
+pub(crate) fn string_array_field(fields: &JsonFields<'_>, key: &str) -> Option<Vec<String>> {
     let raw = fields.get(key)?.trim();
     let inner = raw.strip_prefix('[')?.strip_suffix(']')?;
     let bytes = inner.as_bytes();
@@ -1572,14 +1584,17 @@ fn string_array_field(fields: &JsonFields<'_>, key: &str) -> Option<Vec<String>>
     Some(items)
 }
 
-fn is_hex64(value: &str) -> bool {
+pub(crate) fn is_hex64(value: &str) -> bool {
     value.len() == 64
         && value
             .bytes()
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
-fn opt_hex_field(fields: &JsonFields<'_>, key: &str) -> Result<Option<String>, AnalysisWireError> {
+pub(crate) fn opt_hex_field(
+    fields: &JsonFields<'_>,
+    key: &str,
+) -> Result<Option<String>, AnalysisWireError> {
     let raw = fields.get(key).ok_or_else(|| {
         err(
             AnalysisWireErrorKind::HashShapeInvalid,
@@ -1607,7 +1622,7 @@ fn opt_hex_field(fields: &JsonFields<'_>, key: &str) -> Result<Option<String>, A
 
 /// Splits a rendered envelope into its LF-terminated lines, refusing an empty
 /// document, a missing trailing LF, a carriage return and an empty line.
-fn split_lines(text: &str) -> Result<Vec<&str>, AnalysisWireError> {
+pub(crate) fn split_lines(text: &str) -> Result<Vec<&str>, AnalysisWireError> {
     if text.is_empty() {
         return Err(err(AnalysisWireErrorKind::EmptyLine, "empty envelope"));
     }
@@ -1636,9 +1651,71 @@ fn split_lines(text: &str) -> Result<Vec<&str>, AnalysisWireError> {
     Ok(lines)
 }
 
+/// Splits a compact JSON array into its top-level element slices. Element
+/// order is preserved; nested containers and string escapes are respected.
+pub(crate) fn split_json_array_items(raw: &str) -> Result<Vec<&str>, AnalysisWireError> {
+    let bytes = raw.as_bytes();
+    let mut index = 0usize;
+    skip_ws(bytes, &mut index);
+    if index >= bytes.len() || bytes[index] != b'[' {
+        return Err(err(
+            AnalysisWireErrorKind::UnknownKind,
+            "value is not a JSON array",
+        ));
+    }
+    index += 1;
+    let mut items: Vec<&str> = Vec::new();
+    loop {
+        skip_ws(bytes, &mut index);
+        if index >= bytes.len() {
+            return Err(err(
+                AnalysisWireErrorKind::UnknownKind,
+                "unterminated JSON array",
+            ));
+        }
+        if bytes[index] == b']' {
+            index += 1;
+            break;
+        }
+        let start = index;
+        scan_value(raw, &mut index)?;
+        items.push(&raw[start..index]);
+        skip_ws(bytes, &mut index);
+        if index >= bytes.len() {
+            return Err(err(
+                AnalysisWireErrorKind::UnknownKind,
+                "unterminated JSON array",
+            ));
+        }
+        match bytes[index] {
+            b',' => index += 1,
+            b']' => {
+                index += 1;
+                break;
+            }
+            _ => {
+                return Err(err(
+                    AnalysisWireErrorKind::UnknownKind,
+                    "malformed JSON array separator",
+                ))
+            }
+        }
+    }
+    skip_ws(bytes, &mut index);
+    if index != bytes.len() {
+        return Err(err(
+            AnalysisWireErrorKind::UnknownKind,
+            "trailing bytes after the JSON array",
+        ));
+    }
+    Ok(items)
+}
+
 /// Maps one parsed line to its `(token, line kind)` pair. A line carries either
 /// a `kind` (manifest/policies/footer) or a `family` (record).
-fn line_token(fields: &JsonFields<'_>) -> Result<(String, EnvelopeLineKind), AnalysisWireError> {
+pub(crate) fn line_token(
+    fields: &JsonFields<'_>,
+) -> Result<(String, EnvelopeLineKind), AnalysisWireError> {
     // Records are discriminated by `family` and may also carry their own
     // domain `kind` (linked member kind, diagnostic kind); manifest/policies/
     // footer carry only `kind`. `family` must therefore be checked first.
