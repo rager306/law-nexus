@@ -496,6 +496,13 @@ no partial result is presented as complete.
   path before S02 begins: R1000 primary; R081/R069/R077/R063/R038/R071
   supporting-only; nothing auto-closed. This is a planning gate for
   S02, not a T01 blocker.
+- **S02 handoff (from S01/T03):** the executable seam
+  (`analysis_source_mapping.rs`), its contract/hostile/integration
+  batteries and the count/hash receipt
+  `prd/migration/rust-evidence/m214-s01-source-mapping.json` are the
+  admitted S01 inputs. S02 must not re-derive coordinates or token views;
+  it materializes records on top of the seam and records the M214
+  requirement binding before it begins.
 
 ## 14. Verification surface (S01)
 
@@ -509,6 +516,22 @@ no partial result is presented as complete.
   source/reader/cleaned and NPA/context modules; CBM project
   `law-nexus-decode-audit` `check_index_coverage` for the touched
   files (best-effort; "no recorded issue" is not completeness).
+- **Integration battery (T03):**
+  `crates/ln-decode/tests/analysis_source_mapping_integration.rs` drives the
+  real `source_package::capture` → `reader_projection::build_projection`
+  pipeline into the T02 seam on the approved reader fixtures and one
+  declared real input (a tracked bounded Consultant WordML fixture, not the
+  restricted corpus). The fragment catalog is built from the reader
+  substrate, never from hand-copied text; every resolved span must equal the
+  exact substrate UTF-8 slice; tamper, cross-document and Hold/TextOnly
+  cases stay closed. Count/hash receipt:
+  `prd/migration/rust-evidence/m214-s01-source-mapping.json`.
+- **S01 re-test set:** `analysis_source_mapping_contract`,
+  `analysis_source_mapping_hostile`, `analysis_source_mapping_integration`,
+  `npa_document_context_contract`, `npa_document_context_hostile_contract`,
+  `npa_link_pipeline_integration`, `cleaned_projection_verify`, plus
+  `cargo fmt --all --check`, `cargo clippy --workspace --all-targets
+  --offline -- -D warnings` and `cargo check --workspace --offline`.
 - **Examples:** §11–§12 are normative and must stay consistent with the
   Rust enums they name.
 
