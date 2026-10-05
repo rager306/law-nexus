@@ -3,7 +3,7 @@
 Status: [bounded] code audit and synthetic executable probes, not corpus semantic acceptance.
 Reviewed base: `24b8872`. Product source was not changed by the audit. No parked milestone was released.
 
-Remediation update (M221-wbslul S01 T01, S02 T01–T04): F01 is fixed under the new closed code `manifest_identity_mismatch`. F02 is fixed under the new typed `DerivedBoundary` plane and the closed code `derived_separator`. F03–F06 remain open; this milestone does not release M208/M215–M220.
+Remediation update (M221-wbslul S01 T01, S02 T01–T04, S03 T01–T04): F01 is fixed under the new closed code `manifest_identity_mismatch`. F02 is fixed under the new typed `DerivedBoundary` plane and the closed code `derived_separator`. F03's bounded context-consumer/requisites path is closed under S03 (see the F03 closure pointer). F04–F06 remain open; this milestone does not release M208/M215–M220.
 
 ## Verdict
 
@@ -95,7 +95,8 @@ Required fix: preserve a mapped analysis separator plane (or explicit typed boun
 - Operator probe: `scripts/m214_readiness_probe.rs` now asserts
   `control_analysis_texts == ["статья\t5\nчасть\t2"]`.
 - Non-claims: this is a lexical-boundary fix, not semantic acceptance. Source
-  refs stay verifiable, F01 stays closed, F03–F06 stay open, and R1000 stays
+  refs stay verifiable, F01 stays closed, F03–F06 stayed open at S02 close (the
+  bounded F03 path is closed under S03; F04–F06 remain open), and R1000 stays
   active and unclosed.
 
 ### F03 HIGH readiness gap: context family is not full context resolution
@@ -105,6 +106,69 @@ Required fix: preserve a mapped analysis separator plane (or explicit typed boun
 `analyze_document` runs typed/link/classification before and separately from build_context_records (`npa_analysis_records.rs:977-1004`, `npa_corpus_acceptance.rs:1808 onward`). The new context family is an additional derived output, not demonstrated feedback into final typed/linked/classified decisions. Define the intended consumer semantics before presenting serialized context as analysis completeness.
 
 Required work: authorized current-document requisites path, deliberate trigger policy for each required request kind, expected resolved/partial/unavailable outcomes, and end-to-end tests showing which analysis decisions consume context. Do not enqueue every possible request merely to improve counts.
+
+**Closure pointer (M221-wbslul S03 T01–T04, bounded context-consumer/requisites path, §8C).**
+- Contract: `prd/architecture/npa-analysis-jsonl-contract.md` §8C (successor revision,
+  `[bounded]`) fixes the producer/consumer boundary, the requisites source and the
+  trigger policy per emitted `ContextRequestKind`, plus the closed
+  `ThisDocumentReferenceOutcome` token table. §14 lists the S03 verification
+  suites. This is a bounded consumer contract: not feedback into
+  typed/link/classify, and not legal-semantic acceptance.
+- Requisites source: `crates/ln-decode/src/npa_context_records.rs` now derives a
+  deterministic `CurrentDocumentRequisites` from the pinned parent's leading
+  letterhead (`npa_link::recognize_letterhead` over layout block texts); no
+  external sidecar is accepted, and `build_context_records(layout, mapping)` keeps
+  its signature, so the verifier re-derivation matches by construction.
+- Trigger policy: `current_document_requisites` is emitted once per document and
+  only when a this-ref surface exists (`document_context::detect_this_ref_grammar`
+  non-empty, evidence `ThisRefGrammarEvidence`); `open_series_head` only for
+  proven continuation tails (non-rejected incoming `ContinuesSeries` edge);
+  `explicit_anchor_lookup` only for frames whose block has a captured mention;
+  `ancestor_path`/`adjacent_blocks`/`scoped_alias` are not emitted. A missing
+  surfaced requisites request yields `Unavailable(missing_current_requisites)`; a
+  conflicting sidecar yields `partial`/`inherited_field_conflict`; neither is
+  promoted to `resolved`.
+- Consumer: `crates/ln-decode/src/npa_context_consumer.rs` exposes the closed
+  `ThisDocumentReferenceOutcome { Authorized { claim_ref }, Conflicting,
+  Unavailable, NotRequested }` and the pure
+  `consume_this_document_reference`; mapping is fail-closed (a `Resolved` result
+  without a bound, inherited `authorized_current_document_requisites` claim
+  degrades to `Conflicting`; worst outcome wins). No variant carries decoded
+  text and the consumer does not change the producer stream.
+- Tests: `crates/ln-decode/tests/npa_analysis_context_requisites_contract.rs`
+  (real pipeline: authorized letterhead + this-ref → `Resolved` with
+  `authorized_current_document_requisites`/`Inherited` and exact-substrate anchor;
+  surfaced without letterhead → `Unavailable`; no surface → no request;
+  continuation tail → exactly one `OpenSeriesHead`; double-call byte-equal;
+  missing/conflicting sidecar → `partial`/`inherited_field_conflict`),
+  `crates/ln-decode/tests/npa_context_consumer_contract.rs` (authorized,
+  missing, not-requested, conflicting, hand-built fail-closed and closed-token
+  cases), plus updated `npa_analysis_context_contract.rs`,
+  `npa_analysis_wire_context.rs` and `npa_analysis_export_integration.rs`.
+- Re-emitted receipt: `prd/migration/rust-evidence/m214-s03-context-verify.json`
+  was regenerated from the live pipeline; `write_portable_receipt_s03_json`
+  followed by the ordinary run makes
+  `portable_receipt_s03_valid_and_matches_live_pipeline` green.
+- S03 battery (all exit 0, 0 failed): `npa_analysis_context_contract` 8,
+  `npa_analysis_context_requisites_contract` 7, `npa_context_consumer_contract`
+  11, `npa_analysis_wire_context` 11, `npa_analysis_wire_contract` 9,
+  `npa_analysis_wire_hostile` 13, `npa_analysis_verify_contract` 9,
+  `npa_analysis_verify_hostile` 23, `npa_analysis_export_integration` 13,
+  `npa_analysis_records_contract` 14, `npa_analysis_separator_contract` 7,
+  `npa_analysis_records_link_classify` 9, `m206_grammar_context_regressions` 19,
+  `npa_current_requisites_contract` 9, `npa_document_context_contract` 11,
+  `npa_document_context_hostile_contract` 19; parser acceptance
+  `npa_corpus_acceptance_run_contract` 14, `npa_corpus_acceptance_report_contract`
+  7; `cargo fmt --all --check`, `cargo check --workspace --offline` and
+  `verify-adr-conformance.py` on the contract all exit 0.
+- S02 byte-stability preserved: `empty_context_is_byte_identical_to_s02` and
+  `portable_receipt_valid_and_matches_live_pipeline` are green and
+  `prd/migration/rust-evidence/m214-s02-analysis-export.json` is unchanged.
+- Non-claims: F04–F06 stay open; R1000 stays active and unclosed
+  (D638/D656 carry-forward); downstream M208/M215–M220 stay parked; integrity,
+  completeness and semantic acceptance remain separate verdicts. This closes only
+  the bounded F03 producer/consumer path, not the context model as semantic
+  acceptance.
 
 ### F04 HIGH evidence gap: verified_ok does not mean correct legal analysis
 
@@ -134,7 +198,7 @@ The two token views in tokenizer.rs are deliberate and non-interchangeable: priv
 
 1. Freeze downstream execution; preserve M214 completion history but record these findings as new remediation input.
 2. Fix F01 and F02 with failing regression tests first, then contract/hostile/metamorphic verification.
-3. Specify and complete the bounded context-consumer/requisites path (F03); expose unresolved and limited outcomes to consumers.
+3. (Completed M221-wbslul S03) Bounded context-consumer/requisites path (F03): deterministic requisites source from the pinned parent, proven trigger policy and closed `ThisDocumentReferenceOutcome` consumer outcomes; see the F03 closure pointer.
 4. Build a small independently adjudicated legal corpus with exact source spans and expected typed/link/classification/context outputs; include negative, ambiguous, split-run, tab/break, table/footnote, list and cross-block cases. Then expand by observed failure classes.
 5. Repeat bounded corpus acceptance with actual provider/format quotas, per-family yields, context completeness and semantic error metrics. Keep integrity and semantic verdicts separate.
 6. Reconcile authority docs (F06), review future milestone input contracts, and only then decide whether to release temporal/retrieval/graph work.
