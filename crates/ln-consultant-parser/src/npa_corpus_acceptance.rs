@@ -34,8 +34,8 @@ use ln_decode::npa_analysis_verify::{
     read_back_npa_analysis, verify_npa_analysis_wire, AnalysisVerifyCode,
 };
 use ln_decode::npa_analysis_wire::{
-    recompute_analysis_seals, render_npa_analysis_with_context, AnalysisEnvelopeRequest,
-    AnalysisLimits, AnalysisScope, AnalysisWireErrorKind,
+    inspect_npa_analysis_wire, recompute_analysis_seals, render_npa_analysis_with_context,
+    AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope, AnalysisWireErrorKind,
 };
 use ln_decode::npa_context_consumer::{
     consume_document_this_document_reference, ThisDocumentReferenceOutcome,
@@ -640,6 +640,21 @@ pub struct AcceptanceEntry {
     /// seam for a verified entry (never decoded text).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub this_document_reference: Option<ThisDocumentReferenceToken>,
+    /// Closed `completion` token read from the analysis footer (§8B.3).
+    /// Additive: absent on historical lines and refused entries.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub completion: Option<String>,
+    /// Closed `completion_basis` token read from the analysis footer. Never
+    /// re-derived here; the writer already applies the refusal > context >
+    /// scope precedence.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub completion_basis: Option<String>,
+    /// Ordered closed `incomplete_reasons` tokens (empty for `complete`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub incomplete_reasons: Vec<String>,
+    /// Per-family record yields captured from the rendered envelope.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub family_yields: BTreeMap<String, u64>,
     pub wall_ms: u64,
 }
 
@@ -1722,6 +1737,10 @@ struct Rendered {
     index: ReaderRecordIndex,
     mapping: SourceMapping,
     this_document_reference: ThisDocumentReferenceToken,
+    completion: String,
+    completion_basis: String,
+    incomplete_reasons: Vec<String>,
+    family_yields: BTreeMap<String, u64>,
 }
 
 enum RenderAttempt {
@@ -1759,7 +1778,17 @@ fn process_entry(
         Ok(bytes) => bytes,
         Err(_) => {
             return (
-                entry_record(entry, EntryOutcome::ManifestPinMismatch, None, None, None),
+                entry_record(
+                    entry,
+                    EntryOutcome::ManifestPinMismatch,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    Vec::new(),
+                    BTreeMap::new(),
+                ),
                 None,
             )
         }
@@ -1767,13 +1796,27 @@ fn process_entry(
     let observed = hex_lower(&Sha256::digest(&bytes));
     if bytes.len() as u64 != entry.bytes || observed != normalize_sha256(&entry.sha256) {
         return (
-            entry_record(entry, EntryOutcome::ManifestPinMismatch, None, None, None),
+            entry_record(
+                entry,
+                EntryOutcome::ManifestPinMismatch,
+                None,
+                None,
+                None,
+                None,
+                None,
+                Vec::new(),
+                BTreeMap::new(),
+            ),
             None,
         );
     }
     match render_entry(&bytes, &document_version_ref, limits) {
         RenderAttempt::Rendered(rendered) => {
             let this_document_reference = rendered.this_document_reference;
+            let completion = Some(rendered.completion.clone());
+            let completion_basis = Some(rendered.completion_basis.clone());
+            let incomplete_reasons = rendered.incomplete_reasons.clone();
+            let family_yields = rendered.family_yields.clone();
             (
                 entry_record(
                     entry,
@@ -1781,6 +1824,10 @@ fn process_entry(
                     None,
                     None,
                     Some(this_document_reference),
+                    completion,
+                    completion_basis,
+                    incomplete_reasons,
+                    family_yields,
                 ),
                 Some(*rendered),
             )
@@ -1790,18 +1837,33 @@ fn process_entry(
             verify_code,
             limit_kind,
         } => (
-            entry_record(entry, outcome, verify_code, limit_kind, None),
+            entry_record(
+                entry,
+                outcome,
+                verify_code,
+                limit_kind,
+                None,
+                None,
+                None,
+                Vec::new(),
+                BTreeMap::new(),
+            ),
             None,
         ),
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn entry_record(
     entry: &SampleEntry,
     outcome: EntryOutcome,
     verify_code: Option<VerifyCodeToken>,
     limit_kind: Option<LimitKind>,
     this_document_reference: Option<ThisDocumentReferenceToken>,
+    completion: Option<String>,
+    completion_basis: Option<String>,
+    incomplete_reasons: Vec<String>,
+    family_yields: BTreeMap<String, u64>,
 ) -> AcceptanceEntry {
     AcceptanceEntry {
         relative_path: entry.relative_path.clone(),
@@ -1814,6 +1876,10 @@ fn entry_record(
         verify_code,
         limit_kind,
         this_document_reference,
+        completion,
+        completion_basis,
+        incomplete_reasons,
+        family_yields,
         wall_ms: 0,
     }
 }
@@ -1901,9 +1967,14 @@ fn render_entry(
             }
         }
     };
-    if read_back_npa_analysis(&envelope).is_err() {
-        return RenderAttempt::refused(EntryOutcome::ReadBackRefused);
-    }
+    let readback = match read_back_npa_analysis(&envelope) {
+        Ok(readback) => readback,
+        Err(_) => return RenderAttempt::refused(EntryOutcome::ReadBackRefused),
+    };
+    let summary = match inspect_npa_analysis_wire(&envelope) {
+        Ok(summary) => summary,
+        Err(_) => return RenderAttempt::refused(EntryOutcome::ReadBackRefused),
+    };
     match verify_npa_analysis_wire(&envelope, &projection, &index, &mapping) {
         Ok(()) => RenderAttempt::Rendered(Box::new(Rendered {
             envelope,
@@ -1911,6 +1982,10 @@ fn render_entry(
             index,
             mapping,
             this_document_reference,
+            completion: readback.footer.completion,
+            completion_basis: readback.footer.completion_basis,
+            incomplete_reasons: readback.footer.incomplete_reasons,
+            family_yields: summary.families,
         })),
         Err(findings) => {
             let verify_code = findings
