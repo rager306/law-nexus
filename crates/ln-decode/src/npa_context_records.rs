@@ -19,16 +19,30 @@
 //! [`DerivationSource`] (RC28-F08). The claim token table below preserves that
 //! actual closed source vocabulary instead of collapsing four distinct
 //! derivations into one invented relation (see the S03 decision record).
+//!
+//! S03 successor revision (§8C): the requisites sidecar is rebuilt
+//! deterministically from the pinned parent inside this module
+//! (`npa_link::recognize_letterhead` over the layout block texts) and the
+//! request trigger policy is deliberate — `current_document_requisites` only
+//! for a block carrying a this-ref surface, `open_series_head` only for a
+//! proven continuation tail, `explicit_anchor_lookup` only for a block with a
+//! captured explicit mention. No external sidecar and no new
+//! `build_context_records` parameter are introduced, so the verifier's
+//! re-derivation is byte-equal by construction.
 
 use std::collections::BTreeMap;
 
 use crate::analysis_source_mapping::SourceMapping;
+use crate::current_requisites::{
+    CurrentDocumentRequisites, RequisitesClaim, RequisitesExtractionStatus, RequisitesField,
+    RequisitesSourceKind, SourceAnchor, ThisRefGrammarEvidence,
+};
 use crate::document_context::{
-    build_document_analysis_overlay, build_document_structure_index, explicit_anchor_lookup,
-    open_series_head, BlockId, ContextClaimStatus, ContextDiagnostic, ContextEnvironment,
-    ContextRequest, ContextRequestKind, ContextStatus, ContextWorklist, DerivationRelation,
-    DocumentAnalysisOverlay, DocumentStructureIndex, FrameRef, StructureEdgeStatus,
-    PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
+    build_document_analysis_overlay, build_document_structure_index, detect_this_ref_grammar,
+    explicit_anchor_lookup, open_series_head, BlockId, ContextClaimStatus, ContextDiagnostic,
+    ContextEnvironment, ContextRequest, ContextRequestKind, ContextStatus, ContextWorklist,
+    ContextualEdgeKind, DerivationRelation, DocumentAnalysisOverlay, DocumentStructureIndex,
+    FrameRef, StructureEdgeStatus, PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
 };
 use crate::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
@@ -318,8 +332,9 @@ pub fn build_context_records(
         }
     };
 
+    let requisites = build_requisites_sidecar(layout, mapping);
     let doc_ref = mapping.version().document_version_ref();
-    let requests = build_requests(&overlay, doc_ref);
+    let requests = build_requests(&overlay, layout, doc_ref);
     if requests.is_empty() {
         return vec![ContextRecord::Run(ContextRunRecord::empty(Vec::new()))];
     }
@@ -329,7 +344,7 @@ pub fn build_context_records(
         ContextEnvironment {
             index: &index,
             overlay: &overlay,
-            requisites: None,
+            requisites: requisites.as_ref(),
         },
         &requests,
     );
@@ -447,50 +462,151 @@ fn build_overlay(
     build_document_analysis_overlay(index, &frame_rows, &capture_rows).ok()
 }
 
-/// Deterministic requests from the overlay frames, mirroring
-/// `npa_context_baseline`: per frame an `OpenSeriesHead` and an
-/// `ExplicitAnchorLookup`, then one `CurrentDocumentRequisites` when a first
-/// frame exists.
-fn build_requests(overlay: &DocumentAnalysisOverlay, doc_ref: &str) -> Vec<ContextRequest> {
+/// Deterministic requests from the overlay frames under the §8C.2 trigger
+/// policy. `current_document_requisites` is emitted at most once and only when
+/// a block carries a this-ref surface; `open_series_head` only for a frame with
+/// a non-rejected incoming `ContinuesSeries` edge (a proven continuation tail);
+/// `explicit_anchor_lookup` only for a frame whose block carries at least one
+/// captured explicit mention. `ancestor_path`/`adjacent_blocks`/`scoped_alias`
+/// are never emitted.
+fn build_requests(
+    overlay: &DocumentAnalysisOverlay,
+    layout: &AnalysisBlockLayout,
+    doc_ref: &str,
+) -> Vec<ContextRequest> {
     let mut requests = Vec::new();
+
+    // Exactly one requisites request per document: the first block (document
+    // order) with a non-empty this-ref surface and at least one frame. Origin
+    // is that block's first frame; the grammar evidence authorizes `Type`.
+    for (position, block) in layout.blocks.iter().enumerate() {
+        if detect_this_ref_grammar(&block.text).is_empty() {
+            continue;
+        }
+        let block_id = format!("block-{position}");
+        let Some(frame) = overlay
+            .frames()
+            .iter()
+            .find(|frame| frame.block_id.as_str() == block_id)
+        else {
+            continue;
+        };
+        requests.push(ContextRequest::current_document_requisites(
+            frame.frame_ref.clone(),
+            ThisRefGrammarEvidence::new([RequisitesField::Type]),
+        ));
+        break;
+    }
+
+    // Only a frame proven to be a continuation tail (a non-rejected inbound
+    // `ContinuesSeries` edge) can ask for its open series head.
     for frame in overlay.frames() {
-        requests.push(ContextRequest::new(
-            ContextRequestKind::OpenSeriesHead,
-            doc_ref.to_owned(),
-            frame.frame_ref.clone(),
-            Vec::new(),
-            None,
-            None,
-            Vec::new(),
-            PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
-            CONTEXT_RULE.to_owned(),
-        ));
-        requests.push(ContextRequest::new(
-            ContextRequestKind::ExplicitAnchorLookup,
-            doc_ref.to_owned(),
-            frame.frame_ref.clone(),
-            Vec::new(),
-            None,
-            Some(frame.frame_ref.as_str().to_owned()),
-            Vec::new(),
-            PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
-            CONTEXT_RULE.to_owned(),
-        ));
+        let is_tail = overlay.edges().iter().any(|edge| {
+            edge.relation == ContextualEdgeKind::ContinuesSeries
+                && edge.to == frame.frame_ref.as_str()
+                && edge.status != StructureEdgeStatus::Rejected
+        });
+        if is_tail {
+            requests.push(ContextRequest::new(
+                ContextRequestKind::OpenSeriesHead,
+                doc_ref.to_owned(),
+                frame.frame_ref.clone(),
+                Vec::new(),
+                None,
+                None,
+                Vec::new(),
+                PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
+                CONTEXT_RULE.to_owned(),
+            ));
+        }
     }
-    if let Some(first) = overlay.frames().first() {
-        requests.push(ContextRequest::new(
-            ContextRequestKind::CurrentDocumentRequisites,
-            doc_ref.to_owned(),
-            first.frame_ref.clone(),
-            Vec::new(),
-            None,
-            None,
-            Vec::new(),
-            0,
-            "grammar-evidence".to_owned(),
-        ));
+
+    // Only a frame whose own block carries a captured explicit mention can ask
+    // for the exact designation lookup.
+    for frame in overlay.frames() {
+        let has_mention = overlay
+            .mentions()
+            .iter()
+            .any(|mention| mention.block_id == frame.block_id);
+        if has_mention {
+            requests.push(ContextRequest::new(
+                ContextRequestKind::ExplicitAnchorLookup,
+                doc_ref.to_owned(),
+                frame.frame_ref.clone(),
+                Vec::new(),
+                None,
+                Some(frame.frame_ref.as_str().to_owned()),
+                Vec::new(),
+                PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
+                CONTEXT_RULE.to_owned(),
+            ));
+        }
     }
+
     requests
+}
+
+/// Extractor profile carried by every letterhead-derived requisites claim.
+const LETTERHEAD_PROFILE: &str = "npa_link::recognize_letterhead/v1";
+
+/// Rebuilds the `CurrentDocumentRequisites` sidecar deterministically from the
+/// pinned parent (§8C.1). The layout block texts (document order) feed
+/// `npa_link::recognize_letterhead`; a recognized letterhead yields `Type` from
+/// its kind, `Org` from a non-empty issuer, and `Date`/`Number` only from a
+/// real value (never the `—` placeholder). No recognized letterhead → `None`.
+/// This is a pure function of `layout` + `mapping`, so the independent
+/// verifier's re-derivation reproduces it exactly.
+fn build_requisites_sidecar(
+    layout: &AnalysisBlockLayout,
+    mapping: &SourceMapping,
+) -> Option<CurrentDocumentRequisites> {
+    let paras = layout.block_texts();
+    let letterhead = crate::npa_link::recognize_letterhead(&paras)?;
+    let doc_ref = mapping.version().document_version_ref().to_owned();
+    let span = TextSpan::try_new(letterhead.evidence.start, letterhead.evidence.end).ok()?;
+    let make_anchor =
+        || SourceAnchor::try_new(span, format!("block-{}", letterhead.evidence.block)).ok();
+
+    let mut claims: Vec<RequisitesClaim> = Vec::new();
+    let mut push = |field: RequisitesField, raw_value: String| -> Option<()> {
+        let anchor = make_anchor()?;
+        let claim = RequisitesClaim::try_new(
+            format!("letterhead-{}", field.as_str()),
+            doc_ref.clone(),
+            field,
+            raw_value,
+            RequisitesSourceKind::DocumentHead,
+            anchor,
+            LETTERHEAD_PROFILE.to_owned(),
+            RequisitesExtractionStatus::Observed,
+        )
+        .ok()?;
+        claims.push(claim);
+        Some(())
+    };
+
+    push(RequisitesField::Type, letterhead.kind.clone())?;
+    if !letterhead.issuer.trim().is_empty() {
+        push(RequisitesField::Org, letterhead.issuer.clone())?;
+    }
+    if let Some(value) = real_requisite_value(&letterhead.date) {
+        push(RequisitesField::Date, value)?;
+    }
+    if let Some(value) = real_requisite_value(&letterhead.number) {
+        push(RequisitesField::Number, value)?;
+    }
+
+    CurrentDocumentRequisites::try_new(doc_ref, claims).ok()
+}
+
+/// A requisites value is real only when it is present and not the `—`
+/// placeholder; an absent value is never minted as an observed claim.
+fn real_requisite_value(value: &str) -> Option<String> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() || trimmed == "—" {
+        return None;
+    }
+    Some(trimmed.to_owned())
 }
 
 /// Closed refusal for a node/span whose block cannot be recovered.

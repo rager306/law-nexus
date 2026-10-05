@@ -135,10 +135,13 @@ fn context_lines(text: &str) -> Vec<&str> {
 
 const TYPED_BODY: &str = "<w:p><w:r><w:t>Федеральный закон от 01.01.2020 N 1-ФЗ</w:t></w:r></w:p>";
 
-// A heading designation frame plus two act-requisites paragraphs: the
-// per-frame requests exercise resolved outcomes and one non-resolved
-// current-document-requisites request (no requisites sidecar is supplied).
-const CONTEXT_BODY: &str = "<w:p><w:r><w:t>Статья 1. Предмет регулирования</w:t></w:r></w:p>\
+// A heading designation frame plus two act-requisites paragraphs: the heading
+// carries a this-ref surface but no letterhead is present, so a
+// current-document-requisites request is emitted and stays non-resolved
+// (`unavailable`); the bare `от ДАТА N` continuation tail exercises a resolved
+// open-series head.
+const CONTEXT_BODY: &str =
+    "<w:p><w:r><w:t>Статья 1. Настоящего Федерального закона</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Федерального закона от 01.01.2020 N 1-ФЗ,</w:t></w:r></w:p>\
      <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>";
 
@@ -341,7 +344,8 @@ fn non_resolved_context_forces_context_incomplete() {
     let p = pipeline(&wrap(CONTEXT_BODY));
     let contexts = build_context_records(&p.analysis.layout, &p.mapping);
     // No context anchor is refused under the pinned parent, so the honesty
-    // signal comes from the non-resolved status, not from a refusal.
+    // signal comes from the non-resolved this-ref requisites status, not from a
+    // refusal.
     let text = render_with_context(&p, &contexts);
     let summary = inspect_npa_analysis_wire(&text).expect("honest partial inspects");
     assert_eq!(summary.completion, "incomplete");

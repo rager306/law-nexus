@@ -103,12 +103,15 @@ fn verify(
     verify_npa_analysis_wire(text, &p.projection, &p.index, &p.mapping)
 }
 
-// A heading designation frame plus two act-requisites paragraphs: the
-// per-frame requests exercise resolved outcomes and one non-resolved
-// current-document-requisites request (no requisites sidecar is supplied).
+// A heading designation frame plus two act-requisites paragraphs (the second
+// bare `от ДАТА N` is the continuation tail), then a trailing heading block
+// carrying a this-ref surface. No letterhead is present, so the emitted
+// current-document-requisites request stays `unavailable` and the honest
+// non-resolved context path is exercised.
 const CONTEXT_BODY: &str = "<w:p><w:r><w:t>Статья 1. Предмет регулирования</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Федерального закона от 01.01.2020 N 1-ФЗ,</w:t></w:r></w:p>\
-     <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>";
+     <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>\
+     <w:p><w:r><w:t>Статья 2. Настоящего Федерального закона</w:t></w:r></w:p>";
 
 const TYPED_BODY: &str = "<w:p><w:r><w:t>Федеральный закон от 01.01.2020 N 1-ФЗ</w:t></w:r></w:p>";
 

@@ -160,7 +160,7 @@
     "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
     "sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d"
   },
-  "generated_utc": "2026-10-04T20:46:43Z",
+  "generated_utc": "unspecified",
   "lifecycle": "[bounded]",
   "milestone": "M214-es3jvw",
   "non_claims": [
@@ -195,11 +195,11 @@
   "source_binding": {
     "context_module": {
       "path": "crates/ln-decode/src/npa_context_records.rs",
-      "sha256": "b1975fcb61a3a95e4f9afd122c249c5f51233680b1a43fe544b18dcc3f283843"
+      "sha256": "784efc06c20e5e96224fe2a1e57429f481af45184ce85318b82341a178380ceb"
     },
     "contract_doc": {
       "path": "prd/architecture/npa-analysis-jsonl-contract.md",
-      "sha256": "13812da31a9e05c56973325e828425feb6c72915a79a5dfc3cd141ff00a1bec2"
+      "sha256": "cd5b5892a4a08251756d52a9799ba71cc58bb503ce2e10900ec58e0bbc3dd1fa"
     },
     "declared_real_input": {
       "bytes": 193726,
@@ -208,7 +208,7 @@
     },
     "integration_test": {
       "path": "crates/ln-decode/tests/npa_analysis_export_integration.rs",
-      "sha256": "4ce356cc2d1f9f05439ed5306f36f329059afa671128dc6ac16ccd7632234443"
+      "sha256": "3a8525f41eca4d06b843cfd88d6c0328f320c0633a934c455e4be140a88daabe"
     },
     "seam_module": {
       "path": "crates/ln-decode/src/analysis_source_mapping.rs",
@@ -216,7 +216,7 @@
     },
     "verify_module": {
       "path": "crates/ln-decode/src/npa_analysis_verify.rs",
-      "sha256": "165699ef6860dacd99e582a8f563fdcd1f33881da566689d5a933c5cbde72a51"
+      "sha256": "efe72ab142291434bcfceaf801cee24b7ee698e2d60b283c2c7e930b4a5b54ac"
     },
     "wire_module": {
       "path": "crates/ln-decode/src/npa_analysis_wire.rs",
@@ -224,40 +224,37 @@
     }
   },
   "synthetic_context_fixture": {
-    "bytes": 356,
+    "bytes": 373,
     "label": "inline-context-honesty",
     "measurement": {
       "completion": "incomplete",
       "completion_basis": "context_incomplete",
-      "context_bound_anchors": 3,
+      "context_bound_anchors": 2,
       "context_limit_reached": 0,
-      "context_non_resolved": 4,
-      "context_records": 8,
+      "context_non_resolved": 1,
+      "context_records": 4,
       "context_refused_anchors": 0,
-      "context_requests": 7,
-      "context_results": 7,
+      "context_requests": 3,
+      "context_results": 3,
       "context_run_diagnostics": [
-        "open_series_without_head",
         "missing_current_requisites"
       ],
       "context_run_limit_reached": false,
       "context_status_counts": {
-        "partial": 3,
-        "resolved": 3,
+        "resolved": 2,
         "unavailable": 1
       },
       "families": {
-        "classification": 2,
-        "context": 8,
-        "diagnostic": 3,
+        "classification": 3,
+        "context": 4,
+        "diagnostic": 4,
         "document": 1,
         "fragment": 3,
-        "member": 4,
+        "member": 5,
         "relation": 1
       },
       "incomplete_reasons": [
         "context_incomplete",
-        "context_partial",
         "context_unavailable"
       ],
       "non_resealed_tamper": {
@@ -265,7 +262,7 @@
         "detected": true
       },
       "readback_ok": true,
-      "records": 22,
+      "records": 21,
       "resealed_fragment_hash_tamper": "fragment_hash_mismatch",
       "resealed_span_tamper": {
         "code": "source_ref_substitution",
@@ -276,7 +273,7 @@
       "verify_ok": true
     },
     "note": "inline synthetic non-legal WordML frame fixture: exercises context results, bound anchors and an honest non-resolved outcome",
-    "sha256": "0c627d474139fbc197875f2784b136bc89bd4ed90d6cb2b06e4bb1fb870f410a"
+    "sha256": "4a82da0496d01352b66f957883e382955f75187c94ba3a99bd79489b9431a25d"
   },
   "task": "T05"
 }

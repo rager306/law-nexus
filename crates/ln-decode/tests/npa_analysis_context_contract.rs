@@ -108,10 +108,15 @@ fn slice(mapping: &SourceMapping, source: &SourceRef) -> Option<String> {
 }
 
 // A heading designation frame plus two act-requisites paragraphs: the second
-// bare `от ДАТА N` is the documented continuation tail, so the per-frame
-// `OpenSeriesHead`/`ExplicitAnchorLookup` requests exercise resolved outcome
-// with evidence spanning two analysis blocks.
-const CONTEXT_BODY: &str = "<w:p><w:r><w:t>Статья 1. Предмет регулирования</w:t></w:r></w:p>\
+// bare `от ДАТА N` is the documented continuation tail, so the
+// `OpenSeriesHead` request exercises a resolved outcome with evidence spanning
+// two analysis blocks. The heading block also carries a this-ref surface
+// (`настоящего Федерального закона`) so the §8C.2 trigger emits exactly one
+// `current_document_requisites` request; no letterhead is present, so that
+// request stays `unavailable`. The surface noun is not itself a legal marker,
+// so the heading still has exactly one marker.
+const CONTEXT_BODY: &str =
+    "<w:p><w:r><w:t>Статья 1. Настоящего Федерального закона</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Федерального закона от 01.01.2020 N 1-ФЗ,</w:t></w:r></w:p>\
      <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>";
 
@@ -181,8 +186,9 @@ fn non_resolved_context_statuses_are_preserved_and_never_promoted() {
     let records = build_context_records(&layout, &mapping);
     let results = result_records(&records);
 
-    // No requisites sidecar is supplied, so the current-document requisites
-    // request must stay `unavailable` with no anchors.
+    // The heading carries a this-ref surface but no letterhead is present, so
+    // the current-document requisites request must stay `unavailable` with no
+    // anchors.
     let requisites = results
         .iter()
         .find(|record| record.request_kind == ContextRequestKind::CurrentDocumentRequisites)

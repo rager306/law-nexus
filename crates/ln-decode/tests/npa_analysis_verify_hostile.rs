@@ -437,9 +437,15 @@ fn assert_identity_mismatch(tampered: &str, p: &Pipeline) {
     );
 }
 
+// A heading designation frame plus two act-requisites paragraphs (the second
+// bare `от ДАТА N` is the continuation tail), then a trailing heading block
+// carrying a this-ref surface. No letterhead is present, so the emitted
+// current-document-requisites result stays non-resolved and the hostile
+// context-status substitution has a result line to mutate.
 const CONTEXT_BODY: &str = "<w:p><w:r><w:t>Статья 1. Предмет регулирования</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Федерального закона от 01.01.2020 N 1-ФЗ,</w:t></w:r></w:p>\
-     <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>";
+     <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>\
+     <w:p><w:r><w:t>Статья 2. Настоящего Федерального закона</w:t></w:r></w:p>";
 
 // ------------------------------------------------------------- baseline #
 

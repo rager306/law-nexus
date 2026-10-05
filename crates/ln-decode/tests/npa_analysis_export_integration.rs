@@ -932,9 +932,11 @@ const RECEIPT_S03_REL: &str = "prd/migration/rust-evidence/m214-s03-context-veri
 
 /// The inline synthetic frame fixture used to assert that a non-resolved
 /// context outcome yields an honest `context_incomplete` footer with no
-/// refusal outranking it.
+/// refusal outranking it. The heading carries a this-ref surface so the §8C.2
+/// trigger emits a current-document-requisites request; no letterhead is
+/// present, so that result stays `unavailable` (non-resolved).
 const CONTEXT_HONESTY_BODY: &str =
-    "<w:p><w:r><w:t>Статья 1. Предмет регулирования</w:t></w:r></w:p>\
+    "<w:p><w:r><w:t>Статья 1. Настоящего Федерального закона</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Федерального закона от 01.01.2020 N 1-ФЗ,</w:t></w:r></w:p>\
      <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>";
 
