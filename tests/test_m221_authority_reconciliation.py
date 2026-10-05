@@ -57,6 +57,8 @@ AUTHORITY_SURFACES: dict[str, str] = {
 
 CROSS_MATRIX = "doc/adr-architecture-cross-matrix.md"
 
+ASSESSMENT = "assessment/34-rust-npa-foundation-readiness-audit.md"
+
 # M173 S02 one-pager budget; a documentation reconciliation may not grow it.
 ARCHITECTURE_LINE_BUDGET = 325
 
@@ -84,6 +86,14 @@ def _load_pin() -> dict[str, Any]:
     loaded = yaml.safe_load(PIN_PATH.read_text(encoding="utf-8"))
     _require(isinstance(loaded, dict), "pin must load as a mapping")
     return loaded
+
+
+def _assessment_section(heading: str) -> str:
+    text = _surface_text(ASSESSMENT)
+    marker = f"### {heading}"
+    _require(marker in text, f"assessment is missing section: {marker}")
+    tail = text.split(marker, 1)[1]
+    return tail.split("\n### ", 1)[0]
 
 
 def validate_pin(pin: dict[str, Any]) -> None:
@@ -262,3 +272,50 @@ def test_adr_matrix_keeps_adr_0029_proposed() -> None:
     _require(row["status_lifecycle"] == "proposed", "ADR-0029 status lifecycle must stay proposed")
     _require(row["oracle_lifecycle"] == "proposed", "ADR-0029 oracle lifecycle must stay proposed")
     _require(row["index_lifecycle"] == "proposed", "ADR-0029 index lifecycle must stay proposed")
+
+
+# --- assessment F06 closure pointer (T04) -----------------------------------
+
+
+def test_assessment_records_f06_closure_pointer() -> None:
+    text = _surface_text(ASSESSMENT)
+    _require(
+        "F06 closure pointer" in text,
+        "assessment must record the F06 closure pointer",
+    )
+    _require(
+        "F06 remains open" not in text,
+        "assessment must not still say 'F06 remains open'",
+    )
+    section = _assessment_section("F06 closure pointer")
+    _require(
+        "m221-s05-docs-reconciliation.yaml" in section,
+        "F06 closure pointer must cite the reconciliation pin",
+    )
+    _require(
+        "m221-s05-readiness-battery.json" in section,
+        "F06 closure pointer must cite the re-acceptance battery",
+    )
+
+
+def test_f06_closure_pointer_carries_non_promotion_markers() -> None:
+    normalized = " ".join(_assessment_section("F06 closure pointer").split())
+    lowered = normalized.lower()
+    _require("R1000" in normalized, "F06 closure pointer must carry the R1000 non-claim")
+    _require("active" in lowered, "F06 closure pointer must keep R1000 active")
+    _require("parked" in lowered, "F06 closure pointer must keep downstream parked")
+    _require(
+        "not a lifecycle promotion" in lowered,
+        "F06 closure pointer must state it is not a lifecycle promotion",
+    )
+    for surface in (
+        "ADR-0029",
+        "prd/ARCHITECTURE.md",
+        "doc/adr/README.md",
+        "README.md",
+        "cross-matrix",
+    ):
+        _require(
+            surface in normalized,
+            f"F06 closure pointer must list reconciled surface {surface}",
+        )

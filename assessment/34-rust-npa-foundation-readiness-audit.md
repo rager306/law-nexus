@@ -3,7 +3,7 @@
 Status: [bounded] code audit and synthetic executable probes, not corpus semantic acceptance.
 Reviewed base: `24b8872`. Product source was not changed by the audit. No parked milestone was released.
 
-Remediation update (M221-wbslul S01 T01, S02 T01–T04, S03 T01–T04, S04 T01–T05): F01 is fixed under the new closed code `manifest_identity_mismatch`. F02 is fixed under the new typed `DerivedBoundary` plane and the closed code `derived_separator`. F03's bounded context-consumer/requisites path is closed under S03 (see the F03 closure pointer). F04 and F05 are closed **bounded** under S04 (see the bounded closure pointers below); F06 remains open; this milestone does not release M208/M215–M220.
+Remediation update (M221-wbslul S01 T01, S02 T01–T04, S03 T01–T04, S04 T01–T05): F01 is fixed under the new closed code `manifest_identity_mismatch`. F02 is fixed under the new typed `DerivedBoundary` plane and the closed code `derived_separator`. F03's bounded context-consumer/requisites path is closed under S03 (see the F03 closure pointer). F04 and F05 are closed **bounded** under S04 (see the bounded closure pointers below); F06 is closed bounded under S05 (see the F06 closure pointer); this milestone does not release M208/M215–M220.
 
 ## Verdict
 
@@ -196,11 +196,28 @@ F04 and F05 are closed **bounded** — at fixture/contract scope, not corpus-wid
 
 Explicit non-claims (these remain open):
 
-- **F06 remains open**; this milestone does not reconcile the `prd/ARCHITECTURE.md` ADR-0029 claim.
+- **F06 is closed bounded under S05** — authority surfaces reconciled with the bounded M211 runtime; corpus-wide/semantic acceptance remains unclaimed.
 - **R1000 stays active/unclosed** (D638/D656 carry-forward); M221 adds no DB requirement binding.
 - `semantic_acceptance` is **always `not_attempted`** (D667) — no independent legal-semantic oracle exists.
 - Downstream **M208-wrz6fg and M215–M220 stay parked**.
 - F04/F05 are closed **bounded** (fixture-first), **not** a corpus-wide accuracy or breadth claim; no C5 promotion. The frozen M214 v1 artifacts are untouched.
+
+### F06 closure pointer
+
+F06 is closed **bounded** under M221-wbslul S05 — design-only reconciliation of the
+cold authority surfaces with the already-landed bounded M211 Rust runtime:
+
+- **Design-only pin (authoritative:false, human_adoption:pending):** `prd/architecture/m221-s05-docs-reconciliation.yaml` is the machine-checkable spine; it records the four cold surfaces that were reconciled and the non-claims below. It pins (by sha256) only artifacts this slice does not edit.
+- **Re-acceptance battery:** `prd/migration/rust-evidence/m221-s05-readiness-battery.json` is a count/hash-only receipt replaying the S01–S04 suites (all exit 0) and carrying the three frozen S04 verdicts unchanged.
+- **Reconciled surfaces:** ADR-0029 Status (`doc/adr/0029-requisites-anchored-member-assembly-fsm.md`), the `prd/ARCHITECTURE.md` ADR-0029 row, the `doc/adr/README.md` index row, the `README.md` lineage block, and the `doc/adr-architecture-cross-matrix.md` companion.
+
+F06 non-claims:
+
+- **Not a lifecycle promotion:** ADR-0029 stays `[proposed]`; the bounded runtime is described as bounded and is **not** promoted to semantic acceptance or C5.
+- **Not a runtime fix:** no product Rust code changed; this is a documentation/authority reconciliation only.
+- **Not corpus-wide/semantic acceptance:** `semantic_acceptance` remains `not_attempted` (D667).
+- **R1000 stays active/unclosed** (D638/D656 carry-forward); M221 adds no DB requirement binding.
+- Downstream **M208-wrz6fg and M215–M220 stay parked**.
 
 ### F06 MEDIUM: workflow documentation lags runtime
 
@@ -219,6 +236,6 @@ The two token views in tokenizer.rs are deliberate and non-interchangeable: priv
 3. (Completed M221-wbslul S03) Bounded context-consumer/requisites path (F03): deterministic requisites source from the pinned parent, proven trigger policy and closed `ThisDocumentReferenceOutcome` consumer outcomes; see the F03 closure pointer.
 4. Build a small independently adjudicated legal corpus with exact source spans and expected typed/link/classification/context outputs; include negative, ambiguous, split-run, tab/break, table/footnote, list and cross-block cases. Then expand by observed failure classes.
 5. Repeat bounded corpus acceptance with actual provider/format quotas, per-family yields, context completeness and semantic error metrics. Keep integrity and semantic verdicts separate.
-6. Reconcile authority docs (F06), review future milestone input contracts, and only then decide whether to release temporal/retrieval/graph work.
+6. (Completed M221-wbslul S05) Reconcile authority docs (F06) — see the F06 closure pointer; review future milestone input contracts, and only then decide whether to release temporal/retrieval/graph work.
 
 Do not use 400/400 verified_ok, green clippy, governor status, or completed milestone counts as substitutes for this release gate. No percentage of overall readiness is justified by the current evidence.
