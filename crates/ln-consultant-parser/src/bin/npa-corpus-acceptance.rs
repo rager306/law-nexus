@@ -14,6 +14,9 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
+use ln_consultant_parser::artifact_output::{
+    output_identity, preflight_publish_target, publish_text_artifact,
+};
 use ln_consultant_parser::npa_corpus_acceptance::{
     declared_sample_roots, run_acceptance_with, AcceptanceOptions, CorpusSampleManifest,
     CONSULTANT_ROOT_RELATIVE, GARANT_ROOT_RELATIVE,
@@ -35,7 +38,7 @@ fn usage() -> String {
     out.push_str(
         "                        [--garant-root <dir>] [--out <file>] [--packet <file>]\n",
     );
-    out.push_str("                        [--entries <file>]\n\n");
+    out.push_str("                        [--entries <file>] [--force]\n\n");
     out.push_str(&format!(
         "The declared roots stay {CONSULTANT_ROOT_RELATIVE} and {GARANT_ROOT_RELATIVE};\n"
     ));
@@ -59,6 +62,9 @@ fn usage() -> String {
     out.push_str(&format!(
         "  --entries <file>         per-entry JSONL path (default {DEFAULT_ENTRIES})\n"
     ));
+    out.push_str(
+        "  --force                  replace an existing regular output file (default: refuse)\n",
+    );
     out.push_str("  -h, --help               print this help\n\n");
     out.push_str("Exit codes: 0 ok, 1 refusal, 2 usage.");
     out
@@ -81,6 +87,10 @@ fn path_option(args: &[String], flag: &str, default: &str) -> Result<PathBuf, St
     Ok(option_value(args, flag)?.map_or_else(|| PathBuf::from(default), PathBuf::from))
 }
 
+fn has_flag(args: &[String], flag: &str) -> bool {
+    args.iter().any(|arg| arg == flag)
+}
+
 fn sha256_hex(bytes: &[u8]) -> String {
     let digest = Sha256::digest(bytes);
     let mut out = String::with_capacity(digest.len() * 2);
@@ -90,15 +100,41 @@ fn sha256_hex(bytes: &[u8]) -> String {
     out
 }
 
-fn write_artifact(out: &PathBuf, text: &str) -> Result<(), String> {
-    if let Some(parent) = out.parent() {
-        if !parent.as_os_str().is_empty() {
-            std::fs::create_dir_all(parent)
-                .map_err(|error| format!("mkdir {}: {error}", parent.display()))?;
+/// Refuse any output path that resolves onto the sample or onto a sibling
+/// output, then preflight each output before the (expensive) pipeline runs.
+fn check_output_paths(
+    sample_path: &std::path::Path,
+    outputs: [(&str, &PathBuf); 3],
+    force: bool,
+) -> Result<(), String> {
+    let sample_identity = output_identity(sample_path).map_err(|error| error.to_string())?;
+    let mut seen: Vec<(&str, PathBuf)> = Vec::with_capacity(outputs.len());
+    for (label, path) in outputs {
+        let identity = output_identity(path).map_err(|error| error.to_string())?;
+        if identity == sample_identity {
+            return Err(format!(
+                "refusing {label} {}: resolves to the sample manifest {}; pass a distinct output path",
+                path.display(),
+                sample_path.display()
+            ));
         }
+        if let Some((other, _)) = seen
+            .iter()
+            .find(|(_, seen_identity)| seen_identity == &identity)
+        {
+            return Err(format!(
+                "refusing {label} {}: collides with {other} at {}; pass distinct output paths",
+                path.display(),
+                identity.display()
+            ));
+        }
+        seen.push((label, identity));
     }
-    std::fs::write(out, text.as_bytes())
-        .map_err(|error| format!("write {}: {error}", out.display()))
+    for (label, path) in outputs {
+        preflight_publish_target(path, force)
+            .map_err(|error| format!("{label} {}: {error}", path.display()))?;
+    }
+    Ok(())
 }
 
 fn main() -> ExitCode {
@@ -149,6 +185,16 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
+    let force = has_flag(&args, "--force");
+    let outputs: [(&str, &PathBuf); 3] = [
+        ("--out", &out),
+        ("--packet", &packet_path),
+        ("--entries", &entries_path),
+    ];
+    if let Err(error) = check_output_paths(&sample_path, outputs, force) {
+        eprintln!("npa-corpus-acceptance: {error}");
+        return ExitCode::from(1);
+    }
 
     let sample_text = match std::fs::read(&sample_path) {
         Ok(bytes) => bytes,
@@ -209,13 +255,13 @@ fn main() -> ExitCode {
             return ExitCode::from(1);
         }
     };
-    for (path, text) in [
-        (&out, report_text.as_str()),
-        (&packet_path, packet_text.as_str()),
-        (&entries_path, entries_text.as_str()),
+    for (label, path, text) in [
+        ("--out", out.as_path(), report_text.as_str()),
+        ("--packet", packet_path.as_path(), packet_text.as_str()),
+        ("--entries", entries_path.as_path(), entries_text.as_str()),
     ] {
-        if let Err(error) = write_artifact(path, text) {
-            eprintln!("npa-corpus-acceptance: {error}");
+        if let Err(error) = publish_text_artifact(path, text, force) {
+            eprintln!("npa-corpus-acceptance: {label} {}: {error}", path.display());
             return ExitCode::from(1);
         }
     }

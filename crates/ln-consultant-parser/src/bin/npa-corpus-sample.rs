@@ -12,6 +12,9 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
+use ln_consultant_parser::artifact_output::{
+    output_identity, preflight_publish_target, publish_text_artifact,
+};
 use ln_consultant_parser::npa_corpus_acceptance::{
     build_sample, declared_sample_roots, CONSULTANT_ROOT_RELATIVE, GARANT_ROOT_RELATIVE,
 };
@@ -22,7 +25,7 @@ fn usage() -> String {
     format!(
         "npa-corpus-sample: write the pinned S04 provider/work-family stratified sample\n\
          \n\
-         USAGE:\n  npa-corpus-sample [--consultant-root <dir>] [--garant-root <dir>] [--out <file>]\n\
+         USAGE:\n  npa-corpus-sample [--consultant-root <dir>] [--garant-root <dir>] [--out <file>] [--force]\n\
          \n\
          The declared roots stay {CONSULTANT_ROOT_RELATIVE} and {GARANT_ROOT_RELATIVE};\n\
          the disk overrides exist only for synthetic runs.\n\
@@ -31,6 +34,7 @@ fn usage() -> String {
            --consultant-root <dir>  walk this directory (default {CONSULTANT_ROOT_RELATIVE})\n\
            --garant-root <dir>      walk this directory (default {GARANT_ROOT_RELATIVE})\n\
            --out <file>             manifest path (default {DEFAULT_OUT})\n\
+           --force                  replace an existing regular manifest (default: refuse)\n\
            -h, --help               print this help\n\
          \n\
          Exit codes: 0 ok, 1 refusal, 2 usage."
@@ -48,6 +52,10 @@ fn option_value(args: &[String], flag: &str) -> Result<Option<String>, String> {
         return Err(format!("{flag} requires a value"));
     }
     Ok(Some(value.clone()))
+}
+
+fn has_flag(args: &[String], flag: &str) -> bool {
+    args.iter().any(|arg| arg == flag)
 }
 
 fn main() -> ExitCode {
@@ -84,6 +92,40 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
+    let force = has_flag(&args, "--force");
+
+    // Fail-closed output safety before the (expensive) corpus walk: the
+    // manifest must not resolve onto a declared root, and the target must be
+    // publishable under the caller's replacement policy.
+    let out_identity = match output_identity(&out) {
+        Ok(identity) => identity,
+        Err(error) => {
+            eprintln!("npa-corpus-sample: {error}");
+            return ExitCode::from(1);
+        }
+    };
+    for root in &roots {
+        let root_identity = match output_identity(&root.path) {
+            Ok(identity) => identity,
+            Err(error) => {
+                eprintln!("npa-corpus-sample: {error}");
+                return ExitCode::from(1);
+            }
+        };
+        if root_identity == out_identity {
+            eprintln!(
+                "npa-corpus-sample: refusing --out {}: resolves to declared root {}; pass a distinct manifest path",
+                out.display(),
+                root.relative_path
+            );
+            return ExitCode::from(1);
+        }
+    }
+    if let Err(error) = preflight_publish_target(&out, force) {
+        eprintln!("npa-corpus-sample: --out {}: {error}", out.display());
+        return ExitCode::from(1);
+    }
+
     let manifest = match build_sample(&roots) {
         Ok(manifest) => manifest,
         Err(error) => {
@@ -98,16 +140,8 @@ fn main() -> ExitCode {
             return ExitCode::from(1);
         }
     };
-    if let Some(parent) = out.parent() {
-        if !parent.as_os_str().is_empty() {
-            if let Err(error) = std::fs::create_dir_all(parent) {
-                eprintln!("npa-corpus-sample: mkdir {}: {error}", parent.display());
-                return ExitCode::from(1);
-            }
-        }
-    }
-    if let Err(error) = std::fs::write(&out, text.as_bytes()) {
-        eprintln!("npa-corpus-sample: write {}: {error}", out.display());
+    if let Err(error) = publish_text_artifact(&out, &text, force) {
+        eprintln!("npa-corpus-sample: --out {}: {error}", out.display());
         return ExitCode::from(1);
     }
     println!(

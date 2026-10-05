@@ -8,6 +8,7 @@
 
 pub mod acceptance_retry_contract;
 pub mod amendment_provenance;
+pub mod artifact_output;
 pub mod catalog;
 pub mod catalog_sqlite;
 pub mod classifier;
