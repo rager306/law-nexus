@@ -26,7 +26,8 @@ use crate::npa_analysis_wire::{
     string_array_field, string_field, u64_field, AnalysisEnvelopeRequest, AnalysisLimits,
     AnalysisScope, AnalysisWireError, AnalysisWireErrorKind, JsonFields, BASIS_COMPLETE,
     BASIS_CONTEXT_INCOMPLETE, BASIS_REFUSED_RECORD, FAMILY_CLASSIFICATION, FAMILY_CONTEXT,
-    FAMILY_DIAGNOSTIC, FAMILY_DOCUMENT, FAMILY_FRAGMENT, FAMILY_MEMBER, FAMILY_RELATION,
+    FAMILY_DIAGNOSTIC, FAMILY_DOCUMENT, FAMILY_FRAGMENT, FAMILY_MEMBER, FAMILY_RELATION, MODEL,
+    PROFILE,
 };
 use crate::npa_context_records::{build_context_records, KIND_RESULT, KIND_RUN};
 use crate::reader_contract::{FragmentRef, ReaderFragmentSpan, ReaderRecordIndex};
@@ -43,6 +44,9 @@ pub enum AnalysisVerifyCode {
     EnvelopeStructural,
     /// Footer seals differ from their recomputation (non-resealed tamper).
     SealMismatch,
+    /// A manifest or `document` record identity field differs from the pinned
+    /// parent; a resealed substitution is still an identity mismatch (F01).
+    ManifestIdentityMismatch,
     /// `fragment.content_sha256` differs from `ReaderRecordIndex`.
     FragmentHashMismatch,
     /// A span does not resolve to its exact substrate slice.
@@ -67,6 +71,7 @@ impl AnalysisVerifyCode {
         match self {
             AnalysisVerifyCode::EnvelopeStructural => "envelope_structural",
             AnalysisVerifyCode::SealMismatch => "seal_mismatch",
+            AnalysisVerifyCode::ManifestIdentityMismatch => "manifest_identity_mismatch",
             AnalysisVerifyCode::FragmentHashMismatch => "fragment_hash_mismatch",
             AnalysisVerifyCode::SpanSliceMismatch => "span_slice_mismatch",
             AnalysisVerifyCode::SourceRefSubstitution => "source_ref_substitution",
@@ -166,6 +171,10 @@ pub struct ReadbackManifest {
     pub source_revision: String,
     /// Decoder profile.
     pub decoder_profile: String,
+    /// Manifest `profile` token (the analysis profile).
+    pub profile: String,
+    /// Manifest `model` token (the analysis model).
+    pub model: String,
     /// Writer limits copied into the manifest.
     pub limits: AnalysisLimits,
 }
@@ -596,6 +605,9 @@ fn parse_manifest(fields: &JsonFields<'_>) -> Result<ReadbackManifest, AnalysisW
         .ok_or_else(|| wire_err("manifest has no source_revision"))?;
     let decoder_profile = string_field(fields, "decoder_profile")
         .ok_or_else(|| wire_err("manifest has no decoder_profile"))?;
+    let profile =
+        string_field(fields, "profile").ok_or_else(|| wire_err("manifest has no profile"))?;
+    let model = string_field(fields, "model").ok_or_else(|| wire_err("manifest has no model"))?;
     let limits_raw = fields
         .get("limits")
         .ok_or_else(|| wire_err("manifest has no limits"))?;
@@ -613,6 +625,8 @@ fn parse_manifest(fields: &JsonFields<'_>) -> Result<ReadbackManifest, AnalysisW
         document_version_ref,
         source_revision,
         decoder_profile,
+        profile,
+        model,
         limits: AnalysisLimits {
             max_line_bytes,
             max_records,
@@ -780,6 +794,7 @@ fn envelope_record_map(
 
 fn missing_record_code(family: &str) -> AnalysisVerifyCode {
     match family {
+        FAMILY_DOCUMENT => AnalysisVerifyCode::ManifestIdentityMismatch,
         FAMILY_FRAGMENT => AnalysisVerifyCode::FragmentHashMismatch,
         FAMILY_MEMBER => AnalysisVerifyCode::MemberRefMissing,
         FAMILY_RELATION => AnalysisVerifyCode::RelationRefMissing,
@@ -792,6 +807,7 @@ fn missing_record_code(family: &str) -> AnalysisVerifyCode {
 
 fn changed_record_code(family: &str) -> AnalysisVerifyCode {
     match family {
+        FAMILY_DOCUMENT => AnalysisVerifyCode::ManifestIdentityMismatch,
         FAMILY_FRAGMENT => AnalysisVerifyCode::FragmentHashMismatch,
         FAMILY_MEMBER => AnalysisVerifyCode::SourceRefSubstitution,
         FAMILY_RELATION => AnalysisVerifyCode::RelationSubstitution,
@@ -859,6 +875,54 @@ pub fn verify_npa_analysis_wire(
             structural_code(&error),
             error.detail().to_string(),
         )),
+    }
+
+    // 2b. The manifest identity must equal the supplied pinned parent. A
+    //     recomputed and patched seal is not identity proof (F01): an attacker
+    //     who reseals a substituted source / parent / version / profile / model
+    //     must still be rejected, and a `document` record contradiction is
+    //     caught in step 6.
+    let envelope = mapping.envelope();
+    let version = mapping.version();
+    let mut identity_fields: Vec<&str> = Vec::new();
+    if readback.manifest.source_sha256 != envelope.source_sha256 {
+        identity_fields.push("source.sha256");
+    }
+    if readback.manifest.source_bytes != envelope.source_bytes {
+        identity_fields.push("source.bytes");
+    }
+    if readback.manifest.parent_schema != envelope.parent_schema {
+        identity_fields.push("parent.schema");
+    }
+    if readback.manifest.parent_records_seal_hash != envelope.records_seal_hash {
+        identity_fields.push("parent.records_seal_hash");
+    }
+    if readback.manifest.parent_manifest_hash != envelope.manifest_hash {
+        identity_fields.push("parent.manifest_hash");
+    }
+    if readback.manifest.document_version_ref != version.document_version_ref() {
+        identity_fields.push("document_version_ref");
+    }
+    if readback.manifest.source_revision != version.source_revision() {
+        identity_fields.push("source_revision");
+    }
+    if readback.manifest.decoder_profile != version.decoder_profile() {
+        identity_fields.push("decoder_profile");
+    }
+    if readback.manifest.profile != PROFILE {
+        identity_fields.push("profile");
+    }
+    if readback.manifest.model != MODEL {
+        identity_fields.push("model");
+    }
+    if !identity_fields.is_empty() {
+        findings.push(AnalysisVerifyFinding::new(
+            AnalysisVerifyCode::ManifestIdentityMismatch,
+            format!(
+                "manifest identity differs from the pinned parent: {}",
+                identity_fields.join(", ")
+            ),
+        ));
     }
 
     // 3. Re-derive the canonical records from the pinned parent. The artifact's
@@ -1120,6 +1184,10 @@ mod tests {
             "envelope_structural"
         );
         assert_eq!(AnalysisVerifyCode::SealMismatch.as_str(), "seal_mismatch");
+        assert_eq!(
+            AnalysisVerifyCode::ManifestIdentityMismatch.as_str(),
+            "manifest_identity_mismatch"
+        );
         assert_eq!(
             AnalysisVerifyCode::FragmentHashMismatch.as_str(),
             "fragment_hash_mismatch"

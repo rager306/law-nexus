@@ -312,6 +312,10 @@ fn verify_codes_are_closed_tokens() {
         ),
         (AnalysisVerifyCode::SealMismatch, "seal_mismatch"),
         (
+            AnalysisVerifyCode::ManifestIdentityMismatch,
+            "manifest_identity_mismatch",
+        ),
+        (
             AnalysisVerifyCode::FragmentHashMismatch,
             "fragment_hash_mismatch",
         ),

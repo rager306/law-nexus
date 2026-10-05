@@ -5,8 +5,10 @@
 //! target, a fragment `content_sha256`, a context `status` or a deleted record
 //! is still detected because `verify_npa_analysis_wire` re-derives the canonical
 //! records from the pinned parent instead of trusting the artifact seals. A
-//! non-resealed tamper is a `seal_mismatch`; a malformed envelope is refused,
-//! never a panic.
+//! resealed manifest `source`/`parent`/version/`profile`/`model` substitution or
+//! a `document` record contradiction is a `manifest_identity_mismatch` (F01):
+//! a recomputed seal is not identity proof. A non-resealed tamper is a
+//! `seal_mismatch`; a malformed envelope is refused, never a panic.
 //!
 //! Fixtures are inline synthetic WordML documents. Raw decoded corpus text is
 //! never logged.
@@ -385,6 +387,56 @@ fn delete_first_record(text: &str, family: &str) -> String {
     join_envelope(&lines)
 }
 
+// -------------------------------------------------- manifest identity #
+
+/// Re-serializes the manifest line after `mutate` and reseals the footer.
+///
+/// Emulates an attacker who substitutes a manifest identity field and then
+/// recomputes and patches both footer seals, so a seal-only verifier accepts it
+/// (M221 F01).
+fn mutate_manifest<F: FnOnce(&mut serde_json::Value)>(text: &str, mutate: F) -> String {
+    let mut lines = envelope_lines(text);
+    let mut manifest: serde_json::Value =
+        serde_json::from_str(&lines[0]).expect("manifest line parses");
+    mutate(&mut manifest);
+    lines[0] = serde_json::to_string(&manifest).expect("manifest line serializes");
+    reseal(&join_envelope(&lines))
+}
+
+/// Re-serializes the first record of `family` after `mutate` and reseals the
+/// footer, emulating a resealed cross-field record-identity contradiction.
+fn mutate_first_record<F: FnOnce(&mut serde_json::Value)>(
+    text: &str,
+    family: &str,
+    mutate: F,
+) -> String {
+    let mut lines = envelope_lines(text);
+    let position = lines
+        .iter()
+        .position(|line| family_of(line).as_deref() == Some(family))
+        .unwrap_or_else(|| panic!("the fixture must expose a {family} record"));
+    let mut record: serde_json::Value =
+        serde_json::from_str(&lines[position]).expect("record line parses");
+    mutate(&mut record);
+    lines[position] = serde_json::to_string(&record).expect("record line serializes");
+    reseal(&join_envelope(&lines))
+}
+
+/// Asserts a resealed identity substitution is a `manifest_identity_mismatch`
+/// and is *not* misreported as a `seal_mismatch`: the two invariants are
+/// separate, and a correctly recomputed seal is not identity proof.
+fn assert_identity_mismatch(tampered: &str, p: &Pipeline) {
+    let findings = verify(p, tampered).expect_err("a resealed identity substitution is rejected");
+    assert!(
+        has_code(&findings, AnalysisVerifyCode::ManifestIdentityMismatch),
+        "an identity substitution is manifest_identity_mismatch: {findings:?}"
+    );
+    assert!(
+        !has_code(&findings, AnalysisVerifyCode::SealMismatch),
+        "a correctly resealed substitution is not a seal mismatch: {findings:?}"
+    );
+}
+
 const CONTEXT_BODY: &str = "<w:p><w:r><w:t>Статья 1. Предмет регулирования</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Федерального закона от 01.01.2020 N 1-ФЗ,</w:t></w:r></w:p>\
      <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>";
@@ -511,6 +563,142 @@ fn non_resealed_tamper_is_seal_mismatch() {
     assert!(
         has_code(&findings, AnalysisVerifyCode::SealMismatch),
         "a non-resealed tamper is seal_mismatch: {findings:?}"
+    );
+}
+
+// ------------------------------------------------ manifest identity reseals #
+
+#[test]
+fn resealed_manifest_source_sha_is_identity_mismatch() {
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = mutate_manifest(&text, |manifest| {
+        manifest["source"]["sha256"] = serde_json::json!("0".repeat(64));
+    });
+    assert_ne!(tampered, text, "the mutation changed the envelope");
+    assert_identity_mismatch(&tampered, &p);
+}
+
+#[test]
+fn resealed_manifest_source_bytes_is_identity_mismatch() {
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = mutate_manifest(&text, |manifest| {
+        manifest["source"]["bytes"] = serde_json::json!(999_999);
+    });
+    assert_identity_mismatch(&tampered, &p);
+}
+
+#[test]
+fn resealed_manifest_source_revision_is_identity_mismatch() {
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = mutate_manifest(&text, |manifest| {
+        manifest["source_revision"] = serde_json::json!("forged-revision");
+    });
+    assert_identity_mismatch(&tampered, &p);
+}
+
+#[test]
+fn resealed_manifest_document_version_ref_is_identity_mismatch() {
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = mutate_manifest(&text, |manifest| {
+        manifest["document_version_ref"] = serde_json::json!("forged-version-ref");
+    });
+    assert_identity_mismatch(&tampered, &p);
+}
+
+#[test]
+fn resealed_manifest_decoder_profile_is_identity_mismatch() {
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = mutate_manifest(&text, |manifest| {
+        manifest["decoder_profile"] = serde_json::json!("forged/decoder_profile/v0");
+    });
+    assert_identity_mismatch(&tampered, &p);
+}
+
+#[test]
+fn resealed_manifest_parent_schema_is_identity_mismatch() {
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = mutate_manifest(&text, |manifest| {
+        manifest["parent"]["schema"] = serde_json::json!("forged/parent-model/v0");
+    });
+    assert_identity_mismatch(&tampered, &p);
+}
+
+#[test]
+fn resealed_manifest_parent_records_seal_is_identity_mismatch() {
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = mutate_manifest(&text, |manifest| {
+        manifest["parent"]["records_seal_hash"] = serde_json::json!("0".repeat(64));
+    });
+    assert_identity_mismatch(&tampered, &p);
+}
+
+#[test]
+fn resealed_manifest_parent_manifest_hash_is_identity_mismatch() {
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = mutate_manifest(&text, |manifest| {
+        manifest["parent"]["manifest_hash"] = serde_json::json!("0".repeat(64));
+    });
+    assert_identity_mismatch(&tampered, &p);
+}
+
+#[test]
+fn resealed_manifest_profile_is_identity_mismatch() {
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = mutate_manifest(&text, |manifest| {
+        manifest["profile"] = serde_json::json!("forged_profile/v0");
+    });
+    assert_identity_mismatch(&tampered, &p);
+}
+
+#[test]
+fn resealed_manifest_model_is_identity_mismatch() {
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = mutate_manifest(&text, |manifest| {
+        manifest["model"] = serde_json::json!("forged/model/v0");
+    });
+    assert_identity_mismatch(&tampered, &p);
+}
+
+#[test]
+fn resealed_document_record_identity_is_identity_mismatch() {
+    // Cross-field record identity: a `document` record that contradicts the
+    // pinned parent must be rejected even after a reseal.
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = mutate_first_record(&text, "document", |record| {
+        record["source_sha256"] = serde_json::json!("0".repeat(64));
+    });
+    assert_identity_mismatch(&tampered, &p);
+}
+
+#[test]
+fn non_resealed_manifest_identity_is_seal_mismatch() {
+    // The identity and seal invariants stay separate: an unsealed identity
+    // substitution is still a `seal_mismatch`.
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let text = context_envelope(&p);
+    let tampered = {
+        let mut lines = envelope_lines(&text);
+        let mut manifest: serde_json::Value =
+            serde_json::from_str(&lines[0]).expect("manifest line parses");
+        manifest["source"]["sha256"] = serde_json::json!("0".repeat(64));
+        lines[0] = serde_json::to_string(&manifest).expect("manifest line serializes");
+        join_envelope(&lines)
+    };
+    let findings = verify(&p, &tampered).expect_err("a non-resealed identity tamper is rejected");
+    assert!(
+        has_code(&findings, AnalysisVerifyCode::SealMismatch),
+        "a non-resealed identity tamper is seal_mismatch: {findings:?}"
     );
 }
 

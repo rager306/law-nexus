@@ -1,7 +1,9 @@
 # Rust NPA foundation readiness audit
 
 Status: [bounded] code audit and synthetic executable probes, not corpus semantic acceptance.
-Reviewed base: `24b8872`. Product source was not changed. No parked milestone was released.
+Reviewed base: `24b8872`. Product source was not changed by the audit. No parked milestone was released.
+
+Remediation update (M221-wbslul S01 T01): F01 is fixed under the new closed code `manifest_identity_mismatch`. F02–F06 remain open; this milestone does not release M208/M215–M220.
 
 ## Verdict
 
@@ -24,6 +26,29 @@ Probe: `scripts/m214_readiness_probe.rs`. Compile against the matching current l
 Executable probe independently changes each of manifest source.sha256, source_revision, document_version_ref and parent.manifest_hash, then recomputes seals. All four modified artifacts return Ok from verify_npa_analysis_wire against the original parent. This permits contradictory provenance between manifest and document record and defeats the claimed source-binding guarantee at the envelope boundary.
 
 Required fix: compare authoritative manifest identity/profile/version/parent fields with the supplied pinned parent; define which policy fields are caller-controlled. Add separate resealed hostile tests for each field and cross-field inconsistencies. Do not accept self-consistent hashes as identity proof.
+
+**Closure pointer (M221-wbslul S01 T01, `manifest_identity_mismatch`).**
+- Verifier: `crates/ln-decode/src/npa_analysis_verify.rs` now compares
+  `source.sha256`, `source.bytes`, `parent` schema/both seals,
+  `document_version_ref`, `source_revision`, `decoder_profile`, `profile` and
+  `model` against `SourceMapping::envelope()` / `version()` and the analysis
+  frame constants; a resealed substitution is `manifest_identity_mismatch`,
+  never `seal_mismatch`. The `document` record family maps to the same code.
+- Contract: `prd/architecture/npa-analysis-jsonl-contract.md` §8B.4 adds the
+  verifier step and the `manifest_identity_mismatch` row; §12 adds H21/H22.
+- Portable proof: `cargo test -p ln-decode --offline --test
+  npa_analysis_verify_hostile --test npa_analysis_verify_contract --test
+  npa_analysis_export_integration` → 23 + 9 + 13 passed. The F01 probe
+  (`scripts/m214_readiness_probe.rs`) now reports `baseline_pass=true` and
+  `tamper_source_accepted=false`, `tamper_source_revision_accepted=false`,
+  `tamper_document_version_ref_accepted=false`, `tamper_parent_accepted=false`
+  (all four as `manifest_identity_mismatch`).
+- Acceptance run-contract: `cargo test -p ln-consultant-parser --offline
+  --test npa_corpus_acceptance_run_contract --test
+  npa_corpus_acceptance_report_contract --test npa_corpus_acceptance_contract
+  --test npa_corpus_acceptance_sample_contract` → 11 + 7 + 14 + 9 passed; the
+  `VerifyCodeToken` mirror carries the new token.
+- Positive control preserved: `untouched_context_envelope_verifies_ok`.
 
 ### F02 HIGH: reader-to-analysis bridge deletes control separators
 

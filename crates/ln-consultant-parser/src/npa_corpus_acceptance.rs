@@ -286,6 +286,7 @@ impl Verdict {
 pub enum VerifyCodeToken {
     EnvelopeStructural,
     SealMismatch,
+    ManifestIdentityMismatch,
     FragmentHashMismatch,
     SpanSliceMismatch,
     SourceRefSubstitution,
@@ -302,6 +303,7 @@ impl VerifyCodeToken {
         match self {
             Self::EnvelopeStructural => "envelope_structural",
             Self::SealMismatch => "seal_mismatch",
+            Self::ManifestIdentityMismatch => "manifest_identity_mismatch",
             Self::FragmentHashMismatch => "fragment_hash_mismatch",
             Self::SpanSliceMismatch => "span_slice_mismatch",
             Self::SourceRefSubstitution => "source_ref_substitution",
@@ -318,6 +320,7 @@ impl VerifyCodeToken {
         match code {
             AnalysisVerifyCode::EnvelopeStructural => Self::EnvelopeStructural,
             AnalysisVerifyCode::SealMismatch => Self::SealMismatch,
+            AnalysisVerifyCode::ManifestIdentityMismatch => Self::ManifestIdentityMismatch,
             AnalysisVerifyCode::FragmentHashMismatch => Self::FragmentHashMismatch,
             AnalysisVerifyCode::SpanSliceMismatch => Self::SpanSliceMismatch,
             AnalysisVerifyCode::SourceRefSubstitution => Self::SourceRefSubstitution,
@@ -334,6 +337,7 @@ impl VerifyCodeToken {
         match self {
             Self::EnvelopeStructural => AnalysisVerifyCode::EnvelopeStructural,
             Self::SealMismatch => AnalysisVerifyCode::SealMismatch,
+            Self::ManifestIdentityMismatch => AnalysisVerifyCode::ManifestIdentityMismatch,
             Self::FragmentHashMismatch => AnalysisVerifyCode::FragmentHashMismatch,
             Self::SpanSliceMismatch => AnalysisVerifyCode::SpanSliceMismatch,
             Self::SourceRefSubstitution => AnalysisVerifyCode::SourceRefSubstitution,

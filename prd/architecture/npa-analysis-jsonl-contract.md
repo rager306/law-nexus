@@ -790,22 +790,29 @@ Result<(), Vec<AnalysisVerifyFinding>>`:
    `inspect_npa_analysis_wire`);
 2. recompute both seals with `recompute_analysis_seals` and compare with
    the footer (a non-resealed tamper yields `seal_mismatch`);
-3. do not trust the artifact's records or seals: re-derive the canonical
+3. compare the manifest identity (`source.sha256`, `source.bytes`, the
+   `parent` schema and both parent seals, `document_version_ref`,
+   `source_revision`, `decoder_profile`, `profile`, `model`) with the
+   supplied pinned parent and the analysis frame constants: a resealed
+   substitution is a `manifest_identity_mismatch`, never a seal pass —
+   a recomputed seal is not identity proof (F01);
+4. do not trust the artifact's records or seals: re-derive the canonical
    records from the pinned parent via
    `analyze_document(projection, index, mapping)` and
    `build_context_records(&layout, mapping)`;
-4. re-hash every fragment record's decoded bytes against
+5. re-hash every fragment record's decoded bytes against
    `ReaderRecordIndex` (`fragment_hash_mismatch`);
-5. re-resolve every span through `SourceMapping::resolve_fragment_span` /
+6. re-resolve every span through `SourceMapping::resolve_fragment_span` /
    `SourceMapping::slice` and require the exact substrate slice
    (`span_slice_mismatch`);
-6. compare each record's semantic fields (source refs, relations,
+7. compare each record's semantic fields (source refs, relations,
    classification `member_id`, context status/view/claims/derivations)
    with the canonical re-derivation (`source_ref_substitution`,
-   `relation_substitution`, `context_outcome_mismatch`);
-7. require every relation `from`/`to` and classification `member_id` to
+   `relation_substitution`, `context_outcome_mismatch`; a substituted
+   `document` record is a `manifest_identity_mismatch`);
+8. require every relation `from`/`to` and classification `member_id` to
    name a readback record (`relation_ref_missing`, `member_ref_missing`);
-8. check `completion`/`completion_basis`/`incomplete_reasons` against the
+9. check `completion`/`completion_basis`/`incomplete_reasons` against the
    re-derived records (`completion_mismatch`).
 
 `build_projection` is not called; the artifact's own seals are never
@@ -818,6 +825,7 @@ Closed `AnalysisVerifyCode`:
 |---|---|
 | `envelope_structural` | missing/misordered manifest/policies/footer, CR, empty line, unknown kind/family |
 | `seal_mismatch` | footer seals differ from the `recompute_analysis_seals` result (non-resealed tamper) |
+| `manifest_identity_mismatch` | a manifest or `document` record identity field (`source`/`parent`/document-version triple/`profile`/`model`) differs from the pinned parent, including a resealed substitution |
 | `fragment_hash_mismatch` | `fragment.content_sha256` differs from `ReaderRecordIndex` |
 | `span_slice_mismatch` | a span does not resolve to its exact substrate slice |
 | `source_ref_substitution` | a source ref differs from the canonical re-derivation (including a resealed in-fragment span move) |
@@ -828,11 +836,13 @@ Closed `AnalysisVerifyCode`:
 | `completion_mismatch` | `completion`/`completion_basis`/`incomplete_reasons` inconsistent with the re-derived records |
 
 **Resealed substitution.** Mutating a source span within one fragment, a
-relation target, a fragment `content_sha256`, a context `status`, or
-deleting a record, then recomputing and patching the footer seals, must
-still yield the specific closed code above, because the verifier
-re-derives from the pinned parent instead of trusting the artifact.
-`[bounded]`
+relation target, a fragment `content_sha256`, a context `status`, a
+manifest `source`/`parent`/document-version/`profile`/`model` identity
+field, or deleting a record, then recomputing and patching the footer
+seals, must still yield the specific closed code above, because the
+verifier re-derives from the pinned parent instead of trusting the
+artifact. A recomputed seal is not identity proof: a substituted manifest
+identity is `manifest_identity_mismatch`, never a clean pass. `[bounded]`
 
 ### 8B.5 Context substrate reuse (D661)
 
@@ -962,6 +972,8 @@ relation — provenance survives the missing span.
 | H18 | resealed relation `from`/`to`/`kind` substitution | `relation_substitution` |
 | H19 | resealed `ContextStatus` other than `resolved` presented with `completion: complete` | `context_outcome_mismatch` / `completion_mismatch` |
 | H20 | a context anchor that leaves its block or straddles two fragments | `out_of_bounds` / `cross_fragment` (never rebased) |
+| H21 | resealed manifest `source.sha256`/`source.bytes`, `parent` schema/seals, `source_revision`, `document_version_ref`, `decoder_profile`, `profile` or `model` substitution | `manifest_identity_mismatch` (never a `seal_mismatch` pass) |
+| H22 | resealed `document` record identity (`source_sha256`/document-version triple) contradicting the pinned parent | `manifest_identity_mismatch` |
 
 ## 13. Remainder reconciliation
 
