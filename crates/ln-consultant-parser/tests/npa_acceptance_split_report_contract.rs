@@ -18,7 +18,8 @@
 use std::collections::BTreeMap;
 
 use ln_consultant_parser::npa_corpus_acceptance::{
-    AcceptanceEntry, DeclaredRoot, EntryOutcome, ProviderToken, ThisDocumentReferenceToken,
+    AcceptanceEntry, DeclaredRoot, EntryOutcome, ProviderToken, TamperProbeCounts,
+    ThisDocumentReferenceToken,
 };
 use ln_consultant_parser::npa_corpus_acceptance_v2::{
     build_report_v2, AcceptanceReportV2, CompletionVerdict, SemanticVerdict, UncoveredReason,
@@ -107,11 +108,22 @@ fn candidate_counts() -> BTreeMap<String, u64> {
     counts
 }
 
+/// The synthetic tamper-probe counts for this report-only battery (the bounded
+/// runner supplies the real counts; T04 wires them).
+fn probe() -> TamperProbeCounts {
+    TamperProbeCounts {
+        entries: 2,
+        detected: 2,
+        false_negative: 0,
+    }
+}
+
 fn valid_report() -> AcceptanceReportV2 {
     build_report_v2(
         &valid_entries(),
         &declared_roots(),
         &candidate_counts(),
+        probe(),
         &V2Thresholds::declared(),
     )
     .expect("a coherent bounded report builds")
@@ -188,6 +200,7 @@ fn existing_candidates_without_selection_are_uncovered_no_selection() {
         &valid_entries(),
         &declared_roots(),
         &counts,
+        probe(),
         &V2Thresholds::declared(),
     )
     .expect("report builds with a non-empty candidate pool");

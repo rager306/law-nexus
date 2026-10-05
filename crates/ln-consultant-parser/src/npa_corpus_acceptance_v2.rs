@@ -28,8 +28,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::npa_corpus_acceptance::{
-    AcceptanceEntry, DeclaredRoot, EntryOutcome, StructuralIntegritySection, Verdict,
-    FORBIDDEN_TEXT_KEYS,
+    AcceptanceEntry, DeclaredRoot, EntryOutcome, StructuralIntegritySection, TamperProbeCounts,
+    Verdict, FORBIDDEN_TEXT_KEYS,
 };
 
 // ------------------------------------------------------------- constants #
@@ -169,6 +169,35 @@ impl UncoveredReason {
     }
 }
 
+/// Closed outcome of the declared-before-run recall/coverage gate (§15A.6).
+///
+/// The gate is evaluated against the declared minima, never inferred from the
+/// observed results: a producer whose per-family yield or completion ratio is
+/// below its declared floor is `BelowDeclared`, never `Pass`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExpectationGateOutcome {
+    /// Every declared minimum (completion ratio and per-family yields) is met.
+    Pass,
+    /// At least one declared minimum is unmet; the gate is never a pass.
+    BelowDeclared,
+}
+
+impl ExpectationGateOutcome {
+    /// Closed wire token.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Pass => "pass",
+            Self::BelowDeclared => "below_declared",
+        }
+    }
+
+    /// True only for a satisfied gate.
+    pub const fn is_pass(self) -> bool {
+        matches!(self, Self::Pass)
+    }
+}
+
 // ------------------------------------------------------------- structs #
 
 /// The three independent split verdicts (§15A.2). No aggregate verdict exists.
@@ -248,13 +277,7 @@ pub struct V2Thresholds {
 impl V2Thresholds {
     /// The frozen bounded S04 declaration.
     pub fn declared() -> Self {
-        Self {
-            min_completion_ratio_ppm: DECLARED_MIN_COMPLETION_RATIO_PPM,
-            min_family_yields: DECLARED_MIN_FAMILY_YIELDS
-                .iter()
-                .map(|(family, floor)| ((*family).to_string(), *floor))
-                .collect(),
-        }
+        DeclaredExpectations::declared().thresholds()
     }
 
     /// Declared minima must be well-formed and closed.
@@ -268,6 +291,62 @@ impl V2Thresholds {
             }
         }
         Ok(())
+    }
+
+    /// View the thresholds as declared-before-run expectations.
+    fn as_expectations(&self) -> DeclaredExpectations {
+        DeclaredExpectations {
+            min_completion_ratio_ppm: self.min_completion_ratio_ppm,
+            min_family_yields: self.min_family_yields.clone(),
+        }
+    }
+}
+
+/// Declared-before-run expectations (§15A.6): the compile-time minima the
+/// bounded runner is judged against. Snapshotted from the `DECLARED_*`
+/// constants and never re-derived from observed yields.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DeclaredExpectations {
+    /// Declared minimum completion ratio in parts per million.
+    pub min_completion_ratio_ppm: u64,
+    /// Declared per-family yield floors.
+    pub min_family_yields: BTreeMap<String, u64>,
+}
+
+impl DeclaredExpectations {
+    /// The frozen bounded S04 declaration.
+    pub fn declared() -> Self {
+        Self {
+            min_completion_ratio_ppm: DECLARED_MIN_COMPLETION_RATIO_PPM,
+            min_family_yields: DECLARED_MIN_FAMILY_YIELDS
+                .iter()
+                .map(|(family, floor)| ((*family).to_string(), *floor))
+                .collect(),
+        }
+    }
+
+    /// The equivalent `V2Thresholds` block for a report.
+    pub fn thresholds(&self) -> V2Thresholds {
+        V2Thresholds {
+            min_completion_ratio_ppm: self.min_completion_ratio_ppm,
+            min_family_yields: self.min_family_yields.clone(),
+        }
+    }
+
+    /// Evaluate the declared minima against a completion section. The gate is
+    /// below its declaration when the observed completion ratio or any declared
+    /// per-family yield floor is unmet; the section already records the
+    /// `below_expected_yield` family names.
+    pub fn evaluate(&self, section: &AnalysisCompletionSection) -> ExpectationGateOutcome {
+        let ratio_ok = section.observed_completion_ratio_ppm >= self.min_completion_ratio_ppm;
+        let yields_ok = self.min_family_yields.iter().all(|(family, floor)| {
+            section.per_family_yields.get(family).copied().unwrap_or(0) >= *floor
+        });
+        if ratio_ok && yields_ok {
+            ExpectationGateOutcome::Pass
+        } else {
+            ExpectationGateOutcome::BelowDeclared
+        }
     }
 }
 
@@ -299,6 +378,8 @@ pub struct AcceptanceReportV2 {
     pub structural_integrity: StructuralIntegritySection,
     /// Per-entry analysis completion (§15A.4).
     pub analysis_completion: AnalysisCompletionSection,
+    /// Declared-before-run recall/coverage gate outcome (§15A.6).
+    pub expectation_gate: ExpectationGateOutcome,
     /// Declared-versus-sampled provider coverage (§15A.5).
     pub provider_coverage: ProviderCoverageSection,
     /// Declared-before-run minima copied from §15A.6.
@@ -385,6 +466,26 @@ impl AcceptanceReportV2 {
             return Err("semantic_acceptance must always be not_attempted (D667)".into());
         }
 
+        let expected_gate = self
+            .declared_thresholds
+            .as_expectations()
+            .evaluate(&self.analysis_completion);
+        if self.expectation_gate != expected_gate {
+            return Err(format!(
+                "expectation_gate {} disagrees with the declared minima ({})",
+                self.expectation_gate.as_str(),
+                expected_gate.as_str()
+            ));
+        }
+        if self.expectation_gate == ExpectationGateOutcome::BelowDeclared
+            && self.verdicts.analysis_completion == CompletionVerdict::Complete
+        {
+            return Err(
+                "a below_declared expectation gate cannot accompany a complete analysis_completion"
+                    .into(),
+            );
+        }
+
         check_count_hash_only(self)?;
         Ok(())
     }
@@ -425,23 +526,23 @@ pub fn acceptance_v2_non_claims() -> Vec<String> {
 /// `declared_roots` fixes the declared provider list; `provider_candidate_counts`
 /// is the per-provider count of supported-format candidates available to the
 /// bounded run (used only to choose between `no_candidates` and `no_selection`
-/// for an uncovered provider). `thresholds` is the declared-before-run minima.
-///
-/// The transport tamper-probe counts are supplied by the bounded runner (T04);
-/// this constructor carries zero pending that wiring and therefore derives the
-/// transport verdict from the entry outcomes alone.
+/// for an uncovered provider). `tamper_probe` threads the bounded runner's
+/// tamper-probe counts into `transport_integrity`; `thresholds` is the
+/// declared-before-run minima the recall/coverage gate is judged against.
 pub fn build_report_v2(
     entries: &[AcceptanceEntry],
     declared_roots: &[DeclaredRoot],
     provider_candidate_counts: &BTreeMap<String, u64>,
+    tamper_probe: TamperProbeCounts,
     thresholds: &V2Thresholds,
 ) -> Result<AcceptanceReportV2, String> {
     thresholds.validate()?;
 
-    let structural_integrity = build_structural_integrity(entries)?;
+    let structural_integrity = build_structural_integrity(entries, tamper_probe)?;
     let analysis_completion = build_completion(entries, &structural_integrity, thresholds)?;
     let provider_coverage =
         build_provider_coverage(entries, declared_roots, provider_candidate_counts)?;
+    let expectation_gate = thresholds.as_expectations().evaluate(&analysis_completion);
 
     let report = AcceptanceReportV2 {
         schema: ACCEPTANCE_V2_SCHEMA.to_string(),
@@ -460,6 +561,7 @@ pub fn build_report_v2(
         },
         structural_integrity,
         analysis_completion,
+        expectation_gate,
         provider_coverage,
         declared_thresholds: thresholds.clone(),
         non_claims: acceptance_v2_non_claims(),
@@ -512,6 +614,7 @@ impl OutcomeCounters {
 
 fn build_structural_integrity(
     entries: &[AcceptanceEntry],
+    tamper_probe: TamperProbeCounts,
 ) -> Result<StructuralIntegritySection, String> {
     let mut counters = OutcomeCounters::default();
     let mut verify_codes: BTreeMap<String, u64> = BTreeMap::new();
@@ -535,10 +638,9 @@ fn build_structural_integrity(
         limit_records: counters.limit_records,
         manifest_pin_mismatch: counters.manifest_pin_mismatch,
         verify_codes,
-        // Filled by the bounded runner (T04); zero means "probe not wired yet".
-        tamper_probe_entries: 0,
-        tamper_probe_detected: 0,
-        tamper_probe_false_negative: 0,
+        tamper_probe_entries: tamper_probe.entries,
+        tamper_probe_detected: tamper_probe.detected,
+        tamper_probe_false_negative: tamper_probe.false_negative,
         structural_failures,
         pass: structural_failures == 0,
     })
@@ -775,6 +877,9 @@ fn validate_structural_integrity(section: &StructuralIntegritySection) -> Result
     let code_sum: u64 = section.verify_codes.values().copied().sum();
     if code_sum != section.verify_refused {
         return Err("verify_codes must sum to verify_refused".into());
+    }
+    if section.tamper_probe_entries == 0 {
+        return Err("tamper_probe_entries must be positive".into());
     }
     if section
         .tamper_probe_detected

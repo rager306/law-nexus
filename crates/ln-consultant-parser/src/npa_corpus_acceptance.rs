@@ -1654,14 +1654,171 @@ pub fn run_acceptance_with(
     if options.tamper_probe_entries == 0 {
         return Err("tamper_probe_entries must be positive".into());
     }
+    let run = run_entries(&sample.entries, roots, options)?;
+    let probe = ProbeState {
+        target: options.tamper_probe_entries,
+        done: run.tamper_probe_entries,
+        detected: run.tamper_probe_detected,
+        false_negative: run.tamper_probe_false_negative,
+    };
+    finish_run(
+        sample,
+        sample_manifest_sha256,
+        run.entries,
+        probe,
+        run.total_wall_ms,
+        run.max_wall_ms,
+    )
+}
+
+// ------------------------------------------------- bounded (T04) surface #
+
+/// A declared-before-run tamper-probe count triple from a bounded run.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct TamperProbeCounts {
+    /// Probes executed (the declared subset size, synthetic fallback included).
+    pub entries: u64,
+    /// Probes the independent verifier detected.
+    pub detected: u64,
+    /// Probes the verifier failed to detect (a hard transport failure).
+    pub false_negative: u64,
+}
+
+/// The bounded (T04) acceptance run output: per-entry records plus the
+/// tamper-probe counts and wall-time observations that thread transport
+/// integrity into the v2 report.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BoundedAcceptanceRun {
+    /// Per-entry detail records.
+    pub entries: Vec<AcceptanceEntry>,
+    /// Probes executed across the bounded run.
+    pub tamper_probe_entries: u64,
+    /// Probes the independent verifier detected.
+    pub tamper_probe_detected: u64,
+    /// Probes the verifier failed to detect.
+    pub tamper_probe_false_negative: u64,
+    /// Sum of per-entry wall time in milliseconds.
+    pub total_wall_ms: u64,
+    /// Maximum per-entry wall time in milliseconds.
+    pub max_wall_ms: u64,
+}
+
+impl BoundedAcceptanceRun {
+    /// The tamper-probe counts to thread into a v2 report.
+    pub const fn tamper_probe_counts(&self) -> TamperProbeCounts {
+        TamperProbeCounts {
+            entries: self.tamper_probe_entries,
+            detected: self.tamper_probe_detected,
+            false_negative: self.tamper_probe_false_negative,
+        }
+    }
+}
+
+/// Run the acceptance pipeline over a bounded entry set without applying the
+/// frozen v1 sample-size/threshold pin (D677).
+pub fn run_acceptance_entries(
+    entries: &[SampleEntry],
+    roots: &[SampleRoot],
+    options: &AcceptanceOptions,
+) -> Result<BoundedAcceptanceRun, String> {
+    run_entries(entries, roots, options)
+}
+
+/// A declared source root's bounded XML inventory: the entries actually
+/// present on disk, the declared roots and the per-provider candidate counts
+/// (used to distinguish `no_candidates` from `no_selection`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BoundedInventory {
+    /// Every XML candidate under the declared roots, in walk order.
+    pub entries: Vec<SampleEntry>,
+    /// Declared roots copied from the inputs.
+    pub declared_roots: Vec<DeclaredRoot>,
+    /// Supported-format candidate count per provider (zero is recorded).
+    pub provider_candidate_counts: BTreeMap<String, u64>,
+}
+
+/// Walk the declared roots and pin every XML candidate without applying the
+/// frozen v1 sample-size/threshold pin (D677). An absent root or a
+/// zero-candidate inventory is an error; a single root with zero XML is
+/// allowed and recorded as a zero candidate count.
+///
+/// Fail-closed: an absent/empty declared root path, a duplicate declared root,
+/// an empty corpus file, or a total inventory of zero XML is an error — never
+/// a silent shrink and never a fabricated entry.
+pub fn build_bounded_inventory(roots: &[SampleRoot]) -> Result<BoundedInventory, String> {
+    if roots.is_empty() {
+        return Err("build_bounded_inventory requires at least one declared root".into());
+    }
+    let mut declared_roots = Vec::with_capacity(roots.len());
+    let mut seen_root_paths = BTreeSet::new();
+    let mut entries: Vec<SampleEntry> = Vec::new();
+    let mut provider_candidate_counts: BTreeMap<String, u64> = BTreeMap::new();
+    for root in roots {
+        if !root.path.is_dir() {
+            return Err(format!(
+                "declared source root is absent: {} ({})",
+                root.relative_path,
+                root.path.display()
+            ));
+        }
+        if !seen_root_paths.insert(root.relative_path.clone()) {
+            return Err(format!("duplicate declared root {}", root.relative_path));
+        }
+        let provider = ProviderToken::from_root_kind(root.kind);
+        declared_roots.push(DeclaredRoot {
+            relative_path: root.relative_path.clone(),
+            provider,
+        });
+        let files = ln_decode::npa_sweep::walk_xml_files(&root.path, None)
+            .map_err(|error| format!("walk {}: {error}", root.path.display()))?;
+        *provider_candidate_counts
+            .entry(provider.as_str().to_string())
+            .or_default() += u64::try_from(files.len()).unwrap_or(u64::MAX);
+        for path in files {
+            let meta = corpus_sample::classify_path(&path, &root.path, root.kind)
+                .map_err(|error| format!("classify {}: {error}", path.display()))?;
+            let (sha256, bytes) = sha256_file(&path)?;
+            if bytes == 0 {
+                return Err(format!("empty corpus file {}", meta.relative_path));
+            }
+            entries.push(SampleEntry {
+                relative_path: meta.relative_path,
+                sha256,
+                bytes,
+                provider,
+                document_type: meta.document_type,
+                work_family: meta.work_family.key,
+            });
+        }
+    }
+    if entries.is_empty() {
+        return Err("declared roots yielded no XML inventory".into());
+    }
+    Ok(BoundedInventory {
+        entries,
+        declared_roots,
+        provider_candidate_counts,
+    })
+}
+
+/// The extracted per-entry acceptance loop shared by the v1 manifest run and
+/// the bounded (T04) run; the behavior is unchanged for `run_acceptance_with`.
+fn run_entries(
+    entries_in: &[SampleEntry],
+    roots: &[SampleRoot],
+    options: &AcceptanceOptions,
+) -> Result<BoundedAcceptanceRun, String> {
+    if options.tamper_probe_entries == 0 {
+        return Err("tamper_probe_entries must be positive".into());
+    }
     let root_by_provider = provider_roots(roots)?;
 
-    let mut entries: Vec<AcceptanceEntry> = Vec::with_capacity(sample.entries.len());
+    let mut entries: Vec<AcceptanceEntry> = Vec::with_capacity(entries_in.len());
     let mut probe = ProbeState::new(options.tamper_probe_entries);
     let mut total_wall_ms: u64 = 0;
     let mut max_wall_ms: u64 = 0;
 
-    for entry in &sample.entries {
+    for entry in entries_in {
         let root = *root_by_provider
             .get(&entry.provider)
             .ok_or_else(|| format!("no declared root for provider {}", entry.provider.as_str()))?;
@@ -1699,14 +1856,14 @@ pub fn run_acceptance_with(
         }
     }
 
-    finish_run(
-        sample,
-        sample_manifest_sha256,
+    Ok(BoundedAcceptanceRun {
         entries,
-        probe,
+        tamper_probe_entries: probe.done,
+        tamper_probe_detected: probe.detected,
+        tamper_probe_false_negative: probe.false_negative,
         total_wall_ms,
         max_wall_ms,
-    )
+    })
 }
 
 fn elapsed_ms(started: Instant) -> u64 {
