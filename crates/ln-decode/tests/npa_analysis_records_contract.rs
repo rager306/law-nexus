@@ -1,10 +1,10 @@
 //! T02 contract battery (M214-es3jvw S02).
 //!
 //! Executable core of `prd/architecture/npa-analysis-jsonl-contract.md` §8A.3:
-//! a reader primary view becomes an analysis block whose text is the ordered
-//! concatenation of its source-fragment segments (derived segments excluded),
-//! and a local analyzer span is localized to exactly one pinned fragment (or a
-//! closed refusal). Typed provenance (`unresolved`/`alternatives`/
+//! a reader primary view becomes an analysis block whose text is the full
+//! ordered concatenation of its source-fragment segments and derived separator
+//! literals, and a local analyzer span is localized to exactly one pinned
+//! fragment (or a closed refusal). Typed provenance (`unresolved`/`alternatives`/
 //! `type_evidence`) and anchor diagnostics survive with a source ref.
 //!
 //! Fixtures are inline non-legal synthetic WordML documents. Byte expectations
@@ -15,11 +15,11 @@ use ln_decode::analysis_source_mapping::{SourceIdentity, SourceMapping};
 use ln_decode::document_context::DocumentVersionRef;
 use ln_decode::npa_analysis_records::{
     analyze_typed, AnalysisBlock, AnalysisBlockLayout, AnalysisRefusalKind, BlockSegment,
-    DiagnosticKind, DiagnosticStage, TypedAnalysis,
+    DerivedBoundary, DiagnosticKind, DiagnosticStage, TypedAnalysis,
 };
 use ln_decode::npa_anchor::{LocalSpan, RejectReason};
 use ln_decode::npa_typed::TypeDerivation;
-use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
+use ln_decode::reader_contract::{FragmentRef, ReaderDerivedKind, ReaderRecordIndex};
 use ln_decode::reader_projection::{build_projection, ViewId};
 use ln_decode::source_package::{capture, Limits};
 
@@ -104,11 +104,18 @@ fn block_layout_concatenates_source_fragments_in_segment_order() {
 const TAB_WITH_TEXT: &str = "<w:p><w:r><w:t>Alpha</w:t><w:tab/></w:r></w:p>";
 
 #[test]
-fn block_layout_excludes_derived_segments() {
+fn block_layout_includes_derived_separators_as_typed_boundaries() {
     let (analysis, _) = analyze(&wrap(TAB_WITH_TEXT));
     let block = analysis.layout.block(0).expect("one block");
-    assert_eq!(block.text, "Alpha", "the derived tab is not block text");
+    assert_eq!(
+        block.text, "Alpha\t",
+        "the derived tab is the full literal in the block text"
+    );
     assert_eq!(block.segments.len(), 1, "only the source-fragment segment");
+    assert_eq!(block.boundaries.len(), 1, "the derived tab is a boundary");
+    let boundary = &block.boundaries[0];
+    assert_eq!(boundary.kind, ReaderDerivedKind::Tab);
+    assert_eq!((boundary.block_start, boundary.block_end), (5, 6));
 }
 
 const TAB_ONLY: &str = "<w:p><w:r><w:tab/></w:r></w:p>";
@@ -147,6 +154,7 @@ fn manual_layout() -> AnalysisBlockLayout {
                     fragment_end: 3,
                 },
             ],
+            boundaries: Vec::new(),
         }],
     }
 }
@@ -215,6 +223,77 @@ fn invalid_out_of_bounds_and_unmapped_spans_are_refused() {
             .token(),
         "unmapped_block"
     );
+}
+
+/// A layout with one derived TAB boundary at `[3,4)` over two source fragments
+/// `"abc"` (t0) and `"def"` (t1), so the block text is `"abc\tdef"`.
+fn boundary_layout() -> AnalysisBlockLayout {
+    AnalysisBlockLayout {
+        blocks: vec![AnalysisBlock {
+            index: 0,
+            view: ViewId::new("v0"),
+            text: "abc\tdef".to_string(),
+            segments: vec![
+                BlockSegment {
+                    fragment: FragmentRef::new("t0"),
+                    block_start: 0,
+                    block_end: 3,
+                    fragment_start: 0,
+                    fragment_end: 3,
+                },
+                BlockSegment {
+                    fragment: FragmentRef::new("t1"),
+                    block_start: 4,
+                    block_end: 7,
+                    fragment_start: 0,
+                    fragment_end: 3,
+                },
+            ],
+            boundaries: vec![DerivedBoundary {
+                kind: ReaderDerivedKind::Tab,
+                block_start: 3,
+                block_end: 4,
+            }],
+        }],
+    }
+}
+
+#[test]
+fn derived_boundary_refuses_a_crossing_span_and_keeps_source_spans() {
+    let layout = boundary_layout();
+
+    let refusal = layout
+        .localize(LocalSpan {
+            block: 0,
+            start: 2,
+            end: 5,
+        })
+        .expect_err("a span crossing the derived tab must be refused");
+    assert_eq!(
+        refusal.token(),
+        "derived_separator",
+        "the derived boundary is a closed refusal, never rebased"
+    );
+
+    let bound = layout
+        .localize(LocalSpan {
+            block: 0,
+            start: 2,
+            end: 3,
+        })
+        .expect("a span inside the first source fragment still resolves");
+    assert_eq!(bound.fragment, FragmentRef::new("t0"));
+    assert_eq!((bound.start, bound.end), (2, 3));
+
+    let bound = layout
+        .localize(LocalSpan {
+            block: 0,
+            start: 4,
+            end: 7,
+        })
+        .expect("a span inside the second source fragment still resolves");
+    assert_eq!(bound.fragment, FragmentRef::new("t1"));
+    assert_eq!((bound.start, bound.end), (0, 3));
 }
 
 // ----------------------------------------------------------- typed records #
@@ -381,6 +460,10 @@ fn refusal_and_diagnostic_tokens_are_the_closed_vocabulary() {
     assert_eq!(
         AnalysisRefusalKind::CrossFragment.as_str(),
         "cross_fragment"
+    );
+    assert_eq!(
+        AnalysisRefusalKind::DerivedSeparator.as_str(),
+        "derived_separator"
     );
     assert_eq!(AnalysisRefusalKind::OutOfBounds.as_str(), "out_of_bounds");
     assert_eq!(

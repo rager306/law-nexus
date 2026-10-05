@@ -1,11 +1,12 @@
 //! M214-es3jvw S02 T02: analysis blocks and typed records with source refs.
 //!
 //! Executable core of `prd/architecture/npa-analysis-jsonl-contract.md` §8A: a
-//! reader primary view becomes an analysis **block** whose text is the ordered
-//! concatenation of its source-fragment segments, and a local analyzer
-//! coordinate (`npa_anchor::LocalSpan`) is localized to exactly one pinned
-//! fragment. Every outcome carries either a resolved fragment-qualified span or
-//! a closed typed refusal — never a panic, never a dropped result.
+//! reader primary view becomes an analysis **block** whose text is the full
+//! ordered concatenation of its source-fragment segments and derived separator
+//! literals, and a local analyzer coordinate (`npa_anchor::LocalSpan`) is
+//! localized to exactly one pinned fragment. Every outcome carries either a
+//! resolved fragment-qualified span or a closed typed refusal — never a panic,
+//! never a dropped result.
 //!
 //! Scope is blocks plus the typed, **linked** and **classification** record
 //! streams: the JSONL envelope is a later task of the same slice. No second
@@ -27,7 +28,9 @@ use crate::npa_link::{
     LinkedRelation, LinkedRelationKind,
 };
 use crate::npa_typed::{self, TypeDerivation};
-use crate::reader_contract::{FragmentRef, ReaderFragmentSpan, ReaderRecordIndex};
+use crate::reader_contract::{
+    FragmentRef, ReaderDerivedKind, ReaderFragmentSpan, ReaderRecordIndex,
+};
 use crate::reader_projection::{
     ProjectedSegment, ReaderProjection, SegmentId, SegmentOrigin, ViewId,
 };
@@ -43,6 +46,9 @@ pub const TYPED_RULE: &str = "npa_typed::scan_typed_diagnosed";
 pub enum AnalysisRefusalKind {
     /// The span is not contained in a single fragment segment.
     CrossFragment,
+    /// The span crosses a derived separator boundary inside one block. The
+    /// separator is never rebased onto a fragment span.
+    DerivedSeparator,
     /// The span leaves the block text.
     OutOfBounds,
     /// The block index is absent from the layout.
@@ -58,6 +64,7 @@ impl AnalysisRefusalKind {
     pub const fn as_str(self) -> &'static str {
         match self {
             AnalysisRefusalKind::CrossFragment => "cross_fragment",
+            AnalysisRefusalKind::DerivedSeparator => "derived_separator",
             AnalysisRefusalKind::OutOfBounds => "out_of_bounds",
             AnalysisRefusalKind::UnmappedBlock => "unmapped_block",
             AnalysisRefusalKind::InvalidSpan => "invalid_span",
@@ -227,6 +234,19 @@ pub struct BlockSegment {
     pub fragment_end: usize,
 }
 
+/// One derived separator boundary inside a block: the reader control kind plus
+/// its half-open offsets in the concatenated block text. A derived boundary
+/// carries no fragment and no source span; it is never rebased onto a fragment.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DerivedBoundary {
+    /// The reader control that generated this separator.
+    pub kind: ReaderDerivedKind,
+    /// Half-open start offset in the block text.
+    pub block_start: usize,
+    /// Half-open end offset in the block text.
+    pub block_end: usize,
+}
+
 /// One analysis block: a non-empty reader primary view (§8A.3).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AnalysisBlock {
@@ -234,10 +254,15 @@ pub struct AnalysisBlock {
     pub index: usize,
     /// The reader view that produced this block.
     pub view: ViewId,
-    /// Ordered concatenation of the block's source-fragment segments.
+    /// Full ordered concatenation of the block's source-fragment segments and
+    /// derived separator literals (`TAB` / `LF`).
     pub text: String,
-    /// The ordered source-fragment segments.
+    /// The ordered source-fragment segments with block offsets computed over the
+    /// full [`AnalysisBlock::text`].
     pub segments: Vec<BlockSegment>,
+    /// The ordered derived separators, as typed boundaries without a fragment or
+    /// source span.
+    pub boundaries: Vec<DerivedBoundary>,
 }
 
 /// Ordered analysis blocks built from a reader projection (§8A.3).
@@ -263,9 +288,10 @@ impl AnalysisBlockLayout {
         self.blocks.iter().map(|block| block.text.clone()).collect()
     }
 
-    /// Localizes a local analyzer span to exactly one fragment (§8A.3). A span
-    /// that leaves its block, is empty, or straddles two fragments is a closed
-    /// refusal — never rebased, never dropped.
+    /// Localizes a local analyzer span to exactly one fragment (§8A.3). Refusal
+    /// order is `unmapped_block` -> `invalid_span` / `out_of_bounds` ->
+    /// `derived_separator` (the span crosses a derived boundary) ->
+    /// `cross_fragment`. Every refusal is closed — never rebased, never dropped.
     pub fn localize(&self, span: LocalSpan) -> Result<SourceBoundSpan, AnalysisRefusal> {
         let block = self
             .blocks
@@ -278,6 +304,15 @@ impl AnalysisBlockLayout {
                 SpanError::NotCharBoundary => AnalysisRefusalKind::InvalidSpan,
             };
             return Err(AnalysisRefusal::local(kind));
+        }
+        if block
+            .boundaries
+            .iter()
+            .any(|boundary| span.start < boundary.block_end && boundary.block_start < span.end)
+        {
+            return Err(AnalysisRefusal::local(
+                AnalysisRefusalKind::DerivedSeparator,
+            ));
         }
         let segment = block
             .segments
@@ -292,9 +327,12 @@ impl AnalysisBlockLayout {
 
 /// Builds the ordered analysis blocks from a reader projection and its
 /// substrate index (§8A.3). Primary views are taken in document order; each
-/// block text is the ordered concatenation of its source-fragment segments
-/// (derived segments excluded) read from `ReaderRecordIndex`; empty blocks are
-/// skipped.
+/// block text is the full ordered concatenation of its source-fragment segments
+/// and derived separator literals (`TAB` / `LF`) read from `ReaderRecordIndex`.
+/// Derived separators are recorded as typed [`DerivedBoundary`] values without a
+/// fragment or source span. A block is emitted only when at least one source
+/// fragment contributed non-empty text, so a derived-only view is not a block
+/// and empty blocks are skipped.
 pub fn build_analysis_block_layout(
     projection: &ReaderProjection,
     index: &ReaderRecordIndex,
@@ -311,6 +349,8 @@ pub fn build_analysis_block_layout(
         }
         let mut text = String::new();
         let mut segments: Vec<BlockSegment> = Vec::new();
+        let mut boundaries: Vec<DerivedBoundary> = Vec::new();
+        let mut has_source_text = false;
         for segment_id in &view.segment_refs {
             let segment = segment_by_id.get(segment_id).copied().ok_or_else(|| {
                 structural(format!(
@@ -318,34 +358,49 @@ pub fn build_analysis_block_layout(
                     view.id, segment_id
                 ))
             })?;
-            if segment.origin != SegmentOrigin::SourceFragment {
-                continue;
+            match segment.origin {
+                SegmentOrigin::SourceFragment => {
+                    let fragment = segment.fragment_ref.clone().ok_or_else(|| {
+                        structural(format!("segment {segment_id} has no source fragment"))
+                    })?;
+                    let value = index
+                        .text(fragment.as_str())
+                        .map(|record| record.value.as_str())
+                        .ok_or_else(|| {
+                            unknown_fragment(format!(
+                                "fragment {fragment} is missing from the substrate index"
+                            ))
+                        })?;
+                    let block_start = text.len();
+                    text.push_str(value);
+                    let block_end = text.len();
+                    if !value.is_empty() {
+                        has_source_text = true;
+                    }
+                    let fragment_start = segment.span.as_ref().map_or(0, |span| span.start);
+                    let fragment_end = segment.span.as_ref().map_or(value.len(), |span| span.end);
+                    segments.push(BlockSegment {
+                        fragment,
+                        block_start,
+                        block_end,
+                        fragment_start,
+                        fragment_end,
+                    });
+                }
+                SegmentOrigin::Derived(kind) => {
+                    let literal = segment.text.as_deref().unwrap_or(kind.literal());
+                    let block_start = text.len();
+                    text.push_str(literal);
+                    let block_end = text.len();
+                    boundaries.push(DerivedBoundary {
+                        kind,
+                        block_start,
+                        block_end,
+                    });
+                }
             }
-            let fragment = segment.fragment_ref.clone().ok_or_else(|| {
-                structural(format!("segment {segment_id} has no source fragment"))
-            })?;
-            let value = index
-                .text(fragment.as_str())
-                .map(|record| record.value.as_str())
-                .ok_or_else(|| {
-                    unknown_fragment(format!(
-                        "fragment {fragment} is missing from the substrate index"
-                    ))
-                })?;
-            let block_start = text.len();
-            text.push_str(value);
-            let block_end = text.len();
-            let fragment_start = segment.span.as_ref().map_or(0, |span| span.start);
-            let fragment_end = segment.span.as_ref().map_or(value.len(), |span| span.end);
-            segments.push(BlockSegment {
-                fragment,
-                block_start,
-                block_end,
-                fragment_start,
-                fragment_end,
-            });
         }
-        if text.is_empty() {
+        if !has_source_text {
             continue;
         }
         let block_index = blocks.len();
@@ -354,6 +409,7 @@ pub fn build_analysis_block_layout(
             view: view.id.clone(),
             text,
             segments,
+            boundaries,
         });
     }
     Ok(AnalysisBlockLayout { blocks })
