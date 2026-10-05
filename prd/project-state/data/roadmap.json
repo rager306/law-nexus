@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-10-04T14:58:00Z",
+  "generated_at": "2026-10-05T02:10:00Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -561,18 +561,24 @@
       "theme": "R1000 closure remainder: cleaned structural JSONL projection with export, read-back, navigation and Hold/TextOnly",
       "status": "complete",
       "boundary": "Four slices over the frozen substrate deliver the serde-free cleaned structural JSONL projection: S01 tracked contract prd/architecture/cleaned-projection-contract.md plus the LF-JSONL envelope law-nexus/cleaned-projection/v1 with a canonical completion classifier; S02 typed read-back, named exporter and independent verification; S03 serde-free navigation index with bounded footnote resolution and a fail-closed CyclicViewGraph; S04 Hold/TextOnly semantics through a closed producer-declared classifier (Complete iff SupportedWordml and WholeProjection) with no decoded-text loss. Verification on revision sha256:d30d5399 records 34 contract, 3 integration (plus 1 ignored in the out-of-band declared-slice sweep), 11 operational and 1076 full-regression tests with 0 failed. Metrics are integrity, not coverage (D600/D601); one fixture exceeds the 512 MiB serialized-package cap and is recorded as a closed PackageTooLarge outcome rather than a silent skip. R1000 stays active (milestone closure is not requirement closure) with the D638 owner-record follow-up tracked separately; frozen surfaces untouched and no requirement promoted."
+    },
+    {
+      "range": "M214-M214",
+      "theme": "Integrated Rust NPA analysis path: source-bound mapping, document-scoped analysis JSONL, contextual family with independent verification, and bounded corpus acceptance with fail-closed artifact publication",
+      "status": "complete",
+      "boundary": "Four slices build one executable Rust path from XML to document-scoped NPA/context JSONL: S01 fixes the source-to-analysis mapping contract (pinned source identity, half-open UTF-8 coordinates, distinct token views, closed MappingRefusalKind) with an integration battery on approved fixtures and one bounded real 435-FZ; S02 materialises document-level typed/linked/classified records with resolved or closed-refused source refs plus an LF-JSONL envelope with non-cyclic seals and validate-before-write limits; S03 adds an opt-in context family over unchanged index/overlay/worklist with read-back of all seven families and an independent verifier that re-derives records from the pinned parent and catches a resealed substitution of source refs, relations, fragment hashes or context status, while an empty context stays byte-identical to S02; S04 runs a pinned provider/work-family stratified sample (N=400, seed=20308) through export/read/verify: verdict=pass, 400/400 verified_ok, structural_failures=0, refusals=0, tamper 12/12, limit_events_total=0, within budget, with a structural-only semantic section (promotion=false, semantic_reference_status=absent, coverage_claim=null). Remediation round 0 returned needs-attention solely on SC4/Operational because the S04 binaries lacked an output-path safety contract; round 1 closed it in code with a shared fail-closed publication module (create_new, refusal of a symlinked parent and of a symlinked or non-regular target, --force only as atomic replacement, refusal of --out aliasing --sample and of colliding outputs) covered by eight negative cases, and the milestone was re-validated pass at revision sha256:ddb108a1. R1000 stays active/unclosed (corpus-wide acceptance and display-cleaning remain open), R038/R063 keep their own owners, no requirement was promoted, M208-wrz6fg stays parked and M215-M220 do not start."
     }
   ],
   "current_milestone": {
-    "id": "M213-t6p7d0",
+    "id": "M214-es3jvw",
     "status": "complete",
-    "title": "Закрытие R1000: очищенная структурная JSONL-проекция с экспортом, read-back, навигацией и Hold-TextOnly",
-    "goal": "Доставить serde-free очищенную структурную JSONL-проекцию с read-back, независимой проверкой, навигационными связями, сохранением текста Hold/TextOnly и детерминированной приёмкой объявленного среза из 82 файлов. R1000 остаётся active с честным остатком; корпусная полнота, качество retrieval и продуктовый рантайм не заявляются."
+    "title": "Сквозной Rust-контур анализа НПА и контекстного JSONL",
+    "goal": "Соединить source-bound mapping, документный NPA-analysis JSONL, контекстную семью с независимой проверкой и bounded корпусную приёмку в один исполняемый Rust-путь. R1000 остаётся active/unclosed; semantic gold, corpus-wide приёмка и продуктовый рантайм не заявляются."
   },
   "recommended_next": {
-    "title": "M214-es3jvw: integrated Rust NPA analysis and contextual JSONL foundation",
-    "why": "Connect existing source/reader/cleaned fragments, typed/linked/classified NPA analysis and document context through source-bound identities and UTF-8 coordinates, document-level analytical output, read-back and independent verification. Structural JSONL integrity alone does not prove semantic context or corpus accuracy.",
-    "constraint": "D651 supersedes the execution priority of D650. M215-M220 must remain parked until foundation evidence and their input contracts are reassessed and explicitly released. The former temporal plan is preserved in M214 RESEARCH and must be reconciled with parked M208. No automatic R1000 closure, lifecycle promotion or auto restart."
+    "title": "Operator decision required: all remaining milestones are parked",
+    "why": "M214-es3jvw completed and validated pass (remediation round 1). The GSD engine now reports that every remaining milestone is parked (M208-wrz6fg, M215-w9jsgn, M216-8dps6e, M217-kbike0, M218-xnkwf0, M219-2erzz3, M220-djlrxl) and will not start one without an explicit unpark or a new milestone.",
+    "constraint": "Do not auto-start the horizon. Unparking M215-M220 requires the M214 foundation evidence to be re-read against their own input contracts first, and M208 needs a separate decision about its relation to the preserved temporal plan in 214-RESEARCH.md. Auto and wakeup remain stopped; parked is a real gate, not prose."
   },
   "downstream_blocked": [
     {
@@ -820,6 +826,11 @@
       "id": "roadmap-sync-20261004-m213-complete-m214-horizon",
       "lifecycle": "proposed",
       "text": "GSD sync (2026-10-04): M211-hkknug, M212-c25p2o and M213-t6p7d0 are complete with validation pass records, so completed_milestone_groups gains M211-M211, M212-M212 and M213-M213 and current_milestone moves M210 -> M213. recommended_next moves off the stale M203 pointer onto the active next wave M214-es3jvw, and the long-horizon queue is recorded as M214..M220 (temporal typing, embedding supply chain, retrieval evidence chain, graph-vector materialization, typed KnowQL plus generated-Cypher safety, access-control boundaries, ODT evidence boundaries). R1000 stays active; M208-wrz6fg stays parked and is deliberately absent from the completed groups."
+    },
+    {
+      "id": "roadmap-sync-20261005-m214-complete-horizon-held",
+      "lifecycle": "proposed",
+      "text": "GSD sync (2026-10-05): M214-es3jvw completed 2026-10-05T02:03:44Z and was validated pass at remediation round 1 (revision sha256:ddb108a1b4e3ed54d56048f60c982ddfe1df10ba3cfd725c8c4094586fc3cc8f), so completed_milestone_groups gains M214-M214 and current_milestone moves M213 -> M214. recommended_next no longer names an execution step: with M214 closed the engine reports active=0, pending=0 and seven parked milestones, and it explicitly refuses to start one without an operator unpark. Honest residuals recorded: R1000 active/unclosed (corpus-wide acceptance and display-cleaning still open), R038/R063/R064/R071 active with their own owners, semantic adjudication deliberately absent (structural-only), no corpus-wide acceptance claim, M208-wrz6fg still parked, and a pre-existing unrelated ln-consultant-parser test failure in amendment_provenance recorded as open repository debt rather than an M214 regression."
     }
   ]
 }
