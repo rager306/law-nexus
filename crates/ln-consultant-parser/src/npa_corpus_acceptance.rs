@@ -37,7 +37,9 @@ use ln_decode::npa_analysis_wire::{
     recompute_analysis_seals, render_npa_analysis_with_context, AnalysisEnvelopeRequest,
     AnalysisLimits, AnalysisScope, AnalysisWireErrorKind,
 };
-use ln_decode::npa_context_records::build_context_records;
+use ln_decode::npa_context_consumer::{
+    consume_document_this_document_reference, ThisDocumentReferenceOutcome,
+};
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
 use ln_decode::reader_gate::gate_reader;
 use ln_decode::reader_projection::{build_projection, ReaderProjection};
@@ -581,6 +583,44 @@ impl CorpusSampleManifest {
     }
 }
 
+/// Closed, count-only token for the bounded this-document reference decision
+/// (§8C): the per-document consumer outcome, never decoded text.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ThisDocumentReferenceToken {
+    /// A `resolved` requisites result carries the authorizing inherited claim.
+    Authorized,
+    /// A requisites result conflicts, or a `resolved` result lacks the claim.
+    Conflicting,
+    /// A requisites result is unavailable.
+    Unavailable,
+    /// No requisites request was emitted.
+    NotRequested,
+}
+
+impl ThisDocumentReferenceToken {
+    /// Closed token for the decision.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Authorized => "authorized",
+            Self::Conflicting => "conflicting",
+            Self::Unavailable => "unavailable",
+            Self::NotRequested => "not_requested",
+        }
+    }
+}
+
+impl From<&ThisDocumentReferenceOutcome> for ThisDocumentReferenceToken {
+    fn from(outcome: &ThisDocumentReferenceOutcome) -> Self {
+        match outcome {
+            ThisDocumentReferenceOutcome::Authorized { .. } => Self::Authorized,
+            ThisDocumentReferenceOutcome::Conflicting => Self::Conflicting,
+            ThisDocumentReferenceOutcome::Unavailable => Self::Unavailable,
+            ThisDocumentReferenceOutcome::NotRequested => Self::NotRequested,
+        }
+    }
+}
+
 /// Per-entry JSONL record (the acceptance report's companion detail).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -596,6 +636,10 @@ pub struct AcceptanceEntry {
     pub verify_code: Option<VerifyCodeToken>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit_kind: Option<LimitKind>,
+    /// The bounded this-document reference decision computed by the consumer
+    /// seam for a verified entry (never decoded text).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub this_document_reference: Option<ThisDocumentReferenceToken>,
     pub wall_ms: u64,
 }
 
@@ -1568,11 +1612,15 @@ pub fn run_acceptance(
 /// reader_projection::build_projection -> ReaderRecordIndex::new ->
 /// SourceMapping` (every `index.texts()` fragment pinned), then
 /// `npa_analysis_records::analyze_document ->
-/// npa_context_records::build_context_records ->
-/// npa_analysis_wire::render_npa_analysis_with_context`, then
+/// npa_context_consumer::consume_document_this_document_reference`
+/// (build the context family and consume it for the bounded this-document
+/// reference decision), then
+/// `npa_analysis_wire::render_npa_analysis_with_context`, then
 /// `npa_analysis_verify::read_back_npa_analysis` + `verify_npa_analysis_wire`.
 /// Every failure maps to a closed [`EntryOutcome`]; declared
-/// [`AnalysisLimits`] pressure is recorded as closed [`LimitKind`] events.
+/// [`AnalysisLimits`] pressure is recorded as closed [`LimitKind`] events. The
+/// per-document consumer decision is recorded as the closed
+/// [`ThisDocumentReferenceToken`] on a verified entry.
 ///
 /// The declared tamper probe injects a resealed member-span or fragment
 /// substitution into rendered entries and asserts the independent verifier
@@ -1673,6 +1721,7 @@ struct Rendered {
     projection: ReaderProjection,
     index: ReaderRecordIndex,
     mapping: SourceMapping,
+    this_document_reference: ThisDocumentReferenceToken,
 }
 
 enum RenderAttempt {
@@ -1710,7 +1759,7 @@ fn process_entry(
         Ok(bytes) => bytes,
         Err(_) => {
             return (
-                entry_record(entry, EntryOutcome::ManifestPinMismatch, None, None),
+                entry_record(entry, EntryOutcome::ManifestPinMismatch, None, None, None),
                 None,
             )
         }
@@ -1718,20 +1767,32 @@ fn process_entry(
     let observed = hex_lower(&Sha256::digest(&bytes));
     if bytes.len() as u64 != entry.bytes || observed != normalize_sha256(&entry.sha256) {
         return (
-            entry_record(entry, EntryOutcome::ManifestPinMismatch, None, None),
+            entry_record(entry, EntryOutcome::ManifestPinMismatch, None, None, None),
             None,
         );
     }
     match render_entry(&bytes, &document_version_ref, limits) {
-        RenderAttempt::Rendered(rendered) => (
-            entry_record(entry, EntryOutcome::VerifiedOk, None, None),
-            Some(*rendered),
-        ),
+        RenderAttempt::Rendered(rendered) => {
+            let this_document_reference = rendered.this_document_reference;
+            (
+                entry_record(
+                    entry,
+                    EntryOutcome::VerifiedOk,
+                    None,
+                    None,
+                    Some(this_document_reference),
+                ),
+                Some(*rendered),
+            )
+        }
         RenderAttempt::Refused {
             outcome,
             verify_code,
             limit_kind,
-        } => (entry_record(entry, outcome, verify_code, limit_kind), None),
+        } => (
+            entry_record(entry, outcome, verify_code, limit_kind, None),
+            None,
+        ),
     }
 }
 
@@ -1740,6 +1801,7 @@ fn entry_record(
     outcome: EntryOutcome,
     verify_code: Option<VerifyCodeToken>,
     limit_kind: Option<LimitKind>,
+    this_document_reference: Option<ThisDocumentReferenceToken>,
 ) -> AcceptanceEntry {
     AcceptanceEntry {
         relative_path: entry.relative_path.clone(),
@@ -1751,6 +1813,7 @@ fn entry_record(
         outcome,
         verify_code,
         limit_kind,
+        this_document_reference,
         wall_ms: 0,
     }
 }
@@ -1810,7 +1873,8 @@ fn render_entry(
         Ok(analysis) => analysis,
         Err(_) => return RenderAttempt::refused(EntryOutcome::AnalysisRefused),
     };
-    let contexts = build_context_records(&analysis.layout, &mapping);
+    let (contexts, this_ref) = consume_document_this_document_reference(&analysis.layout, &mapping);
+    let this_document_reference = ThisDocumentReferenceToken::from(&this_ref);
     let request = AnalysisEnvelopeRequest {
         analysis: &analysis,
         projection: &projection,
@@ -1846,6 +1910,7 @@ fn render_entry(
             projection,
             index,
             mapping,
+            this_document_reference,
         })),
         Err(findings) => {
             let verify_code = findings
