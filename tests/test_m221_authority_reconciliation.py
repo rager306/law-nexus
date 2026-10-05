@@ -41,9 +41,24 @@ EDITABLE_SURFACES = frozenset(
         "doc/adr/0029-requisites-anchored-member-assembly-fsm.md",
         "doc/adr/README.md",
         "README.md",
+        "doc/adr-architecture-cross-matrix.md",
         "assessment/34-rust-npa-foundation-readiness-audit.md",
     }
 )
+
+# The four cold authority surfaces reconciled in T02. Each must drop the
+# stale "no Rust engine code" claim and acknowledge the bounded M211 runtime.
+AUTHORITY_SURFACES: dict[str, str] = {
+    "adr": "doc/adr/0029-requisites-anchored-member-assembly-fsm.md",
+    "architecture": "prd/ARCHITECTURE.md",
+    "adr_readme": "doc/adr/README.md",
+    "root_readme": "README.md",
+}
+
+CROSS_MATRIX = "doc/adr-architecture-cross-matrix.md"
+
+# M173 S02 one-pager budget; a documentation reconciliation may not grow it.
+ARCHITECTURE_LINE_BUDGET = 325
 
 
 class PinContractError(AssertionError):
@@ -57,6 +72,12 @@ def _require(condition: bool, message: str) -> None:
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _surface_text(relative: str) -> str:
+    path = REPO_ROOT / relative
+    _require(path.is_file(), f"missing surface: {relative}")
+    return path.read_text(encoding="utf-8")
 
 
 def _load_pin() -> dict[str, Any]:
@@ -185,3 +206,59 @@ def test_pinning_an_editable_surface_is_rejected() -> None:
         pinned = {binding["path"] for binding in pin["source_bindings"]}
         overlap = pinned.intersection(EDITABLE_SURFACES)
         _require(not overlap, f"pin hashes editable surface(s): {sorted(overlap)}")
+
+
+# --- surface reconciliation (T02) -------------------------------------------
+
+
+def test_no_authority_surface_keeps_stale_no_rust_claim() -> None:
+    for name, relative in AUTHORITY_SURFACES.items():
+        text = _surface_text(relative)
+        _require(
+            "no Rust engine code" not in text,
+            f"{name} still carries the stale 'no Rust engine code' claim",
+        )
+
+
+def test_adr_0029_status_names_bounded_m211_runtime() -> None:
+    normalized = " ".join(_surface_text(AUTHORITY_SURFACES["adr"]).split())
+    _require("M211" in normalized, "ADR-0029 Status must cite M211")
+    _require("bounded" in normalized.lower(), "ADR-0029 Status must mark the runtime bounded")
+    for token in ("npa_anchor", "npa-integration-runner"):
+        _require(token in normalized, f"ADR-0029 Status must name {token}")
+
+
+def test_index_and_root_readme_mention_m211_bounded_runtime() -> None:
+    index = " ".join(_surface_text(AUTHORITY_SURFACES["adr_readme"]).split())
+    root = " ".join(_surface_text(AUTHORITY_SURFACES["root_readme"]).split())
+    for name, text in (("doc/adr/README.md", index), ("README.md", root)):
+        _require("M211" in text, f"{name} must mention M211")
+        _require("bounded" in text.lower(), f"{name} must mark the runtime bounded")
+
+
+def test_architecture_page_budget_holds() -> None:
+    line_count = len(_surface_text(AUTHORITY_SURFACES["architecture"]).splitlines())
+    _require(
+        line_count <= ARCHITECTURE_LINE_BUDGET,
+        f"prd/ARCHITECTURE.md grew to {line_count} lines (budget {ARCHITECTURE_LINE_BUDGET})",
+    )
+
+
+def test_cross_matrix_companion_points_at_pin() -> None:
+    text = _surface_text(CROSS_MATRIX)
+    _require(
+        "m221-s05-docs-reconciliation.yaml" in text,
+        "cross-matrix companion must point at the S05 reconciliation pin",
+    )
+    _require("M221/S05" in text, "cross-matrix companion must be labelled M221/S05")
+
+
+def test_adr_matrix_keeps_adr_0029_proposed() -> None:
+    from law_nexus_harness.adr_matrix import build_adr_matrix
+
+    rows = {row["adr_id"]: row for row in build_adr_matrix(REPO_ROOT)["rows"]}
+    _require("ADR-0029" in rows, "ADR matrix must include ADR-0029")
+    row = rows["ADR-0029"]
+    _require(row["status_lifecycle"] == "proposed", "ADR-0029 status lifecycle must stay proposed")
+    _require(row["oracle_lifecycle"] == "proposed", "ADR-0029 oracle lifecycle must stay proposed")
+    _require(row["index_lifecycle"] == "proposed", "ADR-0029 index lifecycle must stay proposed")
