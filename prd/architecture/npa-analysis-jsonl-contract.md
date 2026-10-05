@@ -1,16 +1,19 @@
 # NPA source-to-analysis JSONL integration contract
 
-**Status:** `[bounded]` successor revision — S02 record schema (§8A) and
-the S03 context family, read-back and independent verifier (§8B);
+**Status:** `[bounded]` successor revision — S02 record schema (§8A),
+the S03 context family, read-back and independent verifier (§8B), and
+the S03 consumer contract, requisites source and trigger policy (§8C);
 no runtime in this task
 **Owning slice:** `M214-es3jvw` / `S01` — T01 tracked contract;
 executable seam and tests are S01/T02–T03, document output is S02
 **Successor revision:** S02 adds the full record field lists in §8A and
 defers the `context` family to S03 (D658); S03 adds the opt-in `context`
 family, the `context_incomplete` completion basis and the
-read-back/independent-verifier admission in §8B (D661/D662/D663). The
-S01 discipline (§1–§7) and the S02 six-family envelope are unchanged;
-an empty context stays byte-identical to S02. `[bounded]`
+read-back/independent-verifier admission in §8B (D661/D662/D663), and
+fixes the bounded consumer seam, the deterministic requisites source and
+the deliberate trigger policy in §8C. The S01 discipline (§1–§7) and the
+S02 six-family envelope are unchanged; an empty context stays
+byte-identical to S02. `[bounded]`
 **Authority:** ADR-0013 (universal multi-source parser), ADR-0015
 (hexagonal verification architecture), ADR-0028 (typed lexer / dual
 tokenizer), ADR-0029 (requisites-anchored member assembly — anchor
@@ -322,7 +325,7 @@ Rules:
 | classification | `GraphClass::{IdentifyingAct, Hold, Overlay, Refuse}` + axes B–H + `IdentityKey` (`do_not_project`, `overlay_not_rank`, `deferred-undefined`, `hold` are explicit non-projections) + `ClassificationDiagnostic` |
 | local grammar | `FrameStatus::{Proposed, Ambiguous, Rejected}`, `FrameDiagnostic`, `FrameLimitOutcome`, `FrameAdmission`, `EnumerationState` |
 | LawRef capture | `LawRefCaptureBatch` limit outcome + `PairDiagnostic` |
-| document context | `ContextStatus::{Resolved, Partial, Conflicting, Unavailable, Cycle, Limit}`, `ContextClaimStatus`, `DerivationRelation`, `ContextDiagnostic` |
+| document context | `ContextStatus::{Resolved, Partial, Conflicting, Unavailable, Cycle, Limit}`, `ContextClaimStatus`, `DerivationSource` (claim derivation) / `DerivationRelation` (edge relation), `ContextDiagnostic` |
 | source-mapping seam (T02) | closed refusal classes (exact Rust identifiers chosen by T02): coordinate `EmptyOrInverted` / `OutOfBounds` / `NotCharBoundary` (reusing `npa_anchor::SpanError` / `reader_contract::ContractErrorKind` vocabulary), `UnknownFragment`, `CrossDocument`, `SourceIdentityMismatch`, `DocumentVersionMismatch`, `TokenViewMismatch`, `UnsupportedMapping`, envelope-structural refusal, temporal-field-forbidden, corpus-transfer-forbidden |
 
 ### 7.2 Provenance rules
@@ -734,9 +737,10 @@ Common to every context line: `family: "context"`, `schema`, `kind`
   `conflicting`, `unavailable`, `cycle`, `limit`;
 - `claims` — zero or more context claim records, each carrying `field`,
   `claim_status` (closed `ContextClaimStatus`: `explicit`, `inherited`,
-  `conflicting`, `unresolved`), `derivation` (closed `DerivationRelation`:
-  `derived_from`, `supports`), `source_node_ref`, and a localized
-  `anchor` (span or closed refusal);
+  `conflicting`, `unresolved`), `derivation` (closed `DerivationSource`:
+  `explicit_member`, `same_series_head`, `prior_frame`,
+  `authorized_current_document_requisites`; §8C.4), `source_node_ref`, and
+  a localized `anchor` (span or closed refusal);
 - `derivations` — zero or more derivation edges, each carrying `from`,
   `to`, `relation` (`derived_from` | `supports`), `status` and a
   localized `anchor`;
@@ -868,6 +872,112 @@ resulting `SourceBlockNode.local_anchor()` `TextSpan` is localized
 through the same `AnalysisBlockLayout` as §8B.2. `document_context` and
 `npa_context_baseline` are not rewritten, and the synthetic
 `SourceLocation` is never serialized to the wire. `[bounded]`
+
+## 8C. S03 consumer contract, requisites source and trigger policy (successor revision)
+
+`[bounded]` This successor revision fixes the S03 consumer seam and the
+requisites/trigger discipline on top of §8B. It mints **no** new Rust
+type at the contract level, promotes **no** lifecycle, and closes **no**
+requirement. The exact Rust identifiers below are the S03
+implementation surface audited in `crates/ln-decode/src`; that revision
+is additive and leaves `document_context`, `current_requisites` and
+`npa_link` unrewritten. `[bounded]`
+
+**Producer and consumer.** `[bounded]` The context producer is the
+unchanged `npa_context_records::build_context_records(layout, mapping)`
+(§8B.5); its signature is frozen by this revision. The S03 consumer is
+the new bounded module `npa_context_consumer`, exposing the closed enum
+`ThisDocumentReferenceOutcome` (`Authorized { claim_ref }`,
+`Conflicting`, `Unavailable`, `NotRequested`) and the pure function
+`consume_this_document_reference(records: &[ContextRecord]) ->
+ThisDocumentReferenceOutcome`. This is a **bounded consumer contract**
+over the emitted `context` family: it is **not** feedback into
+`npa_typed`/`npa_link`/`npa_classify`, it is **not** a second analysis
+pass, and it is **not** legal-semantic acceptance. `[bounded]`
+
+### 8C.1 Requisites source (deterministic, from the pinned parent)
+
+`[bounded]` The `CurrentDocumentRequisites` sidecar is rebuilt
+deterministically from the pinned parent inside `ln-decode`: the
+`AnalysisBlockLayout` block texts (in document order) are collected into
+`Vec<String>` and passed to `npa_link::recognize_letterhead(&paras)`.
+When the recognizer returns `Some(letterhead)`, claims are built from the
+recognized fields — `Type` from `letterhead.kind`, `Org` from
+`letterhead.issuer` (only when non-empty), `Date`/`Number` only from a
+real value (never the placeholder `—`) — each as a `RequisitesClaim`
+(`RequisitesSourceKind::DocumentHead`,
+`RequisitesExtractionStatus::Observed`) with
+`SourceAnchor::try_new(TextSpan::try_new(start, end),
+format!("block-{block}"))` taken from the `Letterhead::evidence`
+`LocalSpan`. The claims are assembled with
+`CurrentDocumentRequisites::try_new(mapping.version().document_version_ref(),
+claims)`. No recognized letterhead → `None`. `[bounded]`
+
+**No external sidecar.** `[bounded]` The requisites source is **not** an
+on-disk file, a caller-supplied sidecar, or a new `build_context_records`
+parameter. The sidecar is a pure function of `layout` + `mapping`, so the
+independent verifier's re-derivation of `build_context_records` (§8B.4
+step 4) reproduces it exactly; a divergence is
+`context_outcome_mismatch`, never a silent pass. `[bounded]`
+
+### 8C.2 Trigger policy (deliberate emission)
+
+`[bounded]` `build_requests` emits a request only on the evidence named
+below; a candidate that lacks its evidence is **not** enqueued ("do not
+enqueue every possible request merely to improve counts"). `[bounded]`
+
+| request kind | emitted when | evidence / key |
+|---|---|---|
+| `current_document_requisites` | exactly once per document, and only when a this-ref surface exists: some block has non-empty `document_context::detect_this_ref_grammar(&block.text)` | origin = first frame of that block; `ContextRequest::current_document_requisites(origin, ThisRefGrammarEvidence::new([RequisitesField::Type]))` |
+| `open_series_head` | only for a proven continuation tail: a frame with an incoming non-rejected `ContinuesSeries` edge (`edge.to == frame.frame_ref`, `edge.status != Rejected`) | `ContextRequest::new(OpenSeriesHead, …)` with the frame ref |
+| `explicit_anchor_lookup` | only for a frame whose block carries at least one captured explicit mention in `DocumentAnalysisOverlay::mentions()` with the same `block_id` | `ContextRequest::new(ExplicitAnchorLookup, …, explicit_key = frame ref)` |
+| `ancestor_path`, `adjacent_blocks`, `scoped_alias` | **never** | — |
+
+When no request meets its trigger, `build_requests` returns an empty
+list and `build_context_records` returns a single empty run record (zero
+requests). `[bounded]`
+
+### 8C.3 Closed outcome surface
+
+`[bounded]` The emitted requisites result maps to closed `ContextStatus`
+outcomes and closed consumer outcomes (D661 guard in
+`document_context::current_document_requisites`): `[bounded]`
+
+| condition | `ContextStatus` | diagnostic | consumer outcome |
+|---|---|---|---|
+| sidecar present and the admitted fields are agreed | `resolved` | — | `Authorized { claim_ref }` |
+| sidecar present, an admitted field is not agreed | `partial` | `inherited_field_conflict` | `Conflicting` |
+| no sidecar for a this-ref surface | `unavailable` | `missing_current_requisites` | `Unavailable` |
+| no this-ref surface (no request emitted) | — | — | `NotRequested` |
+| request reached `cycle` / `limit` | `cycle` / `limit` | closed diagnostic | `Unavailable` |
+
+`[bounded]` The consumer is fail-closed: a `Resolved` result **without** a
+claim whose `derivation == DerivationSource::AuthorizedCurrentDocumentRequisites`
+and `claim_status == ContextClaimStatus::Inherited` is `Conflicting`, not
+`Authorized`. No variant carries decoded text. `[bounded]`
+
+### 8C.4 Derivation wording reconciliation
+
+`[bounded]` A context claim's `derivation` field publishes the closed
+`DerivationSource` token set — `explicit_member`, `same_series_head`,
+`prior_frame`, `authorized_current_document_requisites` (RC28-F08). The
+closed `DerivationRelation` token set — `derived_from`, `supports` —
+belongs to the `derivations` **edges** (`relation`), not to claims. This
+revision corrects the §8B.2 parenthetical accordingly; no third
+formulation is minted. `[bounded]`
+
+### 8C.5 Non-claims
+
+- `[bounded]` Not an R1000 closure artifact: R1000 stays active and
+  unclosed (D638/D656). Integrity, completeness and semantic correctness
+  remain separate; a green context consumer is not coverage.
+- `[bounded]` Downstream admission (§10) stays parked: the consumer is
+  scoped to this-document reference resolution and does not resume M208
+  or start any later milestone.
+- `[bounded]` S02 empty-context byte-stability is preserved (D662): with
+  no this-ref surface no requisites request is emitted, so the
+  empty-context render stays byte-identical to the S02 receipt; the S02
+  receipt is not touched.
 
 ## 9. Temporal scope (stop-signs)
 
@@ -1080,14 +1190,17 @@ relation — provenance survives the missing span.
   gates `cargo fmt --all --check`, `cargo clippy --workspace
   --all-targets --offline -- -D warnings`, `cargo check --workspace
   --offline`.
-- **S03 verification surface (§8B):** suites
-  `npa_analysis_context_contract`, `npa_analysis_wire_context`,
+- **S03 verification surface (§8B, §8C):** suites
+  `npa_analysis_context_contract`,
+  `npa_analysis_context_requisites_contract`,
+  `npa_context_consumer_contract`, `npa_analysis_wire_context`,
   `npa_analysis_verify_contract`, `npa_analysis_verify_hostile`,
   `npa_analysis_export_integration`; read-back `read_back_npa_analysis`;
   independent verifier `verify_npa_analysis_wire` with the closed
-  `AnalysisVerifyCode`; portable count/hash receipt
-  `prd/migration/rust-evidence/m214-s03-context-verify.json`; workspace
-  gates as above.
+  `AnalysisVerifyCode`; bounded consumer `consume_this_document_reference`
+  with the closed `ThisDocumentReferenceOutcome`; portable count/hash
+  receipt `prd/migration/rust-evidence/m214-s03-context-verify.json`;
+  workspace gates as above.
 - **Examples:** §11–§12 are normative and must stay consistent with the
   Rust enums they name.
 
