@@ -3,7 +3,7 @@
 Status: [bounded] code audit and synthetic executable probes, not corpus semantic acceptance.
 Reviewed base: `24b8872`. Product source was not changed by the audit. No parked milestone was released.
 
-Remediation update (M221-wbslul S01 T01, S02 T01–T04, S03 T01–T04): F01 is fixed under the new closed code `manifest_identity_mismatch`. F02 is fixed under the new typed `DerivedBoundary` plane and the closed code `derived_separator`. F03's bounded context-consumer/requisites path is closed under S03 (see the F03 closure pointer). F04–F06 remain open; this milestone does not release M208/M215–M220.
+Remediation update (M221-wbslul S01 T01, S02 T01–T04, S03 T01–T04, S04 T01–T05): F01 is fixed under the new closed code `manifest_identity_mismatch`. F02 is fixed under the new typed `DerivedBoundary` plane and the closed code `derived_separator`. F03's bounded context-consumer/requisites path is closed under S03 (see the F03 closure pointer). F04 and F05 are closed **bounded** under S04 (see the bounded closure pointers below); F06 remains open; this milestone does not release M208/M215–M220.
 
 ## Verdict
 
@@ -183,6 +183,24 @@ Required work: split transport_integrity, analysis_completion and semantic_accep
 The tracked m214-s04-corpus-sample.json declares Consultant and Garant roots, but all 400 entries have provider=consultant_export. No Garant acceptance claim follows from this sample. The provider-independent render_entry path must be tested per actual supported source format before broadening claims.
 
 Required work: minimum nonzero quotas or an explicit uncovered-provider verdict; separate format coverage from source-provider labels. Sample across legal structure and known failure features, not only file/work-family identities.
+
+### Bounded closure pointers (M221-wbslul S04, T01–T05)
+
+F04 and F05 are closed **bounded** — at fixture/contract scope, not corpus-wide:
+
+- **Split verdicts (F04):** `crates/ln-consultant-parser/src/npa_corpus_acceptance_v2.rs` separates `transport_integrity` / `analysis_completion` / `semantic_acceptance` in `law-nexus/npa-analysis-corpus-acceptance/v2`; `npa_acceptance_split_report_contract` asserts the three coexist and that a transport pass never implies completion or semantic acceptance.
+- **Per-entry completion capture (F04):** `npa_corpus_acceptance.rs` records per-entry `completion` / `completion_basis` / `incomplete_reasons` / `family_yields`; `npa_corpus_acceptance_completion_contract` proves complete/incomplete capture over the real pipeline.
+- **Declared-before-run recall/coverage gate (F04):** `DeclaredExpectations` snapshots the `DECLARED_MIN_COMPLETION_RATIO_PPM` / `DECLARED_MIN_FAMILY_YIELDS` minima before the run and re-derives `expectation_gate` in `validate`; `npa_acceptance_expectations_contract` shows a below-declared producer fails the gate rather than passing consistency checks.
+- **Provider coverage / uncovered (F05):** the v2 report lists every declared provider as `covered` or `uncovered` with a closed `uncovered_reason`; `garant` surfaces `uncovered` / `no_candidates` (0 supported-format XML under `law-source/garant`).
+- **Bounded evidence artifact + suites:** the `npa-corpus-acceptance-v2` CLI emits tracked `prd/migration/rust-evidence/m221-s04-acceptance.json` (+ `.jsonl`); `npa_acceptance_bounded_run_contract` loads and cross-checks them. The tracked artifact carries all three verdicts at once (`transport_integrity=pass`, `analysis_completion=incomplete`, `semantic_acceptance=not_attempted`) with `expectation_gate=below_declared`.
+
+Explicit non-claims (these remain open):
+
+- **F06 remains open**; this milestone does not reconcile the `prd/ARCHITECTURE.md` ADR-0029 claim.
+- **R1000 stays active/unclosed** (D638/D656 carry-forward); M221 adds no DB requirement binding.
+- `semantic_acceptance` is **always `not_attempted`** (D667) — no independent legal-semantic oracle exists.
+- Downstream **M208-wrz6fg and M215–M220 stay parked**.
+- F04/F05 are closed **bounded** (fixture-first), **not** a corpus-wide accuracy or breadth claim; no C5 promotion. The frozen M214 v1 artifacts are untouched.
 
 ### F06 MEDIUM: workflow documentation lags runtime
 
