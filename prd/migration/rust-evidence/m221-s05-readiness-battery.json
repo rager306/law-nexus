@@ -1,0 +1,155 @@
+{
+  "schema": "law-nexus/m221-s05-readiness-battery/v1",
+  "milestone": "M221-wbslul",
+  "slice": "S05",
+  "recordedAt": "2026-10-05T11:13:30Z",
+  "count_only": true,
+  "ascii_only": true,
+  "promotion": false,
+  "f_findings": [
+    {
+      "id": "F01",
+      "title": "resealed manifest identity substitution passes verification",
+      "class": "HIGH",
+      "status": "fixed",
+      "refs": [
+        "M221-wbslul S01 T01",
+        "manifest_identity_mismatch",
+        "crates/ln-decode/src/npa_analysis_verify.rs"
+      ]
+    },
+    {
+      "id": "F02",
+      "title": "reader-to-analysis bridge deletes control separators",
+      "class": "HIGH",
+      "status": "fixed",
+      "refs": [
+        "M221-wbslul S02 T01-T04",
+        "derived_separator",
+        "DerivedBoundary"
+      ]
+    },
+    {
+      "id": "F03",
+      "title": "context family is not full context resolution",
+      "class": "HIGH",
+      "status": "closed-bounded",
+      "refs": [
+        "M221-wbslul S03 T01-T04",
+        "F03 closure pointer",
+        "ThisDocumentReferenceOutcome"
+      ]
+    },
+    {
+      "id": "F04",
+      "title": "verified_ok does not mean correct legal analysis",
+      "class": "HIGH",
+      "status": "closed-bounded",
+      "refs": [
+        "M221-wbslul S04 T01-T05",
+        "npa_corpus_acceptance_v2",
+        "npa_acceptance_split_report_contract",
+        "npa_acceptance_expectations_contract"
+      ]
+    },
+    {
+      "id": "F05",
+      "title": "declared providers are not sampled provider coverage",
+      "class": "MEDIUM",
+      "status": "closed-bounded",
+      "refs": [
+        "M221-wbslul S04 T01-T05",
+        "provider_coverage.uncovered",
+        "npa_acceptance_bounded_run_contract"
+      ]
+    },
+    {
+      "id": "F06",
+      "title": "workflow documentation lags runtime",
+      "class": "MEDIUM",
+      "status": "closed-bounded-under-S05",
+      "refs": [
+        "M221-wbslul S05 T01-T02",
+        "prd/architecture/m221-s05-docs-reconciliation.yaml",
+        "m221-s05-docs-reconciliation"
+      ]
+    }
+  ],
+  "re_test_set": [
+    {
+      "command": "cargo test -p ln-decode --offline --test npa_analysis_verify_contract",
+      "exitCode": 0,
+      "observed": "9 passed; 0 failed"
+    },
+    {
+      "command": "cargo test -p ln-decode --offline --test npa_analysis_verify_hostile",
+      "exitCode": 0,
+      "observed": "23 passed; 0 failed"
+    },
+    {
+      "command": "cargo test -p ln-decode --offline --test npa_analysis_separator_contract",
+      "exitCode": 0,
+      "observed": "7 passed; 0 failed"
+    },
+    {
+      "command": "cargo test -p ln-decode --offline --test npa_context_consumer_contract",
+      "exitCode": 0,
+      "observed": "11 passed; 0 failed"
+    },
+    {
+      "command": "cargo test -p ln-consultant-parser --offline --test npa_acceptance_bounded_run_contract",
+      "exitCode": 0,
+      "observed": "8 passed; 0 failed"
+    },
+    {
+      "command": "cargo test -p ln-consultant-parser --offline --test npa_acceptance_expectations_contract",
+      "exitCode": 0,
+      "observed": "5 passed; 0 failed"
+    },
+    {
+      "command": "cargo test -p ln-consultant-parser --offline --test npa_acceptance_split_report_contract",
+      "exitCode": 0,
+      "observed": "11 passed; 0 failed"
+    },
+    {
+      "command": "cargo test -p ln-consultant-parser --offline --test npa_corpus_acceptance_completion_contract",
+      "exitCode": 0,
+      "observed": "4 passed; 0 failed"
+    }
+  ],
+  "verdict_recap": {
+    "transport_integrity": "pass",
+    "analysis_completion": "incomplete",
+    "semantic_acceptance": "not_attempted"
+  },
+  "readiness": {
+    "m208": "parked",
+    "m215_m220": "parked",
+    "r1000": "active_unclosed"
+  },
+  "source_bindings": [
+    {
+      "path": "prd/migration/rust-evidence/m221-s04-acceptance.json",
+      "sha256": "c4188d1af4b754939af5df5b948fa875d42d3b752fc3eed2c48668a68f4c95c9",
+      "kind": "receipt"
+    },
+    {
+      "path": "prd/architecture/m221-s05-docs-reconciliation.yaml",
+      "sha256": "4309bea9f232fe08fc958ab45f5b1578c86edb74a4b0a2ac0fa4bc04c3353b91",
+      "kind": "pin"
+    },
+    {
+      "path": "prd/architecture/npa-analysis-jsonl-contract.md",
+      "sha256": "c8b5afdd5b864e660b7cdd10e4e542d2cf97341960e3ff83cba5073b1a8209d4",
+      "kind": "contract"
+    }
+  ],
+  "non_claims": [
+    "no requirement closure; R1000 stays active/unclosed (D638/D656)",
+    "no corpus-wide or semantic acceptance; semantic_acceptance is not_attempted (D667)",
+    "no downstream release; M208-wrz6fg and M215-M220 stay parked",
+    "no lifecycle promotion; ADR-0029 stays [proposed] and the bounded runtime stays bounded",
+    "a green re-acceptance battery is not requirement closure and not a readiness percentage",
+    "count/hash only; no decoded corpus text enters tracked evidence"
+  ]
+}
