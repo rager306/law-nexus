@@ -1290,6 +1290,171 @@ with structural failures, a promoted semantic section, a non-null
 - **R1000 stays active/unclosed**; M208-wrz6fg stays parked;
 - count/hash only — no decoded corpus text enters tracked evidence.
 
+## 15A. M221 S04 split acceptance and provider coverage (successor revision)
+
+`[bounded]` This successor revision fixes the M221 S04 additions
+(D674/D675/D676/D677) on top of the frozen M214 v1 acceptance contract
+(§15). It is **additive**: §15, the v1 schema
+`law-nexus/npa-analysis-corpus-acceptance/v1`, the tracked `m214-s04-*`
+artifacts, and every v1 `MILESTONE`/`SLICE`/`SCHEMA` constant and
+`run_acceptance_with`/`load`/`validate` signature stay unchanged; nothing
+in §15 is rewritten. `[bounded]`
+
+### 15A.1 Artifact identity and report envelope
+
+`[bounded]` The split report is a new artifact under a new schema; it never
+replaces or re-emits the M214 evidence (D674). `[bounded]`
+
+| item | value |
+|---|---|
+| schema | `law-nexus/npa-analysis-corpus-acceptance/v2` |
+| report artifact | `prd/migration/rust-evidence/m221-s04-acceptance.json` |
+| entry artifact | `prd/migration/rust-evidence/m221-s04-acceptance.jsonl` |
+| `milestone` | `M221-wbslul` |
+| `slice` | `S04` |
+| `lifecycle` | `[bounded]` (closed single-element list) |
+| `count_only` | `true` |
+| `ascii_only` | `true` |
+
+`[bounded]` The v2 report is count/hash-only: ASCII, control-free, string
+fields at most 512 bytes, and no decoded corpus text (§8.4). `[bounded]`
+
+### 15A.2 Split verdicts (closed)
+
+`[bounded]` `SplitVerdicts` carries three **independent** closed verdicts
+and no aggregate or derived verdict (D675): `[bounded]`
+
+| verdict field | closed token set | source |
+|---|---|---|
+| `transport_integrity` | `pass`, `needs_attention`, `fail` | §15.3–§15.4 structural integrity + tamper probe |
+| `analysis_completion` | `complete`, `incomplete`, `needs_attention` | per-entry completion capture (§15A.3–§15A.4) |
+| `semantic_acceptance` | `not_attempted` (single token) | D667; no independent legal-semantic oracle |
+
+`[bounded]` Verdict rules: `[bounded]`
+
+1. `[bounded]` A `transport_integrity = pass` never implies
+   `analysis_completion = complete` and never implies a semantic outcome; a
+   structurally integral but incomplete analysis is exactly
+   `transport_integrity = pass` with `analysis_completion = incomplete`.
+2. `[bounded]` `analysis_completion = incomplete` never changes the
+   `transport_integrity` verdict: transport and completion are computed from
+   disjoint evidence.
+3. `[bounded]` `semantic_acceptance` is always `not_attempted`; it is never
+   derived from integrity or completion and is never `pass` (D667).
+4. `[bounded]` `analysis_completion = needs_attention` (not `incomplete`)
+   when the per-entry completion capture is missing from the entries, because
+   completion cannot then be honestly derived.
+
+### 15A.3 Per-entry completion capture
+
+`[bounded]` Each verified v2 entry carries `completion`, `completion_basis`
+and `incomplete_reasons`, read from the rendered footer via
+`read_back_npa_analysis` (§8B.4) and `inspect_npa_analysis_wire` (§8A.9);
+the values are copied, never re-derived, so the completion report cannot
+diverge from the independent verifier (§8B.4 step 9, `completion_mismatch`).
+`[bounded]`
+
+`[bounded]` Closed `completion` tokens: `complete`, `incomplete`. Closed
+`completion_basis` tokens are the §8A.6/§8B.3 union:
+`bounded_analysis_complete`, `hold`, `text_only`, `refused_record`,
+`limit_reached`, `caller_scope`, `unsupported_source`, `context_incomplete`.
+Closed `incomplete_reasons` tokens are the §8A.6 basis tokens plus the §8B.3
+context reasons `context_partial`, `context_conflicting`, `context_unavailable`,
+`context_cycle`, `context_limit`. An unknown token in any of these positions
+is a `load`/`validate` refusal. `[bounded]`
+
+### 15A.4 AnalysisCompletionSection
+
+`[bounded]` `AnalysisCompletionSection` reports, count/hash-only: `[bounded]`
+
+- `[bounded]` `entries_total`, `entries_complete`, `entries_incomplete` and
+  `entries_missing_capture`;
+- `[bounded]` a `completion_basis` histogram keyed by the §15A.3 closed basis
+  tokens;
+- `[bounded]` an `incomplete_reasons` histogram keyed by the §15A.3 closed
+  reason tokens (empty iff `entries_incomplete = 0`);
+- `[bounded]` `context_result_distribution` keyed by the S03 closed
+  `ThisDocumentReferenceToken` — `authorized`, `conflicting`, `unavailable`,
+  `not_requested` (the §8C consumer variants); the dominant `not_requested`
+  is a normal reading, never a failure;
+- `[bounded]` `per_family_yields`, keyed by the §8A/§8B family tokens
+  (`document`, `fragment`, `member`, `relation`, `classification`,
+  `diagnostic`, `context`) with the observed aggregated record counts;
+- `[bounded]` the declared-before-run minima `min_completion_ratio_ppm` and
+  `min_family_yields` (per-family minima), copied from the declared block
+  (§15A.6) and never inferred from observed results.
+
+`[bounded]` `analysis_completion = complete` only when every verified entry's
+captured `completion = complete` **and** the observed completion ratio
+(completed verified entries / total verified entries, ppm) is at least the
+declared `min_completion_ratio_ppm`; otherwise it is `incomplete`, and
+`needs_attention` when the entry capture is missing (§15A.2 rule 4). A
+per-family yield below a declared `min_family_yields` floor forces
+`analysis_completion != complete` and is surfaced as `below_expected_yield`.
+`[bounded]`
+
+### 15A.5 ProviderCoverageSection
+
+`[bounded]` `ProviderCoverageSection` reports, per declared provider, the
+declared-versus-sampled outcome with a closed status `covered` | `uncovered`
+and, for `uncovered`, a closed `uncovered_reason` in `no_candidates`,
+`no_selection`, `format_unsupported` (D676). `[bounded]`
+
+`[bounded]` The declared provider list is copied from the declared roots; a
+declared provider with zero sampled entries is reported `uncovered` and is
+never silently dropped. `law-source/garant` (7 `.odt`, 0 XML) is
+`uncovered`/`no_candidates`: `npa_sweep::walk_xml_files` is XML-only, so the
+honest reason is an absence of candidates in the supported format, not a
+selection miss. `no_selection` is the reason when candidates exist but none
+were drawn; `format_unsupported` when the provider has files only in a format
+the walker does not admit. `[bounded]`
+
+`[bounded]` Format coverage is a **separate** concern from the source-provider
+label: the section names providers, and any format statement is a distinct,
+closed field. A format shortfall is never presented as a provider absence and
+vice versa. `[bounded]`
+
+### 15A.6 Declared-before-run minima
+
+`[bounded]` The v2 declared block records, before the bounded run, its
+`min_completion_ratio_ppm` and its `min_family_yields` per-family minima; the
+report copies them and never infers a threshold from observed results
+(§15.1 pattern). A bounded run whose observed completion ratio or per-family
+yield falls below a declared minimum fails the completion/coverage gate
+rather than passing consistency. `[bounded]`
+
+### 15A.7 Fail-closed loading and validation
+
+`[bounded]` The v2 types expose `load(text)` and `validate()`, both
+fail-closed and both `deny_unknown_fields`. `load` refuses: invalid JSON; an
+unknown token in any closed position; a raw-text key; a `..` or absolute
+path; `promotion = true`; and a non-null `coverage_claim`. `validate`
+additionally refuses: counters that do not sum; a `pass`
+`transport_integrity` alongside structural failures; `promotion = true` or a
+non-null `coverage_claim` in any section; a `semantic_acceptance` token other
+than `not_attempted`; and a completion verdict inconsistent with its own
+section. `[bounded]`
+
+`[bounded]` The v2 report is count/hash-only, mirroring the v1 discipline:
+ASCII, control-free, string fields at most 512 bytes, and no decoded corpus
+text. `[bounded]`
+
+### 15A.8 Non-claims
+
+- `[bounded]` Not a requirement closure: R1000 stays active/unclosed
+  (D638/D656); M221 adds no requirement binding.
+- `[bounded]` Downstream stays parked: M208-wrz6fg and M215–M220 are not
+  resumed, reopened or bound here.
+- `[bounded]` Integrity, completeness and semantic acceptance remain three
+  separate facts; a green transport verdict is not completeness and not
+  semantic acceptance.
+- `[bounded]` No C5 promotion, no legal-semantic accuracy claim, no
+  corpus-wide breadth/coverage claim; `semantic_acceptance` is
+  `not_attempted`.
+- `[bounded]` Bounded fixture-first: the split verdicts are demonstrated on a
+  bounded declared sample, not a corpus-wide acceptance, and no decoded
+  corpus text enters tracked evidence.
+
 ## 16. Out of scope
 
 Reader/cleaning/normalization changes, XML re-parse, tokenizer
