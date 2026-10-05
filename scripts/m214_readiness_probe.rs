@@ -31,5 +31,7 @@ fn main(){
  let controls=r#"<w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml"><w:body><w:p><w:r><w:t>статья</w:t><w:tab/><w:t>5</w:t><w:br/><w:t>часть</w:t><w:tab/><w:t>2</w:t></w:r></w:p></w:body></w:wordDocument>"#;
  let p2=capture(controls.as_bytes(),&Limits::default()).unwrap();let i2=ReaderRecordIndex::new(p2.records()).unwrap();let pr2=build_projection(p2.records()).unwrap();
  let layout=ln_decode::npa_analysis_records::build_analysis_block_layout(&pr2,&i2).unwrap();
- println!("control_analysis_texts={:?}",layout.blocks.iter().map(|b|&b.text).collect::<Vec<_>>());
+ let block_texts:Vec<&str>=layout.blocks.iter().map(|b|b.text.as_str()).collect();
+ println!("control_analysis_texts={block_texts:?}");
+ assert_eq!(block_texts,["статья\t5\nчасть\t2"],"F02: derived separators must survive into the analysis block text");
 }

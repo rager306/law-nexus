@@ -3,7 +3,7 @@
 Status: [bounded] code audit and synthetic executable probes, not corpus semantic acceptance.
 Reviewed base: `24b8872`. Product source was not changed by the audit. No parked milestone was released.
 
-Remediation update (M221-wbslul S01 T01): F01 is fixed under the new closed code `manifest_identity_mismatch`. F02–F06 remain open; this milestone does not release M208/M215–M220.
+Remediation update (M221-wbslul S01 T01, S02 T01–T04): F01 is fixed under the new closed code `manifest_identity_mismatch`. F02 is fixed under the new typed `DerivedBoundary` plane and the closed code `derived_separator`. F03–F06 remain open; this milestone does not release M208/M215–M220.
 
 ## Verdict
 
@@ -57,6 +57,46 @@ Required fix: compare authoritative manifest identity/profile/version/parent fie
 Executable WordML probe with `статья<TAB>5<BR>часть<TAB>2` yields analysis text `статья5часть2`. The legal-marker/token context receives a different lexical stream from the visible reader text. The bridge therefore can change meaning before the analyzer runs. This is broader than tokenizer implementation quality.
 
 Required fix: preserve a mapped analysis separator plane (or explicit typed boundaries), without pretending a derived separator has a source-fragment span. Add metamorphic equivalence tests for tab/space/break and run splitting; preserve explicit refusal where a span genuinely cannot be represented. The documented choice to exclude derived segments does not make lexical concatenation semantically safe.
+
+**Closure pointer (M221-wbslul S02 T01–T04, `DerivedBoundary` / `derived_separator`).**
+- Blocks: `crates/ln-decode/src/npa_analysis_records.rs` now builds
+  `AnalysisBlock::text` as the full ordered concatenation of source-fragment
+  segments **and** derived separator literals; derived separators are recorded
+  as ordered `DerivedBoundary { kind, block_start, block_end }` values with no
+  fragment and no source span. A derived-only view is not a block, so
+  `empty_primary_view_is_not_an_analysis_block` is preserved.
+- Refusal: `AnalysisBlockLayout::localize` refuses a span that crosses a
+  derived boundary as the new closed token `derived_separator`
+  (`AnalysisRefusalKind::DerivedSeparator`), checked after
+  `unmapped_block`/`invalid_span`/`out_of_bounds` and **before**
+  `cross_fragment`; the path is never rebased, never dropped and never promoted
+  to a fragment span. `cross_fragment` still fires for a boundary-free
+  multi-fragment block.
+- Contract: `prd/architecture/npa-analysis-jsonl-contract.md` §8A.3 documents
+  the full block text plus typed boundaries and the refusal order; the
+  S02-local `AnalysisRefusalKind` list carries `derived_separator`; §12 hostile
+  row H23 covers a span crossing a derived separator.
+- Tests: `crates/ln-decode/tests/npa_analysis_records_contract.rs` (flip,
+  boundary offsets, derived-only negative) and
+  `crates/ln-decode/tests/npa_analysis_separator_contract.rs` (metamorphic
+  run-splitting, tab/space/br equivalence, mixed-control ordering,
+  closed-boundary refusal).
+- Portable proof: `cargo test -p ln-decode --offline --test
+  npa_analysis_records_contract --test npa_analysis_records_link_classify
+  --test npa_analysis_context_contract --test npa_analysis_separator_contract
+  --test npa_analysis_verify_hostile --test npa_analysis_verify_contract
+  --test npa_analysis_export_integration --test npa_analysis_wire_contract
+  --test npa_analysis_wire_context --test npa_analysis_wire_hostile` →
+  14 + 9 + 8 + 7 + 23 + 9 + 13 + 9 + 11 + 13 passed, 0 failed;
+  `cargo test -p ln-consultant-parser --offline --test
+  npa_corpus_acceptance_run_contract --test
+  npa_corpus_acceptance_report_contract` → 14 + 7 passed, 0 failed;
+  `cargo fmt --all --check` and `cargo check --workspace --offline` exit 0.
+- Operator probe: `scripts/m214_readiness_probe.rs` now asserts
+  `control_analysis_texts == ["статья\t5\nчасть\t2"]`.
+- Non-claims: this is a lexical-boundary fix, not semantic acceptance. Source
+  refs stay verifiable, F01 stays closed, F03–F06 stay open, and R1000 stays
+  active and unclosed.
 
 ### F03 HIGH readiness gap: context family is not full context resolution
 

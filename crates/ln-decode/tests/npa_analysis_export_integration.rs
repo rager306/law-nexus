@@ -11,7 +11,8 @@
 //! bounded real input (Consultant 435-ФЗ WordML, pinned by byte length and
 //! sha256). The battery asserts: every bound record span resolves to the exact
 //! substrate UTF-8 slice; a span that straddles two fragments is a closed
-//! `cross_fragment` refusal; unresolved typed members are not promoted; the
+//! refusal (`cross_fragment`, or `derived_separator` when it crosses a typed
+//! derived boundary); unresolved typed members are not promoted; the
 //! parent identity, parent seals and document version are pinned; tamper,
 //! cross-document and version-mismatch are refused; the envelope is
 //! structurally valid, carries no inline decoded corpus text and no temporal
@@ -334,7 +335,12 @@ fn assert_document_outcome(pipeline: &Pipeline, label: &str, document_version_re
         }
     }
 
-    // A multi-fragment block refuses a span that straddles both fragments.
+    // A multi-fragment block refuses a whole-block span that straddles its
+    // fragments. When the block also carries a derived separator, the span
+    // crosses that typed boundary first, so the closed refusal is
+    // `derived_separator`; a boundary-free multi-fragment block still yields
+    // `cross_fragment`. Neither path is rebased onto a fragment span nor
+    // promoted to a source span.
     if let Some((block_index, block)) = pipeline
         .analysis
         .layout
@@ -352,10 +358,16 @@ fn assert_document_outcome(pipeline: &Pipeline, label: &str, document_version_re
                 end: block.text.len(),
             })
             .expect_err("a whole-block span over two fragments must be refused");
+        let expected = if block.boundaries.is_empty() {
+            AnalysisRefusalKind::CrossFragment.as_str()
+        } else {
+            AnalysisRefusalKind::DerivedSeparator.as_str()
+        };
         assert_eq!(
             refusal.token(),
-            AnalysisRefusalKind::CrossFragment.as_str(),
-            "{label}: a span across two fragments is a closed cross_fragment refusal"
+            expected,
+            "{label}: a whole-block span over multiple source fragments stays a closed refusal \
+             (derived_separator across a typed boundary, else cross_fragment)"
         );
     }
 
