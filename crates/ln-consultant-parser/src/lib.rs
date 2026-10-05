@@ -23,6 +23,7 @@ pub mod gold_eval;
 pub mod hyperlink;
 pub mod multi_edition;
 pub mod npa_corpus_acceptance;
+pub mod npa_corpus_acceptance_v2;
 pub mod observation;
 pub mod promotion_gate;
 pub mod raw_link;
