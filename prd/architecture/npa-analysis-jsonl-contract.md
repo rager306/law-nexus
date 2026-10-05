@@ -469,9 +469,17 @@ sequential index over non-empty primary views. Navigation views
 
 `[bounded]` For one block, its ordered **source-fragment segments**
 (`SegmentOrigin::SourceFragment`, in `ProjectedView::segment_refs`
-order) are concatenated into `block_text`; `SegmentOrigin::Derived`
-segments are excluded. The decoded fragment text is read from
-`reader_contract::ReaderRecordIndex`
+order) and its **derived literals** (`SegmentOrigin::Derived`: e.g.
+`ReaderDerivedKind::Tab` -> `"\t"`, `LineBreak` / `PageBreak` -> `"\n"`)
+are concatenated, in document order, into `block_text`. Every derived
+separator is recorded as an explicit typed boundary
+(`DerivedBoundary { kind, block_start, block_end }`, half-open offsets
+into `block_text`) with no fragment and no span — it is never rebased
+onto a fragment and never dropped. Leading and trailing derived
+separators are part of `block_text`, but a block is still emitted only
+when at least one source-fragment segment contributed non-empty text, so
+a derived-only view is not a block. The decoded fragment text is read
+from `reader_contract::ReaderRecordIndex`
 (`ReaderRecordIndex::new(package.records())`), never from a literal.
 
 `AnalysisBlockLayout` is the ordered list of segment entries
@@ -483,7 +491,11 @@ fragment. Localizing a `LocalSpan {block,start,end}` is closed:
 1. `unmapped_block` — `block` is absent from the layout;
 2. `invalid_span` — `start >= end`, or a bound splits a code point;
 3. `out_of_bounds` — `[start,end)` leaves `[0, block_text.len())`;
-4. `cross_fragment` — `[start,end)` is not inside one segment's
+4. `derived_separator` — `[start,end)` intersects a derived boundary's
+   `[block_start,block_end)` (half-open overlap). The separator is a
+   typed boundary, not a fragment: the span is never rebased onto a
+   fragment and never promoted to a fragment span;
+5. `cross_fragment` — `[start,end)` is not inside one segment's
    `[block_start,block_end)`. A span straddling two fragments is a closed
    refusal — never rebased onto one fragment, never silently promoted.
 
@@ -497,7 +509,8 @@ block_start))`, then resolves through
 Closed record refusal vocabulary:
 
 - `AnalysisRefusalKind` (S02-local): `cross_fragment`,
-  `unmapped_block`, `invalid_span`, `out_of_bounds`, `limit_reached`;
+  `derived_separator`, `unmapped_block`, `invalid_span`, `out_of_bounds`,
+  `limit_reached`;
 - any `analysis_source_mapping::MappingRefusalKind` token:
   `empty_or_inverted`, `out_of_bounds`, `not_char_boundary`,
   `unknown_fragment`, `cross_document`, `source_identity_mismatch`,
@@ -974,6 +987,7 @@ relation — provenance survives the missing span.
 | H20 | a context anchor that leaves its block or straddles two fragments | `out_of_bounds` / `cross_fragment` (never rebased) |
 | H21 | resealed manifest `source.sha256`/`source.bytes`, `parent` schema/seals, `source_revision`, `document_version_ref`, `decoder_profile`, `profile` or `model` substitution | `manifest_identity_mismatch` (never a `seal_mismatch` pass) |
 | H22 | resealed `document` record identity (`source_sha256`/document-version triple) contradicting the pinned parent | `manifest_identity_mismatch` |
+| H23 | span crossing a derived separator of one block | `derived_separator` (never rebased, never promoted to a fragment span) |
 
 ## 13. Remainder reconciliation
 
