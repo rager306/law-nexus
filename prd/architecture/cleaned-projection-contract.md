@@ -395,6 +395,22 @@ The writer validates **before** writing any line: every line must be within
 partial projection is emitted. The manifest copies the effective limits used by
 the writer so a consumer can see the bounds the artifact was produced under.
 
+**Read-time enforcement (M222-nshb29 / S04 successor note).** `[bounded]` The
+declared `limits.max_line_bytes` and `limits.max_records` are also applied on
+the cleaned read path: `inspect_cleaned_wire` reads them from the manifest with
+the same strict unsigned reader and refuses any envelope whose line exceeds
+`max_line_bytes` with `WireErrorKind::LineBytesLimit`, or whose record count
+(excluding the manifest, policies and footer lines) exceeds `max_records` with
+`WireErrorKind::RecordsLimit`. The check is seal-independent and runs
+immediately after the manifest contract admission, so a resealed envelope that
+exceeds its own declaration is refused on read; `read_cleaned_wire` inherits it
+through `inspect_cleaned_wire`. `max_text_bytes` is **retained as a write-side
+bound only** — the read path applies line bytes and records, exactly as the
+sibling analysis read path does; the residual is documented on the module and
+inspection. This closes R29-F07(a) (D694) and mirrors
+`prd/architecture/npa-analysis-jsonl-contract.md` §9's analysis read path.
+Authority: ADR-0015.
+
 ## 10. Verification surface (S01)
 
 S01 ships a **structure-only** inspection
@@ -510,6 +526,61 @@ omission/suppression manifest, and **not** a claim that retained provider
 metadata or payload is reader-visible legal text. It asserts no normative or
 legal authority and no corpus coverage. R1000 stays active; its closure is owned
 by milestone M213 as a whole, not by this section.
+
+## 10B. Consumer admission contract (M222-nshb29 / S04 successor revision)
+
+**Status:** `[bounded]`
+**Owning slice:** M222-nshb29 / S04 — `prd/architecture/cleaned-projection-contract.md`;
+controls in `crates/ln-decode/tests/cleaned_consumer_admission.rs`
+**Upstream:** the §9 limits, the §4 manifest / §5 policies contract values, the
+§7 seals, the §8 completion marker and the §10 inspection/verification surface
+**Authority:** ADR-0015 (hexagonal verification architecture), D694, D695
+
+A downstream consumer is admissible to a cleaned artifact only when that
+artifact has passed the independent verifier: `read_cleaned_wire` must return
+`Ok`, then `verify_cleaned_wire` must return no findings, and only then may the
+navigation layer (`build_nav_index_from_wire` + `verify_nav_index`) and the
+`cleaned-project` CLI `verify` path be served. Transport and integrity
+admission is separate from semantic acceptance: a verified artifact is
+admissible as a structurally faithful, decoded-text-complete projection, and
+**no** legal-semantic acceptance is attempted here (semantic_acceptance stays
+`not_attempted`, cf. D667). `[bounded]`
+
+The contract maps each tamper class to its closed refusal code. A structural
+tamper is refused at the earliest consumer boundary (`read_cleaned_wire`); a
+semantic substitution that re-seals the envelope is refused only by the
+independent verifier.
+
+| tamper class | earliest refusal boundary | closed code |
+|---|---|---|
+| resealed manifest contract field (`model`/`profile`/`capability`/`non_authoritative`) | `read_cleaned_wire` | `WireErrorKind::ContractFieldInvalid` |
+| resealed policies contract field, incl. absent/tampered `display_scope` | `read_cleaned_wire` | `WireErrorKind::ContractFieldInvalid` |
+| non-canonical contract version token | `read_cleaned_wire` | `WireErrorKind::VersionMismatch` |
+| decoded-text loss at write time (any completion) | writer, before any line | `WireErrorKind::TextLoss` |
+| envelope line above its own declared `max_line_bytes` | `read_cleaned_wire` | `WireErrorKind::LineBytesLimit` |
+| record count above its own declared `max_records` | `read_cleaned_wire` | `WireErrorKind::RecordsLimit` |
+| resealed dropped/duplicated inline text under `hold`/`text_only` | `verify_cleaned_wire` | `CleanedVerifyCode::TextChannelMembershipMismatch` |
+| resealed analysis source-ref/relation/context substitution | `verify_npa_analysis_wire` | `AnalysisVerifyCode::ContextOutcomeMismatch` (and other closed codes) |
+
+`[bounded]` The battery
+`crates/ln-decode/tests/cleaned_consumer_admission.rs` proves the positive
+admission path over one sha256-pinned non-legal WordML fixture and one named
+negative control per class (`resealed_manifest_contract_tamper_is_refused`,
+`resealed_non_canonical_version_token_is_refused`,
+`resealed_absent_or_tampered_policies_display_scope_is_refused`,
+`resealed_dropped_inline_under_hold_is_membership_mismatch`), asserting only
+closed tokens and counters; no raw decoded legal text is ever logged. The
+`AnalysisVerifyCode` row is owned by
+`prd/architecture/npa-analysis-jsonl-contract.md` §8B.4/§10 and is not
+re-tested here.
+
+### 10B.1 Non-claims
+
+`[bounded]` Admission asserts structural integrity and decoded-text
+completeness only. It asserts **no** source authenticity, legal correctness,
+citation resolution or corpus coverage, and it does not close R1000. A seal is
+recomputable by any actor controlling the bytes (§2); independent verification,
+not the seal, is the admission basis.
 
 ## 11. Out of scope
 
@@ -810,3 +881,45 @@ corpus coverage — `law-source/consultant` is a fixture vault, and the corpus i
 battery makes no source-authenticity, legal-completeness or citation-resolution
 claim. Display-cleaning/suppression stays out of scope. R1000 stays active, and
 its closure is owned by milestone M213 as a whole, not by S04.
+
+## 13B. Disposition of Review-29 findings (M222-nshb29 / S04 successor revision)
+
+**Status:** `[bounded]`
+**Owning slice:** M222-nshb29 / S04 — `prd/architecture/cleaned-projection-contract.md`;
+controls across `crates/ln-decode/tests/` (§13B.1)
+**Authority:** ADR-0015, ADR-0013, D692, D693, D694, D695
+
+`[bounded]` This section collapses the disposition of the Review-29 findings
+R29-F01..F07 into one verifiable table. It records closure pointers only; it
+declares **no** requirement closure. R1000 stays active/unclosed, R1001 is
+frozen, and M208/M215-M220 stay parked.
+
+| finding | disposition | closure pointer |
+|---|---|---|
+| R29-F01 (resealed manifest/policies contract tamper admitted) | fixed in S01 | `cleaned_projection_verify::resealed_manifest_contract_tamper_is_refused`, `cleaned_projection_verify::resealed_policies_contract_tamper_is_refused` |
+| R29-F02 (non-canonical version token admitted) | fixed in S01 | `cleaned_projection_verify::resealed_non_canonical_version_token_is_refused` |
+| R29-F03 (six-family S02 envelope unverifiable / context hidden) | fixed in S02 | `npa_analysis_verify_contract::contextless_six_family_envelope_verifies_ok`, `npa_analysis_verify_contract::six_family_envelope_hiding_context_is_context_outcome_mismatch` |
+| R29-F04 (caller-declared vs analysis coordinates conflated) | fixed in S02 | the real-pipeline coordinate controls in `npa_analysis_records_contract.rs` (`real_pipeline_second_fragment_span_localizes_with_exact_offsets`, `real_pipeline_whole_block_span_is_closed_cross_fragment`, `real_pipeline_derived_separator_between_fragments`) |
+| R29-F05 (incomplete artifact drops decoded text) | fixed in S03 | `cleaned_projection_wire::incomplete_completions_are_text_loss_fail_closed`, `cleaned_projection_verify::resealed_dropped_inline_under_hold_is_membership_mismatch` |
+| R29-F06 (display scope implicit; retained content confused with readable text) | fixed in S03 | `cleaned_display_scope::policies_declare_retained_display_scope_and_verify` (§10A) |
+| R29-F07(a) (declared read limits shape-checked, not applied) | fixed in S04 | `cleaned_projection_wire::declared_line_limit_is_enforced_on_read`, `cleaned_projection_wire::declared_record_limit_is_enforced_on_read`, positive `canonical_artifact_within_declared_limits_reads`; residual `max_text_bytes` write-side bound (§9, D694) |
+| R29-F07(b) (non-deterministic verifier/CLI diagnostics) | refuted in S04 | `m222_f07_audit::f07b_cleaned_verifier_diagnostics_are_deterministic`, `m222_f07_audit::f07b_cli_verify_output_is_deterministic` |
+| R29-F07(c) (analysis manifest capability/version/schema never compared) | reproduced, bounded residual in S04 | `m222_f07_audit::f07c_capability_tamper_passes_structure_only`, `f07c_version_tamper_passes_structure_only`, `f07c_schema_tamper_passes_structure_only`, positive `f07c_canonical_analysis_envelope_passes_structure_only`; carried forward to the R1001 owner (frozen surface, not fixed in M222) |
+
+### 13B.1 Disposition counts
+
+`[bounded]` Of the nine sub-claims, seven are fixed (F01, F02, F03, F04, F05,
+F06, F07a), one is refuted (F07b) and one is a reproduced bounded residual
+(F07c). The refutation of F07b and the reproduction of F07c were decided by the
+S04 controls named above, not by assertion. The F07c residual is owned by the
+frozen R1001 analysis surface
+(`prd/architecture/npa-analysis-jsonl-contract.md` §8B.4/§10); it is not
+silently accepted as correct and not fixed inside M222.
+
+### 13B.2 Non-claims
+
+`[bounded]` This disposition is a bounded review-response record, **not** a
+requirement closure, **not** correction evidence for the findings in the F04
+"verified_ok is not correct legal analysis" sense (semantic_acceptance stays
+not_attempted, cf. D667), and no corpus-wide claim is made. R1000 stays
+active/unclosed; R1001 is frozen; M208/M215-M220 stay parked.

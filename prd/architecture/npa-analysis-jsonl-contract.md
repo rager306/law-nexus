@@ -1088,6 +1088,19 @@ Additional gates:
   source refs, relations or context outcomes must be detected.
 - S04 acceptance must keep structural integrity, semantic correctness
   and corpus breadth separate (M214 success criteria).
+- M222-nshb29 / S04 fixes the fail-closed **cleaned consumer admission
+  contract** in `prd/architecture/cleaned-projection-contract.md` §10B: a
+  consumer is admissible to a cleaned artifact only after the independent
+  cleaned verifier passes, and each tamper class maps to a closed refusal
+  code; transport/integrity admission is separated from semantic
+  acceptance, which stays `not_attempted` (D667). `[bounded]`
+- R29-F07(c) is a reproduced, bounded structure-only residual on this
+  frozen analysis surface: `inspect_npa_analysis_wire` and
+  `read_back_npa_analysis` do not compare the manifest
+  `capability`/`version`/`schema`, so a re-sealed forged manifest is still
+  accepted. It is **not** fixed in M222 and is carried forward to the R1001
+  owner (`prd/architecture/cleaned-projection-contract.md` §13B;
+  ADR-0015). `[bounded]`
 - Frozen oracles and the M213 cleaned wire bytes are not modified.
 
 ## 11. Positive examples (normative)
