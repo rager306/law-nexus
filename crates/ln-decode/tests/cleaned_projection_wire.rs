@@ -502,6 +502,76 @@ fn closed_contract_values_are_enforced() {
     );
 }
 
+// -------------------------------------------------- declared read limits #
+
+/// F07(a): the declared `manifest.limits` are applied on the read path, not
+/// merely shape-checked. Lowering only the declared bound (through the existing
+/// `set_raw_value` helper) makes the envelope exceed its own declaration and the
+/// structure-only reader refuses, seal-independently.
+#[test]
+fn declared_line_limit_is_enforced_on_read() {
+    let (package, projection) = project(&MIXED);
+    let document = render(&package, &projection, &WireCompletion::Complete).expect("render");
+
+    // Positive control: with the declared (default) bound the artifact reads.
+    assert!(
+        read_cleaned_wire(&document).is_ok(),
+        "an artifact within its declared limits must read"
+    );
+
+    // Lower only the declared `max_line_bytes`; every emitted line now exceeds
+    // its own declaration.
+    let tampered = replace_manifest(&document, |line| set_raw_value(line, "max_line_bytes", "1"));
+    assert_ne!(
+        tampered, document,
+        "the declared bound must actually change"
+    );
+    assert_eq!(
+        expect_error(&tampered).kind(),
+        WireErrorKind::LineBytesLimit,
+        "an envelope line over its declared max_line_bytes must be refused"
+    );
+}
+
+/// F07(a): the declared `max_records` is applied to the record count on read,
+/// independently of the seals.
+#[test]
+fn declared_record_limit_is_enforced_on_read() {
+    let (package, projection) = project(&MIXED);
+    let document = render(&package, &projection, &WireCompletion::Complete).expect("render");
+    let summary = inspect_cleaned_wire(&document).expect("the control artifact must inspect");
+    assert!(
+        summary.records > 0,
+        "the negative control needs at least one record"
+    );
+
+    // Lower only the declared `max_records` below the actual record count.
+    let tampered = replace_manifest(&document, |line| set_raw_value(line, "max_records", "0"));
+    assert_ne!(
+        tampered, document,
+        "the declared bound must actually change"
+    );
+    assert_eq!(
+        expect_error(&tampered).kind(),
+        WireErrorKind::RecordsLimit,
+        "a record count over its declared max_records must be refused"
+    );
+}
+
+/// F07(a) positive control: an artifact whose declaration and body agree still
+/// reads through both the structure-only inspector and the full read-back.
+#[test]
+fn canonical_artifact_within_declared_limits_reads() {
+    let (package, projection) = project(&MIXED);
+    let document = render(&package, &projection, &WireCompletion::Complete).expect("render");
+
+    let summary = inspect_cleaned_wire(&document).expect("inspect within declared limits");
+    assert!(summary.records > 0, "the fixture must carry records");
+
+    let readback = read_cleaned_wire(&document).expect("read within declared limits");
+    assert_eq!(readback.completion, WireCompletion::Complete);
+}
+
 // -------------------------------------------------------------- envelope #
 
 #[test]

@@ -16,6 +16,13 @@
 //! deterministic — ascending keys, no inter-token whitespace, no embedded
 //! newline — so two renders on equal input are byte-identical.
 //!
+//! Read-time limits: the structure-only reader applies the declared
+//! `manifest.limits` fail-closed and seal-independently — `max_line_bytes` on
+//! every envelope line and `max_records` on the record count — so an envelope
+//! that exceeds its own declaration is refused, mirroring the sibling analysis
+//! read path. `max_text_bytes` is retained as a write-side bound: the read path
+//! enforces only line bytes and records, exactly as the analysis reader does.
+//!
 //! Non-claims: this is a bounded wire envelope over an already-verified decoded
 //! source and its reader projection. It is not an R1000 closure artifact, not a
 //! CST/AST or temporal `StructuralAst`, not a read-back, and it asserts no
@@ -1725,6 +1732,58 @@ fn expect_manifest_contract(manifest: &JsonFields<'_>) -> Result<(), WireError> 
     Ok(())
 }
 
+/// F07(a): applies the declared `manifest.limits` on the read path.
+///
+/// `expect_manifest_contract` only shape-checks the declared bounds. The
+/// structure-only reader additionally *enforces* `max_line_bytes` on every
+/// envelope line and `max_records` on the record count, seal-independently, so
+/// an envelope that exceeds its own declaration is refused rather than admitted
+/// — mirroring the sibling analysis read path. `max_text_bytes` stays a
+/// write-side bound: the read path enforces only line bytes and records, exactly
+/// as the analysis reader does.
+fn enforce_declared_read_limits(
+    manifest: &JsonFields<'_>,
+    lines: &[&str],
+    last_index: usize,
+) -> Result<(), WireError> {
+    // `expect_manifest_contract` already admitted the manifest, so the limits
+    // object and both bound keys are guaranteed readable here; the explicit
+    // refusals keep the reader total if it is ever called without that gate.
+    let limits_raw = manifest
+        .get("limits")
+        .ok_or_else(|| contract_error("manifest has no limits object"))?;
+    let limits = JsonFields::parse(limits_raw.trim())
+        .map_err(|_| contract_error("manifest limits is not an object"))?;
+    let max_line_bytes = u64_field(&limits, "max_line_bytes")
+        .ok_or_else(|| contract_error("manifest limits.max_line_bytes is not a u64"))?;
+    let max_records = u64_field(&limits, "max_records")
+        .ok_or_else(|| contract_error("manifest limits.max_records is not a u64"))?;
+
+    for line in lines {
+        if line.len() as u64 > max_line_bytes {
+            return Err(WireError::new(
+                WireErrorKind::LineBytesLimit,
+                format!(
+                    "line of {} bytes exceeds declared max_line_bytes {}",
+                    line.len(),
+                    max_line_bytes
+                ),
+            ));
+        }
+    }
+    // The record count is every line between policies (index 1) and the footer
+    // (index `last_index`). The positional footer check guarantees
+    // `last_index >= 2`, so `saturating_sub` only guards a refactor.
+    let records = last_index.saturating_sub(2) as u64;
+    if records > max_records {
+        return Err(WireError::new(
+            WireErrorKind::RecordsLimit,
+            format!("record total {records} exceeds declared max_records {max_records}"),
+        ));
+    }
+    Ok(())
+}
+
 /// Enforces the §5 policies required keys and closed contract values
 /// independently of the artifact's own seals (F01).
 fn expect_policies_contract(policies: &JsonFields<'_>) -> Result<(), WireError> {
@@ -1844,9 +1903,11 @@ fn parse_counts(fields: &JsonFields<'_>) -> Result<SummaryCounts, WireError> {
 /// `manifest → policies → records → footer` order; strict JSON value grammar
 /// (RFC 8259 numbers, escapes, separators and unique object keys); closed
 /// `kind`/schema/version on every line; the §4 manifest, §5 policies and footer
-/// closed contract values (independent of the seals); the completion invariants;
-/// and the hash-field shapes. Any violation is a closed typed refusal, never a
-/// silent success.
+/// closed contract values (independent of the seals); the declared
+/// `manifest.limits` `max_line_bytes`/`max_records` bounds applied to every line
+/// and to the record count (F07(a)); the completion invariants; and the
+/// hash-field shapes. Any violation is a closed typed refusal, never a silent
+/// success.
 pub fn inspect_cleaned_wire(text: &str) -> Result<WireEnvelopeSummary, WireError> {
     if text.contains('\r') {
         return Err(WireError::new(
@@ -1968,6 +2029,8 @@ pub fn inspect_cleaned_wire(text: &str) -> Result<WireEnvelopeSummary, WireError
     expect_schema(manifest, MANIFEST_SCHEMA)?;
     expect_version(manifest)?;
     expect_manifest_contract(manifest)?;
+    // F07(a): the declared limits are applied on read, not merely shape-checked.
+    enforce_declared_read_limits(manifest, &lines, last_index)?;
     let source_raw = manifest.get("source").ok_or_else(|| {
         WireError::new(
             WireErrorKind::HashShapeInvalid,
