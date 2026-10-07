@@ -13,7 +13,10 @@ read-back/independent-verifier admission in §8B (D661/D662/D663), and
 fixes the bounded consumer seam, the deterministic requisites source and
 the deliberate trigger policy in §8C. The S01 discipline (§1–§7) and the
 S02 six-family envelope are unchanged; an empty context stays
-byte-identical to S02. `[bounded]`
+byte-identical to S02. M222/S02 adds the mode-aware six-/seven-family
+admission of §8B.1/§8B.4 and the caller-declared-versus-analysis
+coordinate distinction of §5.4 without changing any envelope bytes
+(D690/D691). `[bounded]`
 **Authority:** ADR-0013 (universal multi-source parser), ADR-0015
 (hexagonal verification architecture), ADR-0028 (typed lexer / dual
 tokenizer), ADR-0029 (requisites-anchored member assembly — anchor
@@ -276,6 +279,33 @@ UTF-8 slice and is UTF-8 valid by construction.
 - Character offsets, line offsets, byte offsets into the artifact and
   "close enough" spans are all invalid.
 
+### 5.4 Caller-declared block mapping versus analysis block layout
+
+`[bounded]` `SourceMapping::map_block` and
+`SourceMapping::resolve_local_span` expose a caller-declared
+single-fragment rule: the caller supplies the block-to-fragment mapping,
+the block index is the order of the caller's fragments, and block offset
+0 equals fragment offset 0. That seam resolves one `LocalSpan` against
+exactly the one fragment the caller declared; it supports neither a
+multi-fragment block nor derived separators. `[bounded]`
+
+`[bounded]` `AnalysisBlockLayout::localize` is the analysis coordinate:
+the block index is the index over non-empty reader primary views
+(§8A.3), and one block may concatenate several source-fragment segments
+plus derived separators. It is the surface the production analysis
+pipeline localizes through (`SourceMapping::resolve_fragment_span` then
+`SourceMapping::slice`). `[bounded]`
+
+`[bounded]` The two coordinate surfaces are distinct and not
+interchangeable (§5.3): the same numeric `block` value denotes a caller
+fragment ordinal on the S01 seam and a primary-view index in the
+analysis layout. A coordinate produced for one surface is never passed
+to the other, and an adapter that needs the analysis layout does not
+route it through `resolve_local_span`. Both public APIs are retained:
+the S01 seam is required by the §14 S01 verification surface, and
+`AnalysisBlockLayout::localize` by the S02 production path. Neither is
+removed on naming similarity. `[bounded]` (R29-F04, D691, ADR-0013)
+
 ## 6. Token views
 
 `ln-decode` keeps three deliberate token producers (ADR-0028 dual
@@ -525,6 +555,12 @@ A record whose span cannot be localized carries its refusal token
 instead of a span; refusal kinds are never dropped and never converted
 to success.
 
+`[bounded]` `AnalysisBlockLayout::localize` is the analysis coordinate
+surface of §5.4: it is distinct from the caller-declared
+`SourceMapping::map_block` / `resolve_local_span` single-fragment rule,
+and the two coordinate surfaces are never interchanged (R29-F04, D691).
+`[bounded]`
+
 ### 8A.4 Manifest fields
 
 `kind`, `schema` (`law-nexus/npa-analysis-manifest/v1`), `model`
@@ -699,6 +735,15 @@ contexts)` renders it, while `render_npa_analysis(request)` delegates
 with an empty slice and stays the byte-identical S02 six-family
 envelope.
 
+`[bounded]` Two envelope modes are admitted to the independent verifier
+of §8B.4. The **six-family S02-envelope** is admitted only when its
+context re-derivation is a trivially empty context stream: exactly one
+`run` record with zero `requests`, zero `resolved`, zero `non_resolved`,
+an empty per-status count map, `limit_reached` false and no diagnostics
+(`context_stream_is_trivially_empty`). The **seven-family
+context-envelope** carries at least one context record and is admitted
+always. `[bounded]` (R29-F03, D690)
+
 | family | `family` token | per-line `schema` | line `kind` | cardinality |
 |---|---|---|---|---|
 | context | `context` | `law-nexus/npa-analysis-context/v1` | `result` \| `run` | zero or more |
@@ -832,6 +877,21 @@ Result<(), Vec<AnalysisVerifyFinding>>`:
 9. check `completion`/`completion_basis`/`incomplete_reasons` against the
    re-derived records (`completion_mismatch`).
 
+**Mode-aware admission (R29-F03, D690).** `[bounded]` The verifier
+derives the envelope mode from the artifact read-back, never from a
+caller hint: a non-empty `contexts` list or a `contexts` key in the
+footer `counts` selects the seven-family mode; the absence of both
+selects the six-family mode. In seven-family mode the canonical records
+are the `build_context_records` re-derivation rendered through
+`render_npa_analysis_with_context` (the path above). In six-family mode
+the verifier re-derives the context records and admits the envelope only
+when `context_stream_is_trivially_empty(&build_context_records(...))`
+holds; otherwise it emits `context_outcome_mismatch` and returns `Err`,
+never a silent pass. A six-family envelope that hides mandatory context
+is therefore a closed refusal, including the `missing_document_structure`
+fallback run. The S02 envelope bytes and the S02/S03 receipts are
+unchanged (D662). `[bounded]`
+
 `build_projection` is not called; the artifact's own seals are never
 accepted as a pass. A valid envelope returns `Ok(())`; otherwise the
 verifier returns `Err(findings)` with at least one finding.
@@ -849,7 +909,7 @@ Closed `AnalysisVerifyCode`:
 | `relation_ref_missing` | a relation `from`/`to` names no readback record |
 | `relation_substitution` | a relation `from`/`to`/`kind` differs from the canonical re-derivation |
 | `member_ref_missing` | a classification `member_id` names no readback member |
-| `context_outcome_mismatch` | a context status/view/claim/derivation differs from the canonical re-derivation |
+| `context_outcome_mismatch` | a context status/view/claim/derivation differs from the canonical re-derivation, or a six-family envelope's re-derivation is not a trivially empty context stream |
 | `completion_mismatch` | `completion`/`completion_basis`/`incomplete_reasons` inconsistent with the re-derived records |
 
 **Resealed substitution.** Mutating a source span within one fragment, a
@@ -1181,12 +1241,13 @@ relation — provenance survives the missing span.
 - **S02 verification surface (§8A):** suites
   `npa_analysis_records_contract`, `npa_analysis_records_link_classify`,
   `npa_analysis_wire_contract`, `npa_analysis_wire_hostile`,
-  `npa_analysis_export_integration`; structural inspect
+  `npa_analysis_export_integration`; the M222/S02 mode and coordinate
+  battery `npa_analysis_verify_contract` and `npa_analysis_verify_hostile`
+  (R29-F03/F04, D690/D691; also listed under the S03 surface below) plus
+  the coordinate-difference proofs in `analysis_source_mapping_integration`
+  and `npa_analysis_records_contract`; structural inspect
   `inspect_npa_analysis_wire`; portable count/hash receipt
   `prd/migration/rust-evidence/m214-s02-analysis-export.json`; workspace
-  gates `cargo fmt --all --check`, `cargo clippy --workspace
-  --all-targets --offline -- -D warnings`, `cargo check --workspace
-  --offline`.
   gates `cargo fmt --all --check`, `cargo clippy --workspace
   --all-targets --offline -- -D warnings`, `cargo check --workspace
   --offline`.
@@ -1476,6 +1537,7 @@ format is not adopted as the Rust analysis format.
   `prd/architecture/reader-view-contract.md`,
   `prd/architecture/reader-projection-contract.md`,
   `prd/architecture/cleaned-projection-contract.md`,
+  `doc/review/review-29-07-10-2026.md` (R29-F03/F04),
   `prd/architecture/npa-document-context.yaml`,
   `prd/annotation/m207-hybrid-records-contract.md`,
   `prd/temporal-legal-model.md` §3.
@@ -1493,7 +1555,9 @@ format is not adopted as the Rust analysis format.
 - Decisions D655/D656 (M214 requirement binding), D657 (block binding),
   D658 (S02 envelope/family scope), D661 (reader-native context
   substrate), D662 (opt-in context family + `context_incomplete`), D663
-  (read-back/verifier independence); receipts
+  (read-back/verifier independence), D690 (mode-aware six/seven
+  admission), D691 (caller-declared versus analysis coordinates);
+  receipts
   `prd/migration/rust-evidence/m214-s01-source-mapping.json`,
   `m214-s02-analysis-export.json` and `m214-s03-context-verify.json`.
 - `prd/migration/rust-evidence/` (portable evidence; count/hash-only).
