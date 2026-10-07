@@ -450,6 +450,7 @@ fn closed_contract_values_are_enforced() {
         ("text_retention", "\"summary_only\""),
         ("hold_text_only", "\"loss_permitted\""),
         ("counts_scope", "\"coverage\""),
+        ("display_scope", "\"display_cleaned_suppressed\""),
         ("unknown_context", "\"dropped\""),
         ("normalization", "\"nfc\""),
         ("authenticity", "\"authenticity_proven\""),
@@ -466,6 +467,29 @@ fn closed_contract_values_are_enforced() {
             "policies.{key} must be a closed contract value"
         );
     }
+
+    // An artifact that simply omits `display_scope` must be refused, not
+    // silently admitted: the closed policies contract is additive-tightening
+    // under the same `version` (cleaned-projection-contract §5, §10A; D693).
+    let mut without_scope_lines: Vec<String> = document
+        .split_terminator('\n')
+        .map(str::to_string)
+        .collect();
+    without_scope_lines[1] = without_scope_lines[1].replacen(
+        "\"display_scope\":\"source_content_retained_no_suppression\",",
+        "",
+        1,
+    );
+    let without_scope = format!("{}\n", without_scope_lines.join("\n"));
+    assert_ne!(
+        without_scope, document,
+        "removing display_scope must actually change the policies line"
+    );
+    assert_eq!(
+        expect_error(&without_scope).kind(),
+        WireErrorKind::ContractFieldInvalid,
+        "an absent policies.display_scope must be refused"
+    );
     let mut lines: Vec<String> = document
         .split_terminator('\n')
         .map(str::to_string)

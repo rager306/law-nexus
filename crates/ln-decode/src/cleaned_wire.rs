@@ -97,6 +97,10 @@ pub const POLICY_UNKNOWN_CONTEXT: &str = "retained_and_addressable";
 pub const POLICY_NORMALIZATION: &str = "raw_decoded_text_no_char_normalization";
 /// Policies line `authenticity` value (closed contract vocabulary).
 pub const POLICY_AUTHENTICITY: &str = "integrity_only_not_authenticity";
+/// Policies line `display_scope` value (closed contract vocabulary).
+/// Declares that retained source content is present and not suppressed; the
+/// projection is not display-cleaned (see cleaned-projection-contract §5, §10A).
+pub const POLICY_DISPLAY_SCOPE: &str = "source_content_retained_no_suppression";
 
 // ------------------------------------------------------------ closed types #
 
@@ -573,6 +577,7 @@ fn policies_json() -> Json {
         ("authenticity", Json::string(POLICY_AUTHENTICITY)),
         ("cleaning_mode", Json::string(POLICY_CLEANING_MODE)),
         ("counts_scope", Json::string(POLICY_COUNTS_SCOPE)),
+        ("display_scope", Json::string(POLICY_DISPLAY_SCOPE)),
         ("hold_text_only", Json::string(POLICY_HOLD_TEXT_ONLY)),
         ("kind", Json::string(KIND_POLICIES)),
         ("non_authoritative", Json::Bool(true)),
@@ -1727,6 +1732,7 @@ fn expect_policies_contract(policies: &JsonFields<'_>) -> Result<(), WireError> 
     expect_string_value(policies, "text_retention", POLICY_TEXT_RETENTION)?;
     expect_string_value(policies, "hold_text_only", POLICY_HOLD_TEXT_ONLY)?;
     expect_string_value(policies, "counts_scope", POLICY_COUNTS_SCOPE)?;
+    expect_string_value(policies, "display_scope", POLICY_DISPLAY_SCOPE)?;
     expect_string_value(policies, "unknown_context", POLICY_UNKNOWN_CONTEXT)?;
     expect_string_value(policies, "normalization", POLICY_NORMALIZATION)?;
     expect_string_value(policies, "authenticity", POLICY_AUTHENTICITY)?;

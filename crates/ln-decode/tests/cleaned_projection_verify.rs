@@ -1176,6 +1176,7 @@ fn resealed_policies_contract_tamper_is_refused() {
         ("text_retention", "\"summary_only\""),
         ("hold_text_only", "\"loss_permitted\""),
         ("counts_scope", "\"coverage\""),
+        ("display_scope", "\"display_cleaned_suppressed\""),
         ("unknown_context", "\"dropped\""),
         ("normalization", "\"nfc\""),
         ("authenticity", "\"authenticity_proven\""),
@@ -1198,6 +1199,28 @@ fn resealed_policies_contract_tamper_is_refused() {
             vec![CleanedVerifyCode::ArtifactUnreadable]
         );
     }
+
+    // An artifact that omits `display_scope` entirely must be refused too
+    // (closed-contract admission, additive-tightening under the same version).
+    let mut lines = lines_of(&artifact);
+    lines[1] = lines[1].replacen(
+        "\"display_scope\":\"source_content_retained_no_suppression\",",
+        "",
+        1,
+    );
+    let without_scope = resealed(&lines);
+    assert_seals_recompute(&lines_of(&without_scope));
+    assert_eq!(
+        read_cleaned_wire(&without_scope)
+            .expect_err("an absent policies.display_scope must be refused")
+            .kind(),
+        WireErrorKind::ContractFieldInvalid
+    );
+    let without_scope_findings = findings_of(&without_scope, &package);
+    assert_eq!(
+        codes(&without_scope_findings),
+        vec![CleanedVerifyCode::ArtifactUnreadable]
+    );
 }
 
 #[test]
