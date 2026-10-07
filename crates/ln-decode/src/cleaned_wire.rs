@@ -83,6 +83,21 @@ pub const GENERATOR_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// `completion_basis` token for a `complete` projection.
 pub const BASIS_COMPLETE: &str = "bounded_projection_complete";
 
+/// Policies line `cleaning_mode` value (closed contract vocabulary).
+pub const POLICY_CLEANING_MODE: &str = "display_only_reversible";
+/// Policies line `text_retention` value (closed contract vocabulary).
+pub const POLICY_TEXT_RETENTION: &str = "full_decoded_text_retained_inline";
+/// Policies line `hold_text_only` value (closed contract vocabulary).
+pub const POLICY_HOLD_TEXT_ONLY: &str = "no_decoded_text_loss_permitted";
+/// Policies line `counts_scope` value (closed contract vocabulary).
+pub const POLICY_COUNTS_SCOPE: &str = "integrity_not_coverage";
+/// Policies line `unknown_context` value (closed contract vocabulary).
+pub const POLICY_UNKNOWN_CONTEXT: &str = "retained_and_addressable";
+/// Policies line `normalization` value (closed contract vocabulary).
+pub const POLICY_NORMALIZATION: &str = "raw_decoded_text_no_char_normalization";
+/// Policies line `authenticity` value (closed contract vocabulary).
+pub const POLICY_AUTHENTICITY: &str = "integrity_only_not_authenticity";
+
 // ------------------------------------------------------------ closed types #
 
 /// Hard fail-closed writer limits (validate-before-write). All values are
@@ -230,6 +245,9 @@ pub enum WireErrorKind {
     UnknownKind,
     /// A hash-shaped field is neither 64 lowercase hex nor an allowed `null`.
     HashShapeInvalid,
+    /// A manifest/policies line is missing a required contract field or carries
+    /// a value outside the closed contract vocabulary (independent of seals).
+    ContractFieldInvalid,
     /// A recomputed seal disagrees with the seal recorded in the footer.
     HashMismatch,
     /// The body record groups are not in the order `views → segments → references`.
@@ -266,6 +284,7 @@ impl WireErrorKind {
             WireErrorKind::TrailingRecordAfterFooter => "trailing_record_after_footer",
             WireErrorKind::UnknownKind => "unknown_kind",
             WireErrorKind::HashShapeInvalid => "hash_shape_invalid",
+            WireErrorKind::ContractFieldInvalid => "contract_field_invalid",
             WireErrorKind::HashMismatch => "hash_mismatch",
             WireErrorKind::RecordGroupOrder => "record_group_order",
             WireErrorKind::RecordFieldInvalid => "record_field_invalid",
@@ -550,28 +569,16 @@ fn manifest_json(package: &Package, limits: &WireLimits) -> Json {
 
 fn policies_json() -> Json {
     Json::object(vec![
-        (
-            "authenticity",
-            Json::string("integrity_only_not_authenticity"),
-        ),
-        ("cleaning_mode", Json::string("display_only_reversible")),
-        ("counts_scope", Json::string("integrity_not_coverage")),
-        (
-            "hold_text_only",
-            Json::string("no_decoded_text_loss_permitted"),
-        ),
+        ("authenticity", Json::string(POLICY_AUTHENTICITY)),
+        ("cleaning_mode", Json::string(POLICY_CLEANING_MODE)),
+        ("counts_scope", Json::string(POLICY_COUNTS_SCOPE)),
+        ("hold_text_only", Json::string(POLICY_HOLD_TEXT_ONLY)),
         ("kind", Json::string(KIND_POLICIES)),
         ("non_authoritative", Json::Bool(true)),
-        (
-            "normalization",
-            Json::string("raw_decoded_text_no_char_normalization"),
-        ),
+        ("normalization", Json::string(POLICY_NORMALIZATION)),
         ("schema", Json::string(POLICIES_SCHEMA)),
-        (
-            "text_retention",
-            Json::string("full_decoded_text_retained_inline"),
-        ),
-        ("unknown_context", Json::string("retained_and_addressable")),
+        ("text_retention", Json::string(POLICY_TEXT_RETENTION)),
+        ("unknown_context", Json::string(POLICY_UNKNOWN_CONTEXT)),
         ("version", Json::u64(CONTRACT_VERSION)),
     ])
 }
@@ -1161,78 +1168,214 @@ fn skip_ws(bytes: &[u8], index: &mut usize) {
     }
 }
 
-/// Advances `index` past exactly one JSON value starting at `*index`.
-fn scan_value(raw: &str, index: &mut usize) -> Result<(), WireError> {
-    let bytes = raw.as_bytes();
-    if *index >= bytes.len() {
-        return Err(WireError::new(
-            WireErrorKind::UnknownKind,
-            "missing JSON value",
-        ));
+fn json_value_error(detail: &str) -> WireError {
+    WireError::new(WireErrorKind::UnknownKind, detail)
+}
+
+/// Maximum JSON nesting depth accepted by [`scan_value`]. The envelope nests at
+/// most three levels (manifest → generator/limits → scalars); the bound keeps
+/// the recursive validator from overflowing the stack on hostile input (R29-F07
+/// is still otherwise open, but this change must not widen it).
+const MAX_JSON_DEPTH: usize = 64;
+
+/// Advances `index` past exactly one **strict** JSON value starting at `*index`.
+///
+/// Unlike the earlier lax scanner this validates the whole value grammar: strings
+/// carry well-formed escapes and no raw control bytes, numbers follow the JSON
+/// number grammar (no leading zeros, no leading `+`), object keys are unique and
+/// separators/trailing commas are exact, with nesting bounded by
+/// [`MAX_JSON_DEPTH`]. A malformed value is a typed `UnknownKind` refusal, never a
+/// silent skip. This is the F02 admission fix.
+fn scan_value(raw: &str, index: &mut usize, depth: usize) -> Result<(), WireError> {
+    if depth > MAX_JSON_DEPTH {
+        return Err(json_value_error("JSON nesting exceeds the supported depth"));
     }
-    match bytes[*index] {
-        b'"' => {
-            *index += 1;
-            while *index < bytes.len() {
-                match bytes[*index] {
-                    b'\\' => *index += 2,
-                    b'"' => {
-                        *index += 1;
-                        return Ok(());
-                    }
-                    _ => *index += 1,
-                }
-            }
-            Err(WireError::new(
-                WireErrorKind::UnknownKind,
-                "unterminated JSON string",
-            ))
-        }
-        b'{' | b'[' => {
-            let mut depth = 0usize;
-            while *index < bytes.len() {
-                match bytes[*index] {
-                    b'"' => {
-                        *index += 1;
-                        while *index < bytes.len() {
-                            match bytes[*index] {
-                                b'\\' => *index += 2,
-                                b'"' => {
-                                    *index += 1;
-                                    break;
-                                }
-                                _ => *index += 1,
-                            }
-                        }
-                    }
-                    b'{' | b'[' => {
-                        depth += 1;
-                        *index += 1;
-                    }
-                    b'}' | b']' => {
-                        depth = depth.saturating_sub(1);
-                        *index += 1;
-                        if depth == 0 {
-                            return Ok(());
-                        }
-                    }
-                    _ => *index += 1,
-                }
-            }
-            Err(WireError::new(
-                WireErrorKind::UnknownKind,
-                "unterminated JSON container",
-            ))
-        }
-        _ => {
-            while *index < bytes.len() {
-                let byte = bytes[*index];
-                if byte == b',' || byte == b'}' || byte == b']' || is_json_ws(byte) {
-                    break;
-                }
+    skip_ws(raw.as_bytes(), index);
+    let bytes = raw.as_bytes();
+    let Some(&byte) = bytes.get(*index) else {
+        return Err(json_value_error("missing JSON value"));
+    };
+    match byte {
+        b'"' => scan_json_string(raw, index),
+        b'{' => scan_json_object(raw, index, depth),
+        b'[' => scan_json_array(raw, index, depth),
+        b't' => scan_json_literal(raw, index, b"true"),
+        b'f' => scan_json_literal(raw, index, b"false"),
+        b'n' => scan_json_literal(raw, index, b"null"),
+        b'-' | b'0'..=b'9' => scan_json_number(raw, index),
+        _ => Err(json_value_error("unrecognized JSON value")),
+    }
+}
+
+/// Validates one JSON string literal and advances past its closing quote.
+fn scan_json_string(raw: &str, index: &mut usize) -> Result<(), WireError> {
+    let bytes = raw.as_bytes();
+    *index += 1; // opening quote
+    while *index < bytes.len() {
+        match bytes[*index] {
+            b'"' => {
                 *index += 1;
+                return Ok(());
             }
-            Ok(())
+            b'\\' => {
+                *index += 1;
+                let escape = *bytes
+                    .get(*index)
+                    .ok_or_else(|| json_value_error("unterminated JSON escape"))?;
+                match escape {
+                    b'"' | b'\\' | b'/' | b'b' | b'f' | b'n' | b'r' | b't' => *index += 1,
+                    b'u' => {
+                        *index += 1;
+                        for _ in 0..4 {
+                            let digit = *bytes
+                                .get(*index)
+                                .ok_or_else(|| json_value_error("truncated \\u escape"))?;
+                            if !digit.is_ascii_hexdigit() {
+                                return Err(json_value_error("invalid \\u escape"));
+                            }
+                            *index += 1;
+                        }
+                    }
+                    _ => return Err(json_value_error("invalid JSON string escape")),
+                }
+            }
+            byte if byte < 0x20 => {
+                return Err(json_value_error(
+                    "unescaped control character in JSON string",
+                ))
+            }
+            _ => *index += 1,
+        }
+    }
+    Err(json_value_error("unterminated JSON string"))
+}
+
+/// Validates one of the three JSON literals and advances past it.
+fn scan_json_literal(raw: &str, index: &mut usize, literal: &[u8]) -> Result<(), WireError> {
+    let bytes = raw.as_bytes();
+    let end = *index + literal.len();
+    if end > bytes.len() || &bytes[*index..end] != literal {
+        return Err(json_value_error("invalid JSON literal"));
+    }
+    *index = end;
+    Ok(())
+}
+
+/// Validates a JSON number against the RFC 8259 grammar and advances past it.
+fn scan_json_number(raw: &str, index: &mut usize) -> Result<(), WireError> {
+    let bytes = raw.as_bytes();
+    let len = bytes.len();
+    if *index < len && bytes[*index] == b'-' {
+        *index += 1;
+    }
+    if *index >= len || !bytes[*index].is_ascii_digit() {
+        return Err(json_value_error("invalid JSON number"));
+    }
+    if bytes[*index] == b'0' {
+        *index += 1;
+        if *index < len && bytes[*index].is_ascii_digit() {
+            return Err(json_value_error("JSON number has a leading zero"));
+        }
+    } else {
+        while *index < len && bytes[*index].is_ascii_digit() {
+            *index += 1;
+        }
+    }
+    if *index < len && bytes[*index] == b'.' {
+        *index += 1;
+        if *index >= len || !bytes[*index].is_ascii_digit() {
+            return Err(json_value_error("JSON fraction has no digits"));
+        }
+        while *index < len && bytes[*index].is_ascii_digit() {
+            *index += 1;
+        }
+    }
+    if *index < len && (bytes[*index] == b'e' || bytes[*index] == b'E') {
+        *index += 1;
+        if *index < len && (bytes[*index] == b'+' || bytes[*index] == b'-') {
+            *index += 1;
+        }
+        if *index >= len || !bytes[*index].is_ascii_digit() {
+            return Err(json_value_error("JSON exponent has no digits"));
+        }
+        while *index < len && bytes[*index].is_ascii_digit() {
+            *index += 1;
+        }
+    }
+    Ok(())
+}
+
+/// Validates one JSON array (recursive, no trailing comma).
+fn scan_json_array(raw: &str, index: &mut usize, depth: usize) -> Result<(), WireError> {
+    let bytes = raw.as_bytes();
+    *index += 1; // '['
+    skip_ws(bytes, index);
+    if bytes.get(*index) == Some(&b']') {
+        *index += 1;
+        return Ok(());
+    }
+    loop {
+        scan_value(raw, index, depth + 1)?;
+        skip_ws(bytes, index);
+        match bytes.get(*index).copied() {
+            Some(b',') => {
+                *index += 1;
+                skip_ws(bytes, index);
+                if bytes.get(*index) == Some(&b']') {
+                    return Err(json_value_error("trailing comma in JSON array"));
+                }
+            }
+            Some(b']') => {
+                *index += 1;
+                return Ok(());
+            }
+            _ => return Err(json_value_error("malformed JSON array separator")),
+        }
+    }
+}
+
+/// Validates one JSON object (recursive, unique keys, no trailing comma).
+fn scan_json_object(raw: &str, index: &mut usize, depth: usize) -> Result<(), WireError> {
+    let bytes = raw.as_bytes();
+    *index += 1; // '{'
+    skip_ws(bytes, index);
+    if bytes.get(*index) == Some(&b'}') {
+        *index += 1;
+        return Ok(());
+    }
+    let mut keys: Vec<&str> = Vec::new();
+    loop {
+        skip_ws(bytes, index);
+        if bytes.get(*index) != Some(&b'"') {
+            return Err(json_value_error("object key is not a JSON string"));
+        }
+        let key_start = *index + 1;
+        scan_json_string(raw, index)?;
+        let key = &raw[key_start..*index - 1];
+        if keys.contains(&key) {
+            return Err(json_value_error("duplicate object key"));
+        }
+        keys.push(key);
+        skip_ws(bytes, index);
+        if bytes.get(*index) != Some(&b':') {
+            return Err(json_value_error("object member has no colon"));
+        }
+        *index += 1;
+        scan_value(raw, index, depth + 1)?;
+        skip_ws(bytes, index);
+        match bytes.get(*index).copied() {
+            Some(b',') => {
+                *index += 1;
+                skip_ws(bytes, index);
+                if bytes.get(*index) == Some(&b'}') {
+                    return Err(json_value_error("trailing comma in JSON object"));
+                }
+            }
+            Some(b'}') => {
+                *index += 1;
+                return Ok(());
+            }
+            _ => return Err(json_value_error("malformed JSON object separator")),
         }
     }
 }
@@ -1271,23 +1414,8 @@ impl<'a> JsonFields<'a> {
                 ));
             }
             let key_start = index + 1;
-            index += 1;
-            let mut key_end = None;
-            while index < bytes.len() {
-                match bytes[index] {
-                    b'\\' => index += 2,
-                    b'"' => {
-                        key_end = Some(index);
-                        index += 1;
-                        break;
-                    }
-                    _ => index += 1,
-                }
-            }
-            let key_end = key_end.ok_or_else(|| {
-                WireError::new(WireErrorKind::UnknownKind, "unterminated object key")
-            })?;
-            let key = &raw[key_start..key_end];
+            scan_json_string(raw, &mut index)?;
+            let key = &raw[key_start..index - 1];
             skip_ws(bytes, &mut index);
             if index >= bytes.len() || bytes[index] != b':' {
                 return Err(WireError::new(
@@ -1298,7 +1426,7 @@ impl<'a> JsonFields<'a> {
             index += 1;
             skip_ws(bytes, &mut index);
             let value_start = index;
-            scan_value(raw, &mut index)?;
+            scan_value(raw, &mut index, 0)?;
             let value = &raw[value_start..index];
             if entries.iter().any(|(existing, _)| *existing == key) {
                 return Err(WireError::new(
@@ -1512,18 +1640,93 @@ fn expect_schema(fields: &JsonFields<'_>, expected: &str) -> Result<(), WireErro
 }
 
 fn expect_version(fields: &JsonFields<'_>) -> Result<(), WireError> {
-    let version = u64_field(fields, "version").ok_or_else(|| {
+    let raw = fields.get("version").ok_or_else(|| {
         WireError::new(
             WireErrorKind::VersionMismatch,
             "line has no readable version",
         )
     })?;
-    if version != CONTRACT_VERSION {
+    // The token must be the canonical decimal for the contract version: `01`,
+    // `+1`, `1.0` and `1e0` are all refused even though some are valid JSON
+    // numbers. This is the F02 strict-version fix.
+    if raw.trim() != CONTRACT_VERSION.to_string() {
         return Err(WireError::new(
             WireErrorKind::VersionMismatch,
-            format!("expected version {CONTRACT_VERSION}, found {version}"),
+            format!("expected version {CONTRACT_VERSION}"),
         ));
     }
+    Ok(())
+}
+
+fn contract_error(detail: impl Into<String>) -> WireError {
+    WireError::new(WireErrorKind::ContractFieldInvalid, detail)
+}
+
+fn expect_string_value(
+    fields: &JsonFields<'_>,
+    key: &str,
+    expected: &str,
+) -> Result<(), WireError> {
+    match string_field(fields, key) {
+        Some(actual) if actual == expected => Ok(()),
+        _ => Err(contract_error(format!("{key} must be {expected}"))),
+    }
+}
+
+fn expect_true_value(fields: &JsonFields<'_>, key: &str) -> Result<(), WireError> {
+    match bool_field(fields, key) {
+        Some(true) => Ok(()),
+        _ => Err(contract_error(format!("{key} must be true"))),
+    }
+}
+
+/// Enforces the §4 manifest required keys and closed contract values
+/// independently of the artifact's own seals (F01). Missing keys, ill-typed
+/// values, and values outside the closed vocabulary are typed refusals.
+fn expect_manifest_contract(manifest: &JsonFields<'_>) -> Result<(), WireError> {
+    expect_string_value(manifest, "model", MODEL)?;
+    expect_string_value(manifest, "profile", PROFILE)?;
+    expect_string_value(manifest, "capability", CAPABILITY)?;
+    expect_true_value(manifest, "non_authoritative")?;
+    let generator_raw = manifest
+        .get("generator")
+        .ok_or_else(|| contract_error("manifest has no generator object"))?;
+    let generator = JsonFields::parse(generator_raw.trim())
+        .map_err(|_| contract_error("manifest generator is not an object"))?;
+    if string_field(&generator, "name").is_none() {
+        return Err(contract_error("generator.name is missing or not a string"));
+    }
+    if string_field(&generator, "version").is_none() {
+        return Err(contract_error(
+            "generator.version is missing or not a string",
+        ));
+    }
+    let limits_raw = manifest
+        .get("limits")
+        .ok_or_else(|| contract_error("manifest has no limits object"))?;
+    let limits = JsonFields::parse(limits_raw.trim())
+        .map_err(|_| contract_error("manifest limits is not an object"))?;
+    for key in ["max_line_bytes", "max_records", "max_text_bytes"] {
+        if u64_field(&limits, key).is_none() {
+            return Err(contract_error(format!(
+                "manifest limits.{key} is not a u64"
+            )));
+        }
+    }
+    Ok(())
+}
+
+/// Enforces the §5 policies required keys and closed contract values
+/// independently of the artifact's own seals (F01).
+fn expect_policies_contract(policies: &JsonFields<'_>) -> Result<(), WireError> {
+    expect_string_value(policies, "cleaning_mode", POLICY_CLEANING_MODE)?;
+    expect_string_value(policies, "text_retention", POLICY_TEXT_RETENTION)?;
+    expect_string_value(policies, "hold_text_only", POLICY_HOLD_TEXT_ONLY)?;
+    expect_string_value(policies, "counts_scope", POLICY_COUNTS_SCOPE)?;
+    expect_string_value(policies, "unknown_context", POLICY_UNKNOWN_CONTEXT)?;
+    expect_string_value(policies, "normalization", POLICY_NORMALIZATION)?;
+    expect_string_value(policies, "authenticity", POLICY_AUTHENTICITY)?;
+    expect_true_value(policies, "non_authoritative")?;
     Ok(())
 }
 
@@ -1628,9 +1831,12 @@ fn parse_counts(fields: &JsonFields<'_>) -> Result<SummaryCounts, WireError> {
 /// segment or reference and it never recomputes the seals. It checks the S01
 /// envelope structure only (cleaned-projection contract §10): exactly one
 /// trailing LF; no carriage return; no empty interior line; the fixed
-/// `manifest → policies → records → footer` order; closed `kind`/schema/version
-/// on every line; the completion invariants; and the hash-field shapes. Any
-/// violation is a closed typed refusal, never a silent success.
+/// `manifest → policies → records → footer` order; strict JSON value grammar
+/// (RFC 8259 numbers, escapes, separators and unique object keys); closed
+/// `kind`/schema/version on every line; the §4 manifest, §5 policies and footer
+/// closed contract values (independent of the seals); the completion invariants;
+/// and the hash-field shapes. Any violation is a closed typed refusal, never a
+/// silent success.
 pub fn inspect_cleaned_wire(text: &str) -> Result<WireEnvelopeSummary, WireError> {
     if text.contains('\r') {
         return Err(WireError::new(
@@ -1751,6 +1957,7 @@ pub fn inspect_cleaned_wire(text: &str) -> Result<WireEnvelopeSummary, WireError
     let manifest = &parsed[0];
     expect_schema(manifest, MANIFEST_SCHEMA)?;
     expect_version(manifest)?;
+    expect_manifest_contract(manifest)?;
     let source_raw = manifest.get("source").ok_or_else(|| {
         WireError::new(
             WireErrorKind::HashShapeInvalid,
@@ -1759,6 +1966,8 @@ pub fn inspect_cleaned_wire(text: &str) -> Result<WireEnvelopeSummary, WireError
     })?;
     let source = JsonFields::parse(source_raw.trim())?;
     let _source_sha256 = hex_field(&source, "sha256")?;
+    let _source_bytes = u64_field(&source, "bytes")
+        .ok_or_else(|| contract_error("manifest source.bytes is not a u64"))?;
     let parent_raw = manifest.get("parent").ok_or_else(|| {
         WireError::new(
             WireErrorKind::HashShapeInvalid,
@@ -1773,6 +1982,7 @@ pub fn inspect_cleaned_wire(text: &str) -> Result<WireEnvelopeSummary, WireError
     let policies = &parsed[1];
     expect_schema(policies, POLICIES_SCHEMA)?;
     expect_version(policies)?;
+    expect_policies_contract(policies)?;
 
     // Record lines.
     let mut views = 0u64;
@@ -1806,6 +2016,7 @@ pub fn inspect_cleaned_wire(text: &str) -> Result<WireEnvelopeSummary, WireError
     let footer = &parsed[last_index];
     expect_schema(footer, FOOTER_SCHEMA)?;
     expect_version(footer)?;
+    expect_true_value(footer, "non_authoritative")?;
     let (completion, completion_basis, incomplete_reasons) = parse_completion(footer)?;
     let records_seal_hash = hex_field(footer, "records_seal_hash")?;
     let manifest_hash = hex_field(footer, "manifest_hash")?;
@@ -2117,7 +2328,8 @@ fn reconstruct_reference(fields: &JsonFields<'_>) -> Result<ProjectedReference, 
 ///
 /// The envelope is first checked with exactly the structural rules of
 /// [`inspect_cleaned_wire`] (trailing LF, no CR, no empty line, the fixed
-/// `manifest → policies → records → footer` order, closed `kind`/schema/version),
+/// `manifest → policies → records → footer` order, strict JSON grammar, closed
+/// `kind`/schema/version, and the closed §4/§5 contract values),
 /// then every record is reconstructed through the frozen reader vocabulary. The
 /// body must keep the `views → segments → references` group order. Both seals are
 /// recomputed over the exact line bytes and must match the footer, so an
@@ -2127,7 +2339,7 @@ fn reconstruct_reference(fields: &JsonFields<'_>) -> Result<ProjectedReference, 
 /// claim: a re-sealed semantic tamper still parses here and is caught only by
 /// the independent `cleaned_verifier` check.
 pub fn read_cleaned_wire(text: &str) -> Result<CleanedProjection, WireError> {
-    // Same structural envelope check as the S01 inspection.
+    // Same structural and closed-contract envelope check as the S01 inspection.
     let _summary = inspect_cleaned_wire(text)?;
 
     // `inspect_cleaned_wire` guarantees: no CR, exactly one trailing LF and no

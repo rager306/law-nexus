@@ -131,3 +131,6 @@ consru_export.zip
 *.zip
 *.tabby-upload
 consru_export/
+
+# ── GSD baseline (auto-generated) ──
+.claude/settings.local.json

@@ -409,3 +409,50 @@ fn verify_mismatched_pair_reports_closed_code() {
         "expected a closed verifier code: {combined}"
     );
 }
+
+#[test]
+fn verify_rejects_contract_and_version_tamper() {
+    let dir = temp_dir("verify-admission");
+    let package_path = dir.join("mixed.pkg.jsonl");
+    write_file(&package_path, &package_bytes(MIXED));
+    let artifact = fixture_artifact(MIXED);
+
+    // A forged closed contract value (model) and a non-canonical JSON number
+    // (`version:01`) are both refused by the full verifier. The envelope
+    // admission check runs before seal recomputation, so the artifact's own
+    // seals are never trusted.
+    let forged_model = artifact.replacen(
+        "law-nexus/cleaned-projection-model/v1",
+        "law-nexus/cleaned-projection-model/v9",
+        1,
+    );
+    let non_canonical = artifact.replacen("\"version\":1}", "\"version\":01}", 1);
+    assert_ne!(
+        forged_model, artifact,
+        "the model tamper must change the artifact"
+    );
+    assert_ne!(
+        non_canonical, artifact,
+        "the version tamper must change the artifact"
+    );
+
+    for (tag, text) in [("model", &forged_model), ("version", &non_canonical)] {
+        let artifact_path = dir.join(format!("{tag}.jsonl"));
+        write_file(&artifact_path, text.as_bytes());
+        let cli = parse_cleaned_args(args(&[
+            "verify",
+            "--artifact",
+            &s(&artifact_path),
+            "--package",
+            &s(&package_path),
+        ]))
+        .expect("verify parses");
+        let (code, out, err) = run(&cli);
+        assert_eq!(code, EXIT_VERIFY_FAILED, "{tag}: stderr: {err}");
+        let combined = format!("{out}{err}");
+        assert!(
+            combined.contains("artifact_unreadable"),
+            "{tag}: expected the closed read-back refusal code: {combined}"
+        );
+    }
+}

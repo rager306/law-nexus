@@ -543,6 +543,35 @@ fn parse_u64(raw: &str) -> u64 {
     raw.trim().parse().expect("field must be a u64")
 }
 
+/// Replaces the last occurrence of a top-level key's value. The manifest carries
+/// a nested `generator.version` before the top-level `version`, so the last
+/// occurrence is the manifest contract token.
+fn set_last_raw_value(line: &str, key: &str, new_raw: &str) -> String {
+    let needle = format!("\"{key}\":");
+    let start = line.rfind(&needle).expect("field must exist") + needle.len();
+    let end = skip_value(line, start);
+    format!("{}{}{}", &line[..start], new_raw, &line[end..])
+}
+
+/// Recomputes the §7 oracle seals over `lines` and asserts the footer carries
+/// exactly them: proves a mutation was re-sealed into a self-consistent
+/// envelope before the verifier was asked to reject it.
+fn assert_seals_recompute(lines: &[String]) {
+    let records_seal = oracle_records_seal(lines);
+    let manifest_seal = oracle_manifest_seal(lines, &records_seal);
+    let footer = lines.last().expect("footer");
+    assert_eq!(
+        str_field(footer, "records_seal_hash").as_deref(),
+        Some(records_seal.as_str()),
+        "the resealed footer must carry the oracle records seal"
+    );
+    assert_eq!(
+        str_field(footer, "manifest_hash").as_deref(),
+        Some(manifest_seal.as_str()),
+        "the resealed footer must carry the oracle manifest seal"
+    );
+}
+
 // ------------------------------------------------------------- round-trip #
 
 #[test]
@@ -1009,6 +1038,128 @@ fn counts_mismatch_after_reseal_is_reported() {
         "expected CountsMismatch, got {:?}",
         codes(&findings)
     );
+}
+
+// --------------------------------------- re-sealed envelope integrity #
+
+#[test]
+fn resealed_manifest_contract_tamper_is_refused() {
+    let (package, projection) = mixed();
+    let artifact = exported(&package, &projection);
+
+    // model / profile / capability / non_authoritative: every F01 manifest
+    // parameter-tampering surface, each resealed so the envelope is internally
+    // consistent.
+    for (key, replacement) in [
+        ("model", "\"law-nexus/cleaned-projection-model/v9\""),
+        ("profile", "\"cleaned_projection_wordml/v9\""),
+        ("capability", "\"cleaned_projection_jsonl_v9\""),
+        ("non_authoritative", "false"),
+    ] {
+        let mut lines = lines_of(&artifact);
+        lines[0] = set_raw_value(&lines[0], key, replacement);
+        let tampered = resealed(&lines);
+        assert_seals_recompute(&lines_of(&tampered));
+        assert_eq!(
+            read_cleaned_wire(&tampered)
+                .expect_err("a resealed contract tamper must be refused")
+                .kind(),
+            WireErrorKind::ContractFieldInvalid,
+            "manifest.{key} must fail the closed contract check"
+        );
+        let findings = findings_of(&tampered, &package);
+        assert_eq!(
+            codes(&findings),
+            vec![CleanedVerifyCode::ArtifactUnreadable]
+        );
+        assert_eq!(
+            findings[0].detail,
+            WireErrorKind::ContractFieldInvalid.as_str()
+        );
+    }
+
+    // A removed limits object is the same class.
+    let mut lines = lines_of(&artifact);
+    lines[0] = set_raw_value(&lines[0], "limits", "null");
+    let tampered = resealed(&lines);
+    assert_seals_recompute(&lines_of(&tampered));
+    assert_eq!(
+        read_cleaned_wire(&tampered)
+            .expect_err("a removed limits object must be refused")
+            .kind(),
+        WireErrorKind::ContractFieldInvalid
+    );
+}
+
+#[test]
+fn resealed_policies_contract_tamper_is_refused() {
+    let (package, projection) = mixed();
+    let artifact = exported(&package, &projection);
+    for (key, replacement) in [
+        ("cleaning_mode", "\"display_and_suppression\""),
+        ("text_retention", "\"summary_only\""),
+        ("hold_text_only", "\"loss_permitted\""),
+        ("counts_scope", "\"coverage\""),
+        ("unknown_context", "\"dropped\""),
+        ("normalization", "\"nfc\""),
+        ("authenticity", "\"authenticity_proven\""),
+        ("non_authoritative", "false"),
+    ] {
+        let mut lines = lines_of(&artifact);
+        lines[1] = set_raw_value(&lines[1], key, replacement);
+        let tampered = resealed(&lines);
+        assert_seals_recompute(&lines_of(&tampered));
+        assert_eq!(
+            read_cleaned_wire(&tampered)
+                .expect_err("a resealed policies tamper must be refused")
+                .kind(),
+            WireErrorKind::ContractFieldInvalid,
+            "policies.{key} must fail the closed contract check"
+        );
+        let findings = findings_of(&tampered, &package);
+        assert_eq!(
+            codes(&findings),
+            vec![CleanedVerifyCode::ArtifactUnreadable]
+        );
+    }
+}
+
+#[test]
+fn resealed_non_canonical_version_token_is_refused() {
+    let (package, projection) = mixed();
+    let artifact = exported(&package, &projection);
+
+    // `01`/`+1` are invalid JSON number grammar; `1.0`/`1e0` are valid JSON but
+    // not the canonical contract token. All are refused after resealing; the
+    // canonical `version:1` positive control is `accepts_a_round_tripped_artifact`.
+    for (token, expected) in [
+        ("01", WireErrorKind::UnknownKind),
+        ("+1", WireErrorKind::UnknownKind),
+        ("1.0", WireErrorKind::VersionMismatch),
+        ("1e0", WireErrorKind::VersionMismatch),
+    ] {
+        let mut lines = lines_of(&artifact);
+        lines[0] = set_last_raw_value(&lines[0], "version", token);
+        let tampered = resealed(&lines);
+        assert_seals_recompute(&lines_of(&tampered));
+        let error =
+            read_cleaned_wire(&tampered).expect_err("a non-canonical version token must refuse");
+        assert_eq!(error.kind(), expected, "version token {token}");
+        let findings = findings_of(&tampered, &package);
+        assert_eq!(
+            codes(&findings),
+            vec![CleanedVerifyCode::ArtifactUnreadable]
+        );
+        assert_eq!(findings[0].detail, expected.as_str());
+    }
+}
+
+#[test]
+fn canonical_version_one_still_verifies() {
+    let (package, projection) = mixed();
+    let artifact = exported(&package, &projection);
+    assert!(read_cleaned_wire(&artifact).is_ok());
+    verify_cleaned_wire(&artifact, &package).expect("canonical version 1 must verify");
 }
 
 // --------------------------------------------------------------- constants #

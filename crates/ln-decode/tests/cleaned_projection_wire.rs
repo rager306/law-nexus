@@ -280,6 +280,203 @@ fn is_null(entries: &[(&str, &str)], key: &str) -> bool {
         .unwrap_or(false)
 }
 
+/// Replaces the raw value of the first top-level `key` in a wire line.
+fn set_raw_value(line: &str, key: &str, new_raw: &str) -> String {
+    let needle = format!("\"{key}\":");
+    let start = line.find(&needle).expect("field must exist") + needle.len();
+    let end = skip_value(line, start);
+    format!("{}{}{}", &line[..start], new_raw, &line[end..])
+}
+
+/// Replaces the last occurrence of `key` (the manifest and footer each carry a
+/// top-level `version`, and the `generator` object carries a nested one, so the
+/// last occurrence is the manifest/footer top-level token).
+fn set_last_raw_value(line: &str, key: &str, new_raw: &str) -> String {
+    let needle = format!("\"{key}\":");
+    let start = line.rfind(&needle).expect("field must exist") + needle.len();
+    let end = skip_value(line, start);
+    format!("{}{}{}", &line[..start], new_raw, &line[end..])
+}
+
+/// Rewrites the manifest (line 0) of a wire document, preserving the trailing LF.
+fn replace_manifest(document: &str, mutate: impl Fn(&str) -> String) -> String {
+    let mut lines: Vec<String> = document
+        .split_terminator('\n')
+        .map(str::to_string)
+        .collect();
+    lines[0] = mutate(&lines[0]);
+    format!("{}\n", lines.join("\n"))
+}
+
+// -------------------------------------------------------- JSON grammar #
+
+#[test]
+fn strict_json_grammar_is_enforced() {
+    let (package, projection) = project(&MIXED);
+    let document = render(&package, &projection, &WireCompletion::Complete).expect("render");
+
+    // A leading-zero number (`01`) is not JSON: refused as malformed JSON.
+    let leading_zero =
+        replace_manifest(&document, |line| set_last_raw_value(line, "version", "01"));
+    assert_eq!(
+        expect_error(&leading_zero).kind(),
+        WireErrorKind::UnknownKind
+    );
+
+    // A leading `+` is not JSON either.
+    let plus = replace_manifest(&document, |line| set_last_raw_value(line, "version", "+1"));
+    assert_eq!(expect_error(&plus).kind(), WireErrorKind::UnknownKind);
+
+    // Valid JSON numbers that are not the canonical contract token.
+    let fraction = replace_manifest(&document, |line| set_last_raw_value(line, "version", "1.0"));
+    assert_eq!(
+        expect_error(&fraction).kind(),
+        WireErrorKind::VersionMismatch
+    );
+    let exponent = replace_manifest(&document, |line| set_last_raw_value(line, "version", "1e0"));
+    assert_eq!(
+        expect_error(&exponent).kind(),
+        WireErrorKind::VersionMismatch
+    );
+
+    // Number grammar is enforced inside nested objects too (limits.*).
+    let nested_zero = replace_manifest(&document, |line| {
+        set_raw_value(line, "max_line_bytes", "01")
+    });
+    assert_eq!(
+        expect_error(&nested_zero).kind(),
+        WireErrorKind::UnknownKind
+    );
+
+    // A doubled object separator is malformed.
+    let doubled_comma = replace_manifest(&document, |line| {
+        line.replacen(
+            "\"kind\":\"cleaned_projection_manifest\",",
+            "\"kind\":\"cleaned_projection_manifest\",,",
+            1,
+        )
+    });
+    assert_eq!(
+        expect_error(&doubled_comma).kind(),
+        WireErrorKind::UnknownKind
+    );
+
+    // A duplicate top-level key is refused.
+    let duplicate = replace_manifest(&document, |line| {
+        line.replacen(
+            "\"kind\":\"cleaned_projection_manifest\"",
+            "\"kind\":\"cleaned_projection_manifest\",\"kind\":\"cleaned_projection_manifest\"",
+            1,
+        )
+    });
+    assert_eq!(expect_error(&duplicate).kind(), WireErrorKind::UnknownKind);
+
+    // A duplicate key inside a nested object is refused too.
+    let nested_duplicate = replace_manifest(&document, |line| {
+        line.replacen(
+            "\"name\":\"ln-decode.cleaned_wire\"",
+            "\"name\":\"ln-decode.cleaned_wire\",\"name\":\"x\"",
+            1,
+        )
+    });
+    assert_eq!(
+        expect_error(&nested_duplicate).kind(),
+        WireErrorKind::UnknownKind
+    );
+
+    // Invalid and truncated escapes are refused.
+    let bad_escape = replace_manifest(&document, |line| {
+        line.replacen("\"ln-decode.cleaned_wire\"", "\"ln-decode\\qcleaned\"", 1)
+    });
+    assert_eq!(expect_error(&bad_escape).kind(), WireErrorKind::UnknownKind);
+
+    let truncated_escape = replace_manifest(&document, |line| {
+        line.replacen("\"ln-decode.cleaned_wire\"", "\"ln-decode\\u12\"", 1)
+    });
+    assert_eq!(
+        expect_error(&truncated_escape).kind(),
+        WireErrorKind::UnknownKind
+    );
+
+    // A valid `\uXXXX` escape is accepted (it decodes to the same tool id).
+    let valid_escape = replace_manifest(&document, |line| {
+        line.replacen(
+            "\"ln-decode.cleaned_wire\"",
+            "\"ln-decode\\u002ecleaned_wire\"",
+            1,
+        )
+    });
+    assert!(
+        inspect_cleaned_wire(&valid_escape).is_ok(),
+        "a valid \\uXXXX escape must be accepted"
+    );
+
+    // Hostile deep nesting is refused rather than recursing without bound.
+    let deep = format!("{}{}", "[".repeat(200), "]".repeat(200));
+    let nested = replace_manifest(&document, |line| set_raw_value(line, "limits", &deep));
+    assert_eq!(expect_error(&nested).kind(), WireErrorKind::UnknownKind);
+}
+
+#[test]
+fn closed_contract_values_are_enforced() {
+    let (package, projection) = project(&MIXED);
+    let document = render(&package, &projection, &WireCompletion::Complete).expect("render");
+
+    for key in ["model", "profile", "capability"] {
+        let tampered =
+            replace_manifest(&document, |line| set_raw_value(line, key, "\"forged/v9\""));
+        assert_eq!(
+            expect_error(&tampered).kind(),
+            WireErrorKind::ContractFieldInvalid,
+            "manifest.{key} must be a closed contract value"
+        );
+    }
+    let non_authoritative = replace_manifest(&document, |line| {
+        set_raw_value(line, "non_authoritative", "false")
+    });
+    assert_eq!(
+        expect_error(&non_authoritative).kind(),
+        WireErrorKind::ContractFieldInvalid
+    );
+    let no_limits = replace_manifest(&document, |line| set_raw_value(line, "limits", "null"));
+    assert_eq!(
+        expect_error(&no_limits).kind(),
+        WireErrorKind::ContractFieldInvalid
+    );
+
+    for (key, value) in [
+        ("cleaning_mode", "\"display_and_suppression\""),
+        ("text_retention", "\"summary_only\""),
+        ("hold_text_only", "\"loss_permitted\""),
+        ("counts_scope", "\"coverage\""),
+        ("unknown_context", "\"dropped\""),
+        ("normalization", "\"nfc\""),
+        ("authenticity", "\"authenticity_proven\""),
+    ] {
+        let mut lines: Vec<String> = document
+            .split_terminator('\n')
+            .map(str::to_string)
+            .collect();
+        lines[1] = set_raw_value(&lines[1], key, value);
+        let tampered = format!("{}\n", lines.join("\n"));
+        assert_eq!(
+            expect_error(&tampered).kind(),
+            WireErrorKind::ContractFieldInvalid,
+            "policies.{key} must be a closed contract value"
+        );
+    }
+    let mut lines: Vec<String> = document
+        .split_terminator('\n')
+        .map(str::to_string)
+        .collect();
+    lines[1] = set_raw_value(&lines[1], "non_authoritative", "false");
+    let tampered = format!("{}\n", lines.join("\n"));
+    assert_eq!(
+        expect_error(&tampered).kind(),
+        WireErrorKind::ContractFieldInvalid
+    );
+}
+
 // -------------------------------------------------------------- envelope #
 
 #[test]
