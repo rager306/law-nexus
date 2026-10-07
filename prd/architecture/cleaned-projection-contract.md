@@ -163,6 +163,7 @@ Exactly one `policies` line, immediately after the manifest. Required keys:
 | `schema` | `"law-nexus/cleaned-projection-policies/v1"` |
 | `version` | `1` |
 | `cleaning_mode` | `"display_only_reversible"` |
+| `display_scope` | `"source_content_retained_no_suppression"` |
 | `text_retention` | `"full_decoded_text_retained_inline"` |
 | `hold_text_only` | `"no_decoded_text_loss_permitted"` |
 | `counts_scope` | `"integrity_not_coverage"` |
@@ -176,6 +177,15 @@ A separate `policies` line (rather than a manifest sub-object as in
 observable and machine-checkable. `hold_text_only` and `counts_scope` state
 plainly that Hold/TextOnly never permit decoded-text loss (D600) and that the
 counts are integrity, not coverage (D601, M213 success criterion #3).
+
+The `display_scope` key is **additive tightening under the same `version`**: it
+adds a required closed value to the existing `policies` contract without a
+`version` or `schema` bump, mirroring the M222-nshb29 / S01 closed-contract-field
+admission that also tightened the required set while keeping `version` `1`
+(D689, ADR-0015). A `policies` line that omits `display_scope`, or carries any
+value other than `source_content_retained_no_suppression`, is refused with the
+typed `ContractFieldInvalid` instead of passing admission. See §10A for the
+reader treatment each retained source surface receives `[bounded]`.
 
 ## 6. Record schemas (lines 2..n-1)
 
@@ -423,6 +433,84 @@ derived segments carry no fragment/span; `verify_projection` stays `Ok`);
 fail-closed truncation cases; and `completion`/`incomplete_reasons` behavior.
 No raw decoded legal text is logged.
 
+Successor-revision controls (M222-nshb29 / S03; planned T04/T05) extend this
+surface without changing it `[bounded]`: the closed `policies.display_scope`
+value `source_content_retained_no_suppression` is admitted independently of the
+seals, and a tampered or absent key is refused with `ContractFieldInvalid`; a
+dedicated battery (`crates/ln-decode/tests/cleaned_display_scope.rs`) proves
+every retained substrate `TextRecord` is attributed exactly once, typed
+(`semantic` in {`field_code`, `revision_insertion`, `revision_deletion`} with
+`contextual == true`), addressable (`fragment_ref`/`slot`/`span` and
+`element_ref`/`source_pos`) and not suppressed, and that unknown/foreign
+references carry `reference_type` in {`unknown_wordml_element`,
+`foreign_element`}. These controls reference `reader-view-contract.md`
+§3.4/§3.5 and §9 (ADR-0015).
+
+## 10A. Declared display scope (M222-nshb29 / S03 successor revision)
+
+**Status:** `[bounded]`
+**Owning slice:** M222-nshb29 / S03 — `prd/architecture/cleaned-projection-contract.md`;
+controls in `crates/ln-decode/tests/cleaned_display_scope.rs` and the cleaned
+`policies` admission tests (T04/T05)
+**Upstream:** the §5 `policies` line and the §6 segment/reference schemas;
+`prd/architecture/reader-view-contract.md` §3.4 `semantic`, §3.5
+`reference_type` and §9 (exclusion/`inert_payload` dropped)
+**Authority:** ADR-0013, ADR-0015, D693 (declared display scope)
+
+This section makes the projection's **display scope** machine-explicit and
+closes R29-F06 `[bounded]`: the projection is **not** display-cleaned and
+**not** suppressed. It is a faithful decoded-text projection whose retained
+source content is addressable, never a reader-visible legal text curated for
+display. The closed `policies.display_scope` value
+`source_content_retained_no_suppression` states this on the wire (§5), and the
+reader treatment table below states which `ReaderSemantic` / `reference_type`
+each retained source surface receives.
+
+`cleaning_mode: display_only_reversible` names only the **permitted class** of
+transformations — reversible ones. The class is not applied: the projection
+carries the raw decoded text unchanged (`normalization:
+raw_decoded_text_no_char_normalization`), so the count of actually applied
+display transformations is **zero**. Display-cleaning and omission/suppression
+stay out of scope for this contract (§11).
+
+### 10A.1 Reader treatment of retained source content
+
+Every retained source surface is either a **source segment** (with a
+`ReaderSemantic`) or a **reference** (with a `reference_type`); none is dropped,
+and none is promoted to a reader view or a generated control.
+
+| retained source surface | wire surface | closed token |
+|---|---|---|
+| field instruction / field character text (`fldChar`/`instrText`/`fldSimple`) | source segment, `contextual = true` | `semantic = field_code` |
+| insertion-revision text (`ins`) | source segment, `contextual = true` | `semantic = revision_insertion` |
+| deletion-revision text (`del`) | source segment, `contextual = true` | `semantic = revision_deletion` |
+| unknown WordML element outside the known vocabulary | reference | `reference_type = unknown_wordml_element`; its nested text keeps its primary owner |
+| foreign-namespace element | reference | `reference_type = foreign_element`; its nested text keeps its primary owner |
+| payload / `binData`, provider metadata and element `attrs` | retained source content | not a readable legal text, not a view, not a control; text under it keeps its primary owner |
+
+`contextual` is `semantic != body` (§6.2), so every field-code and revision
+segment carries `contextual == true`. An unknown or foreign element is a
+reference and never a view (the ordinary ownership rule of
+`reader-view-contract.md` §5), while text inside its subtree still receives its
+primary owner.
+
+### 10A.2 Reversibility
+
+Retained content stays addressable back to the frozen substrate: every source
+segment carries `fragment_ref` + `slot` + `span` (`{fragment, start, end}`) plus
+`element_ref` + `source_pos`; every reference carries `element_ref` +
+`source_pos` (§6.2/§6.3). Every retained byte therefore has a substrate witness,
+so the projection can be reconstructed and audited without a display-cleaning or
+suppression step.
+
+### 10A.3 Non-claims
+
+Declaring a retained display scope is **not** display-cleaning, **not** an
+omission/suppression manifest, and **not** a claim that retained provider
+metadata or payload is reader-visible legal text. It asserts no normative or
+legal authority and no corpus coverage. R1000 stays active; its closure is owned
+by milestone M213 as a whole, not by this section.
+
 ## 11. Out of scope
 
 Reserved for the named downstream slices; S01 only reserves the fields and the
@@ -431,6 +519,7 @@ closed syntax:
 | surface | owner |
 |---|---|
 | display-cleaning / suppression rule (iteration-21 profiles and omission manifest) | remaining / not-required-for-R1000 |
+| declared display scope (retained / no suppression) | M222-nshb29 / S03 — delivered (§10A) |
 | read-back reconstruction of `Record`s and any exporter | S02 |
 | independent verifier over the reconstructed artifact (round-trip, resealed semantic tamper) | S02 |
 | navigation links and node addressability (heading/body/annex/table/footnote, source order) | S03 — delivered (§12) |
