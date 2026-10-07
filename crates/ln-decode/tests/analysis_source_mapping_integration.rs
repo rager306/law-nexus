@@ -31,6 +31,7 @@ use ln_decode::analysis_source_mapping::{
 use ln_decode::cleaned_completion::{classify_completion, ScopeDeclaration};
 use ln_decode::cleaned_wire::{IncompleteReason, WireCompletion};
 use ln_decode::document_context::DocumentVersionRef;
+use ln_decode::npa_analysis_records::build_analysis_block_layout;
 use ln_decode::npa_anchor::LocalSpan;
 use ln_decode::reader_contract::{FragmentRef, ReaderFragmentSpan, ReaderRecordIndex};
 use ln_decode::reader_gate::{gate_reader, ReaderSourceClass};
@@ -420,6 +421,103 @@ fn token_views_connect_to_real_fragments_and_stay_separate() {
         MappingRefusalKind::TokenViewMismatch
     );
     assert!(mapping.fragment_count() > 0);
+}
+
+// ----------------------------- F04 coordinate surfaces (real pipeline) #
+
+/// Synthetic two-fragment WordML on which both the S01 block→fragment seam and
+/// the S02 analysis-block layout are built from the same `capture ->
+/// build_projection` pipeline.
+const TWO_RUNS_WORDML: &str = "<w:wordDocument xmlns:w=\"http://schemas.microsoft.com/office/word/2003/wordml\"><w:body><w:p><w:r><w:t>Alpha</w:t></w:r><w:r><w:t>Beta</w:t></w:r></w:p></w:body></w:wordDocument>";
+
+/// R29-F04: the S01 caller-declared block rule and the S02 analysis-block
+/// coordinate are two distinct surfaces over the same numeric block index.
+/// They are not interchangeable — the same `block: 0, 5..9` coordinate is
+/// `out_of_bounds` on the seam (fragment `Alpha` is five bytes) but resolves to
+/// the second fragment `(0,4)` on the analysis layout — and each misuse is a
+/// closed refusal. Both surfaces are built from one real pipeline run.
+#[test]
+fn s01_and_analysis_coordinates_are_not_interchangeable() {
+    let package = capture(TWO_RUNS_WORDML.as_bytes(), &Limits::default())
+        .expect("the two-run fixture must capture");
+    let index = ReaderRecordIndex::new(package.records()).expect("substrate index");
+    let projection = project(&package);
+    let mut mapping = mapping_from_pipeline(&package, &projection, "reader-fixture:two-runs");
+
+    // S01 seam: block 0 is the first fragment (Alpha), block 1 the second (Beta).
+    let alpha = mapping
+        .resolve_local_span(LocalSpan {
+            block: 0,
+            start: 0,
+            end: 5,
+        })
+        .expect("block 0 resolves to the first fragment");
+    assert_eq!(mapping.slice(&alpha).expect("slice"), "Alpha");
+    let beta = mapping
+        .resolve_local_span(LocalSpan {
+            block: 1,
+            start: 0,
+            end: 4,
+        })
+        .expect("block 1 resolves to the second fragment");
+    assert_eq!(mapping.slice(&beta).expect("slice"), "Beta");
+
+    // Analysis surface: the same numeric block 1 does not exist — the analysis
+    // layout has exactly one block (one primary view).
+    let layout = build_analysis_block_layout(&projection, &index).expect("layout builds");
+    assert_eq!(layout.block_count(), 1, "one primary view -> one block");
+    assert_eq!(
+        layout
+            .localize(LocalSpan {
+                block: 1,
+                start: 0,
+                end: 4,
+            })
+            .expect_err("analysis block 1 does not exist")
+            .token(),
+        "unmapped_block"
+    );
+
+    // The S01 block 0 range 5..9 is out of bounds (its fragment is "Alpha"),
+    // while the analysis block 0 range 5..9 is the second fragment's "Beta".
+    assert_eq!(
+        kind_of(mapping.resolve_local_span(LocalSpan {
+            block: 0,
+            start: 5,
+            end: 9,
+        })),
+        MappingRefusalKind::OutOfBounds,
+        "the S01 fragment for block 0 is five bytes long"
+    );
+    let block = layout.block(0).expect("one analysis block");
+    let bound = layout
+        .localize(LocalSpan {
+            block: 0,
+            start: 5,
+            end: 9,
+        })
+        .expect("the analysis coordinate resolves to the second fragment");
+    assert_eq!(bound.fragment, block.segments[1].fragment);
+    assert_eq!((bound.start, bound.end), (0, 4));
+    let resolved = mapping
+        .resolve_fragment_span(&bound.as_fragment_span())
+        .expect("the analysis bound span resolves through the S01 seam");
+    assert_eq!(mapping.slice(&resolved).expect("slice"), "Beta");
+
+    // Misuse is closed: an unmapped block is `unsupported_mapping`, and a remap
+    // of an already-declared block is a structural refusal.
+    assert_eq!(
+        kind_of(mapping.resolve_local_span(LocalSpan {
+            block: 7,
+            start: 0,
+            end: 1,
+        })),
+        MappingRefusalKind::UnsupportedMapping
+    );
+    assert_eq!(
+        kind_of(mapping.map_block(0, FragmentRef::new("remapped-fragment"))),
+        MappingRefusalKind::EnvelopeStructural
+    );
 }
 
 // ------------------------------------------------------- negative battery #

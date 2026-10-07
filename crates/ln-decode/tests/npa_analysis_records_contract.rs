@@ -130,6 +130,119 @@ fn empty_primary_view_is_not_an_analysis_block() {
     );
 }
 
+// ------------------------------------- real-pipeline F04 analysis coordinates #
+
+// These cases exercise the analysis coordinate surface (`AnalysisBlockLayout::
+// localize`) through the real `capture -> projection -> analyze_typed` pipeline,
+// never a handwritten layout. `manual_layout`/`boundary_layout` below stay as
+// isolated unit oracles for the same refusal vocabulary, but they cannot prove
+// that the pipeline produces the offsets these tests assert.
+
+/// R29-F04: a span inside the **second** source fragment of one block localizes
+/// to that exact fragment and range, and slices to the exact substrate literal
+/// `Beta`. This is the offset-precision proof `cross_fragment` alone does not
+/// give: block `5..9` becomes fragment `(0,4)`, not `(5,9)`.
+#[test]
+fn real_pipeline_second_fragment_span_localizes_with_exact_offsets() {
+    let (analysis, mapping) = analyze(&wrap(TWO_RUNS));
+    let block = analysis.layout.block(0).expect("one block");
+    assert_eq!(block.text, "AlphaBeta");
+    assert_eq!(block.segments.len(), 2, "two source fragments");
+
+    let second = &block.segments[1];
+    let bound = analysis
+        .layout
+        .localize(LocalSpan {
+            block: 0,
+            start: 5,
+            end: 9,
+        })
+        .expect("a span inside the second fragment must localize");
+    assert_eq!(bound.fragment, second.fragment);
+    assert_eq!(
+        (bound.start, bound.end),
+        (0, 4),
+        "the fragment-relative offsets are rebased off the block offset"
+    );
+    assert_eq!(slice(&mapping, &bound), "Beta");
+}
+
+/// R29-F04: a whole-block span straddles both source fragments and is closed as
+/// `cross_fragment` — never rebound onto one fragment or silently dropped.
+#[test]
+fn real_pipeline_whole_block_span_is_closed_cross_fragment() {
+    let (analysis, _) = analyze(&wrap(TWO_RUNS));
+    let block = analysis.layout.block(0).expect("one block");
+    let refusal = analysis
+        .layout
+        .localize(LocalSpan {
+            block: 0,
+            start: 0,
+            end: block.text.len(),
+        })
+        .expect_err("a whole-block span spans two fragments");
+    assert_eq!(refusal.token(), "cross_fragment");
+}
+
+const TWO_RUNS_TAB: &str =
+    "<w:p><w:r><w:t>Alpha</w:t><w:tab/></w:r><w:r><w:t>Beta</w:t></w:r></w:p>";
+
+/// R29-F04: on a real layout with a derived separator *between* two source
+/// fragments, the separator is a typed boundary at block offsets `(5, 6)`, a
+/// span crossing it is closed as `derived_separator`, and spans fully inside
+/// either fragment still resolve to their exact substrate slices.
+#[test]
+fn real_pipeline_derived_separator_between_fragments() {
+    let (analysis, mapping) = analyze(&wrap(TWO_RUNS_TAB));
+    let block = analysis.layout.block(0).expect("one block");
+    assert_eq!(block.text, "Alpha\tBeta");
+    assert_eq!(block.segments.len(), 2, "two source fragments");
+    assert_eq!(block.boundaries.len(), 1, "the tab is the only boundary");
+    assert_eq!(block.boundaries[0].kind, ReaderDerivedKind::Tab);
+    assert_eq!(
+        (
+            block.boundaries[0].block_start,
+            block.boundaries[0].block_end
+        ),
+        (5, 6),
+        "the derived tab sits between the two fragments"
+    );
+
+    let crossed = analysis
+        .layout
+        .localize(LocalSpan {
+            block: 0,
+            start: 4,
+            end: 6,
+        })
+        .expect_err("a span crossing the tab is a closed refusal");
+    assert_eq!(crossed.token(), "derived_separator");
+
+    let alpha = analysis
+        .layout
+        .localize(LocalSpan {
+            block: 0,
+            start: 0,
+            end: 5,
+        })
+        .expect("the first fragment span resolves");
+    assert_eq!(alpha.fragment, block.segments[0].fragment);
+    assert_eq!((alpha.start, alpha.end), (0, 5));
+    assert_eq!(slice(&mapping, &alpha), "Alpha");
+
+    let beta = analysis
+        .layout
+        .localize(LocalSpan {
+            block: 0,
+            start: 6,
+            end: 10,
+        })
+        .expect("the second fragment span resolves");
+    assert_eq!(beta.fragment, block.segments[1].fragment);
+    assert_eq!((beta.start, beta.end), (0, 4));
+    assert_eq!(slice(&mapping, &beta), "Beta");
+}
+
 // ------------------------------------------------------------ localization #
 
 fn manual_layout() -> AnalysisBlockLayout {
