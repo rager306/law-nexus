@@ -1,0 +1,95 @@
+{
+  "schema": "law-nexus/cleaned-projection-s04-acceptance/v1",
+  "schema_version": 1,
+  "lifecycle": "[bounded]",
+  "milestone": "M222-nshb29",
+  "slice": "S04",
+  "count_only": true,
+  "ascii_only": true,
+  "promotion": false,
+  "coverage_claim": null,
+  "fixture": {
+    "path": "crates/ln-decode/tests/fixtures/reader/mixed-wordml.xml",
+    "sha256": "sha256:d2fc1cd17f0697f575e94f09d83da5027d73afd37c700772eafa4c4a4fbc76db",
+    "synthetic_non_legal": true
+  },
+  "verdicts": {
+    "transport_integrity": "pass",
+    "analysis_completion": "not_attempted",
+    "semantic_acceptance": "not_attempted"
+  },
+  "verdict_basis": "full ln-decode crate battery green; consumer admission fail-closed across read/verify/nav/CLI; no promotion; no requirement closure",
+  "crate_battery": {
+    "command": "cargo test -p ln-decode --offline",
+    "exit_code": 0,
+    "result_lines": 111,
+    "passed": 1282,
+    "failed": 0,
+    "ignored": 6,
+    "failures_named": [],
+    "pass": true
+  },
+  "proving_suites": {
+    "cleaned_projection_wire": { "passed": 11, "failed": 0, "ignored": 0 },
+    "cleaned_consumer_admission": { "passed": 6, "failed": 0, "ignored": 0 },
+    "m222_f07_audit": { "passed": 6, "failed": 0, "ignored": 0 },
+    "cleaned_projection_verify": { "passed": 23, "failed": 0, "ignored": 0 },
+    "cleaned_cli_contract": { "passed": 12, "failed": 0, "ignored": 0 },
+    "cleaned_display_scope": { "passed": 3, "failed": 0, "ignored": 0 },
+    "cleaned_navigation": { "passed": 12, "failed": 0, "ignored": 0 },
+    "cleaned_projection_corpus": { "passed": 3, "failed": 0, "ignored": 1 },
+    "npa_analysis_wire_contract": { "passed": 9, "failed": 0, "ignored": 0 },
+    "npa_analysis_wire_hostile": { "passed": 13, "failed": 0, "ignored": 0 },
+    "npa_analysis_verify_contract": { "passed": 12, "failed": 0, "ignored": 0 },
+    "npa_analysis_verify_hostile": { "passed": 23, "failed": 0, "ignored": 0 },
+    "npa_analysis_export_integration": { "passed": 13, "failed": 0, "ignored": 0 },
+    "analysis_source_mapping_integration": { "passed": 7, "failed": 0, "ignored": 0 }
+  },
+  "gates": {
+    "cargo_fmt_all_check": { "exit_code": 0, "pass": true },
+    "cargo_check_workspace_offline": { "exit_code": 0, "pass": true },
+    "cargo_clippy_workspace_all_targets_deny_warnings": { "exit_code": 0, "pass": true }
+  },
+  "frozen_receipts_unchanged": {
+    "prd/migration/rust-evidence/m214-s02-analysis-export.json": true,
+    "prd/migration/rust-evidence/m214-s03-context-verify.json": true
+  },
+  "r29_disposition": {
+    "fixed": {
+      "F01": "cleaned_projection_verify: resealed_manifest_contract_tamper_is_refused, resealed_policies_contract_tamper_is_refused",
+      "F02": "cleaned_projection_verify: resealed_non_canonical_version_token_is_refused",
+      "F03": "npa_analysis_wire_context: contextless_six_family_envelope_verifies_ok, six_family_envelope_hiding_context_is_context_outcome_mismatch",
+      "F04": "npa_analysis_export_integration: real_pipeline coordinate controls",
+      "F05": "cleaned_projection_verify: incomplete_completions_are_text_loss_fail_closed, resealed_dropped_inline_under_hold_is_membership_mismatch",
+      "F06": "cleaned_display_scope: policies_declare_retained_display_scope_and_verify",
+      "F07a": "cleaned_projection_wire: declared_line_limit_is_enforced_on_read, declared_record_limit_is_enforced_on_read, canonical_artifact_within_declared_limits_reads"
+    },
+    "refuted": {
+      "F07b": "m222_f07_audit: f07b_cleaned_verifier_diagnostics_are_deterministic, f07b_cli_verify_output_is_deterministic"
+    },
+    "reproduced_residual": {
+      "F07c": "m222_f07_audit: f07c_capability_tamper_passes_structure_only, f07c_version_tamper_passes_structure_only, f07c_schema_tamper_passes_structure_only"
+    },
+    "counts": {
+      "fixed": 7,
+      "refuted": 1,
+      "reproduced_residual": 1,
+      "total_units": 9
+    }
+  },
+  "carry_forward": {
+    "r1000_status": "active",
+    "r1001_status": "frozen",
+    "r1001_reopened": false,
+    "f07c_residual": "reproduced structure-only gap; not fixed in M222; owner R1001",
+    "m208_status": "parked",
+    "m215_m220_status": "parked"
+  },
+  "non_claims": [
+    "count/hash only; no decoded corpus text and no payloads",
+    "transport integrity is not analysis completion and not semantic acceptance (D667)",
+    "no requirement closure; R1000 stays active/unclosed and R1001 stays frozen",
+    "F07c is a bounded reproduced residual carried forward to the R1001 owner",
+    "the M222 S04 battery is not a corpus-wide accuracy or breadth claim"
+  ]
+}
