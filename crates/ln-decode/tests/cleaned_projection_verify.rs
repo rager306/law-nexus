@@ -22,8 +22,8 @@ use std::collections::HashMap;
 
 use ln_decode::cleaned_verifier::{verify_cleaned_wire, CleanedFinding, CleanedVerifyCode};
 use ln_decode::cleaned_wire::{
-    export_cleaned_projection, read_cleaned_wire, WireCompletion, WireErrorKind, WireLimits,
-    KIND_FOOTER, KIND_MANIFEST, KIND_POLICIES, KIND_REFERENCE, KIND_SEGMENT, KIND_VIEW,
+    export_cleaned_projection, read_cleaned_wire, IncompleteReason, WireCompletion, WireErrorKind,
+    WireLimits, KIND_FOOTER, KIND_MANIFEST, KIND_POLICIES, KIND_REFERENCE, KIND_SEGMENT, KIND_VIEW,
 };
 use ln_decode::reader_projection::{build_projection, ReaderProjection};
 use ln_decode::reader_verifier::VerifyCode;
@@ -667,6 +667,82 @@ fn round_trips_and_recomputes_seals_for_every_fixture() {
             )
         });
     }
+}
+
+// ------------------------------------------ incomplete completion (F05) #
+
+/// The declared `Hold` / `TextOnly` basis, exactly as the S04 corpus battery
+/// maps `ScopeDeclaration::StructureHold` / `TextOnlyScope`. Written here rather
+/// than imported so this battery never derives its expectation from the module
+/// under test.
+fn declared_incomplete_completion(basis: IncompleteReason) -> WireCompletion {
+    WireCompletion::Incomplete {
+        basis,
+        reasons: vec![basis],
+    }
+}
+
+#[test]
+fn incomplete_completions_pass_independent_verification() {
+    let (package, projection) = mixed();
+    for basis in [IncompleteReason::Hold, IncompleteReason::TextOnly] {
+        let completion = declared_incomplete_completion(basis);
+        let artifact =
+            export_cleaned_projection(&package, &projection, &completion, &WireLimits::default())
+                .unwrap_or_else(|error| panic!("{basis:?}: honest partial export: {error}"));
+        assert!(
+            read_cleaned_wire(&artifact).is_ok(),
+            "{basis:?}: the writer must not forbid an honest partial scope"
+        );
+        verify_cleaned_wire(&artifact, &package).unwrap_or_else(|findings| {
+            panic!(
+                "{basis:?}: independent verification must accept the incomplete artifact: {:?}",
+                codes(&findings)
+            )
+        });
+    }
+}
+
+#[test]
+fn resealed_dropped_inline_under_hold_is_membership_mismatch() {
+    let (package, projection) = mixed();
+    let hold = declared_incomplete_completion(IncompleteReason::Hold);
+    let artifact = export_cleaned_projection(&package, &projection, &hold, &WireLimits::default())
+        .expect("honest Hold export");
+
+    // Drop a whole source segment (its inline decoded-text entry) and the
+    // owning view's reference to it, then re-seal: the envelope stays internally
+    // consistent, so only the independent verifier can see that a substrate text
+    // record is now covered by no source inline text.
+    let mut lines = lines_of(&artifact);
+    let index = first_source_segment_line(&lines).expect("mixed must carry a source segment");
+    let segment_id = str_field(&lines[index], "id").expect("segment.id");
+    let owner = str_field(&lines[index], "view").expect("segment.view");
+    let owner_index = lines
+        .iter()
+        .position(|line| {
+            is_kind(line, KIND_VIEW) && str_field(line, "id").as_deref() == Some(owner.as_str())
+        })
+        .expect("owning view");
+    let refs = raw_value(&lines[owner_index], "segment_refs").expect("view.segment_refs");
+    lines[owner_index] = set_raw_value(
+        &lines[owner_index],
+        "segment_refs",
+        &remove_str_array_item(refs, &segment_id),
+    );
+    lines.remove(index);
+
+    let artifact = resealed(&lines);
+    assert!(
+        read_cleaned_wire(&artifact).is_ok(),
+        "a re-sealed Hold artifact stays internally consistent"
+    );
+    let findings = findings_of(&artifact, &package);
+    assert!(
+        codes(&findings).contains(&CleanedVerifyCode::TextChannelMembershipMismatch),
+        "a dropped inline entry must surface as TextChannelMembershipMismatch, got {:?}",
+        codes(&findings)
+    );
 }
 
 // ---------------------------------------------- re-sealed semantic tamper #

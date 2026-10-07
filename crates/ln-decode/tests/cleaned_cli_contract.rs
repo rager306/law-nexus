@@ -261,33 +261,57 @@ fn export_honours_completion_declaration() {
     let dir = temp_dir("export-completion");
     let xml_path = dir.join("mixed.xml");
     write_file(&xml_path, MIXED.as_bytes());
-    let out_path = dir.join("text-only.jsonl");
-    let cli = parse_cleaned_args(args(&[
-        "export",
-        "--from-xml",
-        &s(&xml_path),
-        "--completion",
-        "text_only",
-        "--out",
-        &s(&out_path),
-    ]))
-    .expect("export parses");
-    let (code, _, err) = run(&cli);
-    assert_eq!(code, EXIT_OK, "export failed: {err}");
+    let package_path = dir.join("mixed.pkg.jsonl");
+    write_file(&package_path, &package_bytes(MIXED));
 
-    let read =
-        parse_cleaned_args(args(&["read", "--artifact", &s(&out_path)])).expect("read parses");
-    let (code, out, err) = run(&read);
-    assert_eq!(code, EXIT_OK, "read failed: {err}");
-    assert!(out.contains("completion=incomplete"), "unexpected: {out}");
-    assert!(
-        out.contains("completion_basis=text_only"),
-        "unexpected: {out}"
-    );
-    assert!(
-        out.contains("incomplete_reasons=text_only"),
-        "unexpected: {out}"
-    );
+    // Both incomplete declarations must route through the writer (never around
+    // it) and the published artifact must survive the independent `verify` path —
+    // a CLI bypass that dropped or duplicated decoded text would be refused
+    // there.
+    for (token, basis) in [("hold", "hold"), ("text_only", "text_only")] {
+        let out_path = dir.join(format!("{token}.jsonl"));
+        let cli = parse_cleaned_args(args(&[
+            "export",
+            "--from-xml",
+            &s(&xml_path),
+            "--completion",
+            token,
+            "--out",
+            &s(&out_path),
+        ]))
+        .expect("export parses");
+        let (code, _, err) = run(&cli);
+        assert_eq!(code, EXIT_OK, "{token}: export failed: {err}");
+
+        let read =
+            parse_cleaned_args(args(&["read", "--artifact", &s(&out_path)])).expect("read parses");
+        let (code, out, err) = run(&read);
+        assert_eq!(code, EXIT_OK, "{token}: read failed: {err}");
+        assert!(out.contains("completion=incomplete"), "{token}: {out}");
+        assert!(
+            out.contains(&format!("completion_basis={basis}")),
+            "{token}: {out}"
+        );
+        assert!(
+            out.contains(&format!("incomplete_reasons={basis}")),
+            "{token}: {out}"
+        );
+
+        let verify = parse_cleaned_args(args(&[
+            "verify",
+            "--artifact",
+            &s(&out_path),
+            "--package",
+            &s(&package_path),
+        ]))
+        .expect("verify parses");
+        let (code, out, err) = run(&verify);
+        assert_eq!(code, EXIT_OK, "{token}: verify failed: {out}{err}");
+        assert!(
+            !out.contains("findings="),
+            "{token}: a clean verify must not report findings: {out}"
+        );
+    }
 }
 
 #[test]

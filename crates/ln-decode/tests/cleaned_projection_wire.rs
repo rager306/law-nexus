@@ -18,8 +18,9 @@
 use std::collections::HashMap;
 
 use ln_decode::cleaned_wire::{
-    inspect_cleaned_wire, render_cleaned_projection, IncompleteReason, WireCompletion, WireError,
-    WireErrorKind, WireLimits, KIND_FOOTER, KIND_MANIFEST, KIND_POLICIES, KIND_SEGMENT,
+    inspect_cleaned_wire, read_cleaned_wire, render_cleaned_projection, IncompleteReason,
+    WireCompletion, WireError, WireErrorKind, WireLimits, KIND_FOOTER, KIND_MANIFEST,
+    KIND_POLICIES, KIND_SEGMENT,
 };
 use ln_decode::reader_projection::{build_projection, ReaderProjection};
 use ln_decode::reader_verifier::verify_projection;
@@ -678,6 +679,75 @@ fn full_text_is_carried_inline_exactly_once() {
             seen.len(),
             "{}: footer source_segments matches the attributed fragments",
             fixture.file
+        );
+    }
+}
+
+/// T02 (F05): the writer enforces exactly-once text attribution for every
+/// completion marker, not only `Complete`. An incomplete (`Hold` / `TextOnly`)
+/// projection that drops or duplicates a substrate source segment is refused
+/// with `WireErrorKind::TextLoss`, while a canonical incomplete projection still
+/// renders and reads back.
+///
+/// The positive text-channel oracle (every substrate fragment carried exactly
+/// once) already lives in `full_text_is_carried_inline_exactly_once` above; this
+/// control proves the incomplete-marker refusal path and does not restate it.
+#[test]
+fn incomplete_completions_are_text_loss_fail_closed() {
+    let (package, projection) = project(&MIXED);
+
+    let hold = WireCompletion::Incomplete {
+        basis: IncompleteReason::Hold,
+        reasons: vec![IncompleteReason::Hold],
+    };
+    let text_only = WireCompletion::Incomplete {
+        basis: IncompleteReason::TextOnly,
+        reasons: vec![IncompleteReason::TextOnly],
+    };
+
+    // Positive: the canonical projection renders for both incomplete markers and
+    // the read-back accepts them — an incomplete marker is a partial
+    // interpretation, never a licence to drop decoded text.
+    for completion in [&hold, &text_only] {
+        let document = render(&package, &projection, completion)
+            .expect("an honest partial export must render");
+        let readback =
+            read_cleaned_wire(&document).expect("an honest partial export must read back");
+        assert_eq!(&readback.completion, completion);
+    }
+
+    // Negative: a dropped source segment is text loss under any marker.
+    let mut lost = projection.clone();
+    let source_index = lost
+        .segments
+        .iter()
+        .position(|segment| segment.fragment_ref.is_some())
+        .expect("fixture must carry a source segment");
+    lost.segments.remove(source_index);
+    for completion in [&hold, &text_only] {
+        let error = render(&package, &lost, completion).expect_err("loss must refuse");
+        assert_eq!(
+            error.kind(),
+            WireErrorKind::TextLoss,
+            "a dropped segment must be text loss under {completion:?}"
+        );
+    }
+
+    // Negative: a duplicated source segment is text loss under any marker.
+    let mut duplicated = projection.clone();
+    let duplicated_segment = duplicated
+        .segments
+        .iter()
+        .find(|segment| segment.fragment_ref.is_some())
+        .expect("fixture must carry a source segment")
+        .clone();
+    duplicated.segments.push(duplicated_segment);
+    for completion in [&hold, &text_only] {
+        let error = render(&package, &duplicated, completion).expect_err("duplicate must refuse");
+        assert_eq!(
+            error.kind(),
+            WireErrorKind::TextLoss,
+            "a duplicated segment must be text loss under {completion:?}"
         );
     }
 }
