@@ -351,10 +351,15 @@ Invariants:
   `completion = "incomplete"` and a closing `incomplete_reasons` set. It is
   honest output, not an error, and never `complete`.
 
-A `complete` projection additionally requires that every substrate `TextRecord`
-is attributed to exactly one source `segment`: zero missing and zero duplicate
-(non-cyclic `complete`-with-loss is refused, D639). Counts and seals remain
-integrity evidence: they certify structural consistency, not text coverage.
+Every emitted projection — whatever completion marker it carries — requires that
+every substrate `TextRecord` is attributed to exactly one source `segment`:
+zero missing and zero duplicate (non-cyclic projection-with-loss is refused with
+`TextLoss`, D639). `incomplete` is a partial **interpretation**, not a partial
+text channel: the writer applies this exactly-once invariant to every emitted
+projection regardless of its completion marker, so an incomplete artifact that
+drops or duplicates a substrate segment is refused before any line is written
+(R29-F05, D692). Counts and seals remain integrity evidence: they certify
+structural consistency, not text coverage.
 
 ### 8.3 Counts
 
@@ -627,10 +632,14 @@ Hold and TextOnly declare that the **structural or normative interpretation** is
 incomplete or inapplicable. They say nothing about the text channel: the decoded
 text channel stays **full** for a `complete`, a `hold` and a `text_only`
 artifact alike, and decoded-text loss remains forbidden
-(`policies.hold_text_only`). The writer's text-loss check runs on the
-`Complete` branch only (§8.2); the S04 battery therefore proves text safety
-independently, on a declared corpus slice, by its own traversal of
-`Package.records()` rather than by trusting the completion marker.
+(`policies.hold_text_only`). The writer's text-loss check is completion-neutral:
+it runs for every emitted projection — `complete`, `hold`, `text_only` and
+`caller_scope` alike — so an incomplete artifact that drops or duplicates a
+substrate segment is refused with `TextLoss` before any line is written
+(R29-F05, D692). The S04 battery (`cleaned_projection_corpus.rs`) is therefore a
+redundant independent cross-check over a declared corpus slice — its own
+traversal of `Package.records()` never trusts the completion marker — rather
+than the only text-safety proof.
 
 ### 13.3 `cleaned-project` CLI
 

@@ -211,7 +211,8 @@ pub enum WireErrorKind {
     RecordsLimit,
     /// The summed inline `text_bytes` exceeds `max_text_bytes`.
     TextBytesLimit,
-    /// A `complete` projection dropped or duplicated a substrate text record.
+    /// An emitted projection dropped or duplicated a substrate text record,
+    /// independent of its completion marker.
     TextLoss,
     /// A source segment names a fragment the substrate does not carry.
     FragmentMissing,
@@ -935,9 +936,9 @@ fn resolve_text(
 ///
 /// The writer is deterministic (equal input yields byte-identical output),
 /// dependency-free, and fail-closed: every declared limit is validated before the
-/// document is returned, a `complete` projection must attribute every substrate
-/// text record exactly once, and no partial projection is ever emitted on a
-/// refusal.
+/// document is returned, every emitted projection must attribute every substrate
+/// text record exactly once regardless of its completion marker, and no partial
+/// projection is ever emitted on a refusal.
 pub fn render_cleaned_projection(
     package: &Package,
     projection: &ReaderProjection,
@@ -994,20 +995,23 @@ pub fn render_cleaned_projection(
         record_lines.push(render_line(&reference_json(reference)));
     }
 
-    // A `complete` projection may not drop or duplicate decoded text.
-    if matches!(completion, WireCompletion::Complete) {
-        for record in package.records() {
-            if let Record::Text(text) = record {
-                let seen = attributed.get(text.id.as_str()).copied().unwrap_or(0);
-                if seen != 1 {
-                    return Err(WireError::new(
-                        WireErrorKind::TextLoss,
-                        format!(
-                            "complete projection attributes text fragment {} {seen} times",
-                            text.id
-                        ),
-                    ));
-                }
+    // No emitted projection may drop or duplicate decoded text, whatever its
+    // completion marker: `incomplete` is a partial interpretation, never a
+    // partial text channel. The same invariant is enforced unconditionally by
+    // the independent verifier (`cleaned_verifier::verify_text_channel`).
+    for record in package.records() {
+        if let Record::Text(text) = record {
+            let seen = attributed.get(text.id.as_str()).copied().unwrap_or(0);
+            if seen != 1 {
+                return Err(WireError::new(
+                    WireErrorKind::TextLoss,
+                    format!(
+                        "{} projection (basis {}) attributes text fragment {} {seen} times",
+                        completion.as_str(),
+                        completion.basis_str(),
+                        text.id
+                    ),
+                ));
             }
         }
     }
@@ -2582,6 +2586,59 @@ mod tests {
             &WireLimits::default(),
         )
         .expect_err("complete-with-loss must refuse");
+        assert_eq!(error.kind(), WireErrorKind::TextLoss);
+    }
+
+    #[test]
+    fn refuses_incomplete_with_text_loss() {
+        let package = fixture_package();
+        let whole = fixture_projection(&package);
+        let source_index = whole
+            .segments
+            .iter()
+            .position(|segment| segment.origin == SegmentOrigin::SourceFragment)
+            .expect("fixture must carry a source segment");
+
+        // Hold semantics may withhold interpretation, but never decoded text:
+        // an incomplete projection that drops a substrate segment is refused
+        // exactly like a complete one.
+        let hold = WireCompletion::Incomplete {
+            basis: IncompleteReason::Hold,
+            reasons: vec![IncompleteReason::Hold],
+        };
+        let mut hold_lost = whole.clone();
+        hold_lost.segments.remove(source_index);
+        let error = render(&package, &hold_lost, &hold, &WireLimits::default())
+            .expect_err("hold-with-loss must refuse");
+        assert_eq!(error.kind(), WireErrorKind::TextLoss);
+
+        // The same holds for a text-only scope.
+        let text_only = WireCompletion::Incomplete {
+            basis: IncompleteReason::TextOnly,
+            reasons: vec![IncompleteReason::TextOnly],
+        };
+        let mut text_only_lost = whole.clone();
+        text_only_lost.segments.remove(source_index);
+        let error = render(
+            &package,
+            &text_only_lost,
+            &text_only,
+            &WireLimits::default(),
+        )
+        .expect_err("text-only-with-loss must refuse");
+        assert_eq!(error.kind(), WireErrorKind::TextLoss);
+
+        // A duplicated substrate segment is text duplication, not a scope
+        // choice, and is refused under the same incomplete marker.
+        let duplicated = whole
+            .segments
+            .get(source_index)
+            .expect("source segment")
+            .clone();
+        let mut hold_duplicated = whole.clone();
+        hold_duplicated.segments.push(duplicated);
+        let error = render(&package, &hold_duplicated, &hold, &WireLimits::default())
+            .expect_err("hold-with-duplicate must refuse");
         assert_eq!(error.kind(), WireErrorKind::TextLoss);
     }
 
