@@ -283,6 +283,26 @@ impl ContextRecord {
     }
 }
 
+/// True when `records` is the trivially empty context stream of §8B.1: exactly
+/// one aggregate `run` record with zero `requests`, zero `resolved`, zero
+/// `non_resolved`, an empty per-status count map, `limit_reached` false and no
+/// diagnostics. A zero-request run carrying `missing_document_structure` is
+/// **not** trivially empty — the six-family admission of §8B.4 must refuse it
+/// rather than treat a failed context build as a silent pass. `[bounded]`
+/// (R29-F03, D690)
+pub fn context_stream_is_trivially_empty(records: &[ContextRecord]) -> bool {
+    matches!(
+        records,
+        [ContextRecord::Run(run)]
+            if run.requests == 0
+                && run.resolved == 0
+                && run.non_resolved == 0
+                && run.status_counts.is_empty()
+                && !run.limit_reached
+                && run.diagnostics.is_empty()
+    )
+}
+
 // ----------------------------------------------------------------- build #
 
 /// Builds the deterministic context record stream from an analysis block

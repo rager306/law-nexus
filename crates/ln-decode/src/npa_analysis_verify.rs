@@ -22,14 +22,16 @@ use crate::analysis_source_mapping::SourceMapping;
 use crate::npa_analysis_records::analyze_document;
 use crate::npa_analysis_wire::{
     bool_field, inspect_npa_analysis_wire, line_token, opt_hex_field, recompute_analysis_seals,
-    render_npa_analysis_with_context, sha256_hex, split_json_array_items, split_lines,
-    string_array_field, string_field, u64_field, AnalysisEnvelopeRequest, AnalysisLimits,
-    AnalysisScope, AnalysisWireError, AnalysisWireErrorKind, JsonFields, BASIS_COMPLETE,
-    BASIS_CONTEXT_INCOMPLETE, BASIS_REFUSED_RECORD, FAMILY_CLASSIFICATION, FAMILY_CONTEXT,
-    FAMILY_DIAGNOSTIC, FAMILY_DOCUMENT, FAMILY_FRAGMENT, FAMILY_MEMBER, FAMILY_RELATION, MODEL,
-    PROFILE,
+    render_npa_analysis, render_npa_analysis_with_context, sha256_hex, split_json_array_items,
+    split_lines, string_array_field, string_field, u64_field, AnalysisEnvelopeRequest,
+    AnalysisLimits, AnalysisScope, AnalysisWireError, AnalysisWireErrorKind, JsonFields,
+    BASIS_COMPLETE, BASIS_CONTEXT_INCOMPLETE, BASIS_REFUSED_RECORD, FAMILY_CLASSIFICATION,
+    FAMILY_CONTEXT, FAMILY_DIAGNOSTIC, FAMILY_DOCUMENT, FAMILY_FRAGMENT, FAMILY_MEMBER,
+    FAMILY_RELATION, MODEL, PROFILE,
 };
-use crate::npa_context_records::{build_context_records, KIND_RESULT, KIND_RUN};
+use crate::npa_context_records::{
+    build_context_records, context_stream_is_trivially_empty, KIND_RESULT, KIND_RUN,
+};
 use crate::reader_contract::{FragmentRef, ReaderFragmentSpan, ReaderRecordIndex};
 use crate::reader_projection::ReaderProjection;
 
@@ -926,7 +928,13 @@ pub fn verify_npa_analysis_wire(
     }
 
     // 3. Re-derive the canonical records from the pinned parent. The artifact's
-    //    own records and seals are not trusted.
+    //    own records and seals are not trusted. The envelope mode is derived
+    //    from the read-back (§8B.4, D690): a non-empty `contexts` list or a
+    //    `contexts` footer count selects the seven-family mode; the absence of
+    //    both selects the six-family mode, admitted only when the re-derived
+    //    context stream is trivially empty. A six-family envelope that hides a
+    //    non-trivial context stream is a closed `context_outcome_mismatch`,
+    //    never a silent pass.
     let analysis = match analyze_document(projection, index, mapping) {
         Ok(analysis) => analysis,
         Err(refusal) => {
@@ -946,14 +954,36 @@ pub fn verify_npa_analysis_wire(
         limits: readback.manifest.limits,
         scope: AnalysisScope::Bounded,
     };
-    let canonical = match render_npa_analysis_with_context(&canonical_request, &contexts) {
-        Ok(canonical) => canonical,
-        Err(error) => {
+    let six_family =
+        readback.contexts.is_empty() && !readback.footer.counts.contains_key("contexts");
+    let canonical = if six_family {
+        if !context_stream_is_trivially_empty(&contexts) {
             findings.push(AnalysisVerifyFinding::new(
-                AnalysisVerifyCode::EnvelopeStructural,
-                format!("canonical render refused: {}", error.detail()),
+                AnalysisVerifyCode::ContextOutcomeMismatch,
+                "a six-family envelope's context re-derivation is not a trivially empty context stream",
             ));
             return Err(dedup(findings));
+        }
+        match render_npa_analysis(&canonical_request) {
+            Ok(canonical) => canonical,
+            Err(error) => {
+                findings.push(AnalysisVerifyFinding::new(
+                    AnalysisVerifyCode::EnvelopeStructural,
+                    format!("canonical render refused: {}", error.detail()),
+                ));
+                return Err(dedup(findings));
+            }
+        }
+    } else {
+        match render_npa_analysis_with_context(&canonical_request, &contexts) {
+            Ok(canonical) => canonical,
+            Err(error) => {
+                findings.push(AnalysisVerifyFinding::new(
+                    AnalysisVerifyCode::EnvelopeStructural,
+                    format!("canonical render refused: {}", error.detail()),
+                ));
+                return Err(dedup(findings));
+            }
         }
     };
 

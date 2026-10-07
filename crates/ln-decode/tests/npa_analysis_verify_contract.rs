@@ -20,7 +20,9 @@ use ln_decode::npa_analysis_wire::{
     inspect_npa_analysis_wire, render_npa_analysis, render_npa_analysis_with_context,
     AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope,
 };
-use ln_decode::npa_context_records::{build_context_records, ContextRecord};
+use ln_decode::npa_context_records::{
+    build_context_records, context_stream_is_trivially_empty, ContextRecord,
+};
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
 use ln_decode::reader_projection::{build_projection, ReaderProjection};
 use ln_decode::source_package::{capture, Limits};
@@ -114,6 +116,13 @@ const CONTEXT_BODY: &str = "<w:p><w:r><w:t>Статья 1. Предмет рег
      <w:p><w:r><w:t>Статья 2. Настоящего Федерального закона</w:t></w:r></w:p>";
 
 const TYPED_BODY: &str = "<w:p><w:r><w:t>Федеральный закон от 01.01.2020 N 1-ФЗ</w:t></w:r></w:p>";
+
+// A contextless document: two plain runs with no legal marker, no this-ref
+// surface, no continuation tail and no captured mention. Its re-derived context
+// stream is trivially empty (a single zero-request run), so it is the honest
+// six-family parent and, with the run line rendered, the zero-request
+// seven-family parent.
+const TWO_RUNS: &str = "<w:p><w:r><w:t>Alpha</w:t></w:r><w:r><w:t>Beta</w:t></w:r></w:p>";
 
 // ------------------------------------------------------ fixture coverage #
 
@@ -263,6 +272,68 @@ fn non_resolved_context_is_exercised() {
             ContextRecord::Result(result) if result.status != ContextStatus::Resolved
         )),
         "the fixture surfaces a non-resolved context outcome for the honest-incomplete path"
+    );
+}
+
+// ------------------------------------------- mode-aware admission (§8B.4) #
+
+#[test]
+fn contextless_six_family_envelope_verifies_ok() {
+    // The six-family S02-envelope is admitted only when the re-derived context
+    // stream is trivially empty; the positive must prove that precondition, not
+    // merely happen to pass.
+    let p = pipeline(&wrap(TWO_RUNS));
+    let contexts = build_context_records(&p.analysis.layout, &p.mapping);
+    assert!(
+        context_stream_is_trivially_empty(&contexts),
+        "the contextless parent must re-derive a trivially empty context stream: {contexts:?}"
+    );
+    let text = render_npa_analysis(&envelope_request(&p)).expect("the S02 envelope renders");
+    assert_eq!(
+        verify(&p, &text),
+        Ok(()),
+        "a six-family envelope on a contextless parent verifies"
+    );
+}
+
+#[test]
+fn six_family_envelope_hiding_context_is_context_outcome_mismatch() {
+    // A six-family envelope derived from a context-bearing parent hides the
+    // mandatory context family; the closed refusal is context_outcome_mismatch,
+    // never a silent pass or a generic completion failure.
+    let p = pipeline(&wrap(CONTEXT_BODY));
+    let contexts = build_context_records(&p.analysis.layout, &p.mapping);
+    assert!(
+        !context_stream_is_trivially_empty(&contexts),
+        "the fixture must be context-bearing"
+    );
+    let text = render_npa_analysis(&envelope_request(&p)).expect("the S02 envelope renders");
+    let findings =
+        verify(&p, &text).expect_err("a six-family envelope that hides context must be rejected");
+    assert!(
+        findings
+            .iter()
+            .any(|finding| finding.code() == AnalysisVerifyCode::ContextOutcomeMismatch),
+        "a hidden context family is context_outcome_mismatch: {findings:?}"
+    );
+}
+
+#[test]
+fn zero_request_seven_family_envelope_verifies_ok() {
+    // The seven-family mode is admitted always; a contextless parent rendered
+    // with its honest zero-request run line is a valid seven-family envelope.
+    let p = pipeline(&wrap(TWO_RUNS));
+    let contexts = build_context_records(&p.analysis.layout, &p.mapping);
+    assert!(
+        context_stream_is_trivially_empty(&contexts),
+        "the contextless parent must re-derive a trivially empty context stream"
+    );
+    let text = render_npa_analysis_with_context(&envelope_request(&p), &contexts)
+        .expect("the seven-family envelope renders");
+    assert_eq!(
+        verify(&p, &text),
+        Ok(()),
+        "an honest zero-request run line is admitted"
     );
 }
 
