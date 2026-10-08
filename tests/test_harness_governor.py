@@ -1763,10 +1763,11 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
     by_id = {item.check_id: item for item in report.findings}
     assert "live-adapter-readiness" in by_id
     finding = by_id["live-adapter-readiness"]
-    # Repository-evidence ceiling: TEI stub transport only, RuVector proposed.
+    # Repository-evidence ceiling: std-only HTTP surface present but unproven,
+    # RuVector proposed.
     assert finding.status == "pass"
     assert finding.severity == "ok"
-    assert "tei=stub_transport_only" in finding.observed
+    assert "tei=http_surface_present_unproven" in finding.observed
     assert "ruvector=proposed" in finding.observed
     assert "overclaim_count=0" in finding.observed
     assert report.error_count == 0

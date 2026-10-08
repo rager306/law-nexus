@@ -567,13 +567,37 @@
       "theme": "Integrated Rust NPA analysis path: source-bound mapping, document-scoped analysis JSONL, contextual family with independent verification, and bounded corpus acceptance with fail-closed artifact publication",
       "status": "complete",
       "boundary": "Four slices build one executable Rust path from XML to document-scoped NPA/context JSONL: S01 fixes the source-to-analysis mapping contract (pinned source identity, half-open UTF-8 coordinates, distinct token views, closed MappingRefusalKind) with an integration battery on approved fixtures and one bounded real 435-FZ; S02 materialises document-level typed/linked/classified records with resolved or closed-refused source refs plus an LF-JSONL envelope with non-cyclic seals and validate-before-write limits; S03 adds an opt-in context family over unchanged index/overlay/worklist with read-back of all seven families and an independent verifier that re-derives records from the pinned parent and catches a resealed substitution of source refs, relations, fragment hashes or context status, while an empty context stays byte-identical to S02; S04 runs a pinned provider/work-family stratified sample (N=400, seed=20308) through export/read/verify: verdict=pass, 400/400 verified_ok, structural_failures=0, refusals=0, tamper 12/12, limit_events_total=0, within budget, with a structural-only semantic section (promotion=false, semantic_reference_status=absent, coverage_claim=null). Remediation round 0 returned needs-attention solely on SC4/Operational because the S04 binaries lacked an output-path safety contract; round 1 closed it in code with a shared fail-closed publication module (create_new, refusal of a symlinked parent and of a symlinked or non-regular target, --force only as atomic replacement, refusal of --out aliasing --sample and of colliding outputs) covered by eight negative cases, and the milestone was re-validated pass at revision sha256:ddb108a1. R1000 stays active/unclosed (corpus-wide acceptance and display-cleaning remain open), R038/R063 keep their own owners, no requirement was promoted, M208-wrz6fg stays parked and M215-M220 do not start."
+    },
+    {
+      "range": "M221-M221",
+      "theme": "Rust NPA-analysis foundation hardening and honest semantic acceptance (pinned parent identity, closed refusals, three separated verdicts)",
+      "status": "complete",
+      "boundary": "Five slices deliver the R1001 surface on top of the frozen R1000 substrate and close the M221 validation loop: S01 hostile red-green rejects four resealed identity substitutions through a closed manifest_identity_mismatch with a positive control; S02 rejects boundary-crossing spans through a closed derived_separator (never Bound); S03 shows empty_context_is_byte_identical_to_s02 plus a bounded ThisDocumentReferenceOutcome; S04 publishes the tracked m221-s04-acceptance.json receipt carrying three independent verdicts (transport_integrity=pass / analysis_completion=incomplete / semantic_acceptance=not_attempted) plus a ProviderCoverageSection; S05 adds drift-guards. Validation round 2 returned verdict=pass with 3/3 reviewers. Bounded product evidence only: no Python parity, no JSON-LD migration, no R1000 closure and no requirement promotion."
+    },
+    {
+      "range": "M222-M222",
+      "theme": "Strict XML/JSONL contract and NPA model connectivity across the cleaned and analysis surfaces",
+      "status": "complete",
+      "boundary": "Four slices harden the closed-contract admission of the cleaned and analysis JSONL surfaces against Review-29 findings R29-F01..F07. S01 adds seal-independent admission of closed contract fields and strict JSON grammar in cleaned_wire::inspect_cleaned_wire (MAX_JSON_DEPTH=64, closed WireErrorKind::ContractFieldInvalid). S02 makes the analysis verifier mode-aware (six admitted only under a fail-closed context_stream_is_trivially_empty re-derivation of the pinned parent) and adds real-pipeline coordinate proofs. S03 enforces exactly-once text attribution in the writer for every completion, not only Complete, and adds the closed additive policies.display_scope=source_content_retained_no_suppression key. S04 enforces the declared max_line_bytes/max_records limits at read time and lands the cross-surface consumer admission battery plus the R29-F01..F07 disposition. Validation round 2 returned verdict=pass with 3/3 reviewers at source revision sha256:719b6ce3. Bounded evidence only: R1000 stays active/unclosed and owned by M213 (M222 supporting-only), R1001 stays frozen, no promotion, no corpus-wide acceptance and no display-cleaning claim."
     }
   ],
+  "sanctioned_execution_chain": {
+    "declared_by": "D687",
+    "rationale": "The remediation milestones M221 (seq 221) and M222 (seq 222) were completed while the owner-declared delivery chain M215 to M220 was still parked, so the numeric frontier (latest completed seq) sits above the next deliverable. D687 fixes the execution order as M222 closeout, then M215, M216, M217, M218, M219, M220, with M208 as a separate parked closeout. This explicit, auditable declaration widens the monotone next-wave rule for exactly this ordered chain: a single active milestone below the numeric frontier is sanctioned while it is the next unconsumed member listed here.",
+    "order": [
+      "M215-w9jsgn",
+      "M216-8dps6e",
+      "M217-kbike0",
+      "M218-xnkwf0",
+      "M219-2erzz3",
+      "M220-djlrxl"
+    ]
+  },
   "current_milestone": {
-    "id": "M214-es3jvw",
-    "status": "complete",
-    "title": "Сквозной Rust-контур анализа НПА и контекстного JSONL",
-    "goal": "Соединить source-bound mapping, документный NPA-analysis JSONL, контекстную семью с независимой проверкой и bounded корпусную приёмку в один исполняемый Rust-путь. R1000 остаётся active/unclosed; semantic gold, corpus-wide приёмка и продуктовый рантайм не заявляются."
+    "id": "M215-w9jsgn",
+    "status": "active",
+    "title": "Цепочка поставок эмбеддингов и провенанс векторов",
+    "goal": "Поставить проверяемую цепочку поставок эмбеддингов с провенансом векторов: контракт артефакта эмбеддинга и провенанс модели, живой путь TEI с fail-closed при недоступности, retrieval-доказательства над очищенной проекцией и границы готовности адаптеров. Заявляется только то, что подтверждено артефактом; live-TEI не выдаётся за validated, RuVector остаётся [proposed]."
   },
   "recommended_next": {
     "title": "Operator decision required: all remaining milestones are parked",

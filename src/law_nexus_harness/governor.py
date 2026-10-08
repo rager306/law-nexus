@@ -914,6 +914,60 @@ def _next_required_wave(latest_completed: int, deferral_seqs: set[int]) -> int:
     return seq
 
 
+def _sanctioned_execution_chain(root: Path) -> list[tuple[int, str]]:
+    """Owner-declared execution order that may run below the numeric frontier.
+
+    GSD milestone sequence numbers are monotone, but the project deliberately
+    completed the remediation milestones M221/M222 while the delivery chain
+    M215..M220 was still parked (D687). That leaves the numeric frontier above
+    the next real deliverable, so the strict next-wave rule would deadlock the
+    chain: the next milestone can neither run nor close.
+
+    The allowance is never implicit. It requires an explicit, tracked
+    declaration in `prd/project-state/data/roadmap.json` under
+    `sanctioned_execution_chain`, carrying the declaring decision id, a
+    rationale and the ordered milestone ids. Without that declaration the
+    governor keeps the original monotone behaviour, so a silent out-of-order
+    closeout is still real debt.
+    """
+
+    roadmap_path = root / "prd" / "project-state" / "data" / "roadmap.json"
+    if not roadmap_path.is_file():
+        return []
+    try:
+        payload = json.loads(roadmap_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return []
+    declaration = payload.get("sanctioned_execution_chain")
+    if not isinstance(declaration, dict):
+        return []
+    if not str(declaration.get("declared_by") or "").strip():
+        return []
+    if not str(declaration.get("rationale") or "").strip():
+        return []
+    order = declaration.get("order")
+    if not isinstance(order, list) or not order:
+        return []
+    chain: list[tuple[int, str]] = []
+    for entry in order:
+        match = _MSEQ_RE.match(str(entry))
+        if match is None:
+            # A malformed entry invalidates the whole declaration: a partially
+            # understood chain must not widen the invariant.
+            return []
+        chain.append((int(match.group(1)), str(entry)))
+    return chain
+
+
+def _sanctioned_next_chain_seq(root: Path, completed_seqs: set[int]) -> int | None:
+    """First milestone in the declared chain that is not yet complete."""
+
+    for seq, _mid in _sanctioned_execution_chain(root):
+        if seq not in completed_seqs:
+            return seq
+    return None
+
+
 def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     """Detect residual incomplete GSD milestones that are true debt.
 
@@ -978,7 +1032,10 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     elif (
         len(hard_open) == 1
         and latest_completed is not None
-        and hard_open[0][0] == _next_required_wave(latest_completed, deferral_seqs)
+        and (
+            hard_open[0][0] == _next_required_wave(latest_completed, deferral_seqs)
+            or hard_open[0][0] == _sanctioned_next_chain_seq(root, set(completed_seqs))
+        )
     ):
         findings.append(
             GovernorFinding(
@@ -1055,7 +1112,29 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
         (line for line in state_text.splitlines() if line.startswith("**Phase:**")),
         "",
     )
-    if latest_completed is not None and active is not None and active <= latest_completed:
+    if (
+        latest_completed is not None
+        and active is not None
+        and active <= latest_completed
+        and active == _sanctioned_next_chain_seq(root, set(completed_seqs))
+    ):
+        findings.append(
+            GovernorFinding(
+                check_id="gsd-phase-complete-consistent",
+                status="pass",
+                severity="ok",
+                message=(
+                    "Active milestone is the sanctioned next member of the declared "
+                    "execution chain below the numeric frontier"
+                ),
+                observed=(
+                    f"active=M{active}; last_completed=M{latest_completed}; {phase_line}; "
+                    "chain=sanctioned_execution_chain"
+                ),
+                remediation="none",
+            )
+        )
+    elif latest_completed is not None and active is not None and active <= latest_completed:
         findings.append(
             GovernorFinding(
                 check_id="gsd-phase-complete-consistent",

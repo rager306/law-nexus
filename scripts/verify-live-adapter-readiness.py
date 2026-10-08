@@ -3,8 +3,11 @@
 
 Classifies TEI and RuVector product-adapter readiness from repository evidence:
 
-- TEI: `TeiEmbeddingAdapter` + injectable `EmbeddingTransport` without HTTP client
-  dependencies is `stub_transport_only` (not live TEI validation).
+- TEI: `TeiEmbeddingAdapter` + injectable `EmbeddingTransport` backed by a
+  std-only `HttpEmbeddingTransport` (`TcpStream`) is
+  `http_surface_present_unproven`: an HTTP surface exists but no live endpoint
+  was contacted or validated (not live TEI validation). A transport injection
+  point without any HTTP surface remains `stub_transport_only`.
 - RuVector: ADR-0014 lifecycle `[proposed]` without workspace redb/ruvector product
   dependencies is `proposed` (not product runtime readiness).
 
@@ -26,7 +29,15 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_VERSION = "law-nexus/live-adapter-readiness/v1"
 
-HTTP_CLIENT_MARKERS = ("reqwest", "ureq", "hyper::", "Client::new")
+HTTP_CLIENT_MARKERS = (
+    "reqwest",
+    "ureq",
+    "hyper::",
+    "Client::new",
+    # std-only HTTP surface (no third-party client dependency):
+    "TcpStream",
+    "std::net",
+)
 PRODUCT_DEP_MARKERS = ("ruvector", "redb", "reqwest", "ureq")
 OVERCLAIM_RES = (
     re.compile(r"\blive\s+TEI\b.*\b(validated|ready|production)\b", re.I),
@@ -184,6 +195,7 @@ def build_report(root: Path = ROOT) -> dict[str, Any]:
         "non_claims": [
             "Does not perform live HTTP or external TEI/RuVector calls.",
             "stub_transport_only is not live TEI validation.",
+            "An HTTP surface is present but no live endpoint was contacted or validated.",
             "proposed RuVector is not product runtime readiness.",
             "Does not claim product readiness, legal correctness, or citation completeness.",
         ],

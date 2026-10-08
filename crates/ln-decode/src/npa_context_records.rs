@@ -620,7 +620,7 @@ fn build_requisites_sidecar(
 }
 
 /// A requisites value is real only when it is present and not the `—`
-/// placeholder; an absent value is never minted as an observed claim.
+/// sentinel; an absent value is never minted as an observed claim.
 fn real_requisite_value(value: &str) -> Option<String> {
     let trimmed = value.trim();
     if trimmed.is_empty() || trimmed == "—" {
