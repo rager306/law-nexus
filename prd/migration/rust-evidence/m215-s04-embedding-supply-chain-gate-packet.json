@@ -1,0 +1,236 @@
+{
+  "schema": "law-nexus/m215-s04-embedding-supply-chain-gate-packet/v1",
+  "gate_id": "GATE-EMBEDDING-SUPPLY-CHAIN",
+  "milestone": "M215-w9jsgn",
+  "slice": "S04",
+  "recordedAt": "2026-10-08T13:09:03Z",
+  "lifecycle": "[bounded]",
+  "authoritative": false,
+  "gate_promoted": false,
+  "promotion": false,
+  "proof_level": "contract",
+  "battery_source": "live run of the M215 embedding battery via gsd_exec, exit codes and counts copied verbatim from real stdout",
+  "surfaces": [
+    {
+      "id": "S01",
+      "title": "Embedding artifact and model-provenance contract (serde-free, zero-dependency)",
+      "evidence": [
+        "crates/ln-storage/src/embedding_artifact.rs",
+        "crates/ln-storage/tests/embedding_artifact_contract.rs",
+        "crates/ln-testkit/tests/embedding_artifact_contracts.rs"
+      ]
+    },
+    {
+      "id": "S02",
+      "title": "TEI adapter fail-closed transport boundary and std-only HTTP surface",
+      "evidence": [
+        "crates/ln-storage/src/adapters/tei.rs",
+        "crates/ln-storage/src/adapters/tei_http.rs",
+        "crates/ln-storage/tests/tei_adapter_contract.rs",
+        "crates/ln-storage/tests/tei_http_transport_contract.rs"
+      ]
+    },
+    {
+      "id": "S03",
+      "title": "Deterministic embedding test port and reproducibility battery",
+      "evidence": [
+        "crates/ln-testkit/src/deterministic_embedding.rs",
+        "crates/ln-testkit/tests/deterministic_embedding_battery.rs",
+        "crates/ln-testkit/tests/deterministic_embedding_tei_path.rs",
+        "crates/ln-testkit/tests/embedding_port_contracts.rs",
+        "crates/ln-testkit/tests/tei_live_provenance_contracts.rs"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "ln-storage-embedding-artifact-contract",
+      "command": "cargo test -p ln-storage --offline --test embedding_artifact_contract",
+      "observed": "11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+      "exitCode": 0
+    },
+    {
+      "id": "ln-storage-tei-adapter-contract",
+      "command": "cargo test -p ln-storage --offline --test tei_adapter_contract",
+      "observed": "10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "exitCode": 0
+    },
+    {
+      "id": "ln-storage-tei-http-transport-contract",
+      "command": "cargo test -p ln-storage --offline --test tei_http_transport_contract",
+      "observed": "13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s",
+      "exitCode": 0
+    },
+    {
+      "id": "ln-testkit-embedding-artifact-contracts",
+      "command": "cargo test -p ln-testkit --offline --test embedding_artifact_contracts",
+      "observed": "6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "exitCode": 0
+    },
+    {
+      "id": "ln-testkit-embedding-port-contracts",
+      "command": "cargo test -p ln-testkit --offline --test embedding_port_contracts",
+      "observed": "6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+      "exitCode": 0
+    },
+    {
+      "id": "ln-testkit-tei-live-provenance-contracts",
+      "command": "cargo test -p ln-testkit --offline --test tei_live_provenance_contracts",
+      "observed": "5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+      "exitCode": 0
+    },
+    {
+      "id": "ln-testkit-deterministic-embedding-battery",
+      "command": "cargo test -p ln-testkit --offline --test deterministic_embedding_battery",
+      "observed": "12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+      "exitCode": 0
+    },
+    {
+      "id": "ln-testkit-deterministic-embedding-tei-path",
+      "command": "cargo test -p ln-testkit --offline --test deterministic_embedding_tei_path",
+      "observed": "6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+      "exitCode": 0
+    },
+    {
+      "id": "workspace-format-check",
+      "command": "cargo fmt --all --check",
+      "observed": "exit 0; no formatting diffs reported",
+      "exitCode": 0
+    },
+    {
+      "id": "workspace-compile-check",
+      "command": "cargo check --workspace --offline",
+      "observed": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.10s",
+      "exitCode": 0
+    },
+    {
+      "id": "live-adapter-readiness",
+      "command": "uv run python scripts/verify-live-adapter-readiness.py",
+      "observed": "status ok; overclaim_count 0; tei.status http_surface_present_unproven; supply_chain.managed_provider_hits []",
+      "exitCode": 0
+    }
+  ],
+  "rust_scope": {
+    "scope": "crates/*/src",
+    "status": "no_managed_provider_reference",
+    "managed_provider_hits": [],
+    "r012_scope_level": true,
+    "markers": ["gigachat", "openai", "anthropic", "cohere", "vertexai", "bedrock"],
+    "excluded_marker_reason": "api_key is deliberately not a marker: it legitimately appears in ln-diagnostic redaction code and ln-hc19-runner, so it would be a false positive.",
+    "scan_note": "Bounded Rust-scope inventory only: markers are matched as whole tokens over crates/*/src/**/*.rs, excluding tests and target; a hit is reported but never fails the readiness report."
+  },
+  "non_claims": [
+    {
+      "key": "no-live-validation",
+      "statement": "No claim: no live TEI endpoint was contacted and none was validated; the HTTP surface is present but unproven (http_surface_present_unproven)."
+    },
+    {
+      "key": "no-retrieval-quality",
+      "statement": "No claim: no retrieval-quality metric is asserted; embedding ranking quality is not measured by this packet."
+    },
+    {
+      "key": "no-product-runtime",
+      "statement": "No claim: no product runtime is provided; this is bounded repository evidence over crates/*/src and their test suites only."
+    },
+    {
+      "key": "cleartext-transport",
+      "statement": "No claim: the live TEI transport is cleartext HTTP without TLS and is not for untrusted networks; no TLS or authentication is implemented at this boundary."
+    },
+    {
+      "key": "canonical-render-non-injective",
+      "statement": "No claim: canonical_string() provenance rendering is deterministic but not injective (source, license and parameter values are unescaped and not length-prefixed), so distinct provenances can render identically and the byte pin is not tamper-resistant."
+    },
+    {
+      "key": "deterministic-pin-drift-detector",
+      "statement": "No claim: the deterministic golden pin detects drift and is not a correctness proof; it does not validate embedding quality or legal correctness."
+    },
+    {
+      "key": "r012-scope-level",
+      "statement": "No claim: R012 enforcement stays scope-level; the settings source is a free string and managed-provider exclusion is not structurally enforced, only inventoried over crates/*/src."
+    },
+    {
+      "key": "test-port-not-product-provider",
+      "statement": "No claim: the ln-testkit deterministic embedding port is shared test support, not a product provider and not published."
+    },
+    {
+      "key": "no-gate-promotion",
+      "statement": "No claim: GATE-EMBEDDING-SUPPLY-CHAIN is not promoted; this packet is non-authoritative and gate_promoted/promotion are false."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D697",
+      "summary": "Embedding artifact and model-provenance contract lives in a serde-free, zero-dependency embedding_artifact module of crates/ln-storage, leaving EmbeddingPort/EmbeddingResponse/TeiEmbeddingAdapter unchanged."
+    },
+    {
+      "id": "D698",
+      "summary": "Provenance is mandatory and typed; an embedding artifact without provenance fails closed with StorageError::MissingProvenance and no vector or provisional provenance is fabricated."
+    },
+    {
+      "id": "D699",
+      "summary": "S01 provides a serde-free canonical string rendering of ModelProvenance with parameters sorted by key and a determinism test, so the provenance can be pinned later without committing to a wire schema."
+    },
+    {
+      "id": "D700",
+      "summary": "Provenance attaches to embedding adapters through a new EmbeddingArtifactPort plus a reference ProvenancedEmbedding composition, without changing the existing EmbeddingPort seam."
+    },
+    {
+      "id": "D701",
+      "summary": "The canonical rendering is deterministic but not injective (unescaped provenance fields); the byte pin it enables is explicitly not a tamper-resistant provenance proof."
+    },
+    {
+      "id": "D702",
+      "summary": "The live TEI transport is a std-only HttpEmbeddingTransport over std::net::TcpStream with explicit connect/read/write timeouts and bounded response parsing; no reqwest/ureq/tokio/hyper and the ln-storage [dependencies] section stays empty."
+    },
+    {
+      "id": "D703",
+      "summary": "Transport refusal is reflected at the TEI adapter boundary through closed typed unit variants StorageError::{TransportUnavailable,TransportTimeout,TransportBadResponse}; any transport failure returns Err and never fabricates a vector."
+    },
+    {
+      "id": "D704",
+      "summary": "Server and legal response text never crosses the adapter boundary; failures map to the closed StorageError category before an EmbeddingResponse is created."
+    },
+    {
+      "id": "D705",
+      "summary": "The deterministic embedding test port lives in crates/ln-testkit (publish=false) implementing ln_storage::EmbeddingPort and the TEI EmbeddingTransport seam; no embedding implementation is added to the product crate ln-storage and no dependency is added."
+    },
+    {
+      "id": "D706",
+      "summary": "Reproducible test vectors use hand-rolled FNV-1a 64 seeding SplitMix64 with a tracked golden digest pin; no DefaultHasher, no rand and no transcendental functions, so two separate processes reproduce the bytes."
+    },
+    {
+      "id": "D707",
+      "summary": "Malformed or hostile input is rejected by one closed additive variant StorageError::InvalidInput(&'static str) with static reason labels, bounded at MAX_DETERMINISTIC_INPUT_BYTES (64 KiB) and MAX_DETERMINISTIC_DIMENSIONS (65536)."
+    },
+    {
+      "id": "D708",
+      "summary": "The M215/S03 battery is implemented as ln-testkit integration suites run by the existing cargo test --workspace --offline CI step; no new slice-battery runner script is added."
+    },
+    {
+      "id": "D709",
+      "summary": "The gate evidence packet is a tracked JSON artifact at prd/migration/rust-evidence/m215-s04-embedding-supply-chain-gate-packet.json, verified fail-closed by scripts/verify-m215-s04-gate-packet.py with red-green pytest; GATE-EMBEDDING-SUPPLY-CHAIN is not promoted (gate_promoted=false, lifecycle [bounded], authoritative=false)."
+    },
+    {
+      "id": "D710",
+      "summary": "canonical_string() non-injectivity is recorded as an explicit non-claim rather than hardened in S04; the gate-packet verifier requires the canonical-render-non-injective non-claim key so the limitation cannot silently disappear."
+    }
+  ],
+  "requirement_impact": [
+    {
+      "id": "R012",
+      "statement": "R012: bounded Rust-scope evidence only — crates/*/src contains no managed-provider reference (managed_provider_hits empty); enforcement stays scope-level because the settings source is a free string and managed exclusion is not structurally enforced by this packet."
+    },
+    {
+      "id": "R073",
+      "statement": "R073: supports the governor live-adapter-readiness check by keeping the readiness inventory machine-checked, overclaim-free (overclaim_count 0) and consistent with this packet's rust_scope section."
+    },
+    {
+      "id": "R062",
+      "statement": "R062: not advanced by this packet; no reactive/asynchronous orchestration, trace_id/correlation_id bundles or structured failure traces are introduced here."
+    },
+    {
+      "id": "RQ-019",
+      "statement": "RQ-019: RuVector/TEI infrastructure stays [proposed]; synthetic and repository-scope evidence does not promote readiness and no live product runtime is claimed."
+    }
+  ]
+}
