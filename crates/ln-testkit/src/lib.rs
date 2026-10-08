@@ -70,8 +70,8 @@ use ln_replay::domain::{
 };
 use ln_replay::ports::{CheckpointPort, EffectLedgerPort};
 use ln_storage::{
-    EmbeddingPort, EmbeddingRequest, GraphEdge, GraphNode, GraphStorePort, StorageError,
-    VectorQuery, VectorRecord, VectorStorePort,
+    EmbeddingArtifactPort, EmbeddingArtifactRequest, EmbeddingPort, EmbeddingRequest, GraphEdge,
+    GraphNode, GraphStorePort, StorageError, VectorQuery, VectorRecord, VectorStorePort,
 };
 use ln_temporal::domain::ClockKind;
 use ln_temporal::ports::ClockEvidencePort;
@@ -1140,6 +1140,66 @@ pub fn assert_embedding_port_contract<E: EmbeddingPort>(
     assert!(
         response.vector().iter().all(|v| v.is_finite()),
         "embedding vector must be finite"
+    );
+}
+
+/// Shared semantic contract for honest [`EmbeddingArtifactPort`] adapters.
+///
+/// Expects a successful embed to return a validated artifact whose subject is
+/// non-empty, whose vector is finite and has the declared `dimensions`, and
+/// whose provenance is fully populated (`source`, `license`, `weights_sha256`,
+/// `dimensions`, `parameters`). This is the suite S02/S03 must pass so that
+/// provenance cannot be silently lost. Not live TEI/RuVector validation.
+pub fn assert_embedding_artifact_port_contract<P: EmbeddingArtifactPort>(
+    port: &P,
+    model_id: &str,
+    dimensions: usize,
+) {
+    assert!(
+        !model_id.trim().is_empty(),
+        "contract harness must declare a non-empty model id"
+    );
+    let request = EmbeddingArtifactRequest::try_new("contract-subject", "contract legal text")
+        .expect("valid artifact request");
+    let artifact = port
+        .embed_artifact(&request)
+        .expect("honest provenance-bearing port must return an artifact");
+    assert_eq!(
+        artifact.subject_ref(),
+        request.subject_ref(),
+        "artifact subject must match the request subject"
+    );
+    assert_eq!(
+        artifact.dimensions(),
+        dimensions,
+        "artifact dimensions must match the declared dimensions"
+    );
+    assert_eq!(artifact.vector().len(), dimensions);
+    assert!(
+        artifact.vector().iter().all(|value| value.is_finite()),
+        "artifact vector must be finite"
+    );
+    let provenance = artifact.provenance();
+    assert!(
+        !provenance.source().trim().is_empty(),
+        "provenance source must be populated"
+    );
+    assert!(
+        !provenance.license().trim().is_empty(),
+        "provenance license must be populated"
+    );
+    assert!(
+        provenance.weights_sha256().starts_with("sha256:"),
+        "provenance weights digest must be sha256-prefixed"
+    );
+    assert_eq!(
+        provenance.dimensions(),
+        dimensions,
+        "provenance dimensions must match the declared dimensions"
+    );
+    assert!(
+        !provenance.parameters().is_empty(),
+        "provenance parameters must be populated"
     );
 }
 
