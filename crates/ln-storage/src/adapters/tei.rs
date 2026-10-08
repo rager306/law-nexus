@@ -73,7 +73,13 @@ impl<T: EmbeddingTransport> EmbeddingPort for TeiEmbeddingAdapter<T> {
         let vector = self
             .transport
             .embed_text(request.text())
-            .map_err(|error| StorageError::Internal(error.to_string()))?;
+            .map_err(|error| match error {
+                TransportError::Unavailable => StorageError::TransportUnavailable,
+                TransportError::Timeout => StorageError::TransportTimeout,
+                // Server-side detail is intentionally dropped: the boundary error
+                // must not carry raw response content.
+                TransportError::BadResponse(_) => StorageError::TransportBadResponse,
+            })?;
 
         if vector.len() != self.dimensions {
             return Err(StorageError::DimensionMismatch {

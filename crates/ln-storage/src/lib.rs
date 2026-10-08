@@ -20,6 +20,9 @@ pub enum StorageError {
     InvalidProvenanceField(&'static str),
     Unsupported,
     Internal(String),
+    TransportUnavailable,
+    TransportTimeout,
+    TransportBadResponse,
 }
 
 impl std::fmt::Display for StorageError {
@@ -45,6 +48,9 @@ impl std::fmt::Display for StorageError {
             }
             Self::Unsupported => write!(formatter, "unsupported operation"),
             Self::Internal(msg) => write!(formatter, "internal: {msg}"),
+            Self::TransportUnavailable => write!(formatter, "embedding transport unavailable"),
+            Self::TransportTimeout => write!(formatter, "embedding transport timeout"),
+            Self::TransportBadResponse => write!(formatter, "embedding transport bad response"),
         }
     }
 }

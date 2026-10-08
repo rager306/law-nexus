@@ -94,6 +94,6 @@ fn tei_stub_transport_maps_transport_failure() {
         .expect("valid tei adapter");
     assert!(matches!(
         adapter.embed(&request("tei-contract-model", 8)),
-        Err(StorageError::Internal(_))
+        Err(StorageError::TransportUnavailable)
     ));
 }
