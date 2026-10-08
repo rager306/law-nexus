@@ -18,6 +18,7 @@ pub enum StorageError {
     NonFiniteValue,
     MissingProvenance,
     InvalidProvenanceField(&'static str),
+    InvalidInput(&'static str),
     Unsupported,
     Internal(String),
     TransportUnavailable,
@@ -46,6 +47,7 @@ impl std::fmt::Display for StorageError {
             Self::InvalidProvenanceField(field) => {
                 write!(formatter, "invalid provenance field: {field}")
             }
+            Self::InvalidInput(reason) => write!(formatter, "invalid input: {reason}"),
             Self::Unsupported => write!(formatter, "unsupported operation"),
             Self::Internal(msg) => write!(formatter, "internal: {msg}"),
             Self::TransportUnavailable => write!(formatter, "embedding transport unavailable"),

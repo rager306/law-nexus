@@ -7,6 +7,13 @@
 //! Lifecycle: foundation is `[bounded]`. Real-infrastructure validation is not
 //! claimed by the existence of this crate.
 
+pub mod deterministic_embedding;
+
+pub use deterministic_embedding::{
+    deterministic_vector, DeterministicEmbedding, DeterministicEmbeddingTransport,
+    MAX_DETERMINISTIC_DIMENSIONS, MAX_DETERMINISTIC_INPUT_BYTES,
+};
+
 use ln_accelerate::domain::{
     AccelerationRequest, LabelId, ProvisionalId, ProvisionalTier, ScopeId as AccelScopeId,
     WriterId as AccelWriterId,
