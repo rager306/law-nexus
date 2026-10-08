@@ -3,7 +3,10 @@ pub mod embedding_artifact;
 pub mod retrieval;
 pub mod similarity;
 
-pub use embedding_artifact::ModelProvenance;
+pub use embedding_artifact::{
+    EmbeddingArtifact, EmbeddingArtifactPort, EmbeddingArtifactRecord, EmbeddingArtifactRequest,
+    ModelProvenance, ProvenancedEmbedding,
+};
 pub use similarity::cosine_similarity;
 
 /// Storage error type for port operations.
