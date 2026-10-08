@@ -1,7 +1,9 @@
 pub mod adapters;
+pub mod embedding_artifact;
 pub mod retrieval;
 pub mod similarity;
 
+pub use embedding_artifact::ModelProvenance;
 pub use similarity::cosine_similarity;
 
 /// Storage error type for port operations.
@@ -11,6 +13,8 @@ pub enum StorageError {
     DimensionMismatch { expected: usize, actual: usize },
     ModelIdentityDrift { expected: String, actual: String },
     NonFiniteValue,
+    MissingProvenance,
+    InvalidProvenanceField(&'static str),
     Unsupported,
     Internal(String),
 }
@@ -32,6 +36,10 @@ impl std::fmt::Display for StorageError {
                 )
             }
             Self::NonFiniteValue => write!(formatter, "non-finite vector value"),
+            Self::MissingProvenance => write!(formatter, "missing model provenance"),
+            Self::InvalidProvenanceField(field) => {
+                write!(formatter, "invalid provenance field: {field}")
+            }
             Self::Unsupported => write!(formatter, "unsupported operation"),
             Self::Internal(msg) => write!(formatter, "internal: {msg}"),
         }
