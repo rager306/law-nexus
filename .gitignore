@@ -131,6 +131,7 @@ prd/research/
 prd/retrieval/*
 !prd/retrieval/rust_retrieval_output_validator_contract.md
 !prd/retrieval/rust_offline_citation_retrieval_contract.md
+!prd/retrieval/rust_real_artifact_retrieval_proof.md
 prd/milestone_proofs/
 consru_export.zip
 *.zip
