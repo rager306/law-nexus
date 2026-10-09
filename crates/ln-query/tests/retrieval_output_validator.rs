@@ -338,3 +338,291 @@ fn diagnostic_derives_severity_and_verdict_from_code() {
     );
     assert_eq!(error.retrieval_output_id().as_str(), "<missing>");
 }
+
+// --- resolution port and fail-closed validator (T02) ---------------------
+
+const VALID_OUTPUT_ID: &str = "RET-M012-VALID-001";
+const FIXTURE_SCOPE_ID: &str = "SCOPE-M012-44FZ-2024-001";
+
+fn fixture_scope() -> OutputScope {
+    OutputScope::new(
+        OutputScopeId::parse(FIXTURE_SCOPE_ID).expect("scope id"),
+        QueryId::parse("Q-M012-VALID-001").expect("query id"),
+        RetrievalRunId::parse("RUN-M012-001").expect("run id"),
+        ScopeAsOfDate::parse("2024-01-01").expect("as-of date"),
+        SourceCorpusId::parse("CORPUS-M012-FIXTURE").expect("corpus id"),
+        ValidatorContractVersion::parse(VALIDATOR_CONTRACT_VERSION).expect("version"),
+    )
+}
+
+fn citation(
+    citation_key: &str,
+    evidence_span_id: &str,
+    source_block_id: &str,
+    source_document_id: &str,
+    legal_unit_id: &str,
+    act_edition_id: &str,
+) -> CitationBinding {
+    CitationBinding {
+        retrieval_output_id: FieldShape::Value(
+            RetrievalOutputId::parse(VALID_OUTPUT_ID).expect("output id"),
+        ),
+        citation_key: FieldShape::Value(CitationKey::parse(citation_key).expect("citation key")),
+        evidence_span_id: FieldShape::Value(
+            EvidenceSpanId::parse(evidence_span_id).expect("evidence span id"),
+        ),
+        source_block_id: FieldShape::Value(
+            SourceBlockId::parse(source_block_id).expect("source block id"),
+        ),
+        source_document_id: FieldShape::Value(
+            SourceDocumentId::parse(source_document_id).expect("source document id"),
+        ),
+        legal_unit_id: FieldShape::Value(LegalUnitId::parse(legal_unit_id).expect("legal unit id")),
+        act_edition_id: FieldShape::Value(
+            ActEditionId::parse(act_edition_id).expect("act edition id"),
+        ),
+        answer_claim_id: FieldShape::Missing,
+    }
+}
+
+fn valid_citation() -> CitationBinding {
+    citation(
+        "CIT-M012-001",
+        "EV-M012-001",
+        "SB-M012-001",
+        "SD-M012-44FZ-CONSULTANT",
+        "LU-M012-44FZ-ART-001",
+        "ED-M012-44FZ-2024-01-01",
+    )
+}
+
+fn envelope(
+    output_kind: OutputKind,
+    citations: Vec<CitationBinding>,
+    answer_claims: Vec<AnswerClaim>,
+) -> RetrievalOutputEnvelope {
+    RetrievalOutputEnvelope {
+        retrieval_output_id: FieldShape::Value(
+            RetrievalOutputId::parse(VALID_OUTPUT_ID).expect("output id"),
+        ),
+        output_kind: FieldShape::Value(output_kind),
+        scope: ScopeShape::Complete(fixture_scope()),
+        citations: FieldShape::Value(citations),
+        answer_claims: FieldShape::Value(answer_claims),
+        extra_field_names: Vec::new(),
+    }
+}
+
+fn answer_claim(claim_id: &str, supported_keys: &[&str]) -> AnswerClaim {
+    AnswerClaim {
+        answer_claim_id: FieldShape::Value(AnswerClaimId::parse(claim_id).expect("claim id")),
+        retrieval_output_id: FieldShape::Value(
+            RetrievalOutputId::parse(VALID_OUTPUT_ID).expect("output id"),
+        ),
+        claim_kind: FieldShape::Value(ClaimKind::NormReference),
+        scope_id: FieldShape::Value(OutputScopeId::parse(FIXTURE_SCOPE_ID).expect("scope id")),
+        supported_citation_keys: FieldShape::Value(
+            supported_keys
+                .iter()
+                .map(|key| CitationKey::parse(key).expect("citation key"))
+                .collect(),
+        ),
+    }
+}
+
+fn assert_single_error(outcome: &ValidationOutcome, expected: OutputDiagnosticCode) {
+    assert_eq!(outcome.verdict(), OutputVerdict::Rejected);
+    assert_eq!(
+        outcome.diagnostics().len(),
+        1,
+        "rejected outcome carries exactly one primary diagnostic"
+    );
+    let diagnostic = &outcome.diagnostics()[0];
+    assert_eq!(diagnostic.code(), expected);
+    assert_eq!(diagnostic.severity(), DiagnosticSeverity::Error);
+    assert_eq!(diagnostic.verdict(), OutputVerdict::Rejected);
+    assert_eq!(outcome.primary_code(), Some(expected));
+    assert!(
+        BoundedToken::parse(diagnostic.field_path().as_str()).is_ok(),
+        "diagnostic field path stays bounded"
+    );
+    for bounded in [
+        diagnostic.safe_id_value(),
+        diagnostic.expected_id(),
+        diagnostic.resolved_id(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        assert!(
+            BoundedToken::parse(bounded.as_str()).is_ok(),
+            "diagnostic id value stays bounded"
+        );
+    }
+}
+
+#[test]
+fn validator_accepts_valid_retrieval_candidate() {
+    let resolver = FixtureGraphResolver::m012();
+    let envelope = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_eq!(outcome.verdict(), OutputVerdict::Accepted);
+    assert!(outcome.diagnostics().is_empty());
+    assert_eq!(outcome.primary_code(), None);
+}
+
+#[test]
+fn validator_accepts_valid_answer_claim() {
+    let resolver = FixtureGraphResolver::m012();
+    let envelope = envelope(
+        OutputKind::AnswerClaim,
+        vec![valid_citation()],
+        vec![answer_claim("AC-M012-001", &["CIT-M012-001"])],
+    );
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_eq!(outcome.verdict(), OutputVerdict::Accepted);
+    assert!(outcome.diagnostics().is_empty());
+}
+
+#[test]
+fn validator_accepts_scoped_no_answer() {
+    let resolver = FixtureGraphResolver::m012();
+    let envelope = envelope(OutputKind::ScopedNoAnswer, Vec::new(), Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_eq!(outcome.verdict(), OutputVerdict::AcceptedScopedNoAnswer);
+    assert_eq!(
+        outcome.primary_code(),
+        Some(OutputDiagnosticCode::ScopedNoAnswer)
+    );
+    assert_eq!(outcome.diagnostics().len(), 1);
+    assert_eq!(
+        outcome.diagnostics()[0].severity(),
+        DiagnosticSeverity::Info
+    );
+}
+
+#[test]
+fn validator_rejects_unresolved_citation_key() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut binding = valid_citation();
+    binding.citation_key =
+        FieldShape::Value(CitationKey::parse("CIT-M012-DOES-NOT-EXIST").expect("key"));
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::UnresolvedCitationKey);
+}
+
+#[test]
+fn validator_rejects_ambiguous_citation_key() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut binding = valid_citation();
+    binding.citation_key = FieldShape::Value(CitationKey::parse("CIT-M012-AMBIG").expect("key"));
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::AmbiguousCitationKey);
+}
+
+#[test]
+fn validator_rejects_unresolved_evidence_span() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut binding = valid_citation();
+    binding.evidence_span_id = FieldShape::Value(
+        EvidenceSpanId::parse("EV-M012-DOES-NOT-EXIST").expect("evidence span id"),
+    );
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::UnresolvedEvidenceSpan);
+}
+
+#[test]
+fn validator_rejects_orphaned_source_path() {
+    let resolver = FixtureGraphResolver::m012();
+    let binding = citation(
+        "CIT-M012-ORPHAN-SOURCE",
+        "EV-M012-ORPHAN-SOURCE",
+        "SB-M012-ORPHAN",
+        "SD-M012-MISSING-DOCUMENT",
+        "LU-M012-44FZ-ART-001",
+        "ED-M012-44FZ-2024-01-01",
+    );
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::OrphanedSourcePath);
+}
+
+#[test]
+fn validator_rejects_orphaned_legal_unit_path() {
+    let resolver = FixtureGraphResolver::m012();
+    let binding = citation(
+        "CIT-M012-ORPHAN-LEGAL",
+        "EV-M012-ORPHAN-LEGAL",
+        "SB-M012-002",
+        "SD-M012-44FZ-GARANT",
+        "LU-M012-MISSING-UNIT",
+        "ED-M012-44FZ-2024-01-01",
+    );
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::OrphanedLegalUnitPath);
+}
+
+#[test]
+fn validator_rejects_source_path_mismatch() {
+    let resolver = FixtureGraphResolver::m012();
+    // Explicit source block disagrees with the block reached from EV-M012-001.
+    let binding = citation(
+        "CIT-M012-001",
+        "EV-M012-001",
+        "SB-M012-002",
+        "SD-M012-44FZ-GARANT",
+        "LU-M012-44FZ-ART-001",
+        "ED-M012-44FZ-2024-01-01",
+    );
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::IdPathMismatch);
+}
+
+#[test]
+fn validator_rejects_wrong_edition() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut binding = valid_citation();
+    binding.act_edition_id =
+        FieldShape::Value(ActEditionId::parse("ED-M012-44FZ-2023-01-01").expect("edition id"));
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::WrongEdition);
+}
+
+#[test]
+fn validator_rejects_superseded_evidence() {
+    let resolver = FixtureGraphResolver::m012();
+    let binding = citation(
+        "CIT-M012-SUPERSEDED",
+        "EV-M012-SUPERSEDED",
+        "SB-M012-001",
+        "SD-M012-44FZ-CONSULTANT",
+        "LU-M012-44FZ-ART-001-OLD",
+        "ED-M012-44FZ-2023-01-01",
+    );
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::SupersededEvidence);
+}
+
+#[test]
+fn validator_does_not_mutate_the_envelope() {
+    let resolver = FixtureGraphResolver::m012();
+    let envelope = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    let snapshot = envelope.clone();
+    let _ = validate_retrieval_output(&envelope, &resolver);
+    assert_eq!(envelope, snapshot, "validation never repairs the envelope");
+}
