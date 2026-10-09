@@ -24,7 +24,16 @@ Checks (all fail closed, exit 1 on the first violation):
 6. Overclaim guard: reuses the live-adapter readiness module's
    ``OVERCLAIM_RES``/``NONCLAIM_HINT`` to scan every string in the packet. A
    match that is not exempted by ``NONCLAIM_HINT`` fails.
-7. Live cross-check (only with ``--strict``): calls the readiness module's
+7. S05 Integration-class consumer: the M215 milestone declares an Integration
+   verification class (the embedding text must be sourced from the M213 cleaned
+   projection on a frozen fixture, not from self-contained constants). This
+   check ties that declared class to a real consuming artifact without changing
+   the packet's claim wording and without re-opening S01-S04: the consuming test
+   ``crates/ln-testkit/tests/m213_cleaned_text_source.rs`` must exist, the
+   frozen fixture ``crates/ln-decode/tests/fixtures/reader/mixed-wordml.xml``
+   must still hash to its sha256 pin, and the test must reference that pin and
+   the cleaned-projection pipeline markers.
+8. Live cross-check (only with ``--strict``): calls the readiness module's
    ``build_report(root)`` and requires ``overclaim_count == 0``,
    ``tei.status == "http_surface_present_unproven"`` and
    ``supply_chain.managed_provider_hits == []``.
@@ -35,6 +44,7 @@ This script performs no network calls. It only reads tracked repository files.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import sys
@@ -58,6 +68,14 @@ MILESTONE = "M215-w9jsgn"
 SLICE = "S04"
 RUST_SCOPE = "crates/*/src"
 REQUIRED_SURFACES = ("S01", "S02", "S03")
+# M215 declares an Integration verification class: the embedding text is sourced
+# from the M213 cleaned projection on a frozen fixture, not from self-contained
+# constants. These constants bind that declared class to the consuming artifact
+# shipped by S05 without re-opening the closed S01-S04 surfaces.
+S05_TEST_REF = "crates/ln-testkit/tests/m213_cleaned_text_source.rs"
+S05_FIXTURE_REF = "crates/ln-decode/tests/fixtures/reader/mixed-wordml.xml"
+S05_FIXTURE_SHA256 = "d2fc1cd17f0697f575e94f09d83da5027d73afd37c700772eafa4c4a4fbc76db"
+S05_PIPELINE_MARKERS = ("export_cleaned_projection", "inline_texts")
 REQUIRED_NON_CLAIM_KEYS = (
     "no-live-validation",
     "no-retrieval-quality",
@@ -87,6 +105,24 @@ def load_json(path: Path) -> dict[str, Any]:
         raise VerificationError(f"{path}: unreadable or malformed JSON: {exc}") from exc
     require(isinstance(value, dict), f"{path}: expected a JSON object")
     return value
+
+
+def read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise VerificationError(f"{path}: unreadable text file: {exc}") from exc
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    try:
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(65536), b""):
+                digest.update(chunk)
+    except OSError as exc:
+        raise VerificationError(f"{path}: unreadable for sha256: {exc}") from exc
+    return digest.hexdigest()
 
 
 def load_readiness_module() -> Any:
@@ -220,6 +256,39 @@ def verify_overclaims(data: dict[str, Any], readiness: Any) -> None:
                 )
 
 
+def verify_s05_integration_consumer(root: Path) -> None:
+    """Tie the declared M215 Integration class to its consuming S05 artifact.
+
+    The milestone declares that the embedding text is sourced from the M213
+    cleaned projection on a frozen fixture, not from self-contained constants.
+    This fail-closed check requires that declared class to have a real consuming
+    control: the S05 test exists, the frozen fixture still hashes to its pin, and
+    the test references that pin together with the cleaned-projection pipeline
+    markers. It adds no new claim and does not re-open the S01-S04 surfaces.
+    """
+    root = root.resolve()
+    test_path = (root / S05_TEST_REF).resolve()
+    require(test_path.is_file(), f"S05 consuming test is missing: {S05_TEST_REF}")
+    fixture_path = (root / S05_FIXTURE_REF).resolve()
+    require(fixture_path.is_file(), f"S05 frozen fixture is missing: {S05_FIXTURE_REF}")
+    actual_sha256 = sha256_file(fixture_path)
+    require(
+        actual_sha256 == S05_FIXTURE_SHA256,
+        f"S05 fixture sha256 drift: {S05_FIXTURE_REF} is {actual_sha256}, "
+        f"expected {S05_FIXTURE_SHA256}",
+    )
+    test_text = read_text(test_path)
+    require(
+        S05_FIXTURE_SHA256 in test_text,
+        f"S05 consuming test must pin the frozen fixture sha256 {S05_FIXTURE_SHA256}",
+    )
+    for marker in S05_PIPELINE_MARKERS:
+        require(
+            marker in test_text,
+            f"S05 consuming test must consume the cleaned projection (missing marker {marker!r})",
+        )
+
+
 def verify_identity(data: dict[str, Any]) -> None:
     require(data.get("schema") == SCHEMA, f"schema mismatch: {data.get('schema')!r}")
     require(data.get("gate_id") == GATE_ID, f"gate_id mismatch: {data.get('gate_id')!r}")
@@ -239,6 +308,7 @@ def verify_packet(data: dict[str, Any], root: Path, readiness: Any) -> None:
     verify_rust_scope(data)
     verify_non_claims(data)
     verify_overclaims(data, readiness)
+    verify_s05_integration_consumer(root)
 
 
 def cross_check(root: Path, readiness: Any) -> None:

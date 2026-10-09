@@ -7,10 +7,13 @@ files. Each mutation must make the fail-closed verifier exit 1.
 from __future__ import annotations
 
 import copy
+import importlib.util
 import json
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "verify-m215-s04-gate-packet.py"
@@ -232,3 +235,62 @@ def test_rejects_promoted_gate(tmp_path: Path) -> None:
     packet["promotion"] = True
     result = run_verifier(write_packet(tmp_path, packet))
     assert result.returncode == 1
+
+
+def load_verifier_module():
+    spec = importlib.util.spec_from_file_location("verify_m215_s04_gate_packet_module", SCRIPT)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def stage_s05_root(tmp_path: Path, verifier) -> Path:
+    """Populate a temp root with the real S05 consuming test and frozen fixture."""
+    test_target = tmp_path / verifier.S05_TEST_REF
+    test_target.parent.mkdir(parents=True, exist_ok=True)
+    test_target.write_bytes((ROOT / verifier.S05_TEST_REF).read_bytes())
+    fixture_target = tmp_path / verifier.S05_FIXTURE_REF
+    fixture_target.parent.mkdir(parents=True, exist_ok=True)
+    fixture_target.write_bytes((ROOT / verifier.S05_FIXTURE_REF).read_bytes())
+    return tmp_path
+
+
+def test_s05_integration_consumer_present_in_real_root() -> None:
+    verifier = load_verifier_module()
+    # The real repository must satisfy the declared Integration-class binding.
+    verifier.verify_s05_integration_consumer(ROOT)
+
+
+def test_s05_integration_consumer_rejects_missing_test(tmp_path: Path) -> None:
+    verifier = load_verifier_module()
+    root = stage_s05_root(tmp_path, verifier)
+    (root / verifier.S05_TEST_REF).unlink()
+    with pytest.raises(verifier.VerificationError) as excinfo:
+        verifier.verify_s05_integration_consumer(root)
+    assert "S05 consuming test is missing" in str(excinfo.value)
+
+
+def test_s05_integration_consumer_rejects_fixture_drift(tmp_path: Path) -> None:
+    verifier = load_verifier_module()
+    root = stage_s05_root(tmp_path, verifier)
+    (root / verifier.S05_FIXTURE_REF).write_bytes(b"<altered/>")
+    with pytest.raises(verifier.VerificationError) as excinfo:
+        verifier.verify_s05_integration_consumer(root)
+    assert "sha256 drift" in str(excinfo.value)
+
+
+def test_s05_integration_consumer_rejects_missing_pipeline_marker(
+    tmp_path: Path,
+) -> None:
+    verifier = load_verifier_module()
+    root = stage_s05_root(tmp_path, verifier)
+    test_path = root / verifier.S05_TEST_REF
+    text = test_path.read_text(encoding="utf-8").replace(
+        "export_cleaned_projection", "renamed_export"
+    )
+    test_path.write_text(text, encoding="utf-8")
+    with pytest.raises(verifier.VerificationError) as excinfo:
+        verifier.verify_s05_integration_consumer(root)
+    assert "export_cleaned_projection" in str(excinfo.value)
