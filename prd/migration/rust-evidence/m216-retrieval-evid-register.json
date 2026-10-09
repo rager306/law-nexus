@@ -1,0 +1,317 @@
+{
+  "schema_version": "law-nexus-m216-retrieval-evid-register/v1",
+  "kind": "m216-retrieval-evid-register",
+  "milestone": "M216-8dps6e",
+  "slice": "S03",
+  "task": "T03",
+  "lifecycle": "[proposed]",
+  "authoritative": false,
+  "registry_requirement": "R034",
+  "register_basis": "Standalone tracked retrieval EVID retarget register. Maps the five declared retrieval evidence rows from their archived Python-era anchors to their current tracked Rust anchors. The frozen architecture registry is neither written nor regenerated (D537); this register is closed evidence bookkeeping only, never architecture authority.",
+  "retarget_decisions": {
+    "D537": "architecture_items.jsonl and architecture_edges.jsonl are frozen: this register does not write, regenerate, or repair them, and does not clear the D7 missing-anchor quarantine.",
+    "D721": "retrieval EVID closure is recorded as a standalone tracked register (precedent prd/architecture/m209-s01-r035-gate-register.json); the frozen-registry retarget is deferred to the authorized RC28-F19 reconciliation.",
+    "D714": "no prd/temporal-legal-model.md section 3 vocabulary row is minted or promoted by this retarget.",
+    "D719": "SourceBlock stays deferred-undefined; the S03 resolver mapping is proof-local and does not mint a domain entity."
+  },
+  "rows": [
+    {
+      "evid_id": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "status": "bounded-evidence",
+      "proof_level": "unit-integration",
+      "summary": "Retargeted to the tracked Rust S01 output-ID validator surface: deterministic fail-closed retrieval output ID checks over the cleaned projection, exercised by the consuming integration test and frozen by the tracked contract.",
+      "active_anchors": [
+        {
+          "path": "crates/ln-query/src/retrieval_output.rs",
+          "role": "Rust output-ID validator surface (S01 production seam)"
+        },
+        {
+          "path": "crates/ln-query/tests/retrieval_output_validator.rs",
+          "role": "consuming integration test proving the validator"
+        },
+        {
+          "path": "prd/retrieval/rust_retrieval_output_validator_contract.md",
+          "role": "tracked S01 validator contract"
+        }
+      ],
+      "proof_command": "cargo test -p ln-query --offline --test retrieval_output_validator",
+      "prior_art": [
+        {
+          "path": "prd/archive/retrieval-era/retrieval_output_validator_contract.md",
+          "era": "M012/Python",
+          "authority": "prior-art-not-authority"
+        },
+        {
+          "path": "prd/archive/retrieval-era/retrieval_output_validator_fixtures.md",
+          "era": "M012/Python",
+          "authority": "prior-art-not-authority"
+        },
+        {
+          "path": "prd/archive/retrieval-era/fixtures/retrieval_output_validator_cases.json",
+          "era": "M012/Python",
+          "authority": "prior-art-not-authority"
+        }
+      ],
+      "python_era_anchors": [
+        "prd/retrieval/retrieval_output_validator_contract.md",
+        "prd/retrieval/retrieval_output_validator_fixtures.md",
+        "prd/retrieval/fixtures/retrieval_output_validator_cases.json",
+        "scripts/retrieval_output_validator.py",
+        "scripts/verify-retrieval-output-validator.py",
+        "tests/test_retrieval_output_validator.py"
+      ],
+      "non_claims": [
+        "Does not prove product retrieval quality.",
+        "Does not prove legal-answer correctness.",
+        "Does not prove parser completeness.",
+        "Does not prove runtime or FalkorDB readiness.",
+        "Does not prove production graph schema readiness.",
+        "Does not make proof-local identifiers production identifiers.",
+        "Does not close GATE-G008 or GATE-G011.",
+        "Does not clear the D7 missing-anchor quarantine."
+      ]
+    },
+    {
+      "evid_id": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "status": "bounded-evidence",
+      "proof_level": "integration",
+      "summary": "Retargeted to the tracked Rust S02 offline citation-safe retrieval surface: deterministic offline candidate, scoped no-answer, ambiguous, unresolved-evidence and unsafe-payload retrieval over the cleaned projection, with eligible envelopes validated through the shared output validator.",
+      "active_anchors": [
+        {
+          "path": "crates/ln-query/src/retrieval_offline.rs",
+          "role": "Rust offline citation-safe retrieval surface (S02)"
+        },
+        {
+          "path": "crates/ln-query/tests/retrieval_offline.rs",
+          "role": "consuming integration test proving the offline retrieval cases"
+        },
+        {
+          "path": "prd/retrieval/rust_offline_citation_retrieval_contract.md",
+          "role": "tracked S02 offline citation retrieval contract"
+        }
+      ],
+      "proof_command": "cargo test -p ln-query --offline --test retrieval_offline",
+      "prior_art": [
+        {
+          "path": "prd/archive/retrieval-era/offline_citation_retrieval_contract.md",
+          "era": "M014/Python",
+          "authority": "prior-art-not-authority"
+        },
+        {
+          "path": "prd/archive/retrieval-era/offline_citation_retrieval_proof.md",
+          "era": "M014/Python",
+          "authority": "prior-art-not-authority"
+        },
+        {
+          "path": "prd/archive/retrieval-era/fixtures/offline_citation_retrieval_cases.json",
+          "era": "M014/Python",
+          "authority": "prior-art-not-authority"
+        }
+      ],
+      "python_era_anchors": [
+        "prd/retrieval/offline_citation_retrieval_contract.md",
+        "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+        "scripts/verify-offline-citation-retrieval-proof.py",
+        "scripts/build-offline-citation-retrieval-cases.py",
+        "prd/retrieval/offline_citation_retrieval_proof.md",
+        "tests/test_offline_citation_retrieval_cases.py",
+        "tests/test_offline_citation_retrieval_proof_cli.py",
+        "tests/test_offline_citation_retrieval_proof_report.py"
+      ],
+      "non_claims": [
+        "Does not prove product retrieval quality.",
+        "Does not prove legal-answer correctness.",
+        "Does not prove parser completeness.",
+        "Does not prove runtime or FalkorDB readiness.",
+        "Does not prove production graph schema readiness.",
+        "Does not prove local embedding quality.",
+        "Does not make proof-local identifiers production identifiers.",
+        "Does not close GATE-G008 or GATE-G011.",
+        "Does not clear the D7 missing-anchor quarantine."
+      ]
+    },
+    {
+      "evid_id": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "status": "bounded-evidence",
+      "proof_level": "real-document",
+      "summary": "Retargeted to the tracked Rust S03 real-artifact proof: ONE pinned real Consultant WordML document driven through the enabled M213 cleaned-projection pipeline and the S02 offline retrieval surface, fail-closed and mismatch-free.",
+      "active_anchors": [
+        {
+          "path": "prd/retrieval/rust_real_artifact_retrieval_proof.md",
+          "role": "tracked S03 real-artifact proof contract"
+        },
+        {
+          "path": "crates/ln-query/tests/real_artifact_retrieval.rs",
+          "role": "consuming integration test proving the pinned real document"
+        },
+        {
+          "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+          "role": "the single pinned real Consultant WordML document"
+        }
+      ],
+      "pinned_document": {
+        "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+        "sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d",
+        "bytes": 193726
+      },
+      "proof_command": "cargo test -p ln-query --offline --test real_artifact_retrieval -- --nocapture",
+      "proof_counts": {
+        "total": 8,
+        "selected": 2,
+        "scoped_no_answer": 2,
+        "rejected": 4,
+        "validator_accepted": 2,
+        "validator_rejected": 1,
+        "mismatch_count": 0
+      },
+      "diagnostic_code_inventory": [
+        "ambiguous_candidate_set",
+        "scoped_no_answer",
+        "scoped_no_candidate",
+        "unresolved_candidate_evidence",
+        "unresolved_evidence_span",
+        "unsafe_payload_rejected"
+      ],
+      "prior_art": [
+        {
+          "path": "prd/archive/retrieval-era/real_artifact_evidence_mapping.md",
+          "era": "M013/Python",
+          "authority": "prior-art-not-authority"
+        },
+        {
+          "path": "prd/archive/retrieval-era/real_artifact_retrieval_proof.md",
+          "era": "M013/Python",
+          "authority": "prior-art-not-authority"
+        },
+        {
+          "path": "prd/archive/retrieval-era/fixtures/real_artifact_retrieval_cases.json",
+          "era": "M013/Python",
+          "authority": "prior-art-not-authority"
+        }
+      ],
+      "python_era_anchors": [
+        "prd/retrieval/real_artifact_evidence_mapping.md",
+        "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+        "scripts/verify-real-artifact-retrieval-proof.py",
+        "scripts/build-real-artifact-retrieval-cases.py",
+        "prd/retrieval/real_artifact_retrieval_proof.md",
+        "tests/test_real_artifact_retrieval_proof_cli.py",
+        "tests/test_real_artifact_retrieval_cases.py"
+      ],
+      "non_claims": [
+        "Does not prove corpus coverage; one real document is not the corpus.",
+        "Does not prove product retrieval quality.",
+        "Does not prove legal-answer correctness.",
+        "Does not prove parser completeness.",
+        "Does not prove runtime or FalkorDB readiness.",
+        "Does not prove production graph schema readiness.",
+        "Does not make proof-local identifiers production identifiers.",
+        "Does not close GATE-G008 or GATE-G011.",
+        "Does not clear the D7 missing-anchor quarantine."
+      ]
+    },
+    {
+      "evid_id": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "status": "pending-s04",
+      "proof_level": null,
+      "summary": "Deferred to S04. The quality-benchmark row stays pending until S04 records bounded local retrieval quality metrics with explicit non-claims.",
+      "active_anchors": [],
+      "proof_command": null,
+      "prior_art": [
+        {
+          "path": "prd/archive/retrieval-era/local_retrieval_quality_benchmark_contract.md",
+          "era": "M015/Python",
+          "authority": "prior-art-not-authority"
+        },
+        {
+          "path": "prd/archive/retrieval-era/local_retrieval_quality_benchmark_proof.md",
+          "era": "M015/Python",
+          "authority": "prior-art-not-authority"
+        },
+        {
+          "path": "prd/archive/retrieval-era/fixtures/local_retrieval_quality_benchmark.json",
+          "era": "M015/Python",
+          "authority": "prior-art-not-authority"
+        }
+      ],
+      "python_era_anchors": [
+        "prd/retrieval/local_retrieval_quality_benchmark_contract.md",
+        "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
+        "scripts/build-local-retrieval-quality-benchmark.py",
+        "scripts/verify-local-retrieval-quality-benchmark.py",
+        "prd/retrieval/local_retrieval_quality_benchmark_proof.md",
+        "tests/test_local_retrieval_quality_benchmark_contract.py"
+      ],
+      "non_claims": [
+        "Not closed by S03; no quality metric is claimed here.",
+        "Does not prove product retrieval quality.",
+        "Does not prove legal-answer correctness.",
+        "Does not prove local embedding quality.",
+        "Does not prove runtime or FalkorDB readiness."
+      ]
+    },
+    {
+      "evid_id": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+      "status": "pending-s04",
+      "proof_level": null,
+      "summary": "Deferred to S04. The runtime-benchmark row stays pending until S04 records bounded representative runtime metrics with explicit non-claims.",
+      "active_anchors": [],
+      "proof_command": null,
+      "prior_art": [
+        {
+          "path": "prd/archive/retrieval-era/representative_retrieval_runtime_benchmark_contract.md",
+          "era": "M016/Python",
+          "authority": "prior-art-not-authority"
+        },
+        {
+          "path": "prd/archive/retrieval-era/representative_retrieval_runtime_benchmark_proof.md",
+          "era": "M016/Python",
+          "authority": "prior-art-not-authority"
+        },
+        {
+          "path": "prd/archive/retrieval-era/representative_retrieval_corpus_contract.md",
+          "era": "M016/Python",
+          "authority": "prior-art-not-authority"
+        },
+        {
+          "path": "prd/archive/retrieval-era/fixtures/representative_retrieval_corpus_manifest.json",
+          "era": "M016/Python",
+          "authority": "prior-art-not-authority"
+        }
+      ],
+      "python_era_anchors": [
+        "prd/retrieval/representative_retrieval_runtime_benchmark_contract.md",
+        "scripts/verify-representative-retrieval-runtime-benchmark.py",
+        "prd/retrieval/representative_retrieval_runtime_benchmark_proof.md",
+        "tests/test_representative_retrieval_runtime_benchmark_contract.py",
+        "tests/test_representative_retrieval_runtime_benchmark_cli.py",
+        "tests/test_representative_retrieval_runtime_benchmark_report.py"
+      ],
+      "non_claims": [
+        "Not closed by S03; no runtime metric is claimed here.",
+        "Does not prove product retrieval quality.",
+        "Does not prove legal-answer correctness.",
+        "Does not prove runtime or FalkorDB readiness.",
+        "Does not prove production graph schema readiness."
+      ]
+    }
+  ],
+  "d537_consistency": {
+    "decision": "D537",
+    "frozen_registry_inputs": [
+      "prd/architecture/architecture_items.jsonl",
+      "prd/architecture/architecture_edges.jsonl"
+    ],
+    "written_or_regenerated": false,
+    "retarget_deferred_to": "RC28-F19",
+    "statement": "D537 freezes prd/architecture/architecture_items.jsonl and prd/architecture/architecture_edges.jsonl. This standalone register does not write, regenerate, repair, or replace them, and does not clear the D7 missing-anchor quarantine. The retrieval EVID retarget is recorded here as bounded tracked evidence (D721 standalone-register precedent); the frozen-registry retarget is deferred to the authorized RC28-F19 reconciliation."
+  },
+  "non_claims": [
+    "This register is not architecture authority and does not close GATE-G008 or GATE-G011.",
+    "This register does not satisfy or promote any requirement by itself; R034 re-justification is tracked separately.",
+    "This register does not clear the D7 missing-anchor quarantine.",
+    "This register does not write, regenerate, or repair the frozen architecture registry (D537).",
+    "The archived Python-era anchors are prior art only and are never active anchors."
+  ],
+  "revisable": "Retarget mappings and per-row non_claims are revisable by a later milestone that owns the frozen-registry RC28-F19 reconciliation; the five declared EVID ids and their D537 consistency stay fixed until then."
+}
