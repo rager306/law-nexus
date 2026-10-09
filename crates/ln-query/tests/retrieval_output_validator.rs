@@ -626,3 +626,507 @@ fn validator_does_not_mutate_the_envelope() {
     let _ = validate_retrieval_output(&envelope, &resolver);
     assert_eq!(envelope, snapshot, "validation never repairs the envelope");
 }
+
+// --- envelope safety taxonomy, determinism, no-repair (T03) ---------------
+
+/// One input per diagnostic code, each producing that code as the single
+/// primary diagnostic. This is the reachability catalogue proving the closed
+/// sixteen-code taxonomy is fully exercised by the validator.
+fn taxonomy_cases() -> Vec<(OutputDiagnosticCode, RetrievalOutputEnvelope)> {
+    let mut cases: Vec<(OutputDiagnosticCode, RetrievalOutputEnvelope)> = Vec::new();
+
+    // 1. malformed_output_shape (top-level citations shape)
+    let mut malformed = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    malformed.citations = FieldShape::WrongShape;
+    cases.push((OutputDiagnosticCode::MalformedOutputShape, malformed));
+
+    // 2. missing_required_field (citations absent)
+    let mut missing = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    missing.citations = FieldShape::Missing;
+    cases.push((OutputDiagnosticCode::MissingRequiredField, missing));
+
+    // 3. forbidden_payload_field
+    let mut forbidden = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    forbidden.extra_field_names = vec![BoundedToken::parse("raw_legal_text").expect("bounded")];
+    cases.push((OutputDiagnosticCode::ForbiddenPayloadField, forbidden));
+
+    // 4. unknown_id_namespace (a parseable token outside the EV- namespace)
+    let mut namespace = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    if let FieldShape::Value(citations) = &mut namespace.citations {
+        citations[0].evidence_span_id = FieldShape::Value(
+            EvidenceSpanId::parse("MODEL-SAYS-ARTICLE-1").expect("parseable non-EV token"),
+        );
+    }
+    cases.push((OutputDiagnosticCode::UnknownIdNamespace, namespace));
+
+    // 5. unresolved_citation_key
+    let mut unresolved_key = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    if let FieldShape::Value(citations) = &mut unresolved_key.citations {
+        citations[0].citation_key =
+            FieldShape::Value(CitationKey::parse("CIT-M012-DOES-NOT-EXIST").expect("key"));
+    }
+    cases.push((OutputDiagnosticCode::UnresolvedCitationKey, unresolved_key));
+
+    // 6. ambiguous_citation_key
+    let mut ambiguous = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    if let FieldShape::Value(citations) = &mut ambiguous.citations {
+        citations[0].citation_key =
+            FieldShape::Value(CitationKey::parse("CIT-M012-AMBIG").expect("key"));
+    }
+    cases.push((OutputDiagnosticCode::AmbiguousCitationKey, ambiguous));
+
+    // 7. unresolved_evidence_span
+    let mut unresolved_span = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    if let FieldShape::Value(citations) = &mut unresolved_span.citations {
+        citations[0].evidence_span_id =
+            FieldShape::Value(EvidenceSpanId::parse("EV-M012-DOES-NOT-EXIST").expect("id"));
+    }
+    cases.push((
+        OutputDiagnosticCode::UnresolvedEvidenceSpan,
+        unresolved_span,
+    ));
+
+    // 8. orphaned_source_path
+    cases.push((
+        OutputDiagnosticCode::OrphanedSourcePath,
+        envelope(
+            OutputKind::RetrievalCandidate,
+            vec![citation(
+                "CIT-M012-ORPHAN-SOURCE",
+                "EV-M012-ORPHAN-SOURCE",
+                "SB-M012-ORPHAN",
+                "SD-M012-MISSING-DOCUMENT",
+                "LU-M012-44FZ-ART-001",
+                "ED-M012-44FZ-2024-01-01",
+            )],
+            Vec::new(),
+        ),
+    ));
+
+    // 9. orphaned_legal_unit_path
+    cases.push((
+        OutputDiagnosticCode::OrphanedLegalUnitPath,
+        envelope(
+            OutputKind::RetrievalCandidate,
+            vec![citation(
+                "CIT-M012-ORPHAN-LEGAL",
+                "EV-M012-ORPHAN-LEGAL",
+                "SB-M012-002",
+                "SD-M012-44FZ-GARANT",
+                "LU-M012-MISSING-UNIT",
+                "ED-M012-44FZ-2024-01-01",
+            )],
+            Vec::new(),
+        ),
+    ));
+
+    // 10. id_path_mismatch (source block disagrees with the reached block)
+    cases.push((
+        OutputDiagnosticCode::IdPathMismatch,
+        envelope(
+            OutputKind::RetrievalCandidate,
+            vec![citation(
+                "CIT-M012-001",
+                "EV-M012-001",
+                "SB-M012-002",
+                "SD-M012-44FZ-GARANT",
+                "LU-M012-44FZ-ART-001",
+                "ED-M012-44FZ-2024-01-01",
+            )],
+            Vec::new(),
+        ),
+    ));
+
+    // 11. superseded_evidence
+    cases.push((
+        OutputDiagnosticCode::SupersededEvidence,
+        envelope(
+            OutputKind::RetrievalCandidate,
+            vec![citation(
+                "CIT-M012-SUPERSEDED",
+                "EV-M012-SUPERSEDED",
+                "SB-M012-001",
+                "SD-M012-44FZ-CONSULTANT",
+                "LU-M012-44FZ-ART-001-OLD",
+                "ED-M012-44FZ-2023-01-01",
+            )],
+            Vec::new(),
+        ),
+    ));
+
+    // 12. wrong_edition
+    let mut wrong_edition = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    if let FieldShape::Value(citations) = &mut wrong_edition.citations {
+        citations[0].act_edition_id =
+            FieldShape::Value(ActEditionId::parse("ED-M012-44FZ-2023-01-01").expect("edition id"));
+    }
+    cases.push((OutputDiagnosticCode::WrongEdition, wrong_edition));
+
+    // 13. answer_claim_without_evidence (claim key absent from the citations)
+    cases.push((
+        OutputDiagnosticCode::AnswerClaimWithoutEvidence,
+        envelope(
+            OutputKind::AnswerClaim,
+            vec![valid_citation()],
+            vec![answer_claim("AC-M012-001", &["CIT-M012-002"])],
+        ),
+    ));
+
+    // 14. citation_without_evidence (explicit null evidence span)
+    let mut null_evidence = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    if let FieldShape::Value(citations) = &mut null_evidence.citations {
+        citations[0].evidence_span_id = FieldShape::ExplicitNull;
+    }
+    cases.push((OutputDiagnosticCode::CitationWithoutEvidence, null_evidence));
+
+    // 15. unsafe_no_answer_shape (no-answer kind carrying a citation)
+    cases.push((
+        OutputDiagnosticCode::UnsafeNoAnswerShape,
+        envelope(
+            OutputKind::ScopedNoAnswer,
+            vec![valid_citation()],
+            Vec::new(),
+        ),
+    ));
+
+    // 16. scoped_no_answer
+    cases.push((
+        OutputDiagnosticCode::ScopedNoAnswer,
+        envelope(OutputKind::ScopedNoAnswer, Vec::new(), Vec::new()),
+    ));
+
+    cases
+}
+
+/// A raw-payload sentinel that uses spaces and separators: this can never be a
+/// bounded token, so a diagnostic containing it would have leaked raw payload.
+const RAW_TEXT_SENTINEL: &str = "RAW LEGAL TEXT / prompt / provider payload sentinel";
+
+fn assert_diagnostics_bounded(outcome: &ValidationOutcome) {
+    for diagnostic in outcome.diagnostics() {
+        let values = [
+            diagnostic.field_path().as_str(),
+            diagnostic.retrieval_output_id().as_str(),
+            diagnostic.scope_id().as_str(),
+        ]
+        .into_iter()
+        .chain(diagnostic.safe_id_value().map(BoundedToken::as_str))
+        .chain(diagnostic.expected_id().map(BoundedToken::as_str))
+        .chain(diagnostic.resolved_id().map(BoundedToken::as_str));
+        for value in values {
+            assert!(
+                BoundedToken::parse(value).is_ok(),
+                "diagnostic value must stay bounded: {value:?}"
+            );
+            assert!(
+                !value.contains(RAW_TEXT_SENTINEL),
+                "diagnostic must not echo raw payload text"
+            );
+        }
+    }
+}
+
+#[test]
+fn all_sixteen_diagnostic_codes_are_reachable_as_primary() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut seen = BTreeSet::new();
+    for (expected, envelope) in taxonomy_cases() {
+        let outcome = validate_retrieval_output(&envelope, &resolver);
+        assert_eq!(
+            outcome.primary_code(),
+            Some(expected),
+            "case for {} produced {:?}",
+            expected.as_str(),
+            outcome.primary_code()
+        );
+        seen.insert(expected.as_str());
+    }
+    let all: BTreeSet<&str> = OutputDiagnosticCode::ALL
+        .iter()
+        .map(|c| c.as_str())
+        .collect();
+    assert_eq!(seen, all, "every diagnostic code is reachable as primary");
+    assert_eq!(seen.len(), 16);
+}
+
+#[test]
+fn validator_is_deterministic_for_identical_input() {
+    let resolver = FixtureGraphResolver::m012();
+
+    let accepted = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    assert_eq!(
+        validate_retrieval_output(&accepted, &resolver),
+        validate_retrieval_output(&accepted, &resolver),
+        "accepted outcome is deterministic"
+    );
+
+    let rejected = envelope(
+        OutputKind::ScopedNoAnswer,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    let first = validate_retrieval_output(&rejected, &resolver);
+    let second = validate_retrieval_output(&rejected, &resolver);
+    assert_eq!(first, second, "rejected outcome is deterministic");
+    assert_single_error(&first, OutputDiagnosticCode::UnsafeNoAnswerShape);
+}
+
+#[test]
+fn validator_is_deterministic_across_the_taxonomy() {
+    let resolver = FixtureGraphResolver::m012();
+    for (code, envelope) in taxonomy_cases() {
+        let first = validate_retrieval_output(&envelope, &resolver);
+        let second = validate_retrieval_output(&envelope, &resolver);
+        assert_eq!(first, second, "case {} is deterministic", code.as_str());
+    }
+}
+
+#[test]
+fn validator_never_repairs_the_envelope_across_the_taxonomy() {
+    let resolver = FixtureGraphResolver::m012();
+    for (code, envelope) in taxonomy_cases() {
+        let snapshot = envelope.clone();
+        let _ = validate_retrieval_output(&envelope, &resolver);
+        assert_eq!(
+            envelope,
+            snapshot,
+            "case {} must not mutate the envelope",
+            code.as_str()
+        );
+    }
+}
+
+#[test]
+fn every_taxonomy_diagnostic_is_bounded_and_payload_free() {
+    let resolver = FixtureGraphResolver::m012();
+    for (code, envelope) in taxonomy_cases() {
+        let outcome = validate_retrieval_output(&envelope, &resolver);
+        let expected_error = code != OutputDiagnosticCode::ScopedNoAnswer;
+        assert_eq!(
+            outcome.has_error_diagnostics(),
+            expected_error,
+            "case {} carries the expected diagnostic severity",
+            code.as_str()
+        );
+        assert_diagnostics_bounded(&outcome);
+    }
+}
+
+#[test]
+fn validator_rejects_malformed_citations_shape() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut envelope = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    envelope.citations = FieldShape::WrongShape;
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::MalformedOutputShape);
+    assert_eq!(outcome.diagnostics()[0].field_path().as_str(), "citations");
+}
+
+#[test]
+fn validator_rejects_wrong_shaped_nested_citation_field() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut binding = valid_citation();
+    binding.evidence_span_id = FieldShape::WrongShape;
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::MalformedOutputShape);
+    assert_eq!(
+        outcome.diagnostics()[0].field_path().as_str(),
+        "citations[0].evidence_span_id"
+    );
+}
+
+#[test]
+fn validator_rejects_missing_evidence_span_id() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut binding = valid_citation();
+    binding.evidence_span_id = FieldShape::Missing;
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::MissingRequiredField);
+    assert_eq!(
+        outcome.diagnostics()[0].field_path().as_str(),
+        "citations[0].evidence_span_id"
+    );
+}
+
+#[test]
+fn validator_rejects_missing_scope_field() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut envelope = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    envelope.scope = ScopeShape::IncompleteField(ScopeField::RetrievalRunId);
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::MissingRequiredField);
+    assert_eq!(
+        outcome.diagnostics()[0].field_path().as_str(),
+        "scope.retrieval_run_id"
+    );
+}
+
+#[test]
+fn validator_rejects_unknown_id_namespace() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut binding = valid_citation();
+    binding.evidence_span_id = FieldShape::Value(
+        EvidenceSpanId::parse("MODEL-SAYS-ARTICLE-1").expect("parseable non-EV token"),
+    );
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    assert_single_error(
+        &validate_retrieval_output(&envelope, &resolver),
+        OutputDiagnosticCode::UnknownIdNamespace,
+    );
+}
+
+#[test]
+fn validator_rejects_citation_without_evidence() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut binding = valid_citation();
+    binding.evidence_span_id = FieldShape::ExplicitNull;
+    let envelope = envelope(OutputKind::RetrievalCandidate, vec![binding], Vec::new());
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::CitationWithoutEvidence);
+    assert_eq!(
+        outcome.diagnostics()[0].field_path().as_str(),
+        "citations[0].evidence_span_id"
+    );
+}
+
+#[test]
+fn validator_rejects_answer_claim_without_evidence() {
+    let resolver = FixtureGraphResolver::m012();
+
+    // A claim supporting a key that is absent from the envelope citations.
+    let unsupported = envelope(
+        OutputKind::AnswerClaim,
+        vec![valid_citation()],
+        vec![answer_claim("AC-M012-001", &["CIT-M012-002"])],
+    );
+    assert_single_error(
+        &validate_retrieval_output(&unsupported, &resolver),
+        OutputDiagnosticCode::AnswerClaimWithoutEvidence,
+    );
+
+    // A claim with no supporting keys at all.
+    let empty = envelope(
+        OutputKind::AnswerClaim,
+        vec![valid_citation()],
+        vec![answer_claim("AC-M012-002", &[])],
+    );
+    assert_single_error(
+        &validate_retrieval_output(&empty, &resolver),
+        OutputDiagnosticCode::AnswerClaimWithoutEvidence,
+    );
+}
+
+#[test]
+fn validator_rejects_unsafe_no_answer_shape() {
+    let resolver = FixtureGraphResolver::m012();
+    let envelope = envelope(
+        OutputKind::ScopedNoAnswer,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_eq!(outcome.verdict(), OutputVerdict::Rejected);
+    assert_single_error(&outcome, OutputDiagnosticCode::UnsafeNoAnswerShape);
+    assert_eq!(outcome.diagnostics()[0].field_path().as_str(), "citations");
+}
+
+#[test]
+fn validator_rejects_forbidden_payload_field_without_echoing_payload() {
+    let resolver = FixtureGraphResolver::m012();
+    let mut envelope = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    envelope.extra_field_names = vec![
+        BoundedToken::parse("citation_key").expect("bounded"),
+        BoundedToken::parse("RAW-LEGAL-TEXT").expect("bounded"),
+    ];
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::ForbiddenPayloadField);
+    let diagnostic = &outcome.diagnostics()[0];
+    assert_eq!(diagnostic.field_path().as_str(), "RAW-LEGAL-TEXT");
+    assert_eq!(
+        diagnostic.safe_id_value().map(BoundedToken::as_str),
+        Some("RAW-LEGAL-TEXT")
+    );
+    assert_diagnostics_bounded(&outcome);
+}
+
+#[test]
+fn raw_payload_text_cannot_be_represented_in_diagnostics() {
+    // Raw legal text, prompts, provider bodies and Cyrillic prose cannot even
+    // form a bounded token, so they cannot be smuggled into a diagnostic field.
+    for hostile in [
+        "raw legal text with spaces",
+        "Юридический текст",
+        "prompt: answer with the law",
+        "{\"provider\":\"payload\"}",
+    ] {
+        assert!(
+            BoundedToken::parse(hostile).is_err(),
+            "hostile payload must not be a bounded token: {hostile:?}"
+        );
+    }
+
+    let resolver = FixtureGraphResolver::m012();
+    let mut envelope = envelope(
+        OutputKind::RetrievalCandidate,
+        vec![valid_citation()],
+        Vec::new(),
+    );
+    envelope.extra_field_names = vec![BoundedToken::parse("provider-payload").expect("bounded")];
+    let outcome = validate_retrieval_output(&envelope, &resolver);
+    assert_single_error(&outcome, OutputDiagnosticCode::ForbiddenPayloadField);
+    assert_diagnostics_bounded(&outcome);
+}

@@ -1421,6 +1421,66 @@ fn check_shape(
             ));
         }
     }
+    // Nested binding shapes: a wrong-shaped binding field cannot be repaired or
+    // treated as absent, so it is malformed envelope shape (fail-closed).
+    if let FieldShape::Value(citations) = &envelope.citations {
+        for (index, citation) in citations.iter().enumerate() {
+            let nested = [
+                (
+                    citation.retrieval_output_id.is_wrong_shape(),
+                    "retrieval_output_id",
+                ),
+                (citation.citation_key.is_wrong_shape(), "citation_key"),
+                (
+                    citation.evidence_span_id.is_wrong_shape(),
+                    "evidence_span_id",
+                ),
+                (citation.source_block_id.is_wrong_shape(), "source_block_id"),
+                (
+                    citation.source_document_id.is_wrong_shape(),
+                    "source_document_id",
+                ),
+                (citation.legal_unit_id.is_wrong_shape(), "legal_unit_id"),
+                (citation.act_edition_id.is_wrong_shape(), "act_edition_id"),
+                (citation.answer_claim_id.is_wrong_shape(), "answer_claim_id"),
+            ];
+            for (wrong, name) in nested {
+                if wrong {
+                    return Some(diagnostic(
+                        ctx,
+                        OutputDiagnosticCode::MalformedOutputShape,
+                        &format!("citations[{index}].{name}"),
+                    ));
+                }
+            }
+        }
+    }
+    if let FieldShape::Value(claims) = &envelope.answer_claims {
+        for (index, claim) in claims.iter().enumerate() {
+            let nested = [
+                (claim.answer_claim_id.is_wrong_shape(), "answer_claim_id"),
+                (
+                    claim.retrieval_output_id.is_wrong_shape(),
+                    "retrieval_output_id",
+                ),
+                (claim.claim_kind.is_wrong_shape(), "claim_kind"),
+                (claim.scope_id.is_wrong_shape(), "scope_id"),
+                (
+                    claim.supported_citation_keys.is_wrong_shape(),
+                    "supported_citation_keys",
+                ),
+            ];
+            for (wrong, name) in nested {
+                if wrong {
+                    return Some(diagnostic(
+                        ctx,
+                        OutputDiagnosticCode::MalformedOutputShape,
+                        &format!("answer_claims[{index}].{name}"),
+                    ));
+                }
+            }
+        }
+    }
     None
 }
 
