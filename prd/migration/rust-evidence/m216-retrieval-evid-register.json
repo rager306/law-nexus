@@ -212,11 +212,44 @@
     },
     {
       "evid_id": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
-      "status": "pending-s04",
-      "proof_level": null,
-      "summary": "Deferred to S04. The quality-benchmark row stays pending until S04 records bounded local retrieval quality metrics with explicit non-claims.",
-      "active_anchors": [],
-      "proof_command": null,
+      "status": "bounded-evidence",
+      "proof_level": "slice-quality",
+      "summary": "Retargeted to the tracked Rust S04 slice quality metrics: six closed quality metrics over the three-document declared slice, computed by ln_query::retrieval_metrics from the S02 offline retrieval outcomes. Every metric meets its 1.0 threshold with mismatch_count 0.",
+      "active_anchors": [
+        {
+          "path": "prd/retrieval/rust_retrieval_metrics_contract.md",
+          "role": "tracked S04 quality-and-runtime metrics contract"
+        },
+        {
+          "path": "crates/ln-query/src/retrieval_metrics.rs",
+          "role": "deterministic metrics computation surface (serde-free)"
+        },
+        {
+          "path": "crates/ln-query/tests/retrieval_metrics.rs",
+          "role": "consuming integration test proving the bounded slice quality metrics"
+        },
+        {
+          "path": "prd/retrieval/rust_retrieval_metrics_proof.md",
+          "role": "tracked S04 observed bounded report and non-claims"
+        }
+      ],
+      "proof_command": "cargo test -p ln-query --offline --test retrieval_metrics",
+      "quality_metrics": {
+        "total_cases": 24,
+        "positive_cases": 6,
+        "scoped_cases": 6,
+        "ambiguous_cases": 3,
+        "unsafe_cases": 3,
+        "unresolvable_cases": 3,
+        "mismatch_count": 0,
+        "selection_accuracy": 1.0,
+        "positive_selection_rate": 1.0,
+        "scoped_no_answer_accuracy": 1.0,
+        "ambiguous_rejection_rate": 1.0,
+        "unsafe_rejection_rate": 1.0,
+        "unresolvable_citation_rejection_rate": 1.0,
+        "threshold_breaches": 0
+      },
       "prior_art": [
         {
           "path": "prd/archive/retrieval-era/local_retrieval_quality_benchmark_contract.md",
@@ -243,20 +276,57 @@
         "tests/test_local_retrieval_quality_benchmark_contract.py"
       ],
       "non_claims": [
-        "Not closed by S03; no quality metric is claimed here.",
-        "Does not prove product retrieval quality.",
+        "Does not prove product retrieval quality; the metrics are slice-level over three declared documents, not corpus coverage.",
         "Does not prove legal-answer correctness.",
-        "Does not prove local embedding quality.",
-        "Does not prove runtime or FalkorDB readiness."
+        "Does not prove local embedding quality; there are no embeddings.",
+        "No ranker or scoring exists, so mrr, recall@k, precision@k and any rank-gain metric are excluded.",
+        "Does not prove runtime or FalkorDB readiness.",
+        "Does not prove parser completeness.",
+        "Does not prove production graph schema readiness.",
+        "Does not close GATE-G008 or GATE-G011.",
+        "Does not clear the D7 missing-anchor quarantine."
       ]
     },
     {
       "evid_id": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
-      "status": "pending-s04",
-      "proof_level": null,
-      "summary": "Deferred to S04. The runtime-benchmark row stays pending until S04 records bounded representative runtime metrics with explicit non-claims.",
-      "active_anchors": [],
-      "proof_command": null,
+      "status": "bounded-evidence",
+      "proof_level": "slice-runtime",
+      "summary": "Retargeted to the tracked Rust S04 structural runtime profile: five reproducible counters over the three-document declared slice. Host-boundary wall-clock timing is recorded with reproducible=false/asserted=false and is never asserted.",
+      "active_anchors": [
+        {
+          "path": "prd/retrieval/rust_retrieval_metrics_contract.md",
+          "role": "tracked S04 quality-and-runtime metrics contract"
+        },
+        {
+          "path": "crates/ln-query/src/retrieval_metrics.rs",
+          "role": "deterministic structural runtime profile surface (serde-free)"
+        },
+        {
+          "path": "crates/ln-query/tests/retrieval_metrics.rs",
+          "role": "consuming integration test proving the reproducible structural profile"
+        },
+        {
+          "path": "prd/retrieval/rust_retrieval_metrics_proof.md",
+          "role": "tracked S04 observed bounded report and non-claims"
+        }
+      ],
+      "proof_command": "cargo test -p ln-query --offline --test retrieval_metrics",
+      "runtime_profile": {
+        "documents_processed": 3,
+        "projected_views": 329,
+        "projected_segments": 345,
+        "resolver_evidence_spans": 345,
+        "cases_run": 24,
+        "reproducible": true
+      },
+      "observed_timing": {
+        "iterations": 5,
+        "elapsed_ms_min": 6,
+        "elapsed_ms_median": 7,
+        "env_dependent": true,
+        "reproducible": false,
+        "asserted": false
+      },
       "prior_art": [
         {
           "path": "prd/archive/retrieval-era/representative_retrieval_runtime_benchmark_contract.md",
@@ -288,11 +358,16 @@
         "tests/test_representative_retrieval_runtime_benchmark_report.py"
       ],
       "non_claims": [
-        "Not closed by S03; no runtime metric is claimed here.",
-        "Does not prove product retrieval quality.",
-        "Does not prove legal-answer correctness.",
         "Does not prove runtime or FalkorDB readiness.",
-        "Does not prove production graph schema readiness."
+        "Wall-clock timing is a single host-boundary observation with reproducible=false and asserted=false; it is never a product or readiness claim.",
+        "The structural runtime profile is not throughput, latency, or scalability.",
+        "Does not prove product retrieval quality; the profile is slice-level over three declared documents, not corpus coverage.",
+        "Does not prove legal-answer correctness.",
+        "Does not prove local embedding quality; there are no embeddings.",
+        "Does not prove parser completeness.",
+        "Does not prove production graph schema readiness.",
+        "Does not close GATE-G008 or GATE-G011.",
+        "Does not clear the D7 missing-anchor quarantine."
       ]
     }
   ],
@@ -305,6 +380,23 @@
     "written_or_regenerated": false,
     "retarget_deferred_to": "RC28-F19",
     "statement": "D537 freezes prd/architecture/architecture_items.jsonl and prd/architecture/architecture_edges.jsonl. This standalone register does not write, regenerate, repair, or replace them, and does not clear the D7 missing-anchor quarantine. The retrieval EVID retarget is recorded here as bounded tracked evidence (D721 standalone-register precedent); the frozen-registry retarget is deferred to the authorized RC28-F19 reconciliation."
+  },
+  "s04_closure": {
+    "slice": "S04",
+    "task": "T04",
+    "date": "2026-10-09",
+    "declared_rows": 5,
+    "closed_rows": 5,
+    "pending_rows": 0,
+    "closed_evid_ids": [
+      "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"
+    ],
+    "contract": "scripts/m216_s04_metrics_register_contract.test.mjs",
+    "statement": "S04 closes the two remaining retrieval benchmark EVID rows as bounded slice evidence in this standalone register. The three S03 rows are preserved unchanged in meaning; the frozen architecture registry is neither written nor regenerated (D537); the D721 standalone-register precedent is maintained and the frozen-registry retarget stays deferred to RC28-F19."
   },
   "non_claims": [
     "This register is not architecture authority and does not close GATE-G008 or GATE-G011.",

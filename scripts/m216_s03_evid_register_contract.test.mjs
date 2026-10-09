@@ -2,10 +2,12 @@
 //
 // Offline and fail-closed: the live register must parse and map exactly the
 // five declared retrieval evidence rows, every ACTIVE anchor must resolve to a
-// tracked, repo-relative path outside prd/archive/, the three closed rows must
-// carry status + proof_level + non-empty non-claims, the real-artifact row must
-// cite the pinned document sha256 and the proof command, the D537 consistency
-// block must be present, and the two benchmark rows must stay pending-s04.
+// tracked, repo-relative path outside prd/archive/, every closed row must carry
+// status + proof_level + non-empty non-claims, the real-artifact row must cite
+// the pinned document sha256 and the proof command, and the D537 consistency
+// block must be present. S04 closed the two benchmark rows in this same
+// standalone register; the S03-era `pending-s04` premise is retired here and now
+// owned by scripts/m216_s04_metrics_register_contract.test.mjs.
 //
 // No subprocess, no network, no cargo: this contract reads the register and the
 // declared anchor paths from disk only, and never reads a `.gsd` / ignored /
@@ -45,13 +47,13 @@ const DECLARED_EVID_IDS = [
   "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
 ];
 
+// S04 closed the two benchmark rows in the same standalone register (see
+// scripts/m216_s04_metrics_register_contract.test.mjs); all five rows are now
+// bounded evidence.
 const CLOSED_EVID_IDS = [
   "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
   "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
   "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
-];
-
-const PENDING_S04_EVID_IDS = [
   "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
   "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
 ];
@@ -77,8 +79,6 @@ const IGNORED_SOURCE_PREFIXES = [".gsd/", ".agents/", ".planning/", ".audits/", 
 // active_anchor_disk_missing: an active anchor path does not exist on disk.
 // closed_row_metadata_missing: a closed row lacks status/proof_level/command.
 // closed_row_non_claims_missing: a closed row has no non-claims.
-// pending_row_status_wrong: a benchmark row is not pending-s04.
-// pending_row_has_active_anchor: a pending row claims an active anchor.
 // real_artifact_pin_missing: the real-artifact row does not cite the pin.
 // real_artifact_command_missing: the real-artifact row does not cite the command.
 // d537_block_missing: the D537 consistency block is absent.
@@ -104,8 +104,6 @@ const EMITTABLE_CODES = [
   "active_anchor_disk_missing",
   "closed_row_metadata_missing",
   "closed_row_non_claims_missing",
-  "pending_row_status_wrong",
-  "pending_row_has_active_anchor",
   "real_artifact_pin_missing",
   "real_artifact_command_missing",
   "d537_block_missing",
@@ -242,24 +240,15 @@ function validateRegister(register, overrides = {}) {
       if (promoted.has(anchor)) add("python_era_anchor_promoted", `${id}:${anchor}`);
     }
 
-    // (5) closed vs pending row contract.
-    if (CLOSED_EVID_IDS.includes(id)) {
-      if (row?.status !== "bounded-evidence" || !nonEmpty(row?.proof_level) || !nonEmpty(row?.proof_command)) {
-        add(
-          "closed_row_metadata_missing",
-          `${id}: status=${row?.status} proof_level=${row?.proof_level} command=${row?.proof_command}`,
-        );
-      }
-      if (!Array.isArray(row?.non_claims) || row.non_claims.length === 0) {
-        add("closed_row_non_claims_missing", id);
-      }
-    } else if (PENDING_S04_EVID_IDS.includes(id)) {
-      if (row?.status !== "pending-s04") {
-        add("pending_row_status_wrong", `${id}:${row?.status}`);
-      }
-      if ((row?.active_anchors ?? []).length > 0) {
-        add("pending_row_has_active_anchor", `${id}:${activeAnchorPaths(row).join(",")}`);
-      }
+    // (5) every declared row is closed as bounded evidence.
+    if (row?.status !== "bounded-evidence" || !nonEmpty(row?.proof_level) || !nonEmpty(row?.proof_command)) {
+      add(
+        "closed_row_metadata_missing",
+        `${id}: status=${row?.status} proof_level=${row?.proof_level} command=${row?.proof_command}`,
+      );
+    }
+    if (!Array.isArray(row?.non_claims) || row.non_claims.length === 0) {
+      add("closed_row_non_claims_missing", id);
     }
   }
 
@@ -365,7 +354,7 @@ test("every active anchor exists on disk and none is under prd/archive/", () => 
   }
 });
 
-test("the three closed rows carry bounded metadata and non-claims", () => {
+test("all five rows carry bounded metadata and non-claims", () => {
   for (const id of CLOSED_EVID_IDS) {
     const row = byId(liveRegister, id);
     assert.equal(row.status, "bounded-evidence", `${id} must be bounded-evidence`);
@@ -395,16 +384,21 @@ test("the D537 consistency block is present and fail-closed", () => {
   assert.ok(liveRegister.d537_consistency.frozen_registry_inputs.includes("prd/architecture/architecture_edges.jsonl"));
 });
 
-test("the two benchmark rows stay pending-s04 with archived prior art only", () => {
-  for (const id of PENDING_S04_EVID_IDS) {
+test("the two benchmark rows are closed by S04 with archived prior art retained", () => {
+  for (const id of [
+    "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+    "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+  ]) {
     const row = byId(liveRegister, id);
-    assert.equal(row.status, "pending-s04", `${id} must stay pending-s04`);
-    assert.equal(row.active_anchors.length, 0, `${id} must not claim an active anchor`);
+    assert.equal(row.status, "bounded-evidence", `${id} must be closed by S04`);
+    assert.ok(row.active_anchors.length > 0, `${id} must claim a tracked active anchor`);
     assert.ok(Array.isArray(row.prior_art) && row.prior_art.length > 0, `${id} keeps prior art`);
     for (const prior of row.prior_art) {
       assert.ok(prior.path.startsWith(ARCHIVE_PREFIX), `${id}: ${prior.path} must be archived prior art`);
     }
   }
+  assert.equal(liveRegister.s04_closure.closed_rows, 5);
+  assert.equal(liveRegister.s04_closure.pending_rows, 0);
 });
 
 // ---------------------------------------------------------------------------
@@ -458,15 +452,10 @@ test("negative: active anchor path drift", () => {
   );
 });
 
-test("negative: closed and pending row contract drift", () => {
+test("negative: closed row contract drift", () => {
   expectCode(validateRegister(fixture((r) => { r.rows[0].status = "pending-s04"; })), "closed_row_metadata_missing");
   expectCode(validateRegister(fixture((r) => { r.rows[0].proof_level = ""; })), "closed_row_metadata_missing");
   expectCode(validateRegister(fixture((r) => { r.rows[0].non_claims = []; })), "closed_row_non_claims_missing");
-  expectCode(validateRegister(fixture((r) => { r.rows[3].status = "bounded-evidence"; })), "pending_row_status_wrong");
-  expectCode(
-    validateRegister(fixture((r) => { r.rows[3].active_anchors = [{ path: "crates/ln-query/src/retrieval_offline.rs" }]; })),
-    "pending_row_has_active_anchor",
-  );
 });
 
 test("negative: real-artifact pin and command drift", () => {
@@ -512,8 +501,6 @@ const CODE_COVERAGE = [
   { code: "active_anchor_disk_missing", mutate: (r) => { r.rows[0].active_anchors[0].path = "crates/no-such-file.rs"; } },
   { code: "closed_row_metadata_missing", mutate: (r) => { r.rows[0].status = "pending-s04"; } },
   { code: "closed_row_non_claims_missing", mutate: (r) => { r.rows[0].non_claims = []; } },
-  { code: "pending_row_status_wrong", mutate: (r) => { r.rows[3].status = "bounded-evidence"; } },
-  { code: "pending_row_has_active_anchor", mutate: (r) => { r.rows[3].active_anchors = [{ path: "crates/ln-query/src/retrieval_offline.rs" }]; } },
   { code: "real_artifact_pin_missing", mutate: (r) => { byId(r, REAL_ARTIFACT_EVID_ID).pinned_document.sha256 = "deadbeef"; } },
   { code: "real_artifact_command_missing", mutate: (r) => { byId(r, REAL_ARTIFACT_EVID_ID).proof_command = "echo nope"; } },
   { code: "d537_block_missing", mutate: (r) => { delete r.d537_consistency; } },
@@ -565,5 +552,5 @@ test("M216 S03 retrieval EVID register markers", () => {
   console.log(`register_rows=${liveRegister.rows.length}`);
   console.log("M216_S03_EVID_IDS_OK");
   console.log(`closed_rows=${CLOSED_EVID_IDS.length}`);
-  console.log(`pending_rows=${PENDING_S04_EVID_IDS.length}`);
+  console.log("pending_rows=0");
 });
