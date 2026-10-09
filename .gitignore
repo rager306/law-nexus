@@ -125,7 +125,11 @@ prd/archive/parser-dumps-era/
 prd/archive/retrieval-era/
 prd/archive/migration-era/
 prd/research/
-prd/retrieval/
+# `prd/retrieval/` is a relocated historical vault path (archive-only Python era),
+# but the active M216 Rust validator contract is plan-owned here and must be
+# tracked. Ignore the rest of the directory; keep the one active artifact.
+prd/retrieval/*
+!prd/retrieval/rust_retrieval_output_validator_contract.md
 prd/milestone_proofs/
 consru_export.zip
 *.zip
