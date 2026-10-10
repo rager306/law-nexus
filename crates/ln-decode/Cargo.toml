@@ -39,3 +39,7 @@ path = "src/bin/npa-hybrid-records.rs"
 name = "npa-integration-runner"
 path = "src/bin/npa-integration-runner.rs"
 
+[[bin]]
+name = "corpus-inventory"
+path = "src/bin/corpus-inventory.rs"
+
