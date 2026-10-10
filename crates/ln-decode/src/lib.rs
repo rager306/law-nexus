@@ -53,6 +53,7 @@ pub mod prefix_catalog;
 pub mod reader_contract;
 pub mod reader_gate;
 pub mod reader_projection;
+pub mod reader_reading_order;
 pub mod reader_verifier;
 pub mod references;
 pub mod sentence;
