@@ -379,6 +379,23 @@ three from file sizes alone (`find -L ... -name '*.xml' -printf '%s\n' | awk`),
 without reading document contents; S01 records them so the milestone boundary
 is explicit and drift is visible.
 
+**S02 authoritative values** (T01, `m223-s02-corpus-manifest.jsonl`,
+`inventory_digest`
+`sha256:aa7e14e31059c906f291423a2e8151f8bf0f857e9fd7370545d7e3b5800766dd`):
+
+| Pin | Value at S02 (authoritative) |
+|---|---|
+| Corpus root | `consru_export/consru_export/exports` |
+| XML file count | 43,785 |
+| Total bytes | 3,789,431,364 |
+| Max single-file bytes | 29,372,660 |
+| Inventory digest | `sha256:aa7e14e31059c906f291423a2e8151f8bf0f857e9fd7370545d7e3b5800766dd` |
+| Subdir counts | courts 5,667; fas 30,399; npa 916; xml 6,803 |
+
+S02 re-derived all three pins from content hashes, not file sizes: the manifest
+header records `pins.match = true` and `pins.drift = []`. The S01 table above is
+kept as history; it was recomputed from file sizes alone.
+
 ### 8.4 Independent oracle / holdout
 
 Corpus-wide outcomes (§8.1) and independent semantic checking (§8.2) are
@@ -395,6 +412,18 @@ the tail (largest files, deepest trees, densest tables, largest text). A single
 average is not an acceptance signal; the tail and the complex classes are.
 S02 decides, from these probes, whether a full corpus run is feasible and at
 what bound (§9).
+
+**S02 result (T03).** The cleaned-path probe (`m223-s02-clean-path-probe.json`)
+measured 300/300 accepted over a deterministic stratified sample (size deciles +
+the largest 50). The feasibility decision (`m223-s02-corpus-feasibility.json`)
+projects export and read-back separately and sums them with a **stated**
+reconciliation-overhead and uncertainty margin: ≈4,874 s export + ≈1,791 s
+read-back, giving a ≈2.89 h projected total wall; the conservative cleaned-layer
+volume is ≈33.11 GB (decile-stratified 33.11 GB; aggregate-ratio cross-check
+32.46 GB) and
+the sampled peak-RSS tail is 3.0 GiB. Runtime limits are recorded as **stop
+thresholds** (polled enforcement, not promised upper bounds), and the decision
+authorises a conditional attempt gated on a mandatory preflight; see §9.
 
 ### 8.6 Resumability tied to input, code, and rules hashes
 
@@ -430,8 +459,8 @@ Re-assessed against §8 after S01's verification:
 | Slice | Feasibility | Basis / gate |
 |---|---|---|
 | S01 base acceptance + contract | **accepted (T01)** | decoded-key gap closed (§2.4); 15 targeted tests pass; full `ln-decode` suite 1,291 passed / 0 failed / 6 ignored; fmt/check/clippy/ADR clean; contract pinned here |
-| S02 inventory + resource calibration | **feasible** | corpus root present; count re-confirmed; S02 owns byte/hash manifest and median/p95/max probes; disk free is the binding resource (20 GB observed) |
-| S03 resumable baseline run | **feasible, gated on S02** | needs S02's manifest + S02's feasibility decision; resume bound to input/code/rules hashes (§8.6); typed refusals are not success (§8.1) |
+| S02 inventory + resource calibration | **accepted (T01 manifest) / decided `full-stream-discard` (T03)** | authoritative manifest `m223-s02-corpus-manifest.jsonl` (43,785 entries, pins match, `inventory_digest` `sha256:aa7e14e3…`); cleaned-path probe `m223-s02-clean-path-probe.json` (300/300 accepted; export median 0.067 s / p95 10.53 s / max 57.41 s; read-back median 0.045 s / p95 1.34 s / max 12.14 s; peak RSS max 3.0 GiB); feasibility decision `m223-s02-corpus-feasibility.json`: projected total wall ≈2.89 h (export ≈4,874 s + read-back ≈1,791 s + stated overhead/uncertainty), conservative cleaned layer ≈33.11 GB, full persistence needs ≥39,734,841,675 B free disk (15.86 GB present), so the full run streams and discards, persisting receipts only; stop thresholds (not upper bounds) wall 14,400 s / RSS 6,291,456 KiB / artifact 2,147,483,648 B |
+| S03 resumable baseline run | **feasible, gated on S02 decision `full-stream-discard`** | needs S02's manifest + S02's feasibility decision; the decision is a *conditional attempt* authorization: it streams and discards artifacts, persists per-file receipts, halts on a stop threshold, and resumes from receipts bound to input/code/rules hashes (§8.6); the mandatory preflight re-checks actual free disk and available memory; typed refusals are not success and a partial pass is never reported as full (§8.1) |
 | S04 reading order + composite coordinates | **feasible** | coordinate base and tail semantics are fixed (§2.1, §5) |
 | S05 clean views with provenance | **feasible** | versioned-rule + source-mapping requirement fixed (§3) |
 | S06 document structure/navigation | **feasible** | navigation reads the reader projection, no XML re-parse (§7) |
