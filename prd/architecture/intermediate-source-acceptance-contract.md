@@ -2,13 +2,18 @@
 
 **Status:** `[bounded]`
 **Owning slice:** `M223-d2q075` / `S01` — T01. This document pins the consumer
-contract and the corpus acceptance boundary; it executes nothing and promotes
-nothing.
-**Accepted base revision:** the six tracked files listed in §2, as of the
-S01 auto-commit (`53a469e`, `chore: auto-commit after gate-evaluate`,
-`GSD-Unit: M223-d2q075/S01/gates+Q3,Q4`). T01 accepts them without
-overwriting; any later change to those files or to the frozen inputs below
-invalidates the acceptance record and requires a new revision.
+contract and the corpus acceptance boundary; it executes no corpus pass and
+closes no requirement.
+**Accepted revision:** the six tracked files listed in §2. T01 accepted the S01
+auto-commit (`53a469e`, `chore: auto-commit after gate-evaluate`,
+`GSD-Unit: M223-d2q075/S01/gates+Q3,Q4`) without overwriting it, then closed
+the decoded-key duplicate gap S01 surfaced (§2.4) by editing
+`crates/ln-decode/src/npa_analysis_wire.rs` and adding a permanent negative
+regression in `crates/ln-decode/tests/npa_analysis_strict_admission.rs`. The
+accepted revision of those two files is their post-remediation content; the
+other four are unchanged from `53a469e`. Any later change to these files or to
+the frozen inputs below invalidates the acceptance record and requires a new
+revision.
 **Upstream contracts (frozen):**
 `prd/architecture/source-jsonl-contract.md` (`[bounded]`),
 `prd/architecture/reader-view-contract.md` (`[bounded]`),
@@ -27,9 +32,11 @@ and envelope seals), D658 (analysis envelope family scope), D690/D691
 **Lifecycle ceiling:** this is a bounded acceptance and consumer-contract pin
 over already-verified decoded source. It is **not** an R1000 closure artifact,
 not a CST/AST, not a temporal `StructuralAst`, not lexical gold, and not
-expert legal gold. It closes no requirement. M223 carries **no** requirement
-binding (the same posture as M221 §15A.8): the milestone is a corpus-acceptance
-and consumer-contract program, not a requirements closure.
+expert legal gold. It closes no requirement. M223 **advances R1000** on its
+evidence path — it delivers the corpus-acceptance boundary and the consumer
+contract the intermediate source must satisfy — but it must **not auto-close**
+R1000, and no M223 slice closes R1000. Closure is a separate, evidence-gated
+decision this milestone does not own.
 
 ---
 
@@ -41,8 +48,9 @@ views for **navigation**, the **tokenizer**, and **graph projection**, without
 re-parsing XML downstream. Before the full-corpus run (S03) and the consumers
 (S06/S07), S01 fixes four facts:
 
-1. the base fixes already on disk are reviewed and independently verified
-   (§2);
+1. the base fixes already on disk are reviewed and independently verified, and
+   the decoded-key duplicate gap they exposed is closed with a permanent
+   regression (§2, §2.4);
 2. the consumer contract — source versus clean views, reading order versus
    record order, composite provenance, graph document identity, and the
    no-reparse rule — is pinned (§3–§7);
@@ -57,7 +65,9 @@ resumable baseline run.
 
 ## 2. Accepted base revision and its independent verification
 
-T01 accepted, and did **not** rewrite, the S01 diff over six tracked files:
+T01 accepted the S01 diff over six tracked files without overwriting it, then
+closed the decoded-key duplicate gap that diff exposed (§2.4) by editing two of
+those files:
 
 | File | Role |
 |---|---|
@@ -68,13 +78,12 @@ T01 accepted, and did **not** rewrite, the S01 diff over six tracked files:
 | `crates/ln-decode/tests/npa_analysis_strict_admission.rs` | grammar/schema/version/capability admission oracle |
 | `crates/ln-decode/tests/m222_f07_audit.rs` | independent-verifier and resealed-tamper oracle |
 
-Frozen tracked artifacts `prd/architecture/*.jsonl` were not modified. The four
-behaviors below were verified independently of the diff's own narrative: by
-reading the producer, verifier, and scanner source, and by running the three
-regression suites plus the full `ln-decode` package suite (§11). Total
-targeted evidence: 14 tests across 3 suites, plus the `ln-decode` package
-suite (the package suite is parent-supplied evidence; the reviewer
-independently re-ran the 14 targeted tests).
+Frozen tracked artifacts `prd/architecture/*.jsonl` were not modified. The five
+behaviors below were verified independently of any narrative: by reading the
+producer, verifier, and scanner source, and by running the three targeted
+regression suites plus the fresh full `ln-decode` package suite (§11). Targeted
+evidence is 15 tests across 3 suites; the full package suite ran 1,291 passed /
+0 failed / 6 ignored after the fix (§11).
 
 ### 2.1 Tail semantic context derives from the capture owner's parent
 
@@ -128,19 +137,23 @@ not accepted (`reader-tail-semantics`, 2 tests).
 `npa_analysis_wire.rs` validates the whole line grammar before extracting
 top-level members, and refuses on admission:
 
-- `scan_value` (`:1306`) delegates to `scan_strict_value` (`:1346`) with a
-  depth cap `MAX_JSON_DEPTH = 64` (`:1317`); `scan_json_string` (`:1319`)
-  rejects bad escapes and unescaped control characters; numbers reject leading
-  zeros, missing fraction/exponent digits, and `+`; literals must be exactly
-  `true`/`false`/`null`; containers reject malformed separators, `[1,]`,
-  `[1 2]`, `{"a":1,}`, `[}` and trailing bytes.
-- Duplicate top-level keys are refused both by the scanner (`:1370`,
-  `keys.insert`) and by `JsonFields::parse` (`:1511`, `:1524`).
-- Per-line `schema` must equal the closed schema for that line's token
-  (`:1865`), and the manifest must carry `version == CONTRACT_VERSION` (`:55`,
-  `:1988`) and `capability == CAPABILITY` (`:49`, `:1989`).
+- `scan_value` delegates to `scan_strict_value` with a depth cap
+  `MAX_JSON_DEPTH = 64`; `scan_json_string` rejects bad escapes and unescaped
+  control characters; numbers reject leading zeros, missing fraction/exponent
+  digits, and `+`; literals must be exactly `true`/`false`/`null`; containers
+  reject malformed separators, `[1,]`, `[1 2]`, `{"a":1,}`, `[}` and trailing
+  bytes.
+- Duplicate top-level and nested keys are refused on the **decoded** key text,
+  both by the scanner (`scan_strict_value`, `keys.insert`) and by
+  `JsonFields::parse` (`canonical_keys.insert`): `canonical_object_key` decodes
+  each key through `unescape_json_inner` before the comparison, so a
+  decoded-equivalent escaped copy (`"version"` vs `"\u0076ersion"`) is a
+  duplicate, and a key that cannot be decoded is refused fail-closed.
+- Per-line `schema` must equal the closed schema for that line's token, and the
+  manifest must carry `version == CONTRACT_VERSION` and
+  `capability == CAPABILITY`.
 
-`npa_analysis_strict_admission.rs` (6 tests) and `m222_f07_audit.rs` (6 tests)
+`npa_analysis_strict_admission.rs` (7 tests) and `m222_f07_audit.rs` (6 tests)
 exercise this with an **independent seal oracle** (`reseal` /
 `independently_reseal`) that never calls a production seam helper: valid
 six-/seven-family envelopes are accepted; forged `version` (`2`, `0`, `-1`,
@@ -149,28 +162,30 @@ six-/seven-family envelopes are accepted; forged `version` (`2`, `0`, `-1`,
 refused **after resealing**, and the refusal is an admission failure, not a
 `SealMismatch`.
 
-**Known gap (Q3 flag, unchanged by T01).** The duplicate-key checks compare
-**raw** key slices: `&raw[start..*index]` in the scanner (`:1370`) and
-`&raw[key_start..key_end]` in `parse` (`:1511`). Two keys that are distinct as
-raw bytes but decode to the same string — for example `"version"` and
-`"\u0076ersion"` — are therefore **not** detected as a duplicate. T01 confirmed
-this empirically: a manifest carrying
-`"version":1,"\u0076ersion":2` resealed with an independent oracle passed
-`inspect_npa_analysis_wire`, `read_back_npa_analysis`, and
-`verify_npa_analysis_wire`. Consequences and boundaries:
+**Decoded-key duplicate admission (Q3 gap closed in T01).** S01 first found
+that the duplicate-key checks compared **raw** key slices, so `"version"` and
+`"\u0076ersion"` were not detected as a duplicate and a resealed manifest
+carrying both passed `inspect_npa_analysis_wire`, `read_back_npa_analysis`, and
+`verify_npa_analysis_wire`. T01 closed the gap in the same slice:
 
-- This is a **strictness gap in the duplicate-key rule, not a top-level
-  admission bypass**: within the current reader, admitted tokens are looked up
-  by exact raw key (`u64_field(manifest, "version")`,
-  `string_field(fields, "schema")`), so an escaped-key copy cannot substitute
-  an admitted value. It is **not** a guarantee that other JSON consumers
-  interpret the same bytes identically.
-- It **does** mean the admission reader is not a decoded-form duplicate
-  detector, and must not be relied on as an integrity boundary for a consumer
-  that decodes keys. A targeted regression and, if adopted, a decoded-key
-  comparison are the recommended follow-up (recorded as a known issue in the
-  S01 task record; S01's scope is acceptance, not a rewrite of the accepted
-  diff).
+- the scanner and `JsonFields::parse` now compare the **decoded** key text
+  (`canonical_object_key` → `unescape_json_inner`), so two keys that decode
+  alike are duplicates regardless of escaping;
+- a key that cannot be decoded (for example a lone surrogate escape) is
+  refused, so the check is fail-closed and every admitted key has one canonical
+  form;
+- `get` still resolves admitted members by their literal spelling, so no valid
+  envelope contract or frozen receipt changes: valid envelopes use literal
+  ASCII keys, for which decoding is the identity.
+
+`npa_analysis_strict_admission.rs::resealed_escaped_duplicate_key_is_refused`
+is the permanent negative regression: it reseals
+`"version":1,"\u0076ersion":2` with the independent oracle and asserts that
+`inspect_npa_analysis_wire`, `read_back_npa_analysis`, and
+`verify_npa_analysis_wire` all refuse it, and that the literal duplicate is
+refused too (the decoded comparison is not narrower than the raw one).
+`malformed_ignored_json_values_are_refused` additionally covers a nested
+escaped duplicate (`{"a":1,"\u0061":2}`).
 
 ## 3. Source versus clean views
 
@@ -414,7 +429,7 @@ Re-assessed against §8 after S01's verification:
 
 | Slice | Feasibility | Basis / gate |
 |---|---|---|
-| S01 base acceptance + contract | **accepted (T01)** | 14 targeted tests pass; fmt/check/clippy/ADR clean; contract pinned here |
+| S01 base acceptance + contract | **accepted (T01)** | decoded-key gap closed (§2.4); 15 targeted tests pass; full `ln-decode` suite 1,291 passed / 0 failed / 6 ignored; fmt/check/clippy/ADR clean; contract pinned here |
 | S02 inventory + resource calibration | **feasible** | corpus root present; count re-confirmed; S02 owns byte/hash manifest and median/p95/max probes; disk free is the binding resource (20 GB observed) |
 | S03 resumable baseline run | **feasible, gated on S02** | needs S02's manifest + S02's feasibility decision; resume bound to input/code/rules hashes (§8.6); typed refusals are not success (§8.1) |
 | S04 reading order + composite coordinates | **feasible** | coordinate base and tail semantics are fixed (§2.1, §5) |
@@ -427,8 +442,8 @@ recorded reassessment, not a quiet scope cut.
 
 ## 10. Non-claims
 
-- Not a requirement closure. M223 adds no requirement binding; R1000 stays
-  active/unclosed.
+- Not a requirement closure. M223 advances R1000 on its evidence path but does
+  not close it; R1000 stays active/unclosed, and no M223 slice closes R1000.
 - Not a corpus result. S01 runs no corpus pass; §8 is a boundary. The §8.3
   pins were re-confirmed at S01 from file sizes, but S02 owns the authoritative
   hash manifest.
@@ -437,36 +452,41 @@ recorded reassessment, not a quiet scope cut.
   a semantic oracle (§2.2).
 - Not authenticity. `source.sha256` and the seals are integrity evidence; a
   party controlling the bytes can recompute them.
-- Not a decoded-form duplicate detector. The accepted scanner compares raw key
-  slices; a decoded-equivalent escaped duplicate key is not refused (§2.4).
+- Decoded-form duplicate admission is in scope and shipped: the scanner and
+  parser canonicalize keys before the duplicate check, so a decoded-equivalent
+  escaped duplicate is refused (§2.4).
 - No lifecycle promotion, no legal-completeness or citation-resolution claim,
   no corpus-wide breadth claim beyond what S02–S07 will separately earn.
 - No parked downstream un-parked (§8.7).
 
 ## 11. Evidence
 
-- Targeted regression suites (all pass):
-  `reader_tail_semantics.rs` (2), `npa_analysis_strict_admission.rs` (6),
-  `m222_f07_audit.rs` (6).
-- `ln-decode` package suite: `cargo test -p ln-decode --offline` — 1,290
-  passed, 6 ignored. This is the `ln-decode` package suite (not every workspace
-  package) and is parent-supplied evidence.
+- Targeted regression (fresh run after the §2.4 fix):
+  `cargo test -p ln-decode --offline --test npa_analysis_strict_admission`
+  — 7 passed / 0 failed / 0 ignored, including the new permanent
+  `resealed_escaped_duplicate_key_is_refused`.
+- Full `ln-decode` package suite (fresh run after the fix):
+  `cargo test -p ln-decode --offline` — 1,291 passed / 0 failed / 6 ignored
+  across 113 `test result` groups; raw log
+  `.gsd/exec/ln-decode-full-battery.txt`. This is the `ln-decode` package
+  suite (not every workspace package). It also covers the other two targeted
+  suites: `reader_tail_semantics.rs` (2) and `m222_f07_audit.rs` (6), so the
+  three-suite total is 15 tests (7 + 2 + 6).
 - Cleanliness (each a separate command, no shell control syntax):
   `cargo fmt --all --check`; `cargo check --workspace --offline`;
   `cargo clippy --workspace --all-targets --offline -- -D warnings`;
   `uv run python scripts/verify-adr-conformance.py` (status `ok`,
   `finding_count` 0).
-- Independent review: a fresh-context `reviewer` subagent read the accepted
-  source and the contract, and independently re-ran the 14 targeted tests
-  (`2`+`6`+`6`) — all pass — and independently recomputed the §8.3 census from
-  file sizes. Its findings are resolved in this revision (see §3–§5, §2.1,
-  §8.3, §11).
-- S01 probe for the §2.4 gap (throwaway test, removed before closeout;
-  parent-run evidence, not independently reproduced by the reviewer): a
-  resealed manifest with `"version":1,"\u0076ersion":2` passed
-  `inspect_npa_analysis_wire`, `read_back_npa_analysis`, and
-  `verify_npa_analysis_wire` (`inspect_ok=true readback_ok=true
-  verify_ok=true`).
+- Independent review (fresh context, read-only): a `reviewer` subagent
+  reviewed `npa_analysis_wire.rs`, the new negative regression, and this
+  contract. It independently re-ran the targeted suites and confirmed 15
+  passed across the 3 suites and the decoded-key refusal at all three
+  admission surfaces, and returned **APPROVE** with no residual blocking
+  finding.
+- The §2.4 gap is no longer a parent-run probe: it is a permanent negative
+  regression (`resealed_escaped_duplicate_key_is_refused`) that reseals the
+  decoded-equivalent duplicate with the independent oracle and asserts all
+  three admission surfaces refuse it.
 
 ## 12. References
 

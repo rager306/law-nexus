@@ -2,7 +2,9 @@
 use ln_decode::analysis_source_mapping::{SourceIdentity, SourceMapping};
 use ln_decode::document_context::DocumentVersionRef;
 use ln_decode::npa_analysis_records::analyze_document;
-use ln_decode::npa_analysis_verify::{verify_npa_analysis_wire, AnalysisVerifyCode};
+use ln_decode::npa_analysis_verify::{
+    read_back_npa_analysis, verify_npa_analysis_wire, AnalysisVerifyCode,
+};
 use ln_decode::npa_analysis_wire::*;
 use ln_decode::npa_context_records::build_context_records;
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
@@ -181,6 +183,38 @@ fn resealed_leading_zero_version_is_refused() {
 }
 
 #[test]
+fn resealed_escaped_duplicate_key_is_refused() {
+    with_envelope(false, AnalysisScope::Bounded, |wire, verify| {
+        // `"version"` and `"\u0076ersion"` decode to the same key. The escaped
+        // copy must be refused as a duplicate after an independent reseal, at
+        // every admission surface (inspect, read-back, full verify), not merely
+        // ignored as an unknown member.
+        let changed = wire.replacen("\"version\":1", "\"version\":1,\"\\u0076ersion\":2", 1);
+        assert_ne!(changed, wire, "manifest version member must exist");
+        let escaped = reseal(&changed);
+        assert!(
+            !verify(&escaped),
+            "verify accepted a decoded-equivalent escaped duplicate key"
+        );
+        assert!(
+            inspect_npa_analysis_wire(&escaped).is_err(),
+            "inspect accepted a decoded-equivalent escaped duplicate key"
+        );
+        assert!(
+            read_back_npa_analysis(&escaped).is_err(),
+            "read-back accepted a decoded-equivalent escaped duplicate key"
+        );
+
+        // The literal duplicate is refused the same way, so the decoded-key
+        // comparison is not narrower than the previous raw-byte comparison.
+        let literal = reseal(&wire.replacen("\"version\":1", "\"version\":1,\"version\":2", 1));
+        assert!(!verify(&literal));
+        assert!(inspect_npa_analysis_wire(&literal).is_err());
+        assert!(read_back_npa_analysis(&literal).is_err());
+    });
+}
+
+#[test]
 fn malformed_ignored_json_values_are_refused() {
     with_envelope(false, AnalysisScope::Bounded, |wire, verify| {
         for value in [
@@ -193,6 +227,7 @@ fn malformed_ignored_json_values_are_refused() {
             "[1 2]",
             "{\"a\":1,}",
             "{\"a\":1,\"a\":2}",
+            "{\"a\":1,\"\\u0061\":2}",
             "{\"a\" 1}",
             "[}",
             "\"\\q\"",

@@ -1311,6 +1311,17 @@ fn json_value_error(detail: &str) -> AnalysisWireError {
     err(AnalysisWireErrorKind::UnknownKind, detail)
 }
 
+/// Decodes one object key's inner JSON text (without the surrounding quotes)
+/// into its canonical Unicode form. Two keys that decode to the same text are
+/// duplicates even when their raw bytes differ (`"version"` versus
+/// `"\u0076ersion"`), so an escaped copy cannot slip past the duplicate check.
+/// A key that cannot be decoded (for example a lone surrogate escape) is
+/// refused, so every admitted key has exactly one canonical form.
+fn canonical_object_key(inner: &str) -> Result<String, AnalysisWireError> {
+    unescape_json_inner(inner)
+        .ok_or_else(|| json_value_error("object key is not decodable JSON text"))
+}
+
 // Same bounded grammar as cleaned_wire's private scanner; no new dependency
 // or coupling between the two envelope contracts. Depth is checked before
 // recursion, including values that read-back otherwise ignores.
@@ -1359,7 +1370,7 @@ fn scan_strict_value(raw: &str, index: &mut usize, depth: usize) -> Result<(), A
                 *index += 1;
                 return Ok(());
             }
-            let mut keys = BTreeSet::new();
+            let mut keys: BTreeSet<String> = BTreeSet::new();
             loop {
                 if open == b'{' {
                     if bytes.get(*index) != Some(&b'"') {
@@ -1367,7 +1378,10 @@ fn scan_strict_value(raw: &str, index: &mut usize, depth: usize) -> Result<(), A
                     }
                     let start = *index;
                     scan_json_string(raw, index)?;
-                    if !keys.insert(&raw[start..*index]) {
+                    // Compare the decoded key text, so a decoded-equivalent
+                    // escaped copy is a duplicate of its literal spelling.
+                    let key = canonical_object_key(&raw[start + 1..*index - 1])?;
+                    if !keys.insert(key) {
                         return Err(json_value_error("duplicate object key"));
                     }
                     skip_ws(bytes, index);
@@ -1470,6 +1484,10 @@ impl<'a> JsonFields<'a> {
         }
         index += 1;
         let mut entries: Vec<(&'a str, &'a str)> = Vec::new();
+        // Canonical (decoded) keys are tracked separately so the duplicate
+        // check sees `"version"` and `"\u0076ersion"` as the same key while
+        // `get` still resolves admitted members by their literal spelling.
+        let mut canonical_keys: BTreeSet<String> = BTreeSet::new();
         loop {
             skip_ws(bytes, &mut index);
             if index >= bytes.len() {
@@ -1521,7 +1539,7 @@ impl<'a> JsonFields<'a> {
             let value_start = index;
             scan_value(raw, &mut index)?;
             let value = &raw[value_start..index];
-            if entries.iter().any(|(existing, _)| *existing == key) {
+            if !canonical_keys.insert(canonical_object_key(key)?) {
                 return Err(err(
                     AnalysisWireErrorKind::UnknownKind,
                     format!("duplicate object key {key}"),
@@ -1575,6 +1593,12 @@ impl<'a> JsonFields<'a> {
 /// refused (`None`). Mirrors the writer's `ensure_ascii=False` set.
 fn unescape_json_string(raw: &str) -> Option<String> {
     let inner = raw.strip_prefix('"')?.strip_suffix('"')?;
+    unescape_json_inner(inner)
+}
+
+/// Decodes the inner text of one JSON string literal (without the surrounding
+/// quotes). Unsupported or non-scalar escapes are refused (`None`).
+fn unescape_json_inner(inner: &str) -> Option<String> {
     let mut out = String::with_capacity(inner.len());
     let mut chars = inner.chars();
     while let Some(ch) = chars.next() {
