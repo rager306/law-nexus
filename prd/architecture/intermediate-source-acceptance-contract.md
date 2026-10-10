@@ -354,6 +354,19 @@ statistics report `accepted`, `refused` (by closed reason class), and
 `incomplete` separately; a run with refusals does not "pass" merely because it
 did not crash.
 
+**S03 result (T03).** The resumable baseline run reached a terminal outcome for
+every manifest entry: `entries` 43,785, `accepted` 43,785, `refused` 0,
+`incomplete` 0 (all counts read from
+`prd/migration/rust-evidence/m223-s03-baseline-run.json`). The receipt ledger
+`prd/migration/rust-evidence/m223-s03-baseline-receipts.jsonl` holds one
+*current* terminal receipt per entry, bound to the input/code/rules hashes
+(§8.6); `verify-ledger` exits 0. `refused=0` reflects that the pinned corpus is
+homogeneous supported WordML, so the closed refusal dictionary was exercised
+separately on real non-WordML fixtures (`refusal_probe` in
+`m223-s03-resume-proof.json`) rather than being inferred from an empty bucket. A
+partial run is never reported as full (`partial_is_not_full=true`), and R1000
+stays active/unclosed (§10).
+
 ### 8.2 Integrity is not semantics
 
 Integrity (seals, manifest binding, determinism, no-loss coverage) and
@@ -446,6 +459,26 @@ mirrors the binding-field discipline of
 `inventory_digest`, `profile`, `limit`, `source_revision`) and the
 `testedSourceRevision` content-hash rule.
 
+**Implemented (S03, T01–T03).** The runner `scripts/m223_s03_baseline.py`
+writes closed receipts (`schema m223-s03-baseline-receipt/v1`, one per entry,
+persisted incrementally) carrying all three families: **input**
+(`input_sha256` + `input_bytes` taken from the manifest entry), **code**
+(`code_revision` from `node scripts/m204_s08_source_revision.mjs` —
+`{"ok":true,"source_revision":"sha256:…"}`, never a guessed HEAD), and
+**rules** (`rules_digest` = sha256 over the canonical tuple
+`profile=cleaned_projection_wordml/v1`, `contract_version=1`,
+`completion=complete`, per `crates/ln-decode/src/cleaned_wire.rs`).
+**Resume predicate:** a receipt is *current* iff its `input_sha256`/
+`input_bytes` match the manifest entry **and** its `code_revision`/
+`rules_digest` match the current tuple. Current `accepted`/`refused` → skip;
+current `incomplete` → re-attempt; any moved hash → stale, recomputed.
+`run --resume` reports `complete` only when every entry has a current terminal
+receipt (`partial_is_not_full=true`; no silent skip and no silent limit).
+Interruption (SIGTERM preserving completed receipts), same-ledger resume, and
+stale-recompute are demonstrated end-to-end on a real corpus subset in
+`prd/migration/rust-evidence/m223-s03-resume-proof.json`
+(`schema m223-s03-resume-proof/v1`).
+
 ### 8.7 Parked downstream stays parked
 
 No parked downstream milestone (M208-wrz6fg, M215–M220, and any other parked
@@ -460,7 +493,7 @@ Re-assessed against §8 after S01's verification:
 |---|---|---|
 | S01 base acceptance + contract | **accepted (T01)** | decoded-key gap closed (§2.4); 15 targeted tests pass; full `ln-decode` suite 1,291 passed / 0 failed / 6 ignored; fmt/check/clippy/ADR clean; contract pinned here |
 | S02 inventory + resource calibration | **accepted (T01 manifest) / decided `full-stream-discard` (T03)** | authoritative manifest `m223-s02-corpus-manifest.jsonl` (43,785 entries, pins match, `inventory_digest` `sha256:aa7e14e3…`); cleaned-path probe `m223-s02-clean-path-probe.json` (300/300 accepted; export median 0.067 s / p95 10.53 s / max 57.41 s; read-back median 0.045 s / p95 1.34 s / max 12.14 s; peak RSS max 3.0 GiB); feasibility decision `m223-s02-corpus-feasibility.json`: projected total wall ≈2.89 h (export ≈4,874 s + read-back ≈1,791 s + stated overhead/uncertainty), conservative cleaned layer ≈33.11 GB, full persistence needs ≥39,734,841,675 B free disk (15.86 GB present), so the full run streams and discards, persisting receipts only; stop thresholds (not upper bounds) wall 14,400 s / RSS 6,291,456 KiB / artifact 2,147,483,648 B |
-| S03 resumable baseline run | **feasible, gated on S02 decision `full-stream-discard`** | needs S02's manifest + S02's feasibility decision; the decision is a *conditional attempt* authorization: it streams and discards artifacts, persists per-file receipts, halts on a stop threshold, and resumes from receipts bound to input/code/rules hashes (§8.6); the mandatory preflight re-checks actual free disk and available memory; typed refusals are not success and a partial pass is never reported as full (§8.1) |
+| S03 resumable baseline run | **accepted (T03)** | `scripts/m223_s03_baseline.py` ran the pinned corpus over the S02 authoritative manifest (43,785 entries) as chunked bounded attempts beneath the S02 `full-stream-discard` authorization: receipts `prd/migration/rust-evidence/m223-s03-baseline-receipts.jsonl` (one current terminal receipt per entry, bound to input/code/rules hashes, §8.6) and report `prd/migration/rust-evidence/m223-s03-baseline-run.json` (`schema m223-s03-baseline-run/v1`); counts entries 43,785 / accepted 43,785 / refused 0 / incomplete 0 / terminal 43,785; `verify-ledger` exit 0; `partial_is_not_full=true`; persisted layer bytes 0 (stream-discard); stop thresholds polled, not upper bounds; mandatory preflight re-checked actual free disk and available memory; interruption + same-ledger resume + stale-recompute proven on a real subset (`m223-s03-resume-proof.json`); R1000 stays active/unclosed |
 | S04 reading order + composite coordinates | **feasible** | coordinate base and tail semantics are fixed (§2.1, §5) |
 | S05 clean views with provenance | **feasible** | versioned-rule + source-mapping requirement fixed (§3) |
 | S06 document structure/navigation | **feasible** | navigation reads the reader projection, no XML re-parse (§7) |
@@ -529,4 +562,16 @@ recorded reassessment, not a quiet scope cut.
   `reader_contract.rs`.
 - `crates/ln-decode/tests/reader_tail_semantics.rs`,
   `npa_analysis_strict_admission.rs`, `m222_f07_audit.rs`.
+- S03 resumable baseline (T01–T04): runner `scripts/m223_s03_baseline.py` and
+  its regression `scripts/test_m223_s03_baseline.py` (44 tests, all green).
+  Published evidence: `prd/migration/rust-evidence/m223-s03-baseline-receipts.jsonl`
+  (one current terminal receipt per manifest entry) and
+  `m223-s03-baseline-run.json` (`schema m223-s03-baseline-run/v1`);
+  `verify-ledger --manifest … --receipts … --report …` exits 0. The
+  interruption/resume/stale proof is `m223-s03-resume-proof.json`
+  (`schema m223-s03-resume-proof/v1`). Final slice battery: `pytest` green;
+  `cargo fmt --all --check`; `cargo check --workspace --offline`;
+  `cargo clippy --workspace --all-targets --offline -- -D warnings`;
+  `uv run python scripts/verify-adr-conformance.py`; `ruff format --check`
+  (raw stdout under `.gsd/exec/`).
 - D602/D328, D603, D631, D633, D634, D639/D640, D658, D690/D691.
