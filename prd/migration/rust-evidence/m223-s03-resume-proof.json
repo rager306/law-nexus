@@ -1,0 +1,207 @@
+{
+  "attempts": [
+    {
+      "accepted": 1,
+      "bounded_wall_s": 0.05,
+      "incomplete": 0,
+      "kind": "in-process",
+      "label": "bounded-budget",
+      "max_entries": 99,
+      "reattempted_incomplete": 0,
+      "receipts_after": 1,
+      "receipts_before": 0,
+      "recomputed_stale": 0,
+      "refused": 0,
+      "remaining": 99,
+      "skipped_current": 0,
+      "status": "budget_exhausted",
+      "terminal": 1,
+      "written": 1
+    },
+    {
+      "accepted": 100,
+      "exports": 99,
+      "incomplete": 0,
+      "kind": "in-process",
+      "label": "resume-skip",
+      "reattempted_incomplete": 0,
+      "receipts_after": 100,
+      "receipts_before": 1,
+      "recomputed_stale": 0,
+      "refused": 0,
+      "remaining": 0,
+      "resumed_without_reexport": true,
+      "skipped_current": 1,
+      "status": "complete",
+      "terminal": 100,
+      "written": 99
+    },
+    {
+      "accepted": 100,
+      "incomplete": 0,
+      "kind": "in-process",
+      "label": "stale-recompute",
+      "mutated_field": "code_revision",
+      "mutated_relative_path": "courts/acn/000167766-edition-7382194bb907af4e01775286.xml",
+      "reattempted_incomplete": 0,
+      "receipts_after": 101,
+      "receipts_before": 100,
+      "recomputed_stale": 1,
+      "refused": 0,
+      "remaining": 0,
+      "skipped_current": 99,
+      "status": "complete",
+      "terminal": 100,
+      "written": 1
+    },
+    {
+      "accepted": 100,
+      "forced_outcome": "incomplete/not_run",
+      "incomplete": 0,
+      "kind": "in-process",
+      "label": "incomplete-reattempt",
+      "mutated_relative_path": "courts/ams/000577938-edition-94b7636717c59fae8513f63d.xml",
+      "reattempted_incomplete": 1,
+      "receipts_after": 102,
+      "receipts_before": 101,
+      "recomputed_stale": 0,
+      "refused": 0,
+      "remaining": 0,
+      "skipped_current": 99,
+      "status": "complete",
+      "terminal": 100,
+      "written": 1
+    },
+    {
+      "exit_code": 124,
+      "kind": "subprocess-timeout",
+      "label": "sigterm-interrupt",
+      "receipts_after": 32,
+      "receipts_before": 0,
+      "signal": "SIGTERM",
+      "status": "interrupted"
+    }
+  ],
+  "bindings": {
+    "binary_path": "/root/law-nexus/target/release/cleaned-project",
+    "binary_sha256": "sha256:3f334333af11b8205adaa59810010b73901c59b02d871d1fc9bcb4a2cb59de76",
+    "code_revision": "sha256:4158bf7b764514fa61b10ed2cd32649b668c359f8e9be6e1d4e400563705da2d",
+    "rules_digest": "sha256:b5ead62ad024a50001068f265d9e01000cdb611207b1bd6620618a2510259a87"
+  },
+  "final": {
+    "accepted": 100,
+    "distinct_bindings": 1,
+    "entries": 100,
+    "incomplete": 0,
+    "refused": 0,
+    "terminal": 100,
+    "verify_ledger_ok": true
+  },
+  "generated_at": "2026-10-10T14:35:54.658349+00:00",
+  "interruption": {
+    "completed_preserved": true,
+    "exit_code": 124,
+    "in_flight_not_run": true,
+    "in_flight_relative_path": "courts/acn/000166661-edition-26af3cb5f1cdc12d67b518a4.xml",
+    "mechanism": "timeout -s TERM",
+    "processing_window_s": 4.0,
+    "receipts_after": 32,
+    "receipts_before": 0,
+    "report": "/root/law-nexus/target/m223-s03/interrupt/run-1.json",
+    "signal": "SIGTERM",
+    "startup_s": 0.708,
+    "status": "interrupted",
+    "stderr_tail": [
+      "m223-s03-baseline: courts/acn/000166618-edition-b9699245d026209ff9aece0c.xml -> accepted/accepted",
+      "m223-s03-baseline: courts/acn/000166636-edition-83c6e771a5367a904fb7039d.xml -> accepted/accepted",
+      "m223-s03-baseline: courts/acn/000166637-edition-3dfce1752972b5182ac88723.xml -> accepted/accepted",
+      "m223-s03-baseline: courts/acn/000166659-edition-a6744a395f5c3508eb4aa745.xml -> accepted/accepted",
+      "m223-s03-baseline: courts/acn/000166661-edition-26af3cb5f1cdc12d67b518a4.xml -> incomplete/not_run",
+      "m223-s03-baseline: status=interrupted accepted=31 refused=0 incomplete=1 remaining=43753"
+    ],
+    "timeout_s": 5.208,
+    "wall_s": 5.283
+  },
+  "manifest": {
+    "entries": 43785,
+    "path": "/root/law-nexus/prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl",
+    "sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c"
+  },
+  "non_claims": [
+    "Not an authenticity or legal-completeness claim; R1000 stays active/unclosed.",
+    "Read-back (cleaned-project read) is a counts-only re-read by this same process; it is NOT an independent substrate verification.",
+    "A partial run is never reported as full (partial_is_not_full=true).",
+    "No raw decoded text reaches receipts, the report, diagnostics or stdout.",
+    "Feasibility projections come from S02; this runner records baseline outcomes only.",
+    "The pinned baseline corpus is uniformly supported_wordml (43785/43785 roots are w:wordDocument in the canonical WordML namespace), so it cannot produce a corpus-level source refusal; the closed refusal dictionary is validated against real non-WordML reader fixtures instead.",
+    "The proof subset is a deterministic sample of the pinned manifest; its receipt bindings are snapshot-bound and shift with any tracked-file change.",
+    "The SIGTERM interruption is enforced by timeout -s TERM on the real harness subprocess; the interrupted in-flight export child is orphaned by design and exits on its own (bounded by the attempt stop thresholds)."
+  ],
+  "partial_is_not_full": true,
+  "refusal_probe": {
+    "all_refused_typed": true,
+    "available": true,
+    "inputs": [
+      {
+        "available": true,
+        "input_bytes": 428,
+        "input_sha256": "sha256:bbc5cd34baa0627a4d892ee64db95acf9cf0e79472c743f3a6f8559cb360420d",
+        "outcome": "refused",
+        "outcome_class": "source:source_not_wordml",
+        "reason_family": "source",
+        "reason_token": "source_not_wordml",
+        "relative_path": "crates/ln-decode/tests/fixtures/reader/diverse/negative-not-wordml.xml"
+      },
+      {
+        "available": true,
+        "input_bytes": 404,
+        "input_sha256": "sha256:adb26741e000e46a4864ab059d1ec774f66b064fea6a827f6e9000df6a805504",
+        "outcome": "refused",
+        "outcome_class": "source:namespace_absent",
+        "reason_family": "source",
+        "reason_token": "namespace_absent",
+        "relative_path": "crates/ln-decode/tests/fixtures/reader/diverse/negative-namespace-absent.xml"
+      },
+      {
+        "available": true,
+        "input_bytes": 495,
+        "input_sha256": "sha256:72775bca9394d2e491945fbc6e0fdc8cbbf7747e71577832e276df9eed687ed7",
+        "outcome": "refused",
+        "outcome_class": "source:unsupported_schema",
+        "reason_family": "source",
+        "reason_token": "unsupported_schema",
+        "relative_path": "crates/ln-decode/tests/fixtures/reader/diverse/negative-unsupported-schema.xml"
+      }
+    ],
+    "note": "the pinned baseline corpus is uniformly supported_wordml; these are real non-WordML reader fixtures, not corpus entries",
+    "observed_classes": [
+      "source:namespace_absent",
+      "source:source_not_wordml",
+      "source:unsupported_schema"
+    ]
+  },
+  "schema": "m223-s03-resume-proof/v1",
+  "stale_probe": {
+    "field": "code_revision",
+    "how": "mutated one current receipt's code_revision in a working copy of the ledger, then resumed; a stale receipt is recomputed, never skipped",
+    "mutated_relative_path": "courts/acn/000167766-edition-7382194bb907af4e01775286.xml",
+    "recomputed": true,
+    "skipped_others": 99,
+    "written": 1
+  },
+  "subset": {
+    "definition": "seeded sample of the smallest per-subdir pool of the pinned manifest",
+    "digest": "sha256:11bf22a45e8bc67436e9a47227ef119524565e61e6ee530be9a1fb050a93bb7e",
+    "non_wordml_subdir_present": false,
+    "per_subdir": 25,
+    "refusal_capable": false,
+    "seed": 22302,
+    "size": 100,
+    "subdirs": {
+      "courts": 25,
+      "fas": 25,
+      "npa": 25,
+      "xml": 25
+    }
+  }
+}

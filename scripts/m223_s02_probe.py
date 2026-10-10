@@ -286,82 +286,94 @@ def measure_subprocess(
             pass
         os._exit(127)
 
-    os.close(stdout_fd)
-    os.close(stderr_fd)
+    # Guard the whole parent-side lifetime after the fork.  If this frame
+    # unwinds for any reason — notably a SIGINT/SIGTERM handler raising
+    # `Interrupted` from inside the poll loop — the running child is SIGKILLed
+    # and reaped here, so an interrupted attempt never orphans an export.
+    try:
+        os.close(stdout_fd)
+        os.close(stderr_fd)
 
-    timed_out = False
-    rss_exceeded = False
-    output_exceeded = False
-    disk_exceeded = False
-    rss_enforced = False
-    observed_rss = 0
-    observed_output = 0
-    status = 0
-    usage: Any = None
-    last_disk_check = 0.0
+        timed_out = False
+        rss_exceeded = False
+        output_exceeded = False
+        disk_exceeded = False
+        rss_enforced = False
+        observed_rss = 0
+        observed_output = 0
+        status = 0
+        usage: Any = None
+        last_disk_check = 0.0
 
-    # The product's atomic publisher writes `<path>.tmp` and renames it onto
-    # `<path>`, so the growing payload is the sibling `.tmp`, not the final
-    # path.  Guard the final artifact *and* its `.tmp` sibling while the child
-    # runs, and re-check after exit (the loop may end before a fast publisher
-    # publishes) so an oversized atomic output is never accepted.
-    guard_paths: list[Path] = []
-    if output_path is not None:
-        guard_paths = [output_path, Path(str(output_path) + ".tmp")]
+        # The product's atomic publisher writes `<path>.tmp` and renames it onto
+        # `<path>`, so the growing payload is the sibling `.tmp`, not the final
+        # path.  Guard the final artifact *and* its `.tmp` sibling while the child
+        # runs, and re-check after exit (the loop may end before a fast publisher
+        # publishes) so an oversized atomic output is never accepted.
+        guard_paths: list[Path] = []
+        if output_path is not None:
+            guard_paths = [output_path, Path(str(output_path) + ".tmp")]
 
-    def output_size() -> int:
-        largest = 0
-        for candidate in guard_paths:
-            try:
-                largest = max(largest, os.path.getsize(candidate))
-            except OSError:
-                continue
-        return largest
+        def output_size() -> int:
+            largest = 0
+            for candidate in guard_paths:
+                try:
+                    largest = max(largest, os.path.getsize(candidate))
+                except OSError:
+                    continue
+            return largest
 
-    while True:
-        wpid, status, usage = os.wait4(pid, os.WNOHANG)
-        if wpid == pid:
-            break
-        now = time.monotonic()
-        if now - started > timeout_s:
-            timed_out = True
-            _kill_child(pid)
-            _, status, usage = os.wait4(pid, 0)
-            break
-        if rss_limit_kb is not None:
-            peak = _proc_peak_rss_kb(pid)
-            if peak is not None:
-                rss_enforced = True
-                observed_rss = max(observed_rss, peak)
-                if peak > rss_limit_kb:
-                    rss_exceeded = True
+        while True:
+            wpid, status, usage = os.wait4(pid, os.WNOHANG)
+            if wpid == pid:
+                break
+            now = time.monotonic()
+            if now - started > timeout_s:
+                timed_out = True
+                _kill_child(pid)
+                _, status, usage = os.wait4(pid, 0)
+                break
+            if rss_limit_kb is not None:
+                peak = _proc_peak_rss_kb(pid)
+                if peak is not None:
+                    rss_enforced = True
+                    observed_rss = max(observed_rss, peak)
+                    if peak > rss_limit_kb:
+                        rss_exceeded = True
+                        _kill_child(pid)
+                        _, status, usage = os.wait4(pid, 0)
+                        break
+            if guard_paths and max_output_bytes is not None:
+                size = output_size()
+                observed_output = max(observed_output, size)
+                if size > max_output_bytes:
+                    output_exceeded = True
                     _kill_child(pid)
                     _, status, usage = os.wait4(pid, 0)
                     break
-        if guard_paths and max_output_bytes is not None:
-            size = output_size()
-            observed_output = max(observed_output, size)
-            if size > max_output_bytes:
-                output_exceeded = True
-                _kill_child(pid)
-                _, status, usage = os.wait4(pid, 0)
-                break
-        if (
-            disk_free_probe is not None
-            and disk_floor_bytes is not None
-            and now - last_disk_check > 0.2
-        ):
-            last_disk_check = now
-            try:
-                free_now = disk_free_probe()
-            except OSError:
-                free_now = None
-            if free_now is not None and free_now < disk_floor_bytes:
-                disk_exceeded = True
-                _kill_child(pid)
-                _, status, usage = os.wait4(pid, 0)
-                break
-        time.sleep(poll_s)
+            if (
+                disk_free_probe is not None
+                and disk_floor_bytes is not None
+                and now - last_disk_check > 0.2
+            ):
+                last_disk_check = now
+                try:
+                    free_now = disk_free_probe()
+                except OSError:
+                    free_now = None
+                if free_now is not None and free_now < disk_floor_bytes:
+                    disk_exceeded = True
+                    _kill_child(pid)
+                    _, status, usage = os.wait4(pid, 0)
+                    break
+            time.sleep(poll_s)
+    except BaseException:
+        _kill_child(pid)
+        try:
+            os.wait4(pid, 0)
+        except OSError:
+            pass
+        raise
 
     wall_s = time.monotonic() - started
     signaled = os.WIFSIGNALED(status)

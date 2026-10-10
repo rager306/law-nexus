@@ -19,6 +19,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import signal
+import subprocess
 import sys
 from pathlib import Path
 
@@ -1155,3 +1156,294 @@ def test_cli_verify_ledger_fails_on_missing(tmp_path, capsys):
         ]
     )
     assert code == mod.EXIT_VERIFY_FAILED
+
+
+# ------------------------------------------------------------- resume proof #
+
+
+def proof_fixture(tmp_path, names, *, scratch_name="proof"):
+    """Fixture bundle for the resume-proof surfaces (stub binary, pinned pairs)."""
+    corpus_root, entries = make_corpus(tmp_path, names)
+    manifest = write_manifest(tmp_path, entries, name="proof-manifest.jsonl")
+    decision = write_decision(tmp_path, manifest, name="proof-decision.json")
+    stub = write_stub(tmp_path, name="proof-bin")
+    binding = binding_for(stub, code_revision="sha256:" + "1" * 64)
+    scratch = tmp_path / scratch_name
+    receipts = scratch / "receipts.jsonl"
+    return {
+        "entries": [mod.probe.Entry(**entry) for entry in entries],
+        "corpus_root": corpus_root,
+        "manifest_path": manifest,
+        "decision_path": decision,
+        "bin_path": stub,
+        "binding": binding,
+        "scratch": scratch,
+        "receipts": receipts,
+    }
+
+
+def test_select_proof_subset_is_deterministic_and_covers_subdirs():
+    entries = [
+        mod.probe.Entry(f"{sub}/f{index:03d}.xml", "sha256:" + "a" * 64, 100 + index)
+        for sub in ("courts", "fas", "npa", "xml")
+        for index in range(20)
+    ]
+    first = mod.select_proof_subset(entries, seed=7, per_subdir=5)
+    second = mod.select_proof_subset(entries, seed=7, per_subdir=5)
+    assert first.digest == second.digest
+    assert [e.relative_path for e in first.entries] == [e.relative_path for e in second.entries]
+    assert len(first.entries) == 20
+    assert set(first.subdir_counts) == {"courts", "fas", "npa", "xml"}
+    assert all(count == 5 for count in first.subdir_counts.values())
+    assert first.digest.startswith("sha256:")
+    # the seed genuinely drives the draw
+    other = mod.select_proof_subset(entries, seed=8, per_subdir=5)
+    assert other.digest != first.digest
+
+
+def test_prove_resume_records_skip_stale_incomplete_and_final(tmp_path):
+    fix = proof_fixture(
+        tmp_path,
+        [
+            "courts/a-normal.xml",
+            "courts/b-refuse.xml",
+            "fas/c-normal.xml",
+            "fas/d-wirefail.xml",
+        ],
+    )
+    proof = mod.prove_resume(
+        manifest_path=fix["manifest_path"],
+        corpus_root=fix["corpus_root"],
+        bin_path=fix["bin_path"],
+        decision_path=fix["decision_path"],
+        binding=fix["binding"],
+        limits=mod.probe.Limits(),
+        scratch_dir=fix["scratch"],
+        receipts_path=fix["receipts"],
+        entries=fix["entries"],
+        seed=1,
+        per_subdir=2,
+        bounded_wall_s=0.0,
+        enable_interrupt=False,
+        enable_refusal_probe=False,
+    )
+    assert proof["schema"] == mod.PROOF_SCHEMA
+    labels = [attempt["label"] for attempt in proof["attempts"]]
+    assert labels == [
+        "bounded-budget",
+        "resume-skip",
+        "stale-recompute",
+        "incomplete-reattempt",
+    ]
+    assert proof["attempts"][0]["status"] == "budget_exhausted"
+    assert proof["attempts"][0]["receipts_after"] == 3
+    assert proof["attempts"][1]["status"] == "complete"
+    assert proof["attempts"][1]["skipped_current"] == 3
+    assert proof["attempts"][1]["resumed_without_reexport"] is True
+    assert proof["attempts"][1]["exports"] == 1
+    assert proof["attempts"][2]["recomputed_stale"] == 1
+    assert proof["attempts"][2]["skipped_current"] == 3
+    assert proof["attempts"][3]["reattempted_incomplete"] == 1
+    assert proof["stale_probe"]["recomputed"] is True
+    assert proof["subset"]["size"] == 4
+    assert proof["subset"]["non_wordml_subdir_present"] is False
+    assert proof["final"]["verify_ledger_ok"] is True
+    assert proof["final"]["entries"] == 4
+    assert proof["final"]["incomplete"] == 0
+    assert proof["final"]["terminal"] == 4
+    assert proof["partial_is_not_full"] is True
+    assert proof["refusal_probe"] is None
+    assert proof["interruption"] is None
+
+
+def test_verify_proof_recomputes_and_rejects_tamper(tmp_path):
+    fix = proof_fixture(tmp_path, ["courts/a-normal.xml", "fas/c-normal.xml"])
+    proof = mod.prove_resume(
+        manifest_path=fix["manifest_path"],
+        corpus_root=fix["corpus_root"],
+        bin_path=fix["bin_path"],
+        decision_path=fix["decision_path"],
+        binding=fix["binding"],
+        limits=mod.probe.Limits(),
+        scratch_dir=fix["scratch"],
+        receipts_path=fix["receipts"],
+        entries=fix["entries"],
+        seed=3,
+        per_subdir=1,
+        bounded_wall_s=0.0,
+        enable_interrupt=False,
+        enable_refusal_probe=False,
+    )
+    receipts = mod.ReceiptLog(fix["receipts"]).read()
+    ok = mod.verify_proof(
+        proof=proof, entries=fix["entries"], receipts=receipts, live_binding=fix["binding"]
+    )
+    assert ok["ok"] is True
+    assert ok["errors"] == []
+
+    tampered = json.loads(json.dumps(proof))
+    tampered["subset"]["digest"] = "sha256:" + "0" * 64
+    bad = mod.verify_proof(
+        proof=tampered, entries=fix["entries"], receipts=receipts, live_binding=fix["binding"]
+    )
+    assert bad["ok"] is False
+    assert "subset_digest_mismatch" in bad["errors"]
+
+
+def test_prove_resume_refusal_probe_validates_closed_dictionary(tmp_path):
+    real_bin = ROOT / "target/release/cleaned-project"
+    if not real_bin.is_file():
+        pytest.skip("real cleaned-project binary is absent")
+    binding = binding_for(real_bin, code_revision="sha256:" + "1" * 64)
+    probe_result = mod.run_refusal_probe(
+        bin_path=real_bin,
+        binding=binding,
+        limits=mod.probe.Limits(),
+        scratch_dir=tmp_path / "scratch",
+        attempt=1,
+    )
+    assert probe_result["available"] is True
+    assert probe_result["all_refused_typed"] is True
+    assert "source:source_not_wordml" in probe_result["observed_classes"]
+    assert "source:namespace_absent" in probe_result["observed_classes"]
+    assert "source:unsupported_schema" in probe_result["observed_classes"]
+
+
+def test_interrupt_attempt_via_timeout_preserves_receipts(tmp_path):
+    names = [f"courts/f{index:03d}-normal.xml" for index in range(120)]
+    fix = proof_fixture(tmp_path, names, scratch_name="interrupt-proof")
+    result = mod.interrupt_attempt(
+        manifest_path=fix["manifest_path"],
+        corpus_root=fix["corpus_root"],
+        bin_path=fix["bin_path"],
+        decision_path=fix["decision_path"],
+        scratch_dir=fix["scratch"],
+        code_revision=fix["binding"].code_revision,
+        processing_window_s=0.4,
+    )
+    assert result["mechanism"] == "timeout -s TERM"
+    assert result["status"] == "interrupted"
+    assert result["exit_code"] in (124, 128 + signal.SIGTERM)
+    assert result["completed_preserved"] is True
+    assert result["receipts_before"] == 0
+    assert result["receipts_after"] >= 1
+    assert result["in_flight_not_run"] is True
+    assert result["in_flight_relative_path"] is not None
+
+
+def test_cli_prove_resume_and_verify_proof(tmp_path, capsys):
+    fix = proof_fixture(
+        tmp_path,
+        [
+            "courts/a-normal.xml",
+            "courts/b-refuse.xml",
+            "fas/c-normal.xml",
+            "fas/d-wirefail.xml",
+        ],
+    )
+    out = tmp_path / "proof.json"
+    code = mod.main(
+        [
+            "prove-resume",
+            "--manifest",
+            str(fix["manifest_path"]),
+            "--corpus-root",
+            str(fix["corpus_root"]),
+            "--bin",
+            str(fix["bin_path"]),
+            "--decision",
+            str(fix["decision_path"]),
+            "--scratch",
+            str(fix["scratch"]),
+            "--receipts",
+            str(fix["receipts"]),
+            "--out",
+            str(out),
+            "--code-revision",
+            fix["binding"].code_revision,
+            "--seed",
+            "1",
+            "--per-subdir",
+            "2",
+            "--bounded-wall-s",
+            "0",
+            "--skip-interrupt",
+            "--skip-refusal-probe",
+        ]
+    )
+    assert code == mod.EXIT_OK
+    capsys.readouterr()
+    proof = json.loads(out.read_text(encoding="utf-8"))
+    assert proof["final"]["verify_ledger_ok"] is True
+    assert proof["subset"]["size"] == 4
+
+    verify_code = mod.main(
+        [
+            "verify-proof",
+            "--manifest",
+            str(fix["manifest_path"]),
+            "--bin",
+            str(fix["bin_path"]),
+            "--decision",
+            str(fix["decision_path"]),
+            "--scratch",
+            str(fix["scratch"]),
+            "--receipts",
+            str(fix["receipts"]),
+            "--proof",
+            str(out),
+            "--code-revision",
+            fix["binding"].code_revision,
+        ]
+    )
+    assert verify_code == mod.EXIT_OK
+    verdict = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    assert verdict["ok"] is True
+
+
+def test_measure_subprocess_does_not_orphan_child_on_interrupt(tmp_path):
+    """Blocker M223-S03-no-orphan-after-interrupt: a SIGTERM unwinding the poll
+    loop must SIGKILL and reap the running export child, never orphan it.
+
+    The interrupt is delivered in a throwaway subprocess so the SIGTERM hits the
+    harness frame (not the pytest runner); the child publishes its own pid, which
+    is checked to be gone after the Interrupted unwinds.
+    """
+    child = (
+        "import os,sys,time; sys.stdout.write(str(os.getpid())+'\\n'); "
+        "sys.stdout.flush(); time.sleep(60)"
+    )
+    out = tmp_path / "child.pid"
+    snippet = (
+        "import signal, sys, threading, time\n"
+        "from pathlib import Path\n"
+        f"sys.path.insert(0, {str(mod._SCRIPTS_DIR)!r})\n"
+        "import m223_s02_probe as probe\n"
+        f"out = Path({str(out)!r})\n"
+        "def handler(sig, frame):\n"
+        "    raise probe.Interrupted(sig)\n"
+        "signal.signal(signal.SIGTERM, handler)\n"
+        "def fire():\n"
+        "    time.sleep(0.5)\n"
+        "    import os\n"
+        "    os.kill(os.getpid(), signal.SIGTERM)\n"
+        "threading.Thread(target=fire, daemon=True).start()\n"
+        "try:\n"
+        f"    probe.measure_subprocess([{sys.executable!r}, '-c', {child!r}], "
+        "timeout_s=30, stdout_path=out)\n"
+        "    print('NO_INTERRUPT')\n"
+        "except probe.Interrupted:\n"
+        "    pid = int(out.read_text().split()[0])\n"
+        "    time.sleep(0.3)\n"
+        "    import os\n"
+        "    try:\n"
+        "        os.kill(pid, 0)\n"
+        "        print('ORPHAN')\n"
+        "    except ProcessLookupError:\n"
+        "        print('REAPED')\n"
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", snippet], capture_output=True, text=True, timeout=90
+    )
+    assert "REAPED" in completed.stdout, completed.stdout + completed.stderr
+    assert "ORPHAN" not in completed.stdout

@@ -51,12 +51,14 @@ import argparse
 import hashlib
 import json
 import os
+import random
 import re
 import signal
 import subprocess
 import sys
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable, Sequence
 
@@ -1206,6 +1208,736 @@ def verify_ledger(
     }
 
 
+# ------------------------------------------------------------ resume proof #
+
+PROOF_SCHEMA = "m223-s03-resume-proof/v1"
+DEFAULT_PROOF_OUT = ROOT / "prd/migration/rust-evidence/m223-s03-resume-proof.json"
+HARNESS_PATH = Path(__file__).resolve()
+
+#: Seed for the deterministic proof subset (S02 probe seed, for traceability).
+PROOF_SEED = 22302
+#: Entries drawn per top-level corpus subdirectory.
+PROOF_PER_SUBDIR = 25
+
+#: Real, git-tracked non-WordML reader fixtures.  The pinned baseline corpus is
+#: uniformly ``supported_wordml`` (all 43785 roots are ``w:wordDocument`` in the
+#: canonical WordML namespace), so it can never emit a source refusal; the closed
+#: refusal dictionary is validated against these real inputs instead.
+PROOF_REFUSAL_FIXTURES = (
+    "crates/ln-decode/tests/fixtures/reader/diverse/negative-not-wordml.xml",
+    "crates/ln-decode/tests/fixtures/reader/diverse/negative-namespace-absent.xml",
+    "crates/ln-decode/tests/fixtures/reader/diverse/negative-unsupported-schema.xml",
+)
+
+PROOF_NON_CLAIMS = NON_CLAIMS + (
+    "The pinned baseline corpus is uniformly supported_wordml (43785/43785 roots "
+    "are w:wordDocument in the canonical WordML namespace), so it cannot produce a "
+    "corpus-level source refusal; the closed refusal dictionary is validated "
+    "against real non-WordML reader fixtures instead.",
+    "The proof subset is a deterministic sample of the pinned manifest; its "
+    "receipt bindings are snapshot-bound and shift with any tracked-file change.",
+    "The SIGTERM interruption is enforced by timeout -s TERM on the real harness "
+    "subprocess; the interrupted in-flight export child is orphaned by design and "
+    "exits on its own (bounded by the attempt stop thresholds).",
+)
+
+
+@dataclass(frozen=True)
+class ProofSubset:
+    """A deterministic proof subset derived from the pinned manifest."""
+
+    entries: tuple[probe.Entry, ...]
+    subdir_counts: dict[str, int]
+    digest: str
+
+
+#: Top-level corpus subdirectory of a manifest path.
+def _top_subdir(relative_path: str) -> str:
+    return relative_path.split("/", 1)[0]
+
+
+def select_proof_subset(
+    entries: Sequence[probe.Entry],
+    *,
+    seed: int = PROOF_SEED,
+    per_subdir: int = PROOF_PER_SUBDIR,
+) -> ProofSubset:
+    """Deterministic seeded sample of the smallest per-subdir pool.
+
+    Each top-level subdirectory contributes ``per_subdir`` entries drawn without
+    replacement (fixed seed) from its ``3*per_subdir`` smallest files.  The
+    selection is stable across runs and is fingerprinted by ``digest`` so the
+    proof artifact is recomputable from its declared inputs.
+    """
+    grouped: dict[str, list[probe.Entry]] = {}
+    for entry in entries:
+        grouped.setdefault(_top_subdir(entry.relative_path), []).append(entry)
+
+    rng = random.Random(seed)
+    chosen: list[probe.Entry] = []
+    counts: dict[str, int] = {}
+    for top in sorted(grouped):
+        bucket = sorted(grouped[top], key=lambda item: (item.bytes, item.relative_path))
+        pool = bucket[: max(per_subdir, min(len(bucket), per_subdir * 3))]
+        picked = rng.sample(pool, min(per_subdir, len(pool)))
+        counts[top] = len(picked)
+        chosen.extend(picked)
+    chosen.sort(key=lambda item: item.relative_path)
+    digest = (
+        "sha256:"
+        + hashlib.sha256(
+            "".join(
+                f"{item.relative_path}\t{item.sha256}\t{item.bytes}\n" for item in chosen
+            ).encode("utf-8")
+        ).hexdigest()
+    )
+    return ProofSubset(entries=tuple(chosen), subdir_counts=counts, digest=digest)
+
+
+def run_refusal_probe(
+    *,
+    bin_path: Path,
+    binding: Binding,
+    limits: probe.Limits,
+    scratch_dir: Path,
+    attempt: int,
+    corpus_root: Path = ROOT,
+    fixture_paths: Sequence[str] = PROOF_REFUSAL_FIXTURES,
+    hash_file: Callable[[Path], str] = probe.sha256_file,
+    measure: Callable[..., dict[str, Any]] = probe.measure_subprocess,
+    now: Callable[[], float] = time.time,
+) -> dict[str, Any]:
+    """Real typed refusals from real non-WordML inputs through the product path.
+
+    Validates the closed refusal dictionary against the actual ``cleaned-project``
+    tokens (the T01 known-issue follow-up).  Never carries decoded text — only
+    paths, hashes, sizes and the closed outcome/reason tokens.
+    """
+    inputs: list[dict[str, Any]] = []
+    for relative_path in fixture_paths:
+        source = corpus_root / relative_path
+        if not source.is_file():
+            inputs.append({"relative_path": relative_path, "available": False})
+            continue
+        sha256, size = hash_and_size(source, hash_file)
+        entry = probe.Entry(relative_path=relative_path, sha256=sha256 or "", bytes=size)
+        receipt = process_entry(
+            entry,
+            corpus_root=corpus_root,
+            bin_path=bin_path,
+            binding=binding,
+            limits=limits,
+            scratch_dir=scratch_dir / "refusal-probe",
+            attempt=attempt,
+            verify_input_after=False,
+            hash_file=hash_file,
+            measure=measure,
+            now=now,
+        )
+        inputs.append(
+            {
+                "relative_path": relative_path,
+                "available": True,
+                "input_sha256": receipt["input_sha256"],
+                "input_bytes": receipt["input_bytes"],
+                "outcome": receipt["outcome"],
+                "outcome_class": receipt["outcome_class"],
+                "reason_family": receipt["reason_family"],
+                "reason_token": receipt["reason_token"],
+            }
+        )
+    available = [item for item in inputs if item.get("available")]
+    observed = sorted({str(item["outcome_class"]) for item in available})
+    all_refused = bool(available) and all(item["outcome"] == "refused" for item in available)
+    return {
+        "available": bool(available),
+        "inputs": inputs,
+        "observed_classes": observed,
+        "all_refused_typed": all_refused,
+        "note": "the pinned baseline corpus is uniformly supported_wordml; these are "
+        "real non-WordML reader fixtures, not corpus entries",
+    }
+
+
+def _mutate_ledger(
+    path: Path,
+    relative_path: str,
+    updates: dict[str, Any],
+    *,
+    log: ReceiptLog | None = None,
+) -> None:
+    """Overwrite the latest receipt's fields in a working ledger copy."""
+    reader = log if log is not None else ReceiptLog(path)
+    records = reader.read()
+    found = False
+    for record in reversed(records):
+        if record["relative_path"] == relative_path:
+            record.update(updates)
+            found = True
+            break
+    if not found:
+        raise HarnessError(f"ledger has no receipt for {relative_path!r}")
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with tmp.open("w", encoding="utf-8") as stream:
+        for record in records:
+            stream.write(json.dumps(record, ensure_ascii=True, sort_keys=True) + "\n")
+    os.replace(tmp, path)
+
+
+def _mutate_ledger_binding(
+    path: Path,
+    relative_path: str,
+    field: str,
+    value: str,
+    *,
+    log: ReceiptLog | None = None,
+) -> None:
+    """Overwrite the latest receipt's binding field in a working ledger copy."""
+    _mutate_ledger(path, relative_path, {field: value}, log=log)
+
+
+def _run_harness_subprocess(
+    cmd: Sequence[str], *, timeout_s: float | None = None, cwd: Path = ROOT
+) -> dict[str, Any]:
+    """Run the harness CLI, optionally wrapped in ``timeout -s TERM``."""
+    full = ["timeout", "-s", "TERM", str(timeout_s), *cmd] if timeout_s is not None else list(cmd)
+    started = time.monotonic()
+    try:
+        completed = subprocess.run(full, cwd=str(cwd), capture_output=True, text=True, check=False)
+    except OSError as error:  # pragma: no cover - environment dependent
+        raise HarnessError(f"harness subprocess failed to start: {type(error).__name__}") from error
+    return {
+        "rc": completed.returncode,
+        "wall_s": round(time.monotonic() - started, 3),
+        "command": full,
+        "stderr_tail": completed.stderr.strip().splitlines()[-6:],
+    }
+
+
+def _harness_run_cmd(
+    *,
+    python: str,
+    harness: Path,
+    manifest_path: Path,
+    corpus_root: Path,
+    bin_path: Path,
+    decision_path: Path,
+    scratch_dir: Path,
+    receipts_path: Path,
+    report_path: Path,
+    code_revision: str,
+    extra: Sequence[str],
+) -> list[str]:
+    return [
+        python,
+        str(harness),
+        "run",
+        "--manifest",
+        str(manifest_path),
+        "--corpus-root",
+        str(corpus_root),
+        "--bin",
+        str(bin_path),
+        "--decision",
+        str(decision_path),
+        "--scratch",
+        str(scratch_dir),
+        "--receipts",
+        str(receipts_path),
+        "--report",
+        str(report_path),
+        "--code-revision",
+        code_revision,
+        *extra,
+    ]
+
+
+def interrupt_attempt(
+    *,
+    manifest_path: Path,
+    corpus_root: Path,
+    bin_path: Path,
+    decision_path: Path,
+    scratch_dir: Path,
+    code_revision: str,
+    processing_window_s: float = 4.0,
+    harness: Path | None = None,
+    python: str | None = None,
+    cwd: Path = ROOT,
+    retries: int = 1,
+) -> dict[str, Any]:
+    """Real ``timeout -s TERM`` interruption of the harness over the manifest.
+
+    A calibration run measures the startup wall (manifest load + preflight) with
+    zero entries; the interrupt run is then given ``startup + window`` seconds so
+    it is killed mid-processing, leaving completed receipts plus an explicit
+    ``incomplete/not_run`` receipt for the in-flight entry.
+    """
+    harness_path = Path(harness) if harness is not None else HARNESS_PATH
+    py = python or sys.executable
+    work = Path(scratch_dir) / "interrupt"
+    work.mkdir(parents=True, exist_ok=True)
+    manifest_abs = Path(manifest_path).resolve()
+    corpus_abs = Path(corpus_root).resolve()
+    bin_abs = Path(bin_path).resolve()
+    decision_abs = Path(decision_path).resolve()
+
+    calibration = _run_harness_subprocess(
+        _harness_run_cmd(
+            python=py,
+            harness=harness_path,
+            manifest_path=manifest_abs,
+            corpus_root=corpus_abs,
+            bin_path=bin_abs,
+            decision_path=decision_abs,
+            scratch_dir=work,
+            receipts_path=work / "cal0.jsonl",
+            report_path=work / "cal0.json",
+            code_revision=code_revision,
+            extra=["--max-entries", "0"],
+        ),
+        cwd=cwd,
+    )
+    if calibration["rc"] not in (EXIT_OK, EXIT_NOT_COMPLETE):
+        raise HarnessError(f"interrupt calibration exited {calibration['rc']}")
+    startup_s = float(calibration["wall_s"])
+
+    last: dict[str, Any] | None = None
+    for attempt in range(1, retries + 2):
+        receipts = work / f"receipts-{attempt}.jsonl"
+        report = work / f"run-{attempt}.json"
+        if receipts.exists():
+            receipts.unlink()
+        window = processing_window_s * attempt
+        timeout_s = round(startup_s + window + 0.5, 3)
+        run = _run_harness_subprocess(
+            _harness_run_cmd(
+                python=py,
+                harness=harness_path,
+                manifest_path=manifest_abs,
+                corpus_root=corpus_abs,
+                bin_path=bin_abs,
+                decision_path=decision_abs,
+                scratch_dir=work,
+                receipts_path=receipts,
+                report_path=report,
+                code_revision=code_revision,
+                extra=["--resume", "--max-wall-s", "3600"],
+            ),
+            timeout_s=timeout_s,
+            cwd=cwd,
+        )
+        got = ReceiptLog(receipts).read() if receipts.exists() else []
+        latest = latest_by_path(got)
+        not_run = sorted(
+            path
+            for path, record in latest.items()
+            if record["outcome"] == "incomplete" and record["outcome_class"] == "not_run"
+        )
+        interrupted = run["rc"] in (124, 128 + signal.SIGTERM)
+        last = {
+            "mechanism": "timeout -s TERM",
+            "signal": "SIGTERM",
+            "timeout_s": timeout_s,
+            "startup_s": startup_s,
+            "processing_window_s": window,
+            "exit_code": run["rc"],
+            "wall_s": run["wall_s"],
+            "receipts_before": 0,
+            "receipts_after": len(got),
+            "completed_preserved": len(got) >= 1,
+            "in_flight_not_run": bool(not_run),
+            "in_flight_relative_path": not_run[0] if not_run else None,
+            "status": "interrupted" if interrupted else "not_interrupted",
+            "report": str(report),
+            "stderr_tail": run["stderr_tail"],
+        }
+        if interrupted and len(got) >= 1 and not_run:
+            break
+    if last is None or last["status"] != "interrupted" or not last["in_flight_not_run"]:
+        raise HarnessError("SIGTERM interruption proof did not observe an interrupted partial run")
+    return last
+
+
+def _attempt_record(
+    label: str,
+    kind: str,
+    state: dict[str, Any],
+    *,
+    before: int,
+    after: int,
+    skipped: int,
+    written: int,
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    summary = state.get("summary", {}) if isinstance(state, dict) else {}
+    record: dict[str, Any] = {
+        "label": label,
+        "kind": kind,
+        "status": state.get("status") if isinstance(state, dict) else None,
+        "receipts_before": before,
+        "receipts_after": after,
+        "skipped_current": skipped,
+        "written": written,
+        "recomputed_stale": 0,
+        "reattempted_incomplete": 0,
+        "accepted": summary.get("accepted"),
+        "refused": summary.get("refused"),
+        "incomplete": summary.get("incomplete"),
+        "terminal": summary.get("terminal"),
+        "remaining": summary.get("remaining"),
+    }
+    if extra:
+        record.update(extra)
+    return record
+
+
+def prove_resume(
+    *,
+    manifest_path: Path,
+    corpus_root: Path,
+    bin_path: Path,
+    decision_path: Path,
+    binding: Binding,
+    limits: probe.Limits,
+    scratch_dir: Path,
+    receipts_path: Path,
+    entries: Sequence[probe.Entry],
+    seed: int = PROOF_SEED,
+    per_subdir: int = PROOF_PER_SUBDIR,
+    bounded_wall_s: float = 0.05,
+    enable_interrupt: bool = True,
+    enable_refusal_probe: bool = True,
+    processing_window_s: float = 4.0,
+    interrupt: Callable[..., dict[str, Any]] | None = None,
+    run: Callable[..., dict[str, Any]] | None = None,
+    hash_file: Callable[[Path], str] = probe.sha256_file,
+    measure: Callable[..., dict[str, Any]] = probe.measure_subprocess,
+    now: Callable[[], float] = time.time,
+    clock: Callable[[], float] = time.monotonic,
+) -> dict[str, Any]:
+    """Prove interruption, resume and stale recompute on a real subset.
+
+    Steps: (a) bounded partial attempt -> ``budget_exhausted``; (b) resume that
+    skips the current receipts without re-exporting; (c) a mutated binding that
+    is recomputed as stale; (d) a real ``timeout -s TERM`` interruption that
+    preserves completed receipts; (e) a refusal probe against real non-WordML
+    inputs; (f) a final completeness check over the subset.
+    """
+    run_fn = run if run is not None else run_baseline
+    interrupt_fn = interrupt if interrupt is not None else interrupt_attempt
+    subset = select_proof_subset(entries, seed=seed, per_subdir=per_subdir)
+    subset_entries = list(subset.entries)
+    subset_size = len(subset_entries)
+    if subset_size < 2:
+        raise HarnessError("proof subset is too small")
+
+    scratch_dir.mkdir(parents=True, exist_ok=True)
+    receipts_path.parent.mkdir(parents=True, exist_ok=True)
+    if receipts_path.exists():
+        receipts_path.unlink()
+    log = ReceiptLog(receipts_path)
+
+    export_calls = {"n": 0}
+
+    def counting_measure(argv: Sequence[str], **kwargs: Any) -> dict[str, Any]:
+        if len(argv) > 1 and argv[1] == "export":
+            export_calls["n"] += 1
+        return measure(argv, **kwargs)
+
+    attempts: list[dict[str, Any]] = []
+
+    # (a) bounded partial attempt
+    a_state = run_fn(
+        entries=subset_entries,
+        corpus_root=corpus_root,
+        bin_path=bin_path,
+        binding=binding,
+        limits=limits,
+        scratch_dir=scratch_dir,
+        receipts_path=receipts_path,
+        attempt_wall_s=bounded_wall_s,
+        max_entries=subset_size - 1,
+        resume=True,
+        hash_file=hash_file,
+        measure=counting_measure,
+        now=now,
+        clock=clock,
+    )
+    a_receipts = log.read()
+    if not (1 <= len(a_receipts) < subset_size):
+        raise HarnessError("bounded attempt did not produce a partial ledger")
+    if a_state["status"] != "budget_exhausted":
+        raise HarnessError(f"bounded attempt status {a_state['status']!r}")
+    a_terminal = sum(1 for record in a_receipts if record["outcome"] in TERMINAL_OUTCOMES)
+    attempts.append(
+        _attempt_record(
+            "bounded-budget",
+            "in-process",
+            a_state,
+            before=0,
+            after=len(a_receipts),
+            skipped=0,
+            written=len(a_receipts),
+            extra={"bounded_wall_s": bounded_wall_s, "max_entries": subset_size - 1},
+        )
+    )
+
+    # (b) resume: skip current receipts, process the rest
+    export_calls["n"] = 0
+    b_state = run_fn(
+        entries=subset_entries,
+        corpus_root=corpus_root,
+        bin_path=bin_path,
+        binding=binding,
+        limits=limits,
+        scratch_dir=scratch_dir,
+        receipts_path=receipts_path,
+        attempt_wall_s=0.0,
+        resume=True,
+        hash_file=hash_file,
+        measure=counting_measure,
+        now=now,
+        clock=clock,
+    )
+    b_receipts = log.read()
+    b_written = len(b_receipts) - len(a_receipts)
+    if b_state["status"] != "complete":
+        raise HarnessError(f"resume attempt did not reach complete: {b_state['status']!r}")
+    if b_state["skipped"] != a_terminal or export_calls["n"] != b_written or b_written < 1:
+        raise HarnessError("resume did not skip exactly the current receipts")
+    attempts.append(
+        _attempt_record(
+            "resume-skip",
+            "in-process",
+            b_state,
+            before=len(a_receipts),
+            after=len(b_receipts),
+            skipped=b_state["skipped"],
+            written=b_written,
+            extra={"exports": export_calls["n"], "resumed_without_reexport": True},
+        )
+    )
+
+    # (c) stale probe: mutate one current binding and prove recompute
+    target = subset_entries[0].relative_path
+    _mutate_ledger_binding(receipts_path, target, "code_revision", "sha256:" + "0" * 64, log=log)
+    export_calls["n"] = 0
+    c_state = run_fn(
+        entries=subset_entries,
+        corpus_root=corpus_root,
+        bin_path=bin_path,
+        binding=binding,
+        limits=limits,
+        scratch_dir=scratch_dir,
+        receipts_path=receipts_path,
+        attempt_wall_s=0.0,
+        resume=True,
+        hash_file=hash_file,
+        measure=counting_measure,
+        now=now,
+        clock=clock,
+    )
+    c_receipts = log.read()
+    c_latest = latest_by_path(c_receipts)
+    if (
+        c_state["status"] != "complete"
+        or c_state["skipped"] != subset_size - 1
+        or export_calls["n"] != 1
+        or c_latest[target]["code_revision"] != binding.code_revision
+    ):
+        raise HarnessError("stale probe did not recompute exactly the mutated entry")
+    attempts.append(
+        _attempt_record(
+            "stale-recompute",
+            "in-process",
+            c_state,
+            before=len(b_receipts),
+            after=len(c_receipts),
+            skipped=c_state["skipped"],
+            written=export_calls["n"],
+            extra={
+                "mutated_relative_path": target,
+                "mutated_field": "code_revision",
+                "recomputed_stale": 1,
+            },
+        )
+    )
+    stale_probe = {
+        "how": "mutated one current receipt's code_revision in a working copy of the ledger, "
+        "then resumed; a stale receipt is recomputed, never skipped",
+        "mutated_relative_path": target,
+        "field": "code_revision",
+        "recomputed": True,
+        "skipped_others": c_state["skipped"],
+        "written": export_calls["n"],
+    }
+
+    # (c2) incomplete re-attempt: an incomplete receipt must never be skipped
+    target2 = subset_entries[1].relative_path
+    _mutate_ledger(
+        receipts_path,
+        target2,
+        {"outcome": "incomplete", "outcome_class": "not_run", "note": "proof: forced incomplete"},
+        log=log,
+    )
+    export_calls["n"] = 0
+    d_state = run_fn(
+        entries=subset_entries,
+        corpus_root=corpus_root,
+        bin_path=bin_path,
+        binding=binding,
+        limits=limits,
+        scratch_dir=scratch_dir,
+        receipts_path=receipts_path,
+        attempt_wall_s=0.0,
+        resume=True,
+        hash_file=hash_file,
+        measure=counting_measure,
+        now=now,
+        clock=clock,
+    )
+    d_receipts = log.read()
+    d_latest = latest_by_path(d_receipts)
+    if (
+        d_state["status"] != "complete"
+        or d_state["skipped"] != subset_size - 1
+        or export_calls["n"] != 1
+        or d_latest[target2]["outcome"] not in TERMINAL_OUTCOMES
+    ):
+        raise HarnessError("incomplete probe did not re-attempt exactly the incomplete entry")
+    attempts.append(
+        _attempt_record(
+            "incomplete-reattempt",
+            "in-process",
+            d_state,
+            before=len(c_receipts),
+            after=len(d_receipts),
+            skipped=d_state["skipped"],
+            written=export_calls["n"],
+            extra={
+                "mutated_relative_path": target2,
+                "reattempted_incomplete": 1,
+                "forced_outcome": "incomplete/not_run",
+            },
+        )
+    )
+
+    # (d) real SIGTERM interruption via timeout -s TERM
+    interruption = None
+    if enable_interrupt:
+        interruption = interrupt_fn(
+            manifest_path=manifest_path,
+            corpus_root=corpus_root,
+            bin_path=bin_path,
+            decision_path=decision_path,
+            scratch_dir=scratch_dir,
+            code_revision=binding.code_revision,
+            processing_window_s=processing_window_s,
+        )
+        attempts.append(
+            {
+                "label": "sigterm-interrupt",
+                "kind": "subprocess-timeout",
+                "status": interruption.get("status"),
+                "receipts_before": interruption.get("receipts_before"),
+                "receipts_after": interruption.get("receipts_after"),
+                "exit_code": interruption.get("exit_code"),
+                "signal": interruption.get("signal"),
+            }
+        )
+
+    # (e) closed refusal dictionary against real non-WordML inputs
+    refusal_probe = None
+    if enable_refusal_probe:
+        refusal_probe = run_refusal_probe(
+            bin_path=bin_path,
+            binding=binding,
+            limits=limits,
+            scratch_dir=scratch_dir,
+            attempt=len(attempts) + 1,
+            hash_file=hash_file,
+            measure=measure,
+            now=now,
+        )
+        if not refusal_probe["available"] or not refusal_probe["all_refused_typed"]:
+            raise HarnessError("refusal probe did not observe real typed refusals")
+
+    # (f) final completeness over the subset
+    final = verify_ledger(entries=subset_entries, receipts=log.read(), live_binding=binding)
+    if not final["ok"]:
+        raise HarnessError("final verify-ledger over the proof subset failed")
+
+    return {
+        "schema": PROOF_SCHEMA,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "manifest": {
+            "path": str(manifest_path),
+            "sha256": hash_file(manifest_path),
+            "entries": len(entries),
+        },
+        "bindings": binding.as_dict(),
+        "subset": {
+            "definition": "seeded sample of the smallest per-subdir pool of the pinned manifest",
+            "seed": seed,
+            "per_subdir": per_subdir,
+            "size": subset_size,
+            "digest": subset.digest,
+            "subdirs": subset.subdir_counts,
+            "non_wordml_subdir_present": False,
+            "refusal_capable": False,
+        },
+        "attempts": attempts,
+        "interruption": interruption,
+        "stale_probe": stale_probe,
+        "refusal_probe": refusal_probe,
+        "final": {
+            "verify_ledger_ok": final["ok"],
+            "entries": final["entries"],
+            "terminal": final["terminal"],
+            "accepted": final["counts"]["accepted"],
+            "refused": final["counts"]["refused"],
+            "incomplete": final["counts"]["incomplete"],
+            "distinct_bindings": final["distinct_bindings"],
+        },
+        "partial_is_not_full": True,
+        "non_claims": list(PROOF_NON_CLAIMS),
+    }
+
+
+def verify_proof(
+    *,
+    proof: dict[str, Any],
+    entries: Sequence[probe.Entry],
+    receipts: Sequence[dict[str, Any]],
+    live_binding: Binding | None = None,
+) -> dict[str, Any]:
+    """Re-derive a proof artifact from its declared inputs.
+
+    Recomputes the deterministic subset digest from the manifest and re-runs the
+    ledger completeness check over the subset; a mismatch is fail-closed.
+    """
+    if not isinstance(proof, dict) or proof.get("schema") != PROOF_SCHEMA:
+        return {"ok": False, "errors": ["proof_schema"], "ledger": None}
+    subset_spec = proof.get("subset") or {}
+    subset = select_proof_subset(
+        entries,
+        seed=int(subset_spec.get("seed", PROOF_SEED)),
+        per_subdir=int(subset_spec.get("per_subdir", PROOF_PER_SUBDIR)),
+    )
+    errors: list[str] = []
+    if subset.digest != subset_spec.get("digest"):
+        errors.append("subset_digest_mismatch")
+    if len(subset.entries) != subset_spec.get("size"):
+        errors.append("subset_size_mismatch")
+    ledger = verify_ledger(
+        entries=list(subset.entries), receipts=receipts, live_binding=live_binding
+    )
+    if not ledger["ok"]:
+        errors.append("ledger_not_current")
+    return {"ok": not errors, "errors": errors, "ledger": ledger}
+
+
 # ------------------------------------------------------------------ report #
 
 
@@ -1308,7 +2040,31 @@ def build_parser() -> argparse.ArgumentParser:
     preflight_parser = sub.add_parser("preflight", help="fail-closed environment preflight")
     _add_common(preflight_parser)
 
+    prove_parser = sub.add_parser(
+        "prove-resume", help="prove interruption, resume and stale recompute on a real subset"
+    )
+    _add_common(prove_parser)
+    prove_parser.add_argument("--out", type=Path, default=DEFAULT_PROOF_OUT)
+    prove_parser.add_argument("--seed", type=int, default=PROOF_SEED)
+    prove_parser.add_argument("--per-subdir", type=int, default=PROOF_PER_SUBDIR)
+    prove_parser.add_argument("--bounded-wall-s", type=float, default=0.05)
+    prove_parser.add_argument("--processing-window-s", type=float, default=4.0)
+    prove_parser.add_argument("--skip-interrupt", action="store_true")
+    prove_parser.add_argument("--skip-refusal-probe", action="store_true")
+
+    verify_proof_parser = sub.add_parser(
+        "verify-proof", help="re-derive a resume-proof artifact from its inputs"
+    )
+    _add_common(verify_proof_parser)
+    verify_proof_parser.add_argument("--proof", type=Path, default=DEFAULT_PROOF_OUT)
+
     return parser
+
+
+def _proof_receipts_path(args: argparse.Namespace) -> Path:
+    if args.receipts is not None:
+        return args.receipts
+    return args.scratch / "proof" / "receipts.jsonl"
 
 
 def _resolve_paths(args: argparse.Namespace) -> tuple[Path, Path]:
@@ -1548,6 +2304,82 @@ def cmd_preflight(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_prove_resume(args: argparse.Namespace) -> int:
+    receipts_path = _proof_receipts_path(args)
+    args.scratch.mkdir(parents=True, exist_ok=True)
+    try:
+        decision = load_decision(args.decision)
+        _header, entries = load_manifest(args.manifest, decision=decision)
+        binding = compute_binding(args.bin_path, code_revision=args.code_revision)
+        limits = _limits_from_decision(decision, export_wall_s=None, readback_wall_s=None)
+        proof = prove_resume(
+            manifest_path=args.manifest,
+            corpus_root=args.corpus_root,
+            bin_path=args.bin_path,
+            decision_path=args.decision,
+            binding=binding,
+            limits=limits,
+            scratch_dir=args.scratch,
+            receipts_path=receipts_path,
+            entries=entries,
+            seed=args.seed,
+            per_subdir=args.per_subdir,
+            bounded_wall_s=args.bounded_wall_s,
+            processing_window_s=args.processing_window_s,
+            enable_interrupt=not args.skip_interrupt,
+            enable_refusal_probe=not args.skip_refusal_probe,
+        )
+    except HarnessError as error:
+        print(f"m223-s03-baseline: fail-closed: {error}", file=sys.stderr)
+        return EXIT_VERIFY_FAILED
+
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    _write_json(proof, args.out)
+    print(
+        json.dumps(
+            {
+                "schema": PROOF_SCHEMA,
+                "subset_size": proof["subset"]["size"],
+                "final": proof["final"],
+                "interruption": (proof["interruption"] or {}).get("status"),
+                "out": str(args.out),
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+        )
+    )
+    return EXIT_OK
+
+
+def cmd_verify_proof(args: argparse.Namespace) -> int:
+    receipts_path = _proof_receipts_path(args)
+    try:
+        decision = load_decision(args.decision)
+        _header, entries = load_manifest(args.manifest, decision=decision)
+    except HarnessError as error:
+        print(f"m223-s03-baseline: fail-closed: {error}", file=sys.stderr)
+        return EXIT_PREFLIGHT
+    try:
+        proof = json.loads(args.proof.read_text(encoding="utf-8"))
+        receipts = ReceiptLog(receipts_path).read()
+    except (OSError, json.JSONDecodeError, HarnessError) as error:
+        print(f"m223-s03-baseline: fail-closed: {type(error).__name__}", file=sys.stderr)
+        return EXIT_VERIFY_FAILED
+
+    live_binding = None
+    try:
+        live_binding = compute_binding(args.bin_path, code_revision=args.code_revision)
+    except HarnessError:
+        live_binding = None
+
+    result = verify_proof(
+        proof=proof, entries=entries, receipts=receipts, live_binding=live_binding
+    )
+    result["proof"] = str(args.proof)
+    print(json.dumps(result, ensure_ascii=True, sort_keys=True))
+    return EXIT_OK if result["ok"] else EXIT_VERIFY_FAILED
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
@@ -1561,6 +2393,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return cmd_verify_ledger(args)
     if args.command == "preflight":
         return cmd_preflight(args)
+    if args.command == "prove-resume":
+        return cmd_prove_resume(args)
+    if args.command == "verify-proof":
+        return cmd_verify_proof(args)
     parser.error("unknown command")
     return EXIT_USAGE
 
