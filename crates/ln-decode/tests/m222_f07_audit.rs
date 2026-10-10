@@ -10,13 +10,12 @@
 //! no clock, locale or environment value. Two independent runs over the same
 //! input therefore produce byte-identical diagnostics.
 //!
-//! **F07(c) — analysis capability/version/schema are not compared — is
-//! reproduced as a bounded structure-only gap** on the frozen R1001/M221
-//! surface. `inspect_npa_analysis_wire` reads the manifest only for `limits`
-//! and `read_back_npa_analysis`/`parse_manifest` read profile/model but never
-//! `capability`, `version` or `schema`; an envelope whose manifest carries a
-//! forged capability, a bumped version or a forged schema is still accepted.
-//! No frozen envelope is modified and no analyzers change.
+//! **F07(c) — analysis capability/version/schema admission — regression.**
+//! The historical M222 audit reproduced a bounded structure-only gap. These
+//! tests now require typed rejection by inspection, read-back and full
+//! verification, even after independent resealing. Historical receipts retain
+//! the old `f07c_*_tamper_passes_structure_only` names; the corresponding live
+//! tests are named `f07c_*_tamper_is_rejected`. No frozen envelope is modified.
 //!
 //! Fixtures are inline synthetic non-legal WordML plus tracked reader
 //! fixtures. Only counts and closed tokens appear in assertions; raw decoded
@@ -33,14 +32,17 @@ use ln_decode::cleaned_wire::{
 };
 use ln_decode::document_context::DocumentVersionRef;
 use ln_decode::npa_analysis_records::{analyze_document, DocumentAnalysis};
-use ln_decode::npa_analysis_verify::read_back_npa_analysis;
+use ln_decode::npa_analysis_verify::{
+    read_back_npa_analysis, verify_npa_analysis_wire, AnalysisVerifyCode,
+};
 use ln_decode::npa_analysis_wire::{
     inspect_npa_analysis_wire, render_npa_analysis, AnalysisEnvelopeRequest, AnalysisLimits,
-    AnalysisScope,
+    AnalysisScope, AnalysisWireErrorKind,
 };
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
 use ln_decode::reader_projection::{build_projection, ReaderProjection};
 use ln_decode::source_package::{capture, write_package, Limits, Package, Record};
+use sha2::{Digest, Sha256};
 
 const MIXED: &str = include_str!("fixtures/reader/mixed-wordml.xml");
 const TEXT_ONLY: &str = include_str!("fixtures/reader/diverse/text-only.xml");
@@ -358,6 +360,84 @@ fn tamper_manifest(document: &str, mutate: impl Fn(&str) -> String) -> String {
     format!("{}\n", lines.join("\n"))
 }
 
+/// Independent seal oracle: hashes wire bytes without production seal helpers
+/// or the reader under test. The footer is a canonical flat object.
+fn independently_reseal(document: &str) -> String {
+    let mut lines: Vec<String> = document.lines().map(str::to_owned).collect();
+    let last = lines.len() - 1;
+    let footer_body = format!(
+        "{{{}}}",
+        lines[last]
+            .trim_start_matches('{')
+            .trim_end_matches('}')
+            .split(',')
+            .filter(|part| !part.starts_with("\"manifest_hash\":")
+                && !part.starts_with("\"records_seal_hash\":"))
+            .collect::<Vec<_>>()
+            .join(",")
+    );
+    let records = format!("{:x}", Sha256::digest(lines[1..last].concat().as_bytes()));
+    let manifest = format!(
+        "{:x}",
+        Sha256::digest(format!("{}\n{records}\n{footer_body}", lines[0]).as_bytes())
+    );
+    for (key, value) in [("manifest_hash", manifest), ("records_seal_hash", records)] {
+        lines[last] = set_raw_value(&lines[last], key, &format!("\"{value}\""));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn assert_resealed_manifest_is_rejected(canonical: &str, tampered: &str) {
+    let pipeline = analysis_pipeline(&wrap(TYPED_BODY));
+    assert_eq!(
+        independently_reseal(canonical),
+        canonical,
+        "seal oracle baseline"
+    );
+    inspect_npa_analysis_wire(canonical).expect("canonical inspection must pass");
+    read_back_npa_analysis(canonical).expect("canonical read-back must pass");
+    verify_npa_analysis_wire(
+        canonical,
+        &pipeline.projection,
+        &pipeline.index,
+        &pipeline.mapping,
+    )
+    .expect("canonical full verification must pass");
+
+    let resealed = independently_reseal(tampered);
+    assert_ne!(
+        resealed, tampered,
+        "manifest tamper must require a new seal"
+    );
+    assert_eq!(
+        inspect_npa_analysis_wire(&resealed)
+            .expect_err("inspection must reject")
+            .kind(),
+        AnalysisWireErrorKind::EnvelopeStructural,
+    );
+    assert_eq!(
+        read_back_npa_analysis(&resealed)
+            .expect_err("read-back must reject")
+            .kind(),
+        AnalysisWireErrorKind::EnvelopeStructural,
+    );
+    let findings = verify_npa_analysis_wire(
+        &resealed,
+        &pipeline.projection,
+        &pipeline.index,
+        &pipeline.mapping,
+    )
+    .expect_err("full verification must reject independently resealed tamper");
+    assert_eq!(
+        findings
+            .iter()
+            .map(|finding| finding.code())
+            .collect::<Vec<_>>(),
+        vec![AnalysisVerifyCode::EnvelopeStructural],
+        "admission must reject, not seal verification",
+    );
+}
+
 // ------------------------------------------------------------- F07(c) audit #
 
 /// F07(c): the canonical analysis envelope is accepted structure-only by both
@@ -369,10 +449,9 @@ fn f07c_canonical_analysis_envelope_passes_structure_only() {
     read_back_npa_analysis(&canonical).expect("the canonical envelope must read back");
 }
 
-/// F07(c) reproduced: a forged manifest `capability` token is not compared, so
-/// both the structure-only inspect and the read-back still accept it.
+/// F07(c) regression: a forged manifest `capability` is rejected after resealing.
 #[test]
-fn f07c_capability_tamper_passes_structure_only() {
+fn f07c_capability_tamper_is_rejected() {
     let canonical = render_analysis(&wrap(TYPED_BODY));
     let tampered = tamper_manifest(&canonical, |line| {
         set_raw_value(line, "capability", "\"forged_capability\"")
@@ -381,34 +460,25 @@ fn f07c_capability_tamper_passes_structure_only() {
         tampered, canonical,
         "the capability tamper must change bytes"
     );
-    inspect_npa_analysis_wire(&tampered)
-        .expect("capability is not compared by inspect (F07c reproduced)");
-    read_back_npa_analysis(&tampered)
-        .expect("capability is not compared by read-back (F07c reproduced)");
+    assert_resealed_manifest_is_rejected(&canonical, &tampered);
 }
 
-/// F07(c) reproduced: a bumped manifest `version` is not compared.
+/// F07(c) regression: a bumped manifest `version` is rejected after resealing.
 #[test]
-fn f07c_version_tamper_passes_structure_only() {
+fn f07c_version_tamper_is_rejected() {
     let canonical = render_analysis(&wrap(TYPED_BODY));
     let tampered = tamper_manifest(&canonical, |line| set_last_raw_value(line, "version", "2"));
     assert_ne!(tampered, canonical, "the version tamper must change bytes");
-    inspect_npa_analysis_wire(&tampered)
-        .expect("version is not compared by inspect (F07c reproduced)");
-    read_back_npa_analysis(&tampered)
-        .expect("version is not compared by read-back (F07c reproduced)");
+    assert_resealed_manifest_is_rejected(&canonical, &tampered);
 }
 
-/// F07(c) reproduced: a forged manifest `schema` tag is not compared.
+/// F07(c) regression: a forged manifest `schema` is rejected after resealing.
 #[test]
-fn f07c_schema_tamper_passes_structure_only() {
+fn f07c_schema_tamper_is_rejected() {
     let canonical = render_analysis(&wrap(TYPED_BODY));
     let tampered = tamper_manifest(&canonical, |line| {
         set_last_raw_value(line, "schema", "\"law-nexus/forged-manifest/v9\"")
     });
     assert_ne!(tampered, canonical, "the schema tamper must change bytes");
-    inspect_npa_analysis_wire(&tampered)
-        .expect("manifest schema is not compared by inspect (F07c reproduced)");
-    read_back_npa_analysis(&tampered)
-        .expect("manifest schema is not compared by read-back (F07c reproduced)");
+    assert_resealed_manifest_is_rejected(&canonical, &tampered);
 }

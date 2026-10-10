@@ -1304,77 +1304,146 @@ fn skip_ws(bytes: &[u8], index: &mut usize) {
 
 /// Advances `index` past exactly one JSON value starting at `*index`.
 fn scan_value(raw: &str, index: &mut usize) -> Result<(), AnalysisWireError> {
+    scan_strict_value(raw, index, 0)
+}
+
+fn json_value_error(detail: &str) -> AnalysisWireError {
+    err(AnalysisWireErrorKind::UnknownKind, detail)
+}
+
+// Same bounded grammar as cleaned_wire's private scanner; no new dependency
+// or coupling between the two envelope contracts. Depth is checked before
+// recursion, including values that read-back otherwise ignores.
+const MAX_JSON_DEPTH: usize = 64;
+
+fn scan_json_string(raw: &str, index: &mut usize) -> Result<(), AnalysisWireError> {
     let bytes = raw.as_bytes();
-    if *index >= bytes.len() {
-        return Err(err(
-            AnalysisWireErrorKind::UnknownKind,
-            "missing JSON value",
-        ));
+    *index += 1;
+    while let Some(&byte) = bytes.get(*index) {
+        *index += 1;
+        match byte {
+            b'"' => return Ok(()),
+            b'\\' => match bytes.get(*index) {
+                Some(b'"' | b'\\' | b'/' | b'b' | b'f' | b'n' | b'r' | b't') => *index += 1,
+                Some(b'u') => {
+                    *index += 1;
+                    for _ in 0..4 {
+                        if !bytes.get(*index).is_some_and(u8::is_ascii_hexdigit) {
+                            return Err(json_value_error("invalid JSON unicode escape"));
+                        }
+                        *index += 1;
+                    }
+                }
+                _ => return Err(json_value_error("invalid JSON string escape")),
+            },
+            0..=0x1f => return Err(json_value_error("unescaped JSON control character")),
+            _ => {}
+        }
     }
-    match bytes[*index] {
-        b'"' => {
+    Err(json_value_error("unterminated JSON string"))
+}
+
+fn scan_strict_value(raw: &str, index: &mut usize, depth: usize) -> Result<(), AnalysisWireError> {
+    if depth > MAX_JSON_DEPTH {
+        return Err(json_value_error("JSON nesting exceeds the supported depth"));
+    }
+    let bytes = raw.as_bytes();
+    skip_ws(bytes, index);
+    match bytes.get(*index).copied() {
+        Some(b'"') => scan_json_string(raw, index),
+        Some(open @ (b'{' | b'[')) => {
+            let close = if open == b'{' { b'}' } else { b']' };
             *index += 1;
-            while *index < bytes.len() {
-                match bytes[*index] {
-                    b'\\' => *index += 2,
-                    b'"' => {
+            skip_ws(bytes, index);
+            if bytes.get(*index) == Some(&close) {
+                *index += 1;
+                return Ok(());
+            }
+            let mut keys = BTreeSet::new();
+            loop {
+                if open == b'{' {
+                    if bytes.get(*index) != Some(&b'"') {
+                        return Err(json_value_error("object key is not a JSON string"));
+                    }
+                    let start = *index;
+                    scan_json_string(raw, index)?;
+                    if !keys.insert(&raw[start..*index]) {
+                        return Err(json_value_error("duplicate object key"));
+                    }
+                    skip_ws(bytes, index);
+                    if bytes.get(*index) != Some(&b':') {
+                        return Err(json_value_error("object member has no colon"));
+                    }
+                    *index += 1;
+                }
+                scan_strict_value(raw, index, depth + 1)?;
+                skip_ws(bytes, index);
+                match bytes.get(*index) {
+                    Some(byte) if *byte == close => {
                         *index += 1;
                         return Ok(());
                     }
-                    _ => *index += 1,
+                    Some(b',') => {
+                        *index += 1;
+                        skip_ws(bytes, index);
+                        // The next iteration requires a key/value, not a closer.
+                    }
+                    _ => return Err(json_value_error("malformed JSON container separator")),
                 }
             }
-            Err(err(
-                AnalysisWireErrorKind::UnknownKind,
-                "unterminated JSON string",
-            ))
         }
-        b'{' | b'[' => {
-            let mut depth = 0usize;
-            while *index < bytes.len() {
-                match bytes[*index] {
-                    b'"' => {
-                        *index += 1;
-                        while *index < bytes.len() {
-                            match bytes[*index] {
-                                b'\\' => *index += 2,
-                                b'"' => {
-                                    *index += 1;
-                                    break;
-                                }
-                                _ => *index += 1,
-                            }
-                        }
-                    }
-                    b'{' | b'[' => {
-                        depth += 1;
-                        *index += 1;
-                    }
-                    b'}' | b']' => {
-                        depth = depth.saturating_sub(1);
-                        *index += 1;
-                        if depth == 0 {
-                            return Ok(());
-                        }
-                    }
-                    _ => *index += 1,
-                }
+        Some(b't' | b'f' | b'n') => {
+            let literal = match bytes[*index] {
+                b't' => "true",
+                b'f' => "false",
+                _ => "null",
+            };
+            if !raw[*index..].starts_with(literal) {
+                return Err(json_value_error("invalid JSON literal"));
             }
-            Err(err(
-                AnalysisWireErrorKind::UnknownKind,
-                "unterminated JSON container",
-            ))
+            *index += literal.len();
+            Ok(())
         }
-        _ => {
-            while *index < bytes.len() {
-                let byte = bytes[*index];
-                if byte == b',' || byte == b'}' || byte == b']' || is_json_ws(byte) {
-                    break;
-                }
+        Some(b'-' | b'0'..=b'9') => {
+            if bytes[*index] == b'-' {
                 *index += 1;
+            }
+            match bytes.get(*index) {
+                Some(b'0') => {
+                    *index += 1;
+                    if bytes.get(*index).is_some_and(u8::is_ascii_digit) {
+                        return Err(json_value_error("JSON number has a leading zero"));
+                    }
+                }
+                Some(b'1'..=b'9') => {
+                    while bytes.get(*index).is_some_and(u8::is_ascii_digit) {
+                        *index += 1;
+                    }
+                }
+                _ => return Err(json_value_error("invalid JSON number")),
+            }
+            for fractional in [true, false] {
+                let present = if fractional {
+                    bytes.get(*index) == Some(&b'.')
+                } else {
+                    matches!(bytes.get(*index), Some(b'e' | b'E'))
+                };
+                if present {
+                    *index += 1;
+                    if !fractional && matches!(bytes.get(*index), Some(b'+' | b'-')) {
+                        *index += 1;
+                    }
+                    if !bytes.get(*index).is_some_and(u8::is_ascii_digit) {
+                        return Err(json_value_error("JSON fraction or exponent has no digits"));
+                    }
+                    while bytes.get(*index).is_some_and(u8::is_ascii_digit) {
+                        *index += 1;
+                    }
+                }
             }
             Ok(())
         }
+        _ => Err(json_value_error("unrecognized or missing JSON value")),
     }
 }
 
@@ -1382,6 +1451,14 @@ impl<'a> JsonFields<'a> {
     /// Parses one compact JSON object into its top-level members. Duplicate
     /// keys, unquoted keys, unterminated values and trailing bytes are refused.
     pub(crate) fn parse(raw: &'a str) -> Result<JsonFields<'a>, AnalysisWireError> {
+        // Validate the entire grammar, including keys and ignored nested data,
+        // before extracting borrowed top-level slices.
+        let mut end = 0;
+        scan_value(raw, &mut end)?;
+        skip_ws(raw.as_bytes(), &mut end);
+        if end != raw.len() {
+            return Err(json_value_error("trailing bytes after JSON value"));
+        }
         let bytes = raw.as_bytes();
         let mut index = 0usize;
         skip_ws(bytes, &mut index);
@@ -1784,6 +1861,25 @@ pub fn inspect_npa_analysis_wire(text: &str) -> Result<AnalysisEnvelopeSummary, 
     let mut shapes: Vec<EnvelopeLineShape> = Vec::with_capacity(parsed.len());
     for (index, fields) in parsed.iter().enumerate() {
         let (token, kind) = line_token(fields)?;
+        let schema = match token.as_str() {
+            KIND_MANIFEST => SCHEMA_MANIFEST,
+            KIND_POLICIES => SCHEMA_POLICIES,
+            KIND_FOOTER => SCHEMA_FOOTER,
+            FAMILY_DOCUMENT => SCHEMA_DOCUMENT,
+            FAMILY_FRAGMENT => SCHEMA_FRAGMENT,
+            FAMILY_MEMBER => SCHEMA_MEMBER,
+            FAMILY_RELATION => SCHEMA_RELATION,
+            FAMILY_CLASSIFICATION => SCHEMA_CLASSIFICATION,
+            FAMILY_DIAGNOSTIC => SCHEMA_DIAGNOSTIC,
+            FAMILY_CONTEXT => SCHEMA_CONTEXT,
+            _ => unreachable!("line_token admits only closed tokens"),
+        };
+        if string_field(fields, "schema").as_deref() != Some(schema) {
+            return Err(err(
+                AnalysisWireErrorKind::EnvelopeStructural,
+                format!("line {index} has an unsupported schema"),
+            ));
+        }
         shapes.push(EnvelopeLineShape {
             kind,
             raw_len: lines[index].len(),
@@ -1889,6 +1985,14 @@ pub fn inspect_npa_analysis_wire(text: &str) -> Result<AnalysisEnvelopeSummary, 
     // Declared limits are honored by the structure; a violation is a closed
     // limit refusal (§8A.9).
     let manifest = &parsed[0];
+    if u64_field(manifest, "version") != Some(CONTRACT_VERSION)
+        || string_field(manifest, "capability").as_deref() != Some(CAPABILITY)
+    {
+        return Err(err(
+            AnalysisWireErrorKind::EnvelopeStructural,
+            "unsupported analysis version or capability",
+        ));
+    }
     let limits_raw = manifest.get("limits").ok_or_else(|| {
         err(
             AnalysisWireErrorKind::EnvelopeStructural,

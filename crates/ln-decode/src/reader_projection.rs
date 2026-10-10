@@ -531,21 +531,34 @@ fn ancestor_has_role(
     }
 }
 
-/// Closed semantic for a source fragment: `field_code` when the owner is under
-/// a field, else the revision class, else whitespace, else body.
+/// Closed semantic for a source fragment: field, revision, whitespace, then body.
+/// A tail belongs to the parent's content, not its closed capture owner's role.
 fn text_semantic(
     index: &ReaderRecordIndex,
     owner: &str,
+    slot: TextSlot,
     value: &str,
 ) -> Result<ReaderSemantic, ProjectionError> {
-    if ancestor_has_role(index, owner, ReaderRole::Field)? {
-        return Ok(ReaderSemantic::FieldCode);
-    }
-    if ancestor_has_role(index, owner, ReaderRole::RevisionInsertion)? {
-        return Ok(ReaderSemantic::RevisionInsertion);
-    }
-    if ancestor_has_role(index, owner, ReaderRole::RevisionDeletion)? {
-        return Ok(ReaderSemantic::RevisionDeletion);
+    let element = index.element(owner).ok_or_else(|| {
+        ProjectionError::new(
+            ProjectionErrorKind::MalformedSubstrate,
+            format!("text owner {owner} is missing"),
+        )
+    })?;
+    let context = match slot {
+        TextSlot::Text => Some(owner),
+        TextSlot::Tail => element.parent.as_deref(),
+    };
+    if let Some(owner) = context {
+        if ancestor_has_role(index, owner, ReaderRole::Field)? {
+            return Ok(ReaderSemantic::FieldCode);
+        }
+        if ancestor_has_role(index, owner, ReaderRole::RevisionInsertion)? {
+            return Ok(ReaderSemantic::RevisionInsertion);
+        }
+        if ancestor_has_role(index, owner, ReaderRole::RevisionDeletion)? {
+            return Ok(ReaderSemantic::RevisionDeletion);
+        }
     }
     if value.trim().is_empty() {
         return Ok(ReaderSemantic::Whitespace);
@@ -869,7 +882,7 @@ pub fn build_projection(records: &[Record]) -> Result<ReaderProjection, Projecti
                             error.detail().to_string(),
                         ));
                     }
-                    let semantic = text_semantic(&index, owner, &text.value)?;
+                    let semantic = text_semantic(&index, owner, *slot, &text.value)?;
                     let source_pos = index.source_pos(owner).ok_or_else(|| {
                         ProjectionError::new(
                             ProjectionErrorKind::MissingView,

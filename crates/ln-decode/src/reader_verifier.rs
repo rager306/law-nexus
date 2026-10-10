@@ -29,7 +29,7 @@ use crate::reader_contract::{
 use crate::reader_projection::{
     ProjectedReference, ProjectedSegment, ReaderProjection, SegmentOrigin,
 };
-use crate::source_package::{ElementRecord, Record};
+use crate::source_package::{ElementRecord, Record, TextSlot};
 
 // ------------------------------------------------------------------- codes #
 
@@ -280,21 +280,31 @@ fn ancestor_has_role(
     }
 }
 
-/// Closed semantic for a source fragment: `field_code` when the owner is under a
-/// field, else the revision class, else whitespace, else body.
+/// Recompute semantic context from substrate coordinates, independently of the
+/// projection: tails start at the capture owner's parent; text starts at owner.
 fn text_semantic(
     index: &ReaderRecordIndex,
     owner: &str,
+    slot: TextSlot,
     value: &str,
 ) -> Result<ReaderSemantic, String> {
-    if ancestor_has_role(index, owner, ReaderRole::Field)? {
-        return Ok(ReaderSemantic::FieldCode);
-    }
-    if ancestor_has_role(index, owner, ReaderRole::RevisionInsertion)? {
-        return Ok(ReaderSemantic::RevisionInsertion);
-    }
-    if ancestor_has_role(index, owner, ReaderRole::RevisionDeletion)? {
-        return Ok(ReaderSemantic::RevisionDeletion);
+    let element = index
+        .element(owner)
+        .ok_or_else(|| format!("text owner {owner} is missing from the substrate index"))?;
+    let context = match slot {
+        TextSlot::Text => Some(owner),
+        TextSlot::Tail => element.parent.as_deref(),
+    };
+    if let Some(owner) = context {
+        if ancestor_has_role(index, owner, ReaderRole::Field)? {
+            return Ok(ReaderSemantic::FieldCode);
+        }
+        if ancestor_has_role(index, owner, ReaderRole::RevisionInsertion)? {
+            return Ok(ReaderSemantic::RevisionInsertion);
+        }
+        if ancestor_has_role(index, owner, ReaderRole::RevisionDeletion)? {
+            return Ok(ReaderSemantic::RevisionDeletion);
+        }
     }
     if value.trim().is_empty() {
         return Ok(ReaderSemantic::Whitespace);
@@ -660,7 +670,7 @@ fn verify_source_segment(
             ),
         ));
     }
-    match text_semantic(index, &text.owner, value) {
+    match text_semantic(index, &text.owner, text.slot, value) {
         Ok(semantic) => {
             if segment.semantic != semantic
                 || segment.contextual != (semantic != ReaderSemantic::Body)
