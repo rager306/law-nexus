@@ -15,13 +15,13 @@ use std::fs;
 use std::io::{Cursor, Write};
 use std::path::PathBuf;
 
-use crate::cleaned_completion::{classify_completion, ScopeDeclaration};
+use crate::cleaned_completion::{ScopeDeclaration, classify_completion};
 use crate::cleaned_publish::write_cleaned_projection_atomic;
 use crate::cleaned_verifier::verify_cleaned_wire;
-use crate::cleaned_wire::{export_cleaned_projection, read_cleaned_wire, WireLimits};
+use crate::cleaned_wire::{WireLimits, export_cleaned_projection, read_cleaned_wire};
 use crate::reader_gate::{classify_source, gate_reader};
 use crate::reader_projection::build_projection;
-use crate::source_package::{capture, read_package, Limits, Package};
+use crate::source_package::{Limits, Package, capture, read_package};
 
 // ------------------------------------------------------------- exit codes #
 

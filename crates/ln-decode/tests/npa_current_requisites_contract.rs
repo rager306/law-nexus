@@ -81,9 +81,11 @@ fn head_and_filename_disagreement_is_conflicting_with_no_winner() {
     assert_eq!(number.status(), FieldResolutionStatus::Conflicting);
     assert!(number.compatible_candidate_refs().is_empty());
     assert!(number.selection_policy_ref().is_none());
-    assert!(sidecar
-        .diagnostics()
-        .contains(&RequisitesDiagnostic::HeadFilenameConflict));
+    assert!(
+        sidecar
+            .diagnostics()
+            .contains(&RequisitesDiagnostic::HeadFilenameConflict)
+    );
 }
 
 #[test]
@@ -149,11 +151,16 @@ fn wrong_document_claim_is_excluded_and_association_fails_closed() {
         type_resolution.status(),
         FieldResolutionStatus::AssociationFailed
     );
-    assert!(sidecar
-        .diagnostics()
-        .contains(&RequisitesDiagnostic::WrongDocumentAssociation));
-    assert!(!sidecar
-        .authorize_this_document_reference(ThisRefGrammarEvidence::new([RequisitesField::Type])));
+    assert!(
+        sidecar
+            .diagnostics()
+            .contains(&RequisitesDiagnostic::WrongDocumentAssociation)
+    );
+    assert!(
+        !sidecar.authorize_this_document_reference(ThisRefGrammarEvidence::new([
+            RequisitesField::Type
+        ]))
+    );
 }
 
 #[test]
@@ -237,8 +244,11 @@ fn authorization_requires_explicit_grammar_and_non_conflicting_required_field() 
         RequisitesSourceKind::SourceFilename,
     ));
     let sidecar = CurrentDocumentRequisites::try_new("doc-v1".into(), conflicting).unwrap();
-    assert!(!sidecar
-        .authorize_this_document_reference(ThisRefGrammarEvidence::new([RequisitesField::Number])));
+    assert!(
+        !sidecar.authorize_this_document_reference(ThisRefGrammarEvidence::new([
+            RequisitesField::Number
+        ]))
+    );
 }
 
 #[test]

@@ -4,10 +4,10 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use ln_consultant_parser::catalog::{
-    contract, resolve_consids, CatalogPort, CatalogRecord, InMemoryCatalog,
-};
 use ln_consultant_parser::SqliteCatalog;
+use ln_consultant_parser::catalog::{
+    CatalogPort, CatalogRecord, InMemoryCatalog, contract, resolve_consids,
+};
 use rusqlite::{Connection, OpenFlags};
 
 const FOUND_CONSID: &str = "offline://token-found";

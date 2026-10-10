@@ -4,8 +4,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use ln_decode::npa_context_baseline::{
-    parse_context_baseline_args, run_context_baseline, validate_context_baseline_jsonl, ContextCli,
-    CONTEXT_SCHEMA,
+    CONTEXT_SCHEMA, ContextCli, parse_context_baseline_args, run_context_baseline,
+    validate_context_baseline_jsonl,
 };
 use ln_decode::npa_sweep::{EXIT_OK, EXIT_ROOT_MISSING};
 

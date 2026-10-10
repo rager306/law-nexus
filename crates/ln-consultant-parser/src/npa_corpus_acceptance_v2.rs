@@ -28,8 +28,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::npa_corpus_acceptance::{
-    AcceptanceEntry, DeclaredRoot, EntryOutcome, StructuralIntegritySection, TamperProbeCounts,
-    Verdict, FORBIDDEN_TEXT_KEYS,
+    AcceptanceEntry, DeclaredRoot, EntryOutcome, FORBIDDEN_TEXT_KEYS, StructuralIntegritySection,
+    TamperProbeCounts, Verdict,
 };
 
 // ------------------------------------------------------------- constants #

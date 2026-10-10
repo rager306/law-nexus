@@ -356,13 +356,12 @@ fn negated_range(
             .filter(|token| token.statement == statement)
             .is_some_and(|token| token_matches(text, *token, NEGATION_PARTICLE))
     };
-    if let Some(left) = matched.start.checked_sub(1) {
-        if !cue_starts.contains(&left)
-            && gap_is_whitespace(text, tokens[left].end, tokens[matched.start].start)
-            && is_particle(left)
-        {
-            return (left, matched.end);
-        }
+    if let Some(left) = matched.start.checked_sub(1)
+        && !cue_starts.contains(&left)
+        && gap_is_whitespace(text, tokens[left].end, tokens[matched.start].start)
+        && is_particle(left)
+    {
+        return (left, matched.end);
     }
     let right = matched.end + 1;
     if !cue_starts.contains(&right)

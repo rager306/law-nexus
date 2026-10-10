@@ -2,8 +2,8 @@
 //! canonicalisation exposes deterministic counters instead of silent loss.
 
 use ln_temporal::domain::{
-    edition_delta, AmendingActId, AmendmentEvent, AmendmentFacetKind, CanonRecordId,
-    ComponentConceptId, EvidenceClass, ThreeCanonEventLog, ThreeCanonRecord,
+    AmendingActId, AmendmentEvent, AmendmentFacetKind, CanonRecordId, ComponentConceptId,
+    EvidenceClass, ThreeCanonEventLog, ThreeCanonRecord, edition_delta,
 };
 use ln_temporal::provenance::{
     CommencementEvidence, EditionDeltaError, EditionProvenanceEnvelope, ProvenanceAdmission,

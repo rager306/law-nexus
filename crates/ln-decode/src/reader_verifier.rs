@@ -22,9 +22,9 @@ use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
 use crate::reader_contract::{
-    check_fragment_span, control_derived_kind, partition_primary_views, reference_type_of,
-    tail_view_key, view_key, ElementRef, ReaderDerivedKind, ReaderRecordIndex, ReaderReferenceType,
-    ReaderRole, ReaderSegmentKind, ReaderSemantic, ReaderViewKey, ReaderViewKind,
+    ElementRef, ReaderDerivedKind, ReaderRecordIndex, ReaderReferenceType, ReaderRole,
+    ReaderSegmentKind, ReaderSemantic, ReaderViewKey, ReaderViewKind, check_fragment_span,
+    control_derived_kind, partition_primary_views, reference_type_of, tail_view_key, view_key,
 };
 use crate::reader_projection::{
     ProjectedReference, ProjectedSegment, ReaderProjection, SegmentOrigin,
@@ -373,14 +373,15 @@ fn document_events(index: &ReaderRecordIndex) -> Result<Vec<Event>, String> {
                             .map_err(|error| error.detail().to_string())?,
                     });
                 }
-                if role == ReaderRole::Control && element.text_ref.is_none() {
-                    if let Some(kind) = control_derived_kind(&element.clark_tag, &element.attrs) {
-                        events.push(Event::Control {
-                            kind,
-                            view: view_key(index, &ElementRef::new(element.id.as_str()))
-                                .map_err(|error| error.detail().to_string())?,
-                        });
-                    }
+                if role == ReaderRole::Control
+                    && element.text_ref.is_none()
+                    && let Some(kind) = control_derived_kind(&element.clark_tag, &element.attrs)
+                {
+                    events.push(Event::Control {
+                        kind,
+                        view: view_key(index, &ElementRef::new(element.id.as_str()))
+                            .map_err(|error| error.detail().to_string())?,
+                    });
                 }
                 if matches!(
                     role,
@@ -395,16 +396,15 @@ fn document_events(index: &ReaderRecordIndex) -> Result<Vec<Event>, String> {
                         }
                         _ => true,
                     };
-                    if is_boundary {
-                        if let Some(reference_type) =
+                    if is_boundary
+                        && let Some(reference_type) =
                             reference_type_of(&element.clark_tag, &element.attrs)
-                        {
-                            events.push(Event::Reference {
-                                reference_type,
-                                view: view_key(index, &ElementRef::new(element.id.as_str()))
-                                    .map_err(|error| error.detail().to_string())?,
-                            });
-                        }
+                    {
+                        events.push(Event::Reference {
+                            reference_type,
+                            view: view_key(index, &ElementRef::new(element.id.as_str()))
+                                .map_err(|error| error.detail().to_string())?,
+                        });
                     }
                 }
                 if let Some(kids) = children.get(&element.id) {
@@ -1015,21 +1015,21 @@ fn verify_coverage(
         let Some(expected_key) = expected.fragment_view.get(fragment.as_str()) else {
             continue;
         };
-        if let Some(actual_key) = id_to_key.get(segment.view.as_str()) {
-            if actual_key != expected_key {
-                findings.push(VerifyFinding::new(
-                    VerifyCode::FragmentInWrongView,
-                    format!(
-                        "{}: fragment {} belongs to view {} {} but is in view {} {}",
-                        segment.id,
-                        fragment,
-                        expected_key.kind.as_str(),
-                        expected_key.element_ref,
-                        actual_key.kind.as_str(),
-                        actual_key.element_ref
-                    ),
-                ));
-            }
+        if let Some(actual_key) = id_to_key.get(segment.view.as_str())
+            && actual_key != expected_key
+        {
+            findings.push(VerifyFinding::new(
+                VerifyCode::FragmentInWrongView,
+                format!(
+                    "{}: fragment {} belongs to view {} {} but is in view {} {}",
+                    segment.id,
+                    fragment,
+                    expected_key.kind.as_str(),
+                    expected_key.element_ref,
+                    actual_key.kind.as_str(),
+                    actual_key.element_ref
+                ),
+            ));
         }
     }
 
@@ -1070,7 +1070,7 @@ pub fn verify_projection(
             return Err(vec![VerifyFinding::new(
                 VerifyCode::SubstrateMalformed,
                 detail,
-            )])
+            )]);
         }
     };
 
@@ -1130,8 +1130,8 @@ pub fn verify_projection(
 mod tests {
     use super::*;
     use crate::reader_contract::{ContractErrorKind, ReaderFragmentSpan};
-    use crate::reader_projection::{build_projection, SegmentId, ViewId};
-    use crate::source_package::{capture, Limits, TextRecord, TextSlot};
+    use crate::reader_projection::{SegmentId, ViewId, build_projection};
+    use crate::source_package::{Limits, TextRecord, TextSlot, capture};
     use std::collections::BTreeMap;
 
     const NS: &str = "{http://schemas.microsoft.com/office/word/2003/wordml}";
@@ -1373,10 +1373,12 @@ mod tests {
     fn resolved_reference_is_reported() {
         let records = fixture_records();
         let mut projection = build_projection(&records).expect("projection builds");
-        assert!(projection
-            .references
-            .iter()
-            .any(|reference| !reference.resolved));
+        assert!(
+            projection
+                .references
+                .iter()
+                .any(|reference| !reference.resolved)
+        );
         projection.references[0].resolved = true;
         let findings = verify_projection(&projection, &records).unwrap_err();
         assert!(codes(&findings).contains(&VerifyCode::ReferenceResolved));

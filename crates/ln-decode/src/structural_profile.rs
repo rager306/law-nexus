@@ -298,10 +298,10 @@ impl StructuralProfile {
         if text.is_empty() {
             return false;
         }
-        if let Some(level) = level_from_ladder_token(&entry.token) {
-            if self.has_prefix_markers(level) {
-                return self.prefix_match(text, level);
-            }
+        if let Some(level) = level_from_ladder_token(&entry.token)
+            && self.has_prefix_markers(level)
+        {
+            return self.prefix_match(text, level);
         }
         Self::numbered_match(text, entry)
     }

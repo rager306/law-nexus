@@ -218,25 +218,25 @@ pub fn lex(src: &str) -> Vec<NpaToken> {
         // `Punct('"') + EnumMarker` here, and the closing quote falls back to
         // the greedy Punct scan — recognized before Punct could swallow the
         // letter into the run.
-        if ch == '"' {
-            if let Some(letter_end) = quoted_enum_letter_end(src, pos) {
-                let quote_span = TextSpan::try_new(pos, pos + 1)
-                    .expect("lexer invariant: an ASCII quote is exactly one byte");
-                tokens.push(NpaToken {
-                    kind: TokenKind::Punct,
-                    span: quote_span,
-                    abbrev_id: None,
-                });
-                let letter_span = TextSpan::try_new(pos + 1, letter_end)
-                    .expect("lexer invariant: one cyrillic letter is at least two bytes");
-                tokens.push(NpaToken {
-                    kind: TokenKind::EnumMarker,
-                    span: letter_span,
-                    abbrev_id: None,
-                });
-                pos = letter_end;
-                continue;
-            }
+        if ch == '"'
+            && let Some(letter_end) = quoted_enum_letter_end(src, pos)
+        {
+            let quote_span = TextSpan::try_new(pos, pos + 1)
+                .expect("lexer invariant: an ASCII quote is exactly one byte");
+            tokens.push(NpaToken {
+                kind: TokenKind::Punct,
+                span: quote_span,
+                abbrev_id: None,
+            });
+            let letter_span = TextSpan::try_new(pos + 1, letter_end)
+                .expect("lexer invariant: one cyrillic letter is at least two bytes");
+            tokens.push(NpaToken {
+                kind: TokenKind::EnumMarker,
+                span: letter_span,
+                abbrev_id: None,
+            });
+            pos = letter_end;
+            continue;
         }
         let (kind, abbrev_id, end) = if ch.is_whitespace() {
             (

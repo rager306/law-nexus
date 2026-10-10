@@ -1,7 +1,7 @@
 //! Stack propose is a draft. Empty registry quarantines; no log write.
 
 use ln_kb_ontology::domain::{
-    propose_membership_from_markers, HierarchyBinding, HierarchyMap, HierarchyMarker,
+    HierarchyBinding, HierarchyMap, HierarchyMarker, propose_membership_from_markers,
 };
 use ln_temporal::domain::ComponentConceptId;
 
@@ -42,10 +42,12 @@ fn glava_then_statya_proposes_one_attach() {
     assert_eq!(report.proposals[0].child.as_str(), "cc:statya-1");
     assert_eq!(report.quarantined, 0);
     assert_eq!(report.forest_roots, 1);
-    assert!(report
-        .non_claims()
-        .iter()
-        .any(|line| line.contains("do not append VersionedMembershipLog")));
+    assert!(
+        report
+            .non_claims()
+            .iter()
+            .any(|line| line.contains("do not append VersionedMembershipLog"))
+    );
 }
 
 #[test]

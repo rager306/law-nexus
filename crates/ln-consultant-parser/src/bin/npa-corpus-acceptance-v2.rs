@@ -19,11 +19,11 @@ use ln_consultant_parser::artifact_output::{
     output_identity, preflight_publish_target, publish_text_artifact,
 };
 use ln_consultant_parser::npa_corpus_acceptance::{
-    build_bounded_inventory, declared_sample_roots, run_acceptance_entries, AcceptanceOptions,
-    SampleRoot, CONSULTANT_ROOT_RELATIVE, GARANT_ROOT_RELATIVE,
+    AcceptanceOptions, CONSULTANT_ROOT_RELATIVE, GARANT_ROOT_RELATIVE, SampleRoot,
+    build_bounded_inventory, declared_sample_roots, run_acceptance_entries,
 };
 use ln_consultant_parser::npa_corpus_acceptance_v2::{
-    build_report_v2, entries_jsonl, V2Thresholds,
+    V2Thresholds, build_report_v2, entries_jsonl,
 };
 
 const DEFAULT_OUT: &str = "prd/migration/rust-evidence/m221-s04-acceptance.json";

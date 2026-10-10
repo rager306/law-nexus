@@ -31,10 +31,10 @@
 use std::collections::HashSet;
 
 use ln_decode::reader_contract::{ReaderFragmentSpan, ReaderSegmentKind};
-use ln_decode::reader_gate::{classify_source, gate_reader, ReaderSourceClass};
-use ln_decode::reader_projection::{build_projection, ReaderProjection, SegmentOrigin};
-use ln_decode::reader_verifier::{verify_projection, VerifyCode};
-use ln_decode::source_package::{capture, Limits, Record, TextRecord};
+use ln_decode::reader_gate::{ReaderSourceClass, classify_source, gate_reader};
+use ln_decode::reader_projection::{ReaderProjection, SegmentOrigin, build_projection};
+use ln_decode::reader_verifier::{VerifyCode, verify_projection};
+use ln_decode::source_package::{Limits, Record, TextRecord, capture};
 
 // ---------------------------------------------------------------- fixtures #
 

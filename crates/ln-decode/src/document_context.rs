@@ -13,7 +13,7 @@ use crate::lawref::LawRef;
 use crate::local_grammar::{
     CoordinatingFrame, DerivationSource, FrameKind, FrameStatus, StructuralDesignationFrame,
 };
-use crate::morphology::{find_legal_markers, LegalMarkerKind};
+use crate::morphology::{LegalMarkerKind, find_legal_markers};
 use crate::npa_continuation::ContinuationEligibility;
 use crate::structural_profile::StructuralProfile;
 
@@ -1412,21 +1412,21 @@ pub fn detect_declared_aliases(text: &str, scope: ContainerId) -> Vec<DeclaredAl
             };
             let end = value_start + end_rel;
             let wording = text[value_start..end].trim();
-            if !wording.is_empty() {
-                if let (Ok(anchor), Ok(alias_id), Ok(mention)) = (
+            if !wording.is_empty()
+                && let (Ok(anchor), Ok(alias_id), Ok(mention)) = (
                     TextSpan::try_new(start, end + 1),
                     AliasId::parse(&format!("alias-{start}")),
                     MentionRef::parse(&format!("alias-target-{start}")),
-                ) {
-                    out.push(DeclaredAliasNode {
-                        alias_id,
-                        wording: wording.to_owned(),
-                        target_mention_ref: mention,
-                        declaration_anchor: anchor,
-                        scope_container_id: scope.clone(),
-                        status: StructureEdgeStatus::Accepted,
-                    });
-                }
+                )
+            {
+                out.push(DeclaredAliasNode {
+                    alias_id,
+                    wording: wording.to_owned(),
+                    target_mention_ref: mention,
+                    declaration_anchor: anchor,
+                    scope_container_id: scope.clone(),
+                    status: StructureEdgeStatus::Accepted,
+                });
             }
             from = end + 1;
         }
@@ -1454,10 +1454,10 @@ pub fn detect_this_ref_grammar(text: &str) -> Vec<TextSpan> {
     let mut spans = Vec::new();
     for (start, _) in text.char_indices() {
         for surface in SURFACES {
-            if let Some(end) = match_this_ref_surface(text, start, surface) {
-                if let Ok(span) = TextSpan::try_new(start, end) {
-                    spans.push(span);
-                }
+            if let Some(end) = match_this_ref_surface(text, start, surface)
+                && let Ok(span) = TextSpan::try_new(start, end)
+            {
+                spans.push(span);
             }
         }
     }

@@ -25,23 +25,23 @@ use std::fs;
 use std::path::PathBuf;
 
 use ln_decode::analysis_source_mapping::{SourceIdentity, SourceMapping};
-use ln_decode::cleaned_cli::{parse_cleaned_args, run_cleaned_with, EXIT_OK, EXIT_VERIFY_FAILED};
-use ln_decode::cleaned_verifier::{verify_cleaned_wire, CleanedVerifyCode};
+use ln_decode::cleaned_cli::{EXIT_OK, EXIT_VERIFY_FAILED, parse_cleaned_args, run_cleaned_with};
+use ln_decode::cleaned_verifier::{CleanedVerifyCode, verify_cleaned_wire};
 use ln_decode::cleaned_wire::{
-    export_cleaned_projection, read_cleaned_wire, WireCompletion, WireLimits,
+    WireCompletion, WireLimits, export_cleaned_projection, read_cleaned_wire,
 };
 use ln_decode::document_context::DocumentVersionRef;
-use ln_decode::npa_analysis_records::{analyze_document, DocumentAnalysis};
+use ln_decode::npa_analysis_records::{DocumentAnalysis, analyze_document};
 use ln_decode::npa_analysis_verify::{
-    read_back_npa_analysis, verify_npa_analysis_wire, AnalysisVerifyCode,
+    AnalysisVerifyCode, read_back_npa_analysis, verify_npa_analysis_wire,
 };
 use ln_decode::npa_analysis_wire::{
-    inspect_npa_analysis_wire, render_npa_analysis, AnalysisEnvelopeRequest, AnalysisLimits,
-    AnalysisScope, AnalysisWireErrorKind,
+    AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope, AnalysisWireErrorKind,
+    inspect_npa_analysis_wire, render_npa_analysis,
 };
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, write_package, Limits, Package, Record};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
+use ln_decode::source_package::{Limits, Package, Record, capture, write_package};
 use sha2::{Digest, Sha256};
 
 const MIXED: &str = include_str!("fixtures/reader/mixed-wordml.xml");

@@ -677,12 +677,12 @@ pub(crate) fn validate_fragment(
 
     if note_kind != "synthetic" {
         for token in &raw_tokens {
-            if let Some(abbrev_id) = &token.id {
-                if CORPUS_FORBIDDEN_ABBREV_IDS.contains(&abbrev_id.as_str()) {
-                    return Err(format!(
-                        "{context} ({file}): corpus fragment uses D329-forbidden abbrev id '{abbrev_id}'"
-                    ));
-                }
+            if let Some(abbrev_id) = &token.id
+                && CORPUS_FORBIDDEN_ABBREV_IDS.contains(&abbrev_id.as_str())
+            {
+                return Err(format!(
+                    "{context} ({file}): corpus fragment uses D329-forbidden abbrev id '{abbrev_id}'"
+                ));
             }
         }
     }

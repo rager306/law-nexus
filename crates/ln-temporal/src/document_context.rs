@@ -166,10 +166,10 @@ impl DocumentStructureIndex {
             }
         }
         for container in &containers {
-            if let Some(parent) = container.parent {
-                if !containers.iter().any(|x| x.id == parent) {
-                    return Err(ContextError::MissingContainer);
-                }
+            if let Some(parent) = container.parent
+                && !containers.iter().any(|x| x.id == parent)
+            {
+                return Err(ContextError::MissingContainer);
             }
         }
         if membership.keys().any(|id| !ids.contains(id))

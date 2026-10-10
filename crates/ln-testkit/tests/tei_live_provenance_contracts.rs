@@ -158,10 +158,12 @@ fn live_tei_path_yields_populated_provenance() {
     assert_eq!(artifact.dimensions(), DIMENSIONS);
     assert_eq!(artifact.vector(), server_vector().as_slice());
     assert_eq!(artifact.provenance().license(), "Apache-2.0");
-    assert!(artifact
-        .provenance()
-        .weights_sha256()
-        .starts_with("sha256:"));
+    assert!(
+        artifact
+            .provenance()
+            .weights_sha256()
+            .starts_with("sha256:")
+    );
     assert_eq!(artifact.provenance().dimensions(), DIMENSIONS);
     assert!(!artifact.provenance().parameters().is_empty());
 }

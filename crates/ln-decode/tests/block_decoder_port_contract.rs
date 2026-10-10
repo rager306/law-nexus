@@ -15,17 +15,19 @@ impl BlockDecoderPort for SuccessfulDecoder {
         &self,
         _request: &DecodeRequest,
     ) -> Result<Vec<ParsedBlock>, BlockDecodeError> {
-        Ok(vec![ParsedBlock::try_new(
-            "Статья 1. Предмет регулирования.".to_owned(),
-            Some("P1".to_owned()),
-            ParagraphStyle::BodyText,
-            SourceLocation::new(
-                SourceStreamId::parse("fixture:block-decoder").unwrap(),
-                SourceSpan::try_new(10, 96).expect("valid source span"),
-            ),
-            SourceFormatId::ConsultantWordMl,
-        )
-        .expect("valid parsed block")])
+        Ok(vec![
+            ParsedBlock::try_new(
+                "Статья 1. Предмет регулирования.".to_owned(),
+                Some("P1".to_owned()),
+                ParagraphStyle::BodyText,
+                SourceLocation::new(
+                    SourceStreamId::parse("fixture:block-decoder").unwrap(),
+                    SourceSpan::try_new(10, 96).expect("valid source span"),
+                ),
+                SourceFormatId::ConsultantWordMl,
+            )
+            .expect("valid parsed block"),
+        ])
     }
 }
 

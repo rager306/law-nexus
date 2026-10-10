@@ -7,10 +7,10 @@
 //! breaks, temporal stop-sign fields and corpus re-carriage (§12 H1–H12).
 
 use ln_decode::analysis_source_mapping::{
-    check_coordinate_kind, check_envelope_shape, check_no_corpus_transfer, check_temporal_fields,
-    check_token_span, check_token_view, CoordinateKind, EnvelopeLineKind, EnvelopeLineShape,
-    MappingRefusal, MappingRefusalKind, SourceIdentity, SourceMapping, TokenView,
-    TEMPORAL_FORBIDDEN_FIELDS,
+    CoordinateKind, EnvelopeLineKind, EnvelopeLineShape, MappingRefusal, MappingRefusalKind,
+    SourceIdentity, SourceMapping, TEMPORAL_FORBIDDEN_FIELDS, TokenView, check_coordinate_kind,
+    check_envelope_shape, check_no_corpus_transfer, check_temporal_fields, check_token_span,
+    check_token_view,
 };
 use ln_decode::document_context::DocumentVersionRef;
 use ln_decode::npa_anchor::LocalSpan;

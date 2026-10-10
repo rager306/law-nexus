@@ -1,5 +1,5 @@
 use ln_decode::{
-    deontic::{extract_deontic_lexemes, DeonticLexemeKind},
+    deontic::{DeonticLexemeKind, extract_deontic_lexemes},
     domain::{
         ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
     },

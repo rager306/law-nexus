@@ -21,13 +21,12 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use ln_decode::lawref_resolve::{resolve_lawrefs, CanonicalAnchor, ResolutionTable};
+use ln_decode::lawref_resolve::{CanonicalAnchor, ResolutionTable, resolve_lawrefs};
 use ln_decode::prefix_catalog::EMBEDDED_ONTOLOGY_YAML;
 
 /// The exact embedded `marker_to_eid` canon line (kept in sync with
 /// `prd/architecture/kb-ontology.yaml`).
-const MARKER_TO_EID_LINE: &str =
-    "    marker_to_eid: {st: art, stst: art, ch: par, p: pnt, pp: pnt, podp: sub, abz: aln, gl: chp, razd: sec}\n";
+const MARKER_TO_EID_LINE: &str = "    marker_to_eid: {st: art, stst: art, ch: par, p: pnt, pp: pnt, podp: sub, abz: aln, gl: chp, razd: sec}\n";
 
 /// (a) Green: the embedded table parses with the closed canon.
 fn embedded_resolution() -> ResolutionTable {
@@ -1192,7 +1191,7 @@ fn json_value_end(text: &str, start: usize) -> Result<usize, String> {
                 if in_string {
                     match byte {
                         b'\\' => {
-                            return Err("dump strings must not carry escape sequences".to_owned())
+                            return Err("dump strings must not carry escape sequences".to_owned());
                         }
                         b'"' => in_string = false,
                         _ => {}
@@ -1621,7 +1620,9 @@ fn render_resolution_dump_json() -> String {
             let spans = members
                 .iter()
                 .map(|(fragment_id, start, end)| {
-                    format!("{{\"fragment_id\": \"{fragment_id}\", \"start\": {start}, \"end\": {end}}}")
+                    format!(
+                        "{{\"fragment_id\": \"{fragment_id}\", \"start\": {start}, \"end\": {end}}}"
+                    )
                 })
                 .collect::<Vec<_>>()
                 .join(", ");

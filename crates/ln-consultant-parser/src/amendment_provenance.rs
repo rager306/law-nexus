@@ -55,7 +55,7 @@ use std::path::{Component, Path, PathBuf};
 
 use crate::catalog_sqlite::SqliteCatalog;
 use crate::multi_edition::{
-    delta, parse_edition_filename, process_editions_directory, EditionSummary,
+    EditionSummary, delta, parse_edition_filename, process_editions_directory,
 };
 
 /// Artifact schema for the S03 family denominator.
@@ -761,7 +761,7 @@ fn read_manifest(
                     return Err(family_unsupported(
                         display.clone(),
                         format!("record {records_total} carries no boolean is_core_act"),
-                    ))
+                    ));
                 }
             },
             ManifestPartRule::Field(key) => match flat_field(line, key) {
@@ -770,7 +770,7 @@ fn read_manifest(
                     return Err(family_unsupported(
                         display.clone(),
                         format!("record {records_total} carries no string {key}"),
-                    ))
+                    ));
                 }
             },
         };
@@ -806,10 +806,10 @@ pub fn export_root_relative_path(export_dir: &str) -> String {
 /// The export directory for this run: CLI value, else `CONSULTANT_EXPORT_DIR`
 /// with empty-as-unset semantics, else the default.
 pub fn effective_export_dir(cli_value: Option<&str>) -> String {
-    if let Some(value) = cli_value {
-        if !value.trim().is_empty() {
-            return value.to_owned();
-        }
+    if let Some(value) = cli_value
+        && !value.trim().is_empty()
+    {
+        return value.to_owned();
     }
     match std::env::var(EXPORT_DIR_ENV) {
         Ok(value) if !value.trim().is_empty() => value,
@@ -986,7 +986,7 @@ fn check_repo_relative(path: &str) -> Result<(), AmendmentProvenanceError> {
             Component::ParentDir | Component::RootDir | Component::Prefix(_) => {
                 return Err(AmendmentProvenanceError::PathDrift {
                     path: path.to_owned(),
-                })
+                });
             }
             _ => {}
         }
@@ -1392,17 +1392,17 @@ pub fn ensure_out_containment(
     for component in out.components() {
         match component {
             Component::ParentDir | Component::RootDir | Component::Prefix(_) => {
-                return Err(AmendmentProvenanceError::PathDrift { path: display })
+                return Err(AmendmentProvenanceError::PathDrift { path: display });
             }
             _ => {}
         }
     }
 
     let absolute = repo_root.join(out);
-    if let Ok(metadata) = fs::symlink_metadata(&absolute) {
-        if metadata.file_type().is_symlink() {
-            return Err(AmendmentProvenanceError::PathDrift { path: display });
-        }
+    if let Ok(metadata) = fs::symlink_metadata(&absolute)
+        && metadata.file_type().is_symlink()
+    {
+        return Err(AmendmentProvenanceError::PathDrift { path: display });
     }
 
     let real_root =
@@ -2055,7 +2055,7 @@ pub fn collect_amends_provisions(
                 return Err(family_unsupported(
                     LAYER1_MANIFEST_TAIL,
                     "a layer1 record carries no string law_number",
-                ))
+                ));
             }
         };
         let title = match flat_field(line, "title") {
@@ -2064,7 +2064,7 @@ pub fn collect_amends_provisions(
                 return Err(family_unsupported(
                     LAYER1_MANIFEST_TAIL,
                     "a layer1 record carries no string title",
-                ))
+                ));
             }
         };
         let core = match flat_field(line, "is_core_act") {
@@ -2073,7 +2073,7 @@ pub fn collect_amends_provisions(
                 return Err(family_unsupported(
                     LAYER1_MANIFEST_TAIL,
                     "a layer1 record carries no boolean is_core_act",
-                ))
+                ));
             }
         };
         layer1_present_keys.push(key);
@@ -3005,7 +3005,7 @@ pub fn collect_commencement_transition(
             return Err(family_unsupported(
                 "m201-r070-proof-gate",
                 "the frozen gate carries no string evidence_class in its commencement boundary",
-            ))
+            ));
         }
     };
     let frozen_gate_commencement_rule_ref = match flat_field(&gate_text, "commencement_rule_ref") {
@@ -3014,7 +3014,7 @@ pub fn collect_commencement_transition(
             return Err(family_unsupported(
                 "m201-r070-proof-gate",
                 "the frozen gate carries no string commencement_rule_ref",
-            ))
+            ));
         }
     };
     let frozen_gate_transitional = match flat_field(&gate_text, "transitional") {
@@ -3023,7 +3023,7 @@ pub fn collect_commencement_transition(
             return Err(family_unsupported(
                 "m201-r070-proof-gate",
                 "the frozen gate carries no string transitional slot value",
-            ))
+            ));
         }
     };
     if !COMMENCEMENT_EVIDENCE_CLASSES.contains(&frozen_gate_evidence_class.as_str()) {
@@ -3182,7 +3182,7 @@ pub fn collect_commencement_transition(
                 return Err(family_unsupported(
                     LAYER1_MANIFEST_TAIL,
                     "a layer1 record carries no boolean is_core_act",
-                ))
+                ));
             }
         };
         let law_number = match flat_field(line, "law_number") {
@@ -3191,7 +3191,7 @@ pub fn collect_commencement_transition(
                 return Err(family_unsupported(
                     LAYER1_MANIFEST_TAIL,
                     "a layer1 record carries no string law_number",
-                ))
+                ));
             }
         };
         let title = match flat_field(line, "title") {
@@ -3200,7 +3200,7 @@ pub fn collect_commencement_transition(
                 return Err(family_unsupported(
                     LAYER1_MANIFEST_TAIL,
                     "a layer1 record carries no string title",
-                ))
+                ));
             }
         };
         let act_date = act_date_from_title(title).unwrap_or_default();
@@ -4210,7 +4210,7 @@ pub fn collect_edition_delta(
             return Err(family_unsupported(
                 "m209-s03-family-denominator",
                 "the T01 chain block declares no listing digest",
-            ))
+            ));
         }
     };
     if t01_editions_total != editions_total || t01_edition_matching != editions_total {
@@ -4715,10 +4715,18 @@ pub const LEDGER_FAIL_CLOSED_CODES: [&str; 11] = [
 const LEDGER_COUNT_BASIS: &str = "The ledger is re-derived on every run from the four tracked S03 leg artifacts (family denominator, amending-act and provision, commencement and transition, edition delta) and from the frozen M201 R070 proof gate. Each leg declares one named quantifier with a unit, a numeric acceptance threshold and a denominator source path that must exist, its tracked artifact path with the declared counts read out of that artifact, and the class-matched evidence it requires and does not have. No value is typed by hand; a zero threshold is not a measurement; and no M202 inventory count may stand as a quantifier.";
 
 /// Per-leg claim bounds carried verbatim by the ledger.
-const LEDGER_AMENDING_ACT_NON_CLAIMS: [&str; 1] = ["The amending-act quantifier is the declared layer1 family and the catalog amends edges of one named revision; it is not every amending act of the corpus and it is not a legal amendment determination."];
-const LEDGER_AFFECTED_PROVISION_NON_CLAIMS: [&str; 1] = ["A resolved statya target is a registry binding of the named chain; it is not a legal effect, an obligation or an applicability finding."];
-const LEDGER_COMMENCEMENT_NON_CLAIMS: [&str; 1] = ["A slot verdict is neither a legal commencement determination nor an ADR-0021 transitional resolver; the class-matched human annotation this leg requires is absent."];
-const LEDGER_EDITION_DELTA_NON_CLAIMS: [&str; 1] = ["A hyperlink delta count is not a normative text delta and not commencement evidence; the walk covers one bounded chain, not every edition of the requirement."];
+const LEDGER_AMENDING_ACT_NON_CLAIMS: [&str; 1] = [
+    "The amending-act quantifier is the declared layer1 family and the catalog amends edges of one named revision; it is not every amending act of the corpus and it is not a legal amendment determination.",
+];
+const LEDGER_AFFECTED_PROVISION_NON_CLAIMS: [&str; 1] = [
+    "A resolved statya target is a registry binding of the named chain; it is not a legal effect, an obligation or an applicability finding.",
+];
+const LEDGER_COMMENCEMENT_NON_CLAIMS: [&str; 1] = [
+    "A slot verdict is neither a legal commencement determination nor an ADR-0021 transitional resolver; the class-matched human annotation this leg requires is absent.",
+];
+const LEDGER_EDITION_DELTA_NON_CLAIMS: [&str; 1] = [
+    "A hyperlink delta count is not a normative text delta and not commencement evidence; the walk covers one bounded chain, not every edition of the requirement.",
+];
 
 /// The exact unmet conditions S04 must accept or hold scope by scope.
 const LEDGER_S04_UNMET_CONDITIONS: [&str; 4] = [
@@ -5579,10 +5587,12 @@ mod tests {
         assert_eq!(parsed.action, ProvenanceAction::Write);
         assert_eq!(parsed.export_dir, effective_export_dir(None));
 
+        // `ledger` is a supported mode, so the closed-set probe must use a
+        // token that `ProvenanceMode::parse` does not recognise.
         assert!(matches!(
             parse_provenance_args(vec![
                 "--mode".to_owned(),
-                "ledger".to_owned(),
+                "not-a-mode".to_owned(),
                 "--out".to_owned(),
                 "x".to_owned(),
                 "--write".to_owned()

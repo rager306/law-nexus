@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::domain::{
-    digest_pair, AssertRequest, C12Version, EvidenceSide, IdentityAssertion, IdentityId,
-    IdentityOutcome, IdentityReason, IdentityRecord, C12_GATE_VERSION,
+    AssertRequest, C12_GATE_VERSION, C12Version, EvidenceSide, IdentityAssertion, IdentityId,
+    IdentityOutcome, IdentityReason, IdentityRecord, digest_pair,
 };
 use crate::ports::IdentityStorePort;
 

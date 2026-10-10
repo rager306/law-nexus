@@ -109,7 +109,7 @@ fn parse_diagnostic_token(kind: &'static str, value: &str) -> Result<String, Out
 }
 
 macro_rules! output_id_type {
-    ($name:ident, $kind:literal, $prefix:expr) => {
+    ($name:ident, $kind:literal, $prefix:expr_2021) => {
         #[doc = concat!("Envelope identifier token (`", $kind, "`).")]
         #[derive(Debug, Clone, PartialEq, Eq, Hash)]
         pub struct $name(String);
@@ -1625,7 +1625,7 @@ fn check_namespace(
 }
 
 macro_rules! check_namespace_shape {
-    ($ctx:expr, $path:expr, $shape:expr, $ty:ty) => {
+    ($ctx:expr_2021, $path:expr_2021, $shape:expr_2021, $ty:ty) => {
         if let Some(value) = $shape.value() {
             if let Some(diagnostic) =
                 check_namespace($ctx, $path, value.as_str(), <$ty>::NAMESPACE_PREFIX)
@@ -1800,18 +1800,17 @@ where
     if let (Some(explicit), Some(parent)) = (
         citation.retrieval_output_id.value(),
         envelope.retrieval_output_id.value(),
-    ) {
-        if explicit != parent {
-            return Some(
-                diagnostic(
-                    ctx,
-                    OutputDiagnosticCode::IdPathMismatch,
-                    &format!("citations[{index}].retrieval_output_id"),
-                )
-                .with_expected_id(bounded_token(parent.as_str()))
-                .with_resolved_id(bounded_token(explicit.as_str())),
-            );
-        }
+    ) && explicit != parent
+    {
+        return Some(
+            diagnostic(
+                ctx,
+                OutputDiagnosticCode::IdPathMismatch,
+                &format!("citations[{index}].retrieval_output_id"),
+            )
+            .with_expected_id(bounded_token(parent.as_str()))
+            .with_resolved_id(bounded_token(explicit.as_str())),
+        );
     }
     if citation.source_block_id.value() != Some(&record.source_block_id) {
         return Some(

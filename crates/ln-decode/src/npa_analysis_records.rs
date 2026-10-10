@@ -18,7 +18,7 @@ use std::collections::HashMap;
 use std::fmt;
 
 use crate::analysis_source_mapping::{MappingRefusal, MappingRefusalKind, SourceMapping};
-use crate::npa_anchor::{check_span, AnchorDiagnostic, LocalSpan, RejectReason, SpanError};
+use crate::npa_anchor::{AnchorDiagnostic, LocalSpan, RejectReason, SpanError, check_span};
 use crate::npa_classify::{
     self, ClassificationDiagnostic, ClassifiedMember, Competence, GraphClass, IdentityKey,
     LegalClass,

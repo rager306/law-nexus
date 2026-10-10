@@ -18,19 +18,19 @@ use ln_decode::document_context::{
 };
 use ln_decode::local_grammar::DerivationSource;
 use ln_decode::npa_analysis_records::{
-    build_analysis_block_layout, AnalysisBlockLayout, AnalysisRefusal, AnalysisRefusalKind,
-    SourceBoundSpan, SourceRef,
+    AnalysisBlockLayout, AnalysisRefusal, AnalysisRefusalKind, SourceBoundSpan, SourceRef,
+    build_analysis_block_layout,
 };
 use ln_decode::npa_context_consumer::{
-    consume_document_this_document_reference, consume_this_document_reference,
-    ThisDocumentReferenceOutcome,
+    ThisDocumentReferenceOutcome, consume_document_this_document_reference,
+    consume_this_document_reference,
 };
 use ln_decode::npa_context_records::{
-    build_context_records, ContextClaimRecord, ContextRecord, ContextResultRecord, ContextRunRecord,
+    ContextClaimRecord, ContextRecord, ContextResultRecord, ContextRunRecord, build_context_records,
 };
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
 use ln_decode::reader_projection::build_projection;
-use ln_decode::source_package::{capture, Limits};
+use ln_decode::source_package::{Limits, capture};
 
 fn wrap(body: &str) -> String {
     format!(
@@ -75,8 +75,7 @@ fn pipeline(xml: &str) -> (AnalysisBlockLayout, SourceMapping, ReaderRecordIndex
 
 // A recognized inline `Приказ` letterhead (block 0) and a heading block (block
 // 1) that carries a non-empty this-ref surface; the requisites request resolves.
-const AUTHORIZED_BODY: &str =
-    "<w:p><w:r><w:t>Приказ Минэкономразвития России от 02.10.2013 N 567</w:t></w:r></w:p>\
+const AUTHORIZED_BODY: &str = "<w:p><w:r><w:t>Приказ Минэкономразвития России от 02.10.2013 N 567</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Статья 2. Настоящего Федерального закона</w:t></w:r></w:p>";
 
 // A this-ref surface without a letterhead: the request is emitted, unavailable.

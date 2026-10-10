@@ -36,11 +36,11 @@
 //! Test-local digests are non-cryptographic FNV-1a 64 labels, not seals.
 
 use ln_decode::cleaned_wire::{
-    export_cleaned_projection, read_cleaned_wire, CleanedProjection, WireCompletion, WireLimits,
+    CleanedProjection, WireCompletion, WireLimits, export_cleaned_projection, read_cleaned_wire,
 };
-use ln_decode::reader_gate::{gate_reader, ReaderSourceClass};
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, Limits, Package};
+use ln_decode::reader_gate::{ReaderSourceClass, gate_reader};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
+use ln_decode::source_package::{Limits, Package, capture};
 use ln_storage::adapters::tei::{EmbeddingTransport, TeiEmbeddingAdapter, TransportError};
 use ln_storage::{
     EmbeddingArtifactPort, EmbeddingArtifactRequest, EmbeddingPort, EmbeddingRequest,
@@ -175,8 +175,8 @@ fn deterministic_adapter() -> TeiEmbeddingAdapter<DeterministicEmbeddingTranspor
 }
 
 /// Provenance-bound artifact port over the deterministic seam.
-fn deterministic_artifact_port(
-) -> ProvenancedEmbedding<TeiEmbeddingAdapter<DeterministicEmbeddingTransport>> {
+fn deterministic_artifact_port()
+-> ProvenancedEmbedding<TeiEmbeddingAdapter<DeterministicEmbeddingTransport>> {
     let adapter = deterministic_adapter();
     ProvenancedEmbedding::try_new(adapter, MODEL_ID, provenance(DIMENSIONS))
         .expect("valid provenance composition")

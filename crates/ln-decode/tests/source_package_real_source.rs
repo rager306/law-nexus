@@ -1,7 +1,7 @@
 //! One tracked Consultant WordML fixture, not corpus-wide or Garant evidence.
 //! The slot-sequence pin was cross-checked against an external Expat event
 //! oracle; this test keeps that bounded characterization, not legal gold.
-use ln_decode::source_package::{capture, read_package, write_package, Limits, Record};
+use ln_decode::source_package::{Limits, Record, capture, read_package, write_package};
 use sha2::{Digest, Sha256};
 use std::{fs, io::Cursor, path::Path};
 

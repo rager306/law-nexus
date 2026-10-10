@@ -1,8 +1,8 @@
 use ln_closure::adapters::FixedDependencyEvidence;
 use ln_closure::application::ComputeDependencyClosure;
 use ln_closure::domain::{
-    ClosureRequest, ClosureStatus, CompletenessClaim, NodeId, PublicationEligibility, RequestId,
-    RuleVersion, CLOSURE_POLICY_VERSION,
+    CLOSURE_POLICY_VERSION, ClosureRequest, ClosureStatus, CompletenessClaim, NodeId,
+    PublicationEligibility, RequestId, RuleVersion,
 };
 
 fn n(id: &str) -> NodeId {

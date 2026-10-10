@@ -7,7 +7,7 @@
 
 use std::process::ExitCode;
 
-use ln_decode::cleaned_cli::{parse_cleaned_args, run_cleaned, USAGE};
+use ln_decode::cleaned_cli::{USAGE, parse_cleaned_args, run_cleaned};
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();

@@ -4,8 +4,8 @@ use std::process::ExitCode;
 use ln_closure::adapters::{FixedDependencyEvidence, HostileProgressCompleteness};
 use ln_closure::application::ComputeDependencyClosure;
 use ln_closure::domain::{
-    ClosureRequest, ClosureStatus, CompletenessClaim, NodeId, PublicationEligibility, RequestId,
-    RuleVersion, CLOSURE_POLICY_VERSION,
+    CLOSURE_POLICY_VERSION, ClosureRequest, ClosureStatus, CompletenessClaim, NodeId,
+    PublicationEligibility, RequestId, RuleVersion,
 };
 
 struct ScenarioResult {

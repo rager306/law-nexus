@@ -10,14 +10,14 @@ use ln_decode::lawref::capture_lawrefs;
 use ln_temporal::calendar::legal_act_effect_day_to_ordinal;
 use ln_temporal::document_context::{BlockId, TextSpan};
 use ln_temporal::domain::{
-    checkout_projection_at, edition_delta, AmendingActId, AmendmentFacetKind, C1Candidate,
-    CanonRecordId, ComponentConceptId, EvidenceClass, ForceStatusEvent, ForceStatusTimeline,
-    NormativeState, ThreeCanonEventLog,
+    AmendingActId, AmendmentFacetKind, C1Candidate, CanonRecordId, ComponentConceptId,
+    EvidenceClass, ForceStatusEvent, ForceStatusTimeline, NormativeState, ThreeCanonEventLog,
+    checkout_projection_at, edition_delta,
 };
 use ln_temporal::identity_binding::{
-    assemble_identifying_act, build_official_identity_claim, ActAssemblyOutcome, BindingEndpoints,
-    BindingOutcome, BindingUnresolvedReason, BoundTarget, FieldKind, FieldSource, FieldStatus,
-    IdentityFieldClaim, ReferenceBindingCandidate, ReferenceEndpoint,
+    ActAssemblyOutcome, BindingEndpoints, BindingOutcome, BindingUnresolvedReason, BoundTarget,
+    FieldKind, FieldSource, FieldStatus, IdentityFieldClaim, ReferenceBindingCandidate,
+    ReferenceEndpoint, assemble_identifying_act, build_official_identity_claim,
 };
 use ln_temporal::provenance::{
     EditionProvenanceEnvelope, ProvenanceAdmission, TransitionalEvidence,

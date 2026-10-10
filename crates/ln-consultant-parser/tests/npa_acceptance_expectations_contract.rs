@@ -23,12 +23,12 @@ use std::path::PathBuf;
 
 use ln_consultant_parser::corpus_sample::SourceRootKind;
 use ln_consultant_parser::npa_corpus_acceptance::{
-    build_bounded_inventory, run_acceptance_entries, AcceptanceEntry, AcceptanceOptions,
-    BoundedInventory, SampleRoot, TamperProbeCounts,
+    AcceptanceEntry, AcceptanceOptions, BoundedInventory, SampleRoot, TamperProbeCounts,
+    build_bounded_inventory, run_acceptance_entries,
 };
 use ln_consultant_parser::npa_corpus_acceptance_v2::{
-    build_report_v2, AcceptanceReportV2, CompletionVerdict, DeclaredExpectations,
-    ExpectationGateOutcome, SemanticVerdict, UncoveredReason, V2Thresholds,
+    AcceptanceReportV2, CompletionVerdict, DeclaredExpectations, ExpectationGateOutcome,
+    SemanticVerdict, UncoveredReason, V2Thresholds, build_report_v2,
 };
 
 const FIXTURE_RELATIVE: &str = "crates/ln-consultant-parser/tests/fixtures/m221-bounded";

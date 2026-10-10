@@ -13,9 +13,9 @@
 //! stays design-only data (D222/D233).
 
 use ln_temporal::domain::{
-    fold_three_canon_at, AmendingActId, AmendmentEvent, AmendmentFacetKind, AssertionOrEffect,
-    AssertionOrEffectPayload, CanonRecordId, ComponentConceptId, EditionOracle, EvidenceClass,
-    NormativeState, ThreeCanonEventLog, ThreeCanonLogError, ThreeCanonRecord,
+    AmendingActId, AmendmentEvent, AmendmentFacetKind, AssertionOrEffect, AssertionOrEffectPayload,
+    CanonRecordId, ComponentConceptId, EditionOracle, EvidenceClass, NormativeState,
+    ThreeCanonEventLog, ThreeCanonLogError, ThreeCanonRecord, fold_three_canon_at,
 };
 
 fn rid(id: &str) -> CanonRecordId {
@@ -97,14 +97,18 @@ fn empty_log_folds_to_empty_unknown_not_in_force() {
     // Empty does not imply InForce (D304): Unknown is the only honest outcome.
     assert_eq!(projection.force_status(), NormativeState::Unknown);
     assert!(!projection.force_conflict());
-    assert!(projection
-        .non_claims()
-        .iter()
-        .any(|c| c.contains("Empty fold")));
-    assert!(projection
-        .non_claims()
-        .iter()
-        .any(|c| c.contains("checksum")));
+    assert!(
+        projection
+            .non_claims()
+            .iter()
+            .any(|c| c.contains("Empty fold"))
+    );
+    assert!(
+        projection
+            .non_claims()
+            .iter()
+            .any(|c| c.contains("checksum"))
+    );
 }
 
 // ── Must-have: ordered events fold at t ──────────────────────────────────────
@@ -236,10 +240,12 @@ fn oracle_records_are_held_but_never_projected_as_events() {
     let projection = fold_three_canon_at(&log, 10).expect("fold");
     assert!(projection.is_empty());
     assert_eq!(projection.force_status(), NormativeState::Unknown);
-    assert!(projection
-        .non_claims()
-        .iter()
-        .any(|c| c.contains("never writes an oracle")));
+    assert!(
+        projection
+            .non_claims()
+            .iter()
+            .any(|c| c.contains("never writes an oracle"))
+    );
 
     // Oracle day does not break the ordering contract either.
     log.append(amendment(

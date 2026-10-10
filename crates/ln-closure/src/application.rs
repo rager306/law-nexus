@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 
 use crate::domain::{
-    ClosureRequest, ClosureResult, ClosureStatus, ClosureTrace, NodeId, PublicationEligibility,
-    CLOSURE_POLICY_VERSION, MAX_BOUNDED_FANOUT,
+    CLOSURE_POLICY_VERSION, ClosureRequest, ClosureResult, ClosureStatus, ClosureTrace,
+    MAX_BOUNDED_FANOUT, NodeId, PublicationEligibility,
 };
 use crate::ports::DependencyEvidencePort;
 

@@ -10,10 +10,10 @@ use std::fs;
 use std::path::PathBuf;
 
 use ln_consultant_parser::npa_corpus_acceptance::{
-    AcceptanceEntry, AcceptanceReport, AdjudicationPacket, CorpusSampleManifest, ACCEPTANCE_SCHEMA,
-    ADJUDICATION_SCHEMA, DECLARED_DRAW_SEED, DECLARED_SAMPLE_SIZE, SAMPLE_SCHEMA, SCHEMA_VERSION,
+    ACCEPTANCE_SCHEMA, ADJUDICATION_SCHEMA, AcceptanceEntry, AcceptanceReport, AdjudicationPacket,
+    CorpusSampleManifest, DECLARED_DRAW_SEED, DECLARED_SAMPLE_SIZE, SAMPLE_SCHEMA, SCHEMA_VERSION,
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")

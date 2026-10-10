@@ -129,7 +129,10 @@ impl AcceptanceContract {
                             "runtime" => CheckMode::Runtime,
                             "artifact" => CheckMode::Artifact,
                             other => {
-                                return Err(format!("line {}: invalid mode '{other}'", line_no + 1))
+                                return Err(format!(
+                                    "line {}: invalid mode '{other}'",
+                                    line_no + 1
+                                ));
                             }
                         }
                     }
@@ -232,11 +235,13 @@ mod tests {
         assert!(
             AcceptanceContract::parse_str(&GOOD.replace("mode: runtime", "wat: runtime")).is_err()
         );
-        assert!(AcceptanceContract::parse_str(&GOOD.replace(
-            "    mode: runtime\n",
-            "    mode: runtime\n    mode: artifact\n"
-        ))
-        .is_err());
+        assert!(
+            AcceptanceContract::parse_str(&GOOD.replace(
+                "    mode: runtime\n",
+                "    mode: runtime\n    mode: artifact\n"
+            ))
+            .is_err()
+        );
     }
     #[test]
     fn rejects_wrong_version() {

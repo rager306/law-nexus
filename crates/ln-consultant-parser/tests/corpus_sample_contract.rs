@@ -3,8 +3,8 @@ use std::path::Path;
 use std::collections::BTreeSet;
 
 use ln_consultant_parser::corpus_sample::{
-    classify_path, classify_relative, draw, draw_with_c3_families, CorpusRoot, DrawPlan,
-    SampleCandidate, SourceRootKind, WorkFamilyProvenance,
+    CorpusRoot, DrawPlan, SampleCandidate, SourceRootKind, WorkFamilyProvenance, classify_path,
+    classify_relative, draw, draw_with_c3_families,
 };
 
 #[test]
@@ -212,10 +212,12 @@ fn malformed_hash_is_rejected_before_draw() {
 fn hostile_roots_and_traversal_fail_closed() {
     assert!(CorpusRoot::new("law-source/consultant", SourceRootKind::ConsultantExport).is_err());
     assert!(classify_relative("../courts/abc.xml", SourceRootKind::ConsultantExport).is_err());
-    assert!(classify_path(
-        Path::new("/corpus/other/courts/abc.xml"),
-        Path::new("/corpus/export"),
-        SourceRootKind::ConsultantExport,
-    )
-    .is_err());
+    assert!(
+        classify_path(
+            Path::new("/corpus/other/courts/abc.xml"),
+            Path::new("/corpus/export"),
+            SourceRootKind::ConsultantExport,
+        )
+        .is_err()
+    );
 }

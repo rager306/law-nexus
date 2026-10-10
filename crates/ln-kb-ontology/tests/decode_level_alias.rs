@@ -2,8 +2,8 @@
 
 use ln_kb_ontology::catalog::OntologyCatalog;
 use ln_kb_ontology::domain::{
-    map_hierarchy_marker, marker_from_decode_token, HierarchyBinding, HierarchyMap,
-    HierarchyMapOutcome, WriteSetError,
+    HierarchyBinding, HierarchyMap, HierarchyMapOutcome, WriteSetError, map_hierarchy_marker,
+    marker_from_decode_token,
 };
 use ln_temporal::domain::ComponentConceptId;
 

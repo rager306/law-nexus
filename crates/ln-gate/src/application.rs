@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::domain::{
-    digest_chain, CandidateId, CandidateRecord, GateOutcome, GateReason, GateRequest, GateResult,
-    GateVersion, LifecycleType, C10_GATE_VERSION,
+    C10_GATE_VERSION, CandidateId, CandidateRecord, GateOutcome, GateReason, GateRequest,
+    GateResult, GateVersion, LifecycleType, digest_chain,
 };
 use crate::ports::CandidateStorePort;
 

@@ -12,15 +12,15 @@ use std::{
 
 use crate::{
     acceptance_retry_contract::AcceptanceContract,
-    corpus_sample::{classify_path, SourceRootKind},
+    corpus_sample::{SourceRootKind, classify_path},
 };
 
 use ln_decode::{
-    adapters::garant_odt::GarantOdtBlockDecoder,
     adapters::ConsultantWordMlBlockDecoder,
+    adapters::garant_odt::GarantOdtBlockDecoder,
     domain::{DecodeRequest, FamilyFormat, ParsedBlock},
     lawref, lexer, local_grammar, morphology,
-    npa_sweep::{payload_ref_for_path, walk_xml_files, FileTerminal},
+    npa_sweep::{FileTerminal, payload_ref_for_path, walk_xml_files},
     ports::BlockDecoderPort,
 };
 
@@ -238,8 +238,8 @@ impl Acc {
         self.files += 1;
         let provider = self.provider.clone();
         self.inv("provider", &provider);
-        if let Some(root) = &self.source_root {
-            if let Ok(meta) = classify_path(
+        if let Some(root) = &self.source_root
+            && let Ok(meta) = classify_path(
                 path,
                 root,
                 if self.provider == "garant" {
@@ -247,15 +247,15 @@ impl Acc {
                 } else {
                     SourceRootKind::ConsultantExport
                 },
-            ) {
-                self.inv(
-                    "year",
-                    &meta
-                        .year
-                        .map_or_else(|| "unknown".into(), |y| y.to_string()),
-                );
-                self.inv("act_type", &meta.document_type);
-            }
+            )
+        {
+            self.inv(
+                "year",
+                &meta
+                    .year
+                    .map_or_else(|| "unknown".into(), |y| y.to_string()),
+            );
+            self.inv("act_type", &meta.document_type);
         }
         match terminal {
             FileTerminal::Failed => {
@@ -371,15 +371,47 @@ impl Acc {
         );
         let semantic_digest =
             digest_bytes(semantic.as_bytes()).unwrap_or_else(|_| "sha256:unavailable".into());
-        let _=writeln!(o,"{{\"record_kind\":\"header\",\"schema\":\"{SCHEMA}\",\"schema_version\":2,\"label\":{},\"lifecycle\":\"diagnostic\",\"parser_revision\":\"{PARSER_REVISION}\",\"inventory_digest\":{},\"profile\":{},\"limit\":{},\"non_claims\":[\"C4 does not advance C2/C3/C5\",\"not gold\",\"not R035/R070\",\"product document_context/semantic_scope/identity_binding are not executed\",\"ln-temporal runtime is not used\"],\"provider_roots\":[\"consultant\",\"garant\"]}}",q(label),q(&inventory_digest),q(profile),limit.map_or_else(|| "null".into(), |n| n.to_string()));
-        let _=writeln!(o,"{{\"record_kind\":\"aggregate\",\"provider\":{},\"files\":{},\"decoded\":{},\"failed\":{},\"stages\":{}}}",q("all-contours"),self.files,self.decoded,self.failed,map(&self.stages));
+        let _ = writeln!(
+            o,
+            "{{\"record_kind\":\"header\",\"schema\":\"{SCHEMA}\",\"schema_version\":2,\"label\":{},\"lifecycle\":\"diagnostic\",\"parser_revision\":\"{PARSER_REVISION}\",\"inventory_digest\":{},\"profile\":{},\"limit\":{},\"non_claims\":[\"C4 does not advance C2/C3/C5\",\"not gold\",\"not R035/R070\",\"product document_context/semantic_scope/identity_binding are not executed\",\"ln-temporal runtime is not used\"],\"provider_roots\":[\"consultant\",\"garant\"]}}",
+            q(label),
+            q(&inventory_digest),
+            q(profile),
+            limit.map_or_else(|| "null".into(), |n| n.to_string())
+        );
+        let _ = writeln!(
+            o,
+            "{{\"record_kind\":\"aggregate\",\"provider\":{},\"files\":{},\"decoded\":{},\"failed\":{},\"stages\":{}}}",
+            q("all-contours"),
+            self.files,
+            self.decoded,
+            self.failed,
+            map(&self.stages)
+        );
         let _ = writeln!(
             o,
             "{{\"record_kind\":\"inventory\",\"provider\":{},\"dimensions\":{}}}",
             q("all-contours"),
             map(&self.dimensions)
         );
-        let _=writeln!(o,"{{\"record_kind\":\"canonical_payload\",\"schema\":\"{SCHEMA}\",\"parser_revision\":\"{PARSER_REVISION}\",\"inventory_digest\":{},\"semantic_digest\":{},\"profile\":{},\"limit\":{},\"source_revision\":{},\"acceptance_contract_version\":{},\"acceptance_check_id\":{},\"acceptance_mode\":{},\"acceptance_command_template\":{},\"files\":{},\"decoded\":{},\"failed\":{},\"stages\":{},\"inventory\":{}}}",q(&inventory_digest),q(&semantic_digest),q(profile),limit.map_or_else(|| "null".into(), |n| n.to_string()),q(source_revision.unwrap_or("unavailable")),q(acceptance_contract.unwrap_or("unavailable")),q(acceptance_check_id.unwrap_or("unavailable")),q(acceptance_mode.unwrap_or("unavailable")),q(acceptance_command_template.unwrap_or("unavailable")),self.files,self.decoded,self.failed,map(&self.stages),map(&self.dimensions));
+        let _ = writeln!(
+            o,
+            "{{\"record_kind\":\"canonical_payload\",\"schema\":\"{SCHEMA}\",\"parser_revision\":\"{PARSER_REVISION}\",\"inventory_digest\":{},\"semantic_digest\":{},\"profile\":{},\"limit\":{},\"source_revision\":{},\"acceptance_contract_version\":{},\"acceptance_check_id\":{},\"acceptance_mode\":{},\"acceptance_command_template\":{},\"files\":{},\"decoded\":{},\"failed\":{},\"stages\":{},\"inventory\":{}}}",
+            q(&inventory_digest),
+            q(&semantic_digest),
+            q(profile),
+            limit.map_or_else(|| "null".into(), |n| n.to_string()),
+            q(source_revision.unwrap_or("unavailable")),
+            q(acceptance_contract.unwrap_or("unavailable")),
+            q(acceptance_check_id.unwrap_or("unavailable")),
+            q(acceptance_mode.unwrap_or("unavailable")),
+            q(acceptance_command_template.unwrap_or("unavailable")),
+            self.files,
+            self.decoded,
+            self.failed,
+            map(&self.stages),
+            map(&self.dimensions)
+        );
         let toolchain = observed_toolchain();
         let argv_json = format!(
             "[{}]",
@@ -387,7 +419,17 @@ impl Acc {
         );
         let source = source_revision.unwrap_or("unavailable");
         let contract = acceptance_contract.unwrap_or("unavailable");
-        let _=writeln!(o,"{{\"record_kind\":\"operational_envelope\",\"label\":{},\"observed_file_count\":{},\"run_status\":\"complete\",\"acceptance_contract_version\":{},\"source_revision\":{},\"argv\":{},\"observed_rustc_version\":{},\"duration_ms\":{}}}",q(label),self.files,q(contract),q(source),argv_json,q(&toolchain),duration_ms);
+        let _ = writeln!(
+            o,
+            "{{\"record_kind\":\"operational_envelope\",\"label\":{},\"observed_file_count\":{},\"run_status\":\"complete\",\"acceptance_contract_version\":{},\"source_revision\":{},\"argv\":{},\"observed_rustc_version\":{},\"duration_ms\":{}}}",
+            q(label),
+            self.files,
+            q(contract),
+            q(source),
+            argv_json,
+            q(&toolchain),
+            duration_ms
+        );
         o
     }
 }
@@ -648,14 +690,14 @@ pub fn run(cli: &Cli, default_root: &Path) -> (u8, Option<String>, String) {
         }
         a.merge(ga);
     }
-    if !cli.check {
-        if let Some(path) = cli.failures_out.as_ref() {
-            if let Some(error) = a.failure_error.as_ref() {
-                return (EXIT_OUT_UNWRITABLE, None, error.clone());
-            }
-            if let Err(error) = write_failures_exclusive(Path::new(path), &mut a.failures) {
-                return (EXIT_OUT_UNWRITABLE, None, error);
-            }
+    if !cli.check
+        && let Some(path) = cli.failures_out.as_ref()
+    {
+        if let Some(error) = a.failure_error.as_ref() {
+            return (EXIT_OUT_UNWRITABLE, None, error.clone());
+        }
+        if let Err(error) = write_failures_exclusive(Path::new(path), &mut a.failures) {
+            return (EXIT_OUT_UNWRITABLE, None, error);
         }
     }
     let (version, check_id, mode, command) = acceptance_identity(cli);

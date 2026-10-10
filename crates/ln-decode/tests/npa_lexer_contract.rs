@@ -14,8 +14,8 @@ mod npa_support;
 
 use std::path::Path;
 
-use ln_decode::lexer::{lex, AbbrevId, NpaToken, TokenKind};
-use npa_support::{fixtures_dir, load_golden_fixtures, repo_root, LoadedFragment};
+use ln_decode::lexer::{AbbrevId, NpaToken, TokenKind, lex};
+use npa_support::{LoadedFragment, fixtures_dir, load_golden_fixtures, repo_root};
 
 fn syn_001_text() -> String {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/npa/syn-001.txt");

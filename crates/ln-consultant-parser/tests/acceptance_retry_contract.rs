@@ -26,10 +26,12 @@ fn tracked_contract_is_strict_and_has_runtime_and_artifact_checks() {
     let contract = AcceptanceContract::parse_file(contract_path()).unwrap();
     assert_eq!(contract.contract_version, "npa-acceptance-contract/v1");
     assert!(contract.checks.iter().any(|c| c.mode == CheckMode::Runtime));
-    assert!(contract
-        .checks
-        .iter()
-        .any(|c| c.mode == CheckMode::Artifact));
+    assert!(
+        contract
+            .checks
+            .iter()
+            .any(|c| c.mode == CheckMode::Artifact)
+    );
     assert_eq!(contract.non_claims.len(), 3);
 }
 

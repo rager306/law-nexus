@@ -132,7 +132,7 @@ fn normalized_relative(path: &Path) -> Result<String, String> {
             Component::Normal(value) => out.push(value.to_string_lossy().into_owned()),
             Component::CurDir => {}
             Component::ParentDir | Component::RootDir | Component::Prefix(_) => {
-                return Err("path must be relative and must not traverse outside its root".into())
+                return Err("path must be relative and must not traverse outside its root".into());
             }
         }
     }
@@ -429,7 +429,10 @@ pub fn draw_with_c3_families(
     if ordered.len() < requested {
         return Err(format!(
             "insufficient inventory after exclusions/dedup/collapse: requested={requested}, available={}, c3_excluded={}, exact_duplicates={}, collapsed_editions={}",
-            ordered.len(), report.excluded_c3_hashes, report.exact_duplicate_hashes, report.collapsed_editions
+            ordered.len(),
+            report.excluded_c3_hashes,
+            report.exact_duplicate_hashes,
+            report.collapsed_editions
         ));
     }
     ordered.truncate(requested);

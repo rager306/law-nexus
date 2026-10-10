@@ -55,13 +55,13 @@ use ln_decode::reader_projection::{ProjectedSegment, ProjectedView, ReaderProjec
 
 use crate::domain::QueryId;
 use crate::retrieval_output::{
-    validate_retrieval_output, ActEditionId, ActEditionRecord, CitationBinding, CitationKey,
-    CitationKeyResolution, EvidenceSpanId, EvidenceSpanRecord, EvidenceSpanStatus, FieldShape,
-    LegalActId, LegalUnitId, LegalUnitRecord, OutputDiagnosticCode, OutputIdResolutionPort,
-    OutputKind, OutputScope, OutputScopeId, OutputVerdict, RetrievalOutputEnvelope,
-    RetrievalOutputId, RetrievalRunId, ScopeAsOfDate, ScopeShape, SourceBlockId, SourceBlockRecord,
-    SourceCorpusId, SourceDocumentId, SourceDocumentRecord, ValidatorContractVersion,
-    VALIDATOR_CONTRACT_VERSION,
+    ActEditionId, ActEditionRecord, CitationBinding, CitationKey, CitationKeyResolution,
+    EvidenceSpanId, EvidenceSpanRecord, EvidenceSpanStatus, FieldShape, LegalActId, LegalUnitId,
+    LegalUnitRecord, OutputDiagnosticCode, OutputIdResolutionPort, OutputKind, OutputScope,
+    OutputScopeId, OutputVerdict, RetrievalOutputEnvelope, RetrievalOutputId, RetrievalRunId,
+    ScopeAsOfDate, ScopeShape, SourceBlockId, SourceBlockRecord, SourceCorpusId, SourceDocumentId,
+    SourceDocumentRecord, VALIDATOR_CONTRACT_VERSION, ValidatorContractVersion,
+    validate_retrieval_output,
 };
 
 /// Inclusive lower bound of the proof-local edition validity window.
@@ -726,10 +726,9 @@ fn matching_segments(projection: &CleanedProjection, marker: &MarkerKind) -> Vec
                 .segments
                 .iter()
                 .find(|segment| &segment.id == segment_id)
+                && marker_matches(proj, view, segment, marker)
             {
-                if marker_matches(proj, view, segment, marker) {
-                    matches.push(segment_id.as_str().to_owned());
-                }
+                matches.push(segment_id.as_str().to_owned());
             }
         }
     }
@@ -1059,13 +1058,13 @@ mod tests {
 
     use crate::retrieval_output::BoundedToken;
 
-    use ln_decode::cleaned_nav::{build_nav_index, NavIndex, NodeAddress};
+    use ln_decode::cleaned_nav::{NavIndex, NodeAddress, build_nav_index};
     use ln_decode::cleaned_wire::{
-        export_cleaned_projection, read_cleaned_wire, WireCompletion, WireLimits,
+        WireCompletion, WireLimits, export_cleaned_projection, read_cleaned_wire,
     };
-    use ln_decode::reader_gate::{gate_reader, ReaderSourceClass};
+    use ln_decode::reader_gate::{ReaderSourceClass, gate_reader};
     use ln_decode::reader_projection::build_projection;
-    use ln_decode::source_package::{capture, Limits};
+    use ln_decode::source_package::{Limits, capture};
 
     /// The pinned synthetic, non-legal reader fixture. A content drift fails the
     /// `pinned` assertion below instead of being silently re-pinned.
@@ -1217,24 +1216,36 @@ mod tests {
         let (_pinned, resolver) = resolver();
         let as_of = ScopeAsOfDate::parse("2024-01-01").expect("a valid scope selector");
 
-        assert!(resolver
-            .resolve_evidence_span(&EvidenceSpanId::parse("EV-UNKNOWN").unwrap())
-            .is_none());
-        assert!(resolver
-            .resolve_source_block(&SourceBlockId::parse("SB-UNKNOWN").unwrap())
-            .is_none());
-        assert!(resolver
-            .resolve_source_document(&SourceDocumentId::parse("SD-UNKNOWN").unwrap())
-            .is_none());
-        assert!(resolver
-            .resolve_legal_unit(&LegalUnitId::parse("LU-UNKNOWN").unwrap())
-            .is_none());
-        assert!(resolver
-            .resolve_act_edition(&ActEditionId::parse("ED-UNKNOWN").unwrap())
-            .is_none());
-        assert!(resolver
-            .resolve_valid_edition(&LegalUnitId::parse("LU-UNKNOWN").unwrap(), &as_of)
-            .is_none());
+        assert!(
+            resolver
+                .resolve_evidence_span(&EvidenceSpanId::parse("EV-UNKNOWN").unwrap())
+                .is_none()
+        );
+        assert!(
+            resolver
+                .resolve_source_block(&SourceBlockId::parse("SB-UNKNOWN").unwrap())
+                .is_none()
+        );
+        assert!(
+            resolver
+                .resolve_source_document(&SourceDocumentId::parse("SD-UNKNOWN").unwrap())
+                .is_none()
+        );
+        assert!(
+            resolver
+                .resolve_legal_unit(&LegalUnitId::parse("LU-UNKNOWN").unwrap())
+                .is_none()
+        );
+        assert!(
+            resolver
+                .resolve_act_edition(&ActEditionId::parse("ED-UNKNOWN").unwrap())
+                .is_none()
+        );
+        assert!(
+            resolver
+                .resolve_valid_edition(&LegalUnitId::parse("LU-UNKNOWN").unwrap(), &as_of)
+                .is_none()
+        );
         assert_eq!(
             resolver.resolve_citation_key(
                 resolver.scope_id(),
@@ -1641,9 +1652,11 @@ mod tests {
             let reason = outcome.selection_reason.as_str();
             assert!(sentinels.iter().all(|sentinel| !reason.contains(sentinel)));
             if let Some(code) = outcome.primary_code {
-                assert!(sentinels
-                    .iter()
-                    .all(|sentinel| !code.as_str().contains(sentinel)));
+                assert!(
+                    sentinels
+                        .iter()
+                        .all(|sentinel| !code.as_str().contains(sentinel))
+                );
             }
         }
     }
@@ -1669,7 +1682,9 @@ mod tests {
             scope: ScopeShape::Complete(scope.clone()),
             citations: FieldShape::Value(Vec::new()),
             answer_claims: FieldShape::Value(Vec::new()),
-            extra_field_names: vec![BoundedToken::parse("raw_legal_text").expect("a bounded token")],
+            extra_field_names: vec![
+                BoundedToken::parse("raw_legal_text").expect("a bounded token"),
+            ],
         };
         let outcome = validate_retrieval_output(&forbidden, &resolver);
         assert_eq!(outcome.verdict(), OutputVerdict::Rejected);

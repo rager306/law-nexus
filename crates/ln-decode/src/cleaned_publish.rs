@@ -51,10 +51,10 @@ pub fn write_cleaned_projection_atomic(path: &Path, artifact: &str) -> Result<()
 mod tests {
     use super::*;
     use crate::cleaned_wire::{
-        export_cleaned_projection, read_cleaned_wire, IncompleteReason, WireCompletion, WireLimits,
+        IncompleteReason, WireCompletion, WireLimits, export_cleaned_projection, read_cleaned_wire,
     };
     use crate::reader_projection::build_projection;
-    use crate::source_package::{capture, Limits};
+    use crate::source_package::{Limits, capture};
 
     const FIXTURE: &str = "<w:wordDocument \
         xmlns:w=\"http://schemas.microsoft.com/office/word/2003/wordml\">\

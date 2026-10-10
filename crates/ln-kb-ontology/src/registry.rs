@@ -1,6 +1,6 @@
 //! Explicit fixture bindings. Not legal identity and not a membership log.
 
-use crate::catalog::{flow_field, strip_comment, CatalogError};
+use crate::catalog::{CatalogError, flow_field, strip_comment};
 use crate::domain::{HierarchyBinding, HierarchyMap, WriteSetError};
 use ln_temporal::domain::ComponentConceptId;
 
@@ -214,11 +214,12 @@ fn parse_edition_rev(path: &str) -> Option<String> {
         }
         // must be terminated by '_', '/' or end (not a longer token)
         let terminator = bytes.get(start + 10).copied();
-        if let Some(c) = terminator {
-            if c != b'_' && c != b'/' {
-                from = start;
-                continue;
-            }
+        if let Some(c) = terminator
+            && c != b'_'
+            && c != b'/'
+        {
+            from = start;
+            continue;
         }
         return Some(date.to_owned());
     }

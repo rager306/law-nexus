@@ -39,29 +39,29 @@ use std::fs;
 use std::path::PathBuf;
 
 use ln_decode::analysis_source_mapping::{
-    check_temporal_fields, MappingRefusalKind, SourceIdentity, SourceMapping,
-    TEMPORAL_FORBIDDEN_FIELDS,
+    MappingRefusalKind, SourceIdentity, SourceMapping, TEMPORAL_FORBIDDEN_FIELDS,
+    check_temporal_fields,
 };
 use ln_decode::document_context::{ContextStatus, DocumentVersionRef};
 use ln_decode::npa_analysis_records::{
-    analyze_document, resolve_span, AnalysisRefusalKind, DocumentAnalysis, SourceRef,
+    AnalysisRefusalKind, DocumentAnalysis, SourceRef, analyze_document, resolve_span,
 };
 use ln_decode::npa_analysis_verify::{
-    read_back_npa_analysis, verify_npa_analysis_wire, AnalysisVerifyCode, AnalysisVerifyFinding,
+    AnalysisVerifyCode, AnalysisVerifyFinding, read_back_npa_analysis, verify_npa_analysis_wire,
 };
 use ln_decode::npa_analysis_wire::{
-    inspect_npa_analysis_wire, recompute_analysis_seals, render_npa_analysis,
-    render_npa_analysis_with_context, AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope,
+    AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope, inspect_npa_analysis_wire,
+    recompute_analysis_seals, render_npa_analysis, render_npa_analysis_with_context,
 };
 use ln_decode::npa_anchor::LocalSpan;
 use ln_decode::npa_context_records::{
-    build_context_records, diagnostic_token, status_token, ContextRecord,
+    ContextRecord, build_context_records, diagnostic_token, status_token,
 };
 use ln_decode::npa_typed::TypeDerivation;
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
-use ln_decode::reader_gate::{gate_reader, ReaderSourceClass};
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, Limits, Package, MODEL, PROFILE};
+use ln_decode::reader_gate::{ReaderSourceClass, gate_reader};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
+use ln_decode::source_package::{Limits, MODEL, PROFILE, Package, capture};
 use serde_json::json;
 use sha2::{Digest, Sha256};
 
@@ -97,8 +97,7 @@ const APPROVED: &[Fixture] = &[MIXED, CONTROLS, TEXT_ONLY];
 
 /// The single declared real input: a tracked bounded Consultant WordML fixture
 /// (not the restricted corpus). Pinned by byte length and sha256.
-const REAL_INPUT: &str =
-    "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml";
+const REAL_INPUT: &str = "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml";
 const REAL_INPUT_SHA256: &str = "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d";
 const REAL_INPUT_BYTES: usize = 193_726;
 const REAL_DOC_VERSION: &str = "declared-real:435-fz-d71bf702";
@@ -443,9 +442,11 @@ fn assert_document_outcome(pipeline: &Pipeline, label: &str, document_version_re
         }
         "incomplete" => {
             assert!(!summary.incomplete_reasons.is_empty());
-            assert!(summary
-                .incomplete_reasons
-                .contains(&summary.completion_basis));
+            assert!(
+                summary
+                    .incomplete_reasons
+                    .contains(&summary.completion_basis)
+            );
         }
         other => panic!("{label}: unknown completion token {other:?}"),
     }
@@ -935,8 +936,7 @@ const RECEIPT_S03_REL: &str = "prd/migration/rust-evidence/m214-s03-context-veri
 /// refusal outranking it. The heading carries a this-ref surface so the §8C.2
 /// trigger emits a current-document-requisites request; no letterhead is
 /// present, so that result stays `unavailable` (non-resolved).
-const CONTEXT_HONESTY_BODY: &str =
-    "<w:p><w:r><w:t>Статья 1. Настоящего Федерального закона</w:t></w:r></w:p>\
+const CONTEXT_HONESTY_BODY: &str = "<w:p><w:r><w:t>Статья 1. Настоящего Федерального закона</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Федерального закона от 01.01.2020 N 1-ФЗ,</w:t></w:r></w:p>\
      <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>";
 
@@ -1144,16 +1144,14 @@ fn mutate_member_span_in_fragment(pipeline: &Pipeline) -> Option<String> {
             continue;
         }
         for key in ["span", "evidence"] {
-            if let Some((fragment, start, end)) = bound_span_of(&lines[index], key) {
-                if let Some((new_start, new_end)) =
+            if let Some((fragment, start, end)) = bound_span_of(&lines[index], key)
+                && let Some((new_start, new_end)) =
                     alternate_span(&pipeline.index, &fragment, start, end)
-                {
-                    let new_obj = format!(
-                        r#"{{"end":{new_end},"fragment":"{fragment}","start":{new_start}}}"#
-                    );
-                    lines[index] = replace_field_object(&lines[index], key, &new_obj);
-                    return Some(join_envelope(&lines));
-                }
+            {
+                let new_obj =
+                    format!(r#"{{"end":{new_end},"fragment":"{fragment}","start":{new_start}}}"#);
+                lines[index] = replace_field_object(&lines[index], key, &new_obj);
+                return Some(join_envelope(&lines));
             }
         }
     }
@@ -1168,16 +1166,14 @@ fn mutate_member_span_out_of_bounds(pipeline: &Pipeline) -> Option<String> {
             continue;
         }
         for key in ["span", "evidence"] {
-            if let Some((fragment, start, _)) = bound_span_of(&lines[index], key) {
-                if let Some((new_start, new_end)) =
+            if let Some((fragment, start, _)) = bound_span_of(&lines[index], key)
+                && let Some((new_start, new_end)) =
                     out_of_bounds_span(&pipeline.index, &fragment, start)
-                {
-                    let new_obj = format!(
-                        r#"{{"end":{new_end},"fragment":"{fragment}","start":{new_start}}}"#
-                    );
-                    lines[index] = replace_field_object(&lines[index], key, &new_obj);
-                    return Some(join_envelope(&lines));
-                }
+            {
+                let new_obj =
+                    format!(r#"{{"end":{new_end},"fragment":"{fragment}","start":{new_start}}}"#);
+                lines[index] = replace_field_object(&lines[index], key, &new_obj);
+                return Some(join_envelope(&lines));
             }
         }
     }

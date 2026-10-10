@@ -3,9 +3,9 @@
 //! Structural only: not full CTV temporal resolution, not legal amendment correctness.
 
 use ln_temporal::domain::{
-    ctv_ops_non_claims, plan_industrial_op, whole_act_structural_compile, AmendingActId,
-    ComponentConceptId, CtvIndustrialOpKind, CtvOpsError, IndustrialOpId, IndustrialOpRequest,
-    MembershipEdge, MembershipGraph,
+    AmendingActId, ComponentConceptId, CtvIndustrialOpKind, CtvOpsError, IndustrialOpId,
+    IndustrialOpRequest, MembershipEdge, MembershipGraph, ctv_ops_non_claims, plan_industrial_op,
+    whole_act_structural_compile,
 };
 
 fn cc(id: &str) -> ComponentConceptId {

@@ -1,8 +1,8 @@
 //! Bounded regression oracles for text following a closed WordML element.
 use ln_decode::reader_contract::{ReaderSemantic, ReaderViewKind};
 use ln_decode::reader_projection::build_projection;
-use ln_decode::reader_verifier::{verify_projection, VerifyCode};
-use ln_decode::source_package::{capture, Limits, Record, TextSlot};
+use ln_decode::reader_verifier::{VerifyCode, verify_projection};
+use ln_decode::source_package::{Limits, Record, TextSlot, capture};
 
 // value, capture owner, slot, primary view kind, primary view anchor, semantic
 type Expected<'a> = (

@@ -2,8 +2,8 @@
 //! (RC11-F06 / ADR-0009 non-claims).
 
 use ln_temporal::domain::{
-    classify_temporal_capability, reject_derived_interval_as_source_truth, ClockKind,
-    TemporalAlgebraCapability, TemporalCapabilityClass,
+    ClockKind, TemporalAlgebraCapability, TemporalCapabilityClass, classify_temporal_capability,
+    reject_derived_interval_as_source_truth,
 };
 
 #[test]
@@ -41,10 +41,12 @@ fn derived_interval_cannot_become_source_truth() {
         TemporalAlgebraCapability::DerivedEffectiveWindowAsSourceTruth
     );
     assert_eq!(boundary.class, TemporalCapabilityClass::DeferredAlgebra);
-    assert!(boundary
-        .non_claims
-        .iter()
-        .any(|c| c.contains("projections") || c.contains("source truth")));
+    assert!(
+        boundary
+            .non_claims
+            .iter()
+            .any(|c| c.contains("projections") || c.contains("source truth"))
+    );
 }
 
 #[test]

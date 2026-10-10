@@ -16,8 +16,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ln_decode::corpus_inventory::{
-    self, build_inventory, run_inventory, sha256_bytes, InventoryCli, EXIT_OK, EXIT_OUT_UNWRITABLE,
-    EXIT_ROOT_MISSING, EXIT_UNREADABLE_FILE, EXIT_USAGE, INVENTORY_SCHEMA,
+    self, EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING, EXIT_UNREADABLE_FILE, EXIT_USAGE,
+    INVENTORY_SCHEMA, InventoryCli, build_inventory, run_inventory, sha256_bytes,
 };
 
 /// Unique per-test temp root; pre-cleaned so reruns start empty.

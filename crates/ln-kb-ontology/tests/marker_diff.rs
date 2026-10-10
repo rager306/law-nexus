@@ -2,7 +2,7 @@
 //! hierarchy markers to find structural changes (added/removed articles).
 //! This is the basis for extracting AmendmentEvents from consecutive editions.
 
-use ln_kb_ontology::domain::{diff_marker_sets, HierarchyMarker};
+use ln_kb_ontology::domain::{HierarchyMarker, diff_marker_sets};
 
 fn marker(level: &str, number: &str) -> HierarchyMarker {
     HierarchyMarker::try_new(None, level, number, None).expect("marker")
@@ -85,7 +85,7 @@ fn diff_empty_before_all_added() {
 
 // ─── AmendmentEventDraft bridge (M169 S03 T01) ─────────────────────────────
 
-use ln_kb_ontology::domain::{drafts_from_marker_diff, AmendmentDraftOp};
+use ln_kb_ontology::domain::{AmendmentDraftOp, drafts_from_marker_diff};
 
 fn draft_marker(level: &str, number: &str) -> HierarchyMarker {
     HierarchyMarker::try_new(None, level, number, None).expect("marker")

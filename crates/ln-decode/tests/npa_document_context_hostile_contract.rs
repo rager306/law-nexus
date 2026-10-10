@@ -3,20 +3,21 @@ use ln_decode::current_requisites::{
     RequisitesSourceKind, SourceAnchor, ThisRefGrammarEvidence,
 };
 use ln_decode::document_context::{
-    build_document_analysis_overlay, build_document_structure_index, explicit_anchor_lookup,
-    open_series_head, reduce_context_results, scoped_alias, BlockId, ContainerId, ContextBudgets,
-    ContextClaim, ContextClaimStatus, ContextDiagnostic, ContextEnvironment, ContextRequest,
-    ContextRequestKind, ContextResult, ContextStatus, ContextWorklist, ContextualEdgeKind,
-    DocumentAnalysisOverlay, DocumentStructureIndex, DocumentVersionRef, FrameRef, IndexBuildError,
-    StructureEdgeStatus, PROPOSED_MAX_ALIAS_CANDIDATES, PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD,
-    PROPOSED_MAX_SERIES_HOPS, PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
+    BlockId, ContainerId, ContextBudgets, ContextClaim, ContextClaimStatus, ContextDiagnostic,
+    ContextEnvironment, ContextRequest, ContextRequestKind, ContextResult, ContextStatus,
+    ContextWorklist, ContextualEdgeKind, DocumentAnalysisOverlay, DocumentStructureIndex,
+    DocumentVersionRef, FrameRef, IndexBuildError, PROPOSED_MAX_ALIAS_CANDIDATES,
+    PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD, PROPOSED_MAX_SERIES_HOPS,
+    PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT, StructureEdgeStatus, build_document_analysis_overlay,
+    build_document_structure_index, explicit_anchor_lookup, open_series_head,
+    reduce_context_results, scoped_alias,
 };
 use ln_decode::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, TextSpan,
 };
 use ln_decode::lawref::capture_lawrefs;
 use ln_decode::local_grammar::{
-    extract_act_list_frames, CoordinatingFrame, DerivationSource, FrameKind,
+    CoordinatingFrame, DerivationSource, FrameKind, extract_act_list_frames,
 };
 
 fn block(text: &str, style: ParagraphStyle, order: usize) -> ParsedBlock {
@@ -104,13 +105,15 @@ fn heading_paragraph_boundary_does_not_invent_comma_list_continuation() {
         report.results.values().next().unwrap().status,
         ContextStatus::Resolved
     );
-    assert!(report
-        .results
-        .values()
-        .next()
-        .unwrap()
-        .candidate_claims
-        .is_empty());
+    assert!(
+        report
+            .results
+            .values()
+            .next()
+            .unwrap()
+            .candidate_claims
+            .is_empty()
+    );
 }
 
 #[test]
@@ -158,9 +161,11 @@ fn alias_outside_structural_scope_is_not_bound() {
         &ContainerId::parse("container-2").unwrap(),
     );
     assert_eq!(outcome.status, ContextStatus::Unavailable);
-    assert!(outcome
-        .diagnostics
-        .contains(&ContextDiagnostic::UnresolvedAfterDocumentPass));
+    assert!(
+        outcome
+            .diagnostics
+            .contains(&ContextDiagnostic::UnresolvedAfterDocumentPass)
+    );
 }
 
 #[test]
@@ -183,9 +188,11 @@ fn sidecar_requisite_conflict_does_not_override_explicit_head() {
     };
     let reduced = reduce_context_results(&[explicit, inherited]);
     assert_eq!(reduced.status, ContextStatus::Conflicting);
-    assert!(reduced
-        .diagnostics
-        .contains(&ContextDiagnostic::InheritedFieldConflict));
+    assert!(
+        reduced
+            .diagnostics
+            .contains(&ContextDiagnostic::InheritedFieldConflict)
+    );
 }
 
 #[test]
@@ -229,10 +236,12 @@ fn wordml_split_keeps_local_anchors_and_never_mints_cross_block_span() {
         &[],
     )
     .unwrap();
-    assert!(overlay
-        .edges()
-        .iter()
-        .all(|edge| edge.evidence.iter().all(|span| span.end() <= 4)));
+    assert!(
+        overlay
+            .edges()
+            .iter()
+            .all(|edge| edge.evidence.iter().all(|span| span.end() <= 4))
+    );
 }
 
 #[test]
@@ -246,9 +255,11 @@ fn malformed_origin_fails_closed_as_missing_document_structure() {
     );
     let result = report.results.values().next().unwrap();
     assert_eq!(result.status, ContextStatus::Unavailable);
-    assert!(result
-        .diagnostics
-        .contains(&ContextDiagnostic::MissingDocumentStructure));
+    assert!(
+        result
+            .diagnostics
+            .contains(&ContextDiagnostic::MissingDocumentStructure)
+    );
 }
 
 #[test]
@@ -387,13 +398,15 @@ fn wrong_document_claim_is_not_accepted_as_context_result() {
         report.results.values().next().unwrap().status,
         ContextStatus::Unavailable
     );
-    assert!(report
-        .results
-        .values()
-        .next()
-        .unwrap()
-        .candidate_claims
-        .is_empty());
+    assert!(
+        report
+            .results
+            .values()
+            .next()
+            .unwrap()
+            .candidate_claims
+            .is_empty()
+    );
 }
 
 #[test]
@@ -502,15 +515,19 @@ fn continuation_conflict_requires_eligible_origins_not_multiplicity() {
         2,
         "both eligible origins must stay visible"
     );
-    assert!(continuations
-        .iter()
-        .all(|edge| edge.status == StructureEdgeStatus::Conflicting));
+    assert!(
+        continuations
+            .iter()
+            .all(|edge| edge.status == StructureEdgeStatus::Conflicting)
+    );
     let outcome = open_series_head(&overlay, &FrameRef::parse("block-2-frame-0").unwrap());
     assert_eq!(outcome.status, ContextStatus::Conflicting);
     assert_eq!(outcome.candidates.len(), 2, "no proximity winner");
-    assert!(outcome
-        .diagnostics
-        .contains(&ContextDiagnostic::IncompatibleSeriesHead));
+    assert!(
+        outcome
+            .diagnostics
+            .contains(&ContextDiagnostic::IncompatibleSeriesHead)
+    );
 
     // Two complete, unrelated citations are not competing interpretations.
     let unrelated = vec![

@@ -11,21 +11,21 @@
 
 use ln_decode::analysis_source_mapping::{SourceIdentity, SourceMapping};
 use ln_decode::document_context::{ContextStatus, DocumentVersionRef};
-use ln_decode::npa_analysis_records::{analyze_document, DocumentAnalysis};
+use ln_decode::npa_analysis_records::{DocumentAnalysis, analyze_document};
 use ln_decode::npa_analysis_verify::{
-    read_back_npa_analysis, verify_npa_analysis_wire, AnalysisReadback, AnalysisVerifyCode,
-    ReadbackContext,
+    AnalysisReadback, AnalysisVerifyCode, ReadbackContext, read_back_npa_analysis,
+    verify_npa_analysis_wire,
 };
 use ln_decode::npa_analysis_wire::{
-    inspect_npa_analysis_wire, render_npa_analysis, render_npa_analysis_with_context,
-    AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope,
+    AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope, inspect_npa_analysis_wire,
+    render_npa_analysis, render_npa_analysis_with_context,
 };
 use ln_decode::npa_context_records::{
-    build_context_records, context_stream_is_trivially_empty, ContextRecord,
+    ContextRecord, build_context_records, context_stream_is_trivially_empty,
 };
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, Limits};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
+use ln_decode::source_package::{Limits, capture};
 
 fn wrap(body: &str) -> String {
     format!(

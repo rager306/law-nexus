@@ -11,7 +11,7 @@
 //! four-valued graph class are layered on top later; [`FormGraph`] here is the
 //! internal form hint (`Undecided` for closed-dictionary forms).
 
-use crate::npa_anchor::{check_span, LocalSpan};
+use crate::npa_anchor::{LocalSpan, check_span};
 use crate::npa_link::LinkedDocument;
 
 /// Python `_INFLECT`: accepted suffix residuals for inflection matching.
@@ -154,8 +154,7 @@ const WHY_INSTRUMENT: &str =
     "доверенность/жалоба/контракт — документ, но не НПА; ребро «цитирует акт» было бы ложным";
 const WHY_NAMED: &str =
     "положение/правила — часто приложение, не отдельный идентифицирующий акт без издателя";
-const WHY_DOCUMENTACIYA: &str =
-    "конкурсная документация — named annex утверждающего приказа, не отдельный акт и не TYPE приказа";
+const WHY_DOCUMENTACIYA: &str = "конкурсная документация — named annex утверждающего приказа, не отдельный акт и не TYPE приказа";
 const WHY_REKOMENDACII: &str =
     "методические рекомендации — named annex утверждающего приказа, свой DATE+N нет";
 const WHY_REGLEMENT: &str =
@@ -274,15 +273,15 @@ pub fn lemma_match(written: &str, key: &str) -> bool {
     if a == b {
         return true;
     }
-    if let Some(rest) = a.strip_prefix(&b) {
-        if INFLECT.contains(&rest) {
-            return true;
-        }
+    if let Some(rest) = a.strip_prefix(&b)
+        && INFLECT.contains(&rest)
+    {
+        return true;
     }
-    if let Some(rest) = b.strip_prefix(&a) {
-        if INFLECT.contains(&rest) {
-            return true;
-        }
+    if let Some(rest) = b.strip_prefix(&a)
+        && INFLECT.contains(&rest)
+    {
+        return true;
     }
     false
 }
@@ -815,11 +814,7 @@ fn ws_run_end(chars: &[char], pos: usize) -> Option<usize> {
     while k < chars.len() && chars[k].is_whitespace() {
         k += 1;
     }
-    if k > pos {
-        Some(k)
-    } else {
-        None
-    }
+    if k > pos { Some(k) } else { None }
 }
 
 /// `\s*` followed by `tail` followed by `\w*`.
@@ -931,20 +926,21 @@ fn fed_org_at(chars: &[char], pos: usize) -> Option<usize> {
     for (stem, len) in [("правительств", 12usize), ("президент", 9usize)] {
         if matches_ci(chars, pos, stem) {
             let k = word_run_end(chars, pos + len);
-            if let Some(w) = ws_run_end(chars, k) {
-                if matches_ci(chars, w, "рф") && at_word_end(chars, w + 2) {
-                    return Some(w + 2);
-                }
+            if let Some(w) = ws_run_end(chars, k)
+                && matches_ci(chars, w, "рф")
+                && at_word_end(chars, w + 2)
+            {
+                return Some(w + 2);
             }
         }
     }
     // 9. КС\s+РФ
-    if matches_ci(chars, pos, "кс") {
-        if let Some(w) = ws_run_end(chars, pos + 2) {
-            if matches_ci(chars, w, "рф") && at_word_end(chars, w + 2) {
-                return Some(w + 2);
-            }
-        }
+    if matches_ci(chars, pos, "кс")
+        && let Some(w) = ws_run_end(chars, pos + 2)
+        && matches_ci(chars, w, "рф")
+        && at_word_end(chars, w + 2)
+    {
+        return Some(w + 2);
     }
     None
 }
@@ -953,14 +949,14 @@ fn fed_org_at(chars: &[char], pos: usize) -> Option<usize> {
 fn tail_org(canon: &str) -> Option<String> {
     let lower = canon.to_lowercase();
     for kw in ["письмо", "приказ", "распоряжение", "решение"] {
-        if let Some(rest) = lower.strip_prefix(kw) {
-            if rest.starts_with(|c: char| c.is_whitespace()) {
-                let chars: Vec<char> = canon.chars().collect();
-                let tail: String = chars[kw.chars().count()..].iter().collect();
-                let collapsed = collapse_ws(&tail);
-                if !collapsed.is_empty() {
-                    return Some(collapsed);
-                }
+        if let Some(rest) = lower.strip_prefix(kw)
+            && rest.starts_with(|c: char| c.is_whitespace())
+        {
+            let chars: Vec<char> = canon.chars().collect();
+            let tail: String = chars[kw.chars().count()..].iter().collect();
+            let collapsed = collapse_ws(&tail);
+            if !collapsed.is_empty() {
+                return Some(collapsed);
             }
         }
     }
@@ -1095,10 +1091,10 @@ fn geo_alt3(chars: &[char], pos: usize) -> Option<usize> {
         return None;
     }
     let mut k = pos + 5;
-    if let Some(c) = chars.get(k) {
-        if *c == 'а' || *c == 'е' {
-            k += 1;
-        }
+    if let Some(c) = chars.get(k)
+        && (*c == 'а' || *c == 'е')
+    {
+        k += 1;
     }
     let w = ws_run_end(chars, k)?;
     capital_lower_word(chars, w)
@@ -1208,10 +1204,10 @@ fn iso_fam_at(chars: &[char], pos: usize, alt: u8) -> Option<usize> {
                 let mut extended = None;
                 if matches_ci(chars, w2, "таможенн") {
                     let e2 = word_run_end(chars, w2 + 8);
-                    if let Some(w3) = ws_run_end(chars, e2) {
-                        if matches_ci(chars, w3, "союза") {
-                            extended = Some(w3 + 5);
-                        }
+                    if let Some(w3) = ws_run_end(chars, e2)
+                        && matches_ci(chars, w3, "союза")
+                    {
+                        extended = Some(w3 + 5);
                     }
                 }
                 if extended.is_none() && matches_ci(chars, w2, "еаэс") {
@@ -1243,10 +1239,10 @@ fn iso_fam_at(chars: &[char], pos: usize, alt: u8) -> Option<usize> {
                 return None;
             }
             let mut e = pos + 4;
-            if let Some(w) = ws_run_end(chars, e) {
-                if matches_ci(chars, w, "р") {
-                    e = w + 1;
-                }
+            if let Some(w) = ws_run_end(chars, e)
+                && matches_ci(chars, w, "р")
+            {
+                e = w + 1;
             }
             Some(e)
         }
@@ -1308,10 +1304,10 @@ fn iso_std(canon: &str) -> Option<String> {
             continue;
         }
         for alt in 1..=6u8 {
-            if let Some(end) = iso_fam_at(&chars, pos, alt) {
-                if iso_num_at(&chars, end).is_some() {
-                    return Some(chars[pos..end].iter().collect());
-                }
+            if let Some(end) = iso_fam_at(&chars, pos, alt)
+                && iso_num_at(&chars, end).is_some()
+            {
+                return Some(chars[pos..end].iter().collect());
             }
         }
     }

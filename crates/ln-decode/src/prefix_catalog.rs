@@ -295,14 +295,18 @@ mod tests {
     #[test]
     fn embedded_prefix_catalog_covers_current_extractable_tokens() {
         let catalog = DecodePrefixCatalog::embedded().expect("yaml");
-        assert!(catalog
-            .prefixes
-            .iter()
-            .any(|rule| rule.level == HierarchyLevel::Statya && rule.marker == "Статья"));
-        assert!(catalog
-            .prefixes
-            .iter()
-            .any(|rule| rule.level == HierarchyLevel::Paragraph && rule.marker == "§"));
+        assert!(
+            catalog
+                .prefixes
+                .iter()
+                .any(|rule| rule.level == HierarchyLevel::Statya && rule.marker == "Статья")
+        );
+        assert!(
+            catalog
+                .prefixes
+                .iter()
+                .any(|rule| rule.level == HierarchyLevel::Paragraph && rule.marker == "§")
+        );
         assert_eq!(
             catalog.number_style(HierarchyLevel::Razdel),
             Some(NumberStyle::RomanOrDigit)

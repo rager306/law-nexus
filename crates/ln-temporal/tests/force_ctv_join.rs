@@ -4,8 +4,8 @@
 //! never treats membership/text presence as InForce.
 
 use ln_temporal::domain::{
-    join_force_with_membership, AmendingActId, ComponentConceptId, ForceStatusEvent,
-    ForceStatusTimeline, MembershipEdge, MembershipGraph, NormativeState,
+    AmendingActId, ComponentConceptId, ForceStatusEvent, ForceStatusTimeline, MembershipEdge,
+    MembershipGraph, NormativeState, join_force_with_membership,
 };
 
 fn cc(id: &str) -> ComponentConceptId {
@@ -31,10 +31,12 @@ fn membership_alone_does_not_imply_in_force() {
     assert_eq!(joined.force.status, NormativeState::Unknown);
     assert!(joined.structural_known);
     assert_eq!(joined.parent.as_ref().map(|p| p.as_str()), Some("cc:ch"));
-    assert!(joined
-        .non_claims
-        .iter()
-        .any(|c| c.contains("membership") || c.contains("does not imply")));
+    assert!(
+        joined
+            .non_claims
+            .iter()
+            .any(|c| c.contains("membership") || c.contains("does not imply"))
+    );
 }
 
 #[test]

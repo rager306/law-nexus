@@ -22,8 +22,8 @@ use ln_decode::domain::{
 };
 use ln_decode::lexer::{self, TokenKind};
 use ln_decode::npa_sweep::{
-    self, parse_args, run_sweep, run_sweep_observed, walk_xml_files, FileTerminal, SweepAcc,
-    SweepCli, SweepObserver, EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING,
+    self, EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING, FileTerminal, SweepAcc, SweepCli,
+    SweepObserver, parse_args, run_sweep, run_sweep_observed, walk_xml_files,
 };
 use ln_decode::ports::BlockDecoderPort;
 

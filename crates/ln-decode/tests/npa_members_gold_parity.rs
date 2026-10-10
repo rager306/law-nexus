@@ -41,12 +41,11 @@ fn read_fixture(path: &PathBuf) -> BTreeMap<String, DocFixture> {
                 );
             }
             "frag" => {
-                if cols.len() >= 2 {
-                    if let Some(cur) = current.as_deref() {
-                        if let Some(d) = docs.get_mut(cur) {
-                            d.fragments.push(cols[1].to_string());
-                        }
-                    }
+                if cols.len() >= 2
+                    && let Some(cur) = current.as_deref()
+                    && let Some(d) = docs.get_mut(cur)
+                {
+                    d.fragments.push(cols[1].to_string());
                 }
             }
             "anchor" => {
@@ -330,15 +329,17 @@ fn invalid_span_is_reported() {
     let para = "Приказ от 05.03.2019 N 12";
     // ASCII-источник — положительный контроль.
     let ascii = "abcdef";
-    assert!(npa_anchor::check_span(
-        ascii,
-        npa_anchor::LocalSpan {
-            block: 0,
-            start: 0,
-            end: 3
-        }
-    )
-    .is_ok());
+    assert!(
+        npa_anchor::check_span(
+            ascii,
+            npa_anchor::LocalSpan {
+                block: 0,
+                start: 0,
+                end: 3
+            }
+        )
+        .is_ok()
+    );
     assert_eq!(
         npa_anchor::check_span(
             para,
@@ -374,15 +375,17 @@ fn invalid_span_is_reported() {
         ),
         Err(npa_anchor::SpanError::NotCharBoundary)
     );
-    assert!(npa_anchor::check_span(
-        nb,
-        npa_anchor::LocalSpan {
-            block: 0,
-            start: 0,
-            end: 8
-        }
-    )
-    .is_ok());
+    assert!(
+        npa_anchor::check_span(
+            nb,
+            npa_anchor::LocalSpan {
+                block: 0,
+                start: 0,
+                end: 8
+            }
+        )
+        .is_ok()
+    );
 }
 
 /// Повтор реквизита в другом span — отдельный occurrence + диагностика.

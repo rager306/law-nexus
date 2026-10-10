@@ -8,7 +8,7 @@
 //! the block it came from.
 
 use ln_decode::local_grammar::{
-    extract_act_list_frames_from_typed, DerivationSource, FrameDiagnostic, FrameKind, FrameStatus,
+    DerivationSource, FrameDiagnostic, FrameKind, FrameStatus, extract_act_list_frames_from_typed,
 };
 use ln_decode::npa_anchor::{self, LocalSpan};
 use ln_decode::npa_typed;
@@ -59,10 +59,12 @@ fn demo_federal_law_list_yields_three_independent_members() {
         frame.members[2].derivation,
         DerivationSource::SameSeriesHead
     );
-    assert!(frame
-        .members
-        .iter()
-        .all(|m| m.value_span.start() < m.value_span.end()));
+    assert!(
+        frame
+            .members
+            .iter()
+            .all(|m| m.value_span.start() < m.value_span.end())
+    );
 }
 
 /// The frame no longer silently picks one reading: a competing TYPE hypothesis

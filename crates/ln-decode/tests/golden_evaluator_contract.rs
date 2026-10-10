@@ -4,7 +4,7 @@ use ln_decode::{
         HierarchyLevel, ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan,
         SourceStreamId, TextSpan,
     },
-    evaluator::{evaluate, EvaluatorError},
+    evaluator::{EvaluatorError, evaluate},
     golden::{GoldenAnnotation, GoldenFixture, GoldenLayer, GoldenSource},
     references::extract_reference_mentions,
 };

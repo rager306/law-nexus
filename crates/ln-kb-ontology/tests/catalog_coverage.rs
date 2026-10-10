@@ -235,12 +235,10 @@ fn yaml_section_keys(text: &str, heading: &str) -> Vec<String> {
         if in_map && indent <= heading_indent {
             break;
         }
-        if in_map {
-            if let Some((key, _)) = trimmed.trim().split_once(':') {
-                let key = key.trim();
-                if !key.is_empty() && !key.starts_with('-') {
-                    keys.push(key.to_owned());
-                }
+        if in_map && let Some((key, _)) = trimmed.trim().split_once(':') {
+            let key = key.trim();
+            if !key.is_empty() && !key.starts_with('-') {
+                keys.push(key.to_owned());
             }
         }
     }

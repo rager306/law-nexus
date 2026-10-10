@@ -12,14 +12,14 @@
 
 use ln_decode::analysis_source_mapping::{SourceIdentity, SourceMapping};
 use ln_decode::document_context::DocumentVersionRef;
-use ln_decode::npa_analysis_records::{analyze_document, DocumentAnalysis};
+use ln_decode::npa_analysis_records::{DocumentAnalysis, analyze_document};
 use ln_decode::npa_analysis_wire::{
-    inspect_npa_analysis_wire, render_npa_analysis, AnalysisEnvelopeRequest, AnalysisLimits,
-    AnalysisScope, AnalysisWireErrorKind,
+    AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope, AnalysisWireErrorKind,
+    inspect_npa_analysis_wire, render_npa_analysis,
 };
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, Limits};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
+use ln_decode::source_package::{Limits, capture};
 
 fn wrap(body: &str) -> String {
     format!(

@@ -4,9 +4,8 @@ use std::process::ExitCode;
 use ln_admission::adapters::{HonestBoundObservation, HostileVendorCapacity};
 use ln_admission::application::DecideAdmission;
 use ln_admission::domain::{
-    AdmissionDecision, AdmissionReason, AdmissionRequest, BoundId, CapacityState,
-    ForbiddenInference, RequestId, WorkClassId, ADMISSION_POLICY_VERSION,
-    RETRY_AMPLIFICATION_THRESHOLD,
+    ADMISSION_POLICY_VERSION, AdmissionDecision, AdmissionReason, AdmissionRequest, BoundId,
+    CapacityState, ForbiddenInference, RETRY_AMPLIFICATION_THRESHOLD, RequestId, WorkClassId,
 };
 
 struct ScenarioResult {

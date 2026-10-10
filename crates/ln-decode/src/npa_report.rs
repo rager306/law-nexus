@@ -35,9 +35,9 @@ use crate::domain::ParsedBlock;
 use crate::local_grammar::{self, FrameDiagnostic};
 use crate::npa_classify::{self, ClassificationDiagnostic};
 use crate::npa_link::{self, LinkDiagnostic};
-use crate::npa_sweep::{walk_and_observe, FileTerminal, SweepObserver};
+use crate::npa_sweep::{FileTerminal, SweepObserver, walk_and_observe};
 use crate::npa_typed;
-use crate::npa_wire::{render_json, Json};
+use crate::npa_wire::{Json, render_json};
 
 pub use crate::npa_sweep::{
     EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING, EXIT_USAGE, EXIT_WALK_FAILED,
@@ -267,21 +267,21 @@ fn read_typed_fixture(path: &Path) -> Result<TypedFixture, String> {
                 fixture.typed.entry(cols[1].to_string()).or_default();
             }
             Some("frag") if cols.len() >= 2 => {
-                if let Some(cur) = current.as_deref() {
-                    if let Some(frags) = fixture.docs.get_mut(cur) {
-                        frags.push(cols[1].to_string());
-                    }
+                if let Some(cur) = current.as_deref()
+                    && let Some(frags) = fixture.docs.get_mut(cur)
+                {
+                    frags.push(cols[1].to_string());
                 }
             }
             Some("typed") if cols.len() >= 4 => {
-                if let Some(cur) = current.as_deref() {
-                    if let Some(typed) = fixture.typed.get_mut(cur) {
-                        typed.push((
-                            cols[1].to_string(),
-                            cols[2].to_string(),
-                            cols[3].to_string(),
-                        ));
-                    }
+                if let Some(cur) = current.as_deref()
+                    && let Some(typed) = fixture.typed.get_mut(cur)
+                {
+                    typed.push((
+                        cols[1].to_string(),
+                        cols[2].to_string(),
+                        cols[3].to_string(),
+                    ));
                 }
             }
             _ => {}
@@ -863,7 +863,7 @@ pub fn run_integration_report(cli: &IntegrationCli, default_root: &Path) -> Inte
                 json: None,
                 to_stdout: false,
                 stderr: format!("fixture failure: {err}"),
-            }
+            };
         }
     };
     let label = cli

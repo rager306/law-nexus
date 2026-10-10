@@ -43,7 +43,7 @@ fn parse_id(kind: &'static str, value: &str, max_len: usize) -> Result<String, I
 }
 
 macro_rules! id_type {
-    ($name:ident, $kind:literal, $max_len:expr) => {
+    ($name:ident, $kind:literal, $max_len:expr_2021) => {
         #[derive(Debug, Clone, PartialEq, Eq, Hash)]
         pub struct $name(String);
 

@@ -221,7 +221,7 @@ fn parse_tei_vector(body: &str) -> Result<Vec<f32>, TransportError> {
             _ => {
                 return Err(TransportError::BadResponse(
                     "unexpected numeric separator".to_owned(),
-                ))
+                ));
             }
         }
     }

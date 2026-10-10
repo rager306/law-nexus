@@ -1,7 +1,7 @@
 use ln_temporal::document_context::{BlockId, TextSpan};
 use ln_temporal::semantic_annotation::{
-    agreement, render_json, validate, validate_pair, AnnotationClaim, AnnotationRecord,
-    AnnotationValidationError, CandidateSlotVerdict,
+    AnnotationClaim, AnnotationRecord, AnnotationValidationError, CandidateSlotVerdict, agreement,
+    render_json, validate, validate_pair,
 };
 use ln_temporal::semantic_scope::{CandidateSlot, SemanticClaimKind};
 

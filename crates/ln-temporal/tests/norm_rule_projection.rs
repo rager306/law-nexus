@@ -1,7 +1,7 @@
 use ln_temporal::document_context::{BlockId, Terminal, TextSpan};
 use ln_temporal::semantic_scope::{
-    project_norm_rule, AbstentionReason, CandidateSlot, ProjectionOutcome, SemanticClaim,
-    SemanticClaimKind,
+    AbstentionReason, CandidateSlot, ProjectionOutcome, SemanticClaim, SemanticClaimKind,
+    project_norm_rule,
 };
 
 fn claim(kind: SemanticClaimKind, start: usize) -> SemanticClaim {
@@ -106,9 +106,11 @@ fn conflicting_same_slot_abstains_without_precedence_winner() {
     let ProjectionOutcome::Abstained(record) = project_norm_rule(claims, Terminal::Resolved) else {
         panic!("expected abstention")
     };
-    assert!(record
-        .reasons()
-        .contains(&AbstentionReason::ConflictingSlots));
+    assert!(
+        record
+            .reasons()
+            .contains(&AbstentionReason::ConflictingSlots)
+    );
     assert_eq!(record.claims().len(), 8);
     assert!(
         record
@@ -135,9 +137,11 @@ fn partial_scope_cannot_be_unconditionalized() {
         else {
             panic!("expected abstention")
         };
-        assert!(record
-            .reasons()
-            .contains(&AbstentionReason::ContextTerminal(Terminal::Partial)));
+        assert!(
+            record
+                .reasons()
+                .contains(&AbstentionReason::ContextTerminal(Terminal::Partial))
+        );
         assert_eq!(record.claims().len(), 5);
         return;
     };

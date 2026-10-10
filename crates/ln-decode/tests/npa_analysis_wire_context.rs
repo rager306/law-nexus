@@ -19,19 +19,19 @@ use ln_decode::document_context::{
     DocumentVersionRef, StructureEdgeStatus,
 };
 use ln_decode::local_grammar::DerivationSource;
-use ln_decode::npa_analysis_records::{analyze_document, DocumentAnalysis};
+use ln_decode::npa_analysis_records::{DocumentAnalysis, analyze_document};
 use ln_decode::npa_analysis_wire::{
-    inspect_npa_analysis_wire, render_npa_analysis, render_npa_analysis_with_context,
     AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope, AnalysisWireErrorKind, BASIS_COMPLETE,
-    BASIS_CONTEXT_INCOMPLETE, FAMILIES, FAMILY_CONTEXT, SCHEMA_CONTEXT,
+    BASIS_CONTEXT_INCOMPLETE, FAMILIES, FAMILY_CONTEXT, SCHEMA_CONTEXT, inspect_npa_analysis_wire,
+    render_npa_analysis, render_npa_analysis_with_context,
 };
 use ln_decode::npa_context_records::{
-    build_context_records, ContextClaimRecord, ContextDerivationRecord, ContextRecord,
-    ContextResultRecord,
+    ContextClaimRecord, ContextDerivationRecord, ContextRecord, ContextResultRecord,
+    build_context_records,
 };
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, Limits};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
+use ln_decode::source_package::{Limits, capture};
 
 fn wrap(body: &str) -> String {
     format!(
@@ -140,8 +140,7 @@ const TYPED_BODY: &str = "<w:p><w:r><w:t>Федеральный закон от 
 // current-document-requisites request is emitted and stays non-resolved
 // (`unavailable`); the bare `от ДАТА N` continuation tail exercises a resolved
 // open-series head.
-const CONTEXT_BODY: &str =
-    "<w:p><w:r><w:t>Статья 1. Настоящего Федерального закона</w:t></w:r></w:p>\
+const CONTEXT_BODY: &str = "<w:p><w:r><w:t>Статья 1. Настоящего Федерального закона</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Федерального закона от 01.01.2020 N 1-ФЗ,</w:t></w:r></w:p>\
      <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>";
 

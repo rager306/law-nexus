@@ -21,9 +21,9 @@
 
 use ln_temporal::calendar::legal_act_effect_day_to_ordinal;
 use ln_temporal::domain::{
-    fold_three_canon_at, AmendmentFacetKind, C1Candidate, CanonRecordId, ComponentConceptId,
-    EditionOracle, EvidenceClass, NormativeState, ThreeCanonEventLog, ThreeCanonLogError,
-    ThreeCanonProjection, ThreeCanonRecord,
+    AmendmentFacetKind, C1Candidate, CanonRecordId, ComponentConceptId, EditionOracle,
+    EvidenceClass, NormativeState, ThreeCanonEventLog, ThreeCanonLogError, ThreeCanonProjection,
+    ThreeCanonRecord, fold_three_canon_at,
 };
 
 // One stable Work (R081): every component concept lives in this namespace.
@@ -349,10 +349,12 @@ fn fz44_edition0_plus_three_amendments_walks_the_model() {
     assert_eq!(combined_2022.events().len(), 7, "canon events only");
 
     // The edition-oracle checksum never enters the canon projection.
-    assert!(combined
-        .records()
-        .iter()
-        .any(|record| matches!(record, ThreeCanonRecord::EditionOracle(_))));
+    assert!(
+        combined
+            .records()
+            .iter()
+            .any(|record| matches!(record, ThreeCanonRecord::EditionOracle(_)))
+    );
 
     // ── R081 shape: one stable Work, no Work minted per amendment ───────────
     let mut works: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();

@@ -1,8 +1,8 @@
-use ln_replay::adapters::{sample_checkpoint, InMemoryCheckpointStore, InMemoryEffectLedger};
+use ln_replay::adapters::{InMemoryCheckpointStore, InMemoryEffectLedger, sample_checkpoint};
 use ln_replay::application::CoordinateCheckpointAndReplay;
 use ln_replay::domain::{
-    CheckpointDigest, CheckpointId, EffectId, OperationId, ReplayOutcome, ReplayRequest, RequestId,
-    RuleVersion, REPLAY_POLICY_VERSION,
+    CheckpointDigest, CheckpointId, EffectId, OperationId, REPLAY_POLICY_VERSION, ReplayOutcome,
+    ReplayRequest, RequestId, RuleVersion,
 };
 
 fn request(digest: &str, rules: &str, operation: &str, effect: &str) -> ReplayRequest {

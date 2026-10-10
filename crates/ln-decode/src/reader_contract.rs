@@ -811,13 +811,13 @@ impl ReaderRecordIndex {
         let mut parents: HashMap<String, Option<String>> = HashMap::new();
         let mut roles: HashMap<String, ReaderRole> = HashMap::new();
         for element in &elements {
-            if let Some(parent) = &element.parent {
-                if !element_pos.contains_key(parent) {
-                    return Err(malformed_index(format!(
-                        "element {} parent {} is missing",
-                        element.id, parent
-                    )));
-                }
+            if let Some(parent) = &element.parent
+                && !element_pos.contains_key(parent)
+            {
+                return Err(malformed_index(format!(
+                    "element {} parent {} is missing",
+                    element.id, parent
+                )));
             }
             parents.insert(element.id.clone(), element.parent.clone());
             roles.insert(element.id.clone(), role_of_tag(&element.clark_tag));
@@ -936,13 +936,13 @@ pub fn tail_view_key(
     index: &ReaderRecordIndex,
     child_ref: &ElementRef,
 ) -> Result<ReaderViewKey, ContractError> {
-    if let Some(parent) = index.parent_id(child_ref.as_str())? {
-        if index.require_role(parent)? == ReaderRole::Paragraph {
-            return Ok(ReaderViewKey::new(
-                ReaderViewKind::Paragraph,
-                ElementRef::new(parent),
-            ));
-        }
+    if let Some(parent) = index.parent_id(child_ref.as_str())?
+        && index.require_role(parent)? == ReaderRole::Paragraph
+    {
+        return Ok(ReaderViewKey::new(
+            ReaderViewKind::Paragraph,
+            ElementRef::new(parent),
+        ));
     }
     let anchor = residual_anchor(index, child_ref)?;
     Ok(ReaderViewKey::new(ReaderViewKind::Residual, anchor))
@@ -1271,8 +1271,10 @@ mod tests {
     fn consts_match_the_pinned_contract() {
         assert_eq!(READER_PROFILE, "reader_wordml_profile/v1");
         assert_eq!(WORDML_NAMESPACES.len(), 3);
-        assert!(WORDML_NAMESPACES
-            .contains(&"http://schemas.openxmlformats.org/wordprocessingml/2006/main"));
+        assert!(
+            WORDML_NAMESPACES
+                .contains(&"http://schemas.openxmlformats.org/wordprocessingml/2006/main")
+        );
         assert_eq!(NOTE_DEF_LOCALS, ["footnote", "endnote"].as_slice());
         assert_eq!(
             NOTE_REFERENCE_LOCALS,

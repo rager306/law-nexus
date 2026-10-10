@@ -1,6 +1,6 @@
 //! Edge deriver tests: ClassifiedLink → DerivedEdge with correct direction.
 
-use ln_consultant_parser::{classify_all_scored, derive_edges, extract_hyperlinks, ClassifiedLink};
+use ln_consultant_parser::{ClassifiedLink, classify_all_scored, derive_edges, extract_hyperlinks};
 
 fn cl(kind: &str, dest: &str, text: &str, conf: f64) -> ClassifiedLink {
     ClassifiedLink {

@@ -140,18 +140,18 @@ pub fn output_identity(path: &Path) -> Result<PathBuf, ArtifactOutputError> {
         .ok_or_else(|| ArtifactOutputError::MissingFileName {
             path: path.to_path_buf(),
         })?;
-    if fs::symlink_metadata(path).is_ok() {
-        if let Ok(canonical) = fs::canonicalize(path) {
-            return Ok(canonical);
-        }
+    if fs::symlink_metadata(path).is_ok()
+        && let Ok(canonical) = fs::canonicalize(path)
+    {
+        return Ok(canonical);
     }
     let parent = path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty());
-    if let Some(parent) = parent {
-        if let Ok(canonical_parent) = fs::canonicalize(parent) {
-            return Ok(canonical_parent.join(file_name));
-        }
+    if let Some(parent) = parent
+        && let Ok(canonical_parent) = fs::canonicalize(parent)
+    {
+        return Ok(canonical_parent.join(file_name));
     }
     if path.is_absolute() {
         return Ok(path.to_path_buf());
@@ -431,10 +431,12 @@ mod tests {
             .expect_err("a symlink target must be refused even with force");
         assert!(matches!(error, ArtifactOutputError::TargetSymlink { .. }));
         assert_eq!(fs::read(&destination).expect("readable"), b"untouched");
-        assert!(fs::symlink_metadata(&link)
-            .expect("metadata")
-            .file_type()
-            .is_symlink());
+        assert!(
+            fs::symlink_metadata(&link)
+                .expect("metadata")
+                .file_type()
+                .is_symlink()
+        );
         let _ = fs::remove_dir_all(&dir);
     }
 

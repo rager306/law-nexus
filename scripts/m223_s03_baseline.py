@@ -1219,10 +1219,10 @@ PROOF_SEED = 22302
 #: Entries drawn per top-level corpus subdirectory.
 PROOF_PER_SUBDIR = 25
 
-#: Real, git-tracked non-WordML reader fixtures.  The pinned baseline corpus is
-#: uniformly ``supported_wordml`` (all 43785 roots are ``w:wordDocument`` in the
-#: canonical WordML namespace), so it can never emit a source refusal; the closed
-#: refusal dictionary is validated against these real inputs instead.
+#: Real, git-tracked non-WordML reader fixtures.  They validate the closed
+#: refusal dictionary against actual product refusal tokens; whether the pinned
+#: corpus itself emits typed refusals is reported by the ledger
+#: (``refused_by_class``), never asserted in advance.
 PROOF_REFUSAL_FIXTURES = (
     "crates/ln-decode/tests/fixtures/reader/diverse/negative-not-wordml.xml",
     "crates/ln-decode/tests/fixtures/reader/diverse/negative-namespace-absent.xml",
@@ -1230,15 +1230,17 @@ PROOF_REFUSAL_FIXTURES = (
 )
 
 PROOF_NON_CLAIMS = NON_CLAIMS + (
-    "The pinned baseline corpus is uniformly supported_wordml (43785/43785 roots "
-    "are w:wordDocument in the canonical WordML namespace), so it cannot produce a "
-    "corpus-level source refusal; the closed refusal dictionary is validated "
-    "against real non-WordML reader fixtures instead.",
+    "Whether the pinned corpus emits any typed product refusal is a result of the "
+    "run, reported by the ledger's refused_by_class, and is never asserted in "
+    "advance; the closed refusal dictionary is validated against real non-WordML "
+    "reader fixtures instead.",
     "The proof subset is a deterministic sample of the pinned manifest; its "
     "receipt bindings are snapshot-bound and shift with any tracked-file change.",
     "The SIGTERM interruption is enforced by timeout -s TERM on the real harness "
-    "subprocess; the interrupted in-flight export child is orphaned by design and "
-    "exits on its own (bounded by the attempt stop thresholds).",
+    "subprocess; the harness signal handler unwinds the live-poll loop, which "
+    "SIGKILLs and reaps the in-flight export child, so an interrupted attempt "
+    "never orphans an export. Resuming the same ledger re-attempts only the "
+    "interrupted incomplete entry while preserving every current receipt.",
 )
 
 
@@ -1354,8 +1356,8 @@ def run_refusal_probe(
         "inputs": inputs,
         "observed_classes": observed,
         "all_refused_typed": all_refused,
-        "note": "the pinned baseline corpus is uniformly supported_wordml; these are "
-        "real non-WordML reader fixtures, not corpus entries",
+        "note": "these are real non-WordML reader fixtures, not corpus entries; "
+        "whether the pinned corpus emits refusals itself is reported by the ledger",
     }
 
 
@@ -1406,11 +1408,14 @@ def _run_harness_subprocess(
         completed = subprocess.run(full, cwd=str(cwd), capture_output=True, text=True, check=False)
     except OSError as error:  # pragma: no cover - environment dependent
         raise HarnessError(f"harness subprocess failed to start: {type(error).__name__}") from error
+    stderr_lines = completed.stderr.strip().splitlines()
     return {
         "rc": completed.returncode,
         "wall_s": round(time.monotonic() - started, 3),
         "command": full,
-        "stderr_tail": completed.stderr.strip().splitlines()[-6:],
+        "stdout_lines": completed.stdout.strip().splitlines(),
+        "stderr_lines": stderr_lines,
+        "stderr_tail": stderr_lines[-6:],
     }
 
 
@@ -1550,12 +1555,88 @@ def interrupt_attempt(
             "in_flight_relative_path": not_run[0] if not_run else None,
             "status": "interrupted" if interrupted else "not_interrupted",
             "report": str(report),
+            "receipts_path": str(receipts),
             "stderr_tail": run["stderr_tail"],
         }
         if interrupted and len(got) >= 1 and not_run:
             break
     if last is None or last["status"] != "interrupted" or not last["in_flight_not_run"]:
         raise HarnessError("SIGTERM interruption proof did not observe an interrupted partial run")
+
+    # Same-ledger resume proof: resume the *same* interrupted ledger in place.
+    # Every current receipt must be preserved (never re-exported, no new source
+    # data, no ledger substitution) and the in-flight ``incomplete/not_run``
+    # entry must be re-attempted to a terminal outcome.  This is the finding the
+    # previous proof left orphaned: it showed a SIGTERM interruption but then
+    # resumed a *different*, fresh ledger.
+    interrupted_receipts = Path(str(last["receipts_path"]))
+    before = ReceiptLog(interrupted_receipts).read()
+    latest_before = latest_by_path(before)
+    terminal_before = sorted(
+        path for path, record in latest_before.items() if record["outcome"] in TERMINAL_OUTCOMES
+    )
+    in_flight = last["in_flight_relative_path"]
+    next_attempt = max((int(record["attempt"]) for record in before), default=0) + 1
+    resume_run = _run_harness_subprocess(
+        _harness_run_cmd(
+            python=py,
+            harness=harness_path,
+            manifest_path=manifest_abs,
+            corpus_root=corpus_abs,
+            bin_path=bin_abs,
+            decision_path=decision_abs,
+            scratch_dir=work,
+            receipts_path=interrupted_receipts,
+            report_path=work / "resume-run.json",
+            code_revision=code_revision,
+            # --max-entries 1 stops right after the single re-attempted entry so
+            # the resume proof never spills into a full-corpus run.
+            extra=["--resume", "--max-wall-s", "3600", "--max-entries", "1"],
+        ),
+        cwd=cwd,
+    )
+    after = ReceiptLog(interrupted_receipts).read()
+    latest_after = latest_by_path(after)
+    written = [record for record in after if int(record["attempt"]) == next_attempt]
+    skip_lines = [line for line in resume_run["stderr_lines"] if ": skip " in line]
+    resumed_in_flight = latest_after.get(in_flight) if in_flight else None
+    in_flight_terminal = (
+        bool(resumed_in_flight) and resumed_in_flight["outcome"] in TERMINAL_OUTCOMES
+    )
+    preserved = all(latest_after.get(path) == latest_before[path] for path in terminal_before)
+    no_new_source_paths = set(latest_after) == set(latest_before)
+    if (
+        resume_run["rc"] not in (EXIT_OK, EXIT_NOT_COMPLETE)
+        or len(written) != 1
+        or written[0]["relative_path"] != in_flight
+        or not in_flight_terminal
+        or not preserved
+        or not no_new_source_paths
+        or len(skip_lines) != len(terminal_before)
+    ):
+        raise HarnessError(
+            "same-ledger resume proof did not preserve current receipts and "
+            "re-attempt the interrupted incomplete entry"
+        )
+    last["receipts_after_resume"] = len(after)
+    last["resume"] = {
+        "status": "resumed",
+        "same_ledger": True,
+        "resumed_receipts_path": str(interrupted_receipts),
+        "terminal_before": len(terminal_before),
+        "skipped_current": len(skip_lines),
+        "reattempted_incomplete": len(written),
+        "in_flight_relative_path": in_flight,
+        "reattempted_outcome": written[0]["outcome"],
+        "reattempted_outcome_class": written[0]["outcome_class"],
+        "preserved_current": preserved,
+        "no_new_source_paths": no_new_source_paths,
+        "receipts_after_resume": len(after),
+        "resume_exit_code": resume_run["rc"],
+        "note": "the interrupted attempt's own ledger was resumed in place; current "
+        "receipts were skipped (not re-exported) and only the in-flight "
+        "incomplete entry was re-attempted to a terminal outcome",
+    }
     return last
 
 
@@ -1935,6 +2016,26 @@ def verify_proof(
     )
     if not ledger["ok"]:
         errors.append("ledger_not_current")
+
+    # The interruption block, when present, must carry a counts-only same-ledger
+    # resume claim: current receipts preserved (skipped, not re-exported), the
+    # in-flight incomplete entry re-attempted, and no new source paths introduced.
+    interruption = proof.get("interruption")
+    if interruption is not None:
+        resume = interruption.get("resume") if isinstance(interruption, dict) else None
+        if not isinstance(resume, dict):
+            errors.append("interruption_resume_missing")
+        else:
+            if resume.get("same_ledger") is not True:
+                errors.append("interruption_resume_not_same_ledger")
+            if resume.get("skipped_current") != resume.get("terminal_before"):
+                errors.append("interruption_resume_skip_mismatch")
+            if resume.get("reattempted_incomplete") != 1:
+                errors.append("interruption_resume_reattempt_mismatch")
+            if resume.get("preserved_current") is not True:
+                errors.append("interruption_resume_current_not_preserved")
+            if resume.get("no_new_source_paths") is not True:
+                errors.append("interruption_resume_new_paths")
     return {"ok": not errors, "errors": errors, "ledger": ledger}
 
 

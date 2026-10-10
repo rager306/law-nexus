@@ -327,10 +327,12 @@ fn bounded_bin_refuses_symlink_target_and_leaves_destination() {
     let output = run_bin(&args);
     assert_refused(&output, "symlink");
     assert_eq!(fs::read(&destination).expect("readable"), b"untouched");
-    assert!(fs::symlink_metadata(&link)
-        .expect("metadata")
-        .file_type()
-        .is_symlink());
+    assert!(
+        fs::symlink_metadata(&link)
+            .expect("metadata")
+            .file_type()
+            .is_symlink()
+    );
     assert!(!entries.exists());
     fs::remove_dir_all(&work).ok();
 }

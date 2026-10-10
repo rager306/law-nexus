@@ -75,10 +75,12 @@ fn honest_provenanced_embedding_yields_populated_provenance() {
     assert_eq!(artifact.dimensions(), 16);
     assert_eq!(artifact.provenance().license(), "Apache-2.0");
     assert_eq!(artifact.provenance().parameters().len(), 2);
-    assert!(artifact
-        .provenance()
-        .weights_sha256()
-        .starts_with("sha256:"));
+    assert!(
+        artifact
+            .provenance()
+            .weights_sha256()
+            .starts_with("sha256:")
+    );
 }
 
 #[test]

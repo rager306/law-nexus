@@ -1805,10 +1805,10 @@ impl AmendmentEvent {
         if has_force != force_transition.is_some() {
             return Err(ThreeCanonLogError::ForceFacetMismatch);
         }
-        if let Some(status) = force_transition {
-            if !status.is_transition_target() {
-                return Err(ThreeCanonLogError::UnknownNotTransition);
-            }
+        if let Some(status) = force_transition
+            && !status.is_transition_target()
+        {
+            return Err(ThreeCanonLogError::UnknownNotTransition);
         }
         Ok(Self {
             record_id,
@@ -1928,10 +1928,10 @@ impl AssertionOrEffect {
         evidence: EvidenceClass,
         payload: AssertionOrEffectPayload,
     ) -> Result<Self, ThreeCanonLogError> {
-        if let AssertionOrEffectPayload::Effect(status) = payload {
-            if !status.is_transition_target() {
-                return Err(ThreeCanonLogError::UnknownNotTransition);
-            }
+        if let AssertionOrEffectPayload::Effect(status) = payload
+            && !status.is_transition_target()
+        {
+            return Err(ThreeCanonLogError::UnknownNotTransition);
         }
         Ok(Self {
             record_id,
@@ -2041,10 +2041,10 @@ impl ThreeCanonEventLog {
         {
             return Err(ThreeCanonLogError::DuplicateRecordId);
         }
-        if let Some(last) = self.records.last() {
-            if record.effect_day() < last.effect_day() {
-                return Err(ThreeCanonLogError::OrderingConflict);
-            }
+        if let Some(last) = self.records.last()
+            && record.effect_day() < last.effect_day()
+        {
+            return Err(ThreeCanonLogError::OrderingConflict);
         }
         self.records.push(record);
         Ok(())
@@ -2119,10 +2119,10 @@ pub fn fold_three_canon_at(
     let mut previous_day: Option<i64> = None;
     for record in log.records() {
         let day = record.effect_day();
-        if let Some(previous) = previous_day {
-            if day < previous {
-                return Err(ThreeCanonLogError::OrderingConflict);
-            }
+        if let Some(previous) = previous_day
+            && day < previous
+        {
+            return Err(ThreeCanonLogError::OrderingConflict);
         }
         previous_day = Some(day);
     }
@@ -2398,10 +2398,10 @@ pub fn checkout_projection_at(
     let mut previous_day: Option<i64> = None;
     for record in log.records() {
         let day = record.effect_day();
-        if let Some(previous) = previous_day {
-            if day < previous {
-                return Err(ThreeCanonLogError::OrderingConflict);
-            }
+        if let Some(previous) = previous_day
+            && day < previous
+        {
+            return Err(ThreeCanonLogError::OrderingConflict);
         }
         previous_day = Some(day);
     }

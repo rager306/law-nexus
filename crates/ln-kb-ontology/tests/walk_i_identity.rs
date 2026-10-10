@@ -4,8 +4,8 @@
 //! The YAML 0118 registry is not the CC universe.
 
 use ln_kb_ontology::domain::{
-    grow_identity, map_hierarchy_marker, HierarchyMap, HierarchyMapOutcome, HierarchyMarker,
-    IdentitySnapshot, WriteSetError,
+    HierarchyMap, HierarchyMapOutcome, HierarchyMarker, IdentitySnapshot, WriteSetError,
+    grow_identity, map_hierarchy_marker,
 };
 
 const WORK: &str = "work:ru:federal:zakon:2013-04-05:44-fz";

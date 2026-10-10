@@ -24,19 +24,19 @@ use std::fs;
 use std::path::PathBuf;
 
 use ln_decode::analysis_source_mapping::{
+    CoordinateKind, MappingRefusal, MappingRefusalKind, SourceIdentity, SourceMapping, TokenView,
     check_coordinate_kind, check_no_corpus_transfer, check_temporal_fields, check_token_span,
-    check_token_view, CoordinateKind, MappingRefusal, MappingRefusalKind, SourceIdentity,
-    SourceMapping, TokenView,
+    check_token_view,
 };
-use ln_decode::cleaned_completion::{classify_completion, ScopeDeclaration};
+use ln_decode::cleaned_completion::{ScopeDeclaration, classify_completion};
 use ln_decode::cleaned_wire::{IncompleteReason, WireCompletion};
 use ln_decode::document_context::DocumentVersionRef;
 use ln_decode::npa_analysis_records::build_analysis_block_layout;
 use ln_decode::npa_anchor::LocalSpan;
 use ln_decode::reader_contract::{FragmentRef, ReaderFragmentSpan, ReaderRecordIndex};
-use ln_decode::reader_gate::{gate_reader, ReaderSourceClass};
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, Limits, Package, Record, MODEL, PROFILE};
+use ln_decode::reader_gate::{ReaderSourceClass, gate_reader};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
+use ln_decode::source_package::{Limits, MODEL, PROFILE, Package, Record, capture};
 use sha2::{Digest, Sha256};
 
 // --------------------------------------------------------------- fixtures #
@@ -71,8 +71,7 @@ const APPROVED: &[Fixture] = &[MIXED, CONTROLS, TEXT_ONLY];
 
 /// The single declared real input: a tracked bounded Consultant WordML fixture
 /// (not the restricted corpus). Pinned by byte length and sha256.
-const REAL_INPUT: &str =
-    "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml";
+const REAL_INPUT: &str = "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml";
 const REAL_INPUT_SHA256: &str = "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d";
 const REAL_INPUT_BYTES: usize = 193_726;
 

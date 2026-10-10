@@ -1,8 +1,8 @@
 use ln_temporal::document_context::{BlockId, Terminal, TextSpan};
 use ln_temporal::semantic_scope::{
-    project_norm_rule, render_scope_run_json, verify_zero_tolerance, AbstentionReason,
-    ProjectionOutcome, SemanticClaim, SemanticClaimKind, SemanticScopeEvent, SemanticScopeRun,
-    SemanticScopeViolation,
+    AbstentionReason, ProjectionOutcome, SemanticClaim, SemanticClaimKind, SemanticScopeEvent,
+    SemanticScopeRun, SemanticScopeViolation, project_norm_rule, render_scope_run_json,
+    verify_zero_tolerance,
 };
 
 fn claim(kind: SemanticClaimKind, start: usize) -> SemanticClaim {

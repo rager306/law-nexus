@@ -22,10 +22,10 @@ use ln_consultant_parser::npa_corpus_acceptance::{
     ThisDocumentReferenceToken,
 };
 use ln_consultant_parser::npa_corpus_acceptance_v2::{
-    build_report_v2, AcceptanceReportV2, CompletionVerdict, SemanticVerdict, UncoveredReason,
-    V2Thresholds,
+    AcceptanceReportV2, CompletionVerdict, SemanticVerdict, UncoveredReason, V2Thresholds,
+    build_report_v2,
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// A 64-hex sha256-shaped string (never a real corpus digest).
 fn sha(seed: u8) -> String {

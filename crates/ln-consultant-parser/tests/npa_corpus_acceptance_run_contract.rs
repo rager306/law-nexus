@@ -20,13 +20,13 @@ use std::sync::OnceLock;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use ln_consultant_parser::npa_corpus_acceptance::{
-    build_sample, declared_sample_roots, manifest_content_sha256, run_acceptance,
-    run_acceptance_with, AcceptanceEntry, AcceptanceOptions, AcceptanceReport, AdjudicationPacket,
-    CorpusSampleManifest, SampleRoot, DECLARED_SAMPLE_SIZE, DECLARED_TAMPER_PROBE_ENTRIES,
-    M208_STATUS_PARKED, R1000_STATUS_ACTIVE, SEMANTIC_REFERENCE_STATUS_ABSENT,
+    AcceptanceEntry, AcceptanceOptions, AcceptanceReport, AdjudicationPacket, CorpusSampleManifest,
+    DECLARED_SAMPLE_SIZE, DECLARED_TAMPER_PROBE_ENTRIES, M208_STATUS_PARKED, R1000_STATUS_ACTIVE,
+    SEMANTIC_REFERENCE_STATUS_ABSENT, SampleRoot, build_sample, declared_sample_roots,
+    manifest_content_sha256, run_acceptance, run_acceptance_with,
 };
 use ln_decode::npa_analysis_wire::AnalysisLimits;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
 const WORDML_NS: &str = "http://schemas.microsoft.com/office/word/2003/wordml";
@@ -557,10 +557,12 @@ fn acceptance_bin_refuses_symlink_target_and_leaves_destination() {
     let output = run_acceptance_bin(&args);
     assert_refused(&output, "symlink");
     assert_eq!(fs::read(&destination).expect("readable"), b"untouched");
-    assert!(fs::symlink_metadata(&link)
-        .expect("metadata")
-        .file_type()
-        .is_symlink());
+    assert!(
+        fs::symlink_metadata(&link)
+            .expect("metadata")
+            .file_type()
+            .is_symlink()
+    );
     assert!(!packet.exists());
     fs::remove_dir_all(&work).ok();
 }

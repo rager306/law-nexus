@@ -1,6 +1,6 @@
 use crate::{
     domain::{ParagraphStyle, ParsedBlock, TextSpan},
-    morphology::{find_legal_markers, LegalMarkerKind},
+    morphology::{LegalMarkerKind, find_legal_markers},
 };
 
 /// Bounded deontic lexeme classes. They are not legal modality conclusions.

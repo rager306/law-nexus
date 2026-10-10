@@ -5,13 +5,13 @@ use std::time::Instant;
 
 use ln_decode::{
     adapters::{
-        garant_odt::GarantOdtBlockDecoder, garant_odt_package::read_odt_content_xml,
-        ConsultantWordMlBlockDecoder,
+        ConsultantWordMlBlockDecoder, garant_odt::GarantOdtBlockDecoder,
+        garant_odt_package::read_odt_content_xml,
     },
     article_body::collect_article_texts,
     deontic::extract_deontic_lexemes,
     domain::{
-        fingerprint_bytes, DecodeRequest, FamilyFormat, HierarchyNode, ParagraphStyle, PayloadRef,
+        DecodeRequest, FamilyFormat, HierarchyNode, ParagraphStyle, PayloadRef, fingerprint_bytes,
     },
     hierarchy::extract_hierarchy,
     ports::BlockDecoderPort,
@@ -21,25 +21,25 @@ use ln_decode::{
     unknown_forms::census_unknown_forms,
 };
 use ln_kb_ontology::domain::{
-    admit_membership_proposals, assemble_with_oracle_diff, build_text_log_from_articles,
-    commit_admitted_to_log, diff_marker_sets, drafts_from_marker_diff, edition_ast_at,
-    map_hierarchy_marker, marker_from_decode_token, propose_membership_from_markers, resolve_ctv,
     AmendmentDraftOp, ComponentInExpressionEvent, ComponentInExpressionLog, CtvResolution,
     ExpressionId, HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker,
-    WriteSetError,
+    WriteSetError, admit_membership_proposals, assemble_with_oracle_diff,
+    build_text_log_from_articles, commit_admitted_to_log, diff_marker_sets,
+    drafts_from_marker_diff, edition_ast_at, map_hierarchy_marker, marker_from_decode_token,
+    propose_membership_from_markers, resolve_ctv,
 };
 use ln_kb_ontology::registry::{
     load_edition_day_for_path, load_expression_id_for_path, load_hierarchy_map_for_path,
 };
-use ln_query::knowql::{execute, KnowQLOp, KnowQLResult, ValidatedOp};
+use ln_query::knowql::{KnowQLOp, KnowQLResult, ValidatedOp, execute};
 use ln_storage::{
-    adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore},
     EmbeddingPort, EmbeddingRequest, EmbeddingResponse, GraphNode, GraphStorePort, StorageError,
     VectorRecord, VectorStorePort,
+    adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore},
 };
 use ln_temporal::domain::{
-    fold_membership_at, AmendingActId, ComponentConceptId, MembershipChangeKind,
-    VersionedMembershipEvent, VersionedMembershipLog,
+    AmendingActId, ComponentConceptId, MembershipChangeKind, VersionedMembershipEvent,
+    VersionedMembershipLog, fold_membership_at,
 };
 
 const BINARY: &str = "law-nexus-inspect";
@@ -661,15 +661,15 @@ fn replay(seed_path: &str, target_path: &str) {
         let block_count = blocks.len();
         let mut markers = Vec::new();
         for block in &blocks {
-            if let Some(node) = extract_hierarchy(block) {
-                if let Ok(m) = marker_from_decode_token(
+            if let Some(node) = extract_hierarchy(block)
+                && let Ok(m) = marker_from_decode_token(
                     None,
                     node.level().as_str(),
                     node.number(),
                     node.title(),
-                ) {
-                    markers.push(m);
-                }
+                )
+            {
+                markers.push(m);
             }
         }
         Ok((markers, block_count))
@@ -749,12 +749,11 @@ fn replay(seed_path: &str, target_path: &str) {
         if m.level() != "statya" {
             continue;
         }
-        if let Ok(cc) = ComponentConceptId::parse(&format!("cc:44-fz:statya-{}", m.number())) {
-            if let Ok(binding) =
+        if let Ok(cc) = ComponentConceptId::parse(&format!("cc:44-fz:statya-{}", m.number()))
+            && let Ok(binding) =
                 ln_kb_ontology::domain::HierarchyBinding::try_new(None, m.level(), m.number(), cc)
-            {
-                let _ = map.register(binding);
-            }
+        {
+            let _ = map.register(binding);
         }
     }
 
@@ -899,15 +898,15 @@ fn replay(seed_path: &str, target_path: &str) {
             if m.level() != "statya" {
                 continue;
             }
-            if let Ok(cc) = ComponentConceptId::parse(&format!("cc:44-fz:statya-{}", m.number())) {
-                if let Ok(binding) = ln_kb_ontology::domain::HierarchyBinding::try_new(
+            if let Ok(cc) = ComponentConceptId::parse(&format!("cc:44-fz:statya-{}", m.number()))
+                && let Ok(binding) = ln_kb_ontology::domain::HierarchyBinding::try_new(
                     None,
                     m.level(),
                     m.number(),
                     cc,
-                ) {
-                    let _ = map.register(binding);
-                }
+                )
+            {
+                let _ = map.register(binding);
             }
         }
         let propose = propose_membership_from_markers(&map, &target_markers).ok()?;
@@ -1189,10 +1188,10 @@ fn subordinate_work_id(path: &str) -> String {
         .split(|c: char| !c.is_ascii_digit())
         .filter(|part| !part.is_empty())
         .collect();
-    if let Some(first) = digits.first() {
-        if first.len() <= 4 {
-            return format!("pp-{first}");
-        }
+    if let Some(first) = digits.first()
+        && first.len() <= 4
+    {
+        return format!("pp-{first}");
     }
     "subordinate".to_owned()
 }
@@ -1452,10 +1451,12 @@ mod tests {
         )
         .expect("alias");
         assert_eq!(outcome, HierarchyMapOutcome::Unknown);
-        assert!(outcome
-            .non_claims()
-            .iter()
-            .any(|claim| claim.contains("Unknown") || claim.contains("ComponentConcept")));
+        assert!(
+            outcome
+                .non_claims()
+                .iter()
+                .any(|claim| claim.contains("Unknown") || claim.contains("ComponentConcept"))
+        );
     }
 
     // --- M171 S03 T02: bounded subordinate-act fixture helpers ---

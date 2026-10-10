@@ -13,7 +13,7 @@ use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use ln_decode::npa_classify::{
-    classify_form, lemma_match, stem_kind, FormBucket, FormGraph, FormVerdict,
+    FormBucket, FormGraph, FormVerdict, classify_form, lemma_match, stem_kind,
 };
 
 fn fixture_path() -> PathBuf {

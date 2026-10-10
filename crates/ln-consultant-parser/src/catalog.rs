@@ -143,7 +143,7 @@ pub fn coverage_summary(records: &[CatalogRecord]) -> (usize, usize) {
 /// Shared CatalogPort contract helpers (ADR-0015). Exercised against InMemory
 /// and the read-only SQLite adapter.
 pub mod contract {
-    use super::{resolve_consids, CatalogPort, CatalogRecord};
+    use super::{CatalogPort, CatalogRecord, resolve_consids};
 
     pub fn lookup_found_exact(port: &dyn CatalogPort, expected: &CatalogRecord) {
         let got = port

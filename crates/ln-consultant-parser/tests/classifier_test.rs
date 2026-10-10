@@ -1,7 +1,7 @@
 //! Link classifier tests: RawLink → ClassifiedLink based on context.
 
 use ln_consultant_parser::{
-    classify_all, classify_link, extract_hyperlinks, load_classifier_rules, RawLink,
+    RawLink, classify_all, classify_link, extract_hyperlinks, load_classifier_rules,
 };
 
 fn link(dest: &str, text: &str, context: &str) -> RawLink {

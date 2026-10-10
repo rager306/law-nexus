@@ -10,9 +10,9 @@
 use std::path::Path;
 
 use ln_decode::npa_report::{
-    measured_metric, render_integration_report, run_integration_report, CorpusPlane,
-    CorrectnessPlane, IntegrationCli, Metric, MetricStatus, RefusalPlane, INTEGRATION_SCHEMA,
-    INTEGRATION_SCHEMA_VERSION,
+    CorpusPlane, CorrectnessPlane, INTEGRATION_SCHEMA, INTEGRATION_SCHEMA_VERSION, IntegrationCli,
+    Metric, MetricStatus, RefusalPlane, measured_metric, render_integration_report,
+    run_integration_report,
 };
 use ln_decode::npa_sweep::EXIT_OK;
 

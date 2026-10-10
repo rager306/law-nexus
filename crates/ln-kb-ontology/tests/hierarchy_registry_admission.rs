@@ -28,9 +28,8 @@
 
 use ln_kb_ontology::registry::parse_hierarchy_registry;
 use ln_kb_ontology::registry_admission::{
-    admit_candidates, parse_admission_source, render_registry, AdmissionBinding,
-    AdmissionProvenance, AdmissionSource, CandidateEvidence, CandidateIdentity,
-    RegistryAdmissionError,
+    AdmissionBinding, AdmissionProvenance, AdmissionSource, CandidateEvidence, CandidateIdentity,
+    RegistryAdmissionError, admit_candidates, parse_admission_source, render_registry,
 };
 
 const CANDIDATE_ARTIFACT_SCHEMA: &str = "law-nexus-hierarchy-candidate-artifact/v1";
@@ -575,13 +574,19 @@ fn render_pins_registry_shape_non_claims_and_runtime_parse() {
     let reparsed = parse_hierarchy_registry(&yaml).expect("runtime parse");
     assert_eq!(reparsed.len(), 12);
     assert!(reparsed.iter().all(|row| row.level != "punkt"));
-    assert!(reparsed
-        .iter()
-        .any(|row| row.level == "glava" && row.number == "1" && row.cc == "cc:44-fz:glava-1"));
-    assert!(reparsed
-        .iter()
-        .any(|row| row.level == "statya" && row.number == "4" && row.cc == "cc:44-fz:statya-4"));
-    assert!(reparsed
-        .iter()
-        .any(|row| row.level == "statya" && row.number == "5" && row.cc == "cc:44-fz:statya-5"));
+    assert!(
+        reparsed
+            .iter()
+            .any(|row| row.level == "glava" && row.number == "1" && row.cc == "cc:44-fz:glava-1")
+    );
+    assert!(
+        reparsed
+            .iter()
+            .any(|row| row.level == "statya" && row.number == "4" && row.cc == "cc:44-fz:statya-4")
+    );
+    assert!(
+        reparsed
+            .iter()
+            .any(|row| row.level == "statya" && row.number == "5" && row.cc == "cc:44-fz:statya-5")
+    );
 }

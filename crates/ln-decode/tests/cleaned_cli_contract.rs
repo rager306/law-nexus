@@ -16,15 +16,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use ln_decode::cleaned_cli::{
-    parse_cleaned_args, run_cleaned_with, CleanedCli, CleanedCommand, EXIT_INPUT_UNREADABLE,
-    EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_USAGE, EXIT_VERIFY_FAILED,
+    CleanedCli, CleanedCommand, EXIT_INPUT_UNREADABLE, EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_USAGE,
+    EXIT_VERIFY_FAILED, parse_cleaned_args, run_cleaned_with,
 };
 use ln_decode::cleaned_completion::ScopeDeclaration;
 use ln_decode::cleaned_wire::{
-    export_cleaned_projection, read_cleaned_wire, WireCompletion, WireLimits,
+    WireCompletion, WireLimits, export_cleaned_projection, read_cleaned_wire,
 };
 use ln_decode::reader_projection::build_projection;
-use ln_decode::source_package::{capture, write_package, Limits};
+use ln_decode::source_package::{Limits, capture, write_package};
 
 const MIXED: &str = include_str!("fixtures/reader/mixed-wordml.xml");
 const TEXT_ONLY: &str = include_str!("fixtures/reader/diverse/text-only.xml");

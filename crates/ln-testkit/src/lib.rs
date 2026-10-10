@@ -10,8 +10,8 @@
 pub mod deterministic_embedding;
 
 pub use deterministic_embedding::{
-    deterministic_vector, DeterministicEmbedding, DeterministicEmbeddingTransport,
-    MAX_DETERMINISTIC_DIMENSIONS, MAX_DETERMINISTIC_INPUT_BYTES,
+    DeterministicEmbedding, DeterministicEmbeddingTransport, MAX_DETERMINISTIC_DIMENSIONS,
+    MAX_DETERMINISTIC_INPUT_BYTES, deterministic_vector,
 };
 
 use ln_accelerate::domain::{

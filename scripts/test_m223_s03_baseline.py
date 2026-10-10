@@ -1331,6 +1331,75 @@ def test_interrupt_attempt_via_timeout_preserves_receipts(tmp_path):
     assert result["in_flight_relative_path"] is not None
 
 
+def test_interrupt_attempt_resumes_same_ledger_and_reattempts_incomplete(tmp_path):
+    """Blocker M223-S03-same-interrupted-ledger-proof: a SIGTERM interruption
+    must be resumable *in place* on its own ledger — the current receipts are
+    preserved (skipped, not re-exported) and the interrupted ``incomplete/not_run``
+    entry is re-attempted to a terminal outcome, with no new source data and no
+    ledger substitution."""
+    names = [f"courts/f{index:03d}-normal.xml" for index in range(120)]
+    fix = proof_fixture(tmp_path, names, scratch_name="interrupt-resume")
+    result = mod.interrupt_attempt(
+        manifest_path=fix["manifest_path"],
+        corpus_root=fix["corpus_root"],
+        bin_path=fix["bin_path"],
+        decision_path=fix["decision_path"],
+        scratch_dir=fix["scratch"],
+        code_revision=fix["binding"].code_revision,
+        processing_window_s=0.4,
+    )
+    resume = result["resume"]
+    assert resume["same_ledger"] is True
+    assert resume["status"] == "resumed"
+    assert resume["terminal_before"] >= 1
+    assert resume["skipped_current"] == resume["terminal_before"]
+    assert resume["reattempted_incomplete"] == 1
+    assert resume["preserved_current"] is True
+    assert resume["no_new_source_paths"] is True
+    assert resume["reattempted_outcome"] in mod.TERMINAL_OUTCOMES
+    assert resume["in_flight_relative_path"] == result["in_flight_relative_path"]
+    assert resume["receipts_after_resume"] == result["receipts_after"] + 1
+
+    # the re-attempted entry is terminal in the same ledger; every current
+    # receipt kept its original attempt number (was skipped, not rewritten)
+    ledger = mod.ReceiptLog(Path(result["receipts_path"])).read()
+    latest = mod.latest_by_path(ledger)
+    assert latest[result["in_flight_relative_path"]]["outcome"] in mod.TERMINAL_OUTCOMES
+    reattempt_attempt = max(int(record["attempt"]) for record in ledger)
+    reattempted = [record for record in ledger if int(record["attempt"]) == reattempt_attempt]
+    assert len(reattempted) == 1
+    assert reattempted[0]["relative_path"] == result["in_flight_relative_path"]
+
+
+def test_verify_proof_rejects_missing_interruption_resume(tmp_path):
+    """A proof that claims an interruption must carry the counts-only
+    same-ledger resume block; a missing one fails closed."""
+    fix = proof_fixture(tmp_path, ["courts/a-normal.xml", "fas/c-normal.xml"])
+    proof = mod.prove_resume(
+        manifest_path=fix["manifest_path"],
+        corpus_root=fix["corpus_root"],
+        bin_path=fix["bin_path"],
+        decision_path=fix["decision_path"],
+        binding=fix["binding"],
+        limits=mod.probe.Limits(),
+        scratch_dir=fix["scratch"],
+        receipts_path=fix["receipts"],
+        entries=fix["entries"],
+        seed=3,
+        per_subdir=1,
+        bounded_wall_s=0.0,
+        enable_interrupt=False,
+        enable_refusal_probe=False,
+    )
+    receipts = mod.ReceiptLog(fix["receipts"]).read()
+    proof["interruption"] = {"status": "interrupted", "receipts_after": 1}
+    bad = mod.verify_proof(
+        proof=proof, entries=fix["entries"], receipts=receipts, live_binding=fix["binding"]
+    )
+    assert bad["ok"] is False
+    assert "interruption_resume_missing" in bad["errors"]
+
+
 def test_cli_prove_resume_and_verify_proof(tmp_path, capsys):
     fix = proof_fixture(
         tmp_path,

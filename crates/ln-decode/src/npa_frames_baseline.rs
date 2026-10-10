@@ -10,9 +10,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::domain::ParsedBlock;
-use crate::local_grammar::{extract_act_list_frames, extract_structural_frames, FrameStatus};
+use crate::local_grammar::{FrameStatus, extract_act_list_frames, extract_structural_frames};
 use crate::morphology::find_legal_markers;
-use crate::npa_sweep::{walk_and_observe, FileTerminal, SweepObserver};
+use crate::npa_sweep::{FileTerminal, SweepObserver, walk_and_observe};
 
 pub use crate::npa_sweep::{
     EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING, EXIT_USAGE, EXIT_WALK_FAILED,
@@ -177,8 +177,27 @@ impl FramesBaselineAcc {
             .checked_div(self.blocks)
             .unwrap_or(0);
         let mut out = String::new();
-        let _ = writeln!(out, "{{\"record_kind\":\"header\",\"schema\":\"{FRAMES_SCHEMA}\",\"schema_version\":{FRAMES_SCHEMA_VERSION},\"label\":{},\"lifecycle\":\"[diagnostic]\",\"decoder\":\"ConsultantWordMlBlockDecoder\",\"lexer\":\"ln_decode::lexer::lex\",\"frames\":\"ln_decode::local_grammar::frame_extractors\",\"non_claims\":[\"C2/C3-calibration\",\"gold\",\"R035\",\"R070\",\"lifecycle-promotion\"]}}", quote(label));
-        let _ = writeln!(out, "{{\"record_kind\":\"aggregate\",\"files_attempted\":{},\"files_decoded\":{},\"malformed\":{},\"unreadable\":{},\"blocks\":{},\"frame_blocks\":{},\"frames\":{},\"frames_per_block_max\":{},\"frames_per_block_mean_ppm\":{},\"act_members_max\":{},\"structural_values_max\":{},\"limit_events\":{}}}", self.files_attempted, self.files_decoded, self.malformed, self.unreadable, self.blocks, self.frame_blocks, self.frames, self.max_frames_per_block, mean_scaled, self.max_act_members, self.max_structural_values, self.limit_events);
+        let _ = writeln!(
+            out,
+            "{{\"record_kind\":\"header\",\"schema\":\"{FRAMES_SCHEMA}\",\"schema_version\":{FRAMES_SCHEMA_VERSION},\"label\":{},\"lifecycle\":\"[diagnostic]\",\"decoder\":\"ConsultantWordMlBlockDecoder\",\"lexer\":\"ln_decode::lexer::lex\",\"frames\":\"ln_decode::local_grammar::frame_extractors\",\"non_claims\":[\"C2/C3-calibration\",\"gold\",\"R035\",\"R070\",\"lifecycle-promotion\"]}}",
+            quote(label)
+        );
+        let _ = writeln!(
+            out,
+            "{{\"record_kind\":\"aggregate\",\"files_attempted\":{},\"files_decoded\":{},\"malformed\":{},\"unreadable\":{},\"blocks\":{},\"frame_blocks\":{},\"frames\":{},\"frames_per_block_max\":{},\"frames_per_block_mean_ppm\":{},\"act_members_max\":{},\"structural_values_max\":{},\"limit_events\":{}}}",
+            self.files_attempted,
+            self.files_decoded,
+            self.malformed,
+            self.unreadable,
+            self.blocks,
+            self.frame_blocks,
+            self.frames,
+            self.max_frames_per_block,
+            mean_scaled,
+            self.max_act_members,
+            self.max_structural_values,
+            self.limit_events
+        );
         let statuses = STATUS_NAMES
             .iter()
             .enumerate()
@@ -189,7 +208,15 @@ impl FramesBaselineAcc {
             out,
             "{{\"record_kind\":\"frame_status_counts\",{statuses}}}"
         );
-        let _ = writeln!(out, "{{\"record_kind\":\"run_manifest\",\"schema_version\":{FRAMES_SCHEMA_VERSION},\"run_status\":{},\"corpus_root\":{},\"observed_file_count\":{},\"source\":\"bounded C4 diagnostic smoke\",\"bounds\":{{\"G06_max_members\":{},\"G07_max_expanded_candidates\":{}}},\"limitations\":[\"PARSE-P2D remains proposed\",\"endpoint expansion is resolve-side and not measured here\"]}}", quote(run_status), quote(&root.to_string_lossy()), self.files_attempted, crate::local_grammar::PROPOSED_MAX_FRAME_MEMBERS, crate::local_grammar::PROPOSED_MAX_EXPANDED_CANDIDATES);
+        let _ = writeln!(
+            out,
+            "{{\"record_kind\":\"run_manifest\",\"schema_version\":{FRAMES_SCHEMA_VERSION},\"run_status\":{},\"corpus_root\":{},\"observed_file_count\":{},\"source\":\"bounded C4 diagnostic smoke\",\"bounds\":{{\"G06_max_members\":{},\"G07_max_expanded_candidates\":{}}},\"limitations\":[\"PARSE-P2D remains proposed\",\"endpoint expansion is resolve-side and not measured here\"]}}",
+            quote(run_status),
+            quote(&root.to_string_lossy()),
+            self.files_attempted,
+            crate::local_grammar::PROPOSED_MAX_FRAME_MEMBERS,
+            crate::local_grammar::PROPOSED_MAX_EXPANDED_CANDIDATES
+        );
         out
     }
 }

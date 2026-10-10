@@ -11,9 +11,9 @@
 //! tokenizer (covering `Abbrev{st}`, alphabetic `ст`, no covering word).
 
 use ln_decode::analysis_source_mapping::{
-    check_coordinate_kind, check_envelope_shape, check_token_span, check_token_view,
     CoordinateKind, EnvelopeLineKind, EnvelopeLineShape, MappingRefusal, MappingRefusalKind,
-    SourceIdentity, SourceMapping, TokenView,
+    SourceIdentity, SourceMapping, TokenView, check_coordinate_kind, check_envelope_shape,
+    check_token_span, check_token_view,
 };
 use ln_decode::document_context::DocumentVersionRef;
 use ln_decode::lexer::{self, TokenKind};

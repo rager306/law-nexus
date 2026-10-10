@@ -25,18 +25,18 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use ln_decode::cleaned_nav::{
-    build_nav_index, NavErrorKind, NavIndex, NavLink, NavLinkKind, NavResolveReason, NodeAddress,
+    NavErrorKind, NavIndex, NavLink, NavLinkKind, NavResolveReason, NodeAddress, build_nav_index,
 };
-use ln_decode::cleaned_nav_verifier::{verify_nav_index, NavVerifyCode};
+use ln_decode::cleaned_nav_verifier::{NavVerifyCode, verify_nav_index};
 use ln_decode::cleaned_wire::{
-    read_cleaned_wire, render_cleaned_projection, CleanedProjection, WireCompletion, WireLimits,
+    CleanedProjection, WireCompletion, WireLimits, read_cleaned_wire, render_cleaned_projection,
 };
 use ln_decode::reader_contract::{ReaderDerivedKind, ReaderReferenceType, ReaderViewKind};
 use ln_decode::reader_projection::{
-    build_projection, ProjectedView, ReaderProjection, ReferenceId, SegmentId, SegmentOrigin,
-    ViewId,
+    ProjectedView, ReaderProjection, ReferenceId, SegmentId, SegmentOrigin, ViewId,
+    build_projection,
 };
-use ln_decode::source_package::{capture, ElementRecord, Limits, Package, Record};
+use ln_decode::source_package::{ElementRecord, Limits, Package, Record, capture};
 
 // ---------------------------------------------------------------- fixtures #
 
@@ -237,10 +237,10 @@ fn oracle(projection: &ReaderProjection, positions: &HashMap<&str, usize>) -> Or
 // ------------------------------------------- private Clark-attribute oracle #
 
 fn clark_local(name: &str) -> &str {
-    if let Some(rest) = name.strip_prefix('{') {
-        if let Some(close) = rest.find('}') {
-            return &rest[close + 1..];
-        }
+    if let Some(rest) = name.strip_prefix('{')
+        && let Some(close) = rest.find('}')
+    {
+        return &rest[close + 1..];
     }
     name
 }
@@ -383,15 +383,19 @@ fn every_fixture_indexes_verifies_and_matches_oracle() {
 
         for view in &cleaned.projection.views {
             let address = NodeAddress::View(view.id.clone());
-            assert!(index
-                .anchors_of_element(&view.element_ref)
-                .contains(&address));
+            assert!(
+                index
+                    .anchors_of_element(&view.element_ref)
+                    .contains(&address)
+            );
         }
         for segment in &cleaned.projection.segments {
             let address = NodeAddress::Segment(segment.id.clone());
-            assert!(index
-                .anchors_of_element(&segment.element_ref)
-                .contains(&address));
+            assert!(
+                index
+                    .anchors_of_element(&segment.element_ref)
+                    .contains(&address)
+            );
             if let Some(fragment) = &segment.fragment_ref {
                 assert_eq!(
                     index.anchors_of_fragment(fragment),
@@ -403,9 +407,11 @@ fn every_fixture_indexes_verifies_and_matches_oracle() {
         }
         for reference in &cleaned.projection.references {
             let address = NodeAddress::Reference(reference.id.clone());
-            assert!(index
-                .anchors_of_element(&reference.element_ref)
-                .contains(&address));
+            assert!(
+                index
+                    .anchors_of_element(&reference.element_ref)
+                    .contains(&address)
+            );
         }
 
         verify_nav_index(&index, &cleaned, &package)
@@ -484,9 +490,11 @@ fn mixed_second_footnote_reference_is_addressable_and_unresolved() {
     let (_package, cleaned, index) = index_fixture(&MIXED);
     let reference = reference_by_element(&cleaned, "e46");
     assert_eq!(reference.reference_type, ReaderReferenceType::NoteReference);
-    assert!(index
-        .resolve(&NodeAddress::Reference(reference.id.clone()))
-        .is_some());
+    assert!(
+        index
+            .resolve(&NodeAddress::Reference(reference.id.clone()))
+            .is_some()
+    );
     assert_eq!(
         index.resolve_reason(&reference.id),
         Some(NavResolveReason::NoMatchingNoteDefinition)
@@ -577,9 +585,11 @@ fn navigation_demo_covers_structural_classes_and_nesting() {
         .iter()
         .find(|segment| segment.origin == SegmentOrigin::Derived(ReaderDerivedKind::PageBreak))
         .expect("navigation-demo must carry a derived page-break segment");
-    assert!(index
-        .resolve(&NodeAddress::Segment(page_break.id.clone()))
-        .is_some());
+    assert!(
+        index
+            .resolve(&NodeAddress::Segment(page_break.id.clone()))
+            .is_some()
+    );
 
     // A table nests under a note view; a note nests under another note view.
     let table_under_note = cleaned
@@ -634,15 +644,19 @@ fn unknown_and_foreign_references_are_addressable() {
         match reference.reference_type {
             ReaderReferenceType::ForeignElement => {
                 foreign += 1;
-                assert!(index
-                    .resolve(&NodeAddress::Reference(reference.id.clone()))
-                    .is_some());
+                assert!(
+                    index
+                        .resolve(&NodeAddress::Reference(reference.id.clone()))
+                        .is_some()
+                );
             }
             ReaderReferenceType::UnknownWordmlElement => {
                 unknown += 1;
-                assert!(index
-                    .resolve(&NodeAddress::Reference(reference.id.clone()))
-                    .is_some());
+                assert!(
+                    index
+                        .resolve(&NodeAddress::Reference(reference.id.clone()))
+                        .is_some()
+                );
             }
             _ => {}
         }

@@ -3,8 +3,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use ln_decode::npa_frames_baseline::{
-    parse_frames_baseline_args, run_frames_baseline, validate_frames_baseline_jsonl, FramesCli,
-    FRAMES_SCHEMA,
+    FRAMES_SCHEMA, FramesCli, parse_frames_baseline_args, run_frames_baseline,
+    validate_frames_baseline_jsonl,
 };
 use ln_decode::npa_sweep::{EXIT_OK, EXIT_ROOT_MISSING};
 

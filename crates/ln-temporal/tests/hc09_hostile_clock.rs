@@ -34,27 +34,35 @@ fn hostile_evidence_cannot_force_resolved_via_wall_clock_or_other_clocks() {
         assert_eq!(result.outcome, ResolutionOutcome::SubstituteRejected);
         assert!(!result.substitution_used);
         assert!(result.resolved_anchor.is_none());
-        assert!(result
-            .trace
-            .rejected_substitutes
-            .iter()
-            .any(|s| s == "wall_clock"));
-        assert!(result
-            .trace
-            .rejected_substitutes
-            .iter()
-            .any(|s| s == "edition_order"));
-        assert!(result
-            .trace
-            .rejected_substitutes
-            .iter()
-            .any(|s| s == "lifecycle_type"));
+        assert!(
+            result
+                .trace
+                .rejected_substitutes
+                .iter()
+                .any(|s| s == "wall_clock")
+        );
+        assert!(
+            result
+                .trace
+                .rejected_substitutes
+                .iter()
+                .any(|s| s == "edition_order")
+        );
+        assert!(
+            result
+                .trace
+                .rejected_substitutes
+                .iter()
+                .any(|s| s == "lifecycle_type")
+        );
         // At least one other-clock substitute was rejected.
-        assert!(result
-            .trace
-            .rejected_substitutes
-            .iter()
-            .any(|s| s.starts_with("other_clock:")));
+        assert!(
+            result
+                .trace
+                .rejected_substitutes
+                .iter()
+                .any(|s| s.starts_with("other_clock:"))
+        );
     }
 }
 

@@ -20,12 +20,12 @@ use std::collections::{HashMap, HashSet};
 
 use ln_decode::cleaned_verifier::verify_cleaned_wire;
 use ln_decode::cleaned_wire::{
-    export_cleaned_projection, read_cleaned_wire, CleanedProjection, WireCompletion, WireLimits,
-    KIND_POLICIES, KIND_REFERENCE, POLICY_DISPLAY_SCOPE,
+    CleanedProjection, KIND_POLICIES, KIND_REFERENCE, POLICY_DISPLAY_SCOPE, WireCompletion,
+    WireLimits, export_cleaned_projection, read_cleaned_wire,
 };
 use ln_decode::reader_contract::{ReaderReferenceType, ReaderSemantic};
-use ln_decode::reader_projection::{build_projection, ReaderProjection, SegmentOrigin};
-use ln_decode::source_package::{capture, Limits, Package, Record};
+use ln_decode::reader_projection::{ReaderProjection, SegmentOrigin, build_projection};
+use ln_decode::source_package::{Limits, Package, Record, capture};
 
 const FIELDS_REVISIONS: &str = include_str!("fixtures/reader/diverse/fields-revisions.xml");
 const NAVIGATION_DEMO: &str = include_str!("fixtures/reader/diverse/navigation-demo.xml");

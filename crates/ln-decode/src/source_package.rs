@@ -48,10 +48,10 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt;
 use std::io::{BufRead, Write};
 
+use quick_xml::NsReader;
 use quick_xml::events::attributes::AttrError;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::name::ResolveResult;
-use quick_xml::NsReader;
 use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
@@ -977,13 +977,13 @@ pub fn read_package<R: BufRead>(
             return Err(SourcePackageError::new(
                 ErrorKind::EmptyPackage,
                 "empty package",
-            ))
+            ));
         }
         LineRead::EofNoLf => {
             return Err(SourcePackageError::new(
                 ErrorKind::MissingTrailingLf,
                 "package does not end with LF",
-            ))
+            ));
         }
         LineRead::Line => {}
     }
@@ -1017,13 +1017,13 @@ pub fn read_package<R: BufRead>(
                 return Err(SourcePackageError::new(
                     ErrorKind::MissingFooter,
                     "package has no footer",
-                ))
+                ));
             }
             LineRead::EofNoLf => {
                 return Err(SourcePackageError::new(
                     ErrorKind::MissingTrailingLf,
                     "package does not end with LF",
-                ))
+                ));
             }
             LineRead::Line => {}
         }
@@ -1328,13 +1328,13 @@ fn begin_element(
                 return Err(SourcePackageError::new(
                     ErrorKind::DuplicateAttribute,
                     "duplicate attribute key",
-                ))
+                ));
             }
             Err(_) => {
                 return Err(SourcePackageError::new(
                     ErrorKind::MalformedXml,
                     "malformed attribute",
-                ))
+                ));
             }
         };
         let raw = attribute.key.as_ref().to_vec();
@@ -1416,7 +1416,7 @@ fn begin_element(
                     return Err(SourcePackageError::new(
                         ErrorKind::InvalidXmlSpace,
                         "xml:space value is not preserve|default",
-                    ))
+                    ));
                 }
             };
             xml_space_declared = Some(flag);

@@ -22,18 +22,18 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use ln_decode::cleaned_completion::{classify_completion, completion_for, ScopeDeclaration};
+use ln_decode::cleaned_completion::{ScopeDeclaration, classify_completion, completion_for};
 use ln_decode::cleaned_nav::build_nav_index_from_wire;
 use ln_decode::cleaned_nav_verifier::verify_nav_index;
 use ln_decode::cleaned_publish::write_cleaned_projection_atomic;
 use ln_decode::cleaned_verifier::verify_cleaned_wire;
 use ln_decode::cleaned_wire::{
-    export_cleaned_projection, read_cleaned_wire, CleanedProjection, IncompleteReason,
-    WireCompletion, WireLimits,
+    CleanedProjection, IncompleteReason, WireCompletion, WireLimits, export_cleaned_projection,
+    read_cleaned_wire,
 };
-use ln_decode::reader_gate::{gate_reader, ReaderSourceClass};
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, ErrorKind, Limits, Package, Record};
+use ln_decode::reader_gate::{ReaderSourceClass, gate_reader};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
+use ln_decode::source_package::{ErrorKind, Limits, Package, Record, capture};
 use sha2::{Digest, Sha256};
 
 // ------------------------------------------------------- declared slice #

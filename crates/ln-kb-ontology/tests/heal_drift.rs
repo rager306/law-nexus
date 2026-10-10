@@ -3,8 +3,8 @@
 //! (2) heal_missing adds Attach events for CCs that should be in the tree.
 
 use ln_kb_ontology::domain::{
-    admit_membership_proposals, commit_admitted_to_log, heal_missing, oracle_diff, waive_drift,
-    MembershipProposal,
+    MembershipProposal, admit_membership_proposals, commit_admitted_to_log, heal_missing,
+    oracle_diff, waive_drift,
 };
 use ln_temporal::domain::{AmendingActId, ComponentConceptId, VersionedMembershipLog};
 

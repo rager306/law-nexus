@@ -323,15 +323,14 @@ fn registry_op_f_typed_failures() -> Vec<(&'static str, Vec<&'static str>)> {
     for line in &lines[start + 1..end] {
         if let Some(value) = line.strip_prefix("        typed_failures:") {
             rows.push((current, inline_bracket_items(value)));
-        } else if let Some(rest) = line.strip_prefix("      ") {
-            if !rest.starts_with(' ') {
-                if let Some(key) = rest.strip_suffix(':') {
-                    let mut chars = key.chars();
-                    let starts_upper = chars.next().is_some_and(|c| c.is_ascii_uppercase());
-                    if starts_upper && chars.all(|c| c.is_ascii_alphanumeric()) {
-                        current = key;
-                    }
-                }
+        } else if let Some(rest) = line.strip_prefix("      ")
+            && !rest.starts_with(' ')
+            && let Some(key) = rest.strip_suffix(':')
+        {
+            let mut chars = key.chars();
+            let starts_upper = chars.next().is_some_and(|c| c.is_ascii_uppercase());
+            if starts_upper && chars.all(|c| c.is_ascii_alphanumeric()) {
+                current = key;
             }
         }
     }

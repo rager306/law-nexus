@@ -12,9 +12,9 @@
 //! evidence, not G1. No official corpus is parsed here and R070 stays open.
 
 use ln_temporal::domain::{
-    fold_three_canon_at, AmendmentFacetKind, C1Candidate, CanonRecordId, ComponentConceptId,
+    AmendmentFacetKind, C1_OVERLAY_NON_CLAIMS, C1Candidate, CanonRecordId, ComponentConceptId,
     EvidenceClass, NormativeState, ThreeCanonEventLog, ThreeCanonLogError, ThreeCanonRecord,
-    C1_OVERLAY_NON_CLAIMS,
+    fold_three_canon_at,
 };
 
 /// Synthetic C1 amending chain (offline; not the real corpus, not the 484 pin).
@@ -234,17 +234,25 @@ fn overlay_delegates_duplicate_and_ordering_to_substrate() {
 
 #[test]
 fn c1_overlay_non_claims_stay_declared() {
-    assert!(C1_OVERLAY_NON_CLAIMS
-        .iter()
-        .any(|c| c.contains("never becomes a legislative event")));
-    assert!(C1_OVERLAY_NON_CLAIMS
-        .iter()
-        .any(|c| c.contains("not read as a legislative fact")));
-    assert!(C1_OVERLAY_NON_CLAIMS
-        .iter()
-        .any(|c| c.contains("not the D172 store-type verdict")));
+    assert!(
+        C1_OVERLAY_NON_CLAIMS
+            .iter()
+            .any(|c| c.contains("never becomes a legislative event"))
+    );
+    assert!(
+        C1_OVERLAY_NON_CLAIMS
+            .iter()
+            .any(|c| c.contains("not read as a legislative fact"))
+    );
+    assert!(
+        C1_OVERLAY_NON_CLAIMS
+            .iter()
+            .any(|c| c.contains("not the D172 store-type verdict"))
+    );
     assert!(C1_OVERLAY_NON_CLAIMS.iter().any(|c| c.contains("not G1")));
-    assert!(C1_OVERLAY_NON_CLAIMS
-        .iter()
-        .any(|c| c.contains("not official-corpus parsing")));
+    assert!(
+        C1_OVERLAY_NON_CLAIMS
+            .iter()
+            .any(|c| c.contains("not official-corpus parsing"))
+    );
 }

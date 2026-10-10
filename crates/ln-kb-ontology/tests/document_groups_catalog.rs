@@ -306,10 +306,12 @@ fn departmental_order_primechanie_is_subunit_text() {
         .find(|entry| entry.token == "primechanie")
         .expect("primechanie");
     assert_eq!(primechanie.role, "subunit-text");
-    assert!(catalog
-        .structural_only_tokens
-        .iter()
-        .any(|token| token == "primechanie"));
+    assert!(
+        catalog
+            .structural_only_tokens
+            .iter()
+            .any(|token| token == "primechanie")
+    );
 }
 
 #[test]
@@ -718,12 +720,10 @@ fn yaml_alias_keys(text: &str, heading: &str) -> Vec<String> {
         if in_map && indent <= heading_indent {
             break;
         }
-        if in_map {
-            if let Some((key, _)) = trimmed.trim().split_once(':') {
-                let key = key.trim();
-                if !key.is_empty() {
-                    keys.push(key.to_owned());
-                }
+        if in_map && let Some((key, _)) = trimmed.trim().split_once(':') {
+            let key = key.trim();
+            if !key.is_empty() {
+                keys.push(key.to_owned());
             }
         }
     }

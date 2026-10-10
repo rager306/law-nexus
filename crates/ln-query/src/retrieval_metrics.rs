@@ -729,9 +729,11 @@ mod tests {
                 metric.as_str()
             );
         }
-        assert!(RetrievalMetricThreshold::SLICE
-            .breaches(&metrics)
-            .is_empty());
+        assert!(
+            RetrievalMetricThreshold::SLICE
+                .breaches(&metrics)
+                .is_empty()
+        );
     }
 
     #[test]

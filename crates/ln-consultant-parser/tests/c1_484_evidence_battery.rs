@@ -21,14 +21,14 @@
 //! official-corpus admission, or an in-force date. Honesty leftovers are
 //! T02's job, not this test's.
 
-use ln_consultant_parser::{derive_edges, extract_hyperlinks, ClassifiedLink};
+use ln_consultant_parser::{ClassifiedLink, derive_edges, extract_hyperlinks};
 use ln_kb_ontology::domain::{
-    map_hierarchy_marker, try_cross_act_edge, HierarchyMapOutcome, HierarchyMarker,
+    HierarchyMapOutcome, HierarchyMarker, map_hierarchy_marker, try_cross_act_edge,
 };
 use ln_kb_ontology::registry::{load_expression_id_for_path, load_hierarchy_map_for_path};
 use ln_temporal::domain::{
-    resolve_force_status_at, AmendingActId, ComponentConceptId, ForceStatusEvent,
-    ForceStatusTimeline, NormativeState, NormativeStateError,
+    AmendingActId, ComponentConceptId, ForceStatusEvent, ForceStatusTimeline, NormativeState,
+    NormativeStateError, resolve_force_status_at,
 };
 
 /// S01 pin: sha256 of the real consru_export canon 484-FZ XML (252478 bytes).

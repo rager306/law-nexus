@@ -18,9 +18,9 @@ use std::collections::BTreeMap;
 use std::fmt;
 
 use crate::document_context::DocumentVersionRef;
-use crate::npa_anchor::{check_span, LocalSpan, SpanError};
+use crate::npa_anchor::{LocalSpan, SpanError, check_span};
 use crate::reader_contract::{
-    check_fragment_span, ContractError, ContractErrorKind, FragmentRef, ReaderFragmentSpan,
+    ContractError, ContractErrorKind, FragmentRef, ReaderFragmentSpan, check_fragment_span,
 };
 
 // ----------------------------------------------------------------- refusals #
@@ -204,13 +204,13 @@ impl SourceIdentity {
             ("records_seal_hash", &records_seal_hash),
             ("manifest_hash", &manifest_hash),
         ] {
-            if let Some(value) = seal {
-                if !is_lower_hex64(value) {
-                    return Err(refuse(
-                        MappingRefusalKind::EnvelopeStructural,
-                        format!("{label} must be 64 lowercase hex characters or null"),
-                    ));
-                }
+            if let Some(value) = seal
+                && !is_lower_hex64(value)
+            {
+                return Err(refuse(
+                    MappingRefusalKind::EnvelopeStructural,
+                    format!("{label} must be 64 lowercase hex characters or null"),
+                ));
             }
         }
         Ok(SourceIdentity {
@@ -530,7 +530,9 @@ pub fn check_temporal_fields(fields: &[&str]) -> Result<(), MappingRefusal> {
         if TEMPORAL_FORBIDDEN_FIELDS.contains(field) {
             return Err(refuse(
                 MappingRefusalKind::TemporalFieldForbidden,
-                format!("field {field} is a temporal stop-sign and must not enter an identity/coordinate envelope"),
+                format!(
+                    "field {field} is a temporal stop-sign and must not enter an identity/coordinate envelope"
+                ),
             ));
         }
     }
@@ -635,12 +637,12 @@ impl SourceMapping {
     /// Declares the caller-side block-to-fragment rule (D603). A block cannot
     /// be remapped to a different fragment.
     pub fn map_block(&mut self, block: usize, fragment: FragmentRef) -> Result<(), MappingRefusal> {
-        if let Some(existing) = self.block_fragments.get(&block) {
-            if existing != &fragment {
-                return Err(structural(format!(
-                    "block {block} already maps to {existing}, cannot remap to {fragment}"
-                )));
-            }
+        if let Some(existing) = self.block_fragments.get(&block)
+            && existing != &fragment
+        {
+            return Err(structural(format!(
+                "block {block} already maps to {existing}, cannot remap to {fragment}"
+            )));
         }
         self.block_fragments.insert(block, fragment);
         Ok(())

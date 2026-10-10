@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use ln_decode::npa_anchor;
-use ln_decode::npa_continuation::{eligible_continuation_head_for, ContinuationEligibility};
+use ln_decode::npa_continuation::{ContinuationEligibility, eligible_continuation_head_for};
 use ln_decode::npa_link::{self, LinkDerivation, LinkDiagnostic, LinkedRelationKind};
 
 fn fixture_dir() -> PathBuf {
@@ -36,10 +36,10 @@ fn read_fixture() -> BTreeMap<String, Vec<String>> {
                 docs.entry(cols[1].to_string()).or_default();
             }
             Some("frag") if cols.len() >= 2 => {
-                if let Some(cur) = current.as_deref() {
-                    if let Some(frags) = docs.get_mut(cur) {
-                        frags.push(cols[1].to_string());
-                    }
+                if let Some(cur) = current.as_deref()
+                    && let Some(frags) = docs.get_mut(cur)
+                {
+                    frags.push(cols[1].to_string());
                 }
             }
             _ => {}

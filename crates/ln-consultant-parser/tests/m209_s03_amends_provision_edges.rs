@@ -23,9 +23,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use ln_consultant_parser::amendment_provenance::{
-    collect_amends_provisions, render_amends_provisions, validate_amends_provisions,
-    AmendsProvisionEvidence, AMENDS_EDGE_LIMIT, AMENDS_PROVISION_FAIL_CLOSED_CODES,
-    AMENDS_PROVISION_REASON_CODES,
+    AMENDS_EDGE_LIMIT, AMENDS_PROVISION_FAIL_CLOSED_CODES, AMENDS_PROVISION_REASON_CODES,
+    AmendsProvisionEvidence, collect_amends_provisions, render_amends_provisions,
+    validate_amends_provisions,
 };
 use ln_consultant_parser::catalog_sqlite::SqliteCatalog;
 
@@ -199,11 +199,13 @@ fn resolution_outcomes_sum_to_the_declared_denominator() {
             .count() as u64,
         evidence.by_outcome["resolved-provision"]
     );
-    assert!(evidence
-        .rows
-        .iter()
-        .filter(|row| row.outcome == "resolved-provision")
-        .all(|row| row.statya_refs_resolved > 0));
+    assert!(
+        evidence
+            .rows
+            .iter()
+            .filter(|row| row.outcome == "resolved-provision")
+            .all(|row| row.statya_refs_resolved > 0)
+    );
 
     eprintln!(
         "[outcomes] resolved={} not_in_registry={} no_statya={} target_not_44fz={} unparsed={} no_export={} no_layer1={}",

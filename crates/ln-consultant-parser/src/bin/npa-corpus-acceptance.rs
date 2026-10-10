@@ -18,8 +18,8 @@ use ln_consultant_parser::artifact_output::{
     output_identity, preflight_publish_target, publish_text_artifact,
 };
 use ln_consultant_parser::npa_corpus_acceptance::{
-    declared_sample_roots, run_acceptance_with, AcceptanceOptions, CorpusSampleManifest,
-    CONSULTANT_ROOT_RELATIVE, GARANT_ROOT_RELATIVE,
+    AcceptanceOptions, CONSULTANT_ROOT_RELATIVE, CorpusSampleManifest, GARANT_ROOT_RELATIVE,
+    declared_sample_roots, run_acceptance_with,
 };
 use sha2::{Digest, Sha256};
 

@@ -206,7 +206,7 @@ pub fn gate_reader(records: &[Record]) -> Result<ReaderSourceClass, GateRefusal>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::source_package::{capture, Limits};
+    use crate::source_package::{Limits, capture};
 
     const WORDML_2003: &str = "http://schemas.microsoft.com/office/word/2003/wordml";
     const WORDML_OOXML: &str = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";

@@ -23,8 +23,8 @@ use std::fmt::Write as _;
 use sha2::{Digest, Sha256};
 
 use crate::analysis_source_mapping::{
-    check_envelope_shape, check_no_corpus_transfer, check_temporal_fields, EnvelopeLineKind,
-    EnvelopeLineShape, SourceMapping,
+    EnvelopeLineKind, EnvelopeLineShape, SourceMapping, check_envelope_shape,
+    check_no_corpus_transfer, check_temporal_fields,
 };
 use crate::document_context::ContextStatus;
 use crate::npa_analysis_records::{
@@ -33,10 +33,10 @@ use crate::npa_analysis_records::{
 };
 use crate::npa_anchor::RejectReason;
 use crate::npa_context_records::{
-    claim_derivation_token, claim_status_token, derivation_relation_token,
-    diagnostic_token as context_diagnostic_token, edge_status_token, request_kind_token,
-    status_token, ContextClaimRecord, ContextDerivationRecord, ContextRecord, ContextResultRecord,
-    ContextRunRecord, KIND_RESULT, KIND_RUN,
+    ContextClaimRecord, ContextDerivationRecord, ContextRecord, ContextResultRecord,
+    ContextRunRecord, KIND_RESULT, KIND_RUN, claim_derivation_token, claim_status_token,
+    derivation_relation_token, diagnostic_token as context_diagnostic_token, edge_status_token,
+    request_kind_token, status_token,
 };
 use crate::npa_link::{LinkDerivation, LinkedMemberKind, LinkedRelationKind};
 use crate::npa_typed::TypeDerivation;
@@ -1044,10 +1044,10 @@ fn context_source_refs(record: &ContextRecord) -> Vec<&SourceRef> {
 fn context_incomplete_reasons(contexts: &[ContextRecord]) -> Option<Vec<&'static str>> {
     let mut statuses: BTreeSet<ContextStatus> = BTreeSet::new();
     for record in contexts {
-        if let ContextRecord::Result(result) = record {
-            if result.status != ContextStatus::Resolved {
-                statuses.insert(result.status);
-            }
+        if let ContextRecord::Result(result) = record
+            && result.status != ContextStatus::Resolved
+        {
+            statuses.insert(result.status);
         }
     }
     if statuses.is_empty() {
@@ -1798,7 +1798,7 @@ pub(crate) fn split_json_array_items(raw: &str) -> Result<Vec<&str>, AnalysisWir
                 return Err(err(
                     AnalysisWireErrorKind::UnknownKind,
                     "malformed JSON array separator",
-                ))
+                ));
             }
         }
     }
@@ -1858,7 +1858,7 @@ pub(crate) fn line_token(
                 return Err(err(
                     AnalysisWireErrorKind::UnknownKind,
                     format!("unknown line kind {token:?}"),
-                ))
+                ));
             }
         };
         return Ok((token, kind));
@@ -1999,7 +1999,7 @@ pub fn inspect_npa_analysis_wire(text: &str) -> Result<AnalysisEnvelopeSummary, 
             return Err(err(
                 AnalysisWireErrorKind::CompletionMarkerInvalid,
                 format!("unknown completion token {other:?}"),
-            ))
+            ));
         }
     }
 

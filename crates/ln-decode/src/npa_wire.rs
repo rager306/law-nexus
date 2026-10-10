@@ -21,8 +21,8 @@ use std::path::{Path, PathBuf};
 use crate::domain::ParsedBlock;
 use crate::npa_anchor::LocalSpan;
 use crate::npa_sweep::{
-    walk_and_observe, FileTerminal, SweepObserver, EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING,
-    EXIT_WALK_FAILED,
+    EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING, EXIT_WALK_FAILED, FileTerminal, SweepObserver,
+    walk_and_observe,
 };
 
 /// Closed schema tag of the records wire (contract §Version).

@@ -2,10 +2,10 @@
 
 use ln_applicability::application::EvaluateApplicability;
 use ln_applicability::domain::{
-    compose_norm_rule_predicates, AbstentionKind, ApplicabilityDecision, ApplicabilityRequest,
-    CaseFactSet, CaseFactsRevision, NormRule, NormRuleCondition, NormRuleId, NormRuleRevision,
-    PredicateOutcome, PredicateRegistryRevision, PrerequisiteSnapshot, ProfileInputRevision,
-    TemporalScope,
+    AbstentionKind, ApplicabilityDecision, ApplicabilityRequest, CaseFactSet, CaseFactsRevision,
+    NormRule, NormRuleCondition, NormRuleId, NormRuleRevision, PredicateOutcome,
+    PredicateRegistryRevision, PrerequisiteSnapshot, ProfileInputRevision, TemporalScope,
+    compose_norm_rule_predicates,
 };
 
 #[test]

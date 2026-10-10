@@ -19,8 +19,8 @@ use std::sync::OnceLock;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use ln_consultant_parser::npa_corpus_acceptance::{
-    build_sample, declared_sample_roots, run_acceptance, AcceptanceEntry, AcceptanceRun,
-    DECLARED_SAMPLE_SIZE,
+    AcceptanceEntry, AcceptanceRun, DECLARED_SAMPLE_SIZE, build_sample, declared_sample_roots,
+    run_acceptance,
 };
 
 const WORDML_NS: &str = "http://schemas.microsoft.com/office/word/2003/wordml";
@@ -31,8 +31,7 @@ const PLAIN_BODY: &str = "<w:p><w:r><w:t>Статья 1. Общие положе
 /// The S03 context fixture (`crates/ln-decode/tests/npa_analysis_context_contract.rs`):
 /// a heading with a this-ref surface and no letterhead, so the §8C.2 trigger
 /// emits a `current_document_requisites` request that stays `unavailable`.
-const CONTEXT_BODY: &str =
-    "<w:p><w:r><w:t>Статья 1. Настоящего Федерального закона</w:t></w:r></w:p>\
+const CONTEXT_BODY: &str = "<w:p><w:r><w:t>Статья 1. Настоящего Федерального закона</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Федерального закона от 01.01.2020 N 1-ФЗ,</w:t></w:r></w:p>\
      <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>";
 

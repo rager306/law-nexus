@@ -14,14 +14,14 @@
 use ln_decode::analysis_source_mapping::{SourceIdentity, SourceMapping};
 use ln_decode::document_context::DocumentVersionRef;
 use ln_decode::npa_analysis_records::{
-    analyze_typed, AnalysisBlock, AnalysisBlockLayout, AnalysisRefusalKind, BlockSegment,
-    DerivedBoundary, DiagnosticKind, DiagnosticStage, TypedAnalysis,
+    AnalysisBlock, AnalysisBlockLayout, AnalysisRefusalKind, BlockSegment, DerivedBoundary,
+    DiagnosticKind, DiagnosticStage, TypedAnalysis, analyze_typed,
 };
 use ln_decode::npa_anchor::{LocalSpan, RejectReason};
 use ln_decode::npa_typed::TypeDerivation;
 use ln_decode::reader_contract::{FragmentRef, ReaderDerivedKind, ReaderRecordIndex};
-use ln_decode::reader_projection::{build_projection, ViewId};
-use ln_decode::source_package::{capture, Limits};
+use ln_decode::reader_projection::{ViewId, build_projection};
+use ln_decode::source_package::{Limits, capture};
 
 fn wrap(body: &str) -> String {
     format!(

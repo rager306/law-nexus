@@ -1,8 +1,8 @@
 //! Applicability capability inventory boundary (RC12-F05 / ADR-0023 / TSG-005/006).
 
 use ln_applicability::domain::{
-    classify_applicability_capability, reject_algebra_satisfied_as_applicable,
-    reject_norm_rule_ir_as_product_runtime, ApplicabilityCapability, ApplicabilityCapabilityClass,
+    ApplicabilityCapability, ApplicabilityCapabilityClass, classify_applicability_capability,
+    reject_algebra_satisfied_as_applicable, reject_norm_rule_ir_as_product_runtime,
 };
 
 #[test]
@@ -37,10 +37,11 @@ fn product_capabilities_remain_deferred() {
     ] {
         let b = classify_applicability_capability(cap);
         assert_eq!(b.class, ApplicabilityCapabilityClass::DeferredProduct);
-        assert!(b
-            .non_claims
-            .iter()
-            .any(|c| c.contains("deferred") || c.contains("not product")));
+        assert!(
+            b.non_claims
+                .iter()
+                .any(|c| c.contains("deferred") || c.contains("not product"))
+        );
     }
 }
 
@@ -52,10 +53,11 @@ fn algebra_satisfied_cannot_mint_applicable() {
         ApplicabilityCapability::PositiveApplicabilityDecision
     );
     assert_eq!(b.class, ApplicabilityCapabilityClass::DeferredProduct);
-    assert!(b
-        .non_claims
-        .iter()
-        .any(|c| c.contains("does not mint") || c.contains("Applicable")));
+    assert!(
+        b.non_claims
+            .iter()
+            .any(|c| c.contains("does not mint") || c.contains("Applicable"))
+    );
 }
 
 #[test]
@@ -63,8 +65,9 @@ fn norm_rule_ir_is_not_product_runtime_completeness() {
     let b = reject_norm_rule_ir_as_product_runtime();
     assert_eq!(b.capability, ApplicabilityCapability::NormRuleIr);
     assert_eq!(b.class, ApplicabilityCapabilityClass::LandedSpine);
-    assert!(b
-        .non_claims
-        .iter()
-        .any(|c| c.contains("not product applicability runtime") || c.contains("TSG-006")));
+    assert!(
+        b.non_claims
+            .iter()
+            .any(|c| c.contains("not product applicability runtime") || c.contains("TSG-006"))
+    );
 }

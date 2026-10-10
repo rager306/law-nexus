@@ -20,10 +20,10 @@ use std::fmt::{self, Write};
 use sha2::{Digest, Sha256};
 
 use crate::reader_contract::{
-    check_fragment_span, control_derived_kind, partition_primary_views, reference_type_of,
-    tail_view_key, view_key, whole_fragment_span, ContractError, ContractErrorKind, ElementRef,
-    FragmentRef, ReaderDerivedKind, ReaderFragmentSpan, ReaderRecordIndex, ReaderReferenceType,
-    ReaderRole, ReaderSegmentKind, ReaderSemantic, ReaderViewKey, ReaderViewKind,
+    ContractError, ContractErrorKind, ElementRef, FragmentRef, ReaderDerivedKind,
+    ReaderFragmentSpan, ReaderRecordIndex, ReaderReferenceType, ReaderRole, ReaderSegmentKind,
+    ReaderSemantic, ReaderViewKey, ReaderViewKind, check_fragment_span, control_derived_kind,
+    partition_primary_views, reference_type_of, tail_view_key, view_key, whole_fragment_span,
 };
 use crate::source_package::{ElementRecord, Record, TextSlot};
 
@@ -604,14 +604,15 @@ fn document_events(index: &ReaderRecordIndex) -> Result<Vec<ProjectionEvent>, Pr
                         view: view_key(index, &ElementRef::new(element.id.as_str()))?,
                     });
                 }
-                if role == ReaderRole::Control && element.text_ref.is_none() {
-                    if let Some(kind) = control_derived_kind(&element.clark_tag, &element.attrs) {
-                        events.push(ProjectionEvent::Control {
-                            element: element.id.clone(),
-                            kind,
-                            view: view_key(index, &ElementRef::new(element.id.as_str()))?,
-                        });
-                    }
+                if role == ReaderRole::Control
+                    && element.text_ref.is_none()
+                    && let Some(kind) = control_derived_kind(&element.clark_tag, &element.attrs)
+                {
+                    events.push(ProjectionEvent::Control {
+                        element: element.id.clone(),
+                        kind,
+                        view: view_key(index, &ElementRef::new(element.id.as_str()))?,
+                    });
                 }
                 if matches!(
                     role,
@@ -626,16 +627,15 @@ fn document_events(index: &ReaderRecordIndex) -> Result<Vec<ProjectionEvent>, Pr
                         }
                         _ => true,
                     };
-                    if is_boundary {
-                        if let Some(reference_type) =
+                    if is_boundary
+                        && let Some(reference_type) =
                             reference_type_of(&element.clark_tag, &element.attrs)
-                        {
-                            events.push(ProjectionEvent::Reference {
-                                element: element.id.clone(),
-                                reference_type,
-                                view: view_key(index, &ElementRef::new(element.id.as_str()))?,
-                            });
-                        }
+                    {
+                        events.push(ProjectionEvent::Reference {
+                            element: element.id.clone(),
+                            reference_type,
+                            view: view_key(index, &ElementRef::new(element.id.as_str()))?,
+                        });
                     }
                 }
                 if let Some(kids) = children.get(&element.id) {
@@ -989,10 +989,10 @@ pub fn build_projection(records: &[Record]) -> Result<ReaderProjection, Projecti
     let mut covered: HashSet<&str> = HashSet::new();
     let mut duplicate = false;
     for segment in &segments {
-        if let Some(fragment) = &segment.fragment_ref {
-            if !covered.insert(fragment.as_str()) {
-                duplicate = true;
-            }
+        if let Some(fragment) = &segment.fragment_ref
+            && !covered.insert(fragment.as_str())
+        {
+            duplicate = true;
         }
     }
     if duplicate
@@ -1289,7 +1289,7 @@ fn hex_lower(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::source_package::{capture, Limits, TextRecord};
+    use crate::source_package::{Limits, TextRecord, capture};
     use std::collections::BTreeMap;
 
     const NS: &str = "{http://schemas.microsoft.com/office/word/2003/wordml}";
@@ -1536,12 +1536,16 @@ mod tests {
             view(&projection, ReaderViewKind::Cell, "e7").children,
             vec![ViewId::from("v4"), ViewId::from("v5")]
         );
-        assert!(view(&projection, ReaderViewKind::Paragraph, "e2")
-            .children
-            .is_empty());
-        assert!(view(&projection, ReaderViewKind::Residual, "e11")
-            .children
-            .is_empty());
+        assert!(
+            view(&projection, ReaderViewKind::Paragraph, "e2")
+                .children
+                .is_empty()
+        );
+        assert!(
+            view(&projection, ReaderViewKind::Residual, "e11")
+                .children
+                .is_empty()
+        );
 
         // T02: the synthetic tree carries three source fragments and no
         // references; the seal is still unset until the serialization task.

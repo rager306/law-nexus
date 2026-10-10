@@ -4,7 +4,7 @@ use std::process::ExitCode;
 use ln_temporal::adapters::InMemoryClockEvidence;
 use ln_temporal::application::ResolveFiveClockState;
 use ln_temporal::domain::{
-    ClockKind, RequestId, ResolutionOutcome, ResolutionRequest, SubstituteKind, D118_POLICY_VERSION,
+    ClockKind, D118_POLICY_VERSION, RequestId, ResolutionOutcome, ResolutionRequest, SubstituteKind,
 };
 
 struct ScenarioResult {

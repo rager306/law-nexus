@@ -244,43 +244,43 @@ fn scan_ot_date(text: &[char]) -> Vec<OtDateHit> {
         // литерал «от»
         if text[i] == 'о' && text[i + 1] == 'т' {
             let after = skip_ws(text, i + 2);
-            if after > i + 2 {
-                if let Some((dend, date)) = read_dot_date(text, after) {
-                    let j = skip_ws(text, dend);
-                    let mut number: Option<(usize, String)> = None;
-                    if starts_with_lit(text, j, "б/н") {
-                        number = Some((j + 3, "б/н".to_string()));
-                    } else if j < n && (text[j] == 'N' || text[j] == 'n' || text[j] == '№') {
-                        let k = skip_ws(text, j + 1);
-                        if let Some((nend, num)) = read_number(text, k) {
-                            number = Some((nend, num));
-                        }
+            if after > i + 2
+                && let Some((dend, date)) = read_dot_date(text, after)
+            {
+                let j = skip_ws(text, dend);
+                let mut number: Option<(usize, String)> = None;
+                if starts_with_lit(text, j, "б/н") {
+                    number = Some((j + 3, "б/н".to_string()));
+                } else if j < n && (text[j] == 'N' || text[j] == 'n' || text[j] == '№') {
+                    let k = skip_ws(text, j + 1);
+                    if let Some((nend, num)) = read_number(text, k) {
+                        number = Some((nend, num));
                     }
-                    if let Some((nend, num)) = number {
-                        // lookbehind: не «вх. » / «вх » непосредственно перед «от»
-                        let lb_ok = {
-                            let a = skip_ws_back(text, i);
-                            !(a >= 1
-                                && text[a - 1] == '.'
-                                && a >= 3
-                                && text[a - 3] == 'в'
-                                && text[a - 2] == 'х')
-                                && !(a >= 2
-                                    && text[a - 2] == 'в'
-                                    && text[a - 1] == 'х'
-                                    && a < n
-                                    && (text[a] == ' ' || text[a] == '\u{a0}'))
-                        };
-                        if lb_ok {
-                            hits.push(OtDateHit {
-                                start: i,
-                                end: nend,
-                                date,
-                                number: num,
-                            });
-                            i = nend;
-                            continue;
-                        }
+                }
+                if let Some((nend, num)) = number {
+                    // lookbehind: не «вх. » / «вх » непосредственно перед «от»
+                    let lb_ok = {
+                        let a = skip_ws_back(text, i);
+                        !(a >= 1
+                            && text[a - 1] == '.'
+                            && a >= 3
+                            && text[a - 3] == 'в'
+                            && text[a - 2] == 'х')
+                            && !(a >= 2
+                                && text[a - 2] == 'в'
+                                && text[a - 1] == 'х'
+                                && a < n
+                                && (text[a] == ' ' || text[a] == '\u{a0}'))
+                    };
+                    if lb_ok {
+                        hits.push(OtDateHit {
+                            start: i,
+                            end: nend,
+                            date,
+                            number: num,
+                        });
+                        i = nend;
+                        continue;
                     }
                 }
             }
@@ -582,12 +582,12 @@ pub fn decode_consultant_text(s: &str) -> String {
                 }
                 if e < chars.len() && chars[e] == ';' && e > dstart {
                     let digits: String = chars[dstart..e].iter().collect();
-                    if let Ok(cp) = u32::from_str_radix(&digits, if hex { 16 } else { 10 }) {
-                        if let Some(ch) = char::from_u32(cp) {
-                            decoded.push(ch);
-                            i = e + 1;
-                            continue;
-                        }
+                    if let Ok(cp) = u32::from_str_radix(&digits, if hex { 16 } else { 10 })
+                        && let Some(ch) = char::from_u32(cp)
+                    {
+                        decoded.push(ch);
+                        i = e + 1;
+                        continue;
                     }
                 }
             }

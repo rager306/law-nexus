@@ -5,13 +5,12 @@
 
 use ln_identity::domain::{mint_expression, mint_work};
 use ln_kb_ontology::domain::{
-    expression_contains, filter_ast_to_expression, fold_expression_presence,
-    project_expression_presence, ComponentInExpressionEvent, ComponentInExpressionLog,
-    WriteSetError,
+    ComponentInExpressionEvent, ComponentInExpressionLog, WriteSetError, expression_contains,
+    filter_ast_to_expression, fold_expression_presence, project_expression_presence,
 };
 use ln_temporal::domain::{
-    fold_membership_at, ComponentConceptId, MembershipChangeKind, VersionedMembershipEvent,
-    VersionedMembershipLog,
+    ComponentConceptId, MembershipChangeKind, VersionedMembershipEvent, VersionedMembershipLog,
+    fold_membership_at,
 };
 
 fn cc(id: &str) -> ComponentConceptId {

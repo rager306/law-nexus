@@ -1,6 +1,6 @@
 use ln_storage::{
-    adapters::tei::{EmbeddingTransport, TeiEmbeddingAdapter, TransportError},
     EmbeddingPort, EmbeddingRequest, StorageError,
+    adapters::tei::{EmbeddingTransport, TeiEmbeddingAdapter, TransportError},
 };
 
 struct StubTransport {

@@ -9,17 +9,17 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::document_context::{
-    build_document_analysis_overlay, build_document_structure_index, ContextEnvironment,
-    ContextRequest, ContextRequestKind, ContextStatus, ContextWorklist, ContextualEdgeKind,
-    DocumentVersionRef, PROPOSED_MAX_ADJACENT_RADIUS, PROPOSED_MAX_ALIAS_CANDIDATES,
-    PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD, PROPOSED_MAX_SERIES_HOPS,
-    PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
+    ContextEnvironment, ContextRequest, ContextRequestKind, ContextStatus, ContextWorklist,
+    ContextualEdgeKind, DocumentVersionRef, PROPOSED_MAX_ADJACENT_RADIUS,
+    PROPOSED_MAX_ALIAS_CANDIDATES, PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD, PROPOSED_MAX_SERIES_HOPS,
+    PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT, build_document_analysis_overlay,
+    build_document_structure_index,
 };
 use crate::domain::ParsedBlock;
 use crate::lawref::capture_lawrefs;
 use crate::local_grammar::{extract_act_list_frames, extract_structural_frames};
 use crate::morphology::find_legal_markers;
-use crate::npa_sweep::{walk_and_observe, FileTerminal, SweepObserver};
+use crate::npa_sweep::{FileTerminal, SweepObserver, walk_and_observe};
 
 pub use crate::npa_sweep::{
     EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING, EXIT_USAGE, EXIT_WALK_FAILED,
@@ -239,8 +239,31 @@ impl ContextBaselineAcc {
     }
     pub fn render_jsonl(&self, label: &str, root: &Path, run_status: &str) -> String {
         let mut out = String::new();
-        let _ = writeln!(out, "{{\"record_kind\":\"header\",\"schema\":\"{CONTEXT_SCHEMA}\",\"schema_version\":{CONTEXT_SCHEMA_VERSION},\"label\":{},\"lifecycle\":\"[diagnostic]\",\"non_claims\":[\"C2/C3-calibration\",\"gold\",\"R035\",\"R070\",\"lifecycle-promotion\"]}}", quote(label));
-        let _ = writeln!(out, "{{\"record_kind\":\"aggregate\",\"files_attempted\":{},\"files_decoded\":{},\"malformed\":{},\"unreadable\":{},\"blocks\":{},\"containers\":{},\"alias_declarations\":{},\"series_edges\":{},\"memo_hits\":{},\"max_worklist_steps_per_document\":{},\"max_series_hops_observed\":{},\"max_fan_out_observed\":{},\"max_claims_per_field_observed\":{},\"max_adjacent_radius_used\":{},\"limit_events\":{},\"cycle_events\":{}}}", self.files_attempted, self.files_decoded, self.malformed, self.unreadable, self.blocks, self.containers, self.aliases, self.series_edges, self.memo_hits, self.max_steps, self.max_series_hops, self.max_fan_out, self.max_claims, self.max_adjacent, self.limit_events, self.cycle_events);
+        let _ = writeln!(
+            out,
+            "{{\"record_kind\":\"header\",\"schema\":\"{CONTEXT_SCHEMA}\",\"schema_version\":{CONTEXT_SCHEMA_VERSION},\"label\":{},\"lifecycle\":\"[diagnostic]\",\"non_claims\":[\"C2/C3-calibration\",\"gold\",\"R035\",\"R070\",\"lifecycle-promotion\"]}}",
+            quote(label)
+        );
+        let _ = writeln!(
+            out,
+            "{{\"record_kind\":\"aggregate\",\"files_attempted\":{},\"files_decoded\":{},\"malformed\":{},\"unreadable\":{},\"blocks\":{},\"containers\":{},\"alias_declarations\":{},\"series_edges\":{},\"memo_hits\":{},\"max_worklist_steps_per_document\":{},\"max_series_hops_observed\":{},\"max_fan_out_observed\":{},\"max_claims_per_field_observed\":{},\"max_adjacent_radius_used\":{},\"limit_events\":{},\"cycle_events\":{}}}",
+            self.files_attempted,
+            self.files_decoded,
+            self.malformed,
+            self.unreadable,
+            self.blocks,
+            self.containers,
+            self.aliases,
+            self.series_edges,
+            self.memo_hits,
+            self.max_steps,
+            self.max_series_hops,
+            self.max_fan_out,
+            self.max_claims,
+            self.max_adjacent,
+            self.limit_events,
+            self.cycle_events
+        );
         let _ = writeln!(
             out,
             "{{\"record_kind\":\"requests_by_kind\",{}}}",
@@ -261,7 +284,18 @@ impl ContextBaselineAcc {
                 .collect::<Vec<_>>()
                 .join(",")
         );
-        let _ = writeln!(out, "{{\"record_kind\":\"run_manifest\",\"schema_version\":{CONTEXT_SCHEMA_VERSION},\"run_status\":{},\"corpus_root\":{},\"observed_file_count\":{},\"bounds\":{{\"adjacent_block_radius\":{},\"max_series_hops\":{},\"max_alias_candidates\":{},\"max_context_claims_per_field\":{},\"max_worklist_steps_per_document\":{},\"max_linking_passes\":1}},\"source\":\"bounded C4 diagnostic smoke\"}}", quote(run_status), quote(&root.to_string_lossy()), self.files_attempted, PROPOSED_MAX_ADJACENT_RADIUS, PROPOSED_MAX_SERIES_HOPS, PROPOSED_MAX_ALIAS_CANDIDATES, PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD, PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT);
+        let _ = writeln!(
+            out,
+            "{{\"record_kind\":\"run_manifest\",\"schema_version\":{CONTEXT_SCHEMA_VERSION},\"run_status\":{},\"corpus_root\":{},\"observed_file_count\":{},\"bounds\":{{\"adjacent_block_radius\":{},\"max_series_hops\":{},\"max_alias_candidates\":{},\"max_context_claims_per_field\":{},\"max_worklist_steps_per_document\":{},\"max_linking_passes\":1}},\"source\":\"bounded C4 diagnostic smoke\"}}",
+            quote(run_status),
+            quote(&root.to_string_lossy()),
+            self.files_attempted,
+            PROPOSED_MAX_ADJACENT_RADIUS,
+            PROPOSED_MAX_SERIES_HOPS,
+            PROPOSED_MAX_ALIAS_CANDIDATES,
+            PROPOSED_MAX_CONTEXT_CLAIMS_PER_FIELD,
+            PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT
+        );
         out
     }
     fn observe(&mut self, path: &Path, terminal: FileTerminal, blocks: &[ParsedBlock]) {

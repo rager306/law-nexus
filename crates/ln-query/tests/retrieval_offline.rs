@@ -20,19 +20,19 @@
 
 use std::collections::BTreeSet;
 
-use ln_decode::cleaned_nav::{build_nav_index, NavIndex, NodeAddress};
+use ln_decode::cleaned_nav::{NavIndex, NodeAddress, build_nav_index};
 use ln_decode::cleaned_wire::{
-    export_cleaned_projection, read_cleaned_wire, CleanedProjection, WireCompletion, WireLimits,
+    CleanedProjection, WireCompletion, WireLimits, export_cleaned_projection, read_cleaned_wire,
 };
-use ln_decode::reader_gate::{gate_reader, ReaderSourceClass};
+use ln_decode::reader_gate::{ReaderSourceClass, gate_reader};
 use ln_decode::reader_projection::build_projection;
-use ln_decode::source_package::{capture, Limits};
+use ln_decode::source_package::{Limits, capture};
 
 use ln_query::domain::QueryId;
 use ln_query::retrieval_offline::{
-    run_offline_citation_retrieval_cases, run_offline_citation_retrieval_proof, OfflineCaseOutcome,
-    OfflineExpectedResult, OfflineRetrievalCase, OfflineSelectionReason, ProjectionGraphResolver,
-    RetrievalQueryKind,
+    OfflineCaseOutcome, OfflineExpectedResult, OfflineRetrievalCase, OfflineSelectionReason,
+    ProjectionGraphResolver, RetrievalQueryKind, run_offline_citation_retrieval_cases,
+    run_offline_citation_retrieval_proof,
 };
 use ln_query::retrieval_output::*;
 
@@ -718,7 +718,9 @@ fn validator_still_rejects_forbidden_payload_and_unknown_namespace() {
             scope: ScopeShape::Complete(scope.clone()),
             citations: FieldShape::Value(Vec::new()),
             answer_claims: FieldShape::Value(Vec::new()),
-            extra_field_names: vec![BoundedToken::parse("raw_legal_text").expect("a bounded token")],
+            extra_field_names: vec![
+                BoundedToken::parse("raw_legal_text").expect("a bounded token"),
+            ],
         };
         let outcome = validate_retrieval_output(&forbidden, &resolver);
         assert_eq!(

@@ -15,18 +15,18 @@
 
 use ln_decode::analysis_source_mapping::{SourceIdentity, SourceMapping};
 use ln_decode::document_context::DocumentVersionRef;
-use ln_decode::npa_analysis_records::{analyze_document, DocumentAnalysis};
+use ln_decode::npa_analysis_records::{DocumentAnalysis, analyze_document};
 use ln_decode::npa_analysis_verify::{
-    verify_npa_analysis_wire, AnalysisVerifyCode, AnalysisVerifyFinding,
+    AnalysisVerifyCode, AnalysisVerifyFinding, verify_npa_analysis_wire,
 };
 use ln_decode::npa_analysis_wire::{
-    recompute_analysis_seals, render_npa_analysis_with_context, AnalysisEnvelopeRequest,
-    AnalysisLimits, AnalysisScope,
+    AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope, recompute_analysis_seals,
+    render_npa_analysis_with_context,
 };
 use ln_decode::npa_context_records::build_context_records;
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, Limits};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
+use ln_decode::source_package::{Limits, capture};
 
 fn wrap(body: &str) -> String {
     format!(
@@ -234,15 +234,13 @@ fn mutate_first_member_span(text: &str, p: &Pipeline) -> String {
             continue;
         }
         for key in ["span", "evidence"] {
-            if let Some((fragment, start, end)) = bound_span_of(&lines[index], key) {
-                if let Some((new_start, new_end)) = alternate_span(&p.index, &fragment, start, end)
-                {
-                    let new_obj = format!(
-                        r#"{{"end":{new_end},"fragment":"{fragment}","start":{new_start}}}"#
-                    );
-                    lines[index] = replace_field_object(&lines[index], key, &new_obj);
-                    return join_envelope(&lines);
-                }
+            if let Some((fragment, start, end)) = bound_span_of(&lines[index], key)
+                && let Some((new_start, new_end)) = alternate_span(&p.index, &fragment, start, end)
+            {
+                let new_obj =
+                    format!(r#"{{"end":{new_end},"fragment":"{fragment}","start":{new_start}}}"#);
+                lines[index] = replace_field_object(&lines[index], key, &new_obj);
+                return join_envelope(&lines);
             }
         }
     }
@@ -256,14 +254,13 @@ fn mutate_first_member_span_out_of_bounds(text: &str, p: &Pipeline) -> String {
             continue;
         }
         for key in ["span", "evidence"] {
-            if let Some((fragment, start, _)) = bound_span_of(&lines[index], key) {
-                if let Some((new_start, new_end)) = out_of_bounds_span(&p.index, &fragment, start) {
-                    let new_obj = format!(
-                        r#"{{"end":{new_end},"fragment":"{fragment}","start":{new_start}}}"#
-                    );
-                    lines[index] = replace_field_object(&lines[index], key, &new_obj);
-                    return join_envelope(&lines);
-                }
+            if let Some((fragment, start, _)) = bound_span_of(&lines[index], key)
+                && let Some((new_start, new_end)) = out_of_bounds_span(&p.index, &fragment, start)
+            {
+                let new_obj =
+                    format!(r#"{{"end":{new_end},"fragment":"{fragment}","start":{new_start}}}"#);
+                lines[index] = replace_field_object(&lines[index], key, &new_obj);
+                return join_envelope(&lines);
             }
         }
     }

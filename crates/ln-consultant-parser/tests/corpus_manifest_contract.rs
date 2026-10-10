@@ -22,10 +22,11 @@ fn frozen_manifests_load_with_provider_caps_and_claim_ceiling() {
     assert_eq!(c3.stratum, "C3");
     assert_eq!(c2.provider_strata["garant"], 8);
     assert!(c3.sealed);
-    assert!(c3
-        .entries
-        .iter()
-        .all(|e| matches!(e.admission, Admission::HoldoutSealed)));
+    assert!(
+        c3.entries
+            .iter()
+            .all(|e| matches!(e.admission, Admission::HoldoutSealed))
+    );
     assert!(corpus_manifest::disjoint(&c2, &c3));
 }
 

@@ -27,7 +27,7 @@ use crate::analysis_source_mapping::SourceMapping;
 use crate::document_context::{ContextClaimStatus, ContextRequestKind, ContextStatus};
 use crate::local_grammar::DerivationSource;
 use crate::npa_analysis_records::AnalysisBlockLayout;
-use crate::npa_context_records::{build_context_records, ContextRecord};
+use crate::npa_context_records::{ContextRecord, build_context_records};
 
 /// The closed, bounded this-document reference decision (§8C).
 #[derive(Debug, Clone, PartialEq, Eq)]

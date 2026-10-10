@@ -4,8 +4,8 @@
 //! Lifecycle: `[bounded]` preparation. Not live TEI validation.
 
 use ln_storage::{
-    adapters::tei::{EmbeddingTransport, TeiEmbeddingAdapter, TransportError},
     EmbeddingPort, EmbeddingRequest, StorageError,
+    adapters::tei::{EmbeddingTransport, TeiEmbeddingAdapter, TransportError},
 };
 use ln_testkit::assert_embedding_port_contract;
 

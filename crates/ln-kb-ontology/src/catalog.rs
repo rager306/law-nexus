@@ -371,10 +371,12 @@ fn map_keys_under(text: &str, heading: &str) -> Result<Vec<String>, CatalogError
         }
         if in_section && indent > heading_indent {
             let line = trimmed.trim();
-            if let Some(name) = line.strip_suffix(':') {
-                if !name.is_empty() && !name.contains(' ') && !name.starts_with('-') {
-                    keys.push(name.to_owned());
-                }
+            if let Some(name) = line.strip_suffix(':')
+                && !name.is_empty()
+                && !name.contains(' ')
+                && !name.starts_with('-')
+            {
+                keys.push(name.to_owned());
             }
         }
     }
@@ -412,10 +414,8 @@ fn list_under_vocabulary(text: &str, heading: &str) -> Result<Vec<String>, Catal
         if in_list && indent <= heading_indent && !trimmed.trim().starts_with('-') {
             break;
         }
-        if in_list {
-            if let Some(item) = trimmed.trim().strip_prefix("- ") {
-                items.push(item.trim().to_owned());
-            }
+        if in_list && let Some(item) = trimmed.trim().strip_prefix("- ") {
+            items.push(item.trim().to_owned());
         }
     }
     Ok(items)
@@ -597,7 +597,7 @@ fn parse_corpus_role_signals(text: &str) -> Result<Vec<CorpusRoleSignal>, Catalo
             None => {
                 return Err(CatalogError {
                     reason: "corpus_role_signal missing rank",
-                })
+                });
             }
         };
         if needle.is_empty() || (field != "path" && field != "title") {
@@ -897,7 +897,7 @@ fn parse_group_needle(flow: &str) -> Result<GroupNeedle, CatalogError> {
         None => {
             return Err(CatalogError {
                 reason: "group needle missing rank",
-            })
+            });
         }
     };
     if needle.is_empty() {
@@ -1054,22 +1054,23 @@ fn validate_document_groups(
                     reason: "recursive ladder entry requires max_depth",
                 });
             }
-            if let Some(suffix) = &entry.suffix {
-                if suffix != "." && suffix != ")" {
-                    return Err(CatalogError {
-                        reason: "ladder entry suffix is invalid",
-                    });
-                }
+            if let Some(suffix) = &entry.suffix
+                && suffix != "."
+                && suffix != ")"
+            {
+                return Err(CatalogError {
+                    reason: "ladder entry suffix is invalid",
+                });
             }
-            if let Some(style) = &entry.number_style {
-                if !matches!(
+            if let Some(style) = &entry.number_style
+                && !matches!(
                     style.as_str(),
                     "digit" | "letter_cyrillic" | "roman_or_digit"
-                ) {
-                    return Err(CatalogError {
-                        reason: "ladder entry number_style is invalid",
-                    });
-                }
+                )
+            {
+                return Err(CatalogError {
+                    reason: "ladder entry number_style is invalid",
+                });
             }
         }
         for needle in &group.needles {
@@ -1265,10 +1266,12 @@ mod tests {
         assert!(catalog.is_force_status("not_yet_in_force"));
         assert!(!catalog.is_force_status("unknown"));
         assert!(!catalog.is_force_status("superseded"));
-        assert!(catalog
-            .corpus_roles
-            .iter()
-            .any(|role| role == "C2_edition_oracle"));
+        assert!(
+            catalog
+                .corpus_roles
+                .iter()
+                .any(|role| role == "C2_edition_oracle")
+        );
         assert!(!catalog.corpus_role_signals.is_empty());
         assert_eq!(catalog.hierarchy_level_rank("razdel"), Some(0));
         assert_eq!(catalog.hierarchy_level_rank("statya"), Some(3));

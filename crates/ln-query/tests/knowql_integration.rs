@@ -5,11 +5,11 @@ use ln_decode::{
     ports::BlockDecoderPort,
     references::extract_reference_mentions,
 };
-use ln_query::knowql::{execute, KnowQLOp, KnowQLResult, ValidatedOp};
+use ln_query::knowql::{KnowQLOp, KnowQLResult, ValidatedOp, execute};
 use ln_storage::{
-    adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore},
     EmbeddingPort, EmbeddingRequest, EmbeddingResponse, GraphNode, GraphStorePort, StorageError,
     VectorRecord, VectorStorePort,
+    adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore},
 };
 
 const CONSULTANT_FIXTURE: &str = "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml";

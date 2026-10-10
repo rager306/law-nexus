@@ -10,8 +10,8 @@
 //! new member lacks a YAML token (fail-closed guard).
 
 use ln_temporal::domain::{
-    resolve_force_status_at, AmendingActId, ComponentConceptId, ForceStatusEvent,
-    ForceStatusTimeline, NormativeState, NormativeStateError,
+    AmendingActId, ComponentConceptId, ForceStatusEvent, ForceStatusTimeline, NormativeState,
+    NormativeStateError, resolve_force_status_at,
 };
 
 fn cc(id: &str) -> ComponentConceptId {
@@ -36,10 +36,12 @@ fn empty_timeline_is_unknown_not_in_force() {
     let timeline = ForceStatusTimeline::empty();
     let result = resolve_force_status_at(&timeline, &cc("cc:art-1"), 100).expect("resolve");
     assert_eq!(result.status, NormativeState::Unknown);
-    assert!(result
-        .non_claims
-        .iter()
-        .any(|c| c.contains("not") || c.contains("Force")));
+    assert!(
+        result
+            .non_claims
+            .iter()
+            .any(|c| c.contains("not") || c.contains("Force"))
+    );
 }
 
 #[test]
@@ -155,10 +157,12 @@ fn force_resolution_does_not_claim_applicability_or_ctv() {
     let result = resolve_force_status_at(&timeline, &cc("cc:art-1"), 2).expect("r");
     assert_eq!(result.status, NormativeState::InForce);
     assert!(result.non_claims.iter().any(|c| c.contains("Applicab")));
-    assert!(result
-        .non_claims
-        .iter()
-        .any(|c| c.contains("CTV") || c.contains("text")));
+    assert!(
+        result
+            .non_claims
+            .iter()
+            .any(|c| c.contains("CTV") || c.contains("text"))
+    );
     assert_eq!(result.dimension.as_str(), "force_status");
 }
 

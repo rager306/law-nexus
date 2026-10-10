@@ -1258,7 +1258,7 @@ fn scan_json_string(raw: &str, index: &mut usize) -> Result<(), WireError> {
             byte if byte < 0x20 => {
                 return Err(json_value_error(
                     "unescaped control character in JSON string",
-                ))
+                ));
             }
             _ => *index += 1,
         }
@@ -2524,7 +2524,7 @@ mod tests {
     use super::*;
     use crate::reader_projection::{build_projection, canonical_projection_bytes};
     use crate::reader_verifier::verify_projection;
-    use crate::source_package::{capture, Limits};
+    use crate::source_package::{Limits, capture};
 
     fn fixture_package() -> Package {
         const XML: &str = include_str!("../tests/fixtures/reader/mixed-wordml.xml");

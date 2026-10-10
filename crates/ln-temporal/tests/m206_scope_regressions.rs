@@ -9,14 +9,14 @@
 //! stay with RC28-F10 in ln-decode and are not owned here.
 
 use ln_temporal::document_context::{
-    detect_edition_relations, detect_this_ref, resolve_construction, AnalysisOverlay, BlockId,
-    ConstructionAbstention, ConstructionOutcome, ConstructionRequest, Container, ContainerRole,
-    ContextError, DocumentStructureIndex, DocumentVersion, Frame, FrameId, ReferenceConstruction,
-    ScopedAliasDeclaration, SourceAnchor, SourceBlock, Terminal, TextSpan,
+    AnalysisOverlay, BlockId, ConstructionAbstention, ConstructionOutcome, ConstructionRequest,
+    Container, ContainerRole, ContextError, DocumentStructureIndex, DocumentVersion, Frame,
+    FrameId, ReferenceConstruction, ScopedAliasDeclaration, SourceAnchor, SourceBlock, Terminal,
+    TextSpan, detect_edition_relations, detect_this_ref, resolve_construction,
 };
 use ln_temporal::semantic_scope::{
-    extract_semantic_claims, project_norm_rule, AbstentionReason, ProjectionOutcome, SemanticClaim,
-    SemanticClaimKind,
+    AbstentionReason, ProjectionOutcome, SemanticClaim, SemanticClaimKind, extract_semantic_claims,
+    project_norm_rule,
 };
 use std::collections::BTreeMap;
 
@@ -99,9 +99,11 @@ fn rc28_f11_independent_sentences_keep_independent_cues() {
         2,
         "RC28-F11 case identifier: independent sentences retain two polarity origins"
     );
-    assert!(polarities
-        .iter()
-        .all(|claim| claim.span().start() < claim.span().end()));
+    assert!(
+        polarities
+            .iter()
+            .all(|claim| claim.span().start() < claim.span().end())
+    );
 }
 
 #[test]
@@ -117,12 +119,17 @@ fn rc28_f12_self_antecedent_alias_and_edition_are_not_one_construction() {
         .filter(|claim| claim.kind() == SemanticClaimKind::Actor)
         .collect::<Vec<_>>();
     assert!(
-        actors.iter().all(|claim| claim.span().end() - claim.span().start() < block.text().len()),
+        actors
+            .iter()
+            .all(|claim| claim.span().end() - claim.span().start() < block.text().len()),
         "RC28-F12 case identifier: distinct reference constructions must not collapse into a whole-block Actor"
     );
     let result = project_norm_rule(outcome.claims().to_vec(), Terminal::Resolved);
     assert!(
-        matches!(result, ln_temporal::semantic_scope::ProjectionOutcome::Abstained(_)),
+        matches!(
+            result,
+            ln_temporal::semantic_scope::ProjectionOutcome::Abstained(_)
+        ),
         "RC28-F12 case identifier: references without complete semantic slots must not become a rule"
     );
     let _ = index;
@@ -386,10 +393,12 @@ fn rc28_f11_scale_stays_bounded_and_truncation_is_typed() {
         repetitions * 4,
         "RC28-F11: exactly one Actor and one cue per statement, no cross-products"
     );
-    assert!(outcome
-        .claims()
-        .iter()
-        .all(|claim| claim.span().end() <= block.text().len()));
+    assert!(
+        outcome
+            .claims()
+            .iter()
+            .all(|claim| claim.span().end() <= block.text().len())
+    );
 }
 
 // ---------------------------------------------------------------------------

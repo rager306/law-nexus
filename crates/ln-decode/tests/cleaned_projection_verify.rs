@@ -20,14 +20,15 @@
 
 use std::collections::HashMap;
 
-use ln_decode::cleaned_verifier::{verify_cleaned_wire, CleanedFinding, CleanedVerifyCode};
+use ln_decode::cleaned_verifier::{CleanedFinding, CleanedVerifyCode, verify_cleaned_wire};
 use ln_decode::cleaned_wire::{
-    export_cleaned_projection, read_cleaned_wire, IncompleteReason, WireCompletion, WireErrorKind,
-    WireLimits, KIND_FOOTER, KIND_MANIFEST, KIND_POLICIES, KIND_REFERENCE, KIND_SEGMENT, KIND_VIEW,
+    IncompleteReason, KIND_FOOTER, KIND_MANIFEST, KIND_POLICIES, KIND_REFERENCE, KIND_SEGMENT,
+    KIND_VIEW, WireCompletion, WireErrorKind, WireLimits, export_cleaned_projection,
+    read_cleaned_wire,
 };
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
 use ln_decode::reader_verifier::VerifyCode;
-use ln_decode::source_package::{capture, Limits, Package, Record};
+use ln_decode::source_package::{Limits, Package, Record, capture};
 use sha2::{Digest, Sha256};
 
 // ---------------------------------------------------------------- fixtures #
@@ -472,11 +473,7 @@ fn other_view_id(lines: &[String], exclude: &str) -> Option<String> {
         .filter(|line| is_kind(line, KIND_VIEW))
         .find_map(|line| {
             let id = str_field(line, "id")?;
-            if id == exclude {
-                None
-            } else {
-                Some(id)
-            }
+            if id == exclude { None } else { Some(id) }
         })
 }
 

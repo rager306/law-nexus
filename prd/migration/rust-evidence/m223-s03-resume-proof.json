@@ -76,7 +76,7 @@
       "exit_code": 124,
       "kind": "subprocess-timeout",
       "label": "sigterm-interrupt",
-      "receipts_after": 32,
+      "receipts_after": 36,
       "receipts_before": 0,
       "signal": "SIGTERM",
       "status": "interrupted"
@@ -84,8 +84,8 @@
   ],
   "bindings": {
     "binary_path": "/root/law-nexus/target/release/cleaned-project",
-    "binary_sha256": "sha256:3f334333af11b8205adaa59810010b73901c59b02d871d1fc9bcb4a2cb59de76",
-    "code_revision": "sha256:4158bf7b764514fa61b10ed2cd32649b668c359f8e9be6e1d4e400563705da2d",
+    "binary_sha256": "sha256:536f83527fc9414cc0b35f8bcff5d483f4262d0ce5652c73594fcabca4292be0",
+    "code_revision": "sha256:2eab5a99230ab2f48a94f98e2e6f9394e3d730057eaaa8b4df6de71fafa99a8b",
     "rules_digest": "sha256:b5ead62ad024a50001068f265d9e01000cdb611207b1bd6620618a2510259a87"
   },
   "final": {
@@ -97,30 +97,48 @@
     "terminal": 100,
     "verify_ledger_ok": true
   },
-  "generated_at": "2026-10-10T14:35:54.658349+00:00",
+  "generated_at": "2026-10-10T16:15:12.652382+00:00",
   "interruption": {
     "completed_preserved": true,
     "exit_code": 124,
     "in_flight_not_run": true,
-    "in_flight_relative_path": "courts/acn/000166661-edition-26af3cb5f1cdc12d67b518a4.xml",
+    "in_flight_relative_path": "courts/acn/000166718-edition-4d07b3bc36128995b14c0266.xml",
     "mechanism": "timeout -s TERM",
     "processing_window_s": 4.0,
-    "receipts_after": 32,
+    "receipts_after": 36,
+    "receipts_after_resume": 37,
     "receipts_before": 0,
+    "receipts_path": "/root/law-nexus/target/m223-s03/interrupt/receipts-1.jsonl",
     "report": "/root/law-nexus/target/m223-s03/interrupt/run-1.json",
+    "resume": {
+      "in_flight_relative_path": "courts/acn/000166718-edition-4d07b3bc36128995b14c0266.xml",
+      "no_new_source_paths": true,
+      "note": "the interrupted attempt's own ledger was resumed in place; current receipts were skipped (not re-exported) and only the in-flight incomplete entry was re-attempted to a terminal outcome",
+      "preserved_current": true,
+      "reattempted_incomplete": 1,
+      "reattempted_outcome": "accepted",
+      "reattempted_outcome_class": "accepted",
+      "receipts_after_resume": 37,
+      "resume_exit_code": 10,
+      "resumed_receipts_path": "/root/law-nexus/target/m223-s03/interrupt/receipts-1.jsonl",
+      "same_ledger": true,
+      "skipped_current": 35,
+      "status": "resumed",
+      "terminal_before": 35
+    },
     "signal": "SIGTERM",
-    "startup_s": 0.708,
+    "startup_s": 0.66,
     "status": "interrupted",
     "stderr_tail": [
-      "m223-s03-baseline: courts/acn/000166618-edition-b9699245d026209ff9aece0c.xml -> accepted/accepted",
-      "m223-s03-baseline: courts/acn/000166636-edition-83c6e771a5367a904fb7039d.xml -> accepted/accepted",
-      "m223-s03-baseline: courts/acn/000166637-edition-3dfce1752972b5182ac88723.xml -> accepted/accepted",
-      "m223-s03-baseline: courts/acn/000166659-edition-a6744a395f5c3508eb4aa745.xml -> accepted/accepted",
-      "m223-s03-baseline: courts/acn/000166661-edition-26af3cb5f1cdc12d67b518a4.xml -> incomplete/not_run",
-      "m223-s03-baseline: status=interrupted accepted=31 refused=0 incomplete=1 remaining=43753"
+      "m223-s03-baseline: courts/acn/000166661-edition-26af3cb5f1cdc12d67b518a4.xml -> accepted/accepted",
+      "m223-s03-baseline: courts/acn/000166674-edition-65eb031348626a2359a61cc7.xml -> accepted/accepted",
+      "m223-s03-baseline: courts/acn/000166681-edition-379f0cc6af4fba0e170434a7.xml -> accepted/accepted",
+      "m223-s03-baseline: courts/acn/000166687-edition-8ef4ce2d1cf432927593c9a4.xml -> accepted/accepted",
+      "m223-s03-baseline: courts/acn/000166718-edition-4d07b3bc36128995b14c0266.xml -> incomplete/not_run",
+      "m223-s03-baseline: status=interrupted accepted=35 refused=0 incomplete=1 remaining=43749"
     ],
-    "timeout_s": 5.208,
-    "wall_s": 5.283
+    "timeout_s": 5.16,
+    "wall_s": 5.258
   },
   "manifest": {
     "entries": 43785,
@@ -133,9 +151,9 @@
     "A partial run is never reported as full (partial_is_not_full=true).",
     "No raw decoded text reaches receipts, the report, diagnostics or stdout.",
     "Feasibility projections come from S02; this runner records baseline outcomes only.",
-    "The pinned baseline corpus is uniformly supported_wordml (43785/43785 roots are w:wordDocument in the canonical WordML namespace), so it cannot produce a corpus-level source refusal; the closed refusal dictionary is validated against real non-WordML reader fixtures instead.",
+    "Whether the pinned corpus emits any typed product refusal is a result of the run, reported by the ledger's refused_by_class, and is never asserted in advance; the closed refusal dictionary is validated against real non-WordML reader fixtures instead.",
     "The proof subset is a deterministic sample of the pinned manifest; its receipt bindings are snapshot-bound and shift with any tracked-file change.",
-    "The SIGTERM interruption is enforced by timeout -s TERM on the real harness subprocess; the interrupted in-flight export child is orphaned by design and exits on its own (bounded by the attempt stop thresholds)."
+    "The SIGTERM interruption is enforced by timeout -s TERM on the real harness subprocess; the harness signal handler unwinds the live-poll loop, which SIGKILLs and reaps the in-flight export child, so an interrupted attempt never orphans an export. Resuming the same ledger re-attempts only the interrupted incomplete entry while preserving every current receipt."
   ],
   "partial_is_not_full": true,
   "refusal_probe": {
@@ -173,7 +191,7 @@
         "relative_path": "crates/ln-decode/tests/fixtures/reader/diverse/negative-unsupported-schema.xml"
       }
     ],
-    "note": "the pinned baseline corpus is uniformly supported_wordml; these are real non-WordML reader fixtures, not corpus entries",
+    "note": "these are real non-WordML reader fixtures, not corpus entries; whether the pinned corpus emits refusals itself is reported by the ledger",
     "observed_classes": [
       "source:namespace_absent",
       "source:source_not_wordml",

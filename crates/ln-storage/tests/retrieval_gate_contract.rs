@@ -1,8 +1,8 @@
 use ln_storage::{
+    GraphStorePort, VectorStorePort,
     adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore},
     adapters::tei::{EmbeddingTransport, TeiEmbeddingAdapter, TransportError},
     retrieval::{Citation, CitationTamperCheck, RetrievalGate},
-    GraphStorePort, VectorStorePort,
 };
 
 struct StubTransport {
@@ -15,8 +15,8 @@ impl EmbeddingTransport for StubTransport {
     }
 }
 
-fn build_gate(
-) -> RetrievalGate<TeiEmbeddingAdapter<StubTransport>, InMemoryVectorStore, InMemoryGraphStore> {
+fn build_gate()
+-> RetrievalGate<TeiEmbeddingAdapter<StubTransport>, InMemoryVectorStore, InMemoryGraphStore> {
     let transport = StubTransport {
         vector: vec![0.5; 4],
     };

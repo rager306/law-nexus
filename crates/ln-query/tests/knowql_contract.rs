@@ -1,4 +1,4 @@
-use ln_query::knowql::{execute, KnowQLOp, KnowQLResult, ValidatedOp};
+use ln_query::knowql::{KnowQLOp, KnowQLResult, ValidatedOp, execute};
 use ln_storage::{
     EmbeddingPort, EmbeddingRequest, EmbeddingResponse, GraphEdge, GraphNode, GraphStorePort,
     StorageError, VectorQuery, VectorRecord, VectorStorePort,
@@ -23,12 +23,9 @@ impl VectorStorePort for StubVectorStore {
         Ok(())
     }
     fn query(&self, q: &VectorQuery) -> Result<Vec<VectorRecord>, StorageError> {
-        Ok(vec![VectorRecord::try_new(
-            "doc-1",
-            q.vector().to_vec(),
-            Vec::new(),
-        )
-        .unwrap()])
+        Ok(vec![
+            VectorRecord::try_new("doc-1", q.vector().to_vec(), Vec::new()).unwrap(),
+        ])
     }
 }
 
@@ -104,46 +101,56 @@ fn find_by_label_op_executes_through_graph_store() {
 
 #[test]
 fn validation_rejects_empty_embed_text() {
-    assert!(ValidatedOp::try_new(KnowQLOp::Embed {
-        text: "".to_owned(),
-        model_id: "model".to_owned(),
-        dimensions: 4,
-    })
-    .is_err());
+    assert!(
+        ValidatedOp::try_new(KnowQLOp::Embed {
+            text: "".to_owned(),
+            model_id: "model".to_owned(),
+            dimensions: 4,
+        })
+        .is_err()
+    );
 }
 
 #[test]
 fn validation_rejects_zero_dimensions() {
-    assert!(ValidatedOp::try_new(KnowQLOp::Embed {
-        text: "text".to_owned(),
-        model_id: "model".to_owned(),
-        dimensions: 0,
-    })
-    .is_err());
+    assert!(
+        ValidatedOp::try_new(KnowQLOp::Embed {
+            text: "text".to_owned(),
+            model_id: "model".to_owned(),
+            dimensions: 0,
+        })
+        .is_err()
+    );
 }
 
 #[test]
 fn validation_rejects_empty_find_similar_vector() {
-    assert!(ValidatedOp::try_new(KnowQLOp::FindSimilar {
-        vector: vec![],
-        top_k: 3,
-    })
-    .is_err());
+    assert!(
+        ValidatedOp::try_new(KnowQLOp::FindSimilar {
+            vector: vec![],
+            top_k: 3,
+        })
+        .is_err()
+    );
 }
 
 #[test]
 fn validation_rejects_nan_vector() {
-    assert!(ValidatedOp::try_new(KnowQLOp::FindSimilar {
-        vector: vec![f32::NAN],
-        top_k: 3,
-    })
-    .is_err());
+    assert!(
+        ValidatedOp::try_new(KnowQLOp::FindSimilar {
+            vector: vec![f32::NAN],
+            top_k: 3,
+        })
+        .is_err()
+    );
 }
 
 #[test]
 fn validation_rejects_empty_label() {
-    assert!(ValidatedOp::try_new(KnowQLOp::FindByLabel {
-        label: "".to_owned(),
-    })
-    .is_err());
+    assert!(
+        ValidatedOp::try_new(KnowQLOp::FindByLabel {
+            label: "".to_owned(),
+        })
+        .is_err()
+    );
 }

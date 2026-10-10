@@ -1,4 +1,4 @@
-use crate::domain::{CitationOutcome, CitationRequest, CitationResult, CITATION_POLICY_VERSION};
+use crate::domain::{CITATION_POLICY_VERSION, CitationOutcome, CitationRequest, CitationResult};
 use crate::ports::CitationSourcePort;
 
 pub struct ResolveCitation<S> {

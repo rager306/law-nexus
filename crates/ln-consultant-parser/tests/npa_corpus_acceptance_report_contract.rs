@@ -20,10 +20,10 @@ use std::fs;
 use std::path::PathBuf;
 
 use ln_consultant_parser::npa_corpus_acceptance::{
-    AcceptanceEntry, AcceptanceReport, AdjudicationPacket, EntryOutcome, Verdict,
-    M208_STATUS_PARKED, R1000_STATUS_ACTIVE, SEMANTIC_REFERENCE_STATUS_ABSENT,
+    AcceptanceEntry, AcceptanceReport, AdjudicationPacket, EntryOutcome, M208_STATUS_PARKED,
+    R1000_STATUS_ACTIVE, SEMANTIC_REFERENCE_STATUS_ABSENT, Verdict,
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
 const SAMPLE_REL: &str = "prd/migration/rust-evidence/m214-s04-corpus-sample.json";

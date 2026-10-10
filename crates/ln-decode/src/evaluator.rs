@@ -1,12 +1,12 @@
 use std::collections::HashSet;
 
 use crate::{
-    deontic::{extract_deontic_lexemes, DeonticLexemeKind},
+    deontic::{DeonticLexemeKind, extract_deontic_lexemes},
     domain::{HierarchyLevel, ParsedBlock, SourceFormatId, TextSpan},
     golden::{GoldenAnnotation, GoldenFixture, GoldenLayer},
     hierarchy::extract_hierarchy,
-    references::{extract_reference_mentions, ReferenceMentionKind},
-    temporal::{extract_temporal_phrases, TemporalPhraseKind},
+    references::{ReferenceMentionKind, extract_reference_mentions},
+    temporal::{TemporalPhraseKind, extract_temporal_phrases},
 };
 
 /// Validation error for evaluator construction.

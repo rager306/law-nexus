@@ -37,21 +37,21 @@ fn read_typed_fixture(path: &PathBuf) -> BTreeMap<String, DocFixture> {
                 });
             }
             "frag" if cols.len() >= 2 => {
-                if let Some(cur) = current.as_deref() {
-                    if let Some(d) = docs.get_mut(cur) {
-                        d.fragments.push(cols[1].to_string());
-                    }
+                if let Some(cur) = current.as_deref()
+                    && let Some(d) = docs.get_mut(cur)
+                {
+                    d.fragments.push(cols[1].to_string());
                 }
             }
             "typed" if cols.len() >= 4 => {
-                if let Some(cur) = current.as_deref() {
-                    if let Some(d) = docs.get_mut(cur) {
-                        d.typed.push((
-                            cols[1].to_string(),
-                            cols[2].to_string(),
-                            cols[3].to_string(),
-                        ));
-                    }
+                if let Some(cur) = current.as_deref()
+                    && let Some(d) = docs.get_mut(cur)
+                {
+                    d.typed.push((
+                        cols[1].to_string(),
+                        cols[2].to_string(),
+                        cols[3].to_string(),
+                    ));
                 }
             }
             _ => {}

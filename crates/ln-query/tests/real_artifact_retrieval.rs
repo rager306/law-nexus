@@ -24,24 +24,23 @@
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
-use ln_decode::cleaned_nav::{build_nav_index, NavIndex, NodeAddress};
+use ln_decode::cleaned_nav::{NavIndex, NodeAddress, build_nav_index};
 use ln_decode::cleaned_wire::{
-    export_cleaned_projection, read_cleaned_wire, CleanedProjection, WireCompletion, WireLimits,
+    CleanedProjection, WireCompletion, WireLimits, export_cleaned_projection, read_cleaned_wire,
 };
-use ln_decode::reader_gate::{gate_reader, ReaderSourceClass};
+use ln_decode::reader_gate::{ReaderSourceClass, gate_reader};
 use ln_decode::reader_projection::build_projection;
-use ln_decode::source_package::{capture, Limits};
+use ln_decode::source_package::{Limits, capture};
 
 use ln_query::retrieval_offline::{
-    run_offline_citation_retrieval_cases, run_offline_citation_retrieval_proof, OfflineCaseOutcome,
-    OfflineExpectedResult, OfflineRetrievalCase, OfflineRetrievalProofSummary,
+    OfflineCaseOutcome, OfflineExpectedResult, OfflineRetrievalCase, OfflineRetrievalProofSummary,
     OfflineSelectionReason, ProjectionGraphResolver, RetrievalQueryKind,
+    run_offline_citation_retrieval_cases, run_offline_citation_retrieval_proof,
 };
 use ln_query::retrieval_output::*;
 
 /// The single pinned real Consultant WordML document declared by the contract.
-const DOC_FILE: &str =
-    "federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml";
+const DOC_FILE: &str = "federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml";
 
 /// The pinned content hash and byte length of that document.
 const DOC_SHA256: &str = "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d";

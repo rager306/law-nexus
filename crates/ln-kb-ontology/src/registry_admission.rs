@@ -181,7 +181,10 @@ impl fmt::Display for RegistryAdmissionError {
                 "candidate-backed row references missing candidate {key_path:?}"
             ),
             Self::IdentityMismatch { key_path, detail } => {
-                write!(formatter, "candidate {key_path:?} identity mismatch: {detail}")
+                write!(
+                    formatter,
+                    "candidate {key_path:?} identity mismatch: {detail}"
+                )
             }
             Self::MalformedComponentConcept { cc } => {
                 write!(formatter, "malformed component concept {cc:?}")
@@ -195,7 +198,10 @@ impl fmt::Display for RegistryAdmissionError {
                 "registry key {key:?} binds conflicting CC identifiers {existing:?} and {conflicting:?}"
             ),
             Self::ConflictingDuplicate { key } => {
-                write!(formatter, "duplicate admission rows for registry key {key:?}")
+                write!(
+                    formatter,
+                    "duplicate admission rows for registry key {key:?}"
+                )
             }
             Self::DigestDrift {
                 field,

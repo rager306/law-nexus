@@ -55,9 +55,11 @@ fn every_interrupted_outcome_stays_bounded_and_non_authoritative() {
         assert_eq!(result.diagnostics.len(), 1);
         assert_eq!(result.diagnostics[0].category.as_str(), category);
         assert_eq!(result.diagnostics[0].partial_byte_count, canary.len());
-        assert!(result.diagnostics[0]
-            .partial_fingerprint
-            .starts_with("fnv1a64:"));
+        assert!(
+            result.diagnostics[0]
+                .partial_fingerprint
+                .starts_with("fnv1a64:")
+        );
         assert!(result.legal_clock_anchor.is_none());
         assert!(result.promotion_id.is_none());
         assert!(result.publication_id.is_none());

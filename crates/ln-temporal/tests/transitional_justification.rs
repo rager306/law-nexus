@@ -2,8 +2,8 @@
 
 use ln_temporal::calendar::legal_act_effect_day_to_ordinal;
 use ln_temporal::domain::{
-    edition_delta, AmendmentFacetKind, C1Candidate, CanonRecordId, ComponentConceptId,
-    EvidenceClass, NormativeState, ThreeCanonEventLog,
+    AmendmentFacetKind, C1Candidate, CanonRecordId, ComponentConceptId, EvidenceClass,
+    NormativeState, ThreeCanonEventLog, edition_delta,
 };
 use ln_temporal::provenance::{
     EditionProvenanceEnvelope, ProvenanceAdmission, ProvenanceConstructionError,

@@ -26,13 +26,13 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use ln_decode::npa_anchor::{check_span, LocalSpan};
-use ln_decode::npa_classify::{classify, classify_members, ClassificationDiagnostic};
+use ln_decode::npa_anchor::{LocalSpan, check_span};
+use ln_decode::npa_classify::{ClassificationDiagnostic, classify, classify_members};
 use ln_decode::npa_link::{
     self, LinkDerivation, LinkedDocument, LinkedMember, LinkedMemberKind, LinkedRelation,
 };
 use ln_decode::npa_report::{
-    measured_metric, run_integration_report, IntegrationCli, Metric, MetricStatus,
+    IntegrationCli, Metric, MetricStatus, measured_metric, run_integration_report,
 };
 use ln_decode::npa_sweep::EXIT_OK;
 
@@ -90,10 +90,10 @@ fn read_docs() -> BTreeMap<String, Vec<String>> {
                 docs.entry(cols[1].to_string()).or_default();
             }
             Some("frag") if cols.len() >= 2 => {
-                if let Some(cur) = current.as_deref() {
-                    if let Some(frags) = docs.get_mut(cur) {
-                        frags.push(cols[1].to_string());
-                    }
+                if let Some(cur) = current.as_deref()
+                    && let Some(frags) = docs.get_mut(cur)
+                {
+                    frags.push(cols[1].to_string());
                 }
             }
             _ => {}

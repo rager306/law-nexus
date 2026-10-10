@@ -15,7 +15,7 @@ use std::collections::BTreeMap;
 use crate::document_context::PROPOSED_MAX_SERIES_HOPS;
 use crate::local_grammar::{self, FrameStatus};
 use crate::npa_anchor::{self, LocalSpan};
-use crate::npa_continuation::{eligible_continuation_head_for, ContinuationEligibility};
+use crate::npa_continuation::{ContinuationEligibility, eligible_continuation_head_for};
 use crate::npa_typed::{self, TypedMember};
 
 /// How a [`LinkedMember`] was derived from the canonical typed stream.
@@ -906,10 +906,10 @@ fn find_approver(flat: &FlatDoc, annex: &AnnexHit, typed: &[TypedMember]) -> Opt
             (g > annex_g && flat.char_distance(annex_g, g) < 450).then_some((g, id))
         })
         .min_by_key(|(g, _)| *g);
-    if let Some((g, id)) = later {
-        if approve_verb(&flat.text[annex_g..g]) {
-            return Some(id);
-        }
+    if let Some((g, id)) = later
+        && approve_verb(&flat.text[annex_g..g])
+    {
+        return Some(id);
     }
 
     let earlier = typed
@@ -927,19 +927,19 @@ fn find_approver(flat: &FlatDoc, annex: &AnnexHit, typed: &[TypedMember]) -> Opt
         }
     }
 
-    if let Some(vmeste) = find_ci(&flat.text, "вместе с") {
-        if annex_g > vmeste {
-            let before = typed
-                .iter()
-                .enumerate()
-                .filter_map(|(id, m)| {
-                    let g = flat.global_byte(m.span);
-                    (g < vmeste).then_some((g, id))
-                })
-                .max_by_key(|(g, _)| *g);
-            if let Some((_, id)) = before {
-                return Some(id);
-            }
+    if let Some(vmeste) = find_ci(&flat.text, "вместе с")
+        && annex_g > vmeste
+    {
+        let before = typed
+            .iter()
+            .enumerate()
+            .filter_map(|(id, m)| {
+                let g = flat.global_byte(m.span);
+                (g < vmeste).then_some((g, id))
+            })
+            .max_by_key(|(g, _)| *g);
+        if let Some((_, id)) = before {
+            return Some(id);
         }
     }
     None
@@ -1811,10 +1811,10 @@ fn ends_with_date_prefix(s: &str) -> bool {
 fn ends_with_dalee_dash(s: &str) -> bool {
     let trimmed = s.trim_end();
     for dash in ['-', '—'] {
-        if let Some(head) = trimmed.strip_suffix(dash) {
-            if head.trim_end().to_lowercase().ends_with("далее") {
-                return true;
-            }
+        if let Some(head) = trimmed.strip_suffix(dash)
+            && head.trim_end().to_lowercase().ends_with("далее")
+        {
+            return true;
         }
     }
     false

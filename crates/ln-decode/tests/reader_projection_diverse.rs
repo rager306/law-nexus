@@ -19,14 +19,14 @@
 use std::collections::HashSet;
 
 use ln_decode::reader_contract::{
-    check_fragment_span, ReaderSegmentKind, ReaderSemantic, ReaderViewKind,
+    ReaderSegmentKind, ReaderSemantic, ReaderViewKind, check_fragment_span,
 };
-use ln_decode::reader_gate::{classify_source, gate_reader, ReaderSourceClass};
+use ln_decode::reader_gate::{ReaderSourceClass, classify_source, gate_reader};
 use ln_decode::reader_projection::{
-    build_projection, canonical_projection_bytes, ProjectedView, ReaderProjection, SegmentOrigin,
+    ProjectedView, ReaderProjection, SegmentOrigin, build_projection, canonical_projection_bytes,
 };
 use ln_decode::reader_verifier::verify_projection;
-use ln_decode::source_package::{capture, Limits, Record, TextRecord};
+use ln_decode::source_package::{Limits, Record, TextRecord, capture};
 
 // ---------------------------------------------------------------- fixtures #
 

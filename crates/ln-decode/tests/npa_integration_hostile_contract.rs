@@ -35,16 +35,16 @@ use std::path::{Path, PathBuf};
 
 use ln_decode::npa_anchor;
 use ln_decode::npa_classify::{
-    classify, classify_form, classify_members, lemma_match, ClassificationDiagnostic, GraphClass,
-    IdentityKey, LegalClass,
+    ClassificationDiagnostic, GraphClass, IdentityKey, LegalClass, classify, classify_form,
+    classify_members, lemma_match,
 };
 use ln_decode::npa_link::{
     self, LinkDerivation, LinkDiagnostic, LinkedDocument, LinkedMember, LinkedMemberKind,
     LinkedRelationKind,
 };
 use ln_decode::npa_report::{
-    render_integration_report, run_integration_report, CorpusPlane, CorrectnessPlane,
-    IntegrationCli, RefusalPlane,
+    CorpusPlane, CorrectnessPlane, IntegrationCli, RefusalPlane, render_integration_report,
+    run_integration_report,
 };
 use ln_decode::npa_sweep::EXIT_OK;
 
@@ -74,10 +74,10 @@ fn read_fixture() -> BTreeMap<String, Vec<String>> {
                 docs.entry(cols[1].to_string()).or_default();
             }
             Some("frag") if cols.len() >= 2 => {
-                if let Some(cur) = current.as_deref() {
-                    if let Some(frags) = docs.get_mut(cur) {
-                        frags.push(cols[1].to_string());
-                    }
+                if let Some(cur) = current.as_deref()
+                    && let Some(frags) = docs.get_mut(cur)
+                {
+                    frags.push(cols[1].to_string());
                 }
             }
             _ => {}
@@ -175,9 +175,11 @@ fn unknown_letterhead_fails_closed_without_requisites() {
     );
     let linked = npa_link::build_linked_document(&unknown);
     assert!(linked.letterhead.is_none());
-    assert!(linked
-        .diagnostics
-        .contains(&LinkDiagnostic::HeadUnavailable));
+    assert!(
+        linked
+            .diagnostics
+            .contains(&LinkDiagnostic::HeadUnavailable)
+    );
 }
 
 /// Documented S03 limitation: the letterhead guard is bounded to the head
@@ -204,9 +206,11 @@ fn court_head_outside_the_bounded_zone_is_not_court_classified() {
     );
     let linked = npa_link::build_linked_document(&deep);
     assert!(linked.letterhead.is_none());
-    assert!(linked
-        .diagnostics
-        .contains(&LinkDiagnostic::HeadUnavailable));
+    assert!(
+        linked
+            .diagnostics
+            .contains(&LinkDiagnostic::HeadUnavailable)
+    );
 }
 
 // ── 2. unresolved references ───────────────────────────────────────────────
@@ -272,13 +276,17 @@ fn orphan_series_tail_without_head_refuses_instead_of_continuing() {
     );
 
     let linked = npa_link::build_linked_document(&input);
-    assert!(!linked
-        .relations
-        .iter()
-        .any(|r| r.kind == LinkedRelationKind::ContinuesSeries));
-    assert!(linked
-        .diagnostics
-        .contains(&LinkDiagnostic::OpenSeriesWithoutHead));
+    assert!(
+        !linked
+            .relations
+            .iter()
+            .any(|r| r.kind == LinkedRelationKind::ContinuesSeries)
+    );
+    assert!(
+        linked
+            .diagnostics
+            .contains(&LinkDiagnostic::OpenSeriesWithoutHead)
+    );
 }
 
 // ── 3. homographs are not merged ───────────────────────────────────────────

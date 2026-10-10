@@ -1,6 +1,6 @@
 use ln_storage::{
-    adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore, OperationEvent},
     GraphEdge, GraphNode, GraphStorePort, VectorQuery, VectorRecord, VectorStorePort,
+    adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore, OperationEvent},
 };
 
 fn record(id: &str) -> VectorRecord {

@@ -31,19 +31,19 @@ use ln_decode::analysis_source_mapping::{SourceIdentity, SourceMapping};
 use ln_decode::document_context::DocumentVersionRef;
 use ln_decode::npa_analysis_records::analyze_document;
 use ln_decode::npa_analysis_verify::{
-    read_back_npa_analysis, verify_npa_analysis_wire, AnalysisVerifyCode,
+    AnalysisVerifyCode, read_back_npa_analysis, verify_npa_analysis_wire,
 };
 use ln_decode::npa_analysis_wire::{
-    inspect_npa_analysis_wire, recompute_analysis_seals, render_npa_analysis_with_context,
     AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope, AnalysisWireErrorKind,
+    inspect_npa_analysis_wire, recompute_analysis_seals, render_npa_analysis_with_context,
 };
 use ln_decode::npa_context_consumer::{
-    consume_document_this_document_reference, ThisDocumentReferenceOutcome,
+    ThisDocumentReferenceOutcome, consume_document_this_document_reference,
 };
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
 use ln_decode::reader_gate::gate_reader;
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, Limits as CaptureLimits, MODEL, PROFILE};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
+use ln_decode::source_package::{Limits as CaptureLimits, MODEL, PROFILE, capture};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -1466,7 +1466,7 @@ pub fn validate_relative_path(path: &str) -> Result<(), String> {
         match component {
             Component::ParentDir => return Err("path must not traverse its root".into()),
             Component::RootDir | Component::Prefix(_) => {
-                return Err("path must be relative, not absolute".into())
+                return Err("path must be relative, not absolute".into());
             }
             Component::Normal(_) | Component::CurDir => {}
         }
@@ -1828,16 +1828,16 @@ fn run_entries(
         record.wall_ms = wall_ms;
         total_wall_ms = total_wall_ms.saturating_add(wall_ms);
         max_wall_ms = max_wall_ms.max(wall_ms);
-        if let Some(rendered) = &rendered {
-            if probe.needs_probe() {
-                let detected = probe_envelope(
-                    &rendered.projection,
-                    &rendered.index,
-                    &rendered.mapping,
-                    &rendered.envelope,
-                );
-                probe.observe(detected);
-            }
+        if let Some(rendered) = &rendered
+            && probe.needs_probe()
+        {
+            let detected = probe_envelope(
+                &rendered.projection,
+                &rendered.index,
+                &rendered.mapping,
+                &rendered.envelope,
+            );
+            probe.observe(detected);
         }
         entries.push(record);
     }
@@ -1947,7 +1947,7 @@ fn process_entry(
                     BTreeMap::new(),
                 ),
                 None,
-            )
+            );
         }
     };
     let observed = hex_lower(&Sha256::digest(&bytes));
@@ -2121,7 +2121,7 @@ fn render_entry(
                     limit_kind: Some(LimitKind::Records),
                 },
                 _ => RenderAttempt::refused(EntryOutcome::AnalysisRefused),
-            }
+            };
         }
     };
     let readback = match read_back_npa_analysis(&envelope) {
@@ -2211,21 +2211,21 @@ fn probe_envelope(
     mapping: &SourceMapping,
     envelope: &str,
 ) -> bool {
-    if let Some((tampered, expected)) = mutate_member_span(index, envelope) {
-        if let Some(resealed) = reseal(&tampered) {
-            return verify_detects(projection, index, mapping, &resealed, expected);
-        }
+    if let Some((tampered, expected)) = mutate_member_span(index, envelope)
+        && let Some(resealed) = reseal(&tampered)
+    {
+        return verify_detects(projection, index, mapping, &resealed, expected);
     }
-    if let Some(tampered) = mutate_first_fragment_hash(envelope) {
-        if let Some(resealed) = reseal(&tampered) {
-            return verify_detects(
-                projection,
-                index,
-                mapping,
-                &resealed,
-                AnalysisVerifyCode::FragmentHashMismatch,
-            );
-        }
+    if let Some(tampered) = mutate_first_fragment_hash(envelope)
+        && let Some(resealed) = reseal(&tampered)
+    {
+        return verify_detects(
+            projection,
+            index,
+            mapping,
+            &resealed,
+            AnalysisVerifyCode::FragmentHashMismatch,
+        );
     }
     false
 }
@@ -2380,18 +2380,17 @@ fn mutate_member_span(
             continue;
         }
         for key in ["span", "evidence"] {
-            if let Some((fragment, start, end)) = bound_span_of(line, key) {
-                if let Some((new_start, new_end)) = alternate_span(index, &fragment, start, end) {
-                    let new_obj = format!(
-                        r#"{{"end":{new_end},"fragment":"{fragment}","start":{new_start}}}"#
-                    );
-                    let replaced = replace_field_object(line, key, &new_obj)?;
-                    *line = replaced;
-                    return Some((
-                        join_envelope(&lines),
-                        AnalysisVerifyCode::SourceRefSubstitution,
-                    ));
-                }
+            if let Some((fragment, start, end)) = bound_span_of(line, key)
+                && let Some((new_start, new_end)) = alternate_span(index, &fragment, start, end)
+            {
+                let new_obj =
+                    format!(r#"{{"end":{new_end},"fragment":"{fragment}","start":{new_start}}}"#);
+                let replaced = replace_field_object(line, key, &new_obj)?;
+                *line = replaced;
+                return Some((
+                    join_envelope(&lines),
+                    AnalysisVerifyCode::SourceRefSubstitution,
+                ));
             }
         }
     }

@@ -25,18 +25,18 @@ use ln_decode::current_requisites::{
     RequisitesSourceKind, SourceAnchor, ThisRefGrammarEvidence,
 };
 use ln_decode::document_context::{
-    current_document_requisites, ContextClaimStatus, ContextDiagnostic, ContextRequestKind,
-    ContextStatus, DocumentVersionRef, FrameRef,
+    ContextClaimStatus, ContextDiagnostic, ContextRequestKind, ContextStatus, DocumentVersionRef,
+    FrameRef, current_document_requisites,
 };
 use ln_decode::domain::TextSpan;
 use ln_decode::local_grammar::DerivationSource;
 use ln_decode::npa_analysis_records::{
-    build_analysis_block_layout, AnalysisBlockLayout, SourceRef,
+    AnalysisBlockLayout, SourceRef, build_analysis_block_layout,
 };
-use ln_decode::npa_context_records::{build_context_records, ContextRecord, ContextResultRecord};
+use ln_decode::npa_context_records::{ContextRecord, ContextResultRecord, build_context_records};
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
 use ln_decode::reader_projection::build_projection;
-use ln_decode::source_package::{capture, Limits};
+use ln_decode::source_package::{Limits, capture};
 
 fn wrap(body: &str) -> String {
     format!(
@@ -127,8 +127,7 @@ fn exact_slice(
 // закона`) and a structural frame. The letterhead supplies the `Type` claim,
 // so the emitted requisites request resolves. The surface noun is not itself a
 // legal marker, so the heading still has exactly one marker.
-const AUTHORIZED_BODY: &str =
-    "<w:p><w:r><w:t>Приказ Минэкономразвития России от 02.10.2013 N 567</w:t></w:r></w:p>\
+const AUTHORIZED_BODY: &str = "<w:p><w:r><w:t>Приказ Минэкономразвития России от 02.10.2013 N 567</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Статья 2. Настоящего Федерального закона</w:t></w:r></w:p>";
 
 // A this-ref surface with no letterhead: the request is emitted but stays

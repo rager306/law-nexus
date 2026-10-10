@@ -253,16 +253,16 @@ pub fn scan_types(text: &[char]) -> Vec<TypeCandidate> {
             }
         }
         // --- вынесенный эмитент: «Конституционн… Суд… в Постановлен…» ---
-        if starts_lower(&lower, i, "конституционн") {
-            if let Some(e) = constitutional_court_carry(text, &lower, i) {
-                out.push(TypeCandidate {
-                    start: i,
-                    end: e,
-                    canon: "Постановление КС РФ".into(),
-                });
-                i = e;
-                continue;
-            }
+        if starts_lower(&lower, i, "конституционн")
+            && let Some(e) = constitutional_court_carry(text, &lower, i)
+        {
+            out.push(TypeCandidate {
+                start: i,
+                end: e,
+                canon: "Постановление КС РФ".into(),
+            });
+            i = e;
+            continue;
         }
         // --- Постановление КС / Пленум / Правительства ---
         if starts_lower(&lower, i, "постановлен") {

@@ -11,7 +11,7 @@
 use std::process::ExitCode;
 
 use ln_decode::hierarchy_artifact::{
-    parse_artifact_args, run_hierarchy_candidate_artifact, ArtifactError,
+    ArtifactError, parse_artifact_args, run_hierarchy_candidate_artifact,
 };
 
 fn main() -> ExitCode {

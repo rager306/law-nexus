@@ -11,8 +11,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use ln_consultant_parser::corpus_sample::SourceRootKind;
 use ln_consultant_parser::npa_corpus_acceptance::{
-    build_sample, declared_sample_roots, CorpusSampleManifest, DeclaredThresholds, SampleRoot,
-    C3_EXCLUSION_NONE, CONSULTANT_ROOT_RELATIVE, DECLARED_SAMPLE_SIZE, GARANT_ROOT_RELATIVE,
+    C3_EXCLUSION_NONE, CONSULTANT_ROOT_RELATIVE, CorpusSampleManifest, DECLARED_SAMPLE_SIZE,
+    DeclaredThresholds, GARANT_ROOT_RELATIVE, SampleRoot, build_sample, declared_sample_roots,
 };
 use sha2::{Digest, Sha256};
 

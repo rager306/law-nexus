@@ -19,16 +19,16 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use ln_decode::adapters::ConsultantWordMlBlockDecoder;
-use ln_decode::domain::{fingerprint_bytes, DecodeRequest, FamilyFormat, ParsedBlock, PayloadRef};
+use ln_decode::domain::{DecodeRequest, FamilyFormat, ParsedBlock, PayloadRef, fingerprint_bytes};
 use ln_decode::hierarchy::{
-    catalog_token, extract_hierarchy_candidates, HierarchyCandidateReport,
-    HierarchyExtractDiagnostic,
+    HierarchyCandidateReport, HierarchyExtractDiagnostic, catalog_token,
+    extract_hierarchy_candidates,
 };
 use ln_decode::hierarchy_artifact::{
-    check_hierarchy_candidate_artifact, parse_artifact_args, render_hierarchy_candidate_artifact,
-    run_hierarchy_candidate_artifact, validate_hierarchy_candidate_artifact, ArtifactCli,
-    ArtifactError, ArtifactMode, ArtifactRenderInput, ArtifactSourceKind,
-    HIERARCHY_CANDIDATE_ARTIFACT_SCHEMA,
+    ArtifactCli, ArtifactError, ArtifactMode, ArtifactRenderInput, ArtifactSourceKind,
+    HIERARCHY_CANDIDATE_ARTIFACT_SCHEMA, check_hierarchy_candidate_artifact, parse_artifact_args,
+    render_hierarchy_candidate_artifact, run_hierarchy_candidate_artifact,
+    validate_hierarchy_candidate_artifact,
 };
 use ln_decode::ports::BlockDecoderPort;
 

@@ -35,17 +35,17 @@
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use ln_decode::cleaned_cli::{parse_cleaned_args, run_cleaned_with, EXIT_OK, EXIT_VERIFY_FAILED};
-use ln_decode::cleaned_nav::{build_nav_index_from_wire, NavErrorKind};
+use ln_decode::cleaned_cli::{EXIT_OK, EXIT_VERIFY_FAILED, parse_cleaned_args, run_cleaned_with};
+use ln_decode::cleaned_nav::{NavErrorKind, build_nav_index_from_wire};
 use ln_decode::cleaned_nav_verifier::verify_nav_index;
-use ln_decode::cleaned_verifier::{verify_cleaned_wire, CleanedFinding, CleanedVerifyCode};
+use ln_decode::cleaned_verifier::{CleanedFinding, CleanedVerifyCode, verify_cleaned_wire};
 use ln_decode::cleaned_wire::{
-    export_cleaned_projection, read_cleaned_wire, IncompleteReason, WireCompletion, WireErrorKind,
-    WireLimits, KIND_SEGMENT, KIND_VIEW,
+    IncompleteReason, KIND_SEGMENT, KIND_VIEW, WireCompletion, WireErrorKind, WireLimits,
+    export_cleaned_projection, read_cleaned_wire,
 };
-use ln_decode::reader_gate::{gate_reader, ReaderSourceClass};
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
-use ln_decode::source_package::{capture, write_package, Limits, Package};
+use ln_decode::reader_gate::{ReaderSourceClass, gate_reader};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
+use ln_decode::source_package::{Limits, Package, capture, write_package};
 use sha2::{Digest, Sha256};
 
 // ---------------------------------------------------------------- fixture #

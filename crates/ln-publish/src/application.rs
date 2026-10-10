@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use crate::domain::{
-    AuthoritySurface, CompletenessEvidence, H1UnitId, OperationId, PublicationAuthority,
-    PublicationOutcome, PublicationRecord, PublicationResult, PublishRequest, ScopeId, WriterId,
-    PUBLICATION_POLICY_VERSION,
+    AuthoritySurface, CompletenessEvidence, H1UnitId, OperationId, PUBLICATION_POLICY_VERSION,
+    PublicationAuthority, PublicationOutcome, PublicationRecord, PublicationResult, PublishRequest,
+    ScopeId, WriterId,
 };
 use crate::ports::PublicationLedgerPort;
 
@@ -109,16 +109,16 @@ where
 
         // Optional: if a writer lock exists without a unit (should not happen),
         // still enforce exclusive writer.
-        if let Some(owner) = self.writer_for_scope.get(request.scope_id.as_str()) {
-            if owner != &request.writer_id {
-                return self.finish(
-                    request,
-                    PublicationOutcome::CompetingWriterRejected,
-                    None,
-                    false,
-                    None,
-                );
-            }
+        if let Some(owner) = self.writer_for_scope.get(request.scope_id.as_str())
+            && owner != &request.writer_id
+        {
+            return self.finish(
+                request,
+                PublicationOutcome::CompetingWriterRejected,
+                None,
+                false,
+                None,
+            );
         }
 
         // First complete publish for this scope: mint sole unit + authority.

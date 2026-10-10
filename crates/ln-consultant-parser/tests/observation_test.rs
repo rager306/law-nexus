@@ -1,8 +1,8 @@
 //! Observation store tests: unknown links → learning backlog.
 
 use ln_consultant_parser::{
-    classify_all_scored, collect_observations, extract_hyperlinks, format_observations_yaml,
-    ClassifiedLink,
+    ClassifiedLink, classify_all_scored, collect_observations, extract_hyperlinks,
+    format_observations_yaml,
 };
 
 fn cl(kind: &str, dest: &str, text: &str) -> ClassifiedLink {

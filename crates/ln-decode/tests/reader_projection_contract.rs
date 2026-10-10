@@ -15,13 +15,13 @@
 use std::collections::HashSet;
 
 use ln_decode::reader_contract::{
-    check_fragment_span, ReaderSegmentKind, ReaderSemantic, ReaderViewKind,
+    ReaderSegmentKind, ReaderSemantic, ReaderViewKind, check_fragment_span,
 };
 use ln_decode::reader_projection::{
-    build_projection, canonical_projection_bytes, ProjectedView, ReaderProjection, SegmentOrigin,
+    ProjectedView, ReaderProjection, SegmentOrigin, build_projection, canonical_projection_bytes,
 };
 use ln_decode::reader_verifier::verify_projection;
-use ln_decode::source_package::{capture, Limits, Record};
+use ln_decode::source_package::{Limits, Record, capture};
 
 const XML: &str = include_str!("fixtures/reader/mixed-wordml.xml");
 const FIXTURE_SHA256: &str = "d2fc1cd17f0697f575e94f09d83da5027d73afd37c700772eafa4c4a4fbc76db";

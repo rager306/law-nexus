@@ -21,18 +21,26 @@ fn malicious_verified_merge_relation_and_raw_context_are_rejected() {
     let result = use_case.execute(request());
 
     assert!(result.candidates.is_empty());
-    assert!(result
-        .rejected_categories
-        .contains(&DecodeCategory::VerifiedAssertion));
-    assert!(result
-        .rejected_categories
-        .contains(&DecodeCategory::MergedIdentity));
-    assert!(result
-        .rejected_categories
-        .contains(&DecodeCategory::UnregisteredRelation));
-    assert!(result
-        .rejected_categories
-        .contains(&DecodeCategory::RawFailureContext));
+    assert!(
+        result
+            .rejected_categories
+            .contains(&DecodeCategory::VerifiedAssertion)
+    );
+    assert!(
+        result
+            .rejected_categories
+            .contains(&DecodeCategory::MergedIdentity)
+    );
+    assert!(
+        result
+            .rejected_categories
+            .contains(&DecodeCategory::UnregisteredRelation)
+    );
+    assert!(
+        result
+            .rejected_categories
+            .contains(&DecodeCategory::RawFailureContext)
+    );
     assert!(result.verified_assertion_absent);
     assert!(result.merged_identity_absent);
     assert!(result.unregistered_relation_absent);
@@ -61,12 +69,16 @@ fn malicious_path_still_emits_positive_control() {
         DecodeAndAnchor::new(MaliciousSyntheticDecoder, InMemoryDiagnosticSink::default());
     let result = use_case.execute(request());
 
-    assert!(result
-        .diagnostics
-        .iter()
-        .any(|d| d.positive_control && d.category == "decode-positive-control"));
-    assert!(result
-        .diagnostics
-        .iter()
-        .any(|d| d.category == "decode-rejected-non-structural"));
+    assert!(
+        result
+            .diagnostics
+            .iter()
+            .any(|d| d.positive_control && d.category == "decode-positive-control")
+    );
+    assert!(
+        result
+            .diagnostics
+            .iter()
+            .any(|d| d.category == "decode-rejected-non-structural")
+    );
 }

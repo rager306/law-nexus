@@ -17,7 +17,7 @@
 
 use std::collections::HashMap;
 
-use crate::cleaned_wire::{read_cleaned_wire, CleanedCounts, CleanedProjection, SegmentText};
+use crate::cleaned_wire::{CleanedCounts, CleanedProjection, SegmentText, read_cleaned_wire};
 use crate::reader_projection::SegmentOrigin;
 use crate::source_package::{Package, Record, TextRecord};
 
@@ -349,10 +349,10 @@ fn verify_counts(readback: &CleanedProjection, findings: &mut Vec<CleanedFinding
 mod tests {
     use super::*;
     use crate::cleaned_wire::{
-        read_cleaned_wire, render_cleaned_projection, WireCompletion, WireLimits,
+        WireCompletion, WireLimits, read_cleaned_wire, render_cleaned_projection,
     };
-    use crate::reader_projection::{build_projection, ReaderProjection};
-    use crate::source_package::{capture, Limits};
+    use crate::reader_projection::{ReaderProjection, build_projection};
+    use crate::source_package::{Limits, capture};
 
     const FIXTURE: &str = include_str!("../tests/fixtures/reader/mixed-wordml.xml");
 

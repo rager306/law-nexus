@@ -1,8 +1,8 @@
 use ln_temporal::document_context::{BlockId, Terminal, TextSpan};
 use ln_temporal::identity_binding::{
-    expand_range_to_endpoints, BindingEndpoints, BindingError, BindingOutcome,
-    BindingUnresolvedReason, BoundTarget, EndpointPair, ReferenceBindingCandidate,
-    ReferenceEndpoint, MAX_EXPANDED_CANDIDATES,
+    BindingEndpoints, BindingError, BindingOutcome, BindingUnresolvedReason, BoundTarget,
+    EndpointPair, MAX_EXPANDED_CANDIDATES, ReferenceBindingCandidate, ReferenceEndpoint,
+    expand_range_to_endpoints,
 };
 
 fn span(start: usize, end: usize) -> TextSpan {

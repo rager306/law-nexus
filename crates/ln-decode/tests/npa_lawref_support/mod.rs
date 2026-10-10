@@ -930,7 +930,7 @@ pub(crate) fn load_sample_files(fragments_dir: &Path) -> Result<BTreeMap<String,
 // over raw text, no `references.rs` reuse, no product type.
 // ---------------------------------------------------------------------------
 
-use ln_decode::lexer::{lex, NpaToken, TokenKind};
+use ln_decode::lexer::{NpaToken, TokenKind, lex};
 
 pub(crate) const SEED_SCHEMA: &str = "npa-lawref-seed/v1";
 pub(crate) const SEED_PROVENANCE: &str = "rule-seed";
@@ -1560,12 +1560,13 @@ fn parse_slots(entry: &Json, context: &str) -> Result<SeedSlots, String> {
     }
     let doc_no = opt_string("doc_no")?;
     let law_code = opt_string("law_code")?;
-    if let Some(code) = &law_code {
-        if code != "ФЗ" && code != "ФКЗ" {
-            return Err(format!(
-                "{context}: law_code slot '{code}' is outside the closed ФЗ/ФКЗ set"
-            ));
-        }
+    if let Some(code) = &law_code
+        && code != "ФЗ"
+        && code != "ФКЗ"
+    {
+        return Err(format!(
+            "{context}: law_code slot '{code}' is outside the closed ФЗ/ФКЗ set"
+        ));
     }
     let anaphora = opt_string("anaphora")?;
     let quoted_enum = opt_string("quoted_enum")?;
@@ -1591,7 +1592,7 @@ fn parse_slots(entry: &Json, context: &str) -> Result<SeedSlots, String> {
         other => {
             return Err(format!(
                 "{context}: range slot must be null or an object, found {other:?}"
-            ))
+            ));
         }
     };
     Ok(SeedSlots {

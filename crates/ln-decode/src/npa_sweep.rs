@@ -32,7 +32,7 @@ use std::path::{Component, Path, PathBuf};
 
 use crate::adapters::ConsultantWordMlBlockDecoder;
 use crate::domain::{
-    fingerprint_bytes, DecodeRequest, FamilyFormat, ParagraphStyle, ParsedBlock, PayloadRef,
+    DecodeRequest, FamilyFormat, ParagraphStyle, ParsedBlock, PayloadRef, fingerprint_bytes,
 };
 use crate::lexer::{self, TokenKind};
 use crate::morphology;
@@ -329,7 +329,7 @@ impl SweepAcc {
                         return Err(format!(
                             "npa-corpus-sweep line {}: unknown record_kind '{other}'",
                             index + 1
-                        ))
+                        ));
                     }
                 };
                 if !allowed {
@@ -926,12 +926,12 @@ fn is_xml_path(path: &Path) -> bool {
 /// `sw:` plus the hex tail of the FNV-1a fingerprint over the path bytes
 /// (19 chars, always inside the cap, never raw path text).
 pub fn payload_ref_for_path(path: &Path) -> PayloadRef {
-    if let Some(stem) = path.file_stem().and_then(|stem| stem.to_str()) {
-        if !stem.is_empty() && stem.bytes().all(is_ref_stem_byte) {
-            if let Ok(id) = PayloadRef::parse(&format!("payload:{stem}")) {
-                return id;
-            }
-        }
+    if let Some(stem) = path.file_stem().and_then(|stem| stem.to_str())
+        && !stem.is_empty()
+        && stem.bytes().all(is_ref_stem_byte)
+        && let Ok(id) = PayloadRef::parse(&format!("payload:{stem}"))
+    {
+        return id;
     }
     let fingerprint = fingerprint_bytes(path.as_os_str().as_encoded_bytes());
     let hex_tail = fingerprint.strip_prefix("fnv1a64:").unwrap_or(&fingerprint);

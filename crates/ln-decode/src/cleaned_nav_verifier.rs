@@ -414,13 +414,13 @@ pub fn verify_nav_index(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::cleaned_nav::{build_nav_index, NavNodeBody};
+    use crate::cleaned_nav::{NavNodeBody, build_nav_index};
     use crate::cleaned_wire::{
-        read_cleaned_wire, render_cleaned_projection, WireCompletion, WireLimits,
+        WireCompletion, WireLimits, read_cleaned_wire, render_cleaned_projection,
     };
     use crate::reader_contract::ElementRef;
     use crate::reader_projection::build_projection;
-    use crate::source_package::{capture, Limits};
+    use crate::source_package::{Limits, capture};
 
     const FIXTURE: &str = include_str!("../tests/fixtures/reader/mixed-wordml.xml");
 
@@ -583,9 +583,11 @@ mod tests {
         verify_nav_index(&index, &cleaned, &package).expect("valid index must verify");
         assert_eq!(index.nodes_by_address, before);
         // Sanity: the fixture actually carries view nodes.
-        assert!(index
-            .nodes_by_address
-            .values()
-            .any(|node| matches!(node.body, NavNodeBody::View { .. })));
+        assert!(
+            index
+                .nodes_by_address
+                .values()
+                .any(|node| matches!(node.body, NavNodeBody::View { .. }))
+        );
     }
 }

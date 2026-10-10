@@ -32,7 +32,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt;
 
-use crate::cleaned_wire::{read_cleaned_wire, CleanedProjection};
+use crate::cleaned_wire::{CleanedProjection, read_cleaned_wire};
 use crate::reader_contract::{
     ElementRef, FragmentRef, ReaderFragmentSpan, ReaderReferenceType, ReaderSegmentKind,
     ReaderSemantic, ReaderViewKind,
@@ -432,13 +432,13 @@ impl<'a> Substrate<'a> {
             }
         }
         for element in elements.values() {
-            if let Some(parent) = &element.parent {
-                if !elements.contains_key(parent.as_str()) {
-                    return Err(NavError::new(
-                        NavErrorKind::MissingAnchorElement,
-                        format!("element {} parent {} is absent", element.id, parent),
-                    ));
-                }
+            if let Some(parent) = &element.parent
+                && !elements.contains_key(parent.as_str())
+            {
+                return Err(NavError::new(
+                    NavErrorKind::MissingAnchorElement,
+                    format!("element {} parent {} is absent", element.id, parent),
+                ));
             }
         }
         Ok(Substrate {
@@ -513,10 +513,10 @@ impl<'a> Substrate<'a> {
 /// Local name of a Clark-qualified name (`{ns}local`), or the whole token when
 /// it is not namespace-qualified.
 fn clark_local(name: &str) -> &str {
-    if let Some(rest) = name.strip_prefix('{') {
-        if let Some(close) = rest.find('}') {
-            return &rest[close + 1..];
-        }
+    if let Some(rest) = name.strip_prefix('{')
+        && let Some(close) = rest.find('}')
+    {
+        return &rest[close + 1..];
     }
     name
 }
@@ -586,17 +586,17 @@ pub fn build_nav_index(
         let source_pos = substrate
             .source_pos(&segment.element_ref)
             .ok_or_else(|| missing_anchor("segment", segment.id.as_str(), &segment.element_ref))?;
-        if let Some(fragment) = &segment.fragment_ref {
-            if !substrate.has_fragment(fragment) {
-                return Err(NavError::new(
-                    NavErrorKind::MissingAnchorElement,
-                    format!(
-                        "segment {} names absent fragment {}",
-                        segment.id,
-                        fragment.as_str()
-                    ),
-                ));
-            }
+        if let Some(fragment) = &segment.fragment_ref
+            && !substrate.has_fragment(fragment)
+        {
+            return Err(NavError::new(
+                NavErrorKind::MissingAnchorElement,
+                format!(
+                    "segment {} names absent fragment {}",
+                    segment.id,
+                    fragment.as_str()
+                ),
+            ));
         }
         let owner = NodeAddress::View(segment.view.clone());
         if !nodes_by_address.contains_key(&owner) {
@@ -893,10 +893,10 @@ pub fn build_nav_index_from_wire(artifact: &str, package: &Package) -> Result<Na
 mod tests {
     use super::*;
     use crate::cleaned_wire::{
-        read_cleaned_wire, render_cleaned_projection, WireCompletion, WireLimits,
+        WireCompletion, WireLimits, read_cleaned_wire, render_cleaned_projection,
     };
-    use crate::reader_projection::{build_projection, ViewId};
-    use crate::source_package::{capture, Limits};
+    use crate::reader_projection::{ViewId, build_projection};
+    use crate::source_package::{Limits, capture};
 
     const XML: &str = include_str!("../tests/fixtures/reader/mixed-wordml.xml");
 
@@ -1081,15 +1081,21 @@ mod tests {
 
         let views = cleaned.projection.views.len();
         let segments = cleaned.projection.segments.len();
-        assert!(first.source_order[..views]
-            .iter()
-            .all(|address| matches!(address, NodeAddress::View(_))));
-        assert!(first.source_order[views..views + segments]
-            .iter()
-            .all(|address| matches!(address, NodeAddress::Segment(_))));
-        assert!(first.source_order[views + segments..]
-            .iter()
-            .all(|address| matches!(address, NodeAddress::Reference(_))));
+        assert!(
+            first.source_order[..views]
+                .iter()
+                .all(|address| matches!(address, NodeAddress::View(_)))
+        );
+        assert!(
+            first.source_order[views..views + segments]
+                .iter()
+                .all(|address| matches!(address, NodeAddress::Segment(_)))
+        );
+        assert!(
+            first.source_order[views + segments..]
+                .iter()
+                .all(|address| matches!(address, NodeAddress::Reference(_)))
+        );
     }
 
     #[test]
@@ -1097,9 +1103,11 @@ mod tests {
         let (package, cleaned) = fixture();
         let index = build_nav_index(&cleaned, &package).expect("nav index must build");
         for view in &cleaned.projection.views {
-            assert!(index
-                .anchors_of_element(&view.element_ref)
-                .contains(&NodeAddress::View(view.id.clone())));
+            assert!(
+                index
+                    .anchors_of_element(&view.element_ref)
+                    .contains(&NodeAddress::View(view.id.clone()))
+            );
         }
         for segment in &cleaned.projection.segments {
             if let Some(fragment) = &segment.fragment_ref {

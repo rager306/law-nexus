@@ -158,10 +158,10 @@ impl TemporalScope {
             Some(value) if is_yyyy_mm_dd(value) => Some(value.to_owned()),
             Some(_) => return Err(NormRuleIrError::InvalidTemporalDate),
         };
-        if let (Some(start), Some(end)) = (&from, &to) {
-            if start > end {
-                return Err(NormRuleIrError::InvertedTemporalScope);
-            }
+        if let (Some(start), Some(end)) = (&from, &to)
+            && start > end
+        {
+            return Err(NormRuleIrError::InvertedTemporalScope);
         }
         Ok(Self {
             effective_from: from,

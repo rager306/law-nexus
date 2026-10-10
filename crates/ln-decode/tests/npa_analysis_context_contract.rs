@@ -19,16 +19,16 @@ use ln_decode::document_context::{
 };
 use ln_decode::local_grammar::DerivationSource;
 use ln_decode::npa_analysis_records::{
-    build_analysis_block_layout, AnalysisBlockLayout, SourceRef,
+    AnalysisBlockLayout, SourceRef, build_analysis_block_layout,
 };
 use ln_decode::npa_context_records::{
+    ContextRecord, ContextResultRecord, KIND_RESULT, KIND_RUN, SCHEMA_CONTEXT, VIEW_COVERING,
     build_context_records, claim_derivation_token, claim_status_token, derivation_relation_token,
     diagnostic_token, edge_status_token, request_kind_token, status_token, view_token,
-    ContextRecord, ContextResultRecord, KIND_RESULT, KIND_RUN, SCHEMA_CONTEXT, VIEW_COVERING,
 };
 use ln_decode::reader_contract::{FragmentRef, ReaderRecordIndex};
 use ln_decode::reader_projection::build_projection;
-use ln_decode::source_package::{capture, Limits};
+use ln_decode::source_package::{Limits, capture};
 
 fn wrap(body: &str) -> String {
     format!(
@@ -115,8 +115,7 @@ fn slice(mapping: &SourceMapping, source: &SourceRef) -> Option<String> {
 // `current_document_requisites` request; no letterhead is present, so that
 // request stays `unavailable`. The surface noun is not itself a legal marker,
 // so the heading still has exactly one marker.
-const CONTEXT_BODY: &str =
-    "<w:p><w:r><w:t>Статья 1. Настоящего Федерального закона</w:t></w:r></w:p>\
+const CONTEXT_BODY: &str = "<w:p><w:r><w:t>Статья 1. Настоящего Федерального закона</w:t></w:r></w:p>\
      <w:p><w:r><w:t>Федерального закона от 01.01.2020 N 1-ФЗ,</w:t></w:r></w:p>\
      <w:p><w:r><w:t>от 02.02.2021 N 2-ФЗ</w:t></w:r></w:p>";
 

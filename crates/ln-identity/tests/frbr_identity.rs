@@ -2,8 +2,8 @@
 //! Distinct from C12 digest identity: number alone is never Work identity.
 
 use ln_identity::domain::{
-    compare_work_identities, mint_expression, mint_work, FrbrCompareOutcome, FrbrIdentityError,
-    IssuingAuthority, LegalActNumber,
+    FrbrCompareOutcome, FrbrIdentityError, IssuingAuthority, LegalActNumber,
+    compare_work_identities, mint_expression, mint_work,
 };
 
 #[test]
@@ -97,10 +97,11 @@ fn expression_rejects_impossible_civil_day() {
 #[test]
 fn work_does_not_imply_force_or_applicability() {
     let work = mint_work("federal", "2013-04-05", "44-fz").expect("w");
-    assert!(work
-        .non_claims
-        .iter()
-        .any(|c| c.contains("Force") || c.contains("InForce")));
+    assert!(
+        work.non_claims
+            .iter()
+            .any(|c| c.contains("Force") || c.contains("InForce"))
+    );
     assert!(work.non_claims.iter().any(|c| c.contains("Applicab")));
     assert!(IssuingAuthority::parse("federal").is_ok());
 }
@@ -111,8 +112,9 @@ fn eli_projection_is_compatibility_not_canon() {
     let eli = work.eli_projection();
     assert!(eli.starts_with("urn:lex:ru:"));
     assert_ne!(eli, work.work_id.as_str());
-    assert!(work
-        .non_claims
-        .iter()
-        .any(|c| c.contains("ELI") || c.contains("compatibility")));
+    assert!(
+        work.non_claims
+            .iter()
+            .any(|c| c.contains("ELI") || c.contains("compatibility"))
+    );
 }

@@ -21,14 +21,13 @@ impl PromotionStorePort for InMemoryPromotionStore {
                 .insert(commit_id.as_str().to_owned(), digest.clone());
         }
         // If cancelled or incomplete, ensure no curated commit remains for this op.
-        if record.state != PromotionAttemptState::Committed {
-            if let Some(prev) = self.records.get(record.op_id.as_str()) {
-                if let Some(old_commit) = &prev.commit_id {
-                    // Only remove if this op owned it and is no longer committed.
-                    if prev.state == PromotionAttemptState::Committed {
-                        self.commits.remove(old_commit.as_str());
-                    }
-                }
+        if record.state != PromotionAttemptState::Committed
+            && let Some(prev) = self.records.get(record.op_id.as_str())
+            && let Some(old_commit) = &prev.commit_id
+        {
+            // Only remove if this op owned it and is no longer committed.
+            if prev.state == PromotionAttemptState::Committed {
+                self.commits.remove(old_commit.as_str());
             }
         }
         self.records

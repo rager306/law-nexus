@@ -21,16 +21,16 @@ use std::fmt;
 use crate::analysis_source_mapping::SourceMapping;
 use crate::npa_analysis_records::analyze_document;
 use crate::npa_analysis_wire::{
-    bool_field, inspect_npa_analysis_wire, line_token, opt_hex_field, recompute_analysis_seals,
+    AnalysisEnvelopeRequest, AnalysisLimits, AnalysisScope, AnalysisWireError,
+    AnalysisWireErrorKind, BASIS_COMPLETE, BASIS_CONTEXT_INCOMPLETE, BASIS_REFUSED_RECORD,
+    FAMILY_CLASSIFICATION, FAMILY_CONTEXT, FAMILY_DIAGNOSTIC, FAMILY_DOCUMENT, FAMILY_FRAGMENT,
+    FAMILY_MEMBER, FAMILY_RELATION, JsonFields, MODEL, PROFILE, bool_field,
+    inspect_npa_analysis_wire, line_token, opt_hex_field, recompute_analysis_seals,
     render_npa_analysis, render_npa_analysis_with_context, sha256_hex, split_json_array_items,
-    split_lines, string_array_field, string_field, u64_field, AnalysisEnvelopeRequest,
-    AnalysisLimits, AnalysisScope, AnalysisWireError, AnalysisWireErrorKind, JsonFields,
-    BASIS_COMPLETE, BASIS_CONTEXT_INCOMPLETE, BASIS_REFUSED_RECORD, FAMILY_CLASSIFICATION,
-    FAMILY_CONTEXT, FAMILY_DIAGNOSTIC, FAMILY_DOCUMENT, FAMILY_FRAGMENT, FAMILY_MEMBER,
-    FAMILY_RELATION, MODEL, PROFILE,
+    split_lines, string_array_field, string_field, u64_field,
 };
 use crate::npa_context_records::{
-    build_context_records, context_stream_is_trivially_empty, KIND_RESULT, KIND_RUN,
+    KIND_RESULT, KIND_RUN, build_context_records, context_stream_is_trivially_empty,
 };
 use crate::reader_contract::{FragmentRef, ReaderFragmentSpan, ReaderRecordIndex};
 use crate::reader_projection::ReaderProjection;

@@ -31,16 +31,18 @@ fn ladder_is_nested_provider_stratified_and_proposed() {
         assert_eq!(r.lifecycle, "[proposed]");
         assert!(!r.sealed);
         assert!(r.manifest_digest.is_none());
-        assert!(r
-            .entries
-            .iter()
-            .all(|e| matches!(e.admission, Admission::BoundedReviewed)));
+        assert!(
+            r.entries
+                .iter()
+                .all(|e| matches!(e.admission, Admission::BoundedReviewed))
+        );
         assert!(r.entries.iter().any(|e| e.provider == "consultant"));
         assert!(r.entries.iter().any(|e| e.provider == "garant"));
-        assert!(r
-            .entries
-            .iter()
-            .all(|e| !e.evidence_anchor.contains("raw") && !e.evidence_anchor.contains("text")));
+        assert!(
+            r.entries
+                .iter()
+                .all(|e| !e.evidence_anchor.contains("raw") && !e.evidence_anchor.contains("text"))
+        );
     }
     let keys = |r: &corpus_manifest::CorpusManifest| {
         r.entries
@@ -108,9 +110,11 @@ fn durable_receipts_have_three_rungs_and_fail_closed_pins() {
         assert!(line.contains("\"alpha\":null"));
     }
     assert!(!coding.contains("raw_text_value"));
-    assert!(coding
-        .lines()
-        .all(|line| line.contains("\"raw_text\":false")));
+    assert!(
+        coding
+            .lines()
+            .all(|line| line.contains("\"raw_text\":false"))
+    );
 }
 
 #[test]

@@ -1357,10 +1357,9 @@ pub fn heal_missing(
             child.clone(),
             effect_day,
             prov.clone(),
-        ) {
-            if log.append(event).is_ok() {
-                healed += 1;
-            }
+        ) && log.append(event).is_ok()
+        {
+            healed += 1;
         }
     }
     Ok(HealReport { healed })
@@ -1506,21 +1505,21 @@ where
 {
     let mut log = TextVersionLog::empty();
     for (level, number, title, body) in articles {
-        if let Ok(marker) = HierarchyMarker::try_new(None, level, number, title) {
-            if let HierarchyMapOutcome::Bound { component } = map_hierarchy_marker(map, &marker) {
-                let text = if body.trim().is_empty() {
-                    title.unwrap_or("").trim()
-                } else {
-                    body.trim()
-                };
-                if text.is_empty() {
-                    continue;
-                }
-                if let Ok(event) =
-                    TextVersionEvent::try_new(component.clone(), text, effect_day, provenance)
-                {
-                    let _ = log.append(event);
-                }
+        if let Ok(marker) = HierarchyMarker::try_new(None, level, number, title)
+            && let HierarchyMapOutcome::Bound { component } = map_hierarchy_marker(map, &marker)
+        {
+            let text = if body.trim().is_empty() {
+                title.unwrap_or("").trim()
+            } else {
+                body.trim()
+            };
+            if text.is_empty() {
+                continue;
+            }
+            if let Ok(event) =
+                TextVersionEvent::try_new(component.clone(), text, effect_day, provenance)
+            {
+                let _ = log.append(event);
             }
         }
     }
@@ -1535,16 +1534,13 @@ pub fn build_text_log_from_markers(
 ) -> TextVersionLog {
     let mut log = TextVersionLog::empty();
     for marker in markers {
-        if let HierarchyMapOutcome::Bound { component } = map_hierarchy_marker(map, marker) {
-            if let Some(title) = marker.title() {
-                if !title.trim().is_empty() {
-                    if let Ok(event) =
-                        TextVersionEvent::try_new(component.clone(), title, effect_day, provenance)
-                    {
-                        let _ = log.append(event);
-                    }
-                }
-            }
+        if let HierarchyMapOutcome::Bound { component } = map_hierarchy_marker(map, marker)
+            && let Some(title) = marker.title()
+            && !title.trim().is_empty()
+            && let Ok(event) =
+                TextVersionEvent::try_new(component.clone(), title, effect_day, provenance)
+        {
+            let _ = log.append(event);
         }
     }
     log

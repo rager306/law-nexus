@@ -4,11 +4,11 @@ use std::path::PathBuf;
 
 use ln_decode::{
     adapters::garant_odt_package::{
-        read_odt_content_xml, MAX_CONTENT_XML_BYTES, MAX_ODT_ENTRIES, MAX_ODT_PACKAGE_BYTES,
+        MAX_CONTENT_XML_BYTES, MAX_ODT_ENTRIES, MAX_ODT_PACKAGE_BYTES, read_odt_content_xml,
     },
     domain::{BlockDecodeErrorKind, DecodePhase, DecodeRequest, FamilyFormat, PayloadRef},
 };
-use zip::{write::SimpleFileOptions, CompressionMethod, ZipWriter};
+use zip::{CompressionMethod, ZipWriter, write::SimpleFileOptions};
 
 fn package(entries: Vec<(String, Vec<u8>)>) -> Vec<u8> {
     let mut writer = ZipWriter::new(Cursor::new(Vec::new()));

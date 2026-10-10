@@ -578,9 +578,11 @@ mod tests {
         .expect("valid provenance");
 
         assert_eq!(forward.canonical_string(), reversed.canonical_string());
-        assert!(forward
-            .canonical_string()
-            .contains("parameters=[normalize=true,pooling=mean]"));
+        assert!(
+            forward
+                .canonical_string()
+                .contains("parameters=[normalize=true,pooling=mean]")
+        );
     }
 
     // --- Embedding artifact contract ---

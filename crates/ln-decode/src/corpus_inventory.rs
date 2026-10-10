@@ -621,7 +621,9 @@ mod tests {
         assert!(rendered.contains("\"counts\":{\"entries\":1,\"total_bytes\":3,\"max_bytes\":3}"));
         assert!(rendered.contains("\"subdirs\":{\"a.xml\":{\"entries\":1,\"bytes\":3}}"));
         assert!(rendered.contains("\"pins\":{\"count\":43785,\"total_bytes\":3789431364,\"max_bytes\":29372660,\"match\":false,\"drift\":["));
-        assert!(rendered
-            .ends_with("{\"relative_path\":\"a.xml\",\"sha256\":\"sha256:aa\",\"bytes\":3}\n"));
+        assert!(
+            rendered
+                .ends_with("{\"relative_path\":\"a.xml\",\"sha256\":\"sha256:aa\",\"bytes\":3}\n")
+        );
     }
 }

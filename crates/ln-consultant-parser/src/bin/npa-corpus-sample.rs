@@ -16,7 +16,7 @@ use ln_consultant_parser::artifact_output::{
     output_identity, preflight_publish_target, publish_text_artifact,
 };
 use ln_consultant_parser::npa_corpus_acceptance::{
-    build_sample, declared_sample_roots, CONSULTANT_ROOT_RELATIVE, GARANT_ROOT_RELATIVE,
+    CONSULTANT_ROOT_RELATIVE, GARANT_ROOT_RELATIVE, build_sample, declared_sample_roots,
 };
 
 const DEFAULT_OUT: &str = "prd/migration/rust-evidence/m214-s04-corpus-sample.json";

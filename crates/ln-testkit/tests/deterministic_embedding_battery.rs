@@ -29,8 +29,8 @@ use ln_storage::{
     ModelProvenance, ProvenancedEmbedding, StorageError,
 };
 use ln_testkit::{
-    assert_embedding_artifact_port_contract, deterministic_vector, DeterministicEmbedding,
-    MAX_DETERMINISTIC_DIMENSIONS, MAX_DETERMINISTIC_INPUT_BYTES,
+    DeterministicEmbedding, MAX_DETERMINISTIC_DIMENSIONS, MAX_DETERMINISTIC_INPUT_BYTES,
+    assert_embedding_artifact_port_contract, deterministic_vector,
 };
 
 /// Known input for the golden pin.
@@ -194,9 +194,11 @@ fn control_character_is_rejected_with_label() {
         Err(StorageError::InvalidInput("control-character"))
     );
     // Tab, newline and carriage return are permitted (not control-rejected).
-    assert!(embedder
-        .embed(&request("det-model", 8, "line one\nline two\ttabbed\r"))
-        .is_ok());
+    assert!(
+        embedder
+            .embed(&request("det-model", 8, "line one\nline two\ttabbed\r"))
+            .is_ok()
+    );
 }
 
 #[test]

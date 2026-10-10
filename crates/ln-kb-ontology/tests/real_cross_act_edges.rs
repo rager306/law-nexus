@@ -2,7 +2,7 @@
 //! Uses YAML registry to mint Expression IDs and resolve CC bindings.
 
 use ln_kb_ontology::domain::{
-    map_hierarchy_marker, try_cross_act_edge, HierarchyMapOutcome, HierarchyMarker,
+    HierarchyMapOutcome, HierarchyMarker, map_hierarchy_marker, try_cross_act_edge,
 };
 use ln_kb_ontology::registry::{load_expression_id_for_path, load_hierarchy_map_for_path};
 use ln_temporal::domain::ComponentConceptId;
@@ -127,10 +127,12 @@ fn real_amends_edge_484fz_to_44fz_article_93() {
 /// acceptance is exactly the trap this negative refuses to walk into.
 #[test]
 fn wrong_enactment_day_484_does_not_mint_edge_provenance() {
-    assert!(load_expression_id_for_path(
-        "consru_export/exports/npa/law_2024-12-27_484-fz_rev-unknown_x.xml"
-    )
-    .is_none());
+    assert!(
+        load_expression_id_for_path(
+            "consru_export/exports/npa/law_2024-12-27_484-fz_rev-unknown_x.xml"
+        )
+        .is_none()
+    );
 }
 
 /// Parse is not resolve: `ComponentConceptId::parse("cc:44-fz:statya-999")`

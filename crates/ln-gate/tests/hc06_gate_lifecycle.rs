@@ -2,8 +2,8 @@ use ln_gate::{
     adapters::InMemoryCandidateStore,
     application::GateLifecycle,
     domain::{
-        CandidateId, EvidenceRef, GateOutcome, GateReason, GateRequest, LifecycleType,
-        C10_GATE_VERSION,
+        C10_GATE_VERSION, CandidateId, EvidenceRef, GateOutcome, GateReason, GateRequest,
+        LifecycleType,
     },
 };
 

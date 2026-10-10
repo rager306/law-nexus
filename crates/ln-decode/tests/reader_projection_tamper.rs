@@ -18,10 +18,10 @@ use ln_decode::reader_contract::{
     FragmentRef, ReaderFragmentSpan, ReaderSegmentKind, ReaderViewKind,
 };
 use ln_decode::reader_projection::{
-    build_projection, ReaderProjection, SegmentId, SegmentOrigin, ViewId,
+    ReaderProjection, SegmentId, SegmentOrigin, ViewId, build_projection,
 };
-use ln_decode::reader_verifier::{verify_projection, VerifyCode};
-use ln_decode::source_package::{capture, Limits, Record};
+use ln_decode::reader_verifier::{VerifyCode, verify_projection};
+use ln_decode::source_package::{Limits, Record, capture};
 
 const XML: &str = include_str!("fixtures/reader/mixed-wordml.xml");
 const FIXTURE_SHA256: &str = "d2fc1cd17f0697f575e94f09d83da5027d73afd37c700772eafa4c4a4fbc76db";

@@ -9,13 +9,13 @@
 use std::collections::HashSet;
 
 use ln_decode::reader_contract::{
-    check_fragment_span, control_derived_kind, partition_primary_views, reference_type_of,
-    role_of_tag, tail_view_key, view_key, whole_fragment_span, ContractErrorKind, ElementRef,
-    FragmentRef, PartitionReport, PrimaryOwnership, ReaderDerivedKind, ReaderFragmentSpan,
-    ReaderRecordIndex, ReaderReferenceType, ReaderRole, ReaderSegmentKind, ReaderSemantic,
-    ReaderViewKey, ReaderViewKind,
+    ContractErrorKind, ElementRef, FragmentRef, PartitionReport, PrimaryOwnership,
+    ReaderDerivedKind, ReaderFragmentSpan, ReaderRecordIndex, ReaderReferenceType, ReaderRole,
+    ReaderSegmentKind, ReaderSemantic, ReaderViewKey, ReaderViewKind, check_fragment_span,
+    control_derived_kind, partition_primary_views, reference_type_of, role_of_tag, tail_view_key,
+    view_key, whole_fragment_span,
 };
-use ln_decode::source_package::{capture, Limits, TextSlot};
+use ln_decode::source_package::{Limits, TextSlot, capture};
 
 const XML: &str = include_str!("fixtures/reader/mixed-wordml.xml");
 const FIXTURE_SHA256: &str = "d2fc1cd17f0697f575e94f09d83da5027d73afd37c700772eafa4c4a4fbc76db";

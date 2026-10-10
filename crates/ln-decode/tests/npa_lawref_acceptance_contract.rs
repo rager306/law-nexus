@@ -54,7 +54,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use ln_decode::lawref::{capture_lawrefs, LawRefSlots};
+use ln_decode::lawref::{LawRefSlots, capture_lawrefs};
 use ln_decode::lawref_resolve::resolve_lawrefs;
 
 /// Repo-root-relative evidence directory holding the tracked artifacts
@@ -125,11 +125,7 @@ impl AlphaRatio {
     fn ppm(&self) -> i64 {
         let scaled = self.num.abs() * 2_000_000 + self.den;
         let magnitude = scaled / (2 * self.den);
-        if self.num < 0 {
-            -magnitude
-        } else {
-            magnitude
-        }
+        if self.num < 0 { -magnitude } else { magnitude }
     }
 }
 
@@ -1130,7 +1126,7 @@ fn json_value_end(text: &str, start: usize) -> Result<usize, String> {
                         b'\\' => {
                             return Err(
                                 "acceptance strings must not carry escape sequences".to_owned()
-                            )
+                            );
                         }
                         b'"' => in_string = false,
                         _ => {}
@@ -1172,7 +1168,7 @@ fn json_array_items(raw: &str) -> Result<Vec<&str>, String> {
         if in_string {
             match byte {
                 b'\\' => {
-                    return Err("acceptance strings must not carry escape sequences".to_owned())
+                    return Err("acceptance strings must not carry escape sequences".to_owned());
                 }
                 b'"' => in_string = false,
                 _ => {}
@@ -2047,16 +2043,16 @@ fn compute_coverage(sample: &LiveSample) -> CoverageView {
                     "{fragment_id}: R070 windows stay anchor=None"
                 );
             }
-            if capture.pattern_id == "range_candidate" {
-                if let Some((from, to)) = capture.slots.range.as_ref() {
-                    if from == to && hyphen_continuation(&src, capture.span.end()) {
-                        false_ranges += 1;
-                        assert!(
-                            resolution.anchor.is_none() && resolution.members.is_empty(),
-                            "{fragment_id}: the false hyphen-split range stays unresolved"
-                        );
-                    }
-                }
+            if capture.pattern_id == "range_candidate"
+                && let Some((from, to)) = capture.slots.range.as_ref()
+                && from == to
+                && hyphen_continuation(&src, capture.span.end())
+            {
+                false_ranges += 1;
+                assert!(
+                    resolution.anchor.is_none() && resolution.members.is_empty(),
+                    "{fragment_id}: the false hyphen-split range stays unresolved"
+                );
             }
         }
     }
@@ -2282,7 +2278,15 @@ fn compute_dedup_quality() -> DedupView {
 // ---------------------------------------------------------------------------
 
 fn render_prf_overall(overall: &PrfOverall) -> String {
-    format!("{{\"tp\": {}, \"fp\": {}, \"fn\": {}, \"precision_ppm\": {}, \"recall_ppm\": {}, \"f1_ppm\": {}}}", overall.tp, overall.fp, overall.missed, overall.precision_ppm, overall.recall_ppm, overall.f1_ppm)
+    format!(
+        "{{\"tp\": {}, \"fp\": {}, \"fn\": {}, \"precision_ppm\": {}, \"recall_ppm\": {}, \"f1_ppm\": {}}}",
+        overall.tp,
+        overall.fp,
+        overall.missed,
+        overall.precision_ppm,
+        overall.recall_ppm,
+        overall.f1_ppm
+    )
 }
 
 fn render_span_prf(view: &SpanPrfView) -> String {
@@ -2309,7 +2313,18 @@ fn render_span_prf(view: &SpanPrfView) -> String {
         })
         .collect::<Vec<_>>()
         .join(", ");
-    format!("{{\"caption\": \"{}\", \"match_key\": \"{}\", \"provenance\": \"{}\", \"overall\": {}, \"per_pattern\": [{}], \"head_token_kind_vs_seed\": {{\"caption\": \"{}\", \"match_key\": \"{}\", \"rows\": [{}], \"overall\": {}}}}}", view.caption, view.match_key, view.provenance, render_prf_overall(&view.overall), rows, view.head_token_kind.caption, view.head_token_kind.match_key, head_rows, render_prf_overall(&view.head_token_kind.overall))
+    format!(
+        "{{\"caption\": \"{}\", \"match_key\": \"{}\", \"provenance\": \"{}\", \"overall\": {}, \"per_pattern\": [{}], \"head_token_kind_vs_seed\": {{\"caption\": \"{}\", \"match_key\": \"{}\", \"rows\": [{}], \"overall\": {}}}}}",
+        view.caption,
+        view.match_key,
+        view.provenance,
+        render_prf_overall(&view.overall),
+        rows,
+        view.head_token_kind.caption,
+        view.head_token_kind.match_key,
+        head_rows,
+        render_prf_overall(&view.head_token_kind.overall)
+    )
 }
 
 fn render_coverage(view: &CoverageView) -> String {
@@ -2327,8 +2342,19 @@ fn render_coverage(view: &CoverageView) -> String {
         .map(|pin| format!("\"{pin}\""))
         .collect::<Vec<_>>()
         .join(", ");
-    let degenerate = format!("{{\"fragment_id\": \"{}\", \"start\": {}, \"end\": {}, \"pattern_id\": \"{}\", \"classification\": \"{}\", \"counted_as_false_negative\": {}}}", view.live_degenerate.fragment_id, view.live_degenerate.start, view.live_degenerate.end, view.live_degenerate.pattern_id, view.live_degenerate.classification, view.live_degenerate.counted_as_false_negative);
-    format!("{{\"caption\": \"{}\", \"alignment_key\": \"{}\", \"per_pattern\": [{}], \"expected_shape_pins\": [{}], \"live_degenerate\": {}}}", view.caption, view.alignment_key, rows, pins, degenerate)
+    let degenerate = format!(
+        "{{\"fragment_id\": \"{}\", \"start\": {}, \"end\": {}, \"pattern_id\": \"{}\", \"classification\": \"{}\", \"counted_as_false_negative\": {}}}",
+        view.live_degenerate.fragment_id,
+        view.live_degenerate.start,
+        view.live_degenerate.end,
+        view.live_degenerate.pattern_id,
+        view.live_degenerate.classification,
+        view.live_degenerate.counted_as_false_negative
+    );
+    format!(
+        "{{\"caption\": \"{}\", \"alignment_key\": \"{}\", \"per_pattern\": [{}], \"expected_shape_pins\": [{}], \"live_degenerate\": {}}}",
+        view.caption, view.alignment_key, rows, pins, degenerate
+    )
 }
 
 fn render_dedup(view: &DedupView) -> String {
@@ -2338,7 +2364,17 @@ fn render_dedup(view: &DedupView) -> String {
         .map(|pin| format!("\"{pin}\""))
         .collect::<Vec<_>>()
         .join(", ");
-    format!("{{\"caption\": \"{}\", \"source\": \"{}\", \"n_groups\": {}, \"n_groups_ge2\": {}, \"n_singletons\": {}, \"art_ctx_group_size\": {}, \"art_ctx_note\": \"{}\", \"presence_pins\": [{}]}}", view.caption, view.source, view.n_groups, view.n_groups_ge2, view.n_singletons, view.art_ctx_group_size, view.art_ctx_note, pins)
+    format!(
+        "{{\"caption\": \"{}\", \"source\": \"{}\", \"n_groups\": {}, \"n_groups_ge2\": {}, \"n_singletons\": {}, \"art_ctx_group_size\": {}, \"art_ctx_note\": \"{}\", \"presence_pins\": [{}]}}",
+        view.caption,
+        view.source,
+        view.n_groups,
+        view.n_groups_ge2,
+        view.n_singletons,
+        view.art_ctx_group_size,
+        view.art_ctx_note,
+        pins
+    )
 }
 
 /// The T01 non-claims, verbatim: the laundering guard is never rewritten by

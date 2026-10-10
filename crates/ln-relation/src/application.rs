@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::domain::{
-    digest_proposal, EndpointId, PredicateId, RelationFact, RelationOutcome, RelationProposal,
-    RelationValidation, C13_GATE_VERSION,
+    C13_GATE_VERSION, EndpointId, PredicateId, RelationFact, RelationOutcome, RelationProposal,
+    RelationValidation, digest_proposal,
 };
 use crate::ports::RelationRegistryPort;
 

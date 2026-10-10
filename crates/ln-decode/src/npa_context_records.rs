@@ -38,21 +38,22 @@ use crate::current_requisites::{
     RequisitesSourceKind, SourceAnchor, ThisRefGrammarEvidence,
 };
 use crate::document_context::{
-    build_document_analysis_overlay, build_document_structure_index, detect_this_ref_grammar,
-    explicit_anchor_lookup, open_series_head, BlockId, ContextClaimStatus, ContextDiagnostic,
-    ContextEnvironment, ContextRequest, ContextRequestKind, ContextStatus, ContextWorklist,
-    ContextualEdgeKind, DerivationRelation, DocumentAnalysisOverlay, DocumentStructureIndex,
-    FrameRef, StructureEdgeStatus, PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT,
+    BlockId, ContextClaimStatus, ContextDiagnostic, ContextEnvironment, ContextRequest,
+    ContextRequestKind, ContextStatus, ContextWorklist, ContextualEdgeKind, DerivationRelation,
+    DocumentAnalysisOverlay, DocumentStructureIndex, FrameRef,
+    PROPOSED_MAX_WORKLIST_STEPS_PER_DOCUMENT, StructureEdgeStatus, build_document_analysis_overlay,
+    build_document_structure_index, detect_this_ref_grammar, explicit_anchor_lookup,
+    open_series_head,
 };
 use crate::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
     TextSpan,
 };
 use crate::lawref::capture_lawrefs;
-use crate::local_grammar::{extract_act_list_frames, extract_structural_frames, DerivationSource};
+use crate::local_grammar::{DerivationSource, extract_act_list_frames, extract_structural_frames};
 use crate::morphology::find_legal_markers;
 use crate::npa_analysis_records::{
-    resolve_span, AnalysisBlockLayout, AnalysisRefusal, AnalysisRefusalKind, SourceRef,
+    AnalysisBlockLayout, AnalysisRefusal, AnalysisRefusalKind, SourceRef, resolve_span,
 };
 use crate::npa_anchor::LocalSpan;
 
@@ -331,7 +332,7 @@ pub fn build_context_records(
         Err(()) => {
             return vec![ContextRecord::Run(ContextRunRecord::empty(vec![
                 ContextDiagnostic::MissingDocumentStructure,
-            ]))]
+            ]))];
         }
     };
     let version = mapping.version().clone();
@@ -340,7 +341,7 @@ pub fn build_context_records(
         Err(_) => {
             return vec![ContextRecord::Run(ContextRunRecord::empty(vec![
                 ContextDiagnostic::MissingDocumentStructure,
-            ]))]
+            ]))];
         }
     };
     let overlay = match build_overlay(&index, &blocks) {
@@ -348,7 +349,7 @@ pub fn build_context_records(
         None => {
             return vec![ContextRecord::Run(ContextRunRecord::empty(vec![
                 ContextDiagnostic::MissingDocumentStructure,
-            ]))]
+            ]))];
         }
     };
 

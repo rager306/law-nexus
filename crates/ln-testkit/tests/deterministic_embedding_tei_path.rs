@@ -25,8 +25,8 @@ use ln_storage::{
     StorageError,
 };
 use ln_testkit::{
-    assert_embedding_artifact_port_contract, DeterministicEmbeddingTransport,
-    MAX_DETERMINISTIC_DIMENSIONS,
+    DeterministicEmbeddingTransport, MAX_DETERMINISTIC_DIMENSIONS,
+    assert_embedding_artifact_port_contract,
 };
 
 const MODEL_ID: &str = "det-model";

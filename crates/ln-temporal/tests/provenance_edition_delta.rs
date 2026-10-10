@@ -51,9 +51,9 @@
 
 use ln_temporal::calendar::legal_act_effect_day_to_ordinal;
 use ln_temporal::domain::{
-    edition_delta, AmendingActId, AmendmentFacetKind, AssertionOrEffect, AssertionOrEffectPayload,
-    C1Candidate, CanonRecordId, ComponentConceptId, EditionDelta, EditionOracle, EvidenceClass,
-    NormativeState, ProvisionDelta, ThreeCanonEventLog, ThreeCanonLogError, ThreeCanonRecord,
+    AmendingActId, AmendmentFacetKind, AssertionOrEffect, AssertionOrEffectPayload, C1Candidate,
+    CanonRecordId, ComponentConceptId, EditionDelta, EditionOracle, EvidenceClass, NormativeState,
+    ProvisionDelta, ThreeCanonEventLog, ThreeCanonLogError, ThreeCanonRecord, edition_delta,
 };
 use ln_temporal::provenance::{
     EditionDeltaError, ProvenanceAdmission, ProvenanceConstructionError, TransitionalEvidence,

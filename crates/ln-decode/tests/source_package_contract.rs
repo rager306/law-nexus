@@ -12,8 +12,8 @@ use std::io::{self, Read, Write};
 use std::rc::Rc;
 
 use ln_decode::source_package::{
-    capture, read_package, verify_against_source, write_package, ElementRecord, ErrorKind, Footer,
-    Limits, Package, Record, TextRecord, TextSlot,
+    ElementRecord, ErrorKind, Footer, Limits, Package, Record, TextRecord, TextSlot, capture,
+    read_package, verify_against_source, write_package,
 };
 
 fn limits() -> Limits {
@@ -492,10 +492,10 @@ fn verify_rejects_misplaced_tail() {
     let pkg = capture(b"<a>one<b/>two<c/></a>", &limits()).expect("capture");
     let mut records = pkg.records().to_vec();
     for record in records.iter_mut() {
-        if let Record::Text(t) = record {
-            if t.slot == TextSlot::Tail {
-                t.owner = "e2".to_string();
-            }
+        if let Record::Text(t) = record
+            && t.slot == TextSlot::Tail
+        {
+            t.owner = "e2".to_string();
         }
     }
     let tampered = reseal(Package::from_parts(

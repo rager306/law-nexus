@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ln_decode::npa_report::{
-    parse_integration_args, run_integration_report, IntegrationCli, INTEGRATION_SCHEMA,
+    INTEGRATION_SCHEMA, IntegrationCli, parse_integration_args, run_integration_report,
 };
 use ln_decode::npa_sweep::{EXIT_OK, EXIT_ROOT_MISSING, EXIT_USAGE};
 

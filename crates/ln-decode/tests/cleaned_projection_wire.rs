@@ -18,13 +18,13 @@
 use std::collections::HashMap;
 
 use ln_decode::cleaned_wire::{
-    inspect_cleaned_wire, read_cleaned_wire, render_cleaned_projection, IncompleteReason,
-    WireCompletion, WireError, WireErrorKind, WireLimits, KIND_FOOTER, KIND_MANIFEST,
-    KIND_POLICIES, KIND_SEGMENT,
+    IncompleteReason, KIND_FOOTER, KIND_MANIFEST, KIND_POLICIES, KIND_SEGMENT, WireCompletion,
+    WireError, WireErrorKind, WireLimits, inspect_cleaned_wire, read_cleaned_wire,
+    render_cleaned_projection,
 };
-use ln_decode::reader_projection::{build_projection, ReaderProjection};
+use ln_decode::reader_projection::{ReaderProjection, build_projection};
 use ln_decode::reader_verifier::verify_projection;
-use ln_decode::source_package::{capture, Limits, Package, Record};
+use ln_decode::source_package::{Limits, Package, Record, capture};
 
 // ---------------------------------------------------------------- fixtures #
 

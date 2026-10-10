@@ -14,8 +14,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use ln_decode::lawref::{capture_lawrefs, LawRef, LawRefPrecedence, LawRefSlots};
-use ln_decode::lexer::{lex, TokenKind};
+use ln_decode::lawref::{LawRef, LawRefPrecedence, LawRefSlots, capture_lawrefs};
+use ln_decode::lexer::{TokenKind, lex};
 use ln_decode::prefix_catalog::EMBEDDED_ONTOLOGY_YAML;
 
 // ---------------------------------------------------------------------------
@@ -352,14 +352,16 @@ fn lawref_user_text_slices_source_and_span_fails_closed() {
     )
     .expect("non-empty span must construct");
     assert_eq!(law_ref.user_text(src), "ст. 15");
-    assert!(LawRef::try_new(
-        6,
-        6,
-        "abbrev-hier-chain".to_owned(),
-        String::new(),
-        LawRefSlotsForTest::default()
-    )
-    .is_err());
+    assert!(
+        LawRef::try_new(
+            6,
+            6,
+            "abbrev-hier-chain".to_owned(),
+            String::new(),
+            LawRefSlotsForTest::default()
+        )
+        .is_err()
+    );
 }
 
 type LawRefSlotsForTest = ln_decode::lawref::LawRefSlots;
@@ -978,7 +980,7 @@ fn dump_entries(dump_text: &str) -> Result<Vec<(String, String)>, String> {
                         '\\' => {
                             return Err(format!(
                                 "string value for '{key}' must not carry escape sequences"
-                            ))
+                            ));
                         }
                         other => value.push(other),
                     }
@@ -1021,7 +1023,7 @@ fn dump_entries(dump_text: &str) -> Result<Vec<(String, String)>, String> {
             _ => {
                 return Err(format!(
                     "dump key '{key}' carries an unsupported value form (string, number, list)"
-                ))
+                ));
             }
         }
     }

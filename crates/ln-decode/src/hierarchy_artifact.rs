@@ -29,10 +29,10 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 
 use crate::adapters::ConsultantWordMlBlockDecoder;
-use crate::domain::{fingerprint_bytes, DecodeRequest, FamilyFormat, HierarchyLevel, PayloadRef};
+use crate::domain::{DecodeRequest, FamilyFormat, HierarchyLevel, PayloadRef, fingerprint_bytes};
 use crate::hierarchy::{
-    catalog_token, extract_hierarchy_candidates, HierarchyCandidateReport,
-    HierarchyExtractDiagnostic,
+    HierarchyCandidateReport, HierarchyExtractDiagnostic, catalog_token,
+    extract_hierarchy_candidates,
 };
 use crate::ports::BlockDecoderPort;
 

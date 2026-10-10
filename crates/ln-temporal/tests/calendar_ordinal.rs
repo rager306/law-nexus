@@ -1,8 +1,8 @@
 //! ISO legal_act_effect_day ↔ synthetic ordinal. Not a legal calendar.
 
 use ln_temporal::calendar::{
-    calendar_non_claims, legal_act_effect_day_to_ordinal, ordinal_to_legal_act_effect_day,
-    CalendarError,
+    CalendarError, calendar_non_claims, legal_act_effect_day_to_ordinal,
+    ordinal_to_legal_act_effect_day,
 };
 use ln_temporal::domain::ClockKind;
 
@@ -69,10 +69,14 @@ fn known_gap_between_two_expressions_is_one_year() {
 #[test]
 fn clock_kind_remains_legal_act_effect() {
     assert_eq!(ClockKind::LegalActEffect.as_str(), "legal_act_effect");
-    assert!(calendar_non_claims()
-        .iter()
-        .any(|claim| claim.contains("not a legal calendar")));
-    assert!(calendar_non_claims()
-        .iter()
-        .any(|claim| claim.contains("InForce") || claim.contains("applicability")));
+    assert!(
+        calendar_non_claims()
+            .iter()
+            .any(|claim| claim.contains("not a legal calendar"))
+    );
+    assert!(
+        calendar_non_claims()
+            .iter()
+            .any(|claim| claim.contains("InForce") || claim.contains("applicability"))
+    );
 }

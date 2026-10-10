@@ -4,8 +4,8 @@
 
 use ln_identity::domain::ExpressionId;
 use ln_kb_ontology::domain::{
-    admit_membership_proposals, commit_admitted_to_log, edition_ast_at, fold_expression_presence,
     ComponentInExpressionEvent, ComponentInExpressionLog, MembershipProposal,
+    admit_membership_proposals, commit_admitted_to_log, edition_ast_at, fold_expression_presence,
 };
 use ln_temporal::domain::{AmendingActId, ComponentConceptId, VersionedMembershipLog};
 
