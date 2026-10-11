@@ -1,0 +1,64 @@
+{
+  "schema": "m223-s05-real-class-census/v1",
+  "version": 1,
+  "profile_id": "reader_clean_profile/v1",
+  "non_claims": [
+    "not_r1000_closure",
+    "not_semantic_or_legal_interpretation",
+    "not_normalization",
+    "not_authenticity_evidence",
+    "bounded_sample_not_full_corpus_s07",
+    "cleaned_wire_remains_lossless",
+    "census_counts_only_no_decoded_text"
+  ],
+  "manifest_path": "prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl",
+  "manifest_sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c",
+  "manifest_entries": 43785,
+  "corpus_root": "consru_export/consru_export/exports",
+  "binary_path": "target/release/cleaned-project",
+  "binary_sha256": "sha256:536f83527fc9414cc0b35f8bcff5d483f4262d0ce5652c73594fcabca4292be0",
+  "contract_path": "prd/architecture/intermediate-source-clean-view-contract.md",
+  "contract_sha256": "sha256:a93a7c4fb278adb098e0a655901f94f63877ac7b9545567e982c36582d33cdc1",
+  "sample_seed": 22305,
+  "sample_per_decile": 2,
+  "sample_tail_n": 8,
+  "sample_strata": {
+    "decile_0": 2,
+    "decile_1": 2,
+    "decile_2": 2,
+    "decile_3": 2,
+    "decile_4": 2,
+    "decile_5": 2,
+    "decile_6": 2,
+    "decile_7": 2,
+    "decile_8": 2,
+    "decile_9": 2
+  },
+  "sample_size": 28,
+  "observed_classes": [
+    "body",
+    "derived_separator",
+    "field_code",
+    "whitespace"
+  ],
+  "per_class": {
+    "body": 355257,
+    "derived_separator": 35,
+    "field_code": 14,
+    "whitespace": 2120218
+  },
+  "per_origin": {
+    "derived:line_break": 35,
+    "source_fragment": 2475489
+  },
+  "segments_total": 2475524,
+  "uncovered_classes": [],
+  "revision_insertion_observed": false,
+  "revision_deletion_observed": false,
+  "exports": {
+    "attempted": 28,
+    "accepted": 28,
+    "failed": 0
+  },
+  "wall_s": 227.326
+}
