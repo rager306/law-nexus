@@ -78,43 +78,43 @@ pub struct CleanRule {
 }
 
 static RULE_BODY: CleanRule = CleanRule {
-    id: "r0-body-primary",
+    id: "rcv1_body",
     class: ReaderSemantic::Body,
     disposition: CleanDisposition::Primary,
 };
 
 static RULE_WHITESPACE: CleanRule = CleanRule {
-    id: "r1-whitespace-service",
+    id: "rcv1_whitespace",
     class: ReaderSemantic::Whitespace,
     disposition: CleanDisposition::Service,
 };
 
 static RULE_FIELD_CODE: CleanRule = CleanRule {
-    id: "r2-field-code-service",
+    id: "rcv1_field_code",
     class: ReaderSemantic::FieldCode,
     disposition: CleanDisposition::Service,
 };
 
 static RULE_REVISION_INSERTION: CleanRule = CleanRule {
-    id: "r3-revision-insertion-primary",
+    id: "rcv1_revision_insertion",
     class: ReaderSemantic::RevisionInsertion,
     disposition: CleanDisposition::Primary,
 };
 
 static RULE_REVISION_DELETION: CleanRule = CleanRule {
-    id: "r4-revision-deletion-service",
+    id: "rcv1_revision_deletion",
     class: ReaderSemantic::RevisionDeletion,
     disposition: CleanDisposition::Service,
 };
 
 static RULE_DERIVED_SEPARATOR: CleanRule = CleanRule {
-    id: "r5-derived-separator-service",
+    id: "rcv1_derived_separator",
     class: ReaderSemantic::DerivedSeparator,
     disposition: CleanDisposition::Service,
 };
 
 static RULE_EMPTY: CleanRule = CleanRule {
-    id: "r6-empty-dropped",
+    id: "rcv1_empty",
     class: ReaderSemantic::Empty,
     disposition: CleanDisposition::Dropped,
 };

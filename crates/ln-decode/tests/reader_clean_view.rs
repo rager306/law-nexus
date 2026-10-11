@@ -91,38 +91,34 @@ fn profile_v1_is_total_with_pinned_rule_ids() {
     let profile = CleanRuleProfile::v1();
     assert_eq!(profile.id(), "reader_clean_profile/v1");
     let expected: &[(&str, ReaderSemantic, CleanDisposition)] = &[
+        ("rcv1_body", ReaderSemantic::Body, CleanDisposition::Primary),
         (
-            "r0-body-primary",
-            ReaderSemantic::Body,
-            CleanDisposition::Primary,
-        ),
-        (
-            "r1-whitespace-service",
+            "rcv1_whitespace",
             ReaderSemantic::Whitespace,
             CleanDisposition::Service,
         ),
         (
-            "r2-field-code-service",
+            "rcv1_field_code",
             ReaderSemantic::FieldCode,
             CleanDisposition::Service,
         ),
         (
-            "r3-revision-insertion-primary",
+            "rcv1_revision_insertion",
             ReaderSemantic::RevisionInsertion,
             CleanDisposition::Primary,
         ),
         (
-            "r4-revision-deletion-service",
+            "rcv1_revision_deletion",
             ReaderSemantic::RevisionDeletion,
             CleanDisposition::Service,
         ),
         (
-            "r5-derived-separator-service",
+            "rcv1_derived_separator",
             ReaderSemantic::DerivedSeparator,
             CleanDisposition::Service,
         ),
         (
-            "r6-empty-dropped",
+            "rcv1_empty",
             ReaderSemantic::Empty,
             CleanDisposition::Dropped,
         ),
@@ -478,7 +474,7 @@ fn empty_semantic_drops_with_rule_id_and_without_a_source_form() {
             source_pos,
             ..
         } => {
-            assert_eq!(*rule_id, "r6-empty-dropped");
+            assert_eq!(*rule_id, "rcv1_empty");
             assert_eq!(element_ref, &anchor.0);
             assert_eq!(*source_pos, anchor.1);
         }
