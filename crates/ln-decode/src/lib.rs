@@ -57,6 +57,7 @@ pub mod reader_gate;
 pub mod reader_navigation;
 pub mod reader_projection;
 pub mod reader_reading_order;
+pub mod reader_tokenizer;
 pub mod reader_verifier;
 pub mod references;
 pub mod sentence;
