@@ -43,3 +43,7 @@ path = "src/bin/npa-integration-runner.rs"
 name = "corpus-inventory"
 path = "src/bin/corpus-inventory.rs"
 
+[[bin]]
+name = "reader-nav"
+path = "src/bin/reader-nav.rs"
+
