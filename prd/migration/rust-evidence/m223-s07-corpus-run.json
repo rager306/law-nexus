@@ -2,31 +2,35 @@
   "attempts": [
     {
       "attempt": 1,
-      "receipts": 64
+      "receipts": 512
+    },
+    {
+      "attempt": 2,
+      "receipts": 2824
     }
   ],
   "binary_drift": false,
   "bindings": {
     "binary_path": "/root/law-nexus/target/release/consumer-run",
-    "binary_sha256": "sha256:1b9ee40eed31e5280dc5484f976f80ed348efe469983abc7c19cb377b98a94f8",
-    "code_revision": "sha256:19ab071e73ded7bc1e17f8808e9e48a39f310d2ee4753f62d4d6d80637390783",
+    "binary_sha256": "sha256:fa114a200fd436ad61a1c03fea44920f0a7920976a8c1286ae69e756532a06e3",
+    "code_revision": "sha256:567614d69794fbf6b3dbbbb44aa957186259d0c7a42584ea65e47926be5f78d7",
     "rules_digest": "sha256:972539f0898c6a9bd45c89439d4891b261dfac9e839cf757a933aa8700163e04"
   },
   "counts": {
-    "accepted": 64,
+    "accepted": 3335,
     "entries": 43785,
     "incomplete": 0,
     "refused": 0,
-    "remaining": 43721,
-    "terminal": 64
+    "remaining": 40450,
+    "terminal": 3335
   },
   "disk": {
     "after": {
-      "free_bytes": 28761612288,
+      "free_bytes": 27789606912,
       "total_bytes": 258906374144
     },
     "before": {
-      "free_bytes": 28762075136,
+      "free_bytes": 28547665920,
       "total_bytes": 258906374144
     },
     "persisted_layer_bytes": 0
@@ -55,13 +59,13 @@
     "checks": [
       {
         "id": "free_disk_bytes",
-        "observed_bytes": 28762079232,
+        "observed_bytes": 28547670016,
         "ok": true,
         "threshold_bytes": 3221225472
       },
       {
         "id": "available_memory_bytes",
-        "observed_bytes": 39631687680,
+        "observed_bytes": 37825486848,
         "ok": true,
         "threshold_bytes": 6442450944
       },

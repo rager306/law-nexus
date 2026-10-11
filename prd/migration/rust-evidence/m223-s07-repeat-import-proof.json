@@ -1,12 +1,19 @@
 {
   "binding": {
     "binary_path": "/root/law-nexus/target/release/consumer-run",
-    "binary_sha256": "sha256:1b9ee40eed31e5280dc5484f976f80ed348efe469983abc7c19cb377b98a94f8",
-    "code_revision": "sha256:4b09eee414385ea1247d515bc427dd85aeee9779c1e4af9a5a1cbefade58c8f8",
+    "binary_sha256": "sha256:fa114a200fd436ad61a1c03fea44920f0a7920976a8c1286ae69e756532a06e3",
+    "code_revision": "sha256:78c24e54cc952607214a4f73935d65115f9ed3a901b2518af071cf0a50ac3814",
     "rules_digest": "sha256:972539f0898c6a9bd45c89439d4891b261dfac9e839cf757a933aa8700163e04"
   },
   "counts_byte_identical": true,
   "entries": [
+    {
+      "counts_digest": "sha256:5dc5bca1343baaea355ba140151a69116a47e099c73627fa3f4057f840ea0ac1",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "courts/arb/000879098-edition-4522ae7071582e468413eb84.xml",
+      "second_outcome": "accepted"
+    },
     {
       "counts_digest": "sha256:0e7480bcdd559e345584f9272f4389b90bf591b34512654826d168ff4365e7ea",
       "counts_identical": true,
@@ -15,10 +22,17 @@
       "second_outcome": "accepted"
     },
     {
-      "counts_digest": "sha256:b1cea67b7adce001e077e1b5d0a2a622dbfa48ddc03ccb39e20422553763faec",
+      "counts_digest": "sha256:e8f7eb5303a6ed423a95079539940a2e10826b4c7611c19956c383b1c5485014",
       "counts_identical": true,
       "first_outcome": "accepted",
-      "relative_path": "courts/asz/000323322-edition-0c20bfaad0afc11c16a7ac9f.xml",
+      "relative_path": "courts/asz/000322887-edition-cf871189ebf3677d5cdccb05.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:039d723901e4a6214e229693fc2320430d73f7b17bb0e0bc90cdcf7607114bf3",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "courts/marb/003041062-edition-9dfffa2185f1b9e6b62c0ec6.xml",
       "second_outcome": "accepted"
     },
     {
@@ -29,17 +43,31 @@
       "second_outcome": "accepted"
     },
     {
-      "counts_digest": "sha256:98be24bc5d750c472b45d5392b17119bca1e59f3fa2743670f92aa2e4156d6d4",
+      "counts_digest": "sha256:abf7e63020fbd5781ffce3fba308aa45e73c7433b4ab77c8deb4bf754a9ce09b",
       "counts_identical": true,
       "first_outcome": "accepted",
-      "relative_path": "fas/decision_2025-03-24_tn-26519-25_rev-unknown_cb0efcfb.xml",
+      "relative_path": "fas/decision_2025-04-15_ak-34964-25_rev-unknown_1e0230ac.xml",
       "second_outcome": "accepted"
     },
     {
-      "counts_digest": "sha256:bf9cb6f9b114fe10e80d53d876ef2c82c64033757aaa3875f0d6f8cd9f1415a7",
+      "counts_digest": "sha256:dd9e6434730a5eb54c521c548bc8110d10a54ecabbbee2167d28dbd6ee013010",
       "counts_identical": true,
       "first_outcome": "accepted",
-      "relative_path": "npa/law_2017-02-22_17-fz_rev-unknown_ae59a958.xml",
+      "relative_path": "fas/decision_2025-04-21_gm-37534-25_rev-unknown_5ddced0f.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:b3e9ede64ffd71e2475d26d66c31c028909de15162c2c4b000165ac6bd2f38b8",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "fas/decision_2025-07-07_av-62938-25_rev-unknown_da31f947.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:8779fdb0510c84e557c148a63fdec2f3e82d6173ef650a63a8162404684e10e9",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "npa/law_2017-03-28_36-fz_rev-unknown_edce42a3.xml",
       "second_outcome": "accepted"
     },
     {
@@ -50,17 +78,45 @@
       "second_outcome": "accepted"
     },
     {
-      "counts_digest": "sha256:2aeff2327903193868b7cd6b2a31b5528a2d69656de3a93fca1dcc85fd9ca264",
+      "counts_digest": "sha256:bb3df5498e2cbcc68feea52af81ef174d420306af4809514398acfd23a0f014d",
       "counts_identical": true,
       "first_outcome": "accepted",
-      "relative_path": "xml/law/178657/edition-dd81eedf40b8bbc5059bc074.xml",
+      "relative_path": "npa/law_2018-08-03_311-fz_rev-unknown_14cf736d.xml",
       "second_outcome": "accepted"
     },
     {
-      "counts_digest": "sha256:f0a8d51d7f83f5ce88c2ac4c9b1cd442107f132feb865fbf84612e8c9984261f",
+      "counts_digest": "sha256:895ec98da283a39eb4eeb49d0b7a4d7deeb0b9fb5b32863f17bda1d16724e6b0",
       "counts_identical": true,
       "first_outcome": "accepted",
-      "relative_path": "xml/law/306965/edition-b82b1600b7fd9230d36fad10.xml",
+      "relative_path": "npa/law_2018-12-27_512-fz_rev-unknown_0df6069a.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:24c84acbed21ad251c498304950b7f167b06ebecf5f87fd21d80b525a0f5b0dd",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "xml/law/156084/edition-9f2c360eed7a5de3dbc97341.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:2aeff2327903193868b7cd6b2a31b5528a2d69656de3a93fca1dcc85fd9ca264",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "xml/law/178657/edition-9087cbbfbcfa6998370a563e.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:09fbe5c6a72ba87598ded0945f30f0bee86a8583938d4f9366d3b9127a4c0f0a",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "xml/law/283101/edition-04f5352f974350d6d525321b.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:5218f9dbc41dba709636e85cbc5e89171202a69070b35bd0486e697085f0abf2",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "xml/law/509715/edition-682ce99454753945535d4981.xml",
       "second_outcome": "accepted"
     }
   ],
@@ -79,7 +135,7 @@
   "r1000_status": "active/unclosed",
   "schema": "m223-s07-repeat-import-proof/v1",
   "subset": {
-    "digest": "sha256:0d8c60b5a7a3cba59c2a07ee20c1b39e2f4253aa9216cf2e1492e45462dee3cb",
-    "size": 8
+    "digest": "sha256:ed89e7a69ca2c45fb30d40820a5081a144d9bbcec1d5f37bb5c0dc5d844728d4",
+    "size": 16
   }
 }

@@ -1,32 +1,32 @@
 {
   "binding": {
     "binary_path": "/root/law-nexus/target/release/consumer-run",
-    "binary_sha256": "sha256:1b9ee40eed31e5280dc5484f976f80ed348efe469983abc7c19cb377b98a94f8",
-    "code_revision": "sha256:7792f368ece7a8d928c21ad191303dc3d1f3b874d3c13b803d73af769c065cd6",
+    "binary_sha256": "sha256:fa114a200fd436ad61a1c03fea44920f0a7920976a8c1286ae69e756532a06e3",
+    "code_revision": "sha256:567614d69794fbf6b3dbbbb44aa957186259d0c7a42584ea65e47926be5f78d7",
     "rules_digest": "sha256:972539f0898c6a9bd45c89439d4891b261dfac9e839cf757a933aa8700163e04"
   },
   "final": {
-    "accepted": 8,
-    "entries": 8,
+    "accepted": 16,
+    "entries": 16,
     "incomplete": 0,
     "incomplete_by_class": {},
-    "present": 8,
+    "present": 16,
     "refused": 0,
     "refused_by_class": {},
     "remaining": 0,
-    "terminal": 8
+    "terminal": 16
   },
   "interruption": {
     "note": "the in-flight entry is recorded incomplete/not_run; every completed terminal receipt is preserved in the same ledger",
     "partial": {
       "accepted": 1,
-      "entries": 8,
+      "entries": 16,
       "incomplete": 0,
       "incomplete_by_class": {},
       "present": 1,
       "refused": 0,
       "refused_by_class": {},
-      "remaining": 7,
+      "remaining": 15,
       "terminal": 1
     },
     "rc": 143,
@@ -34,10 +34,10 @@
     "signalled": true,
     "status": "interrupted",
     "stderr_tail": [
-      "m223-s07-corpus-run: run attempt_wall_s=14400.0 entries=8 code_revision=sha256:7792f368ece7a8d928c21ad191303dc3d1f3b874d3c13b803d73af769c065cd6 binary_sha256=sha256:1b9ee40eed31e5280dc5484f976f80ed348efe469983abc7c19cb377b98a94f8 resume=True",
-      "m223-s07-corpus-run: status=interrupted accepted=1 refused=0 incomplete=0 remaining=7"
+      "m223-s07-corpus-run: run attempt_wall_s=14400.0 entries=16 code_revision=sha256:567614d69794fbf6b3dbbbb44aa957186259d0c7a42584ea65e47926be5f78d7 binary_sha256=sha256:fa114a200fd436ad61a1c03fea44920f0a7920976a8c1286ae69e756532a06e3 resume=True",
+      "m223-s07-corpus-run: status=interrupted accepted=1 refused=0 incomplete=0 remaining=15"
     ],
-    "wall_s": 0.484
+    "wall_s": 0.383
   },
   "non_claims": [
     "Not an R1000 closure artifact and not a semantic or legal interpretation; R1000 stays active/unclosed.",
@@ -52,7 +52,7 @@
   "ok": true,
   "preserved_current_receipts": 1,
   "r1000_status": "active/unclosed",
-  "receipts_path": "target/m223-s07-res-proof/proof/receipts.jsonl",
+  "receipts_path": "/root/law-nexus/target/m223-s07/proof/receipts.jsonl",
   "refusal_probe": {
     "all_refused_typed": true,
     "available": true,
@@ -97,14 +97,14 @@
     {
       "rc": 0,
       "stderr_tail": [
-        "m223-s07-corpus-run: fas/decision_2025-03-24_tn-26519-25_rev-unknown_cb0efcfb.xml -> accepted/accepted",
-        "m223-s07-corpus-run: npa/law_2017-02-22_17-fz_rev-unknown_ae59a958.xml -> accepted/accepted",
-        "m223-s07-corpus-run: npa/law_2017-03-28_45-fz_rev-unknown_e00203d1.xml -> accepted/accepted",
-        "m223-s07-corpus-run: xml/law/178657/edition-dd81eedf40b8bbc5059bc074.xml -> accepted/accepted",
-        "m223-s07-corpus-run: xml/law/306965/edition-b82b1600b7fd9230d36fad10.xml -> accepted/accepted",
-        "m223-s07-corpus-run: status=complete accepted=8 refused=0 incomplete=0 remaining=0"
+        "m223-s07-corpus-run: npa/law_2018-12-27_512-fz_rev-unknown_0df6069a.xml -> accepted/accepted",
+        "m223-s07-corpus-run: xml/law/156084/edition-9f2c360eed7a5de3dbc97341.xml -> accepted/accepted",
+        "m223-s07-corpus-run: xml/law/178657/edition-9087cbbfbcfa6998370a563e.xml -> accepted/accepted",
+        "m223-s07-corpus-run: xml/law/283101/edition-04f5352f974350d6d525321b.xml -> accepted/accepted",
+        "m223-s07-corpus-run: xml/law/509715/edition-682ce99454753945535d4981.xml -> accepted/accepted",
+        "m223-s07-corpus-run: status=complete accepted=16 refused=0 incomplete=0 remaining=0"
       ],
-      "wall_s": 0.975
+      "wall_s": 1.549
     }
   ],
   "schema": "m223-s07-resume-proof/v1",
@@ -114,26 +114,26 @@
     "receipts_after": 2,
     "receipts_before": 1,
     "recomputed_paths": [
-      "courts/arb/000891883-edition-905c4249198fd3bf39e3d06e.xml"
+      "courts/arb/000879098-edition-4522ae7071582e468413eb84.xml"
     ],
     "second_pass_rc": 10,
     "stale_recomputed": true
   },
   "subset": {
-    "digest": "sha256:0d8c60b5a7a3cba59c2a07ee20c1b39e2f4253aa9216cf2e1492e45462dee3cb",
-    "manifest": "target/m223-s07-res-proof/proof/subset-manifest.jsonl",
-    "size": 8,
+    "digest": "sha256:ed89e7a69ca2c45fb30d40820a5081a144d9bbcec1d5f37bb5c0dc5d844728d4",
+    "manifest": "/root/law-nexus/target/m223-s07/proof/subset-manifest.jsonl",
+    "size": 16,
     "subdir_counts": {
-      "courts": 2,
-      "fas": 2,
-      "npa": 2,
-      "xml": 2
+      "courts": 4,
+      "fas": 4,
+      "npa": 4,
+      "xml": 4
     }
   },
   "verification": {
     "distinct_bindings": 1,
     "errors": [],
     "ok": true,
-    "terminal": 8
+    "terminal": 16
   }
 }
