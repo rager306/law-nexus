@@ -50,6 +50,7 @@ pub mod npa_typed;
 pub mod npa_wire;
 pub mod ports;
 pub mod prefix_catalog;
+pub mod reader_composite;
 pub mod reader_contract;
 pub mod reader_gate;
 pub mod reader_projection;
