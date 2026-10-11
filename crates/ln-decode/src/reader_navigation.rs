@@ -24,12 +24,15 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt;
 
+use crate::reader_clean_view::CleanView;
 use crate::reader_contract::{
     ElementRef, FragmentRef, ReaderFragmentSpan, ReaderRecordIndex, ReaderReferenceType,
     ReaderRole, ReaderSegmentKind, ReaderSemantic, ReaderViewKey, ReaderViewKind,
     control_derived_kind, tail_view_key, view_key,
 };
-use crate::reader_projection::{ReaderProjection, ReferenceId, SegmentId, SegmentOrigin, ViewId};
+use crate::reader_projection::{
+    ProjectedReference, ReaderProjection, ReferenceId, SegmentId, SegmentOrigin, ViewId,
+};
 use crate::reader_reading_order::ReadingOrderIndex;
 use crate::source_package::{ElementRecord, Record, TextSlot};
 
@@ -260,6 +263,70 @@ pub struct NavLink {
     pub kind: NavLinkKind,
 }
 
+// -------------------------------------------------------------- resolution #
+
+/// Closed reason why a reference carries no [`NavLinkKind::ResolvesTo`] link.
+///
+/// Absence of a target is a recorded outcome, never an invented link: a
+/// reference address in [`NavigationIndex::nodes_by_address`] has **exactly
+/// one** of a `ResolvesTo` link or one `NavResolveReason`, with no third state.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum NavResolveReason {
+    /// No `footnote` / `endnote` definition carries the reference's `w:id`.
+    NoMatchingNoteDefinition,
+    /// More than one definition (or more than one note view) matches the `w:id`.
+    MultipleMatchingNoteDefinitions,
+    /// The reference type is not a note / endnote reference.
+    NotAResolvableReference,
+    /// The reference or its definition names no substrate element.
+    MissingAnchorElement,
+    /// A unique definition exists but no note view anchors it.
+    MissingNoteView,
+}
+
+impl NavResolveReason {
+    /// Closed string form used in diagnostics.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            NavResolveReason::NoMatchingNoteDefinition => "no_matching_note_definition",
+            NavResolveReason::MultipleMatchingNoteDefinitions => {
+                "multiple_matching_note_definitions"
+            }
+            NavResolveReason::NotAResolvableReference => "not_a_resolvable_reference",
+            NavResolveReason::MissingAnchorElement => "missing_anchor_element",
+            NavResolveReason::MissingNoteView => "missing_note_view",
+        }
+    }
+}
+
+impl fmt::Display for NavResolveReason {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+// ------------------------------------------------------------- subtree text #
+
+/// The two text channels of a view subtree, aggregated in reading order.
+///
+/// `primary` is the concatenation of the S05 `CleanView` `Primary` units over
+/// the subtree's primary views; `service` is the concatenation of the `Service`
+/// units. An empty subtree yields two empty channels, never a placeholder.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct SubtreeText {
+    /// The concatenated primary channel, in reading order.
+    pub primary: String,
+    /// The concatenated service channel, in reading order.
+    pub service: String,
+}
+
+impl SubtreeText {
+    /// The empty subtree text.
+    pub fn empty() -> Self {
+        SubtreeText::default()
+    }
+}
+
 // ------------------------------------------------------------- neighbours #
 
 /// The reading-order neighbours of a primary view.
@@ -373,6 +440,81 @@ fn missing_view(view: &ViewId) -> NavError {
     )
 }
 
+// ------------------------------------------------------------- resolution #
+
+/// Local name of a Clark-qualified name (`{ns}local`), or the whole token when
+/// it is not namespace-qualified.
+fn clark_local(name: &str) -> &str {
+    if let Some(rest) = name.strip_prefix('{')
+        && let Some(close) = rest.find('}')
+    {
+        return &rest[close + 1..];
+    }
+    name
+}
+
+/// Value of the attribute whose *local* name is `local`, from the Clark-keyed
+/// substrate `attrs` map.
+fn attr_local<'a>(attrs: &'a BTreeMap<String, String>, local: &str) -> Option<&'a str> {
+    attrs
+        .iter()
+        .find(|(key, _)| clark_local(key) == local)
+        .map(|(_, value)| value.as_str())
+}
+
+/// Bounded note resolution: a `NoteReference` / `EndnoteReference` resolves by
+/// matching its substrate `w:id` attribute to the note definition element
+/// (`footnote` for a note reference, `endnote` for an endnote reference) with
+/// the same `w:id`, and then to the note view anchored at that definition.
+///
+/// Success requires **exactly one** matching definition and **exactly one**
+/// note view for it. Anything else is a closed [`NavResolveReason`], never a
+/// best-effort target and never an invented link.
+fn resolve_reference(
+    index: &ReaderRecordIndex,
+    projection: &ReaderProjection,
+    reference: &ProjectedReference,
+) -> Result<ViewId, NavResolveReason> {
+    let definition_local = match reference.reference_type {
+        ReaderReferenceType::NoteReference => "footnote",
+        ReaderReferenceType::EndnoteReference => "endnote",
+        _ => return Err(NavResolveReason::NotAResolvableReference),
+    };
+    let anchor = index
+        .element(reference.element_ref.as_str())
+        .ok_or(NavResolveReason::MissingAnchorElement)?;
+    let anchor_id =
+        attr_local(&anchor.attrs, "id").ok_or(NavResolveReason::NoMatchingNoteDefinition)?;
+
+    let mut definitions: Vec<&str> = Vec::new();
+    for element in index.elements() {
+        if clark_local(&element.clark_tag) == definition_local
+            && attr_local(&element.attrs, "id") == Some(anchor_id)
+        {
+            definitions.push(element.id.as_str());
+        }
+    }
+    if definitions.is_empty() {
+        return Err(NavResolveReason::NoMatchingNoteDefinition);
+    }
+    if definitions.len() > 1 {
+        return Err(NavResolveReason::MultipleMatchingNoteDefinitions);
+    }
+    let definition = definitions[0];
+
+    let mut matches: Vec<&ViewId> = Vec::new();
+    for view in &projection.views {
+        if view.kind == ReaderViewKind::Note && view.element_ref.as_str() == definition {
+            matches.push(&view.id);
+        }
+    }
+    match matches.len() {
+        0 => Err(NavResolveReason::MissingNoteView),
+        1 => Ok(matches[0].clone()),
+        _ => Err(NavResolveReason::MultipleMatchingNoteDefinitions),
+    }
+}
+
 // ------------------------------------------------------------- view entry #
 
 /// Private structural entry for a view, used by the accessors.
@@ -447,6 +589,9 @@ pub struct NavigationIndex {
     pub element_index: BTreeMap<ElementRef, Vec<NodeAddress>>,
     /// Nodes anchored by each substrate text fragment.
     pub fragment_index: BTreeMap<FragmentRef, Vec<NodeAddress>>,
+    /// Closed unresolved reasons, keyed by reference id. One entry per
+    /// unresolved reference, exactly complementary to the `ResolvesTo` links.
+    pub resolve_reasons: BTreeMap<ReferenceId, NavResolveReason>,
     views_by_id: BTreeMap<ViewId, ViewEntry>,
     siblings_by_view: BTreeMap<ViewId, Vec<ViewId>>,
     reading_order_views: Vec<ViewId>,
@@ -608,6 +753,86 @@ impl NavigationIndex {
     /// Every link of a given kind, in construction order.
     pub fn links_of_kind(&self, kind: NavLinkKind) -> Vec<&NavLink> {
         self.links.iter().filter(|link| link.kind == kind).collect()
+    }
+
+    /// The closed unresolved reason for a reference, if the reference has no
+    /// `ResolvesTo` link. Returns `None` for a resolved reference (and for an
+    /// unknown reference id).
+    pub fn resolve_reason(&self, reference: &ReferenceId) -> Option<NavResolveReason> {
+        self.resolve_reasons.get(reference).copied()
+    }
+
+    /// The text of a view's subtree (the view and all descendant views) in
+    /// reading order, split into the S05 `primary` and `service` channels.
+    ///
+    /// Descendant primary views are visited in the S04 reading order; the text
+    /// is read only from the supplied S05 [`CleanView`] — navigation views carry
+    /// no text and are never asked. A derived separator (including a
+    /// `page_break`) contributes its `service` literal and is never a page
+    /// boundary. An unknown view, or a primary descendant absent from the clean
+    /// view, is refused with [`NavErrorKind::MissingAnchorView`]; an empty
+    /// subtree yields two empty channels.
+    pub fn subtree_text(&self, view: &ViewId, clean: &CleanView) -> Result<SubtreeText, NavError> {
+        if !self.views_by_id.contains_key(view) {
+            return Err(missing_view(view));
+        }
+
+        // The subtree (the view plus every descendant), bounded by a visited-set
+        // so a hostile cyclic child graph cannot loop.
+        let mut subtree: HashSet<ViewId> = HashSet::new();
+        let mut stack: Vec<ViewId> = vec![view.clone()];
+        while let Some(current) = stack.pop() {
+            if !subtree.insert(current.clone()) {
+                continue;
+            }
+            if let Some(entry) = self.views_by_id.get(&current) {
+                for child in &entry.children {
+                    if !subtree.contains(child) {
+                        stack.push(child.clone());
+                    }
+                }
+            }
+        }
+
+        // Primary descendants in reading order first, then any remaining
+        // descendant view in document pre-order (never silently dropped).
+        let mut ordered: Vec<ViewId> = Vec::new();
+        let mut placed: HashSet<ViewId> = HashSet::new();
+        for candidate in &self.reading_order_views {
+            if subtree.contains(candidate) && placed.insert(candidate.clone()) {
+                ordered.push(candidate.clone());
+            }
+        }
+        for address in &self.source_order {
+            if let NodeAddress::View(candidate) = address
+                && subtree.contains(candidate)
+                && placed.insert(candidate.clone())
+            {
+                ordered.push(candidate.clone());
+            }
+        }
+
+        let mut primary = String::new();
+        let mut service = String::new();
+        for candidate in &ordered {
+            let is_primary = self
+                .views_by_id
+                .get(candidate)
+                .map(|entry| entry.kind.is_primary())
+                .unwrap_or(false);
+            if !is_primary {
+                continue;
+            }
+            let text = clean.view_text(candidate).map_err(|_| {
+                NavError::new(
+                    NavErrorKind::MissingAnchorView,
+                    format!("primary view {candidate} has no clean-view text"),
+                )
+            })?;
+            primary.push_str(text.primary());
+            service.push_str(text.service());
+        }
+        Ok(SubtreeText { primary, service })
     }
 }
 
@@ -1030,6 +1255,30 @@ pub fn build_navigation(
         }
     }
 
+    // ResolvesTo (bounded note resolution) and the closed unresolved reasons.
+    // Every reference that became a node gets exactly one of a `ResolvesTo`
+    // link or a `NavResolveReason`; a reference that failed validation is not a
+    // node and is skipped here.
+    let mut resolve_reasons: BTreeMap<ReferenceId, NavResolveReason> = BTreeMap::new();
+    for reference in &projection.references {
+        let address = NodeAddress::Reference(reference.id.clone());
+        if !nodes_by_address.contains_key(&address) {
+            continue;
+        }
+        match resolve_reference(&record_index, projection, reference) {
+            Ok(view_id) => {
+                links.push(NavLink {
+                    from: address,
+                    to: NodeAddress::View(view_id),
+                    kind: NavLinkKind::ResolvesTo,
+                });
+            }
+            Err(reason) => {
+                resolve_reasons.insert(reference.id.clone(), reason);
+            }
+        }
+    }
+
     // 7. Element and fragment anchor indexes, in document pre-order.
     let mut element_index: BTreeMap<ElementRef, Vec<NodeAddress>> = BTreeMap::new();
     let mut fragment_index: BTreeMap<FragmentRef, Vec<NodeAddress>> = BTreeMap::new();
@@ -1057,6 +1306,7 @@ pub fn build_navigation(
         links,
         element_index,
         fragment_index,
+        resolve_reasons,
         views_by_id,
         siblings_by_view,
         reading_order_views,
@@ -1426,5 +1676,79 @@ mod tests {
                 "reader_navigation.rs must stay serialization-free: found {forbidden}"
             );
         }
+    }
+
+    #[test]
+    fn multiple_note_definitions_are_closed() {
+        // Two note definitions share one `w:id`, so resolution is not unique.
+        let xml = format!(
+            "<w:wordDocument xmlns:w=\"{ns}\"><w:body>\
+             <w:p><w:r><w:t>x</w:t></w:r></w:p>\
+             <w:footnoteReference w:id=\"1\"/>\
+             <w:footnote w:id=\"1\"><w:p><w:r><w:t>a</w:t></w:r></w:p></w:footnote>\
+             <w:footnote w:id=\"1\"><w:p><w:r><w:t>b</w:t></w:r></w:p></w:footnote>\
+             </w:body></w:wordDocument>",
+            ns = "http://schemas.microsoft.com/office/word/2003/wordml"
+        );
+        let (records, projection, order) = inputs_from(&xml);
+        let index = build_navigation(&projection, &order, &records).expect("navigation builds");
+        let reference = projection
+            .references
+            .iter()
+            .find(|reference| reference.reference_type == ReaderReferenceType::NoteReference)
+            .expect("a note reference exists");
+        assert_eq!(
+            index.resolve_reason(&reference.id),
+            Some(NavResolveReason::MultipleMatchingNoteDefinitions)
+        );
+        assert!(
+            index
+                .links_of_kind(NavLinkKind::ResolvesTo)
+                .iter()
+                .all(|link| link.from != NodeAddress::Reference(reference.id.clone()))
+        );
+    }
+
+    #[test]
+    fn missing_note_view_is_closed() {
+        // A unique definition exists, but no note view anchors it.
+        let (records, mut projection, order) = mixed();
+        let note_view = projection
+            .views
+            .iter_mut()
+            .find(|view| view.kind == ReaderViewKind::Note)
+            .expect("a note view exists");
+        note_view.element_ref = ElementRef::from("e2");
+        let index = build_navigation(&projection, &order, &records).expect("navigation builds");
+        let reference = projection
+            .references
+            .iter()
+            .find(|reference| reference.reference_type == ReaderReferenceType::NoteReference)
+            .expect("a note reference exists");
+        assert_eq!(
+            index.resolve_reason(&reference.id),
+            Some(NavResolveReason::MissingNoteView)
+        );
+    }
+
+    #[test]
+    fn empty_subtree_yields_empty_channels() {
+        let xml = format!(
+            "<w:wordDocument xmlns:w=\"{ns}\"><w:body>\
+             <w:tbl><w:tr><w:tc></w:tc></w:tr></w:tbl>\
+             </w:body></w:wordDocument>",
+            ns = "http://schemas.microsoft.com/office/word/2003/wordml"
+        );
+        let (records, projection, order) = inputs_from(&xml);
+        let clean = CleanView::build(&projection, &order, &records).expect("clean view builds");
+        let index = build_navigation(&projection, &order, &records).expect("navigation builds");
+        let cell = projection
+            .views
+            .iter()
+            .find(|view| view.kind == ReaderViewKind::Cell)
+            .expect("a cell view exists");
+        let text = index.subtree_text(&cell.id, &clean).expect("subtree text");
+        assert!(text.primary.is_empty());
+        assert!(text.service.is_empty());
     }
 }
