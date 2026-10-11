@@ -1,0 +1,135 @@
+{
+  "schema": "m223-s06-navigation-battery/v1",
+  "version": 1,
+  "non_claims": [
+    "not_r1000_closure",
+    "not_semantic_or_legal_interpretation",
+    "not_normalization",
+    "not_authenticity_evidence",
+    "not_physical_pagination",
+    "whole_corpus_materialization_is_s05_s07_not_s06_closure",
+    "additive_only_over_five_frozen_wire_contracts",
+    "battery_paths_counters_hashes_only_no_decoded_text"
+  ],
+  "contract_path": "prd/architecture/intermediate-source-navigation-contract.md",
+  "contract_sha256": "sha256:1db63b5a3d5285cb37da46bcd68d7852eb08f286c86392f7d9d8d704f674b723",
+  "frozen_contracts": [
+    {
+      "path": "prd/architecture/source-jsonl-contract.md",
+      "sha256": "sha256:2ddfe7da95e3adc0c341965f709001e2cdd67ccca3b22b7970ee06ad1dc0d9f6",
+      "matches_inventory": true
+    },
+    {
+      "path": "prd/architecture/reader-view-contract.md",
+      "sha256": "sha256:80a846fffedace7d78ef0b80faf14085eb05037a4aa7baca92de415f1b7d1b7d",
+      "matches_inventory": true
+    },
+    {
+      "path": "prd/architecture/reader-projection-contract.md",
+      "sha256": "sha256:95d0f127f8b1cf72dc2dcaec97271c408ca0543cb8487f7839af57553c6eec3e",
+      "matches_inventory": true
+    },
+    {
+      "path": "prd/architecture/cleaned-projection-contract.md",
+      "sha256": "sha256:7d167e434c4640b539406ddd5de39286d30b1e2efeb43bfdaa603b76b0313c4e",
+      "matches_inventory": true
+    },
+    {
+      "path": "prd/architecture/npa-analysis-jsonl-contract.md",
+      "sha256": "sha256:a3f51100679613a7f76c84a7282b50a5e31dc43abc4f652e221fd745136f00cb",
+      "matches_inventory": true
+    }
+  ],
+  "frozen_contracts_match_inventory": true,
+  "frozen_section2_files": [
+    {
+      "path": "crates/ln-decode/src/reader_projection.rs",
+      "sha256": "sha256:0d4e9f40d8d85da1b55496cc0f843aa7b837e1ffcdae1b40b9dfd51e0f997246",
+      "matches_pin": true
+    },
+    {
+      "path": "crates/ln-decode/src/reader_verifier.rs",
+      "sha256": "sha256:3b9f3b267f57892216038fd19ff692d051c3868aa41140b59a9fe04314498c5f",
+      "matches_pin": true
+    },
+    {
+      "path": "crates/ln-decode/src/npa_analysis_wire.rs",
+      "sha256": "sha256:80cbe03e5425cd4981242043dd9a822f9546994b2309e83a66d8b38f03663f88",
+      "matches_pin": true
+    },
+    {
+      "path": "crates/ln-decode/tests/reader_tail_semantics.rs",
+      "sha256": "sha256:eba6187abcd813dfd9b71010d489fd645a2ae5a9bb2f8f2bcb29e3bd5f423c2c",
+      "matches_pin": true
+    },
+    {
+      "path": "crates/ln-decode/tests/npa_analysis_strict_admission.rs",
+      "sha256": "sha256:6be0a721be429ea2f447aec80426e44f2a9b741416e693a7ce3797513c768e43",
+      "matches_pin": true
+    },
+    {
+      "path": "crates/ln-decode/tests/m222_f07_audit.rs",
+      "sha256": "sha256:019136892dfa5acbe4ec028e42eb8ec552c2c48fb0fe0c1f74cdbbebd006be64",
+      "matches_pin": true
+    }
+  ],
+  "frozen_architecture_jsonl": [
+    {
+      "path": "prd/architecture/architecture_items.jsonl",
+      "sha256": "sha256:3ef86ce1e2c8969d4f919b3cae31621acf0fb3d6d49334bbc05d89ab9c85d966",
+      "matches_pin": true
+    },
+    {
+      "path": "prd/architecture/architecture_edges.jsonl",
+      "sha256": "sha256:ce53dc0e1e4d2851aac538827ced9a9e007e4af3ce54d2b98b780b7739616818",
+      "matches_pin": true
+    }
+  ],
+  "immutability_pins_match": true,
+  "navigation_model": {
+    "addresses": {
+      "View": "v",
+      "Segment": "s",
+      "Reference": "r"
+    },
+    "node_kinds": [
+      "View",
+      "Segment",
+      "Reference"
+    ],
+    "link_kinds": [
+      "Contains",
+      "Owns",
+      "ResolvesTo",
+      "Precedes"
+    ],
+    "resolve_reasons": [
+      "NoMatchingNoteDefinition",
+      "MultipleMatchingNoteDefinitions",
+      "NotAResolvableReference",
+      "MissingAnchorElement",
+      "MissingNoteView"
+    ]
+  },
+  "navigation_model_block_total": true,
+  "navigation_model_matches_source": true,
+  "reader_navigation_source_path": "crates/ln-decode/src/reader_navigation.rs",
+  "reader_projection_source_path": "crates/ln-decode/src/reader_projection.rs",
+  "s03_baseline_path": "prd/migration/rust-evidence/m223-s03-baseline-run.json",
+  "s03_baseline_reconciled": {
+    "entries": 43785,
+    "accepted": 43785,
+    "refused": 0,
+    "incomplete": 0,
+    "r1000_status": "active/unclosed"
+  },
+  "census_path": "prd/migration/rust-evidence/m223-s06-navigation-census.json",
+  "census_schema": "m223-s06-navigation-census/v1",
+  "census_resolved_total": 0,
+  "census_unresolved_total": 25471,
+  "census_references_total": 25471,
+  "census_reference_accounting_ok": true,
+  "census_contract_sha256_matches_contract": true,
+  "census_redaction_ok": true,
+  "redaction": "counts_paths_hashes_and_non_claims_only_no_decoded_text"
+}
