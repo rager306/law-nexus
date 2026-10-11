@@ -43,6 +43,7 @@ pub mod npa_context_consumer;
 pub mod npa_context_records;
 pub mod npa_continuation;
 pub mod npa_frames_baseline;
+pub mod npa_graph_projection;
 pub mod npa_link;
 pub mod npa_report;
 pub mod npa_sweep;
