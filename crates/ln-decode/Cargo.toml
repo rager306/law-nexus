@@ -47,3 +47,7 @@ path = "src/bin/corpus-inventory.rs"
 name = "reader-nav"
 path = "src/bin/reader-nav.rs"
 
+[[bin]]
+name = "consumer-run"
+path = "src/bin/consumer-run.rs"
+

@@ -1,0 +1,109 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "receipts": 64
+    }
+  ],
+  "binary_drift": false,
+  "bindings": {
+    "binary_path": "/root/law-nexus/target/release/consumer-run",
+    "binary_sha256": "sha256:1b9ee40eed31e5280dc5484f976f80ed348efe469983abc7c19cb377b98a94f8",
+    "code_revision": "sha256:19ab071e73ded7bc1e17f8808e9e48a39f310d2ee4753f62d4d6d80637390783",
+    "rules_digest": "sha256:972539f0898c6a9bd45c89439d4891b261dfac9e839cf757a933aa8700163e04"
+  },
+  "counts": {
+    "accepted": 64,
+    "entries": 43785,
+    "incomplete": 0,
+    "refused": 0,
+    "remaining": 43721,
+    "terminal": 64
+  },
+  "disk": {
+    "after": {
+      "free_bytes": 28761612288,
+      "total_bytes": 258906374144
+    },
+    "before": {
+      "free_bytes": 28762075136,
+      "total_bytes": 258906374144
+    },
+    "persisted_layer_bytes": 0
+  },
+  "incomplete_by_class": {},
+  "manifest": {
+    "counts": {
+      "entries": 43785,
+      "max_bytes": 29372660,
+      "total_bytes": 3789431364
+    },
+    "entries": 43785,
+    "inventory_digest": "sha256:aa7e14e31059c906f291423a2e8151f8bf0f857e9fd7370545d7e3b5800766dd",
+    "path": "/root/law-nexus/prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl",
+    "sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c"
+  },
+  "non_claims": [
+    "Not an R1000 closure artifact and not a semantic or legal interpretation; R1000 stays active/unclosed.",
+    "The counts document is a counts-only read of the materialized JSONL layers; it is NOT an independent substrate verification and NOT an authenticity claim.",
+    "A partial run is never reported as full (partial_is_not_full=true).",
+    "No raw decoded text reaches receipts, the report, diagnostics or stdout; every persisted string is a path, a hash, a count or a closed token.",
+    "The S03 baseline is an acceptance/integrity baseline, not a semantic oracle; S07 reconciles counts only."
+  ],
+  "partial_is_not_full": true,
+  "preflight": {
+    "checks": [
+      {
+        "id": "free_disk_bytes",
+        "observed_bytes": 28762079232,
+        "ok": true,
+        "threshold_bytes": 3221225472
+      },
+      {
+        "id": "available_memory_bytes",
+        "observed_bytes": 39631687680,
+        "ok": true,
+        "threshold_bytes": 6442450944
+      },
+      {
+        "id": "binary_present",
+        "ok": true,
+        "path": "/root/law-nexus/target/release/consumer-run"
+      }
+    ],
+    "failures": [],
+    "ok": true,
+    "stop_thresholds": {
+      "enforcement": "polled while the run is live; a crossing stops the run (SIGKILL)",
+      "kind": "stop_threshold",
+      "not_an_upper_bound": true,
+      "overshoot_note": "observed consumption may overshoot a stop threshold by up to one poll interval; the run is stopped, not capped in advance",
+      "peak_rss_kb": 6291456,
+      "single_artifact_bytes": 2147483648,
+      "wall_s": 14400
+    }
+  },
+  "r1000_status": "active/unclosed",
+  "refused_by_class": {},
+  "s03_baseline_reconciled": {
+    "accepted": 43785,
+    "entries": 43785,
+    "incomplete": 0,
+    "path": "/root/law-nexus/prd/migration/rust-evidence/m223-s03-baseline-run.json",
+    "r1000_status": "active/unclosed",
+    "refused": 0,
+    "status": "complete",
+    "terminal": 43785
+  },
+  "schema": "m223-s07-corpus-run/v1",
+  "status": "budget_exhausted",
+  "stop_thresholds": {
+    "enforcement": "polled while the run is live; a crossing stops the run (SIGKILL)",
+    "kind": "stop_threshold",
+    "not_an_upper_bound": true,
+    "overshoot_note": "observed consumption may overshoot a stop threshold by up to one poll interval; the run is stopped, not capped in advance",
+    "peak_rss_kb": 6291456,
+    "single_artifact_bytes": 2147483648,
+    "wall_s": 14400
+  }
+}

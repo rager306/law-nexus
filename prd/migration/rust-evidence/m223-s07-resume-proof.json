@@ -1,0 +1,139 @@
+{
+  "binding": {
+    "binary_path": "/root/law-nexus/target/release/consumer-run",
+    "binary_sha256": "sha256:1b9ee40eed31e5280dc5484f976f80ed348efe469983abc7c19cb377b98a94f8",
+    "code_revision": "sha256:7792f368ece7a8d928c21ad191303dc3d1f3b874d3c13b803d73af769c065cd6",
+    "rules_digest": "sha256:972539f0898c6a9bd45c89439d4891b261dfac9e839cf757a933aa8700163e04"
+  },
+  "final": {
+    "accepted": 8,
+    "entries": 8,
+    "incomplete": 0,
+    "incomplete_by_class": {},
+    "present": 8,
+    "refused": 0,
+    "refused_by_class": {},
+    "remaining": 0,
+    "terminal": 8
+  },
+  "interruption": {
+    "note": "the in-flight entry is recorded incomplete/not_run; every completed terminal receipt is preserved in the same ledger",
+    "partial": {
+      "accepted": 1,
+      "entries": 8,
+      "incomplete": 0,
+      "incomplete_by_class": {},
+      "present": 1,
+      "refused": 0,
+      "refused_by_class": {},
+      "remaining": 7,
+      "terminal": 1
+    },
+    "rc": 143,
+    "receipts_at_signal": 1,
+    "signalled": true,
+    "status": "interrupted",
+    "stderr_tail": [
+      "m223-s07-corpus-run: run attempt_wall_s=14400.0 entries=8 code_revision=sha256:7792f368ece7a8d928c21ad191303dc3d1f3b874d3c13b803d73af769c065cd6 binary_sha256=sha256:1b9ee40eed31e5280dc5484f976f80ed348efe469983abc7c19cb377b98a94f8 resume=True",
+      "m223-s07-corpus-run: status=interrupted accepted=1 refused=0 incomplete=0 remaining=7"
+    ],
+    "wall_s": 0.484
+  },
+  "non_claims": [
+    "Not an R1000 closure artifact and not a semantic or legal interpretation; R1000 stays active/unclosed.",
+    "The counts document is a counts-only read of the materialized JSONL layers; it is NOT an independent substrate verification and NOT an authenticity claim.",
+    "A partial run is never reported as full (partial_is_not_full=true).",
+    "No raw decoded text reaches receipts, the report, diagnostics or stdout; every persisted string is a path, a hash, a count or a closed token.",
+    "The S03 baseline is an acceptance/integrity baseline, not a semantic oracle; S07 reconciles counts only.",
+    "The proof subset is a deterministic sample of the pinned manifest; its receipt bindings are snapshot-bound and shift with any tracked-file change.",
+    "The SIGTERM interruption is enforced by a real signal to the harness process; the harness signal handler unwinds the live-poll loop, which SIGKILLs and reaps the in-flight consumer child, so an interrupted attempt never orphans a consumer.",
+    "Whether the pinned corpus emits any typed consumer refusal is a result of the run, reported by the ledger's refused_by_class, and is never asserted in advance."
+  ],
+  "ok": true,
+  "preserved_current_receipts": 1,
+  "r1000_status": "active/unclosed",
+  "receipts_path": "target/m223-s07-res-proof/proof/receipts.jsonl",
+  "refusal_probe": {
+    "all_refused_typed": true,
+    "available": true,
+    "inputs": [
+      {
+        "available": true,
+        "input_bytes": 428,
+        "input_sha256": "sha256:bbc5cd34baa0627a4d892ee64db95acf9cf0e79472c743f3a6f8559cb360420d",
+        "outcome": "refused",
+        "outcome_class": "source:source_not_wordml",
+        "reason_family": "source",
+        "reason_token": "source_not_wordml",
+        "relative_path": "crates/ln-decode/tests/fixtures/reader/diverse/negative-not-wordml.xml"
+      },
+      {
+        "available": true,
+        "input_bytes": 404,
+        "input_sha256": "sha256:adb26741e000e46a4864ab059d1ec774f66b064fea6a827f6e9000df6a805504",
+        "outcome": "refused",
+        "outcome_class": "source:source_not_wordml",
+        "reason_family": "source",
+        "reason_token": "source_not_wordml",
+        "relative_path": "crates/ln-decode/tests/fixtures/reader/diverse/negative-namespace-absent.xml"
+      },
+      {
+        "available": true,
+        "input_bytes": 495,
+        "input_sha256": "sha256:72775bca9394d2e491945fbc6e0fdc8cbbf7747e71577832e276df9eed687ed7",
+        "outcome": "refused",
+        "outcome_class": "source:source_not_wordml",
+        "reason_family": "source",
+        "reason_token": "source_not_wordml",
+        "relative_path": "crates/ln-decode/tests/fixtures/reader/diverse/negative-unsupported-schema.xml"
+      }
+    ],
+    "note": "real non-WordML reader fixtures; whether the pinned corpus emits refusals is reported by the ledger, never asserted in advance",
+    "observed_classes": [
+      "source:source_not_wordml"
+    ]
+  },
+  "resume_attempts": [
+    {
+      "rc": 0,
+      "stderr_tail": [
+        "m223-s07-corpus-run: fas/decision_2025-03-24_tn-26519-25_rev-unknown_cb0efcfb.xml -> accepted/accepted",
+        "m223-s07-corpus-run: npa/law_2017-02-22_17-fz_rev-unknown_ae59a958.xml -> accepted/accepted",
+        "m223-s07-corpus-run: npa/law_2017-03-28_45-fz_rev-unknown_e00203d1.xml -> accepted/accepted",
+        "m223-s07-corpus-run: xml/law/178657/edition-dd81eedf40b8bbc5059bc074.xml -> accepted/accepted",
+        "m223-s07-corpus-run: xml/law/306965/edition-b82b1600b7fd9230d36fad10.xml -> accepted/accepted",
+        "m223-s07-corpus-run: status=complete accepted=8 refused=0 incomplete=0 remaining=0"
+      ],
+      "wall_s": 0.975
+    }
+  ],
+  "schema": "m223-s07-resume-proof/v1",
+  "stale_recompute": {
+    "first_pass_rc": 10,
+    "poisoned_receipts": 1,
+    "receipts_after": 2,
+    "receipts_before": 1,
+    "recomputed_paths": [
+      "courts/arb/000891883-edition-905c4249198fd3bf39e3d06e.xml"
+    ],
+    "second_pass_rc": 10,
+    "stale_recomputed": true
+  },
+  "subset": {
+    "digest": "sha256:0d8c60b5a7a3cba59c2a07ee20c1b39e2f4253aa9216cf2e1492e45462dee3cb",
+    "manifest": "target/m223-s07-res-proof/proof/subset-manifest.jsonl",
+    "size": 8,
+    "subdir_counts": {
+      "courts": 2,
+      "fas": 2,
+      "npa": 2,
+      "xml": 2
+    }
+  },
+  "verification": {
+    "distinct_bindings": 1,
+    "errors": [],
+    "ok": true,
+    "terminal": 8
+  }
+}

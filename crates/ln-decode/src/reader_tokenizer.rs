@@ -454,7 +454,7 @@ impl TokenStream {
 fn tokenize_view(
     projection: &ReaderProjection,
     order: &ReadingOrderIndex,
-    records: &[Record],
+    _records: &[Record],
     index: &ReaderRecordIndex,
     view: &ViewId,
     identity: &DocumentIdentity,
@@ -551,14 +551,21 @@ fn tokenize_view(
         }
     }
 
-    // 4. Localize each run against the unit map.
+    // 4. Localize each run against the unit map. The units tile the view
+    //    output contiguously and both `runs` and `units` are in ascending
+    //    output order, so a single forward cursor finds each run's overlapping
+    //    units in O(runs + units) — never a per-run rescan of every unit.
+    let mut cursor = 0usize;
     for (run_start, run_end, whitespace) in runs {
-        let overlapping: Vec<&ProjectedSegment> = units
-            .iter()
-            .copied()
-            .filter(|segment| segment.output_start < run_end && run_start < segment.output_end)
-            .collect();
-        match overlapping.as_slice() {
+        while cursor < units.len() && units[cursor].output_end <= run_start {
+            cursor += 1;
+        }
+        let mut end = cursor;
+        while end < units.len() && units[end].output_start < run_end {
+            end += 1;
+        }
+        let overlapping: &[&ProjectedSegment] = &units[cursor..end];
+        match overlapping {
             [] => {
                 return Err(TokenizerError::new(
                     TokenizerErrorKind::SpanInvalid,
@@ -585,19 +592,84 @@ fn tokenize_view(
                 }
             },
             _ => {
-                let address = CompositeAddress {
-                    view: view.clone(),
-                    output_start: run_start,
-                    output_end: run_end,
-                };
-                let range = resolve_composite(projection, order, records, &address)
-                    .map_err(map_composite_error)?;
+                // A run crossing a unit boundary is a composite range. The
+                // overlapping units are exactly the contiguous slice
+                // `units[cursor..end]` (the units tile the view output), so the
+                // range is built directly from them — never a per-run rebuild of
+                // the substrate index and a full reading-order walk, which made
+                // a composite-heavy document quadratic. The unit construction
+                // copies `reader_composite::resolve_composite` verbatim.
+                let mut composite_units: Vec<CompositeUnit> = Vec::with_capacity(overlapping.len());
+                for segment in overlapping {
+                    let lo = run_start.max(segment.output_start);
+                    let hi = run_end.min(segment.output_end);
+                    if lo >= hi {
+                        continue;
+                    }
+                    match segment.origin {
+                        SegmentOrigin::SourceFragment => {
+                            let fragment = segment.fragment_ref.clone().ok_or_else(|| {
+                                TokenizerError::new(
+                                    TokenizerErrorKind::MissingProvenance,
+                                    format!("source segment {} has no fragment", segment.id),
+                                )
+                            })?;
+                            let slot = segment.slot.ok_or_else(|| {
+                                TokenizerError::new(
+                                    TokenizerErrorKind::MissingProvenance,
+                                    format!("source segment {} has no slot", segment.id),
+                                )
+                            })?;
+                            let value = index.text(fragment.as_str()).ok_or_else(|| {
+                                TokenizerError::new(
+                                    TokenizerErrorKind::MissingFragment,
+                                    format!("fragment {fragment} is missing from the substrate"),
+                                )
+                            })?;
+                            let span = ReaderFragmentSpan::new(
+                                fragment.clone(),
+                                lo - segment.output_start,
+                                hi - segment.output_start,
+                            );
+                            check_fragment_span(&value.value, &span).map_err(
+                                |error: ContractError| {
+                                    TokenizerError::new(
+                                        TokenizerErrorKind::AddressRefused,
+                                        error.kind().as_str(),
+                                    )
+                                },
+                            )?;
+                            composite_units.push(CompositeUnit::Source {
+                                segment: segment.id.clone(),
+                                fragment_ref: fragment,
+                                slot,
+                                span,
+                                element_ref: segment.element_ref.clone(),
+                                source_pos: segment.source_pos,
+                            });
+                        }
+                        SegmentOrigin::Derived(kind) => {
+                            composite_units.push(CompositeUnit::Derived {
+                                segment: segment.id.clone(),
+                                kind,
+                                element_ref: segment.element_ref.clone(),
+                                source_pos: segment.source_pos,
+                            });
+                        }
+                    }
+                }
+                if composite_units.is_empty() {
+                    return Err(TokenizerError::new(
+                        TokenizerErrorKind::AddressRefused,
+                        format!("run [{run_start}, {run_end}) in view {view} selects no unit"),
+                    ));
+                }
                 out.push(ReaderToken::Composite {
                     document_identity: identity.clone(),
                     view: view.clone(),
-                    output_start: range.output_start,
-                    output_end: range.output_end,
-                    units: range.units.into_iter().map(token_unit).collect(),
+                    output_start: run_start,
+                    output_end: run_end,
+                    units: composite_units.into_iter().map(token_unit).collect(),
                 });
             }
         }
