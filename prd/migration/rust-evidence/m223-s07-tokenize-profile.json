@@ -38,6 +38,13 @@
       "was": "lookup linearly scanned self.views for the requested view id; tokenize_view calls reading_order(view) once per view: O(views^2).",
       "why_quadratic": "~35359 views scanned per call and ~35359 calls -> ~1.25e9 id comparisons on the largest entry.",
       "fix": "added an additive `positions: HashMap<String, usize>` index built from self.views in ReadingOrderIndex::build; lookup is O(1) and returns exactly the same OrderedView or the same NotPrimaryView error. Behavior-preserving S04 edit, no observable change."
+    },
+    {
+      "id": "Q3",
+      "location": "crates/ln-decode/src/reader_tokenizer.rs::tokenize_view (composite branch)",
+      "was": "every run that crossed a unit boundary called the reusable reader_composite::resolve_composite, which rebuilds the document-wide segment map, constructs a fresh ReaderRecordIndex over all substrate records and walks the whole reading order on each call, so a composite-heavy document paid O(runs x segments).",
+      "why_quadratic": "a document with many unit-crossing runs paid a full substrate-index rebuild and reading-order walk per run, independent of the document's byte size.",
+      "fix": "the run's overlapping units are now found with a single forward cursor over the already-ordered `units` slice (O(runs + units)) and the composite range is built directly from that contiguous slice, copying reader_composite::resolve_composite's unit construction verbatim; the public tokenize_address composite surface still calls resolve_composite, so external contracts and the section-5 composite semantics are unchanged."
     }
   ],
   "measurements": {
