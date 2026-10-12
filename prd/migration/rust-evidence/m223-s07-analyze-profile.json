@@ -1,0 +1,96 @@
+{
+  "schema": "m223-s07-analyze-profile/v1",
+  "version": 1,
+  "generated_by": "M223-d2q075/S07/T08",
+  "purpose": "Profile-and-fix record for the consumer-run `analyze` stage (analyze_document) on the pinned S02 corpus manifest: the structural, byte-non-monotonic quadratic that dominated the whole-corpus run is localized and removed, with before/after measurements and the residual cost breakdown that T09 must plan against.",
+  "non_claims": [
+    "not R1000 closure (R1000 stays active/unclosed)",
+    "not a full-corpus run result: no corpus-run artifact is superseded or published here",
+    "not a semantic, legal, authenticity or pagination claim",
+    "partial is never reported as full (partial_is_not_full stays true)"
+  ],
+  "scope": {
+    "plan_hint": "the T08 plan named crates/ln-decode/src/npa_analysis_records.rs as the edit surface",
+    "actual_edit_surface": [
+      "crates/ln-decode/src/npa_link.rs"
+    ],
+    "localization_note": "the analyze stage is assembled in npa_analysis_records.rs (build_analysis_block_layout -> build_typed_records -> build_linked_analysis), but the quadratic term lives in the link producer npa_link::build_linked_document that build_linked_analysis calls; npa_analysis_records.rs needed no change (verified by sub-stage timing: layout 17ms, typed 173ms, linked 240699ms of which npa_link::build_linked_document = 240532ms).",
+    "forbidden": [
+      "the five frozen upstream wire contracts",
+      "the six section-2 immutability-pinned files (reader_projection.rs, reader_verifier.rs, npa_analysis_wire.rs, reader_tail_semantics.rs, npa_analysis_strict_admission.rs, m222_f07_audit.rs)",
+      "the two pinned prd/architecture/*.jsonl artifacts",
+      "XML re-parse on the consumer read path"
+    ],
+    "untouched_after_edit": "all 5 frozen wire contracts and all 8 immutability pins re-verified sha256-identical after the fix (scripts/test_m223_s07_contract.py: 32 passed)"
+  },
+  "removed_quadratics": [
+    {
+      "id": "Q4",
+      "location": "crates/ln-decode/src/npa_link.rs::find_approver (called from link_approved_by)",
+      "was": "for every named-annex hit, find_approver linearly scanned ALL typed members twice, computing flat.char_distance over the full byte gap for each candidate (O(byte distance)), and the «вместе с …» fallback rescanned the whole flattened document for the literal on every hit (O(document bytes)).",
+      "why_quadratic": "link_approved_by runs three times per build_linked_document (the direct pass, inside link_aliases_and_this_refs, and inside build_search_members). The annex-hit count H and the flattened document size both grow with the document, so each call paid O(H x (M + document_bytes)). On the 5514930-byte order H=1784 over a 5.5 MB flattened text, i.e. ~1e10 character comparisons per call, x3 calls.",
+      "measured_before": "analyze 230039 ms of a 234790 ms whole-file run on the 5514930-byte entry (96%); find_approver accumulated 75750 ms of the 77536 ms link_approved_by pass.",
+      "fix": "member_globals (the non-decreasing flattened byte offset of every typed member) is computed once per link_approved_by; the nearest member to the right/left of an annex is one partition_point binary search (O(log M)) instead of a linear scan; the character distance is replaced by chars_between_lt, which counts at most the window bound (450/700) so it is O(window) not O(gap); the single «вместе с» offset is computed once per document, not per annex.",
+      "behavior_preserving_because": "the typed stream is sorted by (block, start) and global_byte is monotone in that order, so member_globals is non-decreasing; the character distance is monotone in the byte gap, so the nearest candidate also has the smallest distance. The linear scans and the boundary lookups therefore select exactly the same candidate, the same window and the same result. No external contract or analyzer semantic changes; npa_analysis_wire.rs is not touched."
+    }
+  ],
+  "measurements": {
+    "note": "release build, M223_S07_TIMING per-stage wall time, one run per entry. 'before' = the pre-analyze-fix binary; published values are from prd/migration/rust-evidence/m223-s07-tokenize-profile.json (T07) and the T08 baseline run; 'after' = the fixed binary.",
+    "analyze_stage_ms": [
+      { "bytes": 5514930, "entry": "npa/order_2018-07-02_75_rev-2019-02-26_f7902b4f.xml", "before_published": 234063, "before_t08_baseline": 230039, "after": 5835, "analyze_speedup": "40.1x", "whole_run_before_published": 243511, "whole_run_before_t08_baseline": 234790, "whole_run_after": 16728, "whole_run_speedup": "14.6x" },
+      { "bytes": 10849143, "entry": "xml/law/171859/edition-8da14e3cf11aedbc35c60292.xml", "before_published": 22745, "after": 11565, "analyze_speedup": "2.0x", "whole_run_before_published": 72651, "whole_run_after": 62490, "whole_run_speedup": "1.2x" },
+      { "bytes": 29372660, "entry": "xml/law/143149/edition-c723d4f701b0eb8512688917.xml", "before_published": 121737, "after": 41643, "analyze_speedup": "2.9x", "whole_run_before_published": 245786, "whole_run_after": 183026, "whole_run_speedup": "1.3x" },
+      { "bytes": 3646882, "entry": "courts/raps019/000159337-edition-c66eac7dfc9f9c84d25c2018.xml", "before_published": null, "before_wall_s_from_receipt": 180.274359, "after_analyze": 5274, "after_whole_run": 23569, "whole_run_speedup": "7.6x" }
+    ],
+    "after_stage_breakdown_ms": [
+      { "bytes": 5514930, "capture": 2241, "render_wire": 3267, "read_wire": 294, "analyze": 5835, "render_analysis": 106, "tokenize": 4148, "import1": 420, "import2": 414, "total": 16728 },
+      { "bytes": 10849143, "capture": 5693, "render_wire": 11218, "read_wire": 3601, "analyze": 11565, "render_analysis": 1741, "tokenize": 12464, "import1": 6665, "import2": 9539, "total": 62490 },
+      { "bytes": 29372660, "capture": 16357, "render_wire": 34974, "read_wire": 9602, "analyze": 41643, "render_analysis": 6169, "tokenize": 42433, "import1": 14603, "import2": 17243, "total": 183026 }
+    ],
+    "post_fix_shape": "analyze is now roughly linear in bytes (5514930 -> 5835 ms = 1.06 ms/KB; 10849143 -> 11565 ms = 1.07 ms/KB; 29372660 -> 41643 ms = 1.42 ms/KB; 3646882 -> 5274 ms = 1.45 ms/KB). The pre-fix byte-non-monotonicity (5514930 far slower than 10849143 and 29372660) is gone."
+  },
+  "behavior_preservation": {
+    "counts_doc_byte_identical_pinned": [
+      { "bytes": 5514930, "entry": "npa/order_2018-07-02_75_rev-2019-02-26_f7902b4f.xml", "sha256": "sha256:2fb9d06c1fee40606f8943f918535cf829cec7ac43d2e3f8d23e1dbbcbe2bb92", "matches_t07_published_pin": true }
+    ],
+    "counts_doc_differential_vs_published_receipts": {
+      "source": "prd/migration/rust-evidence/m223-s07-corpus-receipts.jsonl (pre-fix binary sha256:fa114a200fd436ad61a1c03fea44920f0a7920976a8c1286ae69e756532a06e3), which stores the full counts document per accepted entry",
+      "method": "re-ran the fixed consumer-run over the 12 slowest pre-fix entries plus a seeded random sample of the accepted set and deep-compared the emitted counts document to the receipt",
+      "checked": 40,
+      "mismatches": 0,
+      "byte_identical": 40,
+      "includes_pathological_entry": "courts/raps019/000159337-edition-c66eac7dfc9f9c84d25c2018.xml (pre-fix 180.3 s)"
+    },
+    "rust": {
+      "cargo_test_ln_decode": "1408 passed / 0 failed over 124 suites",
+      "npa_analysis_export_integration": "13 passed (T08 verify)",
+      "npa_link_approved_by_contract": "11 passed",
+      "npa_link_alias_thisref_contract": "10 passed",
+      "npa_link_pipeline_integration": "11 passed",
+      "npa_analysis_records_link_classify": "9 passed",
+      "cargo_fmt_all_check": "clean",
+      "cargo_clippy_ln_decode_all_targets_deny_warnings": "clean"
+    },
+    "slice_battery": {
+      "scripts/test_m223_s07_contract.py": "32 passed (frozen-contract inventory + 8 immutability pins sha256-identical, S03 reconciliation 43785/0/0, R1000 active/unclosed)"
+    }
+  },
+  "residual_for_t09": {
+    "verdict": "the structural, byte-non-monotonic quadratic of the analyze stage is REMOVED within the allowed consumer surface; the analyze stage is now roughly linear in bytes. The remaining whole-run cost is linear-in-bytes producer/consumer work, not a structural quadratic.",
+    "evidence": [
+      "the 5514930-byte order entry (the pre-fix worst case) drops from 234063 ms analyze / 243511 ms whole-run to 5835 ms / 16728 ms.",
+      "the 3646882-byte courts entry drops from 180.3 s whole-run (pre-fix receipt) to 23.6 s.",
+      "after the fix the three largest entries spend their time on capture + render_wire + read_wire + tokenize + render_analysis + graph import (linear-in-bytes), with analyze now a comparable linear share (6.3% / 18.5% / 22.7%)."
+    ],
+    "remaining_cost_surfaces": [
+      "capture (source_package)",
+      "render_cleaned_projection / read_cleaned_wire (cleaned_wire)",
+      "render_npa_analysis (npa_analysis_wire, an immutability-pinned file, not touched)",
+      "tokenize (reader_tokenizer; Q1/Q2/Q3 removed in T07)",
+      "NpaGraph::import plus its mandatory second repeat-import pass (npa_graph_projection)"
+    ],
+    "feasibility_estimate": "post-fix measured whole-run rates on the largest entries are 3.0-6.5 s/MB; the pinned manifest is 3789431364 bytes over 43785 entries. A linear extrapolation gives a lower bound of a few hours and a single-digit-hour realistic bound including per-entry fixed overhead, versus the pre-fix structural quadratic that made the run infeasible (the 5.5 MB order family alone cost ~240 s per entry). T09 owns the actual full 43785-entry run and its budget decision; this artifact does not claim the run is complete.",
+    "partial_is_not_full": true,
+    "r1000_status": "active/unclosed"
+  }
+}

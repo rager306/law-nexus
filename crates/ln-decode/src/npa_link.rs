@@ -864,14 +864,6 @@ impl FlatDoc {
             .saturating_add(span.start)
     }
 
-    /// Number of `char`s in `text[a..b]` (both on char boundaries).
-    fn char_distance(&self, a: usize, b: usize) -> usize {
-        if a >= b {
-            return 0;
-        }
-        self.text[a..b].chars().count()
-    }
-
     /// Byte offset `n` characters after `byte_start` (clamped to the end).
     fn advance_chars(&self, byte_start: usize, n: usize) -> usize {
         advance_chars_str(&self.text, byte_start, n)
@@ -889,57 +881,73 @@ fn advance_chars_str(s: &str, byte_start: usize, n: usize) -> usize {
     idx
 }
 
+/// Number of `char`s in `text[a..b]` is strictly below `limit` (both on char
+/// boundaries). Counts at most `limit` characters, so it is bounded work even
+/// when the byte gap is large: `char_distance(a, b) < limit`.
+fn chars_between_lt(text: &str, a: usize, b: usize, limit: usize) -> bool {
+    if a >= b {
+        return true;
+    }
+    let mut count = 0usize;
+    for _ in text[a..b].chars() {
+        count += 1;
+        if count >= limit {
+            return false;
+        }
+    }
+    true
+}
+
 /// Picks the approving act for an annex.
 ///
 /// Direct later window: `0 < approver − annex < 450` chars, verb in the gap.
 /// Otherwise earlier window: `0 < annex − approver < 700` chars, verb in
 /// `approver..annex+80`. Otherwise the «вместе с …» list fallback: the last
 /// dated act before the first `вместе с` token.
-fn find_approver(flat: &FlatDoc, annex: &AnnexHit, typed: &[TypedMember]) -> Option<usize> {
+///
+/// `member_globals` is the flattened byte offset of every typed member in
+/// stream order. The typed stream is sorted by `(block, start)` and
+/// `global_byte` is monotone in that order, so it is non-decreasing; the
+/// character distance is monotone in the byte gap. The nearest member to the
+/// right/left is therefore one `partition_point` and the nearest candidate also
+/// has the smallest distance, so the former linear scans collapse to two
+/// boundary lookups. `vmeste` is the single flattened `вместе с` offset
+/// (precomputed once per document, not rescanned per annex). Behavior is
+/// unchanged: the same nearest candidates, the same windows, the same result.
+fn find_approver(
+    flat: &FlatDoc,
+    annex: &AnnexHit,
+    member_globals: &[usize],
+    vmeste: Option<usize>,
+) -> Option<usize> {
     let annex_g = flat.global_byte(annex.span);
 
-    let later = typed
-        .iter()
-        .enumerate()
-        .filter_map(|(id, m)| {
-            let g = flat.global_byte(m.span);
-            (g > annex_g && flat.char_distance(annex_g, g) < 450).then_some((g, id))
-        })
-        .min_by_key(|(g, _)| *g);
-    if let Some((g, id)) = later
+    let later_idx = member_globals.partition_point(|&g| g <= annex_g);
+    if let Some(&g) = member_globals.get(later_idx)
+        && chars_between_lt(&flat.text, annex_g, g, 450)
         && approve_verb(&flat.text[annex_g..g])
     {
-        return Some(id);
+        return Some(later_idx);
     }
 
-    let earlier = typed
-        .iter()
-        .enumerate()
-        .filter_map(|(id, m)| {
-            let g = flat.global_byte(m.span);
-            (g < annex_g && flat.char_distance(g, annex_g) < 700).then_some((g, id))
-        })
-        .max_by_key(|(g, _)| *g);
-    if let Some((g, id)) = earlier {
-        let end = flat.advance_chars(annex_g, 80);
-        if approve_verb(&flat.text[g..end]) {
-            return Some(id);
+    let earlier_count = member_globals.partition_point(|&g| g < annex_g);
+    if earlier_count > 0 {
+        let idx = earlier_count - 1;
+        let g = member_globals[idx];
+        if chars_between_lt(&flat.text, g, annex_g, 700) {
+            let end = flat.advance_chars(annex_g, 80);
+            if approve_verb(&flat.text[g..end]) {
+                return Some(idx);
+            }
         }
     }
 
-    if let Some(vmeste) = find_ci(&flat.text, "вместе с")
+    if let Some(vmeste) = vmeste
         && annex_g > vmeste
     {
-        let before = typed
-            .iter()
-            .enumerate()
-            .filter_map(|(id, m)| {
-                let g = flat.global_byte(m.span);
-                (g < vmeste).then_some((g, id))
-            })
-            .max_by_key(|(g, _)| *g);
-        if let Some((_, id)) = before {
-            return Some(id);
+        let count = member_globals.partition_point(|&g| g < vmeste);
+        if count > 0 {
+            return Some(count - 1);
         }
     }
     None
@@ -1031,6 +1039,16 @@ pub fn link_approved_by(
     let hits = find_annex_hits(paras);
     let annex_base = typed.len();
 
+    // Precomputed once per document: the flattened byte offset of every typed
+    // member (non-decreasing) and the single `вместе с` offset. The linear
+    // scans in `find_approver` become binary searches, and the `вместе с`
+    // fallback is not rescanned over the whole document per annex.
+    let member_globals: Vec<usize> = typed
+        .iter()
+        .map(|member| flat.global_byte(member.span))
+        .collect();
+    let vmeste = find_ci(&flat.text, "вместе с");
+
     let mut members: Vec<LinkedMember> = Vec::new();
     let mut relations: Vec<LinkedRelation> = Vec::new();
     let mut diagnostics: Vec<LinkDiagnostic> = Vec::new();
@@ -1079,7 +1097,7 @@ pub fn link_approved_by(
             }
         }
 
-        let approver = find_approver(&flat, hit, &typed);
+        let approver = find_approver(&flat, hit, &member_globals, vmeste);
         let approved_by = approver.map(|id| {
             format!(
                 "{} от {} N {}",
