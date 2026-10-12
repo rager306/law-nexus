@@ -93,6 +93,7 @@ COUNTS_SCHEMA = "m223-s07-consumer-counts/v1"
 MANIFEST_SCHEMA = "m223-s02-corpus-inventory/v1"
 S03_BASELINE_SCHEMA = "m223-s03-baseline-run/v1"
 DECISION_SCHEMA = "m223-s02-corpus-feasibility/v1"
+DOCUMENTED_RESIDUAL_SCHEMA = "m223-s07-documented-residuals/v1"
 
 DEFAULT_MANIFEST = ROOT / "prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl"
 DEFAULT_CORPUS_ROOT = Path("consru_export/consru_export/exports")
@@ -104,6 +105,7 @@ DEFAULT_RUN_OUT = ROOT / "prd/migration/rust-evidence/m223-s07-corpus-run.json"
 DEFAULT_RECEIPTS_OUT = ROOT / "prd/migration/rust-evidence/m223-s07-corpus-receipts.jsonl"
 DEFAULT_RESUME_PROOF_OUT = ROOT / "prd/migration/rust-evidence/m223-s07-resume-proof.json"
 DEFAULT_REPEAT_PROOF_OUT = ROOT / "prd/migration/rust-evidence/m223-s07-repeat-import-proof.json"
+DEFAULT_RESIDUALS = ROOT / "prd/migration/rust-evidence/m223-s07-corpus-residuals.json"
 SOURCE_REVISION_SCRIPT = _SCRIPTS_DIR / "m204_s08_source_revision.mjs"
 
 # ----------------------------------------------------------- vocabularies #
@@ -312,6 +314,14 @@ INCOMPLETE_CLASSES = frozenset(
         "binary_drift",
     }
 )
+
+#: Incomplete classes that may be documented as a *pinned-threshold residual*.
+#: A residual is a resource stop enforced by a pinned S02 ``stop_thresholds``
+#: value (never a consumer defect): the consumer would accept the entry if the
+#: pinned ceiling were raised.  Only these classes are eligible; every other
+#: non-terminal outcome stays an undocumented failure.  The observed value must
+#: provably exceed the pinned threshold (a residual is never assumed).
+RESIDUAL_CLASSES = frozenset({"rss_limit_exceeded"})
 
 #: Map a ``classify_consumer`` verdict to an incomplete class.
 CONSUMER_OUTCOME_TO_INCOMPLETE = {
@@ -709,6 +719,84 @@ def receipt_is_current(
         and receipt["binary_sha256"] == binding.binary_sha256
         and receipt["outcome"] in TERMINAL_OUTCOMES
     )
+
+
+# --------------------------------------------------- documented residuals #
+
+
+def load_documented_residuals(path: Path) -> dict[str, Any]:
+    """Load and fail-closed validate a documented-residual declaration.
+
+    A *documented residual* names a manifest entry the pinned S02 resource
+    thresholds stop (``stop_thresholds.peak_rss_kb``) with a closed reason: it
+    is a pinned-threshold limitation, never a consumer defect.  The declaration
+    is machine-checked against the entry's manifest pins and the receipt's
+    observed cost, so a residual can never be assumed or silently widened: the
+    observed ``peak_rss_kb`` must provably exceed the pinned threshold.
+    """
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise HarnessError(f"documented residuals unreadable: {type(error).__name__}") from error
+    if not isinstance(payload, dict) or payload.get("schema") != DOCUMENTED_RESIDUAL_SCHEMA:
+        raise HarnessError("documented residuals is not the S07 declaration")
+    raw = payload.get("residuals")
+    if not isinstance(raw, list) or not raw:
+        raise HarnessError("documented residuals list is absent")
+    by_path: dict[str, dict[str, Any]] = {}
+    for item in raw:
+        if not isinstance(item, dict):
+            raise HarnessError("documented residual entry is not an object")
+        relative_path = item.get("relative_path")
+        if not isinstance(relative_path, str) or not _is_safe_relative(relative_path):
+            raise HarnessError("documented residual has an unsafe relative_path")
+        if relative_path in by_path:
+            raise HarnessError(f"duplicate documented residual: {relative_path}")
+        klass = item.get("outcome_class")
+        if klass not in RESIDUAL_CLASSES:
+            raise HarnessError(f"documented residual class is not closed: {klass!r}")
+        sha = item.get("input_sha256")
+        if not isinstance(sha, str) or not sha.startswith("sha256:"):
+            raise HarnessError("documented residual input_sha256 is not a sha256")
+        size = item.get("input_bytes")
+        if not isinstance(size, int) or isinstance(size, bool) or size < 0:
+            raise HarnessError("documented residual input_bytes is not a byte count")
+        pinned = item.get("pinned_peak_rss_kb")
+        if not isinstance(pinned, int) or isinstance(pinned, bool) or pinned <= 0:
+            raise HarnessError("documented residual pinned_peak_rss_kb is not a threshold")
+        assert_no_raw_text(item)
+        by_path[relative_path] = item
+    return {
+        "schema": DOCUMENTED_RESIDUAL_SCHEMA,
+        "count": len(by_path),
+        "by_path": by_path,
+    }
+
+
+def documented_residual_matches(
+    receipt: dict[str, Any], entry: probe.Entry, residual: dict[str, Any]
+) -> bool:
+    """True iff ``receipt`` is a *documented* pinned-threshold residual.
+
+    Every pin must match exactly (path, class, input sha256/bytes) **and** the
+    receipt's observed ``peak_rss_kb`` must exceed the residual's pinned
+    threshold.  A non-terminal receipt that does not satisfy every clause stays
+    a failure: documenting a residual never blanket-accepts an incomplete entry.
+    """
+    if receipt.get("outcome") != "incomplete":
+        return False
+    if receipt.get("outcome_class") not in RESIDUAL_CLASSES:
+        return False
+    if receipt.get("outcome_class") != residual["outcome_class"]:
+        return False
+    if receipt.get("input_sha256") != entry.sha256 or receipt.get("input_bytes") != entry.bytes:
+        return False
+    if residual["input_sha256"] != entry.sha256 or residual["input_bytes"] != entry.bytes:
+        return False
+    observed = receipt.get("peak_rss_kb")
+    if not isinstance(observed, (int, float)) or isinstance(observed, bool):
+        return False
+    return observed > residual["pinned_peak_rss_kb"]
 
 
 # ----------------------------------------------------------- counts check #
@@ -1271,11 +1359,22 @@ def verify_ledger(
     entries: Sequence[probe.Entry],
     receipts: Sequence[dict[str, Any]],
     live_binding: Binding | None = None,
+    residuals: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Objectively confirm ledger completeness and a single binding tuple."""
+    """Objectively confirm ledger completeness and a single binding tuple.
+
+    Completeness is satisfied by a *terminal* receipt (``accepted``/``refused``)
+    or by a **documented residual**: a non-terminal receipt whose closed
+    resource-stop class and observed cost match a pinned-threshold declaration
+    (see :func:`load_documented_residuals`).  Every other non-terminal receipt
+    stays a ``non_terminal`` error.  ``terminal``/``remaining`` keep counting a
+    documented residual honestly (it is **not** terminal), so the run is never
+    reported as full; ``terminal_with_documentation`` is the completeness view.
+    """
     latest = latest_by_path(receipts)
     entry_by_path = {entry.relative_path: entry for entry in entries}
     manifest_paths = [entry.relative_path for entry in entries]
+    residual_by_path = (residuals or {}).get("by_path", {}) if residuals else {}
     errors: list[dict[str, Any]] = []
 
     missing = [path for path in manifest_paths if path not in latest]
@@ -1287,17 +1386,35 @@ def verify_ledger(
 
     counts = _empty_counts()
     bindings: dict[tuple[str, str, str], int] = {}
+    documented: list[dict[str, Any]] = []
+    undocumented_remaining = 0
     for path in manifest_paths:
         receipt = latest.get(path)
         if receipt is None:
             continue
-        _tally(counts, receipt)
-        bindings[receipt_binding_key(receipt)] = bindings.get(receipt_binding_key(receipt), 0) + 1
         entry = entry_by_path[path]
+        bindings[receipt_binding_key(receipt)] = bindings.get(receipt_binding_key(receipt), 0) + 1
         if receipt["input_sha256"] != entry.sha256 or receipt["input_bytes"] != entry.bytes:
             errors.append({"code": "input_mismatch", "relative_path": path})
+        residual = residual_by_path.get(path)
+        if (
+            receipt["outcome"] not in TERMINAL_OUTCOMES
+            and residual is not None
+            and documented_residual_matches(receipt, entry, residual)
+        ):
+            documented.append(
+                {
+                    "relative_path": path,
+                    "outcome_class": receipt["outcome_class"],
+                    "pinned_peak_rss_kb": residual["pinned_peak_rss_kb"],
+                    "observed_peak_rss_kb": receipt["peak_rss_kb"],
+                }
+            )
+            continue
+        _tally(counts, receipt)
         if receipt["outcome"] not in TERMINAL_OUTCOMES:
             errors.append({"code": "non_terminal", "relative_path": path})
+            undocumented_remaining += 1
 
     if len(bindings) > 1:
         errors.append({"code": "multiple_bindings", "count": len(bindings)})
@@ -1319,6 +1436,8 @@ def verify_ledger(
             "binary_sha256": live_binding.binary_sha256,
         }
 
+    terminal = counts["accepted"] + counts["refused"]
+    documented_residual = len(documented)
     ok = not errors
     return {
         "schema": RUN_SCHEMA,
@@ -1326,7 +1445,13 @@ def verify_ledger(
         "entries": len(entries),
         "received_receipts": len(receipts),
         "counts": counts,
-        "terminal": counts["accepted"] + counts["refused"],
+        "terminal": terminal,
+        "documented_residual": documented_residual,
+        "undocumented_remaining": undocumented_remaining,
+        "terminal_with_documentation": terminal + documented_residual,
+        "documented_residuals": documented,
+        "complete_with_documented_residuals": ok
+        and (terminal + documented_residual == len(entries)),
         "binding": binding_key_out,
         "distinct_bindings": len(bindings),
         "live_binding": live_binding.as_dict() if live_binding is not None else None,
@@ -1336,8 +1461,47 @@ def verify_ledger(
     }
 
 
-# ------------------------------------------------------------- proof set #
+def classify_documented_residuals(
+    entries: Sequence[probe.Entry],
+    latest: dict[str, dict[str, Any]],
+    residuals: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Classify the run's non-terminal tail against the documented-residual set.
 
+    Used to annotate the run report: it never changes ``terminal``/``remaining``
+    (a residual stays non-terminal and the run is never reported as full); it
+    records which non-terminal entries are pinned-threshold residuals and how
+    many remain undocumented.
+    """
+    residual_by_path = (residuals or {}).get("by_path", {}) if residuals else {}
+    documented: list[dict[str, Any]] = []
+    undocumented = 0
+    for entry in entries:
+        receipt = latest.get(entry.relative_path)
+        if receipt is None or receipt["outcome"] in TERMINAL_OUTCOMES:
+            continue
+        residual = residual_by_path.get(entry.relative_path)
+        if residual is not None and documented_residual_matches(receipt, entry, residual):
+            documented.append(
+                {
+                    "relative_path": entry.relative_path,
+                    "outcome_class": receipt["outcome_class"],
+                    "pinned_peak_rss_kb": residual["pinned_peak_rss_kb"],
+                    "observed_peak_rss_kb": receipt["peak_rss_kb"],
+                }
+            )
+        else:
+            undocumented += 1
+    return {
+        "schema": DOCUMENTED_RESIDUAL_SCHEMA,
+        "declared": (residuals or {}).get("count", 0) if residuals else 0,
+        "documented_residual": len(documented),
+        "undocumented_remaining": undocumented,
+        "residuals": documented,
+    }
+
+
+# ------------------------------------------------------------- proof set #
 #: Seed for the deterministic proof subset (S02 probe seed, for traceability).
 PROOF_SEED = 22302
 #: Entries drawn per top-level corpus subdirectory.
@@ -1981,8 +2145,18 @@ def build_run_report(
     preflight_result: dict[str, Any] | None,
     manifest_sha256: str,
     s03: dict[str, Any] | None,
+    residuals_block: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     summary = state.get("summary", {})
+    terminal = summary.get("terminal")
+    remaining = summary.get("remaining")
+    block = residuals_block or {}
+    documented_residual = int(block.get("documented_residual", 0) or 0)
+    if block.get("undocumented_remaining") is not None:
+        undocumented_remaining = int(block["undocumented_remaining"])
+    else:
+        undocumented_remaining = remaining if remaining is not None else 0
+    terminal_with_documentation = (terminal if terminal is not None else 0) + documented_residual
     report = {
         "schema": RUN_SCHEMA,
         "status": state["status"],
@@ -2000,11 +2174,28 @@ def build_run_report(
             "accepted": summary.get("accepted"),
             "refused": summary.get("refused"),
             "incomplete": summary.get("incomplete"),
-            "terminal": summary.get("terminal"),
-            "remaining": summary.get("remaining"),
+            "terminal": terminal,
+            "remaining": remaining,
+            "documented_residual": documented_residual,
+            "undocumented_remaining": undocumented_remaining,
+            "terminal_with_documentation": terminal_with_documentation,
         },
         "refused_by_class": summary.get("refused_by_class"),
         "incomplete_by_class": summary.get("incomplete_by_class"),
+        "documented_residuals": {
+            "schema": DOCUMENTED_RESIDUAL_SCHEMA,
+            "declared": int(block.get("declared", 0) or 0),
+            "count": documented_residual,
+            "residuals": list(block.get("residuals", []) or []),
+            "note": "pinned-threshold residuals: the consumer would accept the entry "
+            "if the pinned S02 peak_rss_kb ceiling were raised; they are NOT terminal "
+            "and the run is NOT reported as full (partial_is_not_full=true).",
+        },
+        "complete_with_documented_residuals": bool(
+            summary.get("entries") is not None
+            and terminal_with_documentation == summary.get("entries")
+            and undocumented_remaining == 0
+        ),
         "disk": {
             "before": state.get("disk_before"),
             "after": state.get("disk_after"),
@@ -2048,6 +2239,13 @@ def _add_common(parser: argparse.ArgumentParser) -> None:
         "--code-revision",
         default=None,
         help="test/ops override for the aggregate code revision (never guessed in production)",
+    )
+    parser.add_argument(
+        "--residuals",
+        type=Path,
+        default=None,
+        help="documented pinned-threshold residuals declaration; defaults to the "
+        "tracked S07 declaration when present (an explicit path must exist)",
     )
 
 
@@ -2107,6 +2305,20 @@ def _resolve_paths(args: argparse.Namespace) -> tuple[Path, Path]:
     return receipts, report
 
 
+def _resolve_residuals(args: argparse.Namespace) -> dict[str, Any] | None:
+    """Load the documented-residual declaration, if any.
+
+    An explicit ``--residuals`` path must exist (fail-closed: a missing
+    declaration is an operator error).  The default tracked declaration is
+    optional, so a run without one simply has no documented residuals.
+    """
+    explicit = getattr(args, "residuals", None)
+    path = explicit if explicit is not None else DEFAULT_RESIDUALS
+    if explicit is None and not path.is_file():
+        return None
+    return load_documented_residuals(path)
+
+
 def _limits_from_decision(
     decision: dict[str, Any], *, consumer_wall_s: float | None
 ) -> probe.Limits:
@@ -2138,6 +2350,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     try:
         decision, header, entries, s03 = _load_inputs(args)
         binding = compute_binding(args.bin_path, code_revision=args.code_revision)
+        residuals = _resolve_residuals(args)
     except HarnessError as error:
         print(f"m223-s07-corpus-run: fail-closed: {error}", file=sys.stderr)
         return EXIT_PREFLIGHT
@@ -2234,6 +2447,9 @@ def cmd_run(args: argparse.Namespace) -> int:
         exit_code = EXIT_INCOMPLETE
 
     attempts = _recent_attempts(ReceiptLog(receipts_path).read())
+    residuals_block = classify_documented_residuals(
+        entries, latest_by_path(ReceiptLog(receipts_path).read()), residuals
+    )
     report = build_run_report(
         state=state,
         header=header,
@@ -2243,6 +2459,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         preflight_result=preflight_result,
         manifest_sha256=probe.sha256_file(args.manifest),
         s03=s03,
+        residuals_block=residuals_block,
     )
     report_path.parent.mkdir(parents=True, exist_ok=True)
     _write_json(report, report_path)
@@ -2250,7 +2467,8 @@ def cmd_run(args: argparse.Namespace) -> int:
         f"m223-s07-corpus-run: status={state['status']} "
         f"accepted={state['summary'].get('accepted')} refused={state['summary'].get('refused')} "
         f"incomplete={state['summary'].get('incomplete')} "
-        f"remaining={state['summary'].get('remaining')}",
+        f"remaining={state['summary'].get('remaining')} "
+        f"documented_residual={residuals_block.get('documented_residual')}",
         file=sys.stderr,
     )
     return exit_code
@@ -2260,6 +2478,7 @@ def cmd_status(args: argparse.Namespace) -> int:
     receipts_path, _ = _resolve_paths(args)
     try:
         _decision, header, entries, _s03 = _load_inputs(args)
+        residuals = _resolve_residuals(args)
     except HarnessError as error:
         print(f"m223-s07-corpus-run: fail-closed: {error}", file=sys.stderr)
         return EXIT_PREFLIGHT
@@ -2270,12 +2489,14 @@ def cmd_status(args: argparse.Namespace) -> int:
         return EXIT_VERIFY_FAILED
     latest = latest_by_path(receipts)
     summary = summarize_receipts(entries, latest)
+    residuals_block = classify_documented_residuals(entries, latest, residuals)
     snapshot = {
         "schema": RUN_SCHEMA,
         "receipts_path": str(receipts_path),
         "manifest_entries": len(entries),
         "inventory_digest": header.get("inventory_digest"),
         "summary": summary,
+        "documented_residuals": residuals_block,
         "partial_is_not_full": summary["terminal"] != summary["entries"],
     }
     print(json.dumps(snapshot, ensure_ascii=True, sort_keys=True))
@@ -2286,6 +2507,7 @@ def cmd_verify_ledger(args: argparse.Namespace) -> int:
     receipts_path, _ = _resolve_paths(args)
     try:
         _decision, header, entries, _s03 = _load_inputs(args)
+        residuals = _resolve_residuals(args)
     except HarnessError as error:
         print(f"m223-s07-corpus-run: fail-closed: {error}", file=sys.stderr)
         return EXIT_PREFLIGHT
@@ -2301,7 +2523,9 @@ def cmd_verify_ledger(args: argparse.Namespace) -> int:
     except HarnessError:
         live_binding = None
 
-    result = verify_ledger(entries=entries, receipts=receipts, live_binding=live_binding)
+    result = verify_ledger(
+        entries=entries, receipts=receipts, live_binding=live_binding, residuals=residuals
+    )
     result["manifest"] = {
         "path": str(args.manifest),
         "sha256": probe.sha256_file(args.manifest),

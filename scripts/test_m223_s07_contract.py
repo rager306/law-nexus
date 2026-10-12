@@ -11,8 +11,9 @@ section 12):
     "Whole-corpus acceptance boundary", "Additive-only", "S03 reconciliation",
     "Slice boundaries", "Threat surface", "Requirement impact", "Verification
     surface", the ``frozen-contract-inventory`` / ``immutability-pins`` /
-    ``consumer-model`` blocks, ``active/unclosed``, ``43785``,
-    ``reader_tokenizer`` and ``npa_graph_projection``);
+    ``consumer-model`` / ``corpus-acceptance-boundary`` blocks, ``active/unclosed``,
+    ``43785``, ``bounded-partial``, ``reader_tokenizer`` and
+    ``npa_graph_projection``);
 (b) the five frozen upstream wire contracts match the sha256 inventory pinned in
     the design contract exactly — drift is an explicit failure, never a silent
     re-pin;
@@ -23,6 +24,10 @@ section 12):
     schema-v1 identities, are redacted, and satisfy the consumer accounting
     invariants (``terminal = accepted + refused`` and
     ``entries = terminal + remaining``; a partial run is never reported as full);
+    the design contract's declared ``bounded-partial`` boundary must be
+    consistent with the published run report (declares bounded-partial iff
+    ``partial_is_not_full=true`` and ``status != complete`` while
+    ``remaining > 0``);
 (e) immutability: the six section-2 source files and the two frozen
     ``prd/architecture/*.jsonl`` artifacts match the ``immutability-pins`` block;
 (f) the machine-readable ``consumer-model`` block is total over the closed
@@ -93,6 +98,9 @@ PINS_BEGIN = "<!-- immutability-pins:begin -->"
 PINS_END = "<!-- immutability-pins:end -->"
 MODEL_BEGIN = "<!-- consumer-model:begin -->"
 MODEL_END = "<!-- consumer-model:end -->"
+BOUNDARY_BEGIN = "<!-- corpus-acceptance-boundary:begin -->"
+BOUNDARY_END = "<!-- corpus-acceptance-boundary:end -->"
+BOUNDARY_KIND = "bounded-partial"
 TOKENIZER_MODEL_BEGIN = "<!-- consumer-model:reader_tokenizer:begin -->"
 TOKENIZER_MODEL_END = "<!-- consumer-model:reader_tokenizer:end -->"
 GRAPH_MODEL_BEGIN = "<!-- consumer-model:npa_graph_projection:begin -->"
@@ -117,8 +125,11 @@ REQUIRED_MARKERS = (
     PINS_END,
     MODEL_BEGIN,
     MODEL_END,
+    BOUNDARY_BEGIN,
+    BOUNDARY_END,
     "active/unclosed",
     "43785",
+    "bounded-partial",
     "reader_tokenizer",
     "npa_graph_projection",
 )
@@ -329,6 +340,29 @@ def parse_consumer_model_block(contract_text: str) -> list[str]:
     return lines
 
 
+def parse_acceptance_boundary(contract_text: str) -> dict[str, str]:
+    """Parse the machine-readable bounded-partial boundary declaration, fail-closed.
+
+    The block declares the S07 whole-corpus acceptance boundary (design contract
+    §6.3) in ``key:value`` form; the battery cross-checks it against the
+    published corpus-run report so the declared boundary can never drift from the
+    artifact.
+    """
+    fields: dict[str, str] = {}
+    for line in _block_lines(
+        contract_text, BOUNDARY_BEGIN, BOUNDARY_END, "corpus-acceptance-boundary"
+    ):
+        key, sep, value = line.partition(":")
+        assert sep and key and value, f"battery: malformed boundary line {line!r}"
+        assert key not in fields, f"battery: duplicate boundary key {key!r}"
+        fields[key] = value
+    assert fields.get("boundary") == BOUNDARY_KIND, (
+        f"battery: the boundary block must declare boundary:{BOUNDARY_KIND}, "
+        f"got {fields.get('boundary')!r}"
+    )
+    return fields
+
+
 def parse_rust_model_block(source_text: str, begin: str, end: str, what: str) -> list[str]:
     """Parse one module's embedded consumer-model block from its doc comment."""
     return _block_lines(source_text, begin, end, what, normalize=_strip_rust_doc)
@@ -453,6 +487,48 @@ def assert_s03_reconciled(reconciled: dict[str, Any]) -> None:
     )
 
 
+def assert_boundary_consistent(boundary: dict[str, str], run_report: dict[str, Any]) -> None:
+    """The declared boundary must match the published run report, fail-closed.
+
+    The design contract declares the S07 acceptance boundary as
+    ``bounded-partial`` (§6.3) **iff** the published corpus-run report is
+    actually partial: ``partial_is_not_full=true``, ``status != complete`` while
+    ``remaining > 0``, and the declared ``published_terminal`` /
+    ``published_remaining`` equal the report's counts.  A contract that claims a
+    full run, or an artifact whose tail contradicts the declaration, fails
+    closed.
+    """
+    assert boundary.get("boundary") == BOUNDARY_KIND, (
+        f"battery: the contract must declare boundary:{BOUNDARY_KIND}, "
+        f"got {boundary.get('boundary')!r}"
+    )
+    counts = run_report["counts"]
+    assert run_report.get("partial_is_not_full") is True, (
+        "battery: a bounded-partial declaration requires partial_is_not_full=true in the report"
+    )
+    assert counts["remaining"] > 0, (
+        "battery: a bounded-partial declaration requires a non-empty remaining tail"
+    )
+    assert run_report.get("status") != "complete", (
+        "battery: a bounded-partial declaration forbids status=complete while remaining > 0"
+    )
+    assert boundary.get("published_partial_is_not_full") == "true", (
+        "battery: the declared published_partial_is_not_full must be true"
+    )
+    assert int(boundary["published_terminal"]) == counts["terminal"], (
+        "battery: declared published_terminal must equal the report terminal count "
+        f"({boundary.get('published_terminal')} != {counts['terminal']})"
+    )
+    assert int(boundary["published_remaining"]) == counts["remaining"], (
+        "battery: declared published_remaining must equal the report remaining count "
+        f"({boundary.get('published_remaining')} != {counts['remaining']})"
+    )
+    assert int(boundary["full_corpus_terminal_required"]) == EXPECTED_ENTRIES, (
+        "battery: declared full_corpus_terminal_required must equal the manifest size "
+        f"({boundary.get('full_corpus_terminal_required')} != {EXPECTED_ENTRIES})"
+    )
+
+
 def latest_by_path(receipts: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     latest: dict[str, dict[str, Any]] = {}
     for receipt in receipts:
@@ -479,6 +555,7 @@ def run_battery() -> dict[str, Any]:
     # (a) required sections and markers.
     missing = [marker for marker in REQUIRED_MARKERS if marker not in contract_text]
     assert not missing, f"battery: design contract is missing required markers: {missing}"
+    boundary = parse_acceptance_boundary(contract_text)
 
     # (b) frozen-contract inventory versus the tracked files: drift is an
     # explicit failure, never a silent re-pin.
@@ -551,6 +628,9 @@ def run_battery() -> dict[str, Any]:
         f"battery: corpus-run R1000 must stay {EXPECTED_R1000_STATUS}, "
         f"got {run_report.get('r1000_status')!r}"
     )
+    # The design contract's declared boundary must match the published artifact
+    # (contract declares bounded-partial iff the run is actually partial).
+    assert_boundary_consistent(boundary, run_report)
     redaction_check(run_report)
 
     # The receipt ledger: every line is a schema-v1 receipt and is redacted.
@@ -684,6 +764,7 @@ def run_battery() -> dict[str, Any]:
         "architecture_entries": architecture_entries,
         "baseline": baseline,
         "run_report": run_report,
+        "acceptance_boundary": boundary,
         "receipt_lines": len(receipts),
         "receipt_terminal_paths": terminal_paths,
         "resume_proof": resume_proof,
@@ -743,6 +824,9 @@ def build_artifact(analysis: dict[str, Any]) -> dict[str, Any]:
         "census_accounting_ok": True,
         "census_s03_reconciled": True,
         "census_redaction_ok": True,
+        "declared_acceptance_boundary": analysis["acceptance_boundary"]["boundary"],
+        "acceptance_boundary_block": analysis["acceptance_boundary"],
+        "acceptance_boundary_consistent": True,
         "receipts_path": RECEIPTS_RELPATH,
         "receipts_schema": RECEIPT_SCHEMA,
         "receipts_lines": analysis["receipt_lines"],
@@ -807,6 +891,20 @@ def test_corpus_run_report_is_the_corpus_census_schema_v1_and_accounted(battery)
     assert report["partial_is_not_full"] is True
     assert report["r1000_status"] == EXPECTED_R1000_STATUS
     assert_s03_reconciled(report["s03_baseline_reconciled"])
+
+
+def test_declared_boundary_is_bounded_partial_and_matches_the_report(battery):
+    boundary = battery["acceptance_boundary"]
+    assert boundary["boundary"] == BOUNDARY_KIND
+    assert boundary["published_partial_is_not_full"] == "true"
+    assert int(boundary["full_corpus_terminal_required"]) == EXPECTED_ENTRIES
+    # Consistency with the published run report is re-asserted from raw files so
+    # a stale fixture can never hide a contract<->artifact mismatch.
+    report = json.loads(RUN_PATH.read_text(encoding="utf-8"))
+    assert_boundary_consistent(boundary, report)
+    assert report["counts"]["terminal"] == int(boundary["published_terminal"])
+    assert report["counts"]["remaining"] == int(boundary["published_remaining"])
+    assert report["status"] != "complete"
 
 
 def test_receipt_ledger_is_schema_v1_redacted_and_matches_the_report(battery):
@@ -901,6 +999,8 @@ def test_battery_artifact_is_emitted_redacted_and_schema_versioned(battery):
     assert artifact["consumer_model_matches_source"] is True
     assert artifact["census_accounting_ok"] is True
     assert artifact["census_s03_reconciled"] is True
+    assert artifact["declared_acceptance_boundary"] == BOUNDARY_KIND
+    assert artifact["acceptance_boundary_consistent"] is True
     assert artifact["receipts_redaction_ok"] is True
     assert artifact["resume_proof_ok"] is True
     assert artifact["repeat_import_counts_byte_identical"] is True
@@ -1038,6 +1138,72 @@ def test_redaction_guard_accepts_paths_counters_and_hashes():
             "outcome": "accepted",
         }
     )
+
+
+def test_acceptance_boundary_parser_fails_closed_on_a_malformed_line():
+    text = "\n".join([BOUNDARY_BEGIN, "not-a-valid-line", BOUNDARY_END])
+    with pytest.raises(AssertionError):
+        parse_acceptance_boundary(text)
+
+
+def test_acceptance_boundary_parser_rejects_a_non_bounded_partial_kind():
+    text = "\n".join([BOUNDARY_BEGIN, "boundary:full", BOUNDARY_END])
+    with pytest.raises(AssertionError):
+        parse_acceptance_boundary(text)
+
+
+def test_boundary_consistency_rejects_a_full_run_claimed_bounded_partial():
+    boundary = {
+        "boundary": BOUNDARY_KIND,
+        "published_terminal": "43785",
+        "published_remaining": "0",
+        "published_partial_is_not_full": "true",
+        "full_corpus_terminal_required": "43785",
+    }
+    report = {
+        "status": "complete",
+        "partial_is_not_full": False,
+        "counts": {
+            "entries": 43785,
+            "accepted": 43785,
+            "refused": 0,
+            "incomplete": 0,
+            "terminal": 43785,
+            "remaining": 0,
+        },
+    }
+    with pytest.raises(AssertionError):
+        assert_boundary_consistent(boundary, report)
+
+
+def test_boundary_consistency_rejects_a_mismatched_declared_terminal():
+    boundary = {
+        "boundary": BOUNDARY_KIND,
+        "published_terminal": "9999",
+        "published_remaining": "38346",
+        "published_partial_is_not_full": "true",
+        "full_corpus_terminal_required": "43785",
+    }
+    report = {
+        "status": "budget_exhausted",
+        "partial_is_not_full": True,
+        "counts": {
+            "entries": 43785,
+            "accepted": 5439,
+            "refused": 0,
+            "incomplete": 2,
+            "terminal": 5439,
+            "remaining": 38346,
+        },
+    }
+    with pytest.raises(AssertionError):
+        assert_boundary_consistent(boundary, report)
+
+
+def test_boundary_consistency_accepts_the_published_bounded_partial():
+    boundary = parse_acceptance_boundary(CONTRACT_PATH.read_text(encoding="utf-8"))
+    report = json.loads(RUN_PATH.read_text(encoding="utf-8"))
+    assert_boundary_consistent(boundary, report)
 
 
 def test_str_array_parser_fails_closed_on_a_missing_const():

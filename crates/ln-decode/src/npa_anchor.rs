@@ -420,7 +420,10 @@ fn scan_inbound(text: &[char]) -> Vec<InboundZone> {
                     }
                 } else {
                     // форма 2: N NUM от DD.MM.YYYY
-                    if text[k] == 'N' || text[k] == 'n' {
+                    // `k = skip_ws(text, j + 3)` may equal `n` when the text ends
+                    // right after `вх.` + whitespace; guard the index (an unguarded
+                    // `text[k]` panicked with `len == index`).
+                    if k < n && (text[k] == 'N' || text[k] == 'n') {
                         let a = skip_ws(text, k + 1);
                         if let Some((nend, _)) = read_number(text, a) {
                             let b = skip_ws(text, nend);

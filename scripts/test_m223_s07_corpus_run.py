@@ -896,3 +896,300 @@ def test_prove_resume_rejects_unknown_refusal_token(tmp_path):
     report = json.loads((tmp_path / "run.json").read_text(encoding="utf-8"))
     assert report["counts"]["refused"] == 0
     assert report["counts"]["incomplete"] == 1
+
+
+# --------------------------------------------- documented residuals (T09) #
+
+
+def _incomplete_receipt(
+    entry,
+    *,
+    klass: str = "rss_limit_exceeded",
+    peak_rss_kb: int = 6_292_252,
+    binding=None,
+):
+    binding = binding or mod.Binding(
+        FIXED_REVISION, mod.rules_digest(), "sha256:" + "b" * 64, "bin"
+    )
+    receipt = mod._base_receipt(entry, binding, 1, 0.0)
+    receipt["input_sha256"] = entry.sha256
+    receipt["input_bytes"] = entry.bytes
+    receipt["peak_rss_kb"] = peak_rss_kb
+    return mod._finish(receipt, "incomplete", klass)
+
+
+def _residual_entry(entry, *, klass="rss_limit_exceeded", pinned=6_291_456, sha=None, size=None):
+    return {
+        "relative_path": entry.relative_path,
+        "outcome_class": klass,
+        "input_sha256": sha if sha is not None else entry.sha256,
+        "input_bytes": size if size is not None else entry.bytes,
+        "pinned_peak_rss_kb": pinned,
+    }
+
+
+def _residuals(entry, **kwargs):
+    return {
+        "schema": mod.DOCUMENTED_RESIDUAL_SCHEMA,
+        "count": 1,
+        "by_path": {entry.relative_path: _residual_entry(entry, **kwargs)},
+    }
+
+
+def _write_residuals(path: Path, items: list[dict], *, schema: str | None = None) -> Path:
+    path.write_text(
+        json.dumps(
+            {
+                "schema": schema if schema is not None else mod.DOCUMENTED_RESIDUAL_SCHEMA,
+                "version": 1,
+                "r1000_status": "active/unclosed",
+                "residuals": items,
+            }
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_load_documented_residuals_fails_closed_on_bad_schema(tmp_path):
+    path = _write_residuals(
+        tmp_path / "r.json",
+        [_residual_entry(mod.probe.Entry("a/b.xml", "sha256:" + "a" * 64, 5))],
+        schema="not-the-schema/v9",
+    )
+    with pytest.raises(mod.HarnessError):
+        mod.load_documented_residuals(path)
+    # an absent list is also fail-closed
+    empty = tmp_path / "empty.json"
+    empty.write_text(
+        json.dumps({"schema": mod.DOCUMENTED_RESIDUAL_SCHEMA, "residuals": []}),
+        encoding="utf-8",
+    )
+    with pytest.raises(mod.HarnessError):
+        mod.load_documented_residuals(empty)
+
+
+def test_load_documented_residuals_rejects_unsafe_duplicate_and_open_class(tmp_path):
+    entry = mod.probe.Entry("a/b.xml", "sha256:" + "a" * 64, 5)
+    # unsafe relative_path
+    with pytest.raises(mod.HarnessError):
+        mod.load_documented_residuals(
+            _write_residuals(tmp_path / "u.json", [_residual_entry(entry, sha="x")])
+        )
+    # a class outside the closed residual vocabulary is refused (never widened)
+    bad = _residual_entry(entry)
+    bad["outcome_class"] = "unknown_exit"
+    with pytest.raises(mod.HarnessError):
+        mod.load_documented_residuals(_write_residuals(tmp_path / "c.json", [bad]))
+    # a duplicate path is refused
+    with pytest.raises(mod.HarnessError):
+        mod.load_documented_residuals(
+            _write_residuals(tmp_path / "d.json", [_residual_entry(entry), _residual_entry(entry)])
+        )
+    # a non-sha256 input pin is refused
+    bad_sha = _residual_entry(entry)
+    bad_sha["input_sha256"] = "deadbeef"
+    with pytest.raises(mod.HarnessError):
+        mod.load_documented_residuals(_write_residuals(tmp_path / "s.json", [bad_sha]))
+    # a non-positive pinned threshold is refused
+    bad_pin = _residual_entry(entry)
+    bad_pin["pinned_peak_rss_kb"] = 0
+    with pytest.raises(mod.HarnessError):
+        mod.load_documented_residuals(_write_residuals(tmp_path / "p.json", [bad_pin]))
+
+
+def test_documented_residual_matches_only_on_exact_pins_and_exceeded_threshold():
+    entry = mod.probe.Entry("a/b.xml", "sha256:" + "a" * 64, 5)
+    residual = _residual_entry(entry)
+    good = _incomplete_receipt(entry)
+    assert mod.documented_residual_matches(good, entry, residual)
+    # observed cost exactly at (not above) the pin is not a residual
+    assert not mod.documented_residual_matches(
+        _incomplete_receipt(entry, peak_rss_kb=6_291_456), entry, residual
+    )
+    # a terminal receipt is never a residual
+    accepted = mod._finish(
+        mod._base_receipt(
+            entry,
+            mod.Binding(FIXED_REVISION, mod.rules_digest(), "sha256:" + "b" * 64, "bin"),
+            1,
+            0.0,
+        ),
+        "accepted",
+        "accepted",
+    )
+    assert not mod.documented_residual_matches(accepted, entry, residual)
+    # a different (non-residual) class is never a residual
+    assert not mod.documented_residual_matches(
+        _incomplete_receipt(entry, klass="unknown_exit"), entry, residual
+    )
+    # an input pin mismatch (receipt vs manifest) is never a residual
+    other = mod.probe.Entry("a/b.xml", "sha256:" + "9" * 64, 5)
+    assert not mod.documented_residual_matches(good, other, residual)
+    # a residual declaration whose pins disagree with the manifest is never a residual
+    assert not mod.documented_residual_matches(
+        good, entry, _residual_entry(entry, sha="sha256:" + "9" * 64)
+    )
+
+
+def test_verify_ledger_accepts_a_documented_residual_and_keeps_the_run_partial():
+    entry = mod.probe.Entry("a/b.xml", "sha256:" + "a" * 64, 5)
+    binding = mod.Binding(FIXED_REVISION, mod.rules_digest(), "sha256:" + "b" * 64, "bin")
+    receipt = _incomplete_receipt(entry, binding=binding)
+    result = mod.verify_ledger(
+        entries=[entry], receipts=[receipt], live_binding=binding, residuals=_residuals(entry)
+    )
+    assert result["ok"] is True
+    assert result["documented_residual"] == 1
+    assert result["undocumented_remaining"] == 0
+    # the residual is NOT terminal: the run is still honestly partial.
+    assert result["terminal"] == 0
+    assert result["counts"]["incomplete"] == 0
+    assert result["terminal_with_documentation"] == 1
+    assert result["complete_with_documented_residuals"] is True
+    assert result["partial_is_not_full"] is True
+
+
+def test_verify_ledger_rejects_an_undocumented_incomplete():
+    entry = mod.probe.Entry("a/b.xml", "sha256:" + "a" * 64, 5)
+    binding = mod.Binding(FIXED_REVISION, mod.rules_digest(), "sha256:" + "b" * 64, "bin")
+    receipt = _incomplete_receipt(entry, binding=binding)
+    # no declaration at all
+    bare = mod.verify_ledger(entries=[entry], receipts=[receipt], live_binding=binding)
+    assert bare["ok"] is False
+    assert any(error["code"] == "non_terminal" for error in bare["errors"])
+    # a declaration for a *different* path does not exempt this entry
+    other = mod.probe.Entry("c/d.xml", "sha256:" + "c" * 64, 6)
+    mismatched = mod.verify_ledger(
+        entries=[entry], receipts=[receipt], live_binding=binding, residuals=_residuals(other)
+    )
+    assert mismatched["ok"] is False
+    assert mismatched["undocumented_remaining"] == 1
+    assert mismatched["documented_residual"] == 0
+
+
+def test_verify_ledger_rejects_a_residual_with_unmatched_input_pins():
+    entry = mod.probe.Entry("a/b.xml", "sha256:" + "a" * 64, 5)
+    binding = mod.Binding(FIXED_REVISION, mod.rules_digest(), "sha256:" + "b" * 64, "bin")
+    receipt = _incomplete_receipt(entry, binding=binding)
+    # the declaration's input pins disagree with the manifest -> not a residual.
+    result = mod.verify_ledger(
+        entries=[entry],
+        receipts=[receipt],
+        live_binding=binding,
+        residuals=_residuals(entry, size=999),
+    )
+    assert result["ok"] is False
+    assert result["documented_residual"] == 0
+    assert any(error["code"] == "non_terminal" for error in result["errors"])
+
+
+def test_classify_documented_residuals_reports_documented_and_undocumented():
+    documented_entry = mod.probe.Entry("a/b.xml", "sha256:" + "a" * 64, 5)
+    undocumented_entry = mod.probe.Entry("c/d.xml", "sha256:" + "c" * 64, 6)
+    binding = mod.Binding(FIXED_REVISION, mod.rules_digest(), "sha256:" + "b" * 64, "bin")
+    latest = {
+        documented_entry.relative_path: _incomplete_receipt(documented_entry, binding=binding),
+        undocumented_entry.relative_path: _incomplete_receipt(
+            undocumented_entry, klass="unknown_exit", binding=binding
+        ),
+    }
+    block = mod.classify_documented_residuals(
+        [documented_entry, undocumented_entry], latest, _residuals(documented_entry)
+    )
+    assert block["documented_residual"] == 1
+    assert block["undocumented_remaining"] == 1
+    assert block["residuals"][0]["relative_path"] == documented_entry.relative_path
+    assert block["residuals"][0]["observed_peak_rss_kb"] == 6_292_252
+
+
+def test_run_report_carries_documented_residuals_and_stays_partial(tmp_path):
+    entry = mod.probe.Entry("a/b.xml", "sha256:" + "a" * 64, 5)
+    latest = {entry.relative_path: _incomplete_receipt(entry)}
+    block = mod.classify_documented_residuals([entry], latest, _residuals(entry))
+    state = {
+        "status": "incomplete",
+        "binding": mod.Binding(
+            FIXED_REVISION, mod.rules_digest(), "sha256:" + "b" * 64, "bin"
+        ).as_dict(),
+        "summary": {
+            "entries": 1,
+            "accepted": 0,
+            "refused": 0,
+            "incomplete": 1,
+            "terminal": 0,
+            "remaining": 1,
+            "refused_by_class": {},
+            "incomplete_by_class": {"rss_limit_exceeded": 1},
+        },
+        "disk_before": {"free_bytes": 0, "total_bytes": 0},
+        "disk_after": {"free_bytes": 0, "total_bytes": 0},
+    }
+    decision = {
+        "decision": {
+            "stop_thresholds": {"peak_rss_kb": 6_291_456, "single_artifact_bytes": 1, "wall_s": 1}
+        }
+    }
+    report = mod.build_run_report(
+        state=state,
+        header={"counts": {"entries": 1}, "inventory_digest": "sha256:" + "0" * 64},
+        manifest_path=tmp_path / "manifest.jsonl",
+        decision=decision,
+        attempts=[],
+        preflight_result=None,
+        manifest_sha256="sha256:" + "1" * 64,
+        s03=None,
+        residuals_block=block,
+    )
+    counts = report["counts"]
+    assert counts["documented_residual"] == 1
+    assert counts["undocumented_remaining"] == 0
+    assert counts["terminal"] == 0 and counts["remaining"] == 1
+    assert counts["terminal_with_documentation"] == 1
+    assert report["documented_residuals"]["count"] == 1
+    assert report["complete_with_documented_residuals"] is True
+    assert report["partial_is_not_full"] is True
+    assert report["status"] == "incomplete"
+    mod.assert_no_raw_text(report)
+
+
+def test_verify_ledger_cli_accepts_a_documented_residual(tmp_path):
+    entry = mod.probe.Entry("a/b.xml", "sha256:" + "a" * 64, 5)
+    manifest = tmp_path / "manifest.jsonl"
+    write_manifest(
+        manifest,
+        [{"relative_path": entry.relative_path, "sha256": entry.sha256, "bytes": entry.bytes}],
+    )
+    binding = mod.Binding(FIXED_REVISION, mod.rules_digest(), "sha256:" + "b" * 64, "bin")
+    mod.ReceiptLog(tmp_path / "receipts.jsonl").append(_incomplete_receipt(entry, binding=binding))
+    residuals = _write_residuals(tmp_path / "residuals.json", [_residual_entry(entry)])
+    common = [
+        "--manifest",
+        str(manifest),
+        "--corpus-root",
+        str(ROOT),
+        "--bin",
+        str(real_binary()),
+        "--scratch",
+        str(tmp_path / "scratch"),
+        "--receipts",
+        str(tmp_path / "receipts.jsonl"),
+        "--code-revision",
+        FIXED_REVISION,
+    ]
+    verified = cli_json(run_cli("verify-ledger", *common, "--residuals", str(residuals), expect=0))
+    assert verified["ok"] is True
+    assert verified["documented_residual"] == 1
+    assert verified["terminal"] == 0
+    assert verified["partial_is_not_full"] is True
+
+    # Without the declaration the very same ledger fails closed.
+    run_cli("verify-ledger", *common, expect=mod.EXIT_VERIFY_FAILED)
+    # An explicit but missing declaration is a fail-closed operator error.
+    run_cli(
+        "verify-ledger",
+        *common,
+        "--residuals",
+        str(tmp_path / "absent-residuals.json"),
+        expect=mod.EXIT_PREFLIGHT,
+    )

@@ -13,7 +13,7 @@
     "a_partial_corpus_run_is_never_reported_as_full"
   ],
   "contract_path": "prd/architecture/intermediate-source-consumer-acceptance-contract.md",
-  "contract_sha256": "sha256:f31b1fedac79b10c84e87a5c9c0ab11406777526e04e9ac4c93e1902ce0994d1",
+  "contract_sha256": "sha256:a04cb5cb8a0a107c43f29b6c315af5285bb38199a4687754ef9892f2bf2807b0",
   "frozen_contracts": [
     {
       "path": "prd/architecture/source-jsonl-contract.md",
@@ -145,6 +145,15 @@
   "census_accounting_ok": true,
   "census_s03_reconciled": true,
   "census_redaction_ok": true,
+  "declared_acceptance_boundary": "bounded-partial",
+  "acceptance_boundary_block": {
+    "boundary": "bounded-partial",
+    "published_terminal": "5439",
+    "published_remaining": "38346",
+    "published_partial_is_not_full": "true",
+    "full_corpus_terminal_required": "43785"
+  },
+  "acceptance_boundary_consistent": true,
   "receipts_path": "prd/migration/rust-evidence/m223-s07-corpus-receipts.jsonl",
   "receipts_schema": "m223-s07-consumer-receipt/v1",
   "receipts_lines": 5441,
