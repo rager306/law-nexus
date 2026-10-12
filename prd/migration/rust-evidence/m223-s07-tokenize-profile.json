@@ -1,0 +1,94 @@
+{
+  "schema": "m223-s07-tokenize-profile/v1",
+  "version": 1,
+  "generated_by": "M223-d2q075/S07/T07",
+  "purpose": "Profile-and-fix record for the consumer-run tokenize stage on the pinned S02 corpus manifest, plus the residual full-corpus cost breakdown that T08 must plan against.",
+  "non_claims": [
+    "not R1000 closure (R1000 stays active/unclosed)",
+    "not a full-corpus run result: no corpus-run artifact is superseded here",
+    "not a semantic, legal, authenticity or pagination claim",
+    "not a claim that the full 43785-entry run is feasible: this artifact records the opposite for the producer stages"
+  ],
+  "scope": {
+    "allowed_edit_surface": [
+      "crates/ln-decode/src/reader_tokenizer.rs",
+      "crates/ln-decode/tests/reader_tokenizer.rs",
+      "scripts/m223_s07_corpus_run.py",
+      "behavior-preserving S04 edits (reader_composite / reading order), recorded in the task summary"
+    ],
+    "forbidden": [
+      "the five frozen upstream wire contracts",
+      "the six section-2 immutability-pinned files",
+      "the two pinned prd/architecture/*.jsonl artifacts",
+      "XML re-parse on the consumer read path"
+    ],
+    "untouched_after_edit": "all 5 frozen wire contracts and all 8 immutability pins re-verified sha256-identical after the fix"
+  },
+  "removed_quadratics": [
+    {
+      "id": "Q1",
+      "location": "crates/ln-decode/src/reader_tokenizer.rs::tokenize_view",
+      "was": "tokenize_view rebuilt `segments_by_id` (a HashMap over the whole projection.segments vector) on every call, and tokenize_projection called it once per primary view: O(views x segments).",
+      "why_quadratic": "a multi-paragraph document owns one primary view per paragraph, so a document with P paragraphs and S segments paid P*S hash-map inserts; the 10.8 MB entry has ~35359 paragraphs and ~36223 fragments, i.e. ~1.3e9 inserts.",
+      "fix": "the lookup is now built once in tokenize_projection and shared by reference; the tokenize_view signature takes the shared map. External contracts and the composite-provenance semantics of section 5 are unchanged."
+    },
+    {
+      "id": "Q2",
+      "location": "crates/ln-decode/src/reader_reading_order.rs::ReadingOrderIndex::lookup",
+      "was": "lookup linearly scanned self.views for the requested view id; tokenize_view calls reading_order(view) once per view: O(views^2).",
+      "why_quadratic": "~35359 views scanned per call and ~35359 calls -> ~1.25e9 id comparisons on the largest entry.",
+      "fix": "added an additive `positions: HashMap<String, usize>` index built from self.views in ReadingOrderIndex::build; lookup is O(1) and returns exactly the same OrderedView or the same NotPrimaryView error. Behavior-preserving S04 edit, no observable change."
+    }
+  ],
+  "measurements": {
+    "note": "release build, M223_S07_TIMING per-stage wall time, one run per entry, single-file invocation of target/release/consumer-run --from-xml <pinned entry>. 'before' is the pre-fix binary (sha256 fa114a200fd436ad61a1c03fea44920f0a7920976a8c1286ae69e756532a06e3).",
+    "tokenize_stage_ms": [
+      { "bytes": 77999, "entry": "xml/law/398097/edition-6e7d5c56ec446c8225a22d62.xml", "before": 40, "after": 37 },
+      { "bytes": 299711, "entry": "fas/fas_2026-06-16_055-06-105-694-2026_rev-unknown_b2bdb298.xml", "before": 78, "after": null },
+      { "bytes": 703267, "entry": "xml/law/538712/edition-104bc27a8cc06710f80dca5a.xml", "before": 1169, "after": 367 },
+      { "bytes": 1470360, "entry": "npa/order_2018-12-29_482_rev-unknown_418317c3.xml", "before": 1315, "after": null },
+      { "bytes": 3005188, "entry": "npa/law_2013-04-05_44-fz/edition-0011_rev-2015-04-06_from-unknown_084af197.xml", "before": 2054, "after": 927 },
+      { "bytes": 5514930, "entry": "npa/order_2018-07-02_75_rev-2019-02-26_f7902b4f.xml", "before": 19192, "after": 3706 },
+      { "bytes": 10849143, "entry": "xml/law/171859/edition-8da14e3cf11aedbc35c60292.xml", "before": 1160000, "before_caveat": "did not finish: killed by a 1200 s timeout inside the tokenize stage", "after": 12877 },
+      { "bytes": 29372660, "entry": "xml/law/143149/edition-c723d4f701b0eb8512688917.xml", "before": null, "before_caveat": "not measured: the pre-fix binary could not finish the 10.8 MB entry", "after": 34801 }
+    ],
+    "full_entry_breakdown_after_fix_ms": [
+      { "bytes": 10849143, "capture": 4930, "render_wire": 11866, "read_wire": 5086, "analyze": 22745, "render_analysis": 1658, "tokenize": 12877, "import1": 5884, "import2": 7600, "total": 72651 },
+      { "bytes": 29372660, "capture": 12593, "render_wire": 29742, "read_wire": 9632, "analyze": 121737, "render_analysis": 6912, "tokenize": 34801, "import1": 14210, "import2": 16155, "total": 245786 },
+      { "bytes": 5514930, "capture": 1931, "render_wire": 2698, "read_wire": 241, "analyze": 234063, "render_analysis": 135, "tokenize": 3706, "import1": 367, "import2": 366, "total": 243511 }
+    ]
+  },
+  "behavior_preservation": {
+    "counts_doc_byte_identical": [
+      { "bytes": 77999, "entry": "xml/law/398097/edition-6e7d5c56ec446c8225a22d62.xml", "identical": true },
+      { "bytes": 703267, "entry": "xml/law/538712/edition-104bc27a8cc06710f80dca5a.xml", "identical": true },
+      { "bytes": 3005188, "entry": "npa/law_2013-04-05_44-fz/edition-0011_rev-2015-04-06_from-unknown_084af197.xml", "identical": true },
+      { "bytes": 5514930, "entry": "npa/order_2018-07-02_75_rev-2019-02-26_f7902b4f.xml", "identical": true, "sha256": "sha256:2fb9d06c1fee40606f8943f918535cf829cec7ac43d2e3f8d23e1dbbcbe2bb92" }
+    ],
+    "rust": {
+      "cargo_test_ln_decode": "1408 passed / 0 failed over 124 suites",
+      "reader_tokenizer_integration": "18 passed",
+      "reader_tokenizer_lib": "7 passed",
+      "reader_reading_order": "8 passed",
+      "cargo_fmt_all_check": "clean",
+      "cargo_clippy_workspace_all_targets_deny_warnings": "clean"
+    }
+  },
+  "residual_for_t08": {
+    "verdict": "the tokenize-stage superlinearity is REMOVED within the allowed consumer surface; the full 43785-entry run is still not mechanically feasible in a practical budget, and the remaining cost is outside the frozen consumer API.",
+    "evidence": [
+      "on the 29372660-byte entry the tokenize stage is now 34801 ms of a 245786 ms whole-file run (14%); capture+render_wire+read_wire+analyze+render_analysis is 180616 ms (73%) and graph import is 30365 ms (12%).",
+      "on the 5514930-byte entry analyze alone is 234063 ms of a 243511 ms run (96%) while tokenize is 3706 ms.",
+      "analyze is structure-dependent and non-monotonic in bytes (703267 -> 14263 ms, 1470360 -> 11052 ms, 3005188 -> 68799 ms, 5514930 -> 234063 ms, 10849143 -> 22745 ms, 29372660 -> 121737 ms), i.e. the same document family can be quadratic in fragments regardless of byte size.",
+      "at a conservative 5 s/entry average over 43785 entries the full run is ~60 h of wall time, and the largest entries cost 245 s each; the harness's bounded chunked --resume keeps it mechanically possible but not budget-feasible."
+    ],
+    "outside_consumer_surface": [
+      "capture (source_package)",
+      "render_cleaned_projection / read_cleaned_wire (cleaned_wire)",
+      "analyze_document (npa_analysis_records) -- the dominant term",
+      "render_npa_analysis (npa_analysis_wire, an immutability-pinned file)",
+      "NpaGraph::import (npa_graph_projection) plus its mandatory second repeat-import pass"
+    ],
+    "t08_recommendation": "T08 must choose between a budget-bounded bounded-chunk publication (partial_is_not_full=true preserved) and the explicit section 8.1/9 boundary reassessment; the tokenize fix removes the consumer-side blocker but not the producer-side one."
+  }
+}

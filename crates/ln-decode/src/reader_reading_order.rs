@@ -265,6 +265,12 @@ fn content_len(index: &ReaderRecordIndex, segment: &ProjectedSegment) -> Option<
 pub struct ReadingOrderIndex {
     index: ReaderRecordIndex,
     views: Vec<OrderedView>,
+    /// View id -> position in `views`. An additive lookup index: without it
+    /// [`ReadingOrderIndex::lookup`] was a linear scan of `views` on every call,
+    /// which made a per-view consumer quadratic in the view count (a
+    /// multi-paragraph document owns one primary view per paragraph). The map is
+    /// derived from `views` and never changes the resolved order or any error.
+    positions: HashMap<String, usize>,
 }
 
 impl ReadingOrderIndex {
@@ -464,7 +470,15 @@ impl ReadingOrderIndex {
         if !errors.is_empty() {
             return Err(errors);
         }
-        Ok(ReadingOrderIndex { index, views })
+        Ok(ReadingOrderIndex {
+            positions: views
+                .iter()
+                .enumerate()
+                .map(|(position, ordered)| (ordered.view.as_str().to_string(), position))
+                .collect(),
+            index,
+            views,
+        })
     }
 
     /// The confirmed reading order of a primary view.
@@ -526,14 +540,12 @@ impl ReadingOrderIndex {
     }
 
     fn lookup(&self, view: &ViewId) -> Result<&OrderedView, ReadingOrderError> {
-        self.views
-            .iter()
-            .find(|ordered| &ordered.view == view)
-            .ok_or_else(|| {
-                ReadingOrderError::new(
-                    ReadingOrderErrorKind::NotPrimaryView,
-                    format!("view {view} is not a primary reading-order view"),
-                )
-            })
+        match self.positions.get(view.as_str()) {
+            Some(position) => Ok(&self.views[*position]),
+            None => Err(ReadingOrderError::new(
+                ReadingOrderErrorKind::NotPrimaryView,
+                format!("view {view} is not a primary reading-order view"),
+            )),
+        }
     }
 }

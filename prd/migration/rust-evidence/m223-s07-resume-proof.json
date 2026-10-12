@@ -2,7 +2,7 @@
   "binding": {
     "binary_path": "/root/law-nexus/target/release/consumer-run",
     "binary_sha256": "sha256:fa114a200fd436ad61a1c03fea44920f0a7920976a8c1286ae69e756532a06e3",
-    "code_revision": "sha256:567614d69794fbf6b3dbbbb44aa957186259d0c7a42584ea65e47926be5f78d7",
+    "code_revision": "sha256:89c1e5cd04479fd93857ff651bb3d6dbcaf283a88f8b78d57345f4b0f1409b6d",
     "rules_digest": "sha256:972539f0898c6a9bd45c89439d4891b261dfac9e839cf757a933aa8700163e04"
   },
   "final": {
@@ -34,10 +34,10 @@
     "signalled": true,
     "status": "interrupted",
     "stderr_tail": [
-      "m223-s07-corpus-run: run attempt_wall_s=14400.0 entries=16 code_revision=sha256:567614d69794fbf6b3dbbbb44aa957186259d0c7a42584ea65e47926be5f78d7 binary_sha256=sha256:fa114a200fd436ad61a1c03fea44920f0a7920976a8c1286ae69e756532a06e3 resume=True",
+      "m223-s07-corpus-run: run attempt_wall_s=14400.0 entries=16 code_revision=sha256:89c1e5cd04479fd93857ff651bb3d6dbcaf283a88f8b78d57345f4b0f1409b6d binary_sha256=sha256:fa114a200fd436ad61a1c03fea44920f0a7920976a8c1286ae69e756532a06e3 resume=True",
       "m223-s07-corpus-run: status=interrupted accepted=1 refused=0 incomplete=0 remaining=15"
     ],
-    "wall_s": 0.383
+    "wall_s": 0.371
   },
   "non_claims": [
     "Not an R1000 closure artifact and not a semantic or legal interpretation; R1000 stays active/unclosed.",
@@ -104,7 +104,7 @@
         "m223-s07-corpus-run: xml/law/509715/edition-682ce99454753945535d4981.xml -> accepted/accepted",
         "m223-s07-corpus-run: status=complete accepted=16 refused=0 incomplete=0 remaining=0"
       ],
-      "wall_s": 1.549
+      "wall_s": 1.409
     }
   ],
   "schema": "m223-s07-resume-proof/v1",

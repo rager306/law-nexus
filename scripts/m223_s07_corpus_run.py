@@ -996,7 +996,15 @@ def summarize_receipts(
     entries: Sequence[probe.Entry],
     latest: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
-    """Coverage summary over the manifest: terminal/incomplete/remaining."""
+    """Coverage summary over the manifest: terminal/incomplete/remaining.
+
+    ``remaining`` counts every entry that does **not** yet have a *terminal*
+    outcome (``accepted``/``refused``), so an ``incomplete`` entry — which is
+    non-terminal and always re-attempted on resume (acceptance contract §6.1) —
+    stays in the remaining tail and the slice accounting invariant
+    ``entries = terminal + remaining`` holds by construction.  ``present``
+    counts every entry with any receipt (terminal or incomplete).
+    """
     counts = _empty_counts()
     refused_by_class: dict[str, int] = {}
     incomplete_by_class: dict[str, int] = {}
@@ -1015,7 +1023,7 @@ def summarize_receipts(
     return {
         "entries": len(entries),
         "present": present,
-        "remaining": len(entries) - present,
+        "remaining": len(entries) - terminal,
         "accepted": counts["accepted"],
         "refused": counts["refused"],
         "incomplete": counts["incomplete"],

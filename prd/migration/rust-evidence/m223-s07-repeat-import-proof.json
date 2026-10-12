@@ -2,7 +2,7 @@
   "binding": {
     "binary_path": "/root/law-nexus/target/release/consumer-run",
     "binary_sha256": "sha256:fa114a200fd436ad61a1c03fea44920f0a7920976a8c1286ae69e756532a06e3",
-    "code_revision": "sha256:78c24e54cc952607214a4f73935d65115f9ed3a901b2518af071cf0a50ac3814",
+    "code_revision": "sha256:89c1e5cd04479fd93857ff651bb3d6dbcaf283a88f8b78d57345f4b0f1409b6d",
     "rules_digest": "sha256:972539f0898c6a9bd45c89439d4891b261dfac9e839cf757a933aa8700163e04"
   },
   "counts_byte_identical": true,

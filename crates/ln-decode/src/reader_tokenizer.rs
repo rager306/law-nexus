@@ -451,10 +451,14 @@ impl TokenStream {
 
 /// Localizes one primary view's clean text channel into tokens and appends them
 /// to `out`, in reading order.
+///
+/// `segments_by_id` is the document-wide segment lookup, built **once** by
+/// [`tokenize_projection`] and shared by every view: rebuilding it per view made
+/// the stage O(views × segments) and dominated multi-paragraph documents, where
+/// every paragraph is its own primary view.
 fn tokenize_view(
-    projection: &ReaderProjection,
     order: &ReadingOrderIndex,
-    _records: &[Record],
+    segments_by_id: &HashMap<&str, &ProjectedSegment>,
     index: &ReaderRecordIndex,
     view: &ViewId,
     identity: &DocumentIdentity,
@@ -469,12 +473,6 @@ fn tokenize_view(
             };
             TokenizerError::new(kind, format!("view {}: {}", view, error.detail()))
         })?;
-
-    let segments_by_id: HashMap<&str, &ProjectedSegment> = projection
-        .segments
-        .iter()
-        .map(|segment| (segment.id.as_str(), segment))
-        .collect();
 
     // 1. The reading order is the authority for segmentation, never the
     //    projection's declared refs.
@@ -794,15 +792,23 @@ pub fn tokenize_projection(
     let index = ReaderRecordIndex::new(records).map_err(|error: ContractError| {
         TokenizerError::new(TokenizerErrorKind::OrderUnavailable, error.kind().as_str())
     })?;
+    // One document-wide segment lookup, shared by every view. Rebuilding it
+    // inside `tokenize_view` was O(views × segments): a multi-paragraph document
+    // owns one primary view per paragraph, so the rebuild alone was quadratic in
+    // the document's paragraph count.
+    let segments_by_id: HashMap<&str, &ProjectedSegment> = projection
+        .segments
+        .iter()
+        .map(|segment| (segment.id.as_str(), segment))
+        .collect();
     let mut tokens = Vec::new();
     for view in &projection.views {
         if !view.kind.is_primary() {
             continue;
         }
         tokenize_view(
-            projection,
             order,
-            records,
+            &segments_by_id,
             &index,
             &view.id,
             identity,
