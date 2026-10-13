@@ -276,14 +276,18 @@ fn bin_unimplemented_modes_fail_closed() {
     let dir = TempDir::new("modes");
     let wire = export_wire(dir.path(), "federal.jsonl", GLANVA_STATYA_FIXTURE);
     let tsv = write_assembly_tsv(dir.path(), 118, CORPUS_44FZ_REL, &wire);
-    for mode in ["chain", "timeline"] {
-        let output = run_bin(&["--editions", &tsv.display().to_string(), "--mode", mode]);
-        assert_eq!(
-            output.status.code(),
-            Some(i32::from(EXIT_USAGE)),
-            "mode {mode} must fail closed until implemented"
-        );
-    }
+    // `chain` is implemented by T02; only `timeline` still fails closed.
+    let output = run_bin(&[
+        "--editions",
+        &tsv.display().to_string(),
+        "--mode",
+        "timeline",
+    ]);
+    assert_eq!(
+        output.status.code(),
+        Some(i32::from(EXIT_USAGE)),
+        "timeline must fail closed until implemented"
+    );
     let output = run_bin(&["--editions", &tsv.display().to_string(), "--ctv"]);
     assert_eq!(output.status.code(), Some(i32::from(EXIT_USAGE)));
 }

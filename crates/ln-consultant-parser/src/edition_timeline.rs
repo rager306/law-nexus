@@ -25,11 +25,11 @@
 //! `expression_id_present` flag and the declared non-claims. No decoded text
 //! is emitted; nothing here is a legal hierarchy claim.
 //!
-//! Boundary (S06/T01): single-edition `assembly` mode only. The `chain` and
-//! `timeline` modes and the `--ctv` layer are declared in the CLI grammar but
-//! fail closed here (T02-T04 fill them in). The crate never re-parses XML —
-//! `ln-decode` reconstructs the block stream; `ln-kb-ontology` owns the
-//! registry, membership and oracle-diff vocabulary.
+//! Boundary (S06): the `assembly` (T01) and `chain` (T02) modes are
+//! implemented; the `timeline` mode and the `--ctv` layer are declared in the
+//! CLI grammar but fail closed here (T03-T04 fill them in). The crate never
+//! re-parses XML — `ln-decode` reconstructs the block stream;
+//! `ln-kb-ontology` owns the registry, membership and oracle-diff vocabulary.
 
 use std::error::Error;
 use std::fmt;
@@ -45,18 +45,28 @@ use ln_decode::hierarchy::extract_hierarchy;
 use ln_decode::wire_blocks::blocks_from_cleaned_projection;
 
 use ln_kb_ontology::domain::{
-    HierarchyMap, HierarchyMarker, admit_membership_proposals, assemble_with_oracle_diff,
-    marker_from_decode_token, propose_membership_from_markers,
+    AmendmentDraftOp, HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker,
+    admit_membership_proposals, assemble_with_oracle_diff, diff_marker_sets,
+    drafts_from_marker_diff, map_hierarchy_marker, marker_from_decode_token, oracle_diff,
+    propose_membership_from_markers,
 };
 use ln_kb_ontology::registry::{
     embedded_binding_count_for_path, load_edition_day_for_path, load_expression_id_for_path,
     load_hierarchy_map_for_path,
+};
+use ln_temporal::domain::{
+    AmendingActId, ComponentConceptId, MembershipChangeKind, StructuralAstNode,
+    VersionedMembershipEvent, VersionedMembershipLog, fold_membership_at,
 };
 
 /// Closed JSON schema id of the single-edition assembly payload.
 pub const ASSEMBLY_SCHEMA: &str = "edition-assembly/v1";
 /// Closed `kind` discriminator of the single-edition assembly payload.
 pub const ASSEMBLY_KIND: &str = "edition_assembly";
+/// Closed JSON schema id of the two-edition structural chain-replay payload.
+pub const CHAIN_SCHEMA: &str = "edition-chain/v1";
+/// Closed `kind` discriminator of the two-edition chain-replay payload.
+pub const CHAIN_KIND: &str = "edition_chain";
 /// Lifecycle status of R1000 carried by the payload (D667: integrity is not
 /// semantic completeness; S06 never closes R1000).
 pub const R1000_STATUS: &str = "active/unclosed";
@@ -87,12 +97,24 @@ pub const ASSEMBLY_NON_CLAIMS: [&str; 6] = [
     "mints_no_component_concept_beyond_the_embedded_registry",
 ];
 
+/// Bounded non-claims carried by the two-edition chain-replay payload: what
+/// the replay is **not**.
+pub const CHAIN_NON_CLAIMS: [&str; 6] = [
+    "reads_only_the_materialized_cleaned_wire_jsonl_never_the_source_xml_or_odt",
+    "chain_replay_is_a_structural_projection_not_legal_amendment_correctness",
+    "historical_rebind_is_a_local_fixture_decision_it_never_edits_the_embedded_registry",
+    "effect_day_prefers_from_date_else_rev_date_process_truth_not_legal_truth",
+    "integrity_is_not_semantic_completeness",
+    "mints_no_component_concept_beyond_the_embedded_registry_and_the_local_rebind",
+];
+
 /// Maximum characters retained in a bounded error detail (mirrors the S05
 /// census consumer).
 const MAX_DETAIL_CHARS: usize = 240;
 
-/// Declared assembly mode. Only [`AssemblyMode::Assembly`] is implemented in
-/// this task; `chain`/`timeline` are accepted by the grammar and fail closed.
+/// Declared assembly mode. [`AssemblyMode::Assembly`] (T01) and
+/// [`AssemblyMode::Chain`] (T02) are implemented; `timeline` is accepted by
+/// the grammar and fails closed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum AssemblyMode {
     /// Single-edition snapshot assembly (T01).
@@ -432,6 +454,524 @@ pub fn build_assembly(cli: &EditionTimelineCli) -> Result<EditionAssembly, Editi
     build_assembly_row(rows.remove(0))
 }
 
+// ─── T02: two-edition structural chain replay (corpus JSONL) ──────────────
+// seed snapshot commit + marker-diff drafts applied at the target effect day,
+// folded at the target day and compared against a direct target snapshot
+// assembly. Mirrors `real_44fz_edition_0080_to_0081_replay_chain`, but over the
+// materialized cleaned-wire JSONL layer (no XML re-parse). The seed commit and
+// the target oracle both use the same registry map, so the only structural
+// difference they can disagree on is the replayed delta itself.
+
+/// Counts-only result of one two-edition chain replay. Carries no text.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct EditionChainCounts {
+    /// Markers present in the target but absent from the seed snapshot.
+    pub added: u64,
+    /// Markers present in the seed but absent from the target snapshot.
+    pub removed: u64,
+    /// Total structural drafts (`added + removed`).
+    pub drafts: u64,
+    /// Attach drafts (equals `added`; carried for the payload contract).
+    pub attach: u64,
+    /// Detach drafts (equals `removed`; carried for the payload contract).
+    pub detach: u64,
+    /// Attach drafts actually appended to the replay log.
+    pub applied_attach: u64,
+    /// Detach drafts actually appended to the replay log.
+    pub applied_detach: u64,
+    /// Drafts whose marker/parent could not be resolved (fail-closed).
+    pub quarantined: u64,
+    /// Oracle drift (`missing + phantom`) between replay and target snapshot.
+    pub drift: u64,
+    /// Target CCs missing from the replay fold.
+    pub missing: u64,
+    /// Replay CCs absent from the target snapshot.
+    pub phantom: u64,
+}
+
+/// Counts-only two-edition chain-replay payload. Carries no decoded text.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EditionChain {
+    /// Seed edition sequence number from the first TSV row.
+    pub seed_edition: u32,
+    /// Target edition sequence number from the second TSV row.
+    pub target_edition: u32,
+    /// Seed corpus-relative path as given in the TSV row.
+    pub seed_corpus_path: String,
+    /// Target corpus-relative path as given in the TSV row.
+    pub target_corpus_path: String,
+    /// Effect-day ordinal of the seed snapshot commit.
+    pub seed_day: i64,
+    /// Effect-day ordinal the drafts are applied at (the target `from-` day).
+    pub target_day: i64,
+    /// Registry bindings matched for the seed corpus path (before re-bind).
+    pub registry_bindings: u64,
+    /// Structural `statya` diffs offered to the local historical re-bind.
+    pub historical_rebinds: u64,
+    /// True when the seed path minted a real per-edition Expression ID.
+    pub seed_expression_id_present: bool,
+    /// True when the target path minted a real per-edition Expression ID.
+    pub target_expression_id_present: bool,
+    /// Chain-replay counts.
+    pub counts: EditionChainCounts,
+    /// `sha256:<hex>` of the consumed seed cleaned-wire JSONL bytes.
+    pub seed_cleaned_wire_sha256: String,
+    /// `sha256:<hex>` of the consumed target cleaned-wire JSONL bytes.
+    pub target_cleaned_wire_sha256: String,
+}
+
+/// Pure two-edition structural replay over an explicit registry map.
+///
+/// Fail-closed: an invalid provenance, a refused proposal/draft step, an
+/// unresolvable draft parent (quarantined, never invented), or a fold
+/// conflict aborts with no counts. `map` is expected to already carry the
+/// historical re-bind ([`build_chain`] registers it), so a removed `statya`
+/// can detach from the parent it attached under in the seed snapshot.
+pub fn replay_chain(
+    seed_markers: &[HierarchyMarker],
+    target_markers: &[HierarchyMarker],
+    map: &HierarchyMap,
+    seed_day: i64,
+    target_day: i64,
+    seed_provenance: &str,
+    target_provenance: &str,
+) -> Result<EditionChainCounts, EditionTimelineError> {
+    let seed_prov = AmendingActId::parse(seed_provenance).map_err(|error| {
+        EditionTimelineError::new("chain", format!("seed provenance refused: {error}"))
+    })?;
+    let target_prov = AmendingActId::parse(target_provenance).map_err(|error| {
+        EditionTimelineError::new("chain", format!("target provenance refused: {error}"))
+    })?;
+
+    let seed_propose = propose_membership_from_markers(map, seed_markers).map_err(|error| {
+        EditionTimelineError::new("chain", format!("seed propose refused: {error}"))
+    })?;
+    let seed_admit = admit_membership_proposals(&seed_propose.proposals);
+    let target_propose = propose_membership_from_markers(map, target_markers).map_err(|error| {
+        EditionTimelineError::new("chain", format!("target propose refused: {error}"))
+    })?;
+    let target_admit = admit_membership_proposals(&target_propose.proposals);
+
+    // Seed commit: fold the seed structure into the replay log at its day.
+    let mut log = VersionedMembershipLog::empty();
+    for edge in &seed_admit.admitted {
+        let event = VersionedMembershipEvent::try_new(
+            MembershipChangeKind::Attach,
+            edge.parent.clone(),
+            edge.child.clone(),
+            seed_day,
+            seed_prov.clone(),
+        )
+        .map_err(|error| {
+            EditionTimelineError::new("chain", format!("seed event refused: {error}"))
+        })?;
+        log.append(event).map_err(|error| {
+            EditionTimelineError::new("chain", format!("seed append refused: {error}"))
+        })?;
+    }
+
+    let diff = diff_marker_sets(seed_markers, target_markers);
+    let drafts = drafts_from_marker_diff(seed_markers, target_markers, target_provenance)
+        .map_err(|error| EditionTimelineError::new("chain", format!("drafts refused: {error}")))?;
+
+    // Apply each draft at the target day. Attach parents come from the target
+    // proposal, detach parents from the seed admission; an unresolved parent
+    // is quarantined fail-closed, never invented.
+    let mut applied_attach = 0u64;
+    let mut applied_detach = 0u64;
+    let mut quarantined = 0u64;
+    for draft in &drafts {
+        let probe =
+            HierarchyMarker::try_new(None, &draft.level, &draft.number, None).map_err(|error| {
+                EditionTimelineError::new("chain", format!("draft marker refused: {error}"))
+            })?;
+        let HierarchyMapOutcome::Bound { component } = map_hierarchy_marker(map, &probe) else {
+            quarantined = quarantined.saturating_add(1);
+            continue;
+        };
+        let parent = match draft.op {
+            AmendmentDraftOp::Attach => target_admit
+                .admitted
+                .iter()
+                .find(|edge| edge.child.as_str() == component.as_str())
+                .map(|edge| edge.parent.clone()),
+            AmendmentDraftOp::Detach => seed_admit
+                .admitted
+                .iter()
+                .find(|edge| edge.child.as_str() == component.as_str())
+                .map(|edge| edge.parent.clone()),
+        };
+        let Some(parent) = parent else {
+            quarantined = quarantined.saturating_add(1);
+            continue;
+        };
+        let kind = match draft.op {
+            AmendmentDraftOp::Attach => MembershipChangeKind::Attach,
+            AmendmentDraftOp::Detach => MembershipChangeKind::Detach,
+        };
+        let event = VersionedMembershipEvent::try_new(
+            kind,
+            parent,
+            component,
+            target_day,
+            target_prov.clone(),
+        )
+        .map_err(|error| {
+            EditionTimelineError::new("chain", format!("draft event refused: {error}"))
+        })?;
+        log.append(event).map_err(|error| {
+            EditionTimelineError::new("chain", format!("draft append refused: {error}"))
+        })?;
+        match draft.op {
+            AmendmentDraftOp::Attach => applied_attach = applied_attach.saturating_add(1),
+            AmendmentDraftOp::Detach => applied_detach = applied_detach.saturating_add(1),
+        }
+    }
+
+    let replay_ast = fold_membership_at(&log, target_day).map_err(|error| {
+        EditionTimelineError::new("chain", format!("replay fold refused: {error}"))
+    })?;
+
+    // Oracle: a direct snapshot assembly of the target at the same day/map.
+    let mut oracle_log = VersionedMembershipLog::empty();
+    for edge in &target_admit.admitted {
+        let event = VersionedMembershipEvent::try_new(
+            MembershipChangeKind::Attach,
+            edge.parent.clone(),
+            edge.child.clone(),
+            target_day,
+            target_prov.clone(),
+        )
+        .map_err(|error| {
+            EditionTimelineError::new("chain", format!("oracle event refused: {error}"))
+        })?;
+        oracle_log.append(event).map_err(|error| {
+            EditionTimelineError::new("chain", format!("oracle append refused: {error}"))
+        })?;
+    }
+    let oracle_ast = fold_membership_at(&oracle_log, target_day).map_err(|error| {
+        EditionTimelineError::new("chain", format!("oracle fold refused: {error}"))
+    })?;
+    let oracle_ccs: Vec<ComponentConceptId> = oracle_ast
+        .roots()
+        .iter()
+        .flat_map(collect_chain_ccs)
+        .collect();
+    let drift = oracle_diff(&replay_ast, &oracle_ccs);
+
+    let counts = EditionChainCounts {
+        added: diff.added.len() as u64,
+        removed: diff.removed.len() as u64,
+        drafts: drafts.len() as u64,
+        attach: drafts
+            .iter()
+            .filter(|draft| draft.op == AmendmentDraftOp::Attach)
+            .count() as u64,
+        detach: drafts
+            .iter()
+            .filter(|draft| draft.op == AmendmentDraftOp::Detach)
+            .count() as u64,
+        applied_attach,
+        applied_detach,
+        quarantined,
+        drift: drift.drift as u64,
+        missing: drift.missing as u64,
+        phantom: drift.phantom as u64,
+    };
+    verify_chain_accounting(&counts)?;
+    Ok(counts)
+}
+
+fn collect_chain_ccs(node: &StructuralAstNode) -> Vec<ComponentConceptId> {
+    let mut result = vec![node.component().clone()];
+    for child in node.children() {
+        result.extend(collect_chain_ccs(child));
+    }
+    result
+}
+
+/// Derive the two-edition chain payload from the materialized wire layer.
+///
+/// In `chain` mode the TSV must hold exactly two rows (seed, target).
+/// Fail-closed: an unreadable input, a malformed TSV, a refused wire layer, an
+/// undeducible work slug for the historical re-bind, an unavailable embedded
+/// registry, an ungroundable effect day, or a replay refusal aborts with no
+/// payload produced.
+pub fn build_chain(cli: &EditionTimelineCli) -> Result<EditionChain, EditionTimelineError> {
+    let tsv = fs::read_to_string(&cli.editions).map_err(|error| {
+        EditionTimelineError::new(
+            "input-read",
+            format!("editions TSV is unreadable: {}", error.kind()),
+        )
+    })?;
+    let mut rows = parse_edition_rows(&tsv)?;
+    if rows.len() != 2 {
+        return Err(EditionTimelineError::new(
+            "usage",
+            format!(
+                "chain mode expects exactly 2 rows (seed, target), got {}",
+                rows.len()
+            ),
+        ));
+    }
+    let target = rows.remove(1);
+    let seed = rows.remove(0);
+
+    let seed_bytes = fs::read(&seed.cleaned_wire).map_err(|error| {
+        EditionTimelineError::new(
+            "input-read",
+            format!("seed cleaned wire is unreadable: {}", error.kind()),
+        )
+    })?;
+    let target_bytes = fs::read(&target.cleaned_wire).map_err(|error| {
+        EditionTimelineError::new(
+            "input-read",
+            format!("target cleaned wire is unreadable: {}", error.kind()),
+        )
+    })?;
+    let seed_wire = markers_from_cleaned_wire(&seed_bytes)?;
+    let target_wire = markers_from_cleaned_wire(&target_bytes)?;
+
+    let mut map = load_hierarchy_map_for_path(&seed.corpus_path).map_err(|error| {
+        EditionTimelineError::new("registry", format!("registry map refused: {error}"))
+    })?;
+    let slug = corpus_work_slug(&seed.corpus_path).ok_or_else(|| {
+        EditionTimelineError::new(
+            "identity",
+            "cannot derive a work slug for the historical re-bind".to_owned(),
+        )
+    })?;
+    let historical_rebinds =
+        rebind_structural_statya(&mut map, &seed_wire.markers, &target_wire.markers, &slug)?;
+    let registry_bindings = embedded_binding_count_for_path(&seed.corpus_path).map_err(|error| {
+        EditionTimelineError::new("registry", format!("registry count refused: {error}"))
+    })? as u64;
+
+    let seed_day = edition_effect_day(&seed.corpus_path).ok_or_else(|| {
+        EditionTimelineError::new(
+            "identity",
+            "no grounded effect day for the seed corpus path".to_owned(),
+        )
+    })?;
+    let target_day = edition_effect_day(&target.corpus_path).ok_or_else(|| {
+        EditionTimelineError::new(
+            "identity",
+            "no grounded effect day for the target corpus path".to_owned(),
+        )
+    })?;
+
+    let seed_minted = load_expression_id_for_path(&seed.corpus_path);
+    let target_minted = load_expression_id_for_path(&target.corpus_path);
+    let seed_expression_id_present = seed_minted.is_some();
+    let target_expression_id_present = target_minted.is_some();
+    let seed_prov = seed_minted.unwrap_or_else(|| SYNTHETIC_PROVENANCE.to_owned());
+    let target_prov = target_minted.unwrap_or_else(|| SYNTHETIC_PROVENANCE.to_owned());
+
+    let counts = replay_chain(
+        &seed_wire.markers,
+        &target_wire.markers,
+        &map,
+        seed_day,
+        target_day,
+        &seed_prov,
+        &target_prov,
+    )?;
+
+    Ok(EditionChain {
+        seed_edition: seed.edition_number,
+        target_edition: target.edition_number,
+        seed_corpus_path: seed.corpus_path,
+        target_corpus_path: target.corpus_path,
+        seed_day,
+        target_day,
+        registry_bindings,
+        historical_rebinds,
+        seed_expression_id_present,
+        target_expression_id_present,
+        counts,
+        seed_cleaned_wire_sha256: seed_wire.cleaned_wire_sha256,
+        target_cleaned_wire_sha256: target_wire.cleaned_wire_sha256,
+    })
+}
+
+/// Register a **local** historical CC for every `statya` in the marker diff so
+/// the seed commit can attach a removed article and the replay can detach it.
+///
+/// Fixture decision (D764): never edits `kb-hierarchy-registry.yaml`; the CC
+/// `cc:<slug>:statya-<n>` mirrors the embedded registry naming and is
+/// idempotent for numbers already bound. Returns the number of diffs offered.
+fn rebind_structural_statya(
+    map: &mut HierarchyMap,
+    seed_markers: &[HierarchyMarker],
+    target_markers: &[HierarchyMarker],
+    slug: &str,
+) -> Result<u64, EditionTimelineError> {
+    let diff = diff_marker_sets(seed_markers, target_markers);
+    let mut offered = 0u64;
+    for marker in diff.removed.iter().chain(diff.added.iter()) {
+        if marker.level() != "statya" {
+            continue;
+        }
+        let cc = ComponentConceptId::parse(&format!("cc:{slug}:statya-{}", marker.number()))
+            .map_err(|error| {
+                EditionTimelineError::new("registry", format!("rebind cc refused: {error}"))
+            })?;
+        let binding = HierarchyBinding::try_new(None, marker.level(), marker.number(), cc)
+            .map_err(|error| {
+                EditionTimelineError::new("registry", format!("rebind binding refused: {error}"))
+            })?;
+        map.register(binding).map_err(|error| {
+            EditionTimelineError::new("registry", format!("rebind register refused: {error}"))
+        })?;
+        offered = offered.saturating_add(1);
+    }
+    Ok(offered)
+}
+
+/// Derive the work slug (`44-fz`) from a `law_YYYY-MM-DD_<slug>[/...]` corpus
+/// path. Returns `None` when no such shape grounds — the caller fails closed
+/// rather than inventing an identity.
+fn corpus_work_slug(path: &str) -> Option<String> {
+    let marker = "law_";
+    let bytes = path.as_bytes();
+    let mut from = 0usize;
+    while let Some(relative) = path[from..].find(marker) {
+        let start = from + relative + marker.len();
+        if bytes.len() < start + 11 {
+            return None;
+        }
+        let date = &path[start..start + 10];
+        if !is_iso_day(date) || bytes.get(start + 10) != Some(&b'_') {
+            from = start;
+            continue;
+        }
+        let slug_start = start + 11;
+        let slug_end = path[slug_start..]
+            .find(['/', '_'])
+            .map(|offset| slug_start + offset)
+            .unwrap_or(path.len());
+        let slug = &path[slug_start..slug_end];
+        if slug.is_empty() {
+            return None;
+        }
+        return Some(slug.to_owned());
+    }
+    None
+}
+
+fn is_iso_day(candidate: &str) -> bool {
+    let bytes = candidate.as_bytes();
+    bytes.len() == 10
+        && bytes[..4].iter().all(u8::is_ascii_digit)
+        && bytes[4] == b'-'
+        && bytes[5..7].iter().all(u8::is_ascii_digit)
+        && bytes[7] == b'-'
+        && bytes[8..].iter().all(u8::is_ascii_digit)
+}
+
+/// Fail-closed accounting invariants of one chain replay.
+fn verify_chain_accounting(counts: &EditionChainCounts) -> Result<(), EditionTimelineError> {
+    if counts.added + counts.removed != counts.drafts {
+        return Err(EditionTimelineError::new(
+            "accounting",
+            "added + removed != drafts",
+        ));
+    }
+    if counts.attach != counts.added || counts.detach != counts.removed {
+        return Err(EditionTimelineError::new(
+            "accounting",
+            "attach/detach != added/removed",
+        ));
+    }
+    if counts.applied_attach + counts.applied_detach + counts.quarantined != counts.drafts {
+        return Err(EditionTimelineError::new(
+            "accounting",
+            "applied + quarantined != drafts",
+        ));
+    }
+    if counts.drift != counts.missing + counts.phantom {
+        return Err(EditionTimelineError::new(
+            "accounting",
+            "drift != missing + phantom",
+        ));
+    }
+    Ok(())
+}
+
+/// Render the two-edition chain payload (`edition-chain/v1`), deterministic
+/// and ASCII (non-ASCII payload is escaped as JSON `\uXXXX`).
+pub fn render_chain(chain: &EditionChain) -> Result<String, EditionTimelineError> {
+    let counts = &chain.counts;
+    let mut out = String::with_capacity(2048);
+    out.push_str("{\n");
+    let _ = writeln!(out, "  \"schema\": {},", quote_json(CHAIN_SCHEMA));
+    let _ = writeln!(out, "  \"kind\": {},", quote_json(CHAIN_KIND));
+    let _ = writeln!(out, "  \"seed_edition\": {},", chain.seed_edition);
+    let _ = writeln!(out, "  \"target_edition\": {},", chain.target_edition);
+    let _ = writeln!(
+        out,
+        "  \"seed_corpus_path\": {},",
+        quote_json(&chain.seed_corpus_path)
+    );
+    let _ = writeln!(
+        out,
+        "  \"target_corpus_path\": {},",
+        quote_json(&chain.target_corpus_path)
+    );
+    let _ = writeln!(out, "  \"seed_day\": {},", chain.seed_day);
+    let _ = writeln!(out, "  \"target_day\": {},", chain.target_day);
+    let _ = writeln!(out, "  \"registry_bindings\": {},", chain.registry_bindings);
+    let _ = writeln!(
+        out,
+        "  \"historical_rebinds\": {},",
+        chain.historical_rebinds
+    );
+    let _ = writeln!(
+        out,
+        "  \"seed_expression_id_present\": {},",
+        chain.seed_expression_id_present
+    );
+    let _ = writeln!(
+        out,
+        "  \"target_expression_id_present\": {},",
+        chain.target_expression_id_present
+    );
+    let _ = writeln!(out, "  \"added\": {},", counts.added);
+    let _ = writeln!(out, "  \"removed\": {},", counts.removed);
+    let _ = writeln!(out, "  \"drafts\": {},", counts.drafts);
+    let _ = writeln!(out, "  \"attach\": {},", counts.attach);
+    let _ = writeln!(out, "  \"detach\": {},", counts.detach);
+    let _ = writeln!(out, "  \"applied_attach\": {},", counts.applied_attach);
+    let _ = writeln!(out, "  \"applied_detach\": {},", counts.applied_detach);
+    let _ = writeln!(out, "  \"quarantined\": {},", counts.quarantined);
+    let _ = writeln!(out, "  \"drift\": {},", counts.drift);
+    let _ = writeln!(out, "  \"missing\": {},", counts.missing);
+    let _ = writeln!(out, "  \"phantom\": {},", counts.phantom);
+    let _ = writeln!(
+        out,
+        "  \"seed_cleaned_wire_sha256\": {},",
+        quote_json(&chain.seed_cleaned_wire_sha256)
+    );
+    let _ = writeln!(
+        out,
+        "  \"target_cleaned_wire_sha256\": {},",
+        quote_json(&chain.target_cleaned_wire_sha256)
+    );
+    let _ = writeln!(out, "  \"r1000_status\": {},", quote_json(R1000_STATUS));
+    out.push_str("  \"non_claims\": [\n");
+    for (index, claim) in CHAIN_NON_CLAIMS.iter().enumerate() {
+        let comma = if index + 1 < CHAIN_NON_CLAIMS.len() {
+            ","
+        } else {
+            ""
+        };
+        let _ = writeln!(out, "    {}{comma}", quote_json(claim));
+    }
+    out.push_str("  ]\n}\n");
+    ensure_ascii(&out, "chain payload")?;
+    Ok(out)
+}
+
 /// Derive the payload for one already-parsed edition row.
 pub fn build_assembly_row(row: EditionRow) -> Result<EditionAssembly, EditionTimelineError> {
     let bytes = fs::read(&row.cleaned_wire).map_err(|error| {
@@ -573,19 +1113,6 @@ pub fn render_assembly(assembly: &EditionAssembly) -> Result<String, EditionTime
 /// Returns the process exit code and the message line: the JSON payload when
 /// no `--out` is given, otherwise a one-line summary.
 pub fn run_edition_timeline(cli: &EditionTimelineCli) -> (u8, String) {
-    if cli.mode != AssemblyMode::Assembly {
-        return (
-            EXIT_USAGE,
-            EditionTimelineError::new(
-                "usage",
-                format!(
-                    "mode '{}' is not implemented in this build",
-                    cli.mode.as_str()
-                ),
-            )
-            .to_string(),
-        );
-    }
     if cli.ctv {
         return (
             EXIT_USAGE,
@@ -595,6 +1122,23 @@ pub fn run_edition_timeline(cli: &EditionTimelineCli) -> (u8, String) {
             )
             .to_string(),
         );
+    }
+    match cli.mode {
+        AssemblyMode::Assembly => {}
+        AssemblyMode::Chain => return run_chain(cli),
+        AssemblyMode::Timeline => {
+            return (
+                EXIT_USAGE,
+                EditionTimelineError::new(
+                    "usage",
+                    format!(
+                        "mode '{}' is not implemented in this build",
+                        cli.mode.as_str()
+                    ),
+                )
+                .to_string(),
+            );
+        }
     }
     let assembly = match build_assembly(cli) {
         Ok(assembly) => assembly,
@@ -631,6 +1175,47 @@ fn summary_line(assembly: &EditionAssembly) -> String {
         assembly.counts.roots,
         assembly.counts.nodes,
         assembly.counts.drift
+    )
+}
+
+/// Derive the two-edition chain payload and either emit it (stdout) or write
+/// it to `--out`. Mirrors the assembly run path for exit codes and output shape.
+fn run_chain(cli: &EditionTimelineCli) -> (u8, String) {
+    let chain = match build_chain(cli) {
+        Ok(chain) => chain,
+        Err(error) => return (error.exit_code(), error.to_string()),
+    };
+    let json = match render_chain(&chain) {
+        Ok(json) => json,
+        Err(error) => return (error.exit_code(), error.to_string()),
+    };
+    match cli.out.as_deref().filter(|value| !value.is_empty()) {
+        Some(out) => match fs::write(Path::new(out), json.as_bytes()) {
+            Ok(()) => (EXIT_OK, chain_summary_line(&chain)),
+            Err(error) => (
+                EXIT_OUT_UNWRITABLE,
+                EditionTimelineError::new(
+                    "out-write",
+                    format!("artifact is not writable: {}", error.kind()),
+                )
+                .to_string(),
+            ),
+        },
+        None => (EXIT_OK, json),
+    }
+}
+
+/// One-line human summary for the chain `--out` write path.
+fn chain_summary_line(chain: &EditionChain) -> String {
+    format!(
+        "seed={} target={} drafts={} applied_attach={} applied_detach={} quarantined={} drift={}",
+        chain.seed_edition,
+        chain.target_edition,
+        chain.counts.drafts,
+        chain.counts.applied_attach,
+        chain.counts.applied_detach,
+        chain.counts.quarantined,
+        chain.counts.drift
     )
 }
 
