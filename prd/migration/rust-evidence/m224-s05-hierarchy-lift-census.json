@@ -21,9 +21,9 @@
   "producer_binary_path": "target/release/cleaned-project",
   "producer_binary_sha256": "sha256:1e3d54a9a52e69630e777b94d424feff75b60d1409020847eecca7caac4f1cda",
   "consumer_binary_path": "target/release/hierarchy-lift-census",
-  "consumer_binary_sha256": "sha256:0b2d50908f8507f90538db12ee35d113edc8bd316dde94c09ac525afb00cb116",
+  "consumer_binary_sha256": "sha256:0ed9f03a97591fea34c401e76125921527d26624914f98bec371d056a46fd546",
   "ontology_path": "prd/architecture/kb-ontology.yaml",
-  "ontology_sha256": "sha256:fb171754c61f7ffafb4696c0bf9fca3bd951787e29f9494c8b58a81dfaf5673f",
+  "ontology_sha256": "sha256:1c07ef275a6858547e00d0394fea9c14da895228cfab1d815ad65eaa149dcda0",
   "sample_seed": 22405,
   "sample_per_decile": 2,
   "sample_tail_n": 8,
@@ -48,8 +48,9 @@
     "refused": 0
   },
   "by_group": {
-    "Unknown": 13599,
+    "Unknown": 13597,
     "court_practice": 70,
+    "departmental_order": 2,
     "non_normative": 2
   },
   "by_catalog_token": {

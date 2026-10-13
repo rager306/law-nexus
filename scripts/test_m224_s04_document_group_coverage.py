@@ -23,9 +23,9 @@ Two axes are deliberately kept apart (D667):
   law, anything else is a fail-visible ``unknown``;
 * the **structural** axis — ``by_group``: which ``document_groups`` profile the
   path alone binds to.  A structural ``Unknown`` is *not* a legal
-  non-normativity claim (there are 7288 structurally-unknown rows while the
-  bank axis has zero unknowns); the battery distinguishes the two counters
-  explicitly.
+  non-normativity claim (after the M224/S05 P01 needle patch there are 6936
+  structurally-unknown rows -- down from 7288 -- while the bank axis has zero
+  unknowns); the battery distinguishes the two counters explicitly.
 
 Integrity is not semantic completeness: the artifact carries
 ``r1000_status == "active/unclosed"`` plus bounded non-claims, and the battery

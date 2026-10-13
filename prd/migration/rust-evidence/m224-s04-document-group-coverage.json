@@ -9,10 +9,10 @@
     "npa": {"total": 916, "normative": 916, "non_normative": 0, "unknown": 0},
     "xml": {"total": 6803, "normative": 6803, "non_normative": 0, "unknown": 0}
   },
-  "by_group": {"Unknown": 7288, "court_practice": 27716, "federal_law@v1": 356, "government_resolution": 71, "non_normative": 8351, "presidential_decree": 3},
+  "by_group": {"Unknown": 6936, "court_practice": 27716, "departmental_order": 352, "federal_law@v1": 356, "government_resolution": 71, "non_normative": 8351, "presidential_decree": 3},
   "non_normative_classes": ["court_practice", "non_normative"],
   "ctv_blocked": 36066,
-  "catalog": {"document_groups_version": "fnv1a64-fedfdb7ce0c26bcc"},
+  "catalog": {"document_groups_version": "fnv1a64-199465d606c1fdc8"},
   "manifest": {"path": "prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl", "sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c", "inventory_digest": "sha256:aa7e14e31059c906f291423a2e8151f8bf0f857e9fd7370545d7e3b5800766dd"},
   "r1000_status": "active/unclosed",
   "non_claims": [

@@ -540,6 +540,16 @@ document_groups:
       needles:
         - {field: path, needle: prikaz-, rank: 10}
         - {field: path, needle: prikaz, rank: 20}
+        # Corpus form (замер M224/S05 census 2026-10-13): exports/npa/order_<date>_<num>_rev-*.xml
+        # — 352 записи манифеста S02, шапка «Приказ» (проверено на 6 файлах). Прежние
+        # path needle'ы ждали `prikaz-`/`prikaz`, поэтому весь корпус приказов оставался
+        # profile-none и попадал в S04 by_group.Unknown=7288 (census T04: сэмпл-документ
+        # npa/order_2018-07-30_1600 давал detection unknown:no_metadata). Ранг 20 — тот же
+        # класс специфичности, что `prikaz`. Скобочный probe (suffix `)`) этим needle НЕ
+        # ослабляется: приказы с точечной нумерацией `1.` остаются fail-closed
+        # Unknown{probe_conflict} (пробел канона ниже — отдельное решение, не молчаливая
+        # правка).
+        - {field: path, needle: npa/order_, rank: 20}
         - {field: kind, needle: order, rank: 20}
         - {field: type, needle: order, rank: 20}
       ladder:

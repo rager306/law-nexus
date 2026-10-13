@@ -1,0 +1,223 @@
+{
+  "schema": "m224-s05-lift-census-patches/v1",
+  "version": 1,
+  "kind": "hierarchy_lift_census_patches",
+  "r1000_status": "active/unclosed",
+  "source_census": {
+    "path": "prd/migration/rust-evidence/m224-s05-hierarchy-lift-census.json",
+    "after_sha256": "sha256:5fe5c0755b62c6c630ae50e1e3a876ab7d43ee116b02e997d0ff98fbb6357d72",
+    "before_publisher": "M224/S05/T04",
+    "before_fields_recorded": "ontology_sha256/consumer_binary_sha256/by_group/lift/unmapped_tokens/non_normative_documents read from the tracked T04 artifact immediately before the T05 republish; the T04 bytes were replaced in place by the republish"
+  },
+  "disposition_legend": {
+    "patched": "an applied catalog patch changed the token's post-patch lift outcome (bound>0 in the re-run census for at least one root-cause family)",
+    "residual": "no applied patch changes the token's lift outcome; every occurrence is still fail-closed Unknown in the re-run census and is documented with a follow-up"
+  },
+  "census_before": {
+    "ontology_sha256": "sha256:fb171754c61f7ffafb4696c0bf9fca3bd951787e29f9494c8b58a81dfaf5673f",
+    "producer_binary_sha256": "sha256:1e3d54a9a52e69630e777b94d424feff75b60d1409020847eecca7caac4f1cda",
+    "consumer_binary_sha256": "sha256:0b2d50908f8507f90538db12ee35d113edc8bd316dde94c09ac525afb00cb116",
+    "by_group": {"Unknown": 13599, "court_practice": 70, "non_normative": 2},
+    "by_catalog_token": {"chast": 6494, "glava": 71, "punkt": 5208, "razdel": 11, "statya": 1887},
+    "by_role": {},
+    "lift": {"markers": 13671, "bound": 0, "unknown": 13599, "non_normative": 72},
+    "unmapped_tokens": {"chast": 6463, "glava": 71, "punkt": 5167, "razdel": 11, "statya": 1887},
+    "non_normative_documents": 17,
+    "non_normative_prefix_documents": 17,
+    "xml_reparse_in_lift": false
+  },
+  "census_after": {
+    "ontology_sha256": "sha256:1c07ef275a6858547e00d0394fea9c14da895228cfab1d815ad65eaa149dcda0",
+    "producer_binary_sha256": "sha256:1e3d54a9a52e69630e777b94d424feff75b60d1409020847eecca7caac4f1cda",
+    "consumer_binary_sha256": "sha256:0ed9f03a97591fea34c401e76125921527d26624914f98bec371d056a46fd546",
+    "by_group": {"Unknown": 13597, "court_practice": 70, "departmental_order": 2, "non_normative": 2},
+    "by_catalog_token": {"chast": 6494, "glava": 71, "punkt": 5208, "razdel": 11, "statya": 1887},
+    "by_role": {},
+    "lift": {"markers": 13671, "bound": 0, "unknown": 13599, "non_normative": 72},
+    "unmapped_tokens": {"chast": 6463, "glava": 71, "punkt": 5167, "razdel": 11, "statya": 1887},
+    "non_normative_documents": 17,
+    "non_normative_prefix_documents": 17,
+    "xml_reparse_in_lift": false
+  },
+  "drift_prediction": {
+    "before_rerun": "P01 is expected to reclassify the npa/order_* family at the metadata level only: the sampled npa/order_ document moves from detection unknown:no_metadata (group empty) to unknown:probe_conflict (group departmental_order); by_group loses 2 markers from Unknown and gains departmental_order=2; lift.bound stays 0 and unmapped_tokens stays byte-identical because the document uses dot-style numbering while the departmental_order probe requires paren-style unit markers",
+    "after_rerun": "confirmed exactly: by_group Unknown 13599 to 13597, departmental_order 0 to 2, lift {markers 13671, bound 0, unknown 13599, non_normative 72} and unmapped_tokens unchanged",
+    "producer_binary_unchanged": "the cleaned-project producer binary sha256 is identical pre/post (the embedded catalog constant is not referenced by that binary), so the producer half of the census is untouched by P01"
+  },
+  "s04_structural_axis": {
+    "artifact": "prd/migration/rust-evidence/m224-s04-document-group-coverage.json",
+    "document_groups_version_before": "fnv1a64-fedfdb7ce0c26bcc",
+    "document_groups_version_after": "fnv1a64-199465d606c1fdc8",
+    "by_group_unknown_before": 7288,
+    "by_group_unknown_after": 6936,
+    "by_group_departmental_order_before": 0,
+    "by_group_departmental_order_after": 352,
+    "bank_axis_unchanged": {"normative": 7719, "non_normative": 36066, "unknown": 0},
+    "entries_unchanged": 43785
+  },
+  "patches_applied": [
+    {
+      "patch_id": "P01",
+      "class": "needle_coverage_additive",
+      "target": "prd/architecture/kb-ontology.yaml",
+      "section": "document_groups / group departmental_order / needles",
+      "change": "{field: path, needle: npa/order_, rank: 20}",
+      "evidence": [
+        "S04 coverage by_group.Unknown=7288 decomposes over the manifest into xml/law/* 6802 + npa/order_* 352 + npa/resolution_* 129 + npa/document_* 5 rows",
+        "S05 census sample document npa/order_2018-07-30_1600_rev-unknown_b2f87674.xml had detection unknown:no_metadata (group empty) before the patch",
+        "headers of 6 sampled npa/order_* files read Prikaz (departmental order)",
+        "full-manifest path simulation of the candidate needle: exactly 352 rows change Unknown to departmental_order, 0 Conflicts, and no manifest path outside npa/order_* contains the substring order_"
+      ],
+      "census_effect": "per-document detection for the sampled order document moves unknown:no_metadata to unknown:probe_conflict with group departmental_order; by_group moves 2 markers from Unknown to departmental_order; lift.bound stays 0 and unmapped_tokens is unchanged because the sampled document carries dot-style numbered markers while the departmental_order structural probe requires paren-style unit markers (canon gap, follow_up F02); S04 structural Unknown drops 7288 to 6936"
+    }
+  ],
+  "root_causes": [
+    {
+      "class_id": "C1",
+      "path_family": "npa/order_*",
+      "manifest_rows": 352,
+      "sample_docs": 1,
+      "tokens_seen": ["chast"],
+      "document_type_evidence": "6 sampled files read Prikaz",
+      "disposition": "patched",
+      "patch_id": "P01",
+      "note": "metadata-level binding only: the sampled document keeps a fail-closed probe conflict, so its marker is reclassified but not lifted"
+    },
+    {
+      "class_id": "C2",
+      "path_family": "xml/law/*",
+      "manifest_rows": 6802,
+      "sample_docs": 9,
+      "tokens_seen": ["statya", "glava", "chast", "punkt", "razdel"],
+      "document_type_evidence": "sampled edition headers: 141352 reads KODEKS; 143149, 171859, 212534, 419184 read Postanovlenie; 297837 reads Ukaz; 402549 reads FEDERALNYI ZAKON; 512195 yielded no type marker in the bounded head scan",
+      "disposition": "residual",
+      "patch_id": "none",
+      "note": "the export bucket mixes codes, federal laws, decrees and government resolutions, so a path-only needle would mis-bind a large share of the family; binding requires a document-level type signal that the S05 lift path does not have (kind/doc_type are None by design)"
+    },
+    {
+      "class_id": "C3",
+      "path_family": "npa/document_*",
+      "manifest_rows": 5,
+      "sample_docs": 1,
+      "tokens_seen": ["statya", "glava", "chast", "punkt", "razdel"],
+      "document_type_evidence": "the sampled 195-fz file reads Kodeks Rossiiskoi Federatsii; the remaining family files 5/6/7/8-fkz read Federalnyi zakon",
+      "disposition": "residual",
+      "patch_id": "none",
+      "note": "code versus federal law cannot be told from the path (document_<date>_<num>-fz covers both); no safe additive needle exists"
+    },
+    {
+      "class_id": "C4",
+      "path_family": "razdel boundary inside the law/code families",
+      "manifest_rows": 0,
+      "sample_docs": 0,
+      "tokens_seen": ["razdel"],
+      "document_type_evidence": "catalog declaration: the federal_law@v1 ladder deliberately declares no razdel; only code does (R8-08)",
+      "disposition": "residual",
+      "patch_id": "none",
+      "note": "by design: a razdel marker in a federal-law document is an undeclared level and must stay fail-closed; this is not a defect to patch"
+    },
+    {
+      "class_id": "C5",
+      "path_family": "npa/resolution_*",
+      "manifest_rows": 129,
+      "sample_docs": 0,
+      "tokens_seen": [],
+      "document_type_evidence": "5 sampled family files read Postanovlenie",
+      "disposition": "residual",
+      "patch_id": "none",
+      "note": "not covered by the bounded census sample, so no patch is applied in this round; recorded as a follow-up needle candidate"
+    }
+  ],
+  "entries": [
+    {
+      "token": "chast",
+      "count": 6463,
+      "groups": ["Unknown", "departmental_order"],
+      "disposition": "residual",
+      "reason": "dominant root cause C2 (mixed xml/law/* bucket, 6802 manifest rows) plus C3 (npa/document_*); the 2 markers of the sampled npa/order_ document (C1) were reclassified from Unknown to departmental_order by P01 but stay fail-closed (probe conflict), so bound stays 0 and the count is unchanged",
+      "patch": "P01 (metadata-level only)"
+    },
+    {
+      "token": "glava",
+      "count": 71,
+      "groups": ["Unknown"],
+      "disposition": "residual",
+      "reason": "root cause C2/C3: glava is a declared container in the law/code ladders, so the blocker is group detection in the mixed export buckets, not the ladder",
+      "patch": "none"
+    },
+    {
+      "token": "punkt",
+      "count": 5167,
+      "groups": ["Unknown"],
+      "disposition": "residual",
+      "reason": "root cause C2/C3: punkt is declared in the federal_law@v1 and departmental_order ladders, so the blocker is group detection in the mixed export buckets (the sampled order document carried no punkt marker)",
+      "patch": "none"
+    },
+    {
+      "token": "razdel",
+      "count": 11,
+      "groups": ["Unknown"],
+      "disposition": "residual",
+      "reason": "root cause C2/C3 (the razdel markers sit in code-family editions of the mixed buckets that bind no group); additionally C4: even once a code binds, a razdel marker in a federal-law document is an intended fail-closed boundary (R8-08)",
+      "patch": "none"
+    },
+    {
+      "token": "statya",
+      "count": 1887,
+      "groups": ["Unknown"],
+      "disposition": "residual",
+      "reason": "root cause C2/C3: statya is the unit of every AST-bearing normative ladder, so the blocker is group detection in the mixed export buckets, not the ladder",
+      "patch": "none"
+    }
+  ],
+  "follow_ups": [
+    "F01: document-level (header / document-type) classification for the mixed export buckets xml/law/* and npa/document_*; the S05 lift path passes kind/doc_type=None by design, so this needs a dedicated slice",
+    "F02: canon decision on the departmental_order numbering style (dot vs paren); the catalog already documents that flipping it inverts the resolution/order distinction and breaks four contract tests",
+    "F03: npa/resolution_* needle candidate (129 manifest rows, sampled headers read Postanovlenie); not in the bounded census sample, to be verified with a future census round",
+    "F04: extractor-level gap MEM834 (Cyrillic letter markers are not extracted by the walker) is not exercised by this sample: unmapped_tokens carries no podpunkt or letter-marked token; it stays an open documented class, not a residual of this round"
+  ],
+  "verification": {
+    "census_check": {
+      "command": "uv run python scripts/m224_s05_hierarchy_lift_census.py --check",
+      "exit_code": 0,
+      "result": "byte_identity_ok",
+      "log": "census check=ok sample_size=28 markers=13671 bound=0 unknown=13599 non_normative=72"
+    },
+    "census_republish": {
+      "command": "uv run python scripts/m224_s05_hierarchy_lift_census.py",
+      "exit_code": 0,
+      "log": "census sample_size=28 markers=13671 bound=0 unknown=13599 non_normative=72 non_normative_documents=17"
+    },
+    "needle_simulation": {
+      "scope": "all 43785 S02 manifest paths, path-only metadata needles",
+      "changed_rows": 352,
+      "change": "Unknown to Bound:departmental_order",
+      "conflicts_introduced": 0
+    },
+    "s04_battery": {
+      "command": "uv run pytest scripts/test_m224_s04_document_group_coverage.py -q",
+      "exit_code": 0,
+      "result": "37 passed"
+    },
+    "contract_suites": {
+      "cargo test -p ln-decode --offline --test structural_profile_contract": "26 passed",
+      "cargo test -p ln-decode --offline --test non_normative_profile_contract": "7 passed",
+      "cargo test -p ln-decode --offline --test hierarchy_lift_contract": "9 passed",
+      "cargo test -p ln-kb-ontology --offline --test document_groups_catalog": "38 passed",
+      "cargo test -p ln-consultant-parser --offline --test document_group_coverage_contract": "19 passed",
+      "cargo test -p ln-consultant-parser --offline --test hierarchy_lift_census_contract": "12 passed"
+    },
+    "format_and_check": {
+      "cargo fmt --all --check": "ok",
+      "cargo check --workspace --offline": "ok"
+    }
+  },
+  "non_claims": [
+    "a catalog needle patch is a system_observation heuristic change, not legal classification",
+    "an unmapped marker stays fail-closed and is never given a guessed default by this patch loop",
+    "this artifact does not close R1000 and is not semantic completeness",
+    "counts, tokens, roles, paths and hashes only; no decoded corpus text is carried",
+    "patching needles does not change the lift semantics (ladder placement, no ComponentConcept minted)",
+    "the observed drift is a group-classification change, not a lift-count change"
+  ]
+}
