@@ -22,6 +22,7 @@ pub mod document_group_coverage;
 pub mod document_profile;
 pub mod drift_baseline;
 pub mod edge_deriver;
+pub mod edition_timeline;
 pub mod gold_coding;
 pub mod gold_eval;
 pub mod hierarchy_lift_census;
