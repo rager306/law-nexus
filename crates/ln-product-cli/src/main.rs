@@ -387,21 +387,34 @@ fn inspect(path: &str) {
     // the effect day falls back to the filename document date only in the
     // CTV branch and only for punkt groups. Registry-bound law/code groups
     // keep the existing membership hierarchy_map and registry day unchanged.
-    let ctv_resolved = (|| -> usize {
+    // Returns `(resolved, gate)`: the resolved count plus the named CTV gate
+    // reason the count was admitted or blocked. `gate` is additive
+    // observability ("non_normative" / "no_granularity" / "" allowed).
+    let (ctv_resolved, ctv_gate) = (|| -> (usize, &'static str) {
         // Mint level from the YAML catalog granularity (R086); fail-closed:
         // a bound group with no declared granularity yields zero resolved.
         let bound_group = match &detection {
             Ok(GroupDetection::Bound { group, .. }) => group,
-            _ => return 0usize,
+            _ => return (0usize, ""),
         };
-        let mint_level = match ln_kb_ontology::catalog::OntologyCatalog::embedded() {
-            Ok(catalog) => catalog
-                .document_group(bound_group)
-                .and_then(|profile| profile.granularity.clone()),
-            Err(_) => None,
+        // Explicit non-normative CTV barrier (ADR-0030 D2, ADR-0020): practice
+        // banks (court_practice / non_normative) are text-only, not AST-bearing
+        // acts, so text-CTV must never mint against them even if a future
+        // catalog edit were to declare a granularity. The barrier is evaluated
+        // before the granularity probe so the reason is observable and named
+        // rather than a silent side effect of an empty ladder.
+        let catalog = match ln_kb_ontology::catalog::OntologyCatalog::embedded() {
+            Ok(catalog) => catalog,
+            Err(_) => return (0usize, "no_granularity"),
         };
-        let Some(mint_level) = mint_level else {
-            return 0usize;
+        let Some(profile) = catalog.document_group(bound_group) else {
+            return (0usize, "no_granularity");
+        };
+        if profile.is_non_normative() {
+            return (0usize, "non_normative");
+        }
+        let Some(mint_level) = profile.granularity.clone() else {
+            return (0usize, "no_granularity");
         };
         let is_punkt_group = mint_level == "punkt";
         // Effect day: registry first; punkt groups fall back to the filename
@@ -414,7 +427,7 @@ fn inspect(path: &str) {
             }
         });
         let Some(effect_day) = effect_day else {
-            return 0usize;
+            return (0usize, "");
         };
         let units: Vec<ln_decode::article_body::ArticleText> = embedded_profile
             .as_ref()
@@ -466,7 +479,7 @@ fn inspect(path: &str) {
                 resolved += 1;
             }
         }
-        resolved
+        (resolved, "")
     })();
 
     // Consultant parser pipeline: hyperlinks → classify → edges → observations
@@ -513,7 +526,8 @@ fn inspect(path: &str) {
          \"oracle_phantom\":{oracle_phantom},\
          \"assembly_status\":\"{assembly_status}\",\
          \"ctv_resolved\":{ctv_resolved},\
-         \"document_group\":\"{document_group_esc}\",\
+         \"ctv_gate\":\"{ctv_gate}\",\
+         \"document_group\":\"{document_group_esc}\",
          \"detection_factor\":\"{detection_factor_esc}\",\
          \"detection_unknown\":{detection_unknown},\
          \"detection_unknown_reason\":\"{detection_unknown_reason_esc}\",\
