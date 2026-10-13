@@ -27,6 +27,7 @@ pub mod multi_edition;
 pub mod npa_corpus_acceptance;
 pub mod npa_corpus_acceptance_v2;
 pub mod observation;
+pub mod page_index_catalog;
 pub mod promotion_gate;
 pub mod raw_link;
 
@@ -58,4 +59,7 @@ pub use multi_edition::{
     EditionSummary, delta, parse_edition_filename, process_edition, process_edition_for_path,
 };
 pub use observation::{Observation, collect_observations, format_observations_yaml};
+pub use page_index_catalog::{
+    CatalogPageIndexRecord, InMemoryPageIndexCatalog, PageIndexCatalogPort,
+};
 pub use raw_link::RawLink;

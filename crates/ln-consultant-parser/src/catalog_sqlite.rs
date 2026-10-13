@@ -7,6 +7,7 @@ use rusqlite::{Connection, OpenFlags, OptionalExtension};
 
 use crate::catalog::{CatalogError, CatalogPort, CatalogRecord};
 use crate::catalog_anchor::{CatalogAnchorPort, CatalogAnchorRecord, EXPORTS_PREFIX};
+use crate::page_index_catalog::{CatalogPageIndexRecord, PageIndexCatalogPort};
 
 /// Anchor lookup by manifest path. The `exports/` prefix is a bound `?1`
 /// parameter (never interpolated user data) and the manifest path is `?2`, so
@@ -39,6 +40,25 @@ ORDER BY
     e.revision_date DESC,
     e.edition_id DESC
 LIMIT 1
+";
+
+/// Page-index catalog join: an offline token to its catalog `(bank,
+/// document_key)` legal identities across both observed surfaces. The join is
+/// byte-exact (`?1` is a bound parameter, never interpolated and never
+/// decoded). `UNION` de-duplicates rows shared by both surfaces; `ORDER BY`
+/// fixes the ascending `(bank, document_key)` order. `document_key` is an
+/// `INTEGER` in the schema and is cast to `TEXT` so it maps into the pageindex
+/// key space. A genuine miss yields zero rows (an empty result), not an error.
+const LOOKUP_PAGE_INDEX_BY_OFFLINE_TOKEN_SQL: &str = "
+SELECT bank, CAST(document_key AS TEXT) AS document_key
+FROM court_items
+WHERE offline_uri = ?1
+UNION
+SELECT r.bank AS bank, CAST(r.document_key AS TEXT) AS document_key
+FROM consultant_source_locators AS loc
+JOIN consultant_source_records AS r ON r.source_record_id = loc.source_record_id
+WHERE loc.offline_uri = ?1
+ORDER BY bank ASC, document_key ASC
 ";
 
 const LOOKUP_SQL: &str = "
@@ -298,6 +318,34 @@ impl CatalogAnchorPort for SqliteCatalog {
             .optional()
             .map_err(|err| map_sqlite("lookup-by-source-id", err))?;
         Ok(row)
+    }
+}
+
+impl PageIndexCatalogPort for SqliteCatalog {
+    fn lookup_by_offline_token(
+        &self,
+        offline_token: &str,
+    ) -> Result<Vec<CatalogPageIndexRecord>, CatalogError> {
+        if offline_token.is_empty() {
+            return Err(CatalogError::new(
+                "lookup-by-offline-token",
+                "empty offline token",
+            ));
+        }
+        let mut stmt = self
+            .conn
+            .prepare(LOOKUP_PAGE_INDEX_BY_OFFLINE_TOKEN_SQL)
+            .map_err(|err| map_sqlite("lookup-by-offline-token", err))?;
+        let rows = stmt
+            .query_map([offline_token], |row| {
+                Ok(CatalogPageIndexRecord {
+                    bank: row.get(0)?,
+                    document_key: row.get(1)?,
+                })
+            })
+            .map_err(|err| map_sqlite("lookup-by-offline-token", err))?;
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|err| map_sqlite("lookup-by-offline-token", err))
     }
 }
 
