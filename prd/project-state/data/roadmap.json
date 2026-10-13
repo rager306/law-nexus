@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-10-05T02:10:00Z",
+  "generated_at": "2026-10-13T06:42:31Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -579,6 +579,18 @@
       "theme": "Strict XML/JSONL contract and NPA model connectivity across the cleaned and analysis surfaces",
       "status": "complete",
       "boundary": "Four slices harden the closed-contract admission of the cleaned and analysis JSONL surfaces against Review-29 findings R29-F01..F07. S01 adds seal-independent admission of closed contract fields and strict JSON grammar in cleaned_wire::inspect_cleaned_wire (MAX_JSON_DEPTH=64, closed WireErrorKind::ContractFieldInvalid). S02 makes the analysis verifier mode-aware (six admitted only under a fail-closed context_stream_is_trivially_empty re-derivation of the pinned parent) and adds real-pipeline coordinate proofs. S03 enforces exactly-once text attribution in the writer for every completion, not only Complete, and adds the closed additive policies.display_scope=source_content_retained_no_suppression key. S04 enforces the declared max_line_bytes/max_records limits at read time and lands the cross-surface consumer admission battery plus the R29-F01..F07 disposition. Validation round 2 returned verdict=pass with 3/3 reviewers at source revision sha256:719b6ce3. Bounded evidence only: R1000 stays active/unclosed and owned by M213 (M222 supporting-only), R1001 stays frozen, no promotion, no corpus-wide acceptance and no display-cleaning claim."
+    },
+    {
+      "range": "M216-M216",
+      "theme": "Доказательная цепочка retrieval над очищенной проекцией (M216)",
+      "status": "complete",
+      "boundary": "Bounded retrieval evidence over the cleaned projection; not corpus semantic acceptance."
+    },
+    {
+      "range": "M223-M223",
+      "theme": "Сохранённый XML→JSONL источник, потребители (navigation/tokenizer/graph projection) и полный корпусный прогон",
+      "status": "complete",
+      "boundary": "Full pinned corpus run: 43783 accepted + 2 documented pinned-threshold residuals = 43785 terminal_with_documentation, 0 refused; integrity/accounting evidence, not semantic acceptance; R1000 stays active."
     }
   ],
   "sanctioned_execution_chain": {
@@ -594,10 +606,10 @@
     ]
   },
   "current_milestone": {
-    "id": "M215-w9jsgn",
-    "status": "active",
-    "title": "Цепочка поставок эмбеддингов и провенанс векторов",
-    "goal": "Поставить проверяемую цепочку поставок эмбеддингов с провенансом векторов: контракт артефакта эмбеддинга и провенанс модели, живой путь TEI с fail-closed при недоступности, retrieval-доказательства над очищенной проекцией и границы готовности адаптеров. Заявляется только то, что подтверждено артефактом; live-TEI не выдаётся за validated, RuVector остаётся [proposed]."
+    "id": "M223-d2q075",
+    "status": "complete",
+    "title": "Промежуточный источник XML JSONL с корпусной приёмкой",
+    "goal": "Сохраняющий источник и чистые потребительские представления (навигация, токенизатор, графовая проекция) без повторного разбора XML; полный pinned корпусный прогон 43785 (43783 accepted + 2 документированных pinned-threshold residual)."
   },
   "recommended_next": {
     "title": "Operator decision required: all remaining milestones are parked",
