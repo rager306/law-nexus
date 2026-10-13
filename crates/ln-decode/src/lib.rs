@@ -20,6 +20,7 @@ pub mod cleaned_verifier;
 pub mod cleaned_wire;
 pub mod consultant_uri_anchor;
 pub mod corpus_inventory;
+pub mod corpus_pageindex;
 pub mod current_requisites;
 pub mod deontic;
 pub mod document_context;
