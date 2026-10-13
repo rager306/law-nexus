@@ -28,6 +28,7 @@ pub mod evaluator;
 pub mod golden;
 pub mod hierarchy;
 pub mod hierarchy_artifact;
+pub mod identity_envelope;
 pub mod lawref;
 pub mod lawref_resolve;
 pub mod lexer;
@@ -68,3 +69,7 @@ pub mod structural_profile;
 pub mod temporal;
 mod tokenizer;
 pub mod unknown_forms;
+
+pub use identity_envelope::{
+    EnvelopeRefusal, EnvelopeRefusalKind, IDENTITY_ENVELOPE_SCHEMA, IdentityEnvelope,
+};
