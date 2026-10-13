@@ -691,7 +691,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn embedded_profile_loads_six_groups() {
+    fn embedded_profile_loads_seven_groups() {
         let profile = StructuralProfile::embedded().expect("yaml");
         let ids: Vec<&str> = profile
             .groups
@@ -706,7 +706,8 @@ mod tests {
                 "government_resolution",
                 "presidential_decree",
                 "departmental_order",
-                "court_practice"
+                "court_practice",
+                "non_normative"
             ]
         );
     }

@@ -442,6 +442,7 @@ document_groups:
     - "parsed_as Work→DocumentGroupRef binding is a system_observation heuristic, never legal authority (R8-10)"
     - "the document_groups vocabulary stays in the YAML catalog; only the binding (group + catalog version) transfers to the graph"
     - "court practice (court_practice) is text-only: practice text is not an AST (ADR-0020)"
+    - "non-normative class is a structural coverage heuristic, not a legal normativity claim"
   structural_roles:
     - container
     - unit
@@ -581,6 +582,24 @@ document_groups:
         - {field: kind, needle: decision, rank: 25}
         - {field: kind, needle: prescription, rank: 25}
         - {field: kind, needle: determination, rank: 25}
+      ladder: []
+    # ADR-0030 D2: document_groups is the *structural* axis; which export bank a
+    # path belongs to (courts/fas practice vs npa/xml law) is the separate
+    # principal axis owned by `ln_kb_ontology::bank_normativity` (D667).
+    # `non_normative` is the explicit structural class for practice text banks
+    # whose file names carry no *specific* court_practice needle: the bank-wide
+    # needles `courts/` and `fas/` bind `courts/acn/*` and
+    # `fas/determination_*`, which the narrower court_practice needles (rank
+    # 10-15) missed. Practice text is not an AST (ADR-0020): text_only, no
+    # ladder, no granularity, no CTV machinery.
+    # Rank 40 is deliberately coarser than the specific court_practice needles
+    # (rank 10-15), so `fas/decision_*` / `courts/court_*` keep binding
+    # court_practice and no same-rank Conflict is produced.
+    - id: non_normative
+      text_only: true
+      needles:
+        - {field: path, needle: courts/, rank: 40}
+        - {field: path, needle: fas/, rank: 40}
       ladder: []
 
 # Separate from fsm (readiness). Governor compares contract.fsm_state to

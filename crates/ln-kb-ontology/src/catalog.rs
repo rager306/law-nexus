@@ -79,6 +79,21 @@ pub struct DocumentGroup {
     pub ladder: Vec<LadderEntry>,
 }
 
+impl DocumentGroup {
+    /// True when this group is non-normative practice/control text rather than
+    /// an AST-bearing act (ADR-0030 D2, ADR-0020).
+    ///
+    /// `text_only` is the single source of truth for the structural side of
+    /// non-normativity: a separate schema field is deliberately not introduced.
+    /// The *legal* bank-normativity axis is owned by
+    /// [`crate::bank_normativity`] (D667); this accessor only reads the
+    /// structural declaration, so an unresolved group stays Unknown rather than
+    /// silently claiming non-normativity.
+    pub fn is_non_normative(&self) -> bool {
+        self.text_only
+    }
+}
+
 /// Parsed `document_groups:` section: closed role vocabulary, structural-only
 /// tokens, non-claims, and the groups themselves.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
