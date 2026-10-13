@@ -12,7 +12,7 @@ section 12):
     "Slice boundaries", "Threat surface", "Requirement impact", "Verification
     surface", the ``frozen-contract-inventory`` / ``immutability-pins`` /
     ``consumer-model`` / ``corpus-acceptance-boundary`` blocks, ``active/unclosed``,
-    ``43785``, ``bounded-partial``, ``reader_tokenizer`` and
+    ``43785``, ``terminal-with-documentation``, ``reader_tokenizer`` and
     ``npa_graph_projection``);
 (b) the five frozen upstream wire contracts match the sha256 inventory pinned in
     the design contract exactly — drift is an explicit failure, never a silent
@@ -24,10 +24,10 @@ section 12):
     schema-v1 identities, are redacted, and satisfy the consumer accounting
     invariants (``terminal = accepted + refused`` and
     ``entries = terminal + remaining``; a partial run is never reported as full);
-    the design contract's declared ``bounded-partial`` boundary must be
-    consistent with the published run report (declares bounded-partial iff
-    ``partial_is_not_full=true`` and ``status != complete`` while
-    ``remaining > 0``);
+    the design contract's declared ``terminal-with-documentation`` boundary must be
+    consistent with the published run report (declares terminal-with-documentation
+    iff ``partial_is_not_full=true``, ``undocumented_remaining=0`` and
+    ``status != complete`` while ``remaining > 0``);
 (e) immutability: the six section-2 source files and the two frozen
     ``prd/architecture/*.jsonl`` artifacts match the ``immutability-pins`` block;
 (f) the machine-readable ``consumer-model`` block is total over the closed
@@ -100,7 +100,7 @@ MODEL_BEGIN = "<!-- consumer-model:begin -->"
 MODEL_END = "<!-- consumer-model:end -->"
 BOUNDARY_BEGIN = "<!-- corpus-acceptance-boundary:begin -->"
 BOUNDARY_END = "<!-- corpus-acceptance-boundary:end -->"
-BOUNDARY_KIND = "bounded-partial"
+BOUNDARY_KIND = "terminal-with-documentation"
 TOKENIZER_MODEL_BEGIN = "<!-- consumer-model:reader_tokenizer:begin -->"
 TOKENIZER_MODEL_END = "<!-- consumer-model:reader_tokenizer:end -->"
 GRAPH_MODEL_BEGIN = "<!-- consumer-model:npa_graph_projection:begin -->"
@@ -129,7 +129,7 @@ REQUIRED_MARKERS = (
     BOUNDARY_END,
     "active/unclosed",
     "43785",
-    "bounded-partial",
+    "terminal-with-documentation",
     "reader_tokenizer",
     "npa_graph_projection",
 )
@@ -341,7 +341,7 @@ def parse_consumer_model_block(contract_text: str) -> list[str]:
 
 
 def parse_acceptance_boundary(contract_text: str) -> dict[str, str]:
-    """Parse the machine-readable bounded-partial boundary declaration, fail-closed.
+    """Parse the machine-readable terminal-with-documentation boundary declaration, fail-closed.
 
     The block declares the S07 whole-corpus acceptance boundary (design contract
     §6.3) in ``key:value`` form; the battery cross-checks it against the
@@ -451,12 +451,24 @@ def redaction_check(value: Any) -> None:
 def assert_counts_accounting(counts: dict[str, Any]) -> None:
     """The consumer accounting invariants that must hold for any corpus census.
 
-    ``terminal = accepted + refused`` and ``entries = terminal + remaining``;
-    every count is a non-negative integer.  A partial run is honest about its
-    remaining tail and is never reported as full.
+    ``terminal = accepted + refused``, ``entries = terminal + remaining``,
+    ``terminal_with_documentation = terminal + documented_residual`` and
+    ``remaining = documented_residual + undocumented_remaining``; every count is
+    a non-negative integer.  A partial run is honest about its remaining tail and
+    is never reported as full.
     """
-    required = ("entries", "accepted", "refused", "incomplete", "terminal", "remaining")
+    required = ("entries", "accepted", "refused", "incomplete", "terminal")
     for key in required:
+        assert key in counts, f"battery: counts is missing {key!r}"
+        assert isinstance(counts[key], int) and counts[key] >= 0, (
+            f"battery: counts.{key} must be a non-negative integer, got {counts[key]!r}"
+        )
+    for key in (
+        "remaining",
+        "documented_residual",
+        "undocumented_remaining",
+        "terminal_with_documentation",
+    ):
         assert key in counts, f"battery: counts is missing {key!r}"
         assert isinstance(counts[key], int) and counts[key] >= 0, (
             f"battery: counts.{key} must be a non-negative integer, got {counts[key]!r}"
@@ -468,6 +480,20 @@ def assert_counts_accounting(counts: dict[str, Any]) -> None:
     assert counts["entries"] == counts["terminal"] + counts["remaining"], (
         "battery: entries must equal terminal + remaining "
         f"({counts['entries']} != {counts['terminal']} + {counts['remaining']})"
+    )
+    assert counts["terminal_with_documentation"] == (
+        counts["terminal"] + counts["documented_residual"]
+    ), (
+        "battery: terminal_with_documentation must equal terminal + documented_residual "
+        f"({counts['terminal_with_documentation']} != "
+        f"{counts['terminal']} + {counts['documented_residual']})"
+    )
+    assert counts["remaining"] == (
+        counts["documented_residual"] + counts["undocumented_remaining"]
+    ), (
+        "battery: remaining must equal documented_residual + undocumented_remaining "
+        f"({counts['remaining']} != {counts['documented_residual']} + "
+        f"{counts['undocumented_remaining']})"
     )
 
 
@@ -491,12 +517,15 @@ def assert_boundary_consistent(boundary: dict[str, str], run_report: dict[str, A
     """The declared boundary must match the published run report, fail-closed.
 
     The design contract declares the S07 acceptance boundary as
-    ``bounded-partial`` (§6.3) **iff** the published corpus-run report is
-    actually partial: ``partial_is_not_full=true``, ``status != complete`` while
+    ``terminal-with-documentation`` (§6.3) **iff** the published corpus-run
+    report is actually terminal-with-documentation: ``partial_is_not_full=true``,
+    ``undocumented_remaining=0`` and ``status != complete`` while
     ``remaining > 0``, and the declared ``published_terminal`` /
-    ``published_remaining`` equal the report's counts.  A contract that claims a
-    full run, or an artifact whose tail contradicts the declaration, fails
-    closed.
+    ``published_remaining`` / ``published_documented_residual`` /
+    ``published_undocumented_remaining`` /
+    ``published_terminal_with_documentation`` equal the report's counts.  A
+    contract that claims a full run, an artifact with an undocumented remainder,
+    or a tail that contradicts the declaration fails closed.
     """
     assert boundary.get("boundary") == BOUNDARY_KIND, (
         f"battery: the contract must declare boundary:{BOUNDARY_KIND}, "
@@ -504,13 +533,19 @@ def assert_boundary_consistent(boundary: dict[str, str], run_report: dict[str, A
     )
     counts = run_report["counts"]
     assert run_report.get("partial_is_not_full") is True, (
-        "battery: a bounded-partial declaration requires partial_is_not_full=true in the report"
+        "battery: a terminal-with-documentation declaration requires "
+        "partial_is_not_full=true in the report"
+    )
+    assert counts["undocumented_remaining"] == 0, (
+        "battery: a terminal-with-documentation declaration requires "
+        f"undocumented_remaining=0, got {counts.get('undocumented_remaining')!r}"
     )
     assert counts["remaining"] > 0, (
-        "battery: a bounded-partial declaration requires a non-empty remaining tail"
+        "battery: a terminal-with-documentation declaration requires a non-empty remaining tail"
     )
     assert run_report.get("status") != "complete", (
-        "battery: a bounded-partial declaration forbids status=complete while remaining > 0"
+        "battery: a terminal-with-documentation declaration forbids "
+        "status=complete while remaining > 0"
     )
     assert boundary.get("published_partial_is_not_full") == "true", (
         "battery: the declared published_partial_is_not_full must be true"
@@ -522,6 +557,27 @@ def assert_boundary_consistent(boundary: dict[str, str], run_report: dict[str, A
     assert int(boundary["published_remaining"]) == counts["remaining"], (
         "battery: declared published_remaining must equal the report remaining count "
         f"({boundary.get('published_remaining')} != {counts['remaining']})"
+    )
+    assert int(boundary["published_documented_residual"]) == counts["documented_residual"], (
+        "battery: declared published_documented_residual must equal the report "
+        f"documented_residual count "
+        f"({boundary.get('published_documented_residual')} != "
+        f"{counts['documented_residual']})"
+    )
+    assert int(boundary["published_undocumented_remaining"]) == counts["undocumented_remaining"], (
+        "battery: declared published_undocumented_remaining must equal the report "
+        f"undocumented_remaining count "
+        f"({boundary.get('published_undocumented_remaining')} != "
+        f"{counts['undocumented_remaining']})"
+    )
+    assert (
+        int(boundary["published_terminal_with_documentation"])
+        == counts["terminal_with_documentation"]
+    ), (
+        "battery: declared published_terminal_with_documentation must equal the "
+        f"report terminal_with_documentation count "
+        f"({boundary.get('published_terminal_with_documentation')} != "
+        f"{counts['terminal_with_documentation']})"
     )
     assert int(boundary["full_corpus_terminal_required"]) == EXPECTED_ENTRIES, (
         "battery: declared full_corpus_terminal_required must equal the manifest size "
@@ -629,7 +685,8 @@ def run_battery() -> dict[str, Any]:
         f"got {run_report.get('r1000_status')!r}"
     )
     # The design contract's declared boundary must match the published artifact
-    # (contract declares bounded-partial iff the run is actually partial).
+    # (contract declares terminal-with-documentation iff the run is actually
+    # terminal-with-documentation).
     assert_boundary_consistent(boundary, run_report)
     redaction_check(run_report)
 
@@ -820,6 +877,9 @@ def build_artifact(analysis: dict[str, Any]) -> dict[str, Any]:
             "refused": run_counts["refused"],
             "incomplete": run_counts["incomplete"],
             "remaining": run_counts["remaining"],
+            "documented_residual": run_counts["documented_residual"],
+            "undocumented_remaining": run_counts["undocumented_remaining"],
+            "terminal_with_documentation": run_counts["terminal_with_documentation"],
         },
         "census_accounting_ok": True,
         "census_s03_reconciled": True,
@@ -893,7 +953,7 @@ def test_corpus_run_report_is_the_corpus_census_schema_v1_and_accounted(battery)
     assert_s03_reconciled(report["s03_baseline_reconciled"])
 
 
-def test_declared_boundary_is_bounded_partial_and_matches_the_report(battery):
+def test_declared_boundary_is_terminal_with_documentation_and_matches_the_report(battery):
     boundary = battery["acceptance_boundary"]
     assert boundary["boundary"] == BOUNDARY_KIND
     assert boundary["published_partial_is_not_full"] == "true"
@@ -902,8 +962,14 @@ def test_declared_boundary_is_bounded_partial_and_matches_the_report(battery):
     # a stale fixture can never hide a contract<->artifact mismatch.
     report = json.loads(RUN_PATH.read_text(encoding="utf-8"))
     assert_boundary_consistent(boundary, report)
-    assert report["counts"]["terminal"] == int(boundary["published_terminal"])
-    assert report["counts"]["remaining"] == int(boundary["published_remaining"])
+    counts = report["counts"]
+    assert counts["terminal"] == int(boundary["published_terminal"])
+    assert counts["remaining"] == int(boundary["published_remaining"])
+    assert counts["documented_residual"] == int(boundary["published_documented_residual"])
+    assert counts["undocumented_remaining"] == int(boundary["published_undocumented_remaining"])
+    assert counts["terminal_with_documentation"] == int(
+        boundary["published_terminal_with_documentation"]
+    )
     assert report["status"] != "complete"
 
 
@@ -1097,8 +1163,45 @@ def test_counts_accounting_accepts_a_honest_partial():
             "incomplete": 0,
             "terminal": 3335,
             "remaining": 40450,
+            "documented_residual": 0,
+            "undocumented_remaining": 40450,
+            "terminal_with_documentation": 3335,
         }
     )
+
+
+def test_counts_accounting_rejects_a_broken_documented_partition():
+    with pytest.raises(AssertionError):
+        assert_counts_accounting(
+            {
+                "entries": 43785,
+                "accepted": 43783,
+                "refused": 0,
+                "incomplete": 2,
+                "terminal": 43783,
+                "remaining": 2,
+                "documented_residual": 2,
+                "undocumented_remaining": 0,
+                "terminal_with_documentation": 43784,
+            }
+        )
+
+
+def test_counts_accounting_rejects_a_broken_residual_partition():
+    with pytest.raises(AssertionError):
+        assert_counts_accounting(
+            {
+                "entries": 43785,
+                "accepted": 43783,
+                "refused": 0,
+                "incomplete": 2,
+                "terminal": 43783,
+                "remaining": 2,
+                "documented_residual": 1,
+                "undocumented_remaining": 0,
+                "terminal_with_documentation": 43784,
+            }
+        )
 
 
 def test_s03_reconciliation_rejects_a_drifted_number():
@@ -1146,23 +1249,26 @@ def test_acceptance_boundary_parser_fails_closed_on_a_malformed_line():
         parse_acceptance_boundary(text)
 
 
-def test_acceptance_boundary_parser_rejects_a_non_bounded_partial_kind():
+def test_acceptance_boundary_parser_rejects_a_non_terminal_with_documentation_kind():
     text = "\n".join([BOUNDARY_BEGIN, "boundary:full", BOUNDARY_END])
     with pytest.raises(AssertionError):
         parse_acceptance_boundary(text)
 
 
-def test_boundary_consistency_rejects_a_full_run_claimed_bounded_partial():
+def test_boundary_consistency_rejects_a_full_run_claimed_terminal_with_documentation():
     boundary = {
         "boundary": BOUNDARY_KIND,
         "published_terminal": "43785",
         "published_remaining": "0",
+        "published_documented_residual": "0",
+        "published_undocumented_remaining": "0",
+        "published_terminal_with_documentation": "43785",
         "published_partial_is_not_full": "true",
         "full_corpus_terminal_required": "43785",
     }
     report = {
         "status": "complete",
-        "partial_is_not_full": False,
+        "partial_is_not_full": True,
         "counts": {
             "entries": 43785,
             "accepted": 43785,
@@ -1170,6 +1276,9 @@ def test_boundary_consistency_rejects_a_full_run_claimed_bounded_partial():
             "incomplete": 0,
             "terminal": 43785,
             "remaining": 0,
+            "documented_residual": 0,
+            "undocumented_remaining": 0,
+            "terminal_with_documentation": 43785,
         },
     }
     with pytest.raises(AssertionError):
@@ -1180,27 +1289,63 @@ def test_boundary_consistency_rejects_a_mismatched_declared_terminal():
     boundary = {
         "boundary": BOUNDARY_KIND,
         "published_terminal": "9999",
-        "published_remaining": "38346",
+        "published_remaining": "2",
+        "published_documented_residual": "2",
+        "published_undocumented_remaining": "0",
+        "published_terminal_with_documentation": "43785",
         "published_partial_is_not_full": "true",
         "full_corpus_terminal_required": "43785",
     }
     report = {
-        "status": "budget_exhausted",
+        "status": "incomplete",
         "partial_is_not_full": True,
         "counts": {
             "entries": 43785,
-            "accepted": 5439,
+            "accepted": 43783,
             "refused": 0,
             "incomplete": 2,
-            "terminal": 5439,
-            "remaining": 38346,
+            "terminal": 43783,
+            "remaining": 2,
+            "documented_residual": 2,
+            "undocumented_remaining": 0,
+            "terminal_with_documentation": 43785,
         },
     }
     with pytest.raises(AssertionError):
         assert_boundary_consistent(boundary, report)
 
 
-def test_boundary_consistency_accepts_the_published_bounded_partial():
+def test_boundary_consistency_rejects_an_undocumented_remaining():
+    boundary = {
+        "boundary": BOUNDARY_KIND,
+        "published_terminal": "43783",
+        "published_remaining": "2",
+        "published_documented_residual": "1",
+        "published_undocumented_remaining": "1",
+        "published_terminal_with_documentation": "43784",
+        "published_partial_is_not_full": "true",
+        "full_corpus_terminal_required": "43785",
+    }
+    report = {
+        "status": "incomplete",
+        "partial_is_not_full": True,
+        "counts": {
+            "entries": 43785,
+            "accepted": 43783,
+            "refused": 0,
+            "incomplete": 2,
+            "terminal": 43783,
+            "remaining": 2,
+            "documented_residual": 1,
+            "undocumented_remaining": 1,
+            "terminal_with_documentation": 43784,
+        },
+    }
+    with pytest.raises(AssertionError):
+        assert_boundary_consistent(boundary, report)
+
+
+def test_boundary_consistency_accepts_the_published_terminal_with_documentation():
     boundary = parse_acceptance_boundary(CONTRACT_PATH.read_text(encoding="utf-8"))
     report = json.loads(RUN_PATH.read_text(encoding="utf-8"))
     assert_boundary_consistent(boundary, report)

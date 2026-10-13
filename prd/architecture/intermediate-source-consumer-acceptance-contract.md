@@ -1,8 +1,10 @@
 # Intermediate-source consumer acceptance contract (tokenizer + graph projection)
 
-**Status:** `[bounded-partial]` — the whole-corpus consumer acceptance
-boundary is **bounded-partial** on the published binding (§6.3); a full
-43785-terminal run is not claimed.
+**Status:** `[terminal-with-documentation]` — the whole-corpus consumer
+acceptance boundary is **terminal-with-documentation** on the published binding
+(§6.3): 43783 terminal outcomes + 2 explicitly documented pinned-threshold
+residuals of 43785 entries, with no undocumented remainder; a full 43785-terminal
+run is still not claimed (`partial_is_not_full=true`).
 **Owning slice:** M223-d2q075 / S07 — design pin for
 `crates/ln-decode/src/reader_tokenizer.rs` (`reader_tokenizer`, T02); tests
 `crates/ln-decode/tests/reader_tokenizer.rs`;
@@ -10,7 +12,7 @@ boundary is **bounded-partial** on the published binding (§6.3); a full
 tests `crates/ln-decode/tests/npa_graph_projection.rs`; counts-only consumer
 binary `crates/ln-decode/src/bin/consumer-run.rs` (T04); corpus harness
 `scripts/m223_s07_corpus_run.py` + `scripts/test_m223_s07_corpus_run.py` (T04);
-bounded-partial corpus acceptance run (T05); slice battery
+terminal-with-documentation corpus acceptance run (T05/T09); slice battery
 `scripts/test_m223_s07_contract.py` (T06)
 **Upstream wire contracts (frozen, `[bounded]`):**
 `prd/architecture/source-jsonl-contract.md`,
@@ -40,9 +42,11 @@ resumable baseline: harness architecture, terminal partition, edition-2024
 rebuild, published counts), D733 (S04 reading-order/composite pin),
 D734/D735 (S05 clean-view pin and its R1000 supporting-only reconciliation),
 D736 (S06 navigation pin), D737 (consumer-acceptance design pin: tokenizer +
-graph projection, additive-only), **D738 (this boundary reassessment: the
-whole-corpus consumer acceptance boundary is bounded-partial on the published
-binding, §6.3)**
+graph projection, additive-only), D738 (bounded-partial boundary reassessment:
+superseded by its own revisit trigger once the residual producer-side cost was
+retired), **D739 (terminal-with-documentation boundary: the whole-corpus
+consumer acceptance boundary is terminal-with-documentation on the published
+binding, §6.3; D667 integrity-is-not-semantic-completeness)**
 **Lifecycle ceiling:** this is a bounded design pin plus two read-only
 consumers over already-verified decoded source and one acceptance run. It is
 **not** an R1000 closure artifact, not semantic/legal interpretation, not
@@ -74,13 +78,16 @@ final two projection-only surfaces:
 > | Tokenizer (S07) | clean text channel + source fragment/spans + derived controls (kind + source element, no fragment) + document identity | re-parse XML for text or boundaries; invent a fragment/span for a derived control |
 > | Graph projection (S07) | document identity + typed members/relations | key by local fragment id; re-parse XML for relation endpoints |
 
-S07 delivers those two consumer surfaces **and** a **bounded-partial**
-whole-corpus acceptance run over the pinned S02 manifest — the remainder
-D638/D735 named for R1000 — on the published binding recorded in §6.3
-(`terminal=5439`, `remaining=38346`, `partial_is_not_full=true`). A full
-43785-terminal consumer run is **not** claimed (budget-bound producer-side cost;
-see §6.3 and `prd/migration/rust-evidence/m223-s07-tokenize-profile.json`). The
-concrete surfaces this document fixes:
+S07 delivers those two consumer surfaces **and** a
+**terminal-with-documentation** whole-corpus acceptance run over the pinned S02
+manifest — the remainder D638/D735 named for R1000 — on the published binding
+recorded in §6.3 (`terminal=43783`, `remaining=2`, `documented_residual=2`,
+`undocumented_remaining=0`, `terminal_with_documentation=43785`,
+`partial_is_not_full=true`). A full 43785-terminal consumer run is **not**
+claimed: two of the 43785 entries are documented pinned-threshold residuals, not
+terminal outcomes (see §6.3 and
+`prd/migration/rust-evidence/m223-s07-corpus-run.json`). The concrete surfaces
+this document fixes:
 
 - **`reader_tokenizer`** (T02): a public, `std`-only, `serde`-free consumer that
   turns the **saved cleaned wire JSONL** into an ordered token stream. Each token
@@ -104,15 +111,17 @@ concrete surfaces this document fixes:
   `m223-s07-consumer-counts/v1`) with closed exit codes and **no raw decoded
   text**.
 - **Corpus harness** `scripts/m223_s07_corpus_run.py` (T04/T05): the resumable,
-  hash-bound bounded-partial corpus acceptance run over the S02 manifest
-  (`prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl`), one terminal
-  consumer outcome per processed entry, with restart (resume) and repeat import.
+  hash-bound terminal-with-documentation corpus acceptance run over the S02
+  manifest (`prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl`), one
+  terminal consumer outcome per processed entry, with restart (resume), repeat
+  import, and documented pinned-threshold residuals.
 
 ### 1.2 Non-claims
 
 - **Not** an R1000 closure artifact. S07 delivers the two consumer surfaces and
-  the bounded-partial corpus acceptance run (§6.3) that supports the wider R1000
-  program; closure is owned by M223 as a whole and is an evidence-gated decision
+  the terminal-with-documentation corpus acceptance run (§6.3) that supports the
+  wider R1000 program; closure is owned by M223 as a whole and is an
+  evidence-gated decision
   M223 does not unilaterally take. R1000 stays `active/unclosed` (§10; precedent
   S03–S06, D735).
 - **Not** semantic or legal. A token stream and a member/relation graph assert
@@ -312,41 +321,59 @@ preserving completed receipts), same-ledger resume, and repeat-import
 byte-identical counts are demonstrated end-to-end and published as
 `m223-s07-resume-proof.json` and `m223-s07-repeat-import-proof.json`.
 
-### 6.3 Declared acceptance boundary: bounded-partial on the published binding
+### 6.3 Declared acceptance boundary: terminal-with-documentation on the published binding
 
-The S07 whole-corpus consumer acceptance boundary is **bounded-partial**, not
-full. The pinned S02 manifest has 43785 entries; the published run reached
-`terminal=5439` (`accepted=5439`, `refused=0`), with `remaining=38346` and
-`status=budget_exhausted`, and reports `partial_is_not_full=true`. A partial run
-is never reported as full (§6.1), and a refusal is never counted as success.
+The S07 whole-corpus consumer acceptance boundary is
+**terminal-with-documentation**, not a full 43785-terminal run. The pinned S02
+manifest has 43785 entries; the published run drove **43783** to a terminal
+outcome (`accepted=43783`, `refused=0`) and left `remaining=2` entries as
+**documented pinned-threshold residuals** (`undocumented_remaining=0`), so
+`terminal_with_documentation=43785` and `partial_is_not_full=true`. A residual
+is never assumed, never terminal, and never reported as full (§6.1); a refusal
+is never counted as success.
 
-The residual tail is **producer-side** cost, outside the frozen consumer
-surface: `capture` / `render_cleaned_projection` / `read_cleaned_wire` /
-`analyze_document` / `render_npa_analysis` / `NpaGraph::import` dominate the
-per-entry cost (≈5 s/entry average; largest entries ≈245 s), so a full
-43785-terminal run is not budget-feasible inside a single bounded attempt
-(≈60 h wall). This reassessment is recorded as a tracked decision (D738) and
-revisits the "full run" wording of D735/D737; it does **not** descope silently
-and does **not** close R1000.
+The boundary transitioned from the earlier **bounded-partial** declaration
+(D738: `terminal=5439`, `remaining=38346`, `status=budget_exhausted`, after T05)
+once D738's own revisit trigger fired: T08 removed the `analyze_document`
+structural quadratic inside the allowed consumer surface and T09 executed the
+full 43785-entry run under the new binding. The two residuals are the two
+largest entries (~29 MB, ~22 MB) that the **pinned** S02 peak-RSS ceiling
+(`peak_rss_kb=6291456`) stops with a closed `rss_limit_exceeded` class. That
+ceiling is a pinned-threshold limitation owned by the S02 feasibility decision,
+not a consumer defect; the residuals are documented rather than silently
+accepted. The residual declaration lives in
+`prd/migration/rust-evidence/m223-s07-corpus-residuals.json` (schema
+`m223-s07-documented-residuals/v1`), and the harness `verify-ledger` accepts a
+residual only for a closed class whose input sha256/bytes match the manifest and
+whose observed peak-RSS provably exceeds the pinned threshold. This reassessment
+is recorded as a tracked decision (D739) and does **not** descope silently and
+does **not** close R1000. The boundary is an acceptance/integrity boundary: it
+is not equated with semantic or legal completeness (D667) and does not restate
+the S03 count result as a semantic claim.
 
 Machine-readable boundary declaration (T06 parses this block; keep one field per
 line):
 
 ```
 <!-- corpus-acceptance-boundary:begin -->
-boundary:bounded-partial
-published_terminal:5439
-published_remaining:38346
+boundary:terminal-with-documentation
+published_terminal:43783
+published_remaining:2
+published_documented_residual:2
+published_undocumented_remaining:0
+published_terminal_with_documentation:43785
 published_partial_is_not_full:true
 full_corpus_terminal_required:43785
 <!-- corpus-acceptance-boundary:end -->
 ```
 
 The T06 battery asserts this declaration is consistent with the published
-`m223-s07-corpus-run.json`: `boundary:bounded-partial` iff
-`partial_is_not_full=true` and `status != complete` while `remaining > 0`, and
-the declared `published_terminal` / `published_remaining` equal the report's
-counts. R1000 stays `active/unclosed`.
+`m223-s07-corpus-run.json`: `boundary:terminal-with-documentation` iff
+`partial_is_not_full=true`, `undocumented_remaining=0` and `status != complete`
+while `remaining > 0`, and the declared `published_terminal` /
+`published_remaining` / `published_documented_residual` /
+`published_undocumented_remaining` / `published_terminal_with_documentation`
+equal the report's counts. R1000 stays `active/unclosed`.
 
 ## 7. Additive-only over the five frozen wire contracts
 
@@ -463,14 +490,17 @@ S07 reconciles with the S03 baseline
 | R1000 status | `active/unclosed` |
 
 The two consumers are defined and exercised **per accepted document** on tracked
-fixtures and a bounded seeded real-corpus sample; the S07 T05 run is a
-**bounded-partial** whole-corpus consumer acceptance run over the pinned S02
-manifest (§6.3): `terminal=5439` of 43785 entries with `remaining=38346`, not a
-full 43785-terminal materialization. The 43785/0/0 numbers above are the S03
-producer baseline this slice reconciles **counts** against, not a claim that S07
-produced 43785 terminal consumer outcomes. S07 must not restate S03's
-integrity/count result as a semantic or legal claim: the S03 run is an
-acceptance/integrity baseline, not a semantic oracle (acceptance contract §8.2).
+fixtures and a bounded seeded real-corpus sample; the S07 T05/T09 run is a
+**terminal-with-documentation** whole-corpus consumer acceptance run over the
+pinned S02 manifest (§6.3): `terminal=43783` of 43785 entries plus
+`documented_residual=2` (`remaining=2`, `undocumented_remaining=0`,
+`terminal_with_documentation=43785`), not a full 43785-terminal materialization.
+The 43785/0/0 numbers above are the S03 producer baseline this slice reconciles
+**counts** against, not a claim that S07 produced 43785 terminal consumer
+outcomes. S07 must not restate S03's integrity/count result as a semantic or
+legal claim: the S03 run is an acceptance/integrity baseline, not a semantic
+oracle (acceptance contract §8.2); integrity is not equated with semantic
+completeness (D667).
 `s03_baseline_reconciled` in the S07 evidence artifact records the four numbers
 and `r1000_status` above, and nothing more.
 
@@ -483,7 +513,7 @@ and `r1000_status` above, and nothing more.
 | tokenizer consumer (clean text channel + reader segments + derived controls + composite provenance, no XML re-parse) | S07 (T02) — `reader_tokenizer` |
 | graph projection keyed by `SourceIdentity ⊕ DocumentVersionRef` (idempotent repeat import, no XML re-parse) | S07 (T03) — `npa_graph_projection` |
 | counts-only consumer binary + resumable corpus harness with restart and repeat import | S07 (T04) — `consumer-run`, `scripts/m223_s07_corpus_run.py` |
-| **bounded-partial** consumer acceptance run on the published binding (`terminal=5439` / `remaining=38346`, `partial_is_not_full=true`) + restart + repeat import; a full 43785-terminal run is not claimed (§6.3) | S07 (T05) |
+| **terminal-with-documentation** consumer acceptance run on the published binding (`terminal=43783` / `remaining=2` / `documented_residual=2` / `undocumented_remaining=0` / `terminal_with_documentation=43785`, `partial_is_not_full=true`) + restart + repeat import; a full 43785-terminal run is not claimed (§6.3) | S07 (T05/T09) |
 | design pin + additive-only + S03 reconciliation + slice battery | S07 (T01/T06) |
 | whole-corpus materialization of navigation | S05–S07 |
 | R1000 closure, legal completeness, source authenticity, normative citation resolution, normalization, physical pagination, temporal structure, cross-document relations, un-parking parked downstream | not S07; remains out of scope |
@@ -536,9 +566,10 @@ closure. R1000 stays active.
 ## 11. Requirement impact
 
 - **R1000 — supporting-only. Do not close.** S07 delivers the two consumers
-  (`reader_tokenizer`, `npa_graph_projection`) and the **bounded-partial** corpus
-  acceptance run (§6.3) that D638/D735 named as the R1000 remainder; it is not an
-  R1000 closure artifact and must not be reported as one. R1000 stays
+  (`reader_tokenizer`, `npa_graph_projection`) and the
+  **terminal-with-documentation** corpus acceptance run (§6.3) that D638/D735
+  named as the R1000 remainder; it is not an R1000 closure artifact and must not
+  be reported as one. R1000 stays
   `active/unclosed` (acceptance contract §10; precedent S03–S06, D735). Closure
   is a separate, evidence-gated decision M223 does not unilaterally take.
 - **R1001 — not touched** (`npa_analysis_wire.rs` is a frozen §2 file, §7.1).
@@ -568,14 +599,15 @@ closure. R1000 stays active.
   emits `prd/migration/rust-evidence/m223-s07-corpus-run.json`,
   `…-receipts.jsonl`, `…-resume-proof.json`, `…-repeat-import-proof.json`
   (counters, hashes, closed outcomes; no raw text).
-- `scripts/m223_s07_corpus_run.py` bounded-partial run (T05): the declared
-  acceptance boundary is bounded-partial on the published binding (§6.3) —
-  `terminal=5439` of 43785 entries with `remaining=38346`; one terminal outcome
-  per processed entry; `accepted` / `refused` / `incomplete` reported
-  separately; S03 counts reconciled (43785/0/0) as the producer baseline;
-  `partial_is_not_full=true`; restart (SIGTERM + same-ledger resume) and repeat
-  import (byte-identical counts) proven. A full 43785-terminal run is not
-  claimed.
+- `scripts/m223_s07_corpus_run.py` terminal-with-documentation run (T05/T09):
+  the declared acceptance boundary is terminal-with-documentation on the
+  published binding (§6.3) — `terminal=43783` of 43785 entries plus
+  `documented_residual=2` (`remaining=2`, `undocumented_remaining=0`); one
+  terminal or documented-residual outcome per processed entry; `accepted` /
+  `refused` / `incomplete` reported separately; S03 counts reconciled
+  (43785/0/0) as the producer baseline; `partial_is_not_full=true`; restart
+  (SIGTERM + same-ledger resume) and repeat import (byte-identical counts)
+  proven. A full 43785-terminal run is not claimed.
 - `scripts/test_m223_s07_contract.py` (T06): (a) this document exists and carries
   the required sections/markers ("Purpose and non-claims", "Composite
   provenance", "Graph document identity", "Consumers without XML re-parse",
@@ -584,13 +616,15 @@ closure. R1000 stays active.
   "Requirement impact", "Verification surface", `frozen-contract-inventory`
   block, `immutability-pins` block, `consumer-model` block,
   `corpus-acceptance-boundary` block, `active/unclosed`, `43785`,
-  `bounded-partial`, `reader_tokenizer`, `npa_graph_projection`); (b) the five
+  `terminal-with-documentation`, `reader_tokenizer`, `npa_graph_projection`);
+  (b) the five
   pinned sha256 values match the tracked files **exactly** (drift → explicit
   re-pin, never silent); (c) the S03 baseline is reconciled (entries = accepted =
   43785, refused = 0, incomplete = 0, R1000 active/unclosed, status `complete`);
   (d) the artifacts have schema v1, are redacted, satisfy the consumer
-  accounting invariants, and the declared bounded-partial boundary is consistent
-  with the published run report (§6.3); (e) immutability: the six §2 files and
+  accounting invariants, and the declared terminal-with-documentation boundary
+  is consistent with the published run report (§6.3); (e) immutability: the six
+  §2 files and
   the frozen `prd/architecture/*.jsonl` match the pinned sha256; (f) it emits
   `prd/migration/rust-evidence/m223-s07-acceptance-battery.json` (schema
   `m223-s07-acceptance-battery/v1`) with counters/hashes and `non_claims`,
@@ -635,8 +669,13 @@ closure. R1000 stays active.
   consumed by the T04/T05 harness).
 - `prd/migration/rust-evidence/m223-s07-tokenize-profile.json` (T07 durable
   evidence, schema `m223-s07-tokenize-profile/v1`, `residual_for_t08` block: the
-  bounded-partial residual producer-side cost that fixes the §6.3 boundary).
-- `prd/migration/rust-evidence/m223-s07-corpus-run.json` (T05 published
-  bounded-partial corpus-run report; the artifact §6.3 reconciles against).
+  producer-side residual cost that motivated the earlier bounded-partial
+  boundary; superseded by the T09 full run).
+- `prd/migration/rust-evidence/m223-s07-corpus-residuals.json` (T09 documented
+  residual declaration, schema `m223-s07-documented-residuals/v1`: the two
+  pinned-threshold `rss_limit_exceeded` residuals).
+- `prd/migration/rust-evidence/m223-s07-corpus-run.json` (T05/T09 published
+  terminal-with-documentation corpus-run report; the artifact §6.3 reconciles
+  against).
 
 ---
