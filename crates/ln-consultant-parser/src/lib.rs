@@ -24,6 +24,7 @@ pub mod drift_baseline;
 pub mod edge_deriver;
 pub mod gold_coding;
 pub mod gold_eval;
+pub mod hierarchy_lift_census;
 pub mod hyperlink;
 pub mod multi_edition;
 pub mod npa_corpus_acceptance;
