@@ -1,0 +1,80 @@
+{
+  "schema": "m224-s05-hierarchy-lift-census/v1",
+  "version": 1,
+  "kind": "hierarchy_lift_census",
+  "non_claims": [
+    "not_r1000_closure",
+    "not_semantic_or_legal_interpretation",
+    "integrity_is_not_semantic_completeness",
+    "bounded_sample_not_full_corpus",
+    "reads_only_the_materialized_cleaned_wire_jsonl_never_the_source_xml",
+    "no_xml_reparse_in_lift",
+    "an_unmapped_marker_is_fail_closed_never_a_guessed_default",
+    "non_normative_is_a_structural_barrier_not_a_legal_claim",
+    "census_counts_only_no_decoded_text"
+  ],
+  "manifest_path": "prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl",
+  "manifest_sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c",
+  "manifest_entries": 43785,
+  "inventory_digest": "sha256:aa7e14e31059c906f291423a2e8151f8bf0f857e9fd7370545d7e3b5800766dd",
+  "corpus_root": "consru_export/consru_export/exports",
+  "producer_binary_path": "target/release/cleaned-project",
+  "producer_binary_sha256": "sha256:1e3d54a9a52e69630e777b94d424feff75b60d1409020847eecca7caac4f1cda",
+  "consumer_binary_path": "target/release/hierarchy-lift-census",
+  "consumer_binary_sha256": "sha256:0b2d50908f8507f90538db12ee35d113edc8bd316dde94c09ac525afb00cb116",
+  "ontology_path": "prd/architecture/kb-ontology.yaml",
+  "ontology_sha256": "sha256:fb171754c61f7ffafb4696c0bf9fca3bd951787e29f9494c8b58a81dfaf5673f",
+  "sample_seed": 22405,
+  "sample_per_decile": 2,
+  "sample_tail_n": 8,
+  "sample_definition": "manifest_order_deciles_plus_largest_tail",
+  "sample_strata": {
+    "decile_0": 2,
+    "decile_1": 2,
+    "decile_2": 2,
+    "decile_3": 2,
+    "decile_4": 2,
+    "decile_5": 2,
+    "decile_6": 2,
+    "decile_7": 2,
+    "decile_8": 2,
+    "decile_9": 2,
+    "tail_largest": 8
+  },
+  "sample_size": 28,
+  "documents": {
+    "attempted": 28,
+    "accepted": 28,
+    "refused": 0
+  },
+  "by_group": {
+    "Unknown": 13599,
+    "court_practice": 70,
+    "non_normative": 2
+  },
+  "by_catalog_token": {
+    "chast": 6494,
+    "glava": 71,
+    "punkt": 5208,
+    "razdel": 11,
+    "statya": 1887
+  },
+  "by_role": {},
+  "lift": {
+    "markers": 13671,
+    "bound": 0,
+    "unknown": 13599,
+    "non_normative": 72
+  },
+  "unmapped_tokens": {
+    "chast": 6463,
+    "glava": 71,
+    "punkt": 5167,
+    "razdel": 11,
+    "statya": 1887
+  },
+  "non_normative_documents": 17,
+  "non_normative_prefix_documents": 17,
+  "xml_reparse_in_lift": false,
+  "r1000_status": "active/unclosed"
+}
