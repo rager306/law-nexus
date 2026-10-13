@@ -1,0 +1,26 @@
+{
+  "schema": "m224-s04-document-group-coverage/v1",
+  "kind": "document_group_coverage",
+  "counts": {"entries": 43785, "normative": 7719, "non_normative": 36066, "unknown": 0},
+  "by_class": {"non-normative": 36066, "normative": 7719},
+  "by_bank": {
+    "courts": {"total": 5667, "normative": 0, "non_normative": 5667, "unknown": 0},
+    "fas": {"total": 30399, "normative": 0, "non_normative": 30399, "unknown": 0},
+    "npa": {"total": 916, "normative": 916, "non_normative": 0, "unknown": 0},
+    "xml": {"total": 6803, "normative": 6803, "non_normative": 0, "unknown": 0}
+  },
+  "by_group": {"Unknown": 7288, "court_practice": 27716, "federal_law@v1": 356, "government_resolution": 71, "non_normative": 8351, "presidential_decree": 3},
+  "non_normative_classes": ["court_practice", "non_normative"],
+  "ctv_blocked": 36066,
+  "catalog": {"document_groups_version": "fnv1a64-fedfdb7ce0c26bcc"},
+  "manifest": {"path": "prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl", "sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c", "inventory_digest": "sha256:aa7e14e31059c906f291423a2e8151f8bf0f857e9fd7370545d7e3b5800766dd"},
+  "r1000_status": "active/unclosed",
+  "non_claims": [
+    "integrity_is_not_semantic_completeness",
+    "structural_group_unknown_is_not_legal_non_normativity",
+    "bank_is_export_bucket_not_catalog_legal_bank",
+    "non_normative_class_is_structural_coverage_heuristic_not_legal_claim",
+    "xml_bank_practice_member_is_a_documented_coarse_approximation",
+    "no_xml_reparse"
+  ]
+}

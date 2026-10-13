@@ -49,4 +49,8 @@ path = "src/bin/identity-anchor-coverage.rs"
 name = "corpus-pageindex"
 path = "src/bin/corpus-pageindex.rs"
 
+[[bin]]
+name = "document-group-coverage"
+path = "src/bin/document-group-coverage.rs"
+
 [dev-dependencies]
