@@ -29,6 +29,7 @@ pub mod evaluator;
 pub mod golden;
 pub mod hierarchy;
 pub mod hierarchy_artifact;
+pub mod hierarchy_lift;
 pub mod identity_envelope;
 pub mod lawref;
 pub mod lawref_resolve;
