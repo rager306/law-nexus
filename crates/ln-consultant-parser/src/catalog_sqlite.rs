@@ -6,6 +6,40 @@ use std::path::Path;
 use rusqlite::{Connection, OpenFlags, OptionalExtension};
 
 use crate::catalog::{CatalogError, CatalogPort, CatalogRecord};
+use crate::catalog_anchor::{CatalogAnchorPort, CatalogAnchorRecord, EXPORTS_PREFIX};
+
+/// Anchor lookup by manifest path. The `exports/` prefix is a bound `?1`
+/// parameter (never interpolated user data) and the manifest path is `?2`, so
+/// `editions.relative_path = EXPORTS_PREFIX || <manifest_relative_path>`.
+const LOOKUP_BY_RELATIVE_PATH_SQL: &str = "
+SELECT
+    e.relative_path AS relative_path,
+    e.source_id AS source_id,
+    e.edition_id AS edition_id
+FROM editions AS e
+WHERE e.relative_path = ?1 || ?2
+ORDER BY
+    COALESCE(e.edition_number, 0) DESC,
+    e.revision_date DESC,
+    e.edition_id DESC
+LIMIT 1
+";
+
+/// Anchor lookup by catalog `source_id` (exact-token join; no decoding). Same
+/// latest-edition tie-break as the locator lookup.
+const LOOKUP_BY_SOURCE_ID_SQL: &str = "
+SELECT
+    e.relative_path AS relative_path,
+    e.source_id AS source_id,
+    e.edition_id AS edition_id
+FROM editions AS e
+WHERE e.source_id = ?1
+ORDER BY
+    COALESCE(e.edition_number, 0) DESC,
+    e.revision_date DESC,
+    e.edition_id DESC
+LIMIT 1
+";
 
 const LOOKUP_SQL: &str = "
 SELECT
@@ -226,6 +260,53 @@ impl CatalogPort for SqliteCatalog {
             },
         }
     }
+}
+
+impl CatalogAnchorPort for SqliteCatalog {
+    fn lookup_by_relative_path(
+        &self,
+        manifest_relative_path: &str,
+    ) -> Result<Option<CatalogAnchorRecord>, CatalogError> {
+        if manifest_relative_path.is_empty() {
+            return Err(CatalogError::new(
+                "lookup-by-relative-path",
+                "empty relative path",
+            ));
+        }
+        let row = self
+            .conn
+            .query_row(
+                LOOKUP_BY_RELATIVE_PATH_SQL,
+                rusqlite::params![EXPORTS_PREFIX, manifest_relative_path],
+                map_anchor_row,
+            )
+            .optional()
+            .map_err(|err| map_sqlite("lookup-by-relative-path", err))?;
+        Ok(row)
+    }
+
+    fn lookup_by_source_id(
+        &self,
+        source_id: &str,
+    ) -> Result<Option<CatalogAnchorRecord>, CatalogError> {
+        if source_id.is_empty() {
+            return Err(CatalogError::new("lookup-by-source-id", "empty source id"));
+        }
+        let row = self
+            .conn
+            .query_row(LOOKUP_BY_SOURCE_ID_SQL, [source_id], map_anchor_row)
+            .optional()
+            .map_err(|err| map_sqlite("lookup-by-source-id", err))?;
+        Ok(row)
+    }
+}
+
+fn map_anchor_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<CatalogAnchorRecord> {
+    Ok(CatalogAnchorRecord {
+        relative_path: row.get("relative_path")?,
+        source_id: row.get("source_id")?,
+        edition_id: row.get("edition_id")?,
+    })
 }
 
 /// One explicit `amends` edge row of a catalog relation run.

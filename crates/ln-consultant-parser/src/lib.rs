@@ -10,6 +10,7 @@ pub mod acceptance_retry_contract;
 pub mod amendment_provenance;
 pub mod artifact_output;
 pub mod catalog;
+pub mod catalog_anchor;
 pub mod catalog_sqlite;
 pub mod classifier;
 pub mod contour_diagnostics;
@@ -30,6 +31,9 @@ pub mod raw_link;
 
 pub use catalog::{
     CatalogError, CatalogPort, CatalogRecord, InMemoryCatalog, coverage_summary, resolve_consids,
+};
+pub use catalog_anchor::{
+    CatalogAnchorPort, CatalogAnchorRecord, EXPORTS_PREFIX, InMemoryCatalogAnchor, exports_path,
 };
 pub use catalog_sqlite::SqliteCatalog;
 pub use classifier::{
