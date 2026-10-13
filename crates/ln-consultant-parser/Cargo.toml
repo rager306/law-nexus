@@ -41,4 +41,8 @@ path = "src/bin/npa-corpus-acceptance-v2.rs"
 name = "npa-promotion-eval"
 path = "src/bin/npa-promotion-eval.rs"
 
+[[bin]]
+name = "identity-anchor-coverage"
+path = "src/bin/identity-anchor-coverage.rs"
+
 [dev-dependencies]

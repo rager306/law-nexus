@@ -8,6 +8,7 @@
 
 pub mod acceptance_retry_contract;
 pub mod amendment_provenance;
+pub mod anchor_coverage;
 pub mod artifact_output;
 pub mod catalog;
 pub mod catalog_anchor;
@@ -29,6 +30,13 @@ pub mod observation;
 pub mod promotion_gate;
 pub mod raw_link;
 
+pub use anchor_coverage::{
+    AnchorCoverage, AnchorCoverageEntry, AnchorCoverageError, COVERAGE_NON_CLAIMS, COVERAGE_SCHEMA,
+    CorpusManifest, CoverageCli, MANIFEST_SCHEMA, ManifestEntry, NEGATIVE_PROBE_NUMBERS,
+    NegativeProbe, NegativeProbeRow, R1000_STATUS, build_anchor_coverage, exit_code_for,
+    parse_corpus_manifest, parse_coverage_args, read_corpus_manifest, render_coverage_json,
+    render_envelope_jsonl, run_coverage, verify_artifacts,
+};
 pub use catalog::{
     CatalogError, CatalogPort, CatalogRecord, InMemoryCatalog, coverage_summary, resolve_consids,
 };

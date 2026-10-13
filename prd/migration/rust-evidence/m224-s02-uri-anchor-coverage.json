@@ -1,0 +1,25 @@
+{
+  "schema": "m224-s02-uri-anchor-coverage/v1",
+  "counts": {"entries": 43785, "anchored": 36989, "unresolved": 6796},
+  "anchored_by_bank": {"courts": 5666, "fas": 30399, "npa": 916, "xml": 8},
+  "unresolved_by_bank": {"courts": 1, "xml": 6795},
+  "negative_probe": {
+    "numbers": ["44-\u0424\u0417", "402-\u0424\u0417", "5-\u0444\u043a\u0437"],
+    "exact_matches": 0,
+    "like_matches": 0,
+    "per_number": [
+      {"number": "44-\u0424\u0417", "exact_matches": 0, "like_matches": 0},
+      {"number": "402-\u0424\u0417", "exact_matches": 0, "like_matches": 0},
+      {"number": "5-\u0444\u043a\u0437", "exact_matches": 0, "like_matches": 0}
+    ]
+  },
+  "manifest": {"path": "prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl", "sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c", "inventory_digest": "sha256:aa7e14e31059c906f291423a2e8151f8bf0f857e9fd7370545d7e3b5800766dd"},
+  "catalog": {"path": "consru_export/consru_export/catalog.sqlite", "sha256": "sha256:9f3dc86a64d2fcd8678fd39831f1a670a5fdfe2a7162ae3d70d4b266f92c29b8"},
+  "r1000_status": "active/unclosed",
+  "non_claims": [
+    "integrity_is_not_semantic_completeness",
+    "consultant_uri_tokens_are_opaque_external_references_not_credentials",
+    "anchor_unresolved_is_a_counted_closed_class_not_a_silent_skip",
+    "no_offline_token_is_decoded_normalized_or_re_derived"
+  ]
+}
