@@ -45,4 +45,8 @@ path = "src/bin/npa-promotion-eval.rs"
 name = "identity-anchor-coverage"
 path = "src/bin/identity-anchor-coverage.rs"
 
+[[bin]]
+name = "corpus-pageindex"
+path = "src/bin/corpus-pageindex.rs"
+
 [dev-dependencies]

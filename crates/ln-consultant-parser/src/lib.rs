@@ -16,6 +16,7 @@ pub mod catalog_sqlite;
 pub mod classifier;
 pub mod contour_diagnostics;
 pub mod corpus_manifest;
+pub mod corpus_pageindex;
 pub mod corpus_sample;
 pub mod document_profile;
 pub mod drift_baseline;
@@ -49,6 +50,12 @@ pub use classifier::{
     ClassifiedLink, ClassifierRule, Template, classify_all, classify_all_scored,
     classify_all_scored_for_path, classify_link, classify_link_scored, load_classifier_rules,
     load_templates, score_template,
+};
+pub use corpus_pageindex::{
+    BuildMeta, CorpusPageIndexCoverage, EnvelopeHeader, PageIndexBuildError, PageIndexCli,
+    PageIndexCounts, build_corpus_pageindex, build_coverage, pageindex_exit_code_for,
+    parse_envelope_header, parse_pageindex_args, render_pageindex_coverage_json,
+    render_pageindex_jsonl, run_pageindex, verify_pageindex_artifacts,
 };
 pub use document_profile::{
     DetectedProfile, DocumentProfile, apply_boost, detect_profile, load_profiles,

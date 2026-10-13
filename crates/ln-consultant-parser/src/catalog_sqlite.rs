@@ -1,6 +1,7 @@
 //! Read-only SQLite adapter for [`crate::catalog::CatalogPort`].
 //! Opens with `SQLITE_OPEN_READ_ONLY` and maps a genuine miss to `Ok(None)`.
 
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use rusqlite::{Connection, OpenFlags, OptionalExtension};
@@ -59,6 +60,30 @@ FROM consultant_source_locators AS loc
 JOIN consultant_source_records AS r ON r.source_record_id = loc.source_record_id
 WHERE loc.offline_uri = ?1
 ORDER BY bank ASC, document_key ASC
+";
+
+/// Bulk page-index token map: one pass over both observed surfaces returning
+/// the same `offline_uri → [(bank, document_key)]` join that
+/// [`PageIndexCatalogPort::lookup_by_offline_token`] produces per token. The
+/// corpus producer calls this once instead of issuing ~36k full scans of the
+/// unindexed `court_items.offline_uri`; the exact-token join, the `CAST`, and
+/// the read-only posture are identical. `offline_uri` NULL/empty rows are
+/// skipped because an empty token is rejected before any lookup.
+const LOAD_PAGE_INDEX_TOKEN_MAP_SQL: &str = "
+SELECT
+    offline_uri AS offline_uri,
+    bank AS bank,
+    CAST(document_key AS TEXT) AS document_key
+FROM court_items
+WHERE offline_uri IS NOT NULL AND offline_uri <> ''
+UNION
+SELECT
+    loc.offline_uri AS offline_uri,
+    r.bank AS bank,
+    CAST(r.document_key AS TEXT) AS document_key
+FROM consultant_source_locators AS loc
+JOIN consultant_source_records AS r ON r.source_record_id = loc.source_record_id
+WHERE loc.offline_uri IS NOT NULL AND loc.offline_uri <> ''
 ";
 
 const LOOKUP_SQL: &str = "
@@ -346,6 +371,48 @@ impl PageIndexCatalogPort for SqliteCatalog {
             .map_err(|err| map_sqlite("lookup-by-offline-token", err))?;
         rows.collect::<Result<Vec<_>, _>>()
             .map_err(|err| map_sqlite("lookup-by-offline-token", err))
+    }
+}
+
+impl SqliteCatalog {
+    /// Bulk-load the page-index token map (one catalog pass).
+    ///
+    /// Returns the same per-token `(bank, document_key)` rows — sorted and
+    /// de-duplicated — that [`PageIndexCatalogPort::lookup_by_offline_token`]
+    /// yields, keyed by the byte-exact `offline_uri`. This is a read-only
+    /// producer optimization: the corpus pageindex builder uses it to avoid a
+    /// full-table scan per token, then serves lookups through the
+    /// [`PageIndexCatalogPort`] interface (an in-memory adapter). No token is
+    /// decoded or normalized.
+    pub fn load_page_index_token_map(
+        &self,
+    ) -> Result<BTreeMap<String, Vec<CatalogPageIndexRecord>>, CatalogError> {
+        let mut stmt = self
+            .conn
+            .prepare(LOAD_PAGE_INDEX_TOKEN_MAP_SQL)
+            .map_err(|err| map_sqlite("load-page-index-token-map", err))?;
+        let rows = stmt
+            .query_map([], |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    CatalogPageIndexRecord {
+                        bank: row.get(1)?,
+                        document_key: row.get(2)?,
+                    },
+                ))
+            })
+            .map_err(|err| map_sqlite("load-page-index-token-map", err))?;
+        let mut map: BTreeMap<String, Vec<CatalogPageIndexRecord>> = BTreeMap::new();
+        for row in rows {
+            let (token, record) =
+                row.map_err(|err| map_sqlite("load-page-index-token-map", err))?;
+            map.entry(token).or_default().push(record);
+        }
+        for records in map.values_mut() {
+            records.sort();
+            records.dedup();
+        }
+        Ok(map)
     }
 }
 
