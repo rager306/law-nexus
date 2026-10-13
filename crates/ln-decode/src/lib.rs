@@ -18,6 +18,7 @@ pub mod cleaned_nav_verifier;
 pub mod cleaned_publish;
 pub mod cleaned_verifier;
 pub mod cleaned_wire;
+pub mod consultant_uri_anchor;
 pub mod corpus_inventory;
 pub mod current_requisites;
 pub mod deontic;
