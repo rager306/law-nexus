@@ -66,9 +66,14 @@ pub use document_profile::{
 };
 pub use edge_deriver::{DerivedEdge, derive_edges};
 pub use frbr_bridge::{
-    DEFAULT_ACT_NUMBER, DEFAULT_EDITION_PREFIX, ENVELOPE_HEADER_KIND, FRBR_BRIDGE_SCHEMA,
-    FrbrBridgeError, FrbrBridgeJoin, FrbrBridgeJoinRow, FrbrBridgeTotals, RECEIPTS_SCHEMA,
-    TIMELINE_SCHEMA, build_frbr_bridge_join, build_frbr_bridge_join_from_bytes,
+    BridgeCli, DEFAULT_ACT_NUMBER, DEFAULT_BINARY_PATH, DEFAULT_CATALOG_PATH,
+    DEFAULT_EDITION_PREFIX, DEFAULT_ENVELOPE_PATH, DEFAULT_ONTOLOGY_PATH, DEFAULT_OUT_PATH,
+    DEFAULT_RECEIPTS_PATH, DEFAULT_REGISTRY_PATH, DEFAULT_TIMELINE_PATH, ENVELOPE_HEADER_KIND,
+    EXIT_DRIFT, EXIT_INPUT, EXIT_JOIN_REFUSED, EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_USAGE,
+    FRBR_BRIDGE_KIND, FRBR_BRIDGE_NON_CLAIMS, FRBR_BRIDGE_SCHEMA, FRBR_BRIDGE_VERSION,
+    FrbrBridgeError, FrbrBridgeJoin, FrbrBridgeJoinRow, FrbrBridgePins, FrbrBridgeTotals,
+    RECEIPTS_SCHEMA, TIMELINE_SCHEMA, build_frbr_bridge_join, build_frbr_bridge_join_from_bytes,
+    parse_bridge_args, render_frbr_bridge_json, run_bridge,
 };
 pub use hyperlink::extract_hyperlinks;
 pub use multi_edition::{

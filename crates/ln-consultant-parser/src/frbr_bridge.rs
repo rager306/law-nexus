@@ -33,7 +33,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fmt;
+use std::fmt::Write as _;
 use std::fs;
+use std::io::Read as _;
 use std::path::Path;
 
 use sha2::{Digest, Sha256};
@@ -44,7 +46,7 @@ use ln_decode::identity_envelope::{
 use ln_kb_ontology::frbr_bridge::{FrbrBridgeRefusal, resolve_frbr_pair};
 use ln_kb_ontology::registry::{load_expression_id_for_path, works_entry_for_act};
 
-use crate::catalog_sqlite::EditionJoinRow;
+use crate::catalog_sqlite::{EditionJoinRow, SqliteCatalog};
 
 /// Closed JSON schema id of the published corpus mapping artifact (T03).
 pub const FRBR_BRIDGE_SCHEMA: &str = "m224-s07-frbr-bridge/v1";
@@ -696,5 +698,482 @@ fn bound_detail(raw: String) -> String {
         }
         out.push(ch);
     }
+    out
+}
+
+// ---------------------------------------------------------------------------
+// Published mapping artifact (M224/S07/T03): closed non-claims, sha256 pins,
+// deterministic ASCII render, fail-closed CLI exit codes (0/2/3/4/5/6).
+// ---------------------------------------------------------------------------
+
+/// Closed `version` of the published mapping artifact.
+pub const FRBR_BRIDGE_VERSION: u64 = 1;
+/// `kind` discriminator of the published corpus mapping artifact.
+pub const FRBR_BRIDGE_KIND: &str = "frbr_bridge_corpus";
+
+/// Bounded non-claims carried by the mapping artifact: ELI is a compatibility
+/// projection only, the `cc:` component-concept canon is untouched, and R1000 /
+/// R035 stay open.
+pub const FRBR_BRIDGE_NON_CLAIMS: [&str; 11] = [
+    "eli_urn_is_a_compatibility_projection_not_project_local_canon",
+    "cc_component_concept_canon_is_not_replaced_or_rekeyed",
+    "one_work_per_act_dated_editions_are_expressions",
+    "uri_anchor_is_never_decoded_normalized_or_re_derived",
+    "counts_and_keys_only_no_decoded_text",
+    "expression_day_is_the_timeline_effect_day_not_the_registry_rev_date",
+    "not_r1000_closure",
+    "bounded_single_corpus_act_44fz_not_tsg_s6_not_applicable",
+    "not_a_jsonld_g1_layer_projection_only",
+    "practice_banks_single_version_out_of_scope",
+    "not_r035_promotion_bounded_mapping_evidence_only",
+];
+
+/// Default tracked S02 identity envelope input (repo-relative).
+pub const DEFAULT_ENVELOPE_PATH: &str =
+    "prd/migration/rust-evidence/m224-s02-identity-envelope.jsonl";
+/// Default tracked m223-S07 consumer receipts input (repo-relative).
+pub const DEFAULT_RECEIPTS_PATH: &str =
+    "prd/migration/rust-evidence/m223-s07-corpus-receipts.jsonl";
+/// Default tracked S06 edition timeline input (repo-relative).
+pub const DEFAULT_TIMELINE_PATH: &str =
+    "prd/migration/rust-evidence/m224-s06-edition-timeline.json";
+/// Default read-only catalog path (repo-relative, gitignored corpus file).
+pub const DEFAULT_CATALOG_PATH: &str = "consru_export/consru_export/catalog.sqlite";
+/// Default published mapping artifact path (repo-relative, tracked).
+pub const DEFAULT_OUT_PATH: &str = "prd/migration/rust-evidence/m224-s07-frbr-bridge.json";
+/// Default pinned ontology source (repo-relative, tracked).
+pub const DEFAULT_ONTOLOGY_PATH: &str = "prd/architecture/kb-ontology.yaml";
+/// Default pinned hierarchy/works registry source (repo-relative, tracked).
+pub const DEFAULT_REGISTRY_PATH: &str = "prd/architecture/kb-hierarchy-registry.yaml";
+/// Default consumer binary path (repo-relative, build artifact).
+pub const DEFAULT_BINARY_PATH: &str = "target/release/frbr-bridge";
+
+/// Exit code: the artifact derives and is published (or `--check` agrees).
+pub const EXIT_OK: u8 = 0;
+/// Exit code: malformed argv.
+pub const EXIT_USAGE: u8 = 2;
+/// Exit code: a required input/artifact could not be read (fail-closed).
+pub const EXIT_INPUT: u8 = 3;
+/// Exit code: the artifact could not be written.
+pub const EXIT_OUT_UNWRITABLE: u8 = 4;
+/// Exit code: the FRBR join refused (schema drift, set drift, catalog miss,
+/// anchor mismatch, unknown act, bad ordinal, non-ASCII payload).
+pub const EXIT_JOIN_REFUSED: u8 = 5;
+/// Exit code: `--check` byte-compare drifted.
+pub const EXIT_DRIFT: u8 = 6;
+
+/// Parsed `frbr-bridge` argv. Every path defaults to the tracked/build
+/// location so the bare binary reproduces the published artifact.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BridgeCli {
+    /// S02 identity envelope JSONL input.
+    pub envelope: String,
+    /// m223-S07 consumer receipts JSONL input.
+    pub receipts: String,
+    /// Read-only catalog (`editions`) input.
+    pub catalog: String,
+    /// S06 edition timeline JSON input.
+    pub timeline: String,
+    /// Published mapping artifact path.
+    pub out: String,
+    /// Pinned ontology source (kb-ontology.yaml).
+    pub ontology: String,
+    /// Pinned registry source (kb-hierarchy-registry.yaml).
+    pub registry: String,
+    /// Consumer binary whose bytes are pinned.
+    pub binary: String,
+    /// `--check`: re-derive and byte-compare instead of writing.
+    pub check: bool,
+}
+
+impl Default for BridgeCli {
+    fn default() -> Self {
+        Self {
+            envelope: DEFAULT_ENVELOPE_PATH.to_owned(),
+            receipts: DEFAULT_RECEIPTS_PATH.to_owned(),
+            catalog: DEFAULT_CATALOG_PATH.to_owned(),
+            timeline: DEFAULT_TIMELINE_PATH.to_owned(),
+            out: DEFAULT_OUT_PATH.to_owned(),
+            ontology: DEFAULT_ONTOLOGY_PATH.to_owned(),
+            registry: DEFAULT_REGISTRY_PATH.to_owned(),
+            binary: DEFAULT_BINARY_PATH.to_owned(),
+            check: false,
+        }
+    }
+}
+
+/// Strict stdlib argv parser: `--check` is a flag, every other option needs a
+/// following non-empty value. An unknown flag, a missing value or an empty
+/// value is an exit-2 usage error (never silently defaulted).
+pub fn parse_bridge_args<I>(args: I) -> Result<BridgeCli, String>
+where
+    I: IntoIterator<Item = String>,
+{
+    let mut cli = BridgeCli::default();
+    let mut iter = args.into_iter();
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "--envelope" => cli.envelope = bridge_value(&mut iter, "--envelope")?,
+            "--receipts" => cli.receipts = bridge_value(&mut iter, "--receipts")?,
+            "--catalog" => cli.catalog = bridge_value(&mut iter, "--catalog")?,
+            "--timeline" => cli.timeline = bridge_value(&mut iter, "--timeline")?,
+            "--out" => cli.out = bridge_value(&mut iter, "--out")?,
+            "--ontology" => cli.ontology = bridge_value(&mut iter, "--ontology")?,
+            "--registry" => cli.registry = bridge_value(&mut iter, "--registry")?,
+            "--binary" => cli.binary = bridge_value(&mut iter, "--binary")?,
+            "--check" => cli.check = true,
+            other => return Err(format!("unexpected argument '{other}'")),
+        }
+    }
+    Ok(cli)
+}
+
+fn bridge_value(iter: &mut impl Iterator<Item = String>, flag: &str) -> Result<String, String> {
+    let value = iter
+        .next()
+        .ok_or_else(|| format!("missing value for {flag}"))?;
+    if value.is_empty() {
+        return Err(format!("empty value for {flag}"));
+    }
+    Ok(value)
+}
+
+/// SHA-256 pins (path + `sha256:<hex>`) of every input the artifact derives
+/// from: the three tracked join inputs, the two pinned model sources, the
+/// read-only catalog and the consumer binary.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FrbrBridgePins {
+    pub envelope_path: String,
+    pub envelope_sha256: String,
+    pub receipts_path: String,
+    pub receipts_sha256: String,
+    pub timeline_path: String,
+    pub timeline_sha256: String,
+    pub ontology_path: String,
+    pub ontology_sha256: String,
+    pub registry_path: String,
+    pub registry_sha256: String,
+    pub catalog_path: String,
+    pub catalog_sha256: String,
+    pub consumer_binary_path: String,
+    pub consumer_binary_sha256: String,
+}
+
+/// Render the mapping artifact (`m224-s07-frbr-bridge/v1`), deterministic and
+/// ASCII (non-ASCII payload is escaped as JSON `\uXXXX`, then re-asserted by
+/// the redaction guard).
+pub fn render_frbr_bridge_json(
+    join: &FrbrBridgeJoin,
+    pins: &FrbrBridgePins,
+) -> Result<String, FrbrBridgeError> {
+    let joined = join.rows.len();
+    let mut out = String::with_capacity(4096 + joined * 800);
+    out.push_str("{\n");
+    let _ = writeln!(out, "  \"schema\": {},", quote_json(FRBR_BRIDGE_SCHEMA));
+    let _ = writeln!(out, "  \"version\": {},", FRBR_BRIDGE_VERSION);
+    let _ = writeln!(out, "  \"kind\": {},", quote_json(FRBR_BRIDGE_KIND));
+    let _ = writeln!(
+        out,
+        "  \"act\": {{\"number\": {}, \"authority\": {}, \"enactment_date\": {}}},",
+        quote_json(&join.act_number),
+        quote_json(&join.authority),
+        quote_json(&join.enactment_date)
+    );
+    let _ = writeln!(
+        out,
+        "  \"work\": {{\"id\": {}, \"eli_urn\": {}}},",
+        quote_json(&join.work_id),
+        quote_json(&join.work_eli_urn)
+    );
+    let _ = writeln!(
+        out,
+        "  \"edition_prefix\": {},",
+        quote_json(&join.edition_prefix)
+    );
+    let _ = writeln!(out, "  \"works\": 1,");
+    let _ = writeln!(out, "  \"expressions\": {joined},");
+    let _ = writeln!(
+        out,
+        "  \"distinct_effect_days\": {},",
+        join.distinct_effect_days
+    );
+    let _ = writeln!(
+        out,
+        "  \"distinct_anchors\": {},",
+        distinct_anchor_count(join)
+    );
+    let _ = writeln!(
+        out,
+        "  \"join_coverage\": {},",
+        quote_json(&format!("{joined}/{joined}"))
+    );
+    let _ = writeln!(
+        out,
+        "  \"registry_expression_id_divergence\": {},",
+        join.registry_expression_id_divergence
+    );
+    out.push_str("  \"pins\": {\n");
+    let _ = writeln!(
+        out,
+        "    \"envelope\": {},",
+        render_pin_json(&pins.envelope_path, &pins.envelope_sha256)
+    );
+    let _ = writeln!(
+        out,
+        "    \"receipts\": {},",
+        render_pin_json(&pins.receipts_path, &pins.receipts_sha256)
+    );
+    let _ = writeln!(
+        out,
+        "    \"timeline\": {},",
+        render_pin_json(&pins.timeline_path, &pins.timeline_sha256)
+    );
+    let _ = writeln!(
+        out,
+        "    \"ontology\": {},",
+        render_pin_json(&pins.ontology_path, &pins.ontology_sha256)
+    );
+    let _ = writeln!(
+        out,
+        "    \"registry\": {},",
+        render_pin_json(&pins.registry_path, &pins.registry_sha256)
+    );
+    let _ = writeln!(
+        out,
+        "    \"catalog\": {},",
+        render_pin_json(&pins.catalog_path, &pins.catalog_sha256)
+    );
+    let _ = writeln!(
+        out,
+        "    \"consumer_binary\": {}",
+        render_pin_json(&pins.consumer_binary_path, &pins.consumer_binary_sha256)
+    );
+    out.push_str("  },\n");
+    let _ = writeln!(
+        out,
+        "  \"totals\": {{\"join_mismatches\": {}, \"catalog_misses\": {}, \"anchor_mismatches\": {}}},",
+        join.totals.join_mismatches, join.totals.catalog_misses, join.totals.anchor_mismatches
+    );
+    let _ = writeln!(out, "  \"r1000_status\": {},", quote_json(R1000_STATUS));
+    out.push_str("  \"non_claims\": [\n");
+    for (index, claim) in FRBR_BRIDGE_NON_CLAIMS.iter().enumerate() {
+        let comma = if index + 1 < FRBR_BRIDGE_NON_CLAIMS.len() {
+            ","
+        } else {
+            ""
+        };
+        let _ = writeln!(out, "    {}{comma}", quote_json(claim));
+    }
+    out.push_str("  ],\n");
+    out.push_str("  \"per_expression\": [");
+    if join.rows.is_empty() {
+        out.push_str("]\n}\n");
+    } else {
+        out.push('\n');
+        for (index, row) in join.rows.iter().enumerate() {
+            let comma = if index + 1 < join.rows.len() { "," } else { "" };
+            let _ = writeln!(
+                out,
+                "    {{\"relative_path\": {}, \"edition_number\": {}, \"effect_day\": {}, \"effect_iso\": {}, \"expression_id\": {}, \"expression_eli_urn\": {}, \"source_sha256\": {}, \"source_revision\": {}, \"document_version_ref\": {}, \"decoder_profile\": {}, \"uri_anchor\": {}, \"catalog\": {{\"edition_id\": {}, \"document_id\": {}, \"edition_number\": {}}}}}{comma}",
+                quote_json(&row.relative_path),
+                row.edition_number,
+                row.effect_day,
+                quote_json(&row.effect_iso),
+                quote_json(&row.expression_id),
+                quote_json(&row.expression_eli_urn),
+                quote_json(&row.source_sha256),
+                quote_json(&row.source_revision),
+                quote_json(&row.document_version_ref),
+                quote_json(&row.decoder_profile),
+                quote_json(&row.uri_anchor),
+                render_optional_str(row.catalog_edition_id.as_deref()),
+                render_optional_str(row.catalog_document_id.as_deref()),
+                render_optional_i64(row.catalog_edition_number)
+            );
+        }
+        out.push_str("  ]\n}\n");
+    }
+    ensure_ascii(&out)?;
+    Ok(out)
+}
+
+fn distinct_anchor_count(join: &FrbrBridgeJoin) -> u64 {
+    join.rows
+        .iter()
+        .map(|row| row.uri_anchor.as_str())
+        .collect::<BTreeSet<&str>>()
+        .len() as u64
+}
+
+fn render_pin_json(path: &str, sha256: &str) -> String {
+    format!(
+        "{{\"path\": {}, \"sha256\": {}}}",
+        quote_json(path),
+        quote_json(sha256)
+    )
+}
+
+fn render_optional_str(value: Option<&str>) -> String {
+    match value {
+        Some(value) => quote_json(value),
+        None => "null".to_owned(),
+    }
+}
+
+fn render_optional_i64(value: Option<i64>) -> String {
+    match value {
+        Some(value) => value.to_string(),
+        None => "null".to_owned(),
+    }
+}
+
+/// Re-derive the artifact and either publish it or (in `--check` mode)
+/// byte-compare it against `--out`. Returns the process exit code and a
+/// one-line message.
+pub fn run_bridge(cli: &BridgeCli) -> (u8, String) {
+    match run_bridge_inner(cli) {
+        Ok(message) => (EXIT_OK, message),
+        Err(error) => (exit_code_for(&error), error.to_string()),
+    }
+}
+
+fn run_bridge_inner(cli: &BridgeCli) -> Result<String, FrbrBridgeError> {
+    let catalog = SqliteCatalog::open_read_only(&cli.catalog)
+        .map_err(|error| FrbrBridgeError::new("catalog-open", error.detail().to_owned()))?;
+    let map = catalog
+        .load_edition_join_map()
+        .map_err(|error| FrbrBridgeError::new("catalog-read", error.detail().to_owned()))?;
+    let join = build_frbr_bridge_join(
+        Path::new(&cli.envelope),
+        Path::new(&cli.receipts),
+        Path::new(&cli.timeline),
+        &map,
+    )?;
+
+    let pins = FrbrBridgePins {
+        envelope_path: cli.envelope.clone(),
+        envelope_sha256: join.envelope_sha256.clone(),
+        receipts_path: cli.receipts.clone(),
+        receipts_sha256: join.receipts_sha256.clone(),
+        timeline_path: cli.timeline.clone(),
+        timeline_sha256: join.timeline_sha256.clone(),
+        ontology_path: cli.ontology.clone(),
+        ontology_sha256: hash_file(Path::new(&cli.ontology), "pin-read")?,
+        registry_path: cli.registry.clone(),
+        registry_sha256: hash_file(Path::new(&cli.registry), "pin-read")?,
+        catalog_path: cli.catalog.clone(),
+        catalog_sha256: hash_file(Path::new(&cli.catalog), "pin-read")?,
+        consumer_binary_path: cli.binary.clone(),
+        consumer_binary_sha256: hash_file(Path::new(&cli.binary), "pin-read")?,
+    };
+    let rendered = render_frbr_bridge_json(&join, &pins)?;
+
+    let expressions = join.rows.len();
+    let distinct_effect_days = join.distinct_effect_days;
+    let divergence = join.registry_expression_id_divergence;
+    if cli.check {
+        let actual = fs::read(&cli.out).map_err(|error| {
+            FrbrBridgeError::new(
+                "check-missing",
+                format!("--out artifact is unreadable: {}", error.kind()),
+            )
+        })?;
+        if actual == rendered.as_bytes() {
+            Ok(format!(
+                "check=ok expressions={expressions} distinct_effect_days={distinct_effect_days} divergence={divergence}"
+            ))
+        } else {
+            Err(FrbrBridgeError::new(
+                "check-drift",
+                "the --out artifact differs from the live render",
+            ))
+        }
+    } else {
+        fs::write(&cli.out, rendered.as_bytes()).map_err(|error| {
+            FrbrBridgeError::new(
+                "write-artifact",
+                format!("--out is not writable: {}", error.kind()),
+            )
+        })?;
+        Ok(format!(
+            "wrote expressions={expressions} distinct_effect_days={distinct_effect_days} divergence={divergence} out={}",
+            cli.out
+        ))
+    }
+}
+
+/// Exit code for a derivation/check failure. Read failures (a missing input or
+/// an unreadable `--check` artifact) are the input class, the join refusals are
+/// the bounded contract class, and a write/drift is its own class.
+pub fn exit_code_for(error: &FrbrBridgeError) -> u8 {
+    match error.operation() {
+        "envelope-read" | "receipts-read" | "timeline-read" | "catalog-open" | "catalog-read"
+        | "pin-read" | "check-missing" => EXIT_INPUT,
+        "write-artifact" => EXIT_OUT_UNWRITABLE,
+        "check-drift" => EXIT_DRIFT,
+        _ => EXIT_JOIN_REFUSED,
+    }
+}
+
+fn hash_file(path: &Path, operation: &'static str) -> Result<String, FrbrBridgeError> {
+    let mut file = fs::File::open(path)
+        .map_err(|error| err(operation, format!("open failed: {}", error.kind())))?;
+    let mut hasher = Sha256::new();
+    let mut buffer = vec![0_u8; 64 * 1024];
+    loop {
+        let read = file
+            .read(&mut buffer)
+            .map_err(|error| err(operation, format!("read failed: {}", error.kind())))?;
+        if read == 0 {
+            break;
+        }
+        hasher.update(&buffer[..read]);
+    }
+    Ok(format!("sha256:{}", hex(&hasher.finalize())))
+}
+
+/// Redaction guard: an artifact payload must be ASCII, else fail-closed.
+fn ensure_ascii(artifact: &str) -> Result<(), FrbrBridgeError> {
+    if artifact.is_ascii() {
+        Ok(())
+    } else {
+        Err(err("redaction", "mapping artifact payload is not ASCII"))
+    }
+}
+
+/// Minimal JSON string escaper with a strict-ASCII posture: quotes,
+/// backslashes, control characters, and every non-ASCII code point are
+/// escaped. This keeps artifact payloads byte-ASCII (the redaction guard).
+fn quote_json(value: &str) -> String {
+    let mut out = String::with_capacity(value.len() + 2);
+    out.push('"');
+    for character in value.chars() {
+        match character {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            character if (character as u32) < 0x20 => {
+                let _ = write!(out, "\\u{:04x}", character as u32);
+            }
+            character if !character.is_ascii() => {
+                let code = character as u32;
+                if code > 0xFFFF {
+                    let offset = code - 0x1_0000;
+                    let _ = write!(
+                        out,
+                        "\\u{:04x}\\u{:04x}",
+                        0xD800 + (offset >> 10),
+                        0xDC00 + (offset & 0x3FF)
+                    );
+                } else {
+                    let _ = write!(out, "\\u{code:04x}");
+                }
+            }
+            character => out.push(character),
+        }
+    }
+    out.push('"');
     out
 }

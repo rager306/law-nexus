@@ -61,4 +61,8 @@ path = "src/bin/hierarchy-lift-census.rs"
 name = "edition-timeline"
 path = "src/bin/edition-timeline.rs"
 
+[[bin]]
+name = "frbr-bridge"
+path = "src/bin/frbr-bridge.rs"
+
 [dev-dependencies]
