@@ -86,6 +86,26 @@ JOIN consultant_source_records AS r ON r.source_record_id = loc.source_record_id
 WHERE loc.offline_uri IS NOT NULL AND loc.offline_uri <> ''
 ";
 
+/// Bulk edition join map: one read-only pass over `editions` returning the
+/// catalog identity of every corpus document keyed by its manifest
+/// `relative_path` (the `exports/` prefix is stripped in Rust, never in SQL).
+/// Unlike [`LOOKUP_BY_RELATIVE_PATH_SQL`] this is not a latest-edition
+/// tie-break probe: it returns the `document_id` and `edition_number` that the
+/// FRBR-bridge join needs, one row per path (`editions.relative_path` is
+/// `UNIQUE`), byte-exact and never decoded or normalized. NULL/empty paths are
+/// skipped (they cannot key a manifest row).
+const LOAD_EDITION_JOIN_MAP_SQL: &str = "
+SELECT
+    relative_path AS relative_path,
+    source_id AS source_id,
+    edition_id AS edition_id,
+    document_id AS document_id,
+    edition_number AS edition_number,
+    revision_date AS revision_date
+FROM editions
+WHERE relative_path IS NOT NULL AND relative_path <> ''
+";
+
 const LOOKUP_SQL: &str = "
 SELECT
     d.title AS title,
@@ -414,6 +434,69 @@ impl SqliteCatalog {
         }
         Ok(map)
     }
+
+    /// Bulk-load the edition join map (one catalog pass).
+    ///
+    /// Keyed by the manifest `relative_path` (the `exports/` prefix is
+    /// stripped); the value carries the catalog `source_id` anchor plus the
+    /// `edition_id`, `document_id` and `edition_number` that FRBR-bridge
+    /// records need (the [`CatalogAnchorPort`] record has only the first
+    /// three). Read-only, one pass, no decoding — the same posture as
+    /// [`Self::load_page_index_token_map`]. A NULL/empty `relative_path` row is
+    /// skipped; a path that does not carry the `exports/` prefix keys on its
+    /// raw path.
+    pub fn load_edition_join_map(&self) -> Result<BTreeMap<String, EditionJoinRow>, CatalogError> {
+        let mut stmt = self
+            .conn
+            .prepare(LOAD_EDITION_JOIN_MAP_SQL)
+            .map_err(|err| map_sqlite("load-edition-join-map", err))?;
+        let rows = stmt
+            .query_map([], |row| {
+                Ok(EditionJoinRow {
+                    relative_path: row.get("relative_path")?,
+                    source_id: row.get("source_id")?,
+                    edition_id: row.get("edition_id")?,
+                    document_id: row.get("document_id")?,
+                    edition_number: row.get("edition_number")?,
+                    revision_date: row.get("revision_date")?,
+                })
+            })
+            .map_err(|err| map_sqlite("load-edition-join-map", err))?;
+        let mut map: BTreeMap<String, EditionJoinRow> = BTreeMap::new();
+        for row in rows {
+            let row = row.map_err(|err| map_sqlite("load-edition-join-map", err))?;
+            let key = row
+                .relative_path
+                .strip_prefix(EXPORTS_PREFIX)
+                .unwrap_or(&row.relative_path)
+                .to_owned();
+            map.insert(key, row);
+        }
+        Ok(map)
+    }
+}
+
+/// One `editions` row for the FRBR-bridge join (M224/S07/T02).
+///
+/// Unlike [`CatalogAnchorRecord`] this carries the catalog `document_id` and
+/// `edition_number`; the map that [`SqliteCatalog::load_edition_join_map`]
+/// returns is keyed by the manifest `relative_path` (the catalog form is
+/// stored here in `relative_path`, `exports/`-prefixed). `source_id` is the
+/// anchor token, byte-exact.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EditionJoinRow {
+    /// Catalog `editions.relative_path` (the `exports/…` form).
+    pub relative_path: String,
+    /// Catalog `editions.source_id` (the offline token for corpus rows).
+    pub source_id: String,
+    /// Catalog `editions.edition_id`, if present.
+    pub edition_id: Option<String>,
+    /// Catalog `editions.document_id`, if present.
+    pub document_id: Option<String>,
+    /// Catalog `editions.edition_number`, if present.
+    pub edition_number: Option<i64>,
+    /// Catalog `editions.revision_date`, if present.
+    pub revision_date: Option<String>,
 }
 
 fn map_anchor_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<CatalogAnchorRecord> {

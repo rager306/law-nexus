@@ -23,6 +23,7 @@ pub mod document_profile;
 pub mod drift_baseline;
 pub mod edge_deriver;
 pub mod edition_timeline;
+pub mod frbr_bridge;
 pub mod gold_coding;
 pub mod gold_eval;
 pub mod hierarchy_lift_census;
@@ -48,7 +49,7 @@ pub use catalog::{
 pub use catalog_anchor::{
     CatalogAnchorPort, CatalogAnchorRecord, EXPORTS_PREFIX, InMemoryCatalogAnchor, exports_path,
 };
-pub use catalog_sqlite::SqliteCatalog;
+pub use catalog_sqlite::{EditionJoinRow, SqliteCatalog};
 pub use classifier::{
     ClassifiedLink, ClassifierRule, Template, classify_all, classify_all_scored,
     classify_all_scored_for_path, classify_link, classify_link_scored, load_classifier_rules,
@@ -64,6 +65,11 @@ pub use document_profile::{
     DetectedProfile, DocumentProfile, apply_boost, detect_profile, load_profiles,
 };
 pub use edge_deriver::{DerivedEdge, derive_edges};
+pub use frbr_bridge::{
+    DEFAULT_ACT_NUMBER, DEFAULT_EDITION_PREFIX, ENVELOPE_HEADER_KIND, FRBR_BRIDGE_SCHEMA,
+    FrbrBridgeError, FrbrBridgeJoin, FrbrBridgeJoinRow, FrbrBridgeTotals, RECEIPTS_SCHEMA,
+    TIMELINE_SCHEMA, build_frbr_bridge_join, build_frbr_bridge_join_from_bytes,
+};
 pub use hyperlink::extract_hyperlinks;
 pub use multi_edition::{
     EditionSummary, delta, parse_edition_filename, process_edition, process_edition_for_path,
