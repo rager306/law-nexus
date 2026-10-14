@@ -202,6 +202,27 @@ InForce ≠ Applicable, cross-act edges, practice overlay. Axes still behind
   documented residual edition 0036→0037; file dates are process truth, not
   legal truth (D116/D117); R070 stays active.
 
+### FRBR bridge axis (44-ФЗ Work × 118 Expressions, M224 S07)
+
+Bounded FRBR bridge over the S06 edition timeline, published as the tracked
+counts-only mapping artifact
+`prd/migration/rust-evidence/m224-s07-frbr-bridge.json` (schema
+`m224-s07-frbr-bridge/v1`): one registry Work
+(`work:ru:federal:zakon:2013-04-05:44-fz`) × 118 Expressions by S06
+`effect_day`, three-layer join (S02 identity envelope, m223-S07 receipts,
+editions catalog) at `118/118`. The ELI-compatible URN
+(`urn:lex:ru:federal:zakon:2013-04-05;44-fz`; Expression form `<work>@<iso>`)
+stays a **compatibility projection**, not project-local canon — the `cc:`
+component-concept canon is neither replaced nor rekeyed; `uri_anchor` is
+never decoded, normalized, or re-derived; the expression day is the S06
+timeline `effect_day`, not the registry `rev` date. Documented
+`registry_expression_id_divergence=46` (registry rev-only path id vs timeline
+`effect_day` binding) with all join totals zero. Intra-S3 step under the S3
+ceiling — no promotion: `R1000` stays `active/unclosed` and `R035` stays
+bounded mapping evidence only (not a promotion). Module anchors:
+`crates/ln-kb-ontology/src/frbr_bridge.rs`,
+`crates/ln-consultant-parser/src/frbr_bridge.rs`.
+
 ### Punkt/subunit text-CTV axis (M172 S03, intra-S3 step)
 
 Class-matched step inside the S3 ceiling — **not** a promotion to S4. Inspect

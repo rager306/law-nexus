@@ -258,6 +258,40 @@ def test_edition_axis_pinned() -> None:
         assert anchor in journal, f"edition-axis anchor missing: {anchor!r}"
 
 
+def test_frbr_bridge_axis_pinned() -> None:
+    """§5c names the M224 S07 bounded FRBR bridge with the S3 ceiling intact.
+
+    Non-vacuity: deleting the ``### FRBR bridge axis`` subsection (or any
+    invariant phrase) breaks this test, so a board edit cannot silently drop
+    the bounded FRBR-bridge disclosure.
+    """
+    assert "### FRBR bridge axis" in _board_text(), "FRBR-bridge axis heading missing"
+    journal = _normalized(_section("## 5c."))
+    for phrase in (
+        "Bounded FRBR bridge over the S06 edition timeline",
+        "`prd/migration/rust-evidence/m224-s07-frbr-bridge.json`",
+        "`m224-s07-frbr-bridge/v1`",
+        "(`work:ru:federal:zakon:2013-04-05:44-fz`) × 118 Expressions by S06 `effect_day`",
+        "three-layer join (S02 identity envelope, m223-S07 receipts, editions catalog) at `118/118`",
+        "(`urn:lex:ru:federal:zakon:2013-04-05;44-fz`; Expression form `<work>@<iso>`)",
+        "**compatibility projection**, not project-local canon",
+        "`cc:` component-concept canon is neither replaced nor rekeyed",
+        "`uri_anchor` is never decoded, normalized, or re-derived",
+        "`registry_expression_id_divergence=46`",
+        "`R1000` stays `active/unclosed`",
+        "`R035` stays bounded mapping evidence only",
+        "`crates/ln-kb-ontology/src/frbr_bridge.rs`",
+        "`crates/ln-consultant-parser/src/frbr_bridge.rs`",
+    ):
+        assert phrase in journal, f"FRBR-bridge axis phrase missing: {phrase!r}"
+    # Bounded discipline: intra-S3 step, never an S4/S6 promotion.
+    axis = _normalized(_section("### FRBR bridge axis"))
+    assert "Intra-S3 step under the S3 ceiling" in axis
+    assert "no promotion" in axis
+    # Scorecard is untouched by this axis (Formal ontology stays 5/10).
+    assert "Formal ontology (LRMoo/ELI/AKN) | 5/10" in journal
+
+
 def test_cross_act_c1_axis_pinned() -> None:
     journal = _normalized(_section("## 5c."))
     assert "`doc/review/review-16-08-2026.md`" in journal, "Review 7 source link missing"
