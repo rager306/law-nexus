@@ -272,24 +272,32 @@ fn bin_broken_wire_is_refused() {
 }
 
 #[test]
-fn bin_unimplemented_modes_fail_closed() {
+fn bin_ctv_mode_accepts_assembly_row() {
     let dir = TempDir::new("modes");
     let wire = export_wire(dir.path(), "federal.jsonl", GLANVA_STATYA_FIXTURE);
     let tsv = write_assembly_tsv(dir.path(), 118, CORPUS_44FZ_REL, &wire);
-    // `chain` is implemented by T02; only `timeline` still fails closed.
-    let output = run_bin(&[
+    // `--ctv` (T04) now composes with assembly mode: the chain (T02) and
+    // timeline (T03) modes are unchanged, and `chain` still has no CTV layer.
+    let output = run_bin(&["--editions", &tsv.display().to_string(), "--ctv"]);
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8(output.stdout).expect("stdout utf8");
+    let payload: serde_json::Value = serde_json::from_str(&stdout).expect("payload is JSON");
+    assert_eq!(payload["schema"], "edition-ast-ctv/v1");
+    assert_eq!(payload["per_edition"][0]["hidden"], 0);
+    assert_eq!(
+        payload["per_edition"][0]["visible"],
+        payload["per_edition"][0]["admitted"]
+    );
+
+    // `chain` has no presence/CTV layer: the combination is refused fail-closed.
+    let chain = run_bin(&[
         "--editions",
         &tsv.display().to_string(),
         "--mode",
-        "timeline",
+        "chain",
+        "--ctv",
     ]);
-    assert_eq!(
-        output.status.code(),
-        Some(i32::from(EXIT_USAGE)),
-        "timeline must fail closed until implemented"
-    );
-    let output = run_bin(&["--editions", &tsv.display().to_string(), "--ctv"]);
-    assert_eq!(output.status.code(), Some(i32::from(EXIT_USAGE)));
+    assert_eq!(chain.status.code(), Some(i32::from(EXIT_USAGE)));
 }
 
 #[test]

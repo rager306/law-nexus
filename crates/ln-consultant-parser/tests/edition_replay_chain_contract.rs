@@ -6,9 +6,9 @@
 //! map, the historical re-bind proof (a removed `statya` cannot detach unless it
 //! is locally re-bound), the counts-only `edition-chain/v1` payload
 //! (determinism + ASCII posture), the fail-closed CLI refusals (row count /
-//! unreadable seed / refused target wire / unimplemented `timeline`), the
-//! empty-provenance refusal, and the skip-capable corpus-gated oracles
-//! (`0080 -> 0081` drift=0 and `0001 -> 0002` text-only, no structural drafts).
+//! unreadable seed / refused target wire), the empty-provenance refusal, and the
+//! skip-capable corpus-gated oracles (`0080 -> 0081` drift=0 and `0001 -> 0002`
+//! text-only, no structural drafts).
 //!
 //! Non-claims: `[bounded]` to the self-authored non-legal synthetic fixtures and
 //! the tracked corpus exports exercised here; never corpus coverage, never
@@ -21,7 +21,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use ln_consultant_parser::edition_timeline::{
-    AssemblyMode, CHAIN_NON_CLAIMS, CHAIN_SCHEMA, EXIT_INPUT_UNREADABLE, EXIT_USAGE,
+    AssemblyMode, CHAIN_NON_CLAIMS, CHAIN_SCHEMA, EXIT_INPUT_UNREADABLE, EXIT_OK, EXIT_USAGE,
     EXIT_WIRE_REFUSED, EditionTimelineCli, replay_chain, run_edition_timeline,
 };
 use ln_decode::cleaned_wire::{WireCompletion, WireLimits, render_cleaned_projection};
@@ -400,7 +400,7 @@ fn bin_chain_broken_target_wire_is_refused() {
 }
 
 #[test]
-fn bin_timeline_mode_still_fails_closed() {
+fn bin_timeline_mode_accepts_a_row_pair() {
     let dir = TempDir::new("chain-timeline");
     let seed_wire = export_wire(dir.path(), "seed.jsonl", SEED_FIXTURE);
     let tsv = write_chain_tsv(
@@ -408,13 +408,16 @@ fn bin_timeline_mode_still_fails_closed() {
         (80, SYNTH_SEED_CORPUS, &seed_wire),
         (81, SYNTH_TARGET_CORPUS, &seed_wire),
     );
+    // `timeline` (T03) is implemented; the two identical rows yield no drafts.
     let output = run_bin(&[
         "--editions",
         &tsv.display().to_string(),
         "--mode",
         "timeline",
     ]);
-    assert_eq!(output.status.code(), Some(i32::from(EXIT_USAGE)));
+    assert_eq!(output.status.code(), Some(i32::from(EXIT_OK)));
+    let stdout = String::from_utf8(output.stdout).expect("stdout is utf-8");
+    assert!(stdout.contains("edition-timeline/v1"), "{stdout}");
 }
 
 #[test]
