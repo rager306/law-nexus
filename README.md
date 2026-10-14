@@ -90,6 +90,7 @@ completion and green repository checks are not product readiness.
   ADR-0023 [proposed] applicability ownership boundary; runtime [deferred]
   ADR-0028 [proposed] typed lexer, LawRef FSM, layered NPA process and explicit future local-grammar boundary
   ADR-0029 [proposed] requisites-anchored member-assembly FSM for NPA reference capture (M207 model); bounded Rust reference-capture runtime landed (M211); downstream stays blocked
+  ADR-0030 [proposed] consultant URI anchor as cross-system legal identity + JSON-LD knowledge layers over the XML→JSONL spine; practice/control banks stay single-version; the temporal model consumes materialized JSONL layers, never raw XML at runtime (R066 stands)
 
 [DOWNSTREAM — BLOCKED until parser data + RuVector/TEI ready]
   graph materialization → citation-safe retrieval → R035/R038 validation

@@ -198,8 +198,9 @@ InForce ≠ Applicable, cross-act edges, practice overlay. Axes still behind
   added=24 / removed=57, seed commit → apply → fold, drift=0;
 - text-only probe 0001→0002: empty structural diff — oracle assert, not a
   replay proof;
-- non-claim: no 118-edition verify; file dates are process truth, not
-  legal truth (D116/D117).
+- 118-edition bounded corpus timeline (44-ФЗ, single act); per-edition drift=0,
+  documented residual edition 0036→0037; file dates are process truth, not
+  legal truth (D116/D117); R070 stays active.
 
 ### Punkt/subunit text-CTV axis (M172 S03, intra-S3 step)
 

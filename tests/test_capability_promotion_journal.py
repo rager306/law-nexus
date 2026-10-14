@@ -252,7 +252,7 @@ def test_edition_axis_pinned() -> None:
         "drafts=81, added=24 / removed=57",
         "text-only probe 0001→0002",
         "oracle assert, not a replay proof",
-        "no 118-edition verify",
+        "118-edition bounded corpus timeline (44-ФЗ, single act)",
         "process truth, not legal truth (D116/D117)",
     ):
         assert anchor in journal, f"edition-axis anchor missing: {anchor!r}"
