@@ -6,5 +6,6 @@
 pub mod bank_normativity;
 pub mod catalog;
 pub mod domain;
+pub mod frbr_bridge;
 pub mod registry;
 pub mod registry_admission;
