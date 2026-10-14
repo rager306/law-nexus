@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-10-13T06:42:31Z",
+  "generated_at": "2026-10-14T18:25:40Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -591,6 +591,12 @@
       "theme": "Сохранённый XML→JSONL источник, потребители (navigation/tokenizer/graph projection) и полный корпусный прогон",
       "status": "complete",
       "boundary": "Full pinned corpus run: 43783 accepted + 2 documented pinned-threshold residuals = 43785 terminal_with_documentation, 0 refused; integrity/accounting evidence, not semantic acceptance; R1000 stays active."
+    },
+    {
+      "range": "M224-M224",
+      "theme": "URI-якорь, corpus pageindex и темпоральность нормативного акта над JSONL",
+      "status": "complete",
+      "boundary": "Bounded corpus layers over the m223 cleaned source: byte-exact Consultant URI anchors with an identity-envelope wire and full-corpus consumer ledger, read-only PageIndexCatalogPort (SQLite), closed bank-to-normativity document groups, ladder-bound hierarchy-lift census, the full 118-edition 44-FZ edition timeline (drift=0, single documented non-monotonic 0036->0037 residual) with per-edition AST presence and text CTV, and the S07 FRBR bridge as a compatibility projection only: one Work (44-FZ) and 118 dated Expressions joined by byte-exact URI anchor and relative_path. Non-claims held: ELI URNs stay a compatibility layer, cc: ComponentConcept canon untouched, no JSON-LD G1 layer, no corpus-wide Work mapping (36872 single-edition source_ids out of scope), registry_expression_id_divergence=46 published, R1000 stays active (M213-owned), R035 stays bounded below promotion. Re-verified 2026-10-14: frbr-bridge --check ok, edition-timeline driver --check ok (drift=0)."
     }
   ],
   "sanctioned_execution_chain": {
@@ -606,10 +612,10 @@
     ]
   },
   "current_milestone": {
-    "id": "M223-d2q075",
+    "id": "M224-554vju",
     "status": "complete",
-    "title": "Промежуточный источник XML JSONL с корпусной приёмкой",
-    "goal": "Сохраняющий источник и чистые потребительские представления (навигация, токенизатор, графовая проекция) без повторного разбора XML; полный pinned корпусный прогон 43785 (43783 accepted + 2 документированных pinned-threshold residual)."
+    "title": "URI-якорь, corpus pageindex и темпоральность нормативного акта над JSONL",
+    "goal": "Байт-точные URI-якоря, read-only corpus pageindex, закрытые группы документов, census hierarchy-lift и полный 118-редакционный таймлайн 44-ФЗ с bounded FRBR-ELI-мостом поверх сохранённого JSONL-источника; доказательства целостности и провенанса, не семантическая приёмка."
   },
   "recommended_next": {
     "title": "Operator decision required: all remaining milestones are parked",
