@@ -130,6 +130,44 @@
         "non_claims": {"type": "array", "items": {"type": "string"}},
         "graphs": {"type": "array", "minItems": 2}
       }
+    },
+    "amend_marker": {
+      "type": "object",
+      "required": ["edition_no", "article", "date", "number", "tier"],
+      "additionalProperties": false,
+      "properties": {
+        "edition_no": {"type": "integer", "minimum": 1},
+        "article": {"type": "string"},
+        "date": {"$ref": "#/$defs/iso_date"},
+        "number": {"type": "string", "minLength": 1},
+        "tier": {
+          "enum": ["resolved_enacting_date", "resolved_number_only", "unresolved"]
+        },
+        "resolved_path": {"type": "string"}
+      }
+    },
+    "amend_provenance": {
+      "type": "object",
+      "required": ["schema_version", "authoritative", "non_claims", "counts", "resolution_tiers", "markers"],
+      "properties": {
+        "schema_version": {"const": "m217-reference-amend-provenance/v1"},
+        "authoritative": {"const": false},
+        "non_claims": {"type": "array", "items": {"type": "string"}},
+        "counts": {
+          "type": "object",
+          "required": ["editions_with_markers", "markers", "unique_amending_laws"],
+          "properties": {
+            "editions_with_markers": {"type": "integer", "minimum": 0},
+            "markers": {"type": "integer", "minimum": 0},
+            "unique_amending_laws": {"type": "integer", "minimum": 0}
+          }
+        },
+        "resolution_tiers": {"type": "object"},
+        "markers": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/amend_marker"}
+        }
+      }
     }
   }
 }

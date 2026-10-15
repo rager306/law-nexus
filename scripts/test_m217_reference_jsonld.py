@@ -18,11 +18,12 @@ SCRIPT = REPO / "scripts" / "m217_reference_jsonld.py"
 TIMELINE = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-timeline.json"
 DIGESTS = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-digests.jsonl"
 NAMED = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-named-graphs.json"
+AMEND = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-amend-provenance.json"
 D767_RESIDUAL = {"applied_day": "2017-08-06", "from_edition_no": 36, "raw_day": "2017-07-29"}
 
 
 def test_artifacts_present() -> None:
-    for path in (TIMELINE, DIGESTS, NAMED):
+    for path in (TIMELINE, DIGESTS, NAMED, AMEND):
         assert path.exists(), f"missing committed artifact: {path}"
 
 
@@ -96,6 +97,24 @@ def test_named_graphs_sample_contract() -> None:
     entries = body["graphs"]
     assert len(entries) > 100, "named graph per edition expected"
     assert entries == sorted(entries, key=lambda g: g["@id"])
+
+
+def test_amend_provenance_layer() -> None:
+    amend = json.loads(AMEND.read_text(encoding="utf-8"))
+    assert amend["schema_version"] == "m217-reference-amend-provenance/v1"
+    assert amend["authoritative"] is False
+    assert amend["counts"]["editions_with_markers"] == 117
+    assert amend["counts"]["markers"] > 10_000
+    assert amend["counts"]["unique_amending_laws"] >= 60
+    assert set(amend["resolution_tiers"]) <= {
+        "resolved_enacting_date",
+        "resolved_number_only",
+        "unresolved",
+    }
+    ed50 = [m for m in amend["markers"] if m["edition_no"] == 50]
+    assert len({(m["date"], m["number"]) for m in ed50}) == 22
+    assert all(m["tier"] == "resolved_enacting_date" for m in ed50)
+    assert any(m["article"] == "act" for m in ed50), "act-level edition marker expected"
 
 
 def test_check_mode_rederivation_is_byte_identical() -> None:

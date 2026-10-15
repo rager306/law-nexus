@@ -51,6 +51,7 @@ RE_ART = re.compile(r"^Статья (\d+(?:\.\d+)?)\.?\s*(.*)")
 RE_FROM = re.compile(r"from-(\d{4}-\d{2}-\d{2})")
 RE_REV = re.compile(r"rev-(\d{4}-\d{2}-\d{2})")
 RE_PART = re.compile(r"^(\d+)\.\s")
+RE_AMEND_MARK = re.compile(r"\(в ред\.[^)]*?от\s+(\d{2}\.\d{2}\.\d{4})\s+N\s*([^\s)]+)")
 RE_REF = re.compile(r"стать(?:ё|е|ей|и|ю|я)?\s+(\d{1,3})", re.I)
 RE_EXT = re.compile(r"Федерального закона|закона|Кодекса|ТК РФ|ГК РФ|законе", re.I)
 RE_SENT = re.compile(r"(?<=[.;])\s+")
@@ -64,9 +65,11 @@ EXIT_SCHEMA = 5
 TIMELINE_ARTIFACT = OUT_DIR / "m217-reference-timeline.json"
 DIGESTS_ARTIFACT = OUT_DIR / "m217-reference-digests.jsonl"
 NAMED_GRAPHS_ARTIFACT = OUT_DIR / "m217-reference-named-graphs.json"
+AMEND_ARTIFACT = OUT_DIR / "m217-reference-amend-provenance.json"
 TIMELINE_SCHEMA_V2 = "m217-reference-timeline/v2"
 DIGESTS_SCHEMA = "m217-reference-digests/v1"
 NAMED_GRAPHS_SCHEMA = "m217-reference-named-graphs/v1"
+AMEND_SCHEMA = "m217-reference-amend-provenance/v1"
 NORMALIZATION_PROFILE = {
     "id": "m217-norm/v1",
     "rules": [
@@ -138,8 +141,17 @@ def parse_edition(
     digests: dict[str, str] = {}
     spans: dict[str, ArticleSpan] = {}
     full_text: dict[str, list[str]] = collections.defaultdict(list)
+    amend: list[tuple[str, str, str]] = []
     cur_art: str | None = None
     for idx, text in enumerate(paras):
+        m_am = RE_AMEND_MARK.search(text)
+        if m_am:
+            art = cur_art if cur_art else "act"
+            iso = f"{m_am.group(1)[6:10]}-{m_am.group(1)[3:5]}-{m_am.group(1)[0:2]}"
+            num = m_am.group(2).rstrip(").,")
+            entry = (art, iso, num)
+            if entry not in amend:
+                amend.append(entry)
         m = RE_ART.match(text)
         if m:
             cur_art = f"statya-{m.group(1)}"
@@ -170,18 +182,15 @@ def parse_edition(
         raw_headings,
         part_count,
         spans,
+        amend,
     )
 
 
-def load_catalog_days(catalog: str) -> dict[str, str]:
-    con = sqlite3.connect(f"file:{catalog}?mode=ro", uri=True)
-    try:
-        rows = con.execute(
-            "select relative_path, document_date from editions "
-            "where relative_path like '%/npa/law_2013-04-05_44-fz/%'"
-        ).fetchall()
-    finally:
-        con.close()
+def load_catalog_days(con: sqlite3.Connection) -> dict[str, str]:
+    rows = con.execute(
+        "select relative_path, document_date from editions "
+        "where relative_path like '%/npa/law_2013-04-05_44-fz/%'"
+    ).fetchall()
     return {rel: doc_date for rel, doc_date in rows}
 
 
@@ -194,7 +203,8 @@ def derive(
     dict[str, dict[int, str]],
     list[dict[str, object]],
 ]:
-    cat_days = load_catalog_days(catalog)
+    con = sqlite3.connect(f"file:{catalog}?mode=ro", uri=True)
+    cat_days = load_catalog_days(con)
     files = sorted(
         glob_files(corpus_dir),
         key=lambda p: int(re.search(r"edition-(\d+)", p.name).group(1)),
@@ -205,6 +215,8 @@ def derive(
     digests_by_ed: dict[int, dict[str, str]] = {}
     spans_by_ed: dict[int, dict[str, ArticleSpan]] = {}
     shas_by_ed: dict[int, str] = {}
+    amend_rows: list[dict[str, object]] = []
+    amend_cache: dict[tuple[str, str], tuple[str, str | None]] = {}
     edges_by_ed: dict[int, list[tuple[str, str]]] = {}
     prev_day: str | None = None
     prev_digests: dict[str, str] | None = None
@@ -220,7 +232,7 @@ def derive(
             rel = "exports/npa/" + path.parts[-2] + "/" + path.name
             raw_day = cat_days.get(rel) or "9999-12-31"
         source_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
-        digests, edges, raw_headings, part_count, spans = parse_edition(path)
+        digests, edges, raw_headings, part_count, spans, amend = parse_edition(path)
         applied, clamped = raw_day, False
         if prev_day is not None and raw_day < prev_day:
             applied, clamped = prev_day, True
@@ -248,6 +260,21 @@ def derive(
         digests_by_ed[ed_no] = digests
         spans_by_ed[ed_no] = spans
         shas_by_ed[ed_no] = source_sha256
+        for art, iso, num in amend:
+            key = (iso, num)
+            if key not in amend_cache:
+                amend_cache[key] = resolve_amend(con, iso, num)
+            tier, rel = amend_cache[key]
+            amend_rows.append(
+                {
+                    "edition_no": ed_no,
+                    "article": art,
+                    "date": iso,
+                    "number": num,
+                    "tier": tier,
+                    **({"resolved_path": rel} if rel else {}),
+                }
+            )
         edges_by_ed[ed_no] = edges
         prev_digests = digests
     ctv: list[CtvEvent] = []
@@ -272,7 +299,17 @@ def derive(
     named_graphs = build_named_graphs(
         sample_article, editions, digests_by_ed, spans_by_ed, shas_by_ed
     )
-    return editions, ctv, nonmono, digests_by_ed, spans_by_ed, shas_by_ed, named_graphs
+    con.close()
+    return (
+        editions,
+        ctv,
+        nonmono,
+        digests_by_ed,
+        spans_by_ed,
+        shas_by_ed,
+        amend_rows,
+        named_graphs,
+    )
 
 
 def glob_files(corpus_dir: Path) -> list[Path]:
@@ -280,6 +317,23 @@ def glob_files(corpus_dir: Path) -> list[Path]:
 
 
 RE_EDNO = re.compile(r"edition-(\d+)")
+
+
+def resolve_amend(con: sqlite3.Connection, iso_date: str, number: str) -> tuple[str, str | None]:
+    """Amendment provenance: identify the changing act; enacting-date match is
+    identification, corpus path is informational (not a deep-link target).
+    con: one shared read-only connection (opened once per derive)."""
+    if True:
+        rows = con.execute(
+            "select relative_path, document_date from editions where number like ? limit 60",
+            (f"%{number}%",),
+        ).fetchall()
+    exact = [r for r in rows if r[1] == iso_date]
+    if exact:
+        return "resolved_enacting_date", CORPUS_DIR.split("/exports/")[0] + "/" + exact[0][0]
+    if rows:
+        return "resolved_number_only", CORPUS_DIR.split("/exports/")[0] + "/" + rows[0][0]
+    return "unresolved", None
 
 
 def article_sort_key(a: str) -> tuple[int, ...]:
@@ -456,6 +510,36 @@ def render(
     )
 
 
+def render_amend(amend_rows: list[dict[str, object]]) -> str:
+    tiers = collections.Counter(r["tier"] for r in amend_rows)
+    laws = {(r["date"], r["number"]) for r in amend_rows if r["article"] != "act"}
+    eds = {r["edition_no"] for r in amend_rows}
+    return (
+        json.dumps(
+            {
+                "schema_version": AMEND_SCHEMA,
+                "authoritative": False,
+                "non_claims": list(NON_AUTHORITY)
+                + [
+                    "Amendment provenance identifies the changing act; it does not "
+                    "interpret amendment semantics (M208 territory)"
+                ],
+                "counts": {
+                    "editions_with_markers": len(eds),
+                    "markers": len(amend_rows),
+                    "unique_amending_laws": len(laws),
+                },
+                "resolution_tiers": dict(sorted(tiers.items())),
+                "markers": amend_rows,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            indent=1,
+        )
+        + "\n"
+    )
+
+
 def render_digests(
     editions: list[EditionDigest],
     digests_by_ed: dict[int, dict[str, str]],
@@ -581,7 +665,11 @@ def _schema_validate(instance: object, schema: dict, root: dict, path: str) -> l
 
 
 def validate_artifacts(
-    timeline_text: str, digests_text: str, graphs_text: str, schema_path: Path
+    timeline_text: str,
+    digests_text: str,
+    graphs_text: str,
+    amend_text: str,
+    schema_path: Path,
 ) -> list[str]:
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     errors: list[str] = []
@@ -597,6 +685,8 @@ def validate_artifacts(
         )
     graphs = json.loads(graphs_text)
     errors += _schema_validate(graphs, schema["$defs"]["named_graphs"], schema, "named_graphs")
+    amend = json.loads(amend_text)
+    errors += _schema_validate(amend, schema["$defs"]["amend_provenance"], schema, "amend")
     return errors
 
 
@@ -640,7 +730,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"unreadable inputs: corpus={corpus} catalog={args.catalog}", file=sys.stderr)
         return EXIT_INPUT
     try:
-        editions, ctv, nonmono, digests_by_ed, spans_by_ed, shas_by_ed, named = derive(
+        editions, ctv, nonmono, digests_by_ed, spans_by_ed, shas_by_ed, amend_rows, named = derive(
             corpus, args.catalog
         )
     except ReviewInputError as exc:
@@ -652,13 +742,15 @@ def main(argv: list[str] | None = None) -> int:
     g_volume["digest_timeline_bytes_alternative"] = len(digests_body.encode())
     timeline = render(editions, ctv, nonmono, g_volume)
     graphs = render_named_graphs(named)
+    amend_doc = render_amend(amend_rows)
     artifacts = (
         (TIMELINE_ARTIFACT, timeline),
         (DIGESTS_ARTIFACT, digests_body),
         (NAMED_GRAPHS_ARTIFACT, graphs),
+        (AMEND_ARTIFACT, amend_doc),
     )
     schema_path = Path(__file__).resolve().parent / "m217_reference.schema.json"
-    violations = validate_artifacts(timeline, digests_body, graphs, schema_path)
+    violations = validate_artifacts(timeline, digests_body, graphs, amend_doc, schema_path)
     if violations:
         for line in violations[:10]:
             print(f"schema violation: {line}", file=sys.stderr)
