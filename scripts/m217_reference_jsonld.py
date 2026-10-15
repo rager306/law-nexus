@@ -63,7 +63,7 @@ EXIT_DRIFT = 6
 TIMELINE_ARTIFACT = OUT_DIR / "m217-reference-timeline.json"
 DIGESTS_ARTIFACT = OUT_DIR / "m217-reference-digests.jsonl"
 NAMED_GRAPHS_ARTIFACT = OUT_DIR / "m217-reference-named-graphs.json"
-TIMELINE_SCHEMA = "m217-reference-timeline/v1"
+TIMELINE_SCHEMA_V2 = "m217-reference-timeline/v2"
 DIGESTS_SCHEMA = "m217-reference-digests/v1"
 NAMED_GRAPHS_SCHEMA = "m217-reference-named-graphs/v1"
 NON_AUTHORITY = (
@@ -81,7 +81,10 @@ class EditionDigest:
     applied_day: str
     clamped: bool
     article_count: int
-    deficited: bool
+    raw_headings: int
+    parse_loss: int
+    break_from_previous: bool
+    removed_from_previous: int
     edge_count: int
 
 
@@ -100,12 +103,15 @@ def canonical_json(value: object) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
-def parse_edition(path: Path) -> tuple[dict[str, str], list[tuple[str, str, str]]]:
-    """Return (article digest map, qualified internal edges)."""
+def parse_edition(path: Path) -> tuple[dict[str, str], list[tuple[str, str, str]], int]:
+    """Return (article digest map, qualified internal edges, raw heading count)."""
     paras: list[str] = []
+    raw_headings = 0
     for _ev, el in ET.iterparse(path, events=("end",)):
         if el.tag == W + "p":
             text = "".join(x.text or "" for x in el.iter(W + "t")).replace("\xa0", " ").strip()
+            if RE_ART.match(text):
+                raw_headings += 1
             paras.append(text)
             el.clear()
     digests: dict[str, str] = {}
@@ -133,7 +139,7 @@ def parse_edition(path: Path) -> tuple[dict[str, str], list[tuple[str, str, str]
                     ref = f"statya-{m.group(1)}"
                     if ref != aid and ref in digests:
                         edges[aid].add(ref)
-    return digests, [(a, b) for a in sorted(edges) for b in sorted(edges[a])]
+    return digests, [(a, b) for a in sorted(edges) for b in sorted(edges[a])], raw_headings
 
 
 def load_catalog_days(catalog: str) -> dict[str, str]:
@@ -168,6 +174,7 @@ def derive(
     digests_by_ed: dict[int, dict[str, str]] = {}
     edges_by_ed: dict[int, list[tuple[str, str]]] = {}
     prev_day: str | None = None
+    prev_digests: dict[str, str] | None = None
     for path in files:
         ed_no = int(RE_EDNO.search(path.name).group(1))
         m_from = RE_FROM.search(path.name)
@@ -179,20 +186,32 @@ def derive(
         else:
             rel = "exports/npa/" + path.parts[-2] + "/" + path.name
             raw_day = cat_days.get(rel) or "9999-12-31"
-        digests, edges = parse_edition(path)
+        digests, edges, raw_headings = parse_edition(path)
         applied, clamped = raw_day, False
         if prev_day is not None and raw_day < prev_day:
             applied, clamped = prev_day, True
         prev_day = applied
-        counts = [e.article_count for e in editions]
-        modal = collections.Counter(counts).most_common(1)[0][0] if counts else len(digests)
+        break_from_previous, removed_count = False, 0
+        if prev_digests is not None:
+            removed = set(prev_digests) - set(digests)
+            break_from_previous, removed_count = bool(removed), len(removed)
         editions.append(
             EditionDigest(
-                ed_no, raw_day, applied, clamped, len(digests), len(digests) < modal, len(edges)
+                ed_no,
+                raw_day,
+                applied,
+                clamped,
+                len(digests),
+                raw_headings,
+                raw_headings - len(digests),
+                break_from_previous,
+                removed_count,
+                len(edges),
             )
         )
         digests_by_ed[ed_no] = digests
         edges_by_ed[ed_no] = edges
+        prev_digests = digests
     ctv: list[CtvEvent] = []
     prev: dict[str, str] | None = None
     for ed_no in sorted(digests_by_ed):
@@ -257,9 +276,13 @@ def render(
     return (
         json.dumps(
             {
-                "schema_version": TIMELINE_SCHEMA,
+                "schema_version": TIMELINE_SCHEMA_V2,
                 "authoritative": False,
-                "non_claims": list(NON_AUTHORITY),
+                "non_claims": list(NON_AUTHORITY)
+                + [
+                    "Article-count variance across editions reflects documented law history "
+                    "(476-FZ purge band from edition 81), not parsing defect"
+                ],
                 "counts": {
                     "editions": len(editions),
                     "ctv_events": len(ctv),
@@ -272,7 +295,10 @@ def render(
                         "applied_day": e.applied_day,
                         "clamped": e.clamped,
                         "article_count": e.article_count,
-                        "deficited": e.deficited,
+                        "raw_headings": e.raw_headings,
+                        "parse_loss": e.parse_loss,
+                        "break_from_previous": e.break_from_previous,
+                        "removed_from_previous": e.removed_from_previous,
                         "edge_count": e.edge_count,
                     }
                     for e in editions

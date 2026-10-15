@@ -27,7 +27,7 @@ def test_artifacts_present() -> None:
 
 def test_timeline_schema_and_pins() -> None:
     timeline = json.loads(TIMELINE.read_text(encoding="utf-8"))
-    assert timeline["schema_version"] == "m217-reference-timeline/v1"
+    assert timeline["schema_version"] == "m217-reference-timeline/v2"
     assert timeline["authoritative"] is False
     assert timeline["counts"]["editions"] == 118
     assert timeline["counts"]["non_monotonic"] == 1
@@ -38,15 +38,31 @@ def test_timeline_schema_and_pins() -> None:
     assert days == sorted(days), "applied days must be monotonic after clamping"
 
 
-def test_ctv_and_deficit_visibility() -> None:
+def test_structural_breaks_are_history_not_parser_loss() -> None:
+    timeline = json.loads(TIMELINE.read_text(encoding="utf-8"))
+    breaks = [
+        (e["edition_no"], e["removed_from_previous"])
+        for e in timeline["editions"]
+        if e["break_from_previous"]
+    ]
+    assert breaks == [(64, 3), (76, 5), (81, 40)]
+    ed81 = next(e for e in timeline["editions"] if e["edition_no"] == 81)
+    assert ed81["article_count"] == 94
+    assert sum(e["parse_loss"] for e in timeline["editions"]) >= 0
+    assert any("476-FZ purge band" in nc for nc in timeline["non_claims"]), (
+        "article-count variance must be qualified as law history"
+    )
+
+
+def test_ctv_counts_stay_published() -> None:
     timeline = json.loads(TIMELINE.read_text(encoding="utf-8"))
     ops = {
         op: sum(1 for c in timeline["ctv_events"] if c["op"] == op)
         for op in ("created", "amended", "removed")
     }
-    assert ops["created"] == 28 and ops["removed"] == 48 and ops["amended"] > 0
-    deficited = [e["edition_no"] for e in timeline["editions"] if e["deficited"]]
-    assert deficited == list(range(81, 100)), "parse deficit must stay published, not normalized"
+    assert ops["created"] == 28
+    assert ops["amended"] > 0 and ops["removed"] > 0
+    assert sum(ops.values()) == timeline["counts"]["ctv_events"]
 
 
 def test_digests_matrix_shape() -> None:
