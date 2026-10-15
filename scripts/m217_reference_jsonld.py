@@ -85,6 +85,7 @@ class EditionDigest:
     parse_loss: int
     break_from_previous: bool
     removed_from_previous: int
+    part_count: int
     edge_count: int
 
 
@@ -103,8 +104,8 @@ def canonical_json(value: object) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
-def parse_edition(path: Path) -> tuple[dict[str, str], list[tuple[str, str, str]], int]:
-    """Return (article digest map, qualified internal edges, raw heading count)."""
+def parse_edition(path: Path) -> tuple[dict[str, str], list[tuple[str, str, str]], int, int]:
+    """Return (article digest map, qualified internal edges, raw heading count, part count)."""
     paras: list[str] = []
     raw_headings = 0
     for _ev, el in ET.iterparse(path, events=("end",)):
@@ -139,7 +140,13 @@ def parse_edition(path: Path) -> tuple[dict[str, str], list[tuple[str, str, str]
                     ref = f"statya-{m.group(1)}"
                     if ref != aid and ref in digests:
                         edges[aid].add(ref)
-    return digests, [(a, b) for a in sorted(edges) for b in sorted(edges[a])], raw_headings
+    part_count = sum(len(chunks) for chunks in full_text.values())
+    return (
+        digests,
+        [(a, b) for a in sorted(edges) for b in sorted(edges[a])],
+        raw_headings,
+        part_count,
+    )
 
 
 def load_catalog_days(catalog: str) -> dict[str, str]:
@@ -186,7 +193,7 @@ def derive(
         else:
             rel = "exports/npa/" + path.parts[-2] + "/" + path.name
             raw_day = cat_days.get(rel) or "9999-12-31"
-        digests, edges, raw_headings = parse_edition(path)
+        digests, edges, raw_headings, part_count = parse_edition(path)
         applied, clamped = raw_day, False
         if prev_day is not None and raw_day < prev_day:
             applied, clamped = prev_day, True
@@ -206,6 +213,7 @@ def derive(
                 raw_headings - len(digests),
                 break_from_previous,
                 removed_count,
+                part_count,
                 len(edges),
             )
         )
@@ -270,8 +278,102 @@ def build_named_graphs(
     return [{"@id": "eli:work/44-fz", "sample_article": sample_article}, doc_graph]
 
 
+def edition_layer_document(path: Path, edition_no: int, day: str) -> bytes:
+    """Full-text JSON-LD layer for one edition (on-demand projection; not committed)."""
+    ctx = {
+        "cc": "https://law-nexus.local/vocab/cc#",
+        "eli": "http://data.europa.eu/eli/",
+        "ex": "https://law-nexus.local/vocab/ex#",
+        "heading": "ex:heading",
+        "text": "ex:text",
+        "part_no": "ex:partNo",
+        "effect_day": {"@id": "ex:effectDay", "@type": "xsd:date"},
+        "has_part": {"@id": "ex:hasPart", "@type": "@id"},
+        "refs": {"@id": "ex:refs", "@type": "@id", "@container": "@set"},
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+    }
+    re_art = re.compile(r"^Статья (\d+(?:\.\d+)?)\.?\s*(.*)")
+    re_part = re.compile(r"^(\d+)\.\s")
+    paras = []
+    for _ev, el in ET.iterparse(path, events=("end",)):
+        if el.tag == W + "p":
+            text = "".join(x.text or "" for x in el.iter(W + "t")).replace("\xa0", " ").strip()
+            paras.append(text)
+            el.clear()
+    nodes: dict[str, dict[str, object]] = {}
+    cur = None
+    for text in paras:
+        m = re_art.match(text)
+        if m:
+            cur = f"cc:44-fz:statya-{m.group(1)}"
+            nodes.setdefault(
+                cur,
+                {
+                    "@id": cur,
+                    "@type": "cc:ComponentConcept",
+                    "heading": m.group(2).strip(),
+                    "has_part": [],
+                    "refs": [],
+                },
+            )
+            continue
+        if cur and text:
+            pm = re_part.match(text)
+            nodes[cur]["has_part"].append(
+                {
+                    "@id": f"ex:p/{edition_no}/{cur}/{pm.group(1) if pm else 'c'}",
+                    "part_no": pm.group(1) if pm else "cont",
+                    "text": text,
+                }
+            )
+    doc = {
+        "@context": ctx,
+        "@id": f"eli:expression/44-fz/ed-{edition_no:04d}",
+        "effect_day": day,
+        "@graph": list(nodes.values()),
+    }
+    return json.dumps(doc, ensure_ascii=False, sort_keys=True, indent=1).encode()
+
+
+def measure_g_layer(corpus_dir: Path, editions: list[EditionDigest]) -> dict[str, object]:
+    """Measured G-layer bytes on the densest edition + linear projections."""
+    measured_ed = max(editions, key=lambda e: (e.part_count, e.edition_no))
+    path = next(
+        p
+        for p in sorted((corpus_dir).glob("edition-*.xml"))
+        if int(RE_EDNO.search(p.name).group(1)) == measured_ed.edition_no
+    )
+    day = measured_ed.applied_day
+    blob = edition_layer_document(path, measured_ed.edition_no, day)
+    per_part = len(blob) / measured_ed.part_count
+    act_parts = sum(e.part_count for e in editions)
+    con = sqlite3.connect(f"file:{CATALOG}?mode=ro", uri=True)
+    try:
+        corpus_editions = con.execute("select count(*) from editions").fetchone()[0]
+    finally:
+        con.close()
+    act_projection = round(act_parts * per_part + len(editions) * 400)
+    corpus_projection = round(act_projection / len(editions) * corpus_editions)
+    return {
+        "methodology": (
+            "bytes measured on the densest edition, scaled linearly by part counts; "
+            "corpus projection is coarse (one-act average over all catalog editions)"
+        ),
+        "measured_edition_no": measured_ed.edition_no,
+        "measured_jsonld_bytes": len(blob),
+        "measured_parts": measured_ed.part_count,
+        "bytes_per_part": round(per_part, 2),
+        "act_text_inline_projection_bytes": act_projection,
+        "corpus_editions_in_catalog": corpus_editions,
+        "corpus_text_inline_projection_bytes": corpus_projection,
+    }
+
+
 def render(
-    editions: list[EditionDigest], ctv: list[CtvEvent], nonmono: list[dict[str, object]]
+    editions: list[EditionDigest],
+    ctv: list[CtvEvent],
+    nonmono: list[dict[str, object]],
+    g_volume: dict[str, object],
 ) -> str:
     return (
         json.dumps(
@@ -288,6 +390,7 @@ def render(
                     "ctv_events": len(ctv),
                     "non_monotonic": len(nonmono),
                 },
+                "g_layer_volume": g_volume,
                 "editions": [
                     {
                         "edition_no": e.edition_no,
@@ -361,8 +464,34 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--check", action="store_true", help="byte-compare re-derived artifacts instead of writing"
     )
+    parser.add_argument(
+        "--g-layer",
+        type=int,
+        metavar="EDITION_NO",
+        default=None,
+        help="emit the full-text JSON-LD layer for one edition to --out",
+    )
+    parser.add_argument("--out", default=None, help="output path for --g-layer mode")
     args = parser.parse_args(argv)
 
+    corpus = Path(args.corpus_dir)
+    if args.g_layer is not None:
+        if not args.out:
+            print("--g-layer requires --out", file=sys.stderr)
+            return EXIT_ARGV
+        files = sorted(glob_files(corpus))
+        target = next(
+            (p for p in files if int(RE_EDNO.search(p.name).group(1)) == args.g_layer), None
+        )
+        if target is None:
+            print(f"edition {args.g_layer} not found under {corpus}", file=sys.stderr)
+            return EXIT_INPUT
+        m_from = RE_FROM.search(target.name)
+        m_rev = RE_REV.search(target.name)
+        day = (m_from or m_rev).group(1) if (m_from or m_rev) else "9999-12-31"
+        Path(args.out).write_bytes(edition_layer_document(target, args.g_layer, day))
+        print(f"wrote {args.out} ({Path(args.out).stat().st_size} bytes)")
+        return EXIT_OK
     corpus = Path(args.corpus_dir)
     if not corpus.is_dir() or not Path(args.catalog).exists():
         print(f"unreadable inputs: corpus={corpus} catalog={args.catalog}", file=sys.stderr)
@@ -373,12 +502,14 @@ def main(argv: list[str] | None = None) -> int:
         print(str(exc), file=sys.stderr)
         return EXIT_INPUT
 
-    timeline = render(editions, ctv, nonmono)
-    digests = render_digests(editions, digests_by_ed)
+    g_volume = measure_g_layer(corpus, editions)
+    digests_body = render_digests(editions, digests_by_ed)
+    g_volume["digest_timeline_bytes_alternative"] = len(digests_body.encode())
+    timeline = render(editions, ctv, nonmono, g_volume)
     graphs = render_named_graphs(named)
     artifacts = (
         (TIMELINE_ARTIFACT, timeline),
-        (DIGESTS_ARTIFACT, digests),
+        (DIGESTS_ARTIFACT, digests_body),
         (NAMED_GRAPHS_ARTIFACT, graphs),
     )
     if args.check:

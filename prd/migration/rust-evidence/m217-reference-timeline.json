@@ -8780,6 +8780,17 @@
    "removed_from_previous": 0
   }
  ],
+ "g_layer_volume": {
+  "act_text_inline_projection_bytes": 173462324,
+  "bytes_per_part": 522.57,
+  "corpus_editions_in_catalog": 36989,
+  "corpus_text_inline_projection_bytes": 54374558495,
+  "digest_timeline_bytes_alternative": 1505709,
+  "measured_edition_no": 80,
+  "measured_jsonld_bytes": 2147237,
+  "measured_parts": 4109,
+  "methodology": "bytes measured on the densest edition, scaled linearly by part counts; corpus projection is coarse (one-act average over all catalog editions)"
+ },
  "non_claims": [
   "Non-authoritative reference projection",
   "Does not validate M224 pins or promote requirements",
