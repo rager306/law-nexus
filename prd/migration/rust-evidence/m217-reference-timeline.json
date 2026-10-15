@@ -1,0 +1,8443 @@
+{
+ "authoritative": false,
+ "counts": {
+  "ctv_events": 1471,
+  "editions": 118,
+  "non_monotonic": 1
+ },
+ "ctv_events": [
+  {
+   "article": "statya-3",
+   "edition_no": 2,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 2,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 2,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-5",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-16",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-17",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-18",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-23",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-25",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-26",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-29",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-32",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-39",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-49",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-50",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-53",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-59",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-60",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-63",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-70",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-71",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-84",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-85",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-86",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-97",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 3,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-17",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-29",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-32",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-49",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-63",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-64",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-65",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-68",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-69",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-71",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-74",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-75",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-77",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-78",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-80",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-84",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-85",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-88",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-97",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.1",
+   "edition_no": 4,
+   "op": "created"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 4,
+   "op": "amended"
+  },
+  {
+   "article": "statya-20",
+   "edition_no": 5,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 5,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 5,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 6,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 6,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 6,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 6,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 6,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-18",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-23",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-25",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-26",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-97",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-108",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 7,
+   "op": "amended"
+  },
+  {
+   "article": "statya-20",
+   "edition_no": 8,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 8,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 8,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 8,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 8,
+   "op": "amended"
+  },
+  {
+   "article": "statya-92",
+   "edition_no": 8,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 8,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 8,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 9,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 9,
+   "op": "amended"
+  },
+  {
+   "article": "statya-92",
+   "edition_no": 9,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 9,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 9,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 10,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 10,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 10,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 10,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 11,
+   "op": "amended"
+  },
+  {
+   "article": "statya-61",
+   "edition_no": 11,
+   "op": "amended"
+  },
+  {
+   "article": "statya-88",
+   "edition_no": 11,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 11,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 12,
+   "op": "amended"
+  },
+  {
+   "article": "statya-63",
+   "edition_no": 12,
+   "op": "amended"
+  },
+  {
+   "article": "statya-64",
+   "edition_no": 12,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 12,
+   "op": "amended"
+  },
+  {
+   "article": "statya-69",
+   "edition_no": 12,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 12,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 12,
+   "op": "amended"
+  },
+  {
+   "article": "statya-2",
+   "edition_no": 13,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 13,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 13,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 13,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 13,
+   "op": "amended"
+  },
+  {
+   "article": "statya-100",
+   "edition_no": 13,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.1",
+   "edition_no": 13,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.2",
+   "edition_no": 13,
+   "op": "created"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 13,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 13,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 14,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 14,
+   "op": "amended"
+  },
+  {
+   "article": "statya-50",
+   "edition_no": 14,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-61",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-78",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-80",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.1",
+   "edition_no": 15,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 16,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 16,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 16,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 16,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 16,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 16,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-16",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-17",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-18",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-23",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-25",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-26",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 17,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 18,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 18,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 18,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 18,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 18,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 18,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 18,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 18,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 19,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 19,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 19,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 19,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 19,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 19,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 20,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 20,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 20,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 20,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 20,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 21,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 21,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 21,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 21,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 21,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 22,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 22,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 23,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 23,
+   "op": "amended"
+  },
+  {
+   "article": "statya-110",
+   "edition_no": 24,
+   "op": "amended"
+  },
+  {
+   "article": "statya-110.1",
+   "edition_no": 24,
+   "op": "created"
+  },
+  {
+   "article": "statya-110.2",
+   "edition_no": 24,
+   "op": "created"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 24,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-17",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-26",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-110.1",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.2",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 25,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.2",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.3",
+   "edition_no": 26,
+   "op": "created"
+  },
+  {
+   "article": "statya-111.4",
+   "edition_no": 26,
+   "op": "created"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 26,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-17",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-26",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 27,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-23",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-97",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 28,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 29,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 29,
+   "op": "amended"
+  },
+  {
+   "article": "statya-108",
+   "edition_no": 30,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 30,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 31,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 31,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 32,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 32,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 32,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 32,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 32,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 33,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 33,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 33,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 34,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 34,
+   "op": "amended"
+  },
+  {
+   "article": "statya-20",
+   "edition_no": 35,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 35,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 35,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 35,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 35,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 35,
+   "op": "amended"
+  },
+  {
+   "article": "statya-110",
+   "edition_no": 35,
+   "op": "amended"
+  },
+  {
+   "article": "statya-110.1",
+   "edition_no": 35,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 35,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 36,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 36,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.1",
+   "edition_no": 36,
+   "op": "amended"
+  },
+  {
+   "article": "statya-29",
+   "edition_no": 37,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 37,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 37,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 37,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 37,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 37,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 37,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 38,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 38,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 38,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 38,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 38,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 38,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 39,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 39,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-8",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-35",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-36",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-40",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-43",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-46",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-48",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-49",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-50",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-52",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-53",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-59",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-60",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-61",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-63",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-64",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-65",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-67",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-68",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-69",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-71",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-74",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-75",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-76",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-77",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-78",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-79",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-80",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-84",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-85",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-86",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-87",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-88",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-89",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-90",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-91",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-107",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 40,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 41,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 41,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 41,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 42,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 42,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 42,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 43,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 43,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 43,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 43,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 43,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-5",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-8",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.1",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-35",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-36",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-40",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-43",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-46",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-48",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-49",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-50",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-52",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-53",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.1",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-54.2",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-54.3",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-54.4",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-54.5",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-54.6",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-54.7",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-55",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55.1",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-56",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56.1",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-57",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57.1",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-59",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-60",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-63",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-64",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-65",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-67",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-68",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-69",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-70",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-71",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-74",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-75",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-76",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-77",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-78",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-79",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-80",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.1",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-82.2",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-82.3",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-82.4",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-82.5",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-82.6",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-84",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-84.1",
+   "edition_no": 44,
+   "op": "created"
+  },
+  {
+   "article": "statya-85",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-86",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-87",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-88",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-89",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-90",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-91",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-92",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-107",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 44,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 45,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 45,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 46,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.4",
+   "edition_no": 46,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56",
+   "edition_no": 46,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57",
+   "edition_no": 46,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.3",
+   "edition_no": 46,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 46,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 46,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 47,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 47,
+   "op": "amended"
+  },
+  {
+   "article": "statya-32",
+   "edition_no": 47,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 47,
+   "op": "amended"
+  },
+  {
+   "article": "statya-61",
+   "edition_no": 47,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 47,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 47,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 48,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 48,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 49,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 49,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 49,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 49,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 49,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 49,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 49,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 49,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.1",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.2",
+   "edition_no": 50,
+   "op": "created"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.4",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-60",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-61",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.3",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 50,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 51,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 51,
+   "op": "amended"
+  },
+  {
+   "article": "statya-41",
+   "edition_no": 51,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 51,
+   "op": "amended"
+  },
+  {
+   "article": "statya-61",
+   "edition_no": 51,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 51,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 51,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 51,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 51,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 51,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 52,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 52,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 52,
+   "op": "amended"
+  },
+  {
+   "article": "statya-98",
+   "edition_no": 52,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 52,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 52,
+   "op": "amended"
+  },
+  {
+   "article": "statya-28",
+   "edition_no": 53,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56",
+   "edition_no": 53,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56.1",
+   "edition_no": 53,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 53,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-5",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-16",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-18",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-20",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-23",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.2",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-25",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-28",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-29",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-32",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-36",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-40",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-50",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.3",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.4",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.5",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.6",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55.1",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56.1",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57.1",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-63",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-64",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-65",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-67",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-68",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-69",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-71",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-78",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-79",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.1",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.2",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.3",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.4",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.6",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-86",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-87",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-90",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-91",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-97",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 54,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 55,
+   "op": "amended"
+  },
+  {
+   "article": "statya-110.2",
+   "edition_no": 55,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 55,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-12",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-23",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.2",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-25",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-28",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-29",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-32",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-40",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-50",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.3",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.4",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.5",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.6",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57.1",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-63",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-64",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-65",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-67",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-68",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-69",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-71",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-78",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.1",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.2",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.3",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.4",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-86",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-87",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-90",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-91",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-98",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 56,
+   "op": "amended"
+  },
+  {
+   "article": "statya-69",
+   "edition_no": 57,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.3",
+   "edition_no": 57,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 58,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 58,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 58,
+   "op": "amended"
+  },
+  {
+   "article": "statya-29",
+   "edition_no": 58,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 58,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56",
+   "edition_no": 58,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56.1",
+   "edition_no": 58,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 58,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 58,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 58,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 58,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-12",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-13",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-16",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-17",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-18",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-20",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-21",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-29",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-36",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55.1",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-71",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-79",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.2",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.6",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-97",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-98",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 59,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 60,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 60,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.1",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.4",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-61",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-62",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-69",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-78",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-88",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-90",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 61,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.1",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-32",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-36",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55.1",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-71",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.1",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.2",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.3",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.4",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.5",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-110.2",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 62,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 63,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 63,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 63,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-29",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56.1",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-79",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-80",
+   "edition_no": 64,
+   "op": "removed"
+  },
+  {
+   "article": "statya-81",
+   "edition_no": 64,
+   "op": "removed"
+  },
+  {
+   "article": "statya-82",
+   "edition_no": 64,
+   "op": "removed"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 64,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 65,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 65,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 65,
+   "op": "amended"
+  },
+  {
+   "article": "statya-2",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.1",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-36",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-79",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.1",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.2",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.3",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.4",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.5",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 66,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 67,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 67,
+   "op": "amended"
+  },
+  {
+   "article": "statya-2",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55.1",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-71",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 68,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.1",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30.1",
+   "edition_no": 69,
+   "op": "created"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-36",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-79",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.1",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.2",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.3",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.4",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.5",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.1",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 69,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.1",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-36",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.1",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-79",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 70,
+   "op": "amended"
+  },
+  {
+   "article": "statya-2",
+   "edition_no": 71,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 71,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 72,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 72,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 72,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 72,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 73,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 73,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 73,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 73,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-2",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-29",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.4",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.1",
+   "edition_no": 74,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 75,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 75,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.1",
+   "edition_no": 75,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 75,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 75,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 76,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 76,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.1",
+   "edition_no": 76,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 76,
+   "op": "amended"
+  },
+  {
+   "article": "statya-36",
+   "edition_no": 76,
+   "op": "amended"
+  },
+  {
+   "article": "statya-79",
+   "edition_no": 76,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.1",
+   "edition_no": 76,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.2",
+   "edition_no": 76,
+   "op": "removed"
+  },
+  {
+   "article": "statya-82.3",
+   "edition_no": 76,
+   "op": "removed"
+  },
+  {
+   "article": "statya-82.4",
+   "edition_no": 76,
+   "op": "removed"
+  },
+  {
+   "article": "statya-82.5",
+   "edition_no": 76,
+   "op": "removed"
+  },
+  {
+   "article": "statya-82.6",
+   "edition_no": 76,
+   "op": "removed"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 76,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 76,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 76,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 76,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 77,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 77,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.4",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-110.2",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 78,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-2",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-5",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-16",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-23",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.1",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.2",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-26",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-27",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-28",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-32",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-35",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-39",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-40",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-41",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-43",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-46",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-47",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-48",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-49",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-50",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-52",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-53",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.1",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.2",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.3",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.4",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.5",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.6",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-54.7",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-55.1",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-56.1",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-57.1",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-58",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-62",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-63",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-64",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-65",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-67",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-68",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-70",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-71",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-74",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-75",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-76",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-77",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-78",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-79",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-82.1",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-108",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-110.1",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.1",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.3",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.4",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 79,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 80,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 80,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 80,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-2",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-5",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-16",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-20",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-23",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.1",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.2",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-25",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-26",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-27",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-28",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-29",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-32",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-35",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-36",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-39",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-40",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-41",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-43",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-46",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-47",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-48",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-49",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-50",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-52",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-53",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-54",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-54.1",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-54.2",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-54.3",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-54.4",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-54.5",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-54.6",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-54.7",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-55",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-55.1",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-56",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-56.1",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-57",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-57.1",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-58",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-59",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-62",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-63",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-64",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-65",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-66",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-67",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-68",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-69",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-70",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-71",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-74",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-75",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-76",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-77",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-78",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-79",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-82.1",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-83",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-83.1",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-83.2",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-84",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-84.1",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-85",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-86",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-87",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-88",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-89",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-90",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-91",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-92",
+   "edition_no": 81,
+   "op": "removed"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-108",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-109",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-110.1",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.1",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 81,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 82,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 82,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 82,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 82,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 82,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 82,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 83,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 83,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 83,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 84,
+   "op": "amended"
+  },
+  {
+   "article": "statya-43",
+   "edition_no": 84,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 84,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 84,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 84,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 84,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 84,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-25",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-43",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-48",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-49",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-50",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 85,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 86,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 86,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 86,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 86,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 86,
+   "op": "amended"
+  },
+  {
+   "article": "statya-39",
+   "edition_no": 86,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-38",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-39",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-77",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.3",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.4",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 87,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-16",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.3",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.4",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 88,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 89,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 89,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 89,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 89,
+   "op": "amended"
+  },
+  {
+   "article": "statya-2",
+   "edition_no": 90,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 90,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 90,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 90,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 90,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 90,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 90,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 90,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 91,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 91,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 92,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 92,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 92,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 92,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 92,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 92,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 93,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 93,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-5",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-25",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-44",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-45",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-48",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-49",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 94,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 95,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 95,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 96,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 96,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 96,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 96,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 96,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 96,
+   "op": "amended"
+  },
+  {
+   "article": "statya-104",
+   "edition_no": 96,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.3",
+   "edition_no": 96,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.4",
+   "edition_no": 96,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 96,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 96,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 97,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 97,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 98,
+   "op": "amended"
+  },
+  {
+   "article": "statya-26",
+   "edition_no": 98,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 98,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 98,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 98,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 98,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 99,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 99,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 99,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 100,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 100,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 100,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 100,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 101,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 102,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 102,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 102,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 102,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 102,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 103,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 103,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 104,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 104,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 104,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 104,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 104,
+   "op": "amended"
+  },
+  {
+   "article": "statya-2",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-5",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.4",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 105,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 106,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 106,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 106,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 107,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 108,
+   "op": "amended"
+  },
+  {
+   "article": "statya-5",
+   "edition_no": 108,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 108,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 108,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 108,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 108,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 108,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 108,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 109,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 109,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 109,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 109,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 109,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 109,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 109,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 109,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.4",
+   "edition_no": 109,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 109,
+   "op": "amended"
+  },
+  {
+   "article": "statya-1",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-2",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-13",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-19",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-20",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-26",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-27",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-35",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-43",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-48",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-75",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-94",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-97",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-98",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-100",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-105",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.1",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.4",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 110,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 111,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 111,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 111,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 111,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 112,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 112,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 112,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 112,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 112,
+   "op": "amended"
+  },
+  {
+   "article": "statya-3",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-4",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-13",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-15",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-22",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.2",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-27",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30.1",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-33",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-43",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-48",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-51",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-72",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-75",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.1",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.3",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.4",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 113,
+   "op": "amended"
+  },
+  {
+   "article": "statya-14",
+   "edition_no": 114,
+   "op": "amended"
+  },
+  {
+   "article": "statya-30",
+   "edition_no": 114,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 114,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 114,
+   "op": "amended"
+  },
+  {
+   "article": "statya-43",
+   "edition_no": 114,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 114,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 114,
+   "op": "amended"
+  },
+  {
+   "article": "statya-96",
+   "edition_no": 114,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.3",
+   "edition_no": 114,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.4",
+   "edition_no": 114,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 115,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 115,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 115,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 115,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 116,
+   "op": "amended"
+  },
+  {
+   "article": "statya-112",
+   "edition_no": 116,
+   "op": "amended"
+  },
+  {
+   "article": "statya-114",
+   "edition_no": 116,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-24.2",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-31",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-34",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-37",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-42",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-43",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-73",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-95",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-99",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-106",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-111.4",
+   "edition_no": 117,
+   "op": "amended"
+  },
+  {
+   "article": "statya-93",
+   "edition_no": 118,
+   "op": "amended"
+  },
+  {
+   "article": "statya-103",
+   "edition_no": 118,
+   "op": "amended"
+  }
+ ],
+ "editions": [
+  {
+   "applied_day": "2013-04-05",
+   "article_count": 114,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 228,
+   "edition_no": 1,
+   "raw_day": "2013-04-05"
+  },
+  {
+   "applied_day": "2013-07-02",
+   "article_count": 114,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 227,
+   "edition_no": 2,
+   "raw_day": "2013-07-02"
+  },
+  {
+   "applied_day": "2013-12-28",
+   "article_count": 114,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 249,
+   "edition_no": 3,
+   "raw_day": "2013-12-28"
+  },
+  {
+   "applied_day": "2014-06-04",
+   "article_count": 115,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 261,
+   "edition_no": 4,
+   "raw_day": "2014-06-04"
+  },
+  {
+   "applied_day": "2014-07-21",
+   "article_count": 115,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 262,
+   "edition_no": 5,
+   "raw_day": "2014-07-21"
+  },
+  {
+   "applied_day": "2014-12-01",
+   "article_count": 115,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 262,
+   "edition_no": 6,
+   "raw_day": "2014-12-01"
+  },
+  {
+   "applied_day": "2014-12-31",
+   "article_count": 115,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 251,
+   "edition_no": 7,
+   "raw_day": "2014-12-31"
+  },
+  {
+   "applied_day": "2015-01-01",
+   "article_count": 115,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 250,
+   "edition_no": 8,
+   "raw_day": "2015-01-01"
+  },
+  {
+   "applied_day": "2015-03-08",
+   "article_count": 115,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 249,
+   "edition_no": 9,
+   "raw_day": "2015-03-08"
+  },
+  {
+   "applied_day": "2015-04-01",
+   "article_count": 115,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 248,
+   "edition_no": 10,
+   "raw_day": "2015-04-01"
+  },
+  {
+   "applied_day": "2015-04-06",
+   "article_count": 115,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 248,
+   "edition_no": 11,
+   "raw_day": "2015-04-06"
+  },
+  {
+   "applied_day": "2015-06-29",
+   "article_count": 115,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 248,
+   "edition_no": 12,
+   "raw_day": "2015-06-29"
+  },
+  {
+   "applied_day": "2015-07-13",
+   "article_count": 116,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 249,
+   "edition_no": 13,
+   "raw_day": "2015-07-13"
+  },
+  {
+   "applied_day": "2015-07-14",
+   "article_count": 116,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 249,
+   "edition_no": 14,
+   "raw_day": "2015-07-14"
+  },
+  {
+   "applied_day": "2015-08-13",
+   "article_count": 116,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 250,
+   "edition_no": 15,
+   "raw_day": "2015-08-13"
+  },
+  {
+   "applied_day": "2015-09-15",
+   "article_count": 116,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 250,
+   "edition_no": 16,
+   "raw_day": "2015-09-15"
+  },
+  {
+   "applied_day": "2015-12-29",
+   "article_count": 116,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 251,
+   "edition_no": 17,
+   "raw_day": "2015-12-29"
+  },
+  {
+   "applied_day": "2015-12-30",
+   "article_count": 116,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 251,
+   "edition_no": 18,
+   "raw_day": "2015-12-30"
+  },
+  {
+   "applied_day": "2016-03-09",
+   "article_count": 116,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 251,
+   "edition_no": 19,
+   "raw_day": "2016-03-09"
+  },
+  {
+   "applied_day": "2016-04-05",
+   "article_count": 116,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 251,
+   "edition_no": 20,
+   "raw_day": "2016-04-05"
+  },
+  {
+   "applied_day": "2016-06-02",
+   "article_count": 116,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 251,
+   "edition_no": 21,
+   "raw_day": "2016-06-02"
+  },
+  {
+   "applied_day": "2016-06-23",
+   "article_count": 116,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 251,
+   "edition_no": 22,
+   "raw_day": "2016-06-23"
+  },
+  {
+   "applied_day": "2016-07-01",
+   "article_count": 116,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 251,
+   "edition_no": 23,
+   "raw_day": "2016-07-01"
+  },
+  {
+   "applied_day": "2016-07-03",
+   "article_count": 118,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 252,
+   "edition_no": 24,
+   "raw_day": "2016-07-03"
+  },
+  {
+   "applied_day": "2016-07-15",
+   "article_count": 118,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 252,
+   "edition_no": 25,
+   "raw_day": "2016-07-15"
+  },
+  {
+   "applied_day": "2016-09-01",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 260,
+   "edition_no": 26,
+   "raw_day": "2016-09-01"
+  },
+  {
+   "applied_day": "2016-12-28",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 258,
+   "edition_no": 27,
+   "raw_day": "2016-12-28"
+  },
+  {
+   "applied_day": "2017-01-09",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 258,
+   "edition_no": 28,
+   "raw_day": "2017-01-09"
+  },
+  {
+   "applied_day": "2017-02-22",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 258,
+   "edition_no": 29,
+   "raw_day": "2017-02-22"
+  },
+  {
+   "applied_day": "2017-03-28",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 258,
+   "edition_no": 30,
+   "raw_day": "2017-03-28"
+  },
+  {
+   "applied_day": "2017-04-08",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 258,
+   "edition_no": 31,
+   "raw_day": "2017-04-08"
+  },
+  {
+   "applied_day": "2017-05-01",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 260,
+   "edition_no": 32,
+   "raw_day": "2017-05-01"
+  },
+  {
+   "applied_day": "2017-06-07",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 260,
+   "edition_no": 33,
+   "raw_day": "2017-06-07"
+  },
+  {
+   "applied_day": "2017-06-18",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 260,
+   "edition_no": 34,
+   "raw_day": "2017-06-18"
+  },
+  {
+   "applied_day": "2017-07-26",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 258,
+   "edition_no": 35,
+   "raw_day": "2017-07-26"
+  },
+  {
+   "applied_day": "2017-08-06",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 260,
+   "edition_no": 36,
+   "raw_day": "2017-08-06"
+  },
+  {
+   "applied_day": "2017-08-06",
+   "article_count": 120,
+   "clamped": true,
+   "deficited": false,
+   "edge_count": 258,
+   "edition_no": 37,
+   "raw_day": "2017-07-29"
+  },
+  {
+   "applied_day": "2017-12-29",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 258,
+   "edition_no": 38,
+   "raw_day": "2017-12-29"
+  },
+  {
+   "applied_day": "2017-12-31",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 258,
+   "edition_no": 39,
+   "raw_day": "2017-12-31"
+  },
+  {
+   "applied_day": "2018-01-11",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 268,
+   "edition_no": 40,
+   "raw_day": "2018-01-11"
+  },
+  {
+   "applied_day": "2018-04-23",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 268,
+   "edition_no": 41,
+   "raw_day": "2018-04-23"
+  },
+  {
+   "applied_day": "2018-06-01",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 268,
+   "edition_no": 42,
+   "raw_day": "2018-06-01"
+  },
+  {
+   "applied_day": "2018-06-29",
+   "article_count": 120,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 270,
+   "edition_no": 43,
+   "raw_day": "2018-06-29"
+  },
+  {
+   "applied_day": "2018-07-01",
+   "article_count": 140,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 347,
+   "edition_no": 44,
+   "raw_day": "2018-07-01"
+  },
+  {
+   "applied_day": "2018-07-29",
+   "article_count": 140,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 347,
+   "edition_no": 45,
+   "raw_day": "2018-07-29"
+  },
+  {
+   "applied_day": "2018-07-31",
+   "article_count": 140,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 347,
+   "edition_no": 46,
+   "raw_day": "2018-07-31"
+  },
+  {
+   "applied_day": "2018-08-03",
+   "article_count": 140,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 347,
+   "edition_no": 47,
+   "raw_day": "2018-08-03"
+  },
+  {
+   "applied_day": "2018-10-30",
+   "article_count": 140,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 347,
+   "edition_no": 48,
+   "raw_day": "2018-10-30"
+  },
+  {
+   "applied_day": "2018-12-27",
+   "article_count": 140,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 347,
+   "edition_no": 49,
+   "raw_day": "2018-12-27"
+  },
+  {
+   "applied_day": "2019-01-01",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 346,
+   "edition_no": 50,
+   "raw_day": "2019-01-01"
+  },
+  {
+   "applied_day": "2019-01-07",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 346,
+   "edition_no": 51,
+   "raw_day": "2019-01-07"
+  },
+  {
+   "applied_day": "2019-03-28",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 346,
+   "edition_no": 52,
+   "raw_day": "2019-03-28"
+  },
+  {
+   "applied_day": "2019-05-01",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 346,
+   "edition_no": 53,
+   "raw_day": "2019-05-01"
+  },
+  {
+   "applied_day": "2019-05-12",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 340,
+   "edition_no": 54,
+   "raw_day": "2019-05-12"
+  },
+  {
+   "applied_day": "2019-06-27",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 340,
+   "edition_no": 55,
+   "raw_day": "2019-06-27"
+  },
+  {
+   "applied_day": "2019-07-01",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 371,
+   "edition_no": 56,
+   "raw_day": "2019-07-01"
+  },
+  {
+   "applied_day": "2019-07-08",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 371,
+   "edition_no": 57,
+   "raw_day": "2019-07-08"
+  },
+  {
+   "applied_day": "2019-07-31",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 369,
+   "edition_no": 58,
+   "raw_day": "2019-07-31"
+  },
+  {
+   "applied_day": "2019-10-01",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 349,
+   "edition_no": 59,
+   "raw_day": "2019-10-01"
+  },
+  {
+   "applied_day": "2019-12-27",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 349,
+   "edition_no": 60,
+   "raw_day": "2019-12-27"
+  },
+  {
+   "applied_day": "2020-01-01",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 347,
+   "edition_no": 61,
+   "raw_day": "2020-01-01"
+  },
+  {
+   "applied_day": "2020-01-08",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 346,
+   "edition_no": 62,
+   "raw_day": "2020-01-08"
+  },
+  {
+   "applied_day": "2020-02-27",
+   "article_count": 141,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 346,
+   "edition_no": 63,
+   "raw_day": "2020-02-27"
+  },
+  {
+   "applied_day": "2020-04-01",
+   "article_count": 138,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 338,
+   "edition_no": 64,
+   "raw_day": "2020-04-01"
+  },
+  {
+   "applied_day": "2020-04-04",
+   "article_count": 138,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 338,
+   "edition_no": 65,
+   "raw_day": "2020-04-04"
+  },
+  {
+   "applied_day": "2020-04-24",
+   "article_count": 138,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 338,
+   "edition_no": 66,
+   "raw_day": "2020-04-24"
+  },
+  {
+   "applied_day": "2020-06-08",
+   "article_count": 138,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 338,
+   "edition_no": 67,
+   "raw_day": "2020-06-08"
+  },
+  {
+   "applied_day": "2020-07-01",
+   "article_count": 138,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 337,
+   "edition_no": 68,
+   "raw_day": "2020-07-01"
+  },
+  {
+   "applied_day": "2020-07-31",
+   "article_count": 139,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 338,
+   "edition_no": 69,
+   "raw_day": "2020-07-31"
+  },
+  {
+   "applied_day": "2020-09-01",
+   "article_count": 139,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 342,
+   "edition_no": 70,
+   "raw_day": "2020-09-01"
+  },
+  {
+   "applied_day": "2020-12-08",
+   "article_count": 139,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 342,
+   "edition_no": 71,
+   "raw_day": "2020-12-08"
+  },
+  {
+   "applied_day": "2020-12-22",
+   "article_count": 139,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 342,
+   "edition_no": 72,
+   "raw_day": "2020-12-22"
+  },
+  {
+   "applied_day": "2020-12-30",
+   "article_count": 139,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 342,
+   "edition_no": 73,
+   "raw_day": "2020-12-30"
+  },
+  {
+   "applied_day": "2021-01-01",
+   "article_count": 139,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 342,
+   "edition_no": 74,
+   "raw_day": "2021-01-01"
+  },
+  {
+   "applied_day": "2021-02-24",
+   "article_count": 139,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 342,
+   "edition_no": 75,
+   "raw_day": "2021-02-24"
+  },
+  {
+   "applied_day": "2021-04-01",
+   "article_count": 134,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 352,
+   "edition_no": 76,
+   "raw_day": "2021-04-01"
+  },
+  {
+   "applied_day": "2021-04-30",
+   "article_count": 134,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 352,
+   "edition_no": 77,
+   "raw_day": "2021-04-30"
+  },
+  {
+   "applied_day": "2021-06-11",
+   "article_count": 134,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 354,
+   "edition_no": 78,
+   "raw_day": "2021-06-11"
+  },
+  {
+   "applied_day": "2021-07-02",
+   "article_count": 134,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 354,
+   "edition_no": 79,
+   "raw_day": "2021-07-02"
+  },
+  {
+   "applied_day": "2021-12-30",
+   "article_count": 134,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 354,
+   "edition_no": 80,
+   "raw_day": "2021-12-30"
+  },
+  {
+   "applied_day": "2022-01-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 294,
+   "edition_no": 81,
+   "raw_day": "2022-01-01"
+  },
+  {
+   "applied_day": "2022-03-08",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 294,
+   "edition_no": 82,
+   "raw_day": "2022-03-08"
+  },
+  {
+   "applied_day": "2022-03-26",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 294,
+   "edition_no": 83,
+   "raw_day": "2022-03-26"
+  },
+  {
+   "applied_day": "2022-04-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 295,
+   "edition_no": 84,
+   "raw_day": "2022-04-01"
+  },
+  {
+   "applied_day": "2022-04-16",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 292,
+   "edition_no": 85,
+   "raw_day": "2022-04-16"
+  },
+  {
+   "applied_day": "2022-05-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 291,
+   "edition_no": 86,
+   "raw_day": "2022-05-01"
+  },
+  {
+   "applied_day": "2022-06-11",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 297,
+   "edition_no": 87,
+   "raw_day": "2022-06-11"
+  },
+  {
+   "applied_day": "2022-06-28",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 297,
+   "edition_no": 88,
+   "raw_day": "2022-06-28"
+  },
+  {
+   "applied_day": "2022-07-14",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 297,
+   "edition_no": 89,
+   "raw_day": "2022-07-14"
+  },
+  {
+   "applied_day": "2022-11-04",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 298,
+   "edition_no": 90,
+   "raw_day": "2022-11-04"
+  },
+  {
+   "applied_day": "2022-11-15",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 298,
+   "edition_no": 91,
+   "raw_day": "2022-11-15"
+  },
+  {
+   "applied_day": "2022-12-05",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 298,
+   "edition_no": 92,
+   "raw_day": "2022-12-05"
+  },
+  {
+   "applied_day": "2022-12-28",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 298,
+   "edition_no": 93,
+   "raw_day": "2022-12-28"
+  },
+  {
+   "applied_day": "2023-01-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 298,
+   "edition_no": 94,
+   "raw_day": "2023-01-01"
+  },
+  {
+   "applied_day": "2023-04-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 299,
+   "edition_no": 95,
+   "raw_day": "2023-04-01"
+  },
+  {
+   "applied_day": "2023-04-28",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 300,
+   "edition_no": 96,
+   "raw_day": "2023-04-28"
+  },
+  {
+   "applied_day": "2023-05-29",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 300,
+   "edition_no": 97,
+   "raw_day": "2023-05-29"
+  },
+  {
+   "applied_day": "2023-06-13",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 300,
+   "edition_no": 98,
+   "raw_day": "2023-06-13"
+  },
+  {
+   "applied_day": "2023-07-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": true,
+   "edge_count": 300,
+   "edition_no": 99,
+   "raw_day": "2023-07-01"
+  },
+  {
+   "applied_day": "2023-08-04",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 300,
+   "edition_no": 100,
+   "raw_day": "2023-08-04"
+  },
+  {
+   "applied_day": "2023-08-15",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 300,
+   "edition_no": 101,
+   "raw_day": "2023-08-15"
+  },
+  {
+   "applied_day": "2023-11-02",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 300,
+   "edition_no": 102,
+   "raw_day": "2023-11-02"
+  },
+  {
+   "applied_day": "2023-11-14",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 300,
+   "edition_no": 103,
+   "raw_day": "2023-11-14"
+  },
+  {
+   "applied_day": "2023-12-25",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 300,
+   "edition_no": 104,
+   "raw_day": "2023-12-25"
+  },
+  {
+   "applied_day": "2024-01-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 303,
+   "edition_no": 105,
+   "raw_day": "2024-01-01"
+  },
+  {
+   "applied_day": "2024-02-14",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 303,
+   "edition_no": 106,
+   "raw_day": "2024-02-14"
+  },
+  {
+   "applied_day": "2024-03-08",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 303,
+   "edition_no": 107,
+   "raw_day": "2024-03-08"
+  },
+  {
+   "applied_day": "2024-03-25",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 303,
+   "edition_no": 108,
+   "raw_day": "2024-03-25"
+  },
+  {
+   "applied_day": "2024-06-22",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 303,
+   "edition_no": 109,
+   "raw_day": "2024-06-22"
+  },
+  {
+   "applied_day": "2024-08-08",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 303,
+   "edition_no": 110,
+   "raw_day": "2024-08-08"
+  },
+  {
+   "applied_day": "2024-10-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 304,
+   "edition_no": 111,
+   "raw_day": "2024-10-01"
+  },
+  {
+   "applied_day": "2024-11-30",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 304,
+   "edition_no": 112,
+   "raw_day": "2024-11-30"
+  },
+  {
+   "applied_day": "2024-12-26",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 316,
+   "edition_no": 113,
+   "raw_day": "2024-12-26"
+  },
+  {
+   "applied_day": "2025-04-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 316,
+   "edition_no": 114,
+   "raw_day": "2025-04-01"
+  },
+  {
+   "applied_day": "2025-07-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 316,
+   "edition_no": 115,
+   "raw_day": "2025-07-01"
+  },
+  {
+   "applied_day": "2025-12-28",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 316,
+   "edition_no": 116,
+   "raw_day": "2025-12-28"
+  },
+  {
+   "applied_day": "2026-01-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 317,
+   "edition_no": 117,
+   "raw_day": "2026-01-01"
+  },
+  {
+   "applied_day": "2026-07-01",
+   "article_count": 94,
+   "clamped": false,
+   "deficited": false,
+   "edge_count": 317,
+   "edition_no": 118,
+   "raw_day": "2026-07-01"
+  }
+ ],
+ "non_claims": [
+  "Non-authoritative reference projection",
+  "Does not validate M224 pins or promote requirements",
+  "Does not close review findings or lifecycle state",
+  "Digest identity is not text CTV resolution"
+ ],
+ "non_monotonic": [
+  {
+   "applied_day": "2017-08-06",
+   "from_edition_no": 36,
+   "raw_day": "2017-07-29"
+  }
+ ],
+ "schema_version": "m217-reference-timeline/v1"
+}

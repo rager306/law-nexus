@@ -1,0 +1,82 @@
+"""Independent fail-closed battery for the M217 reference prototype (scripts/m217_reference_jsonld.py).
+
+Fast invariants run against the committed artifacts; the --check subprocess test
+re-derives the full timeline from the pinned corpus (passes --check explicitly:
+without it the writer mode never fails and stale detection false-passes).
+"""
+
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+SCRIPT = REPO / "scripts" / "m217_reference_jsonld.py"
+TIMELINE = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-timeline.json"
+DIGESTS = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-digests.jsonl"
+NAMED = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-named-graphs.json"
+D767_RESIDUAL = {"applied_day": "2017-08-06", "from_edition_no": 36, "raw_day": "2017-07-29"}
+
+
+def test_artifacts_present() -> None:
+    for path in (TIMELINE, DIGESTS, NAMED):
+        assert path.exists(), f"missing committed artifact: {path}"
+
+
+def test_timeline_schema_and_pins() -> None:
+    timeline = json.loads(TIMELINE.read_text(encoding="utf-8"))
+    assert timeline["schema_version"] == "m217-reference-timeline/v1"
+    assert timeline["authoritative"] is False
+    assert timeline["counts"]["editions"] == 118
+    assert timeline["counts"]["non_monotonic"] == 1
+    assert timeline["non_monotonic"] == [D767_RESIDUAL]
+    clamped = [e for e in timeline["editions"] if e["clamped"]]
+    assert len(clamped) == 1 and clamped[0]["edition_no"] == 37
+    days = [e["applied_day"] for e in timeline["editions"]]
+    assert days == sorted(days), "applied days must be monotonic after clamping"
+
+
+def test_ctv_and_deficit_visibility() -> None:
+    timeline = json.loads(TIMELINE.read_text(encoding="utf-8"))
+    ops = {
+        op: sum(1 for c in timeline["ctv_events"] if c["op"] == op)
+        for op in ("created", "amended", "removed")
+    }
+    assert ops["created"] == 28 and ops["removed"] == 48 and ops["amended"] > 0
+    deficited = [e["edition_no"] for e in timeline["editions"] if e["deficited"]]
+    assert deficited == list(range(81, 100)), "parse deficit must stay published, not normalized"
+
+
+def test_digests_matrix_shape() -> None:
+    lines = DIGESTS.read_text(encoding="utf-8").splitlines()
+    assert len(lines) > 10_000
+    first = json.loads(lines[0])
+    assert first["schema_version"] == "m217-reference-digests/v1"
+    assert first["edition_no"] == 1 and first["article"] == "statya-1"
+    chain = {json.loads(line)["digest"] for line in lines}
+    assert all(len(d) == 12 for d in chain)
+
+
+def test_named_graphs_sample_contract() -> None:
+    named = json.loads(NAMED.read_text(encoding="utf-8"))
+    assert named["schema_version"] == "m217-reference-named-graphs/v1"
+    assert named["graphs"][0]["sample_article"] == "statya-44"
+    body = named["graphs"][1]
+    assert body["@id"] == "cc:44-fz:statya-44"
+    entries = body["graphs"]
+    assert len(entries) > 100, "named graph per edition expected"
+    assert entries == sorted(entries, key=lambda g: g["@id"])
+
+
+def test_check_mode_rederivation_is_byte_identical() -> None:
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPT), "--check"],
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+    )
+    assert proc.returncode == 0, f"--check drifted (exit {proc.returncode}): {proc.stderr[-800:]}"
+    assert "check=ok artifacts byte-identical" in proc.stdout

@@ -1,0 +1,611 @@
+{
+ "authoritative": false,
+ "graphs": [
+  {
+   "@id": "eli:work/44-fz",
+   "sample_article": "statya-44"
+  },
+  {
+   "@id": "cc:44-fz:statya-44",
+   "graphs": [
+    {
+     "@id": "eli:expression/44-fz/ed-0001#statya-44",
+     "applied_day": "2013-04-05",
+     "digest": "8e3f04849bb1"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0002#statya-44",
+     "applied_day": "2013-07-02",
+     "digest": "8e3f04849bb1"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0003#statya-44",
+     "applied_day": "2013-12-28",
+     "digest": "38c68141ced5"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0004#statya-44",
+     "applied_day": "2014-06-04",
+     "digest": "63619ad18cfa"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0005#statya-44",
+     "applied_day": "2014-07-21",
+     "digest": "63619ad18cfa"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0006#statya-44",
+     "applied_day": "2014-12-01",
+     "digest": "63619ad18cfa"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0007#statya-44",
+     "applied_day": "2014-12-31",
+     "digest": "63619ad18cfa"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0008#statya-44",
+     "applied_day": "2015-01-01",
+     "digest": "37e5e3dde415"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0009#statya-44",
+     "applied_day": "2015-03-08",
+     "digest": "37e5e3dde415"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0010#statya-44",
+     "applied_day": "2015-04-01",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0011#statya-44",
+     "applied_day": "2015-04-06",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0012#statya-44",
+     "applied_day": "2015-06-29",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0013#statya-44",
+     "applied_day": "2015-07-13",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0014#statya-44",
+     "applied_day": "2015-07-14",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0015#statya-44",
+     "applied_day": "2015-08-13",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0016#statya-44",
+     "applied_day": "2015-09-15",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0017#statya-44",
+     "applied_day": "2015-12-29",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0018#statya-44",
+     "applied_day": "2015-12-30",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0019#statya-44",
+     "applied_day": "2016-03-09",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0020#statya-44",
+     "applied_day": "2016-04-05",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0021#statya-44",
+     "applied_day": "2016-06-02",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0022#statya-44",
+     "applied_day": "2016-06-23",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0023#statya-44",
+     "applied_day": "2016-07-01",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0024#statya-44",
+     "applied_day": "2016-07-03",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0025#statya-44",
+     "applied_day": "2016-07-15",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0026#statya-44",
+     "applied_day": "2016-09-01",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0027#statya-44",
+     "applied_day": "2016-12-28",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0028#statya-44",
+     "applied_day": "2017-01-09",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0029#statya-44",
+     "applied_day": "2017-02-22",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0030#statya-44",
+     "applied_day": "2017-03-28",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0031#statya-44",
+     "applied_day": "2017-04-08",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0032#statya-44",
+     "applied_day": "2017-05-01",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0033#statya-44",
+     "applied_day": "2017-06-07",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0034#statya-44",
+     "applied_day": "2017-06-18",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0035#statya-44",
+     "applied_day": "2017-07-26",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0036#statya-44",
+     "applied_day": "2017-08-06",
+     "digest": "1fae7f0817eb"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0037#statya-44",
+     "applied_day": "2017-08-06",
+     "digest": "1fae7f0817eb"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0038#statya-44",
+     "applied_day": "2017-12-29",
+     "digest": "1fae7f0817eb"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0039#statya-44",
+     "applied_day": "2017-12-31",
+     "digest": "1fae7f0817eb"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0040#statya-44",
+     "applied_day": "2018-01-11",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0041#statya-44",
+     "applied_day": "2018-04-23",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0042#statya-44",
+     "applied_day": "2018-06-01",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0043#statya-44",
+     "applied_day": "2018-06-29",
+     "digest": "0faa29f464c9"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0044#statya-44",
+     "applied_day": "2018-07-01",
+     "digest": "ff03ede9e44a"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0045#statya-44",
+     "applied_day": "2018-07-29",
+     "digest": "ff03ede9e44a"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0046#statya-44",
+     "applied_day": "2018-07-31",
+     "digest": "ff03ede9e44a"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0047#statya-44",
+     "applied_day": "2018-08-03",
+     "digest": "fe4636270ea0"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0048#statya-44",
+     "applied_day": "2018-10-30",
+     "digest": "fe4636270ea0"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0049#statya-44",
+     "applied_day": "2018-12-27",
+     "digest": "f4ee728cf816"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0050#statya-44",
+     "applied_day": "2019-01-01",
+     "digest": "f4ee728cf816"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0051#statya-44",
+     "applied_day": "2019-01-07",
+     "digest": "f4ee728cf816"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0052#statya-44",
+     "applied_day": "2019-03-28",
+     "digest": "f4ee728cf816"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0053#statya-44",
+     "applied_day": "2019-05-01",
+     "digest": "f4ee728cf816"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0054#statya-44",
+     "applied_day": "2019-05-12",
+     "digest": "e519bfa0069b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0055#statya-44",
+     "applied_day": "2019-06-27",
+     "digest": "e519bfa0069b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0056#statya-44",
+     "applied_day": "2019-07-01",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0057#statya-44",
+     "applied_day": "2019-07-08",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0058#statya-44",
+     "applied_day": "2019-07-31",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0059#statya-44",
+     "applied_day": "2019-10-01",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0060#statya-44",
+     "applied_day": "2019-12-27",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0061#statya-44",
+     "applied_day": "2020-01-01",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0062#statya-44",
+     "applied_day": "2020-01-08",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0063#statya-44",
+     "applied_day": "2020-02-27",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0064#statya-44",
+     "applied_day": "2020-04-01",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0065#statya-44",
+     "applied_day": "2020-04-04",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0066#statya-44",
+     "applied_day": "2020-04-24",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0067#statya-44",
+     "applied_day": "2020-06-08",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0068#statya-44",
+     "applied_day": "2020-07-01",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0069#statya-44",
+     "applied_day": "2020-07-31",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0070#statya-44",
+     "applied_day": "2020-09-01",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0071#statya-44",
+     "applied_day": "2020-12-08",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0072#statya-44",
+     "applied_day": "2020-12-22",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0073#statya-44",
+     "applied_day": "2020-12-30",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0074#statya-44",
+     "applied_day": "2021-01-01",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0075#statya-44",
+     "applied_day": "2021-02-24",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0076#statya-44",
+     "applied_day": "2021-04-01",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0077#statya-44",
+     "applied_day": "2021-04-30",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0078#statya-44",
+     "applied_day": "2021-06-11",
+     "digest": "dd6a72a0ba0e"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0079#statya-44",
+     "applied_day": "2021-07-02",
+     "digest": "c6a4d7120118"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0080#statya-44",
+     "applied_day": "2021-12-30",
+     "digest": "c6a4d7120118"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0081#statya-44",
+     "applied_day": "2022-01-01",
+     "digest": "a098e2d26d33"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0082#statya-44",
+     "applied_day": "2022-03-08",
+     "digest": "a098e2d26d33"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0083#statya-44",
+     "applied_day": "2022-03-26",
+     "digest": "a098e2d26d33"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0084#statya-44",
+     "applied_day": "2022-04-01",
+     "digest": "a098e2d26d33"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0085#statya-44",
+     "applied_day": "2022-04-16",
+     "digest": "7bd74a20b294"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0086#statya-44",
+     "applied_day": "2022-05-01",
+     "digest": "7bd74a20b294"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0087#statya-44",
+     "applied_day": "2022-06-11",
+     "digest": "7bd74a20b294"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0088#statya-44",
+     "applied_day": "2022-06-28",
+     "digest": "7bd74a20b294"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0089#statya-44",
+     "applied_day": "2022-07-14",
+     "digest": "7bd74a20b294"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0090#statya-44",
+     "applied_day": "2022-11-04",
+     "digest": "7bd74a20b294"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0091#statya-44",
+     "applied_day": "2022-11-15",
+     "digest": "7bd74a20b294"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0092#statya-44",
+     "applied_day": "2022-12-05",
+     "digest": "7bd74a20b294"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0093#statya-44",
+     "applied_day": "2022-12-28",
+     "digest": "7bd74a20b294"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0094#statya-44",
+     "applied_day": "2023-01-01",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0095#statya-44",
+     "applied_day": "2023-04-01",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0096#statya-44",
+     "applied_day": "2023-04-28",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0097#statya-44",
+     "applied_day": "2023-05-29",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0098#statya-44",
+     "applied_day": "2023-06-13",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0099#statya-44",
+     "applied_day": "2023-07-01",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0100#statya-44",
+     "applied_day": "2023-08-04",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0101#statya-44",
+     "applied_day": "2023-08-15",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0102#statya-44",
+     "applied_day": "2023-11-02",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0103#statya-44",
+     "applied_day": "2023-11-14",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0104#statya-44",
+     "applied_day": "2023-12-25",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0105#statya-44",
+     "applied_day": "2024-01-01",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0106#statya-44",
+     "applied_day": "2024-02-14",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0107#statya-44",
+     "applied_day": "2024-03-08",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0108#statya-44",
+     "applied_day": "2024-03-25",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0109#statya-44",
+     "applied_day": "2024-06-22",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0110#statya-44",
+     "applied_day": "2024-08-08",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0111#statya-44",
+     "applied_day": "2024-10-01",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0112#statya-44",
+     "applied_day": "2024-11-30",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0113#statya-44",
+     "applied_day": "2024-12-26",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0114#statya-44",
+     "applied_day": "2025-04-01",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0115#statya-44",
+     "applied_day": "2025-07-01",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0116#statya-44",
+     "applied_day": "2025-12-28",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0117#statya-44",
+     "applied_day": "2026-01-01",
+     "digest": "77b28119c52b"
+    },
+    {
+     "@id": "eli:expression/44-fz/ed-0118#statya-44",
+     "applied_day": "2026-07-01",
+     "digest": "77b28119c52b"
+    }
+   ]
+  }
+ ],
+ "non_claims": [
+  "Non-authoritative reference projection",
+  "Does not validate M224 pins or promote requirements",
+  "Does not close review findings or lifecycle state",
+  "Digest identity is not text CTV resolution"
+ ],
+ "schema_version": "m217-reference-named-graphs/v1"
+}
