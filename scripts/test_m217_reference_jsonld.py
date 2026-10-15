@@ -8,6 +8,7 @@ without it the writer mode never fails and stale detection false-passes).
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -36,6 +37,8 @@ def test_timeline_schema_and_pins() -> None:
     assert len(clamped) == 1 and clamped[0]["edition_no"] == 37
     days = [e["applied_day"] for e in timeline["editions"]]
     assert days == sorted(days), "applied days must be monotonic after clamping"
+    assert timeline["normalization_profile"]["id"] == "m217-norm/v1"
+    assert all(re.fullmatch(r"[a-f0-9]{64}", e["source_sha256"]) for e in timeline["editions"])
 
 
 def test_structural_breaks_are_history_not_parser_loss() -> None:
@@ -65,14 +68,23 @@ def test_ctv_counts_stay_published() -> None:
     assert sum(ops.values()) == timeline["counts"]["ctv_events"]
 
 
-def test_digests_matrix_shape() -> None:
+def test_digests_header_profile_and_matrix_shape() -> None:
     lines = DIGESTS.read_text(encoding="utf-8").splitlines()
     assert len(lines) > 10_000
-    first = json.loads(lines[0])
+    header = json.loads(lines[0])
+    assert header["record_kind"] == "header"
+    assert header["normalization_profile"]["id"] == "m217-norm/v1"
+    assert header["non_claims"], "profile header must carry non-claims"
+    first = json.loads(lines[1])
+    assert first["record_kind"] == "art_digest"
     assert first["schema_version"] == "m217-reference-digests/v1"
     assert first["edition_no"] == 1 and first["article"] == "statya-1"
-    chain = {json.loads(line)["digest"] for line in lines}
-    assert all(len(d) == 12 for d in chain)
+    assert re.fullmatch(r"[a-f0-9]{64}", first["source"]["sha256"])
+    assert 0 <= first["source"]["p_start"] <= first["source"]["p_end"]
+    for line in lines[1:]:
+        rec = json.loads(line)
+        assert rec["record_kind"] == "art_digest" and len(rec["digest"]) == 12
+        assert rec["source"]["sha256"]
 
 
 def test_named_graphs_sample_contract() -> None:

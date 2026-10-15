@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "m217-reference/v1",
+  "title": "M217 reference prototype artifacts (Draft 2020-12 subset validator applies)",
+  "non_claims": [
+    "Non-authoritative reference projection",
+    "Validation subset is not a full JSON Schema implementation",
+    "Does not promote requirements, ADRs, or lifecycle"
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "digest12": {"type": "string", "pattern": "^[a-f0-9]{12}$"},
+    "iso_date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "edition": {
+      "type": "object",
+      "required": [
+        "edition_no", "source_sha256", "raw_day", "applied_day", "clamped",
+        "article_count", "raw_headings", "parse_loss", "break_from_previous",
+        "removed_from_previous", "part_count", "edge_count"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "edition_no": {"type": "integer", "minimum": 1},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "raw_day": {"$ref": "#/$defs/iso_date"},
+        "applied_day": {"$ref": "#/$defs/iso_date"},
+        "clamped": {"type": "boolean"},
+        "article_count": {"type": "integer", "minimum": 0},
+        "raw_headings": {"type": "integer", "minimum": 0},
+        "parse_loss": {"type": "integer", "minimum": 0},
+        "break_from_previous": {"type": "boolean"},
+        "removed_from_previous": {"type": "integer", "minimum": 0},
+        "part_count": {"type": "integer", "minimum": 0},
+        "edge_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "ctv": {
+      "type": "object",
+      "required": ["article", "edition_no", "op"],
+      "additionalProperties": false,
+      "properties": {
+        "article": {"type": "string", "pattern": "^statya-"},
+        "edition_no": {"type": "integer", "minimum": 1},
+        "op": {"enum": ["created", "amended", "removed"]}
+      }
+    },
+    "nonmono": {
+      "type": "object",
+      "required": ["from_edition_no", "raw_day", "applied_day"],
+      "additionalProperties": false,
+      "properties": {
+        "from_edition_no": {"type": "integer", "minimum": 1},
+        "raw_day": {"$ref": "#/$defs/iso_date"},
+        "applied_day": {"$ref": "#/$defs/iso_date"}
+      }
+    },
+    "timeline": {
+      "type": "object",
+      "required": [
+        "schema_version", "authoritative", "non_claims", "normalization_profile",
+        "counts", "g_layer_volume", "editions", "ctv_events", "non_monotonic"
+      ],
+      "properties": {
+        "schema_version": {"const": "m217-reference-timeline/v2"},
+        "authoritative": {"const": false},
+        "non_claims": {"type": "array", "items": {"type": "string"}},
+        "normalization_profile": {"$ref": "#/$defs/profile"},
+        "counts": {
+          "type": "object",
+          "required": ["editions", "ctv_events", "non_monotonic"],
+          "properties": {
+            "editions": {"type": "integer", "const": 118},
+            "ctv_events": {"type": "integer", "minimum": 0},
+            "non_monotonic": {"type": "integer", "minimum": 0}
+          }
+        },
+        "g_layer_volume": {"type": "object"},
+        "editions": {"type": "array", "items": {"$ref": "#/$defs/edition"}},
+        "ctv_events": {"type": "array", "items": {"$ref": "#/$defs/ctv"}},
+        "non_monotonic": {"type": "array", "items": {"$ref": "#/$defs/nonmono"}}
+      }
+    },
+    "profile": {
+      "type": "object",
+      "required": ["id", "rules"],
+      "properties": {
+        "id": {"const": "m217-norm/v1"},
+        "rules": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "digests_header": {
+      "type": "object",
+      "required": ["record_kind", "schema_version", "normalization_profile", "non_claims"],
+      "properties": {
+        "record_kind": {"const": "header"},
+        "schema_version": {"const": "m217-reference-digests/v1"},
+        "normalization_profile": {"$ref": "#/$defs/profile"},
+        "non_claims": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "digests_record": {
+      "type": "object",
+      "required": [
+        "record_kind", "schema_version", "edition_no", "article", "digest", "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "record_kind": {"const": "art_digest"},
+        "schema_version": {"const": "m217-reference-digests/v1"},
+        "edition_no": {"type": "integer", "minimum": 1},
+        "article": {"type": "string", "pattern": "^statya-"},
+        "digest": {"$ref": "#/$defs/digest12"},
+        "source": {
+          "type": "object",
+          "required": ["sha256", "p_start", "p_end"],
+          "properties": {
+            "sha256": {"$ref": "#/$defs/sha256"},
+            "p_start": {"type": "integer", "minimum": 0},
+            "p_end": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "named_graphs": {
+      "type": "object",
+      "required": ["schema_version", "authoritative", "non_claims", "graphs"],
+      "properties": {
+        "schema_version": {"const": "m217-reference-named-graphs/v1"},
+        "authoritative": {"const": false},
+        "non_claims": {"type": "array", "items": {"type": "string"}},
+        "graphs": {"type": "array", "minItems": 2}
+      }
+    }
+  }
+}

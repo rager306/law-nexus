@@ -59,6 +59,7 @@ EXIT_OK = 0
 EXIT_ARGV = 2
 EXIT_INPUT = 3
 EXIT_DRIFT = 6
+EXIT_SCHEMA = 5
 
 TIMELINE_ARTIFACT = OUT_DIR / "m217-reference-timeline.json"
 DIGESTS_ARTIFACT = OUT_DIR / "m217-reference-digests.jsonl"
@@ -66,6 +67,16 @@ NAMED_GRAPHS_ARTIFACT = OUT_DIR / "m217-reference-named-graphs.json"
 TIMELINE_SCHEMA_V2 = "m217-reference-timeline/v2"
 DIGESTS_SCHEMA = "m217-reference-digests/v1"
 NAMED_GRAPHS_SCHEMA = "m217-reference-named-graphs/v1"
+NORMALIZATION_PROFILE = {
+    "id": "m217-norm/v1",
+    "rules": [
+        "nbsp_to_space",
+        "strip_paragraph_text",
+        "skip_empty_paragraphs",
+        "article_digest_progressive_sha12_pipe",
+        "join_parts_newline",
+    ],
+}
 NON_AUTHORITY = (
     "Non-authoritative reference projection",
     "Does not validate M224 pins or promote requirements",
@@ -76,6 +87,7 @@ NON_AUTHORITY = (
 
 @dataclass(frozen=True, slots=True)
 class EditionDigest:
+    source_sha256: str
     edition_no: int
     raw_day: str
     applied_day: str
@@ -104,8 +116,16 @@ def canonical_json(value: object) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
-def parse_edition(path: Path) -> tuple[dict[str, str], list[tuple[str, str, str]], int, int]:
-    """Return (article digest map, qualified internal edges, raw heading count, part count)."""
+@dataclass(frozen=True, slots=True)
+class ArticleSpan:
+    p_start: int
+    p_end: int
+
+
+def parse_edition(
+    path: Path,
+) -> tuple[dict[str, str], list[tuple[str, str, str]], int, int, dict[str, ArticleSpan]]:
+    """Return (digests, qualified edges, raw headings, part count, article spans)."""
     paras: list[str] = []
     raw_headings = 0
     for _ev, el in ET.iterparse(path, events=("end",)):
@@ -116,20 +136,23 @@ def parse_edition(path: Path) -> tuple[dict[str, str], list[tuple[str, str, str]
             paras.append(text)
             el.clear()
     digests: dict[str, str] = {}
+    spans: dict[str, ArticleSpan] = {}
     full_text: dict[str, list[str]] = collections.defaultdict(list)
     cur_art: str | None = None
-    for text in paras:
+    for idx, text in enumerate(paras):
         m = RE_ART.match(text)
         if m:
             cur_art = f"statya-{m.group(1)}"
             body = m.group(2).strip()
             digests[cur_art] = sha12(f"H:{body}")
+            spans[cur_art] = ArticleSpan(idx, idx)
             if body:
                 full_text[cur_art].append(body)
             continue
         if cur_art and text:
             full_text[cur_art].append(text)
             digests[cur_art] = sha12(digests[cur_art] + "|" + text)
+            spans[cur_art] = ArticleSpan(spans[cur_art].p_start, idx)
     edges: dict[str, set[str]] = collections.defaultdict(set)
     for aid, chunks in full_text.items():
         for chunk in chunks:
@@ -146,6 +169,7 @@ def parse_edition(path: Path) -> tuple[dict[str, str], list[tuple[str, str, str]
         [(a, b) for a in sorted(edges) for b in sorted(edges[a])],
         raw_headings,
         part_count,
+        spans,
     )
 
 
@@ -179,6 +203,8 @@ def derive(
         raise ReviewInputError("no edition files under corpus dir")
     editions: list[EditionDigest] = []
     digests_by_ed: dict[int, dict[str, str]] = {}
+    spans_by_ed: dict[int, dict[str, ArticleSpan]] = {}
+    shas_by_ed: dict[int, str] = {}
     edges_by_ed: dict[int, list[tuple[str, str]]] = {}
     prev_day: str | None = None
     prev_digests: dict[str, str] | None = None
@@ -193,7 +219,8 @@ def derive(
         else:
             rel = "exports/npa/" + path.parts[-2] + "/" + path.name
             raw_day = cat_days.get(rel) or "9999-12-31"
-        digests, edges, raw_headings, part_count = parse_edition(path)
+        source_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
+        digests, edges, raw_headings, part_count, spans = parse_edition(path)
         applied, clamped = raw_day, False
         if prev_day is not None and raw_day < prev_day:
             applied, clamped = prev_day, True
@@ -204,6 +231,7 @@ def derive(
             break_from_previous, removed_count = bool(removed), len(removed)
         editions.append(
             EditionDigest(
+                source_sha256,
                 ed_no,
                 raw_day,
                 applied,
@@ -218,6 +246,8 @@ def derive(
             )
         )
         digests_by_ed[ed_no] = digests
+        spans_by_ed[ed_no] = spans
+        shas_by_ed[ed_no] = source_sha256
         edges_by_ed[ed_no] = edges
         prev_digests = digests
     ctv: list[CtvEvent] = []
@@ -239,8 +269,10 @@ def derive(
         if e.clamped
     ]
     sample_article = "statya-44"
-    named_graphs = build_named_graphs(sample_article, editions, digests_by_ed)
-    return editions, ctv, nonmono, digests_by_ed, named_graphs
+    named_graphs = build_named_graphs(
+        sample_article, editions, digests_by_ed, spans_by_ed, shas_by_ed
+    )
+    return editions, ctv, nonmono, digests_by_ed, spans_by_ed, shas_by_ed, named_graphs
 
 
 def glob_files(corpus_dir: Path) -> list[Path]:
@@ -258,6 +290,8 @@ def build_named_graphs(
     sample_article: str,
     editions: list[EditionDigest],
     digests_by_ed: dict[int, dict[str, str]],
+    spans_by_ed: dict[int, dict[str, ArticleSpan]],
+    shas_by_ed: dict[int, str],
 ) -> list[dict[str, object]]:
     graphs = []
     for e in editions:
@@ -380,6 +414,7 @@ def render(
             {
                 "schema_version": TIMELINE_SCHEMA_V2,
                 "authoritative": False,
+                "normalization_profile": NORMALIZATION_PROFILE,
                 "non_claims": list(NON_AUTHORITY)
                 + [
                     "Article-count variance across editions reflects documented law history "
@@ -394,6 +429,7 @@ def render(
                 "editions": [
                     {
                         "edition_no": e.edition_no,
+                        "source_sha256": e.source_sha256,
                         "raw_day": e.raw_day,
                         "applied_day": e.applied_day,
                         "clamped": e.clamped,
@@ -402,6 +438,7 @@ def render(
                         "parse_loss": e.parse_loss,
                         "break_from_previous": e.break_from_previous,
                         "removed_from_previous": e.removed_from_previous,
+                        "part_count": e.part_count,
                         "edge_count": e.edge_count,
                     }
                     for e in editions
@@ -419,17 +456,38 @@ def render(
     )
 
 
-def render_digests(editions: list[EditionDigest], digests_by_ed: dict[int, dict[str, str]]) -> str:
-    out = []
+def render_digests(
+    editions: list[EditionDigest],
+    digests_by_ed: dict[int, dict[str, str]],
+    spans_by_ed: dict[int, dict[str, ArticleSpan]],
+    shas_by_ed: dict[int, str],
+) -> str:
+    out = [
+        canonical_json(
+            {
+                "record_kind": "header",
+                "schema_version": DIGESTS_SCHEMA,
+                "normalization_profile": NORMALIZATION_PROFILE,
+                "non_claims": list(NON_AUTHORITY),
+            }
+        )
+    ]
     for e in editions:
         for aid in sorted(digests_by_ed[e.edition_no], key=article_sort_key):
+            span = spans_by_ed[e.edition_no][aid]
             out.append(
                 canonical_json(
                     {
+                        "record_kind": "art_digest",
                         "schema_version": DIGESTS_SCHEMA,
                         "edition_no": e.edition_no,
                         "article": aid,
                         "digest": digests_by_ed[e.edition_no][aid],
+                        "source": {
+                            "sha256": shas_by_ed[e.edition_no],
+                            "p_start": span.p_start,
+                            "p_end": span.p_end,
+                        },
                     }
                 )
             )
@@ -455,6 +513,91 @@ def render_named_graphs(named: list[dict[str, object]]) -> str:
 
 class ReviewInputError(RuntimeError):
     pass
+
+
+SCHEMA_FILE = Path(__file__).resolve().parent / "m217_reference.schema.json"
+
+
+def _schema_validate(instance: object, schema: dict, root: dict, path: str) -> list[str]:
+    """Minimal Draft-2020-12 subset: type/required/properties/additionalProperties/
+    items/enum/const/pattern/minItems/minimum/$ref. Honest non-claim: subset only."""
+    errors: list[str] = []
+    if "$ref" in schema:
+        ref = schema["$ref"]
+        target = root
+        for part in ref.lstrip("#/").split("/"):
+            target = target[part]
+        return _schema_validate(instance, target, root, path)
+    if "const" in schema and instance != schema["const"]:
+        errors.append(f"{path}: const != {schema['const']!r}")
+    if "enum" in schema and instance not in schema["enum"]:
+        errors.append(f"{path}: value not in enum")
+    if (
+        "pattern" in schema
+        and isinstance(instance, str)
+        and not re.search(schema["pattern"], instance)
+    ):
+        errors.append(f"{path}: pattern mismatch ({schema['pattern']})")
+    if "minimum" in schema and isinstance(instance, (int, float)) and instance < schema["minimum"]:
+        errors.append(f"{path}: below minimum")
+    if "minItems" in schema and isinstance(instance, list) and len(instance) < schema["minItems"]:
+        errors.append(f"{path}: fewer than minItems")
+    types = schema.get("type")
+    if types:
+        types = [types] if isinstance(types, str) else types
+        type_map = {
+            "object": dict,
+            "array": list,
+            "string": str,
+            "boolean": bool,
+            "integer": int,
+            "number": (int, float),
+            "null": type(None),
+        }
+        ok = any(
+            isinstance(instance, type_map[t])
+            and not (t in ("integer",) and isinstance(instance, bool))
+            for t in types
+        )
+        if not ok:
+            errors.append(f"{path}: expected type {types}")
+            return errors
+    if isinstance(instance, dict):
+        for key in schema.get("required", []):
+            if key not in instance:
+                errors.append(f"{path}: missing required '{key}'")
+        props = schema.get("properties", {})
+        if schema.get("additionalProperties") is False:
+            for key in instance:
+                if key not in props:
+                    errors.append(f"{path}.{key}: additional property not allowed")
+        for key, sub in props.items():
+            if key in instance:
+                errors.extend(_schema_validate(instance[key], sub, root, f"{path}.{key}"))
+    if isinstance(instance, list) and "items" in schema:
+        for i, item in enumerate(instance):
+            errors.extend(_schema_validate(item, schema["items"], root, f"{path}[{i}]"))
+    return errors
+
+
+def validate_artifacts(
+    timeline_text: str, digests_text: str, graphs_text: str, schema_path: Path
+) -> list[str]:
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    errors: list[str] = []
+    timeline = json.loads(timeline_text)
+    errors += _schema_validate(timeline, schema["$defs"]["timeline"], schema, "timeline")
+    dlines = digests_text.splitlines()
+    errors += _schema_validate(
+        json.loads(dlines[0]), schema["$defs"]["digests_header"], schema, "digests[header]"
+    )
+    for i, line in enumerate(dlines[1:]):
+        errors += _schema_validate(
+            json.loads(line), schema["$defs"]["digests_record"], schema, f"digests[{i + 1}]"
+        )
+    graphs = json.loads(graphs_text)
+    errors += _schema_validate(graphs, schema["$defs"]["named_graphs"], schema, "named_graphs")
+    return errors
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -497,13 +640,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"unreadable inputs: corpus={corpus} catalog={args.catalog}", file=sys.stderr)
         return EXIT_INPUT
     try:
-        editions, ctv, nonmono, digests_by_ed, named = derive(corpus, args.catalog)
+        editions, ctv, nonmono, digests_by_ed, spans_by_ed, shas_by_ed, named = derive(
+            corpus, args.catalog
+        )
     except ReviewInputError as exc:
         print(str(exc), file=sys.stderr)
         return EXIT_INPUT
 
     g_volume = measure_g_layer(corpus, editions)
-    digests_body = render_digests(editions, digests_by_ed)
+    digests_body = render_digests(editions, digests_by_ed, spans_by_ed, shas_by_ed)
     g_volume["digest_timeline_bytes_alternative"] = len(digests_body.encode())
     timeline = render(editions, ctv, nonmono, g_volume)
     graphs = render_named_graphs(named)
@@ -512,6 +657,12 @@ def main(argv: list[str] | None = None) -> int:
         (DIGESTS_ARTIFACT, digests_body),
         (NAMED_GRAPHS_ARTIFACT, graphs),
     )
+    schema_path = Path(__file__).resolve().parent / "m217_reference.schema.json"
+    violations = validate_artifacts(timeline, digests_body, graphs, schema_path)
+    if violations:
+        for line in violations[:10]:
+            print(f"schema violation: {line}", file=sys.stderr)
+        return EXIT_SCHEMA
     if args.check:
         drift = []
         for path, body in artifacts:
