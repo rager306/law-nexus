@@ -20,6 +20,12 @@ falkordb=historical-only
 
 ## Current position
 
+- **Architecture policy (2026-10-14):** D777 admits RDF/JSON-LD tooling in product
+  runtime paths under standard admission gates; the former anti-runtime clause
+  was prose mis-citing R066. R066 keeps the historical-only git-lex/ACP
+  toolchain archive-only — the path is closed, data structures are not;
+  R052/R053 (RDF outputs are not source truth or acceptance evidence) stand.
+  Relevant to the parked M217 storage decision.
 - **Latest completed product milestone:** M173, inspect PP_60 class-matched
   punkt proof `[bounded]` — structural evidence only, no S4/TSG-017 raise,
   ADR-0017 stays `[proposed]`. (M165 crystallized the O1–O7 `[proposed]`

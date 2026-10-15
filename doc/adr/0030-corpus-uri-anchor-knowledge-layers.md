@@ -48,7 +48,7 @@ Practice/control banks (courts, FAS) are, by working assumption, **single-versio
 - **G3 temporal graph** — CTV events and as-of resolution (materialization of the normative temporality runtime);
 - **G4 practice overlay** — decisions, citations, content periods (ADR-0020).
 
-Layer invariants: legal-identity keys (URI/ELI-compatible), source anchors on every node, redaction (no raw decoded text), hash-binding to the source JSONL revision (drift detectable), RDF tooling confined to analysis/interop (R066 anti-runtime stands).
+Layer invariants: legal-identity keys (URI/ELI-compatible), source anchors on every node, redaction (no raw decoded text), hash-binding to the source JSONL revision (drift detectable), RDF/SPARQL/JSON-LD tooling admitted in product runtime paths under standard admission gates (D777, 2026-10-14; the former anti-runtime clause cited R066 in error — R066 governs ACP/git-lex archive-only).
 
 **D6 — Layer builders reuse the decode crates** (`ln-decode`, `ln-consultant-parser`); there is no second parser. Two build modes are admitted: in-spine sinks for facts the spine already carries, and XML-fed rebuilds (same crates) for signal the spine does not carry (tables, footnotes, binData-adjacent structure). Every layer carries a builder version and a source-anchor manifest enabling three-way reconciliation: XML ↔ JSONL ↔ JSON-LD.
 
@@ -60,7 +60,7 @@ The strict JSONL spine (frozen contracts, hashes, admission) and a free, semanti
 
 - Normative temporality (edition timeline over the corpus) precedes practice temporality elaboration (D3).
 - The M217 storage decision is de-risked: knowledge is materialized in a portable standard form before a serving technology is chosen.
-- R066 remains in force: no RDF/SPARQL tooling in product runtime paths.
+- RDF/SPARQL/JSON-LD tooling is runtime-admissible under standard admission gates (D777, 2026-10-14); R052/R053 still hold — RDF outputs are not source truth and not acceptance evidence by themselves.
 - The JSONL spine stays frozen; layer extensions follow the producer-extension rule (D4).
 - Vocabulary mapping (closed vocabularies → ELI/LRMoo/`cc:`) becomes a shared tracked artifact.
 
