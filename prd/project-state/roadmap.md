@@ -33,7 +33,21 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker (current 2026-10-14):** M224-554vju is **complete**
+- **Local GSD workflow marker (current 2026-10-16):** M225-qrwdfv is **queued** — the
+  reference knowledge layer (ADR-0031) as a Rust port with byte parity to the
+  executed Python reference. The port reproduces all four committed artifacts
+  byte for byte on the 118-edition 44-ФЗ corpus (`reference-layer --check` exit 0)
+  and on a labelled synthetic fixture corpus, and both implementations now honour
+  the D6 exit-code contract (exit 3 for unreadable input; the port previously
+  panicked and the reference tracebacked). Scope measured the same day: of
+  36 989 catalog editions only 401 documents have more than one edition row, and
+  exactly one — 44-ФЗ — carries `edition_number` and distinguishable revision
+  days, so the digest timeline is a per-act contract exercised by one act and not
+  a corpus-wide layer; D4 (requisite deep links) and D5 (pageindex ladder) remain
+  unexecuted. 0 tasks are planned in GSD for S01–S03; no milestone is active:
+  M208-wrz6fg and M217–M220 stay parked and the engine refuses to start one
+  without an operator unpark.
+- **Local GSD workflow marker (superseded 2026-10-16):** M224-554vju is **complete**
   (2026-10-14): corpus URI anchors, read-only pageindex catalog, closed document
   groups, hierarchy-lift census, the full 118-edition 44-ФЗ timeline and the
   bounded FRBR-ELI bridge. Goals re-verified the same day: `frbr-bridge --check`

@@ -186,12 +186,35 @@ def parse_edition(
     )
 
 
-def load_catalog_days(con: sqlite3.Connection) -> dict[str, str]:
+def load_catalog_days(con: sqlite3.Connection, act_dir: str) -> dict[str, str]:
+    """Catalog days for the act directory actually in use. The filter used to be
+    hardcoded to law_2013-04-05_44-fz, which bound the reference layer to a
+    single act."""
     rows = con.execute(
-        "select relative_path, document_date from editions "
-        "where relative_path like '%/npa/law_2013-04-05_44-fz/%'"
+        "select relative_path, document_date from editions where relative_path like ?",
+        (f"%/npa/{act_dir}/%",),
     ).fetchall()
     return {rel: doc_date for rel, doc_date in rows}
+
+
+def corpus_prefix(corpus_dir: Path) -> str:
+    """Corpus root relative to the repository root, e.g. consru_export/consru_export.
+    Mirrors the Rust port so both implementations report the same resolved_path."""
+    repo_root = Path(__file__).resolve().parent.parent
+    try:
+        rel = corpus_dir.resolve().relative_to(repo_root)
+    except ValueError:
+        rel = corpus_dir
+    text = rel.as_posix()
+    head, sep, _ = text.partition("/exports/")
+    return head if sep else ""
+
+
+def edition_number_of(name: str) -> int:
+    match = RE_EDNO.search(name)
+    if match is None:
+        raise ReviewInputError(f"edition file name has no numeric edition number: {name}")
+    return int(match.group(1))
 
 
 def derive(
@@ -204,13 +227,15 @@ def derive(
     list[dict[str, object]],
 ]:
     con = sqlite3.connect(f"file:{catalog}?mode=ro", uri=True)
-    cat_days = load_catalog_days(con)
-    files = sorted(
-        glob_files(corpus_dir),
-        key=lambda p: int(re.search(r"edition-(\d+)", p.name).group(1)),
-    )
+    act_dir = corpus_dir.name
+    cat_days = load_catalog_days(con, act_dir)
+    amend_prefix = corpus_prefix(corpus_dir)
+    files = sorted(glob_files(corpus_dir), key=lambda p: edition_number_of(p.name))
     if not files:
         raise ReviewInputError("no edition files under corpus dir")
+    numbers = [edition_number_of(p.name) for p in files]
+    if len(set(numbers)) != len(numbers):
+        raise ReviewInputError(f"duplicate edition number in corpus dir {corpus_dir}")
     editions: list[EditionDigest] = []
     digests_by_ed: dict[int, dict[str, str]] = {}
     spans_by_ed: dict[int, dict[str, ArticleSpan]] = {}
@@ -221,7 +246,7 @@ def derive(
     prev_day: str | None = None
     prev_digests: dict[str, str] | None = None
     for path in files:
-        ed_no = int(RE_EDNO.search(path.name).group(1))
+        ed_no = edition_number_of(path.name)
         m_from = RE_FROM.search(path.name)
         m_rev = RE_REV.search(path.name)
         if m_from:
@@ -229,7 +254,7 @@ def derive(
         elif m_rev:
             raw_day = m_rev.group(1)
         else:
-            rel = "exports/npa/" + path.parts[-2] + "/" + path.name
+            rel = "exports/npa/" + act_dir + "/" + path.name
             raw_day = cat_days.get(rel) or "9999-12-31"
         source_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
         digests, edges, raw_headings, part_count, spans, amend = parse_edition(path)
@@ -263,7 +288,7 @@ def derive(
         for art, iso, num in amend:
             key = (iso, num)
             if key not in amend_cache:
-                amend_cache[key] = resolve_amend(con, iso, num)
+                amend_cache[key] = resolve_amend(con, iso, num, amend_prefix)
             tier, rel = amend_cache[key]
             amend_rows.append(
                 {
@@ -319,20 +344,22 @@ def glob_files(corpus_dir: Path) -> list[Path]:
 RE_EDNO = re.compile(r"edition-(\d+)")
 
 
-def resolve_amend(con: sqlite3.Connection, iso_date: str, number: str) -> tuple[str, str | None]:
+def resolve_amend(
+    con: sqlite3.Connection, iso_date: str, number: str, prefix: str
+) -> tuple[str, str | None]:
     """Amendment provenance: identify the changing act; enacting-date match is
     identification, corpus path is informational (not a deep-link target).
-    con: one shared read-only connection (opened once per derive)."""
-    if True:
-        rows = con.execute(
-            "select relative_path, document_date from editions where number like ? limit 60",
-            (f"%{number}%",),
-        ).fetchall()
-    exact = [r for r in rows if r[1] == iso_date]
-    if exact:
-        return "resolved_enacting_date", CORPUS_DIR.split("/exports/")[0] + "/" + exact[0][0]
+    con: one shared read-only connection (opened once per derive).
+    prefix: corpus root, so the reported path is the act's, not 44-FZ's."""
+    rows = con.execute(
+        "select relative_path, document_date from editions where number like ? limit 60",
+        (f"%{number}%",),
+    ).fetchall()
     if rows:
-        return "resolved_number_only", CORPUS_DIR.split("/exports/")[0] + "/" + rows[0][0]
+        exact = [r for r in rows if r[1] == iso_date]
+        rel = exact[0][0] if exact else rows[0][0]
+        tier = "resolved_enacting_date" if exact else "resolved_number_only"
+        return tier, f"{prefix}/{rel}" if prefix else rel
     return "unresolved", None
 
 
@@ -423,19 +450,25 @@ def edition_layer_document(path: Path, edition_no: int, day: str) -> bytes:
     return json.dumps(doc, ensure_ascii=False, sort_keys=True, indent=1).encode()
 
 
-def measure_g_layer(corpus_dir: Path, editions: list[EditionDigest]) -> dict[str, object]:
+def measure_g_layer(
+    corpus_dir: Path, editions: list[EditionDigest], catalog: str
+) -> dict[str, object]:
     """Measured G-layer bytes on the densest edition + linear projections."""
     measured_ed = max(editions, key=lambda e: (e.part_count, e.edition_no))
+    if measured_ed.part_count == 0:
+        raise ReviewInputError(
+            "no article parts under corpus dir: G-layer volume is not measurable"
+        )
     path = next(
         p
         for p in sorted((corpus_dir).glob("edition-*.xml"))
-        if int(RE_EDNO.search(p.name).group(1)) == measured_ed.edition_no
+        if edition_number_of(p.name) == measured_ed.edition_no
     )
     day = measured_ed.applied_day
     blob = edition_layer_document(path, measured_ed.edition_no, day)
     per_part = len(blob) / measured_ed.part_count
     act_parts = sum(e.part_count for e in editions)
-    con = sqlite3.connect(f"file:{CATALOG}?mode=ro", uri=True)
+    con = sqlite3.connect(f"file:{catalog}?mode=ro", uri=True)
     try:
         corpus_editions = con.execute("select count(*) from editions").fetchone()[0]
     finally:
@@ -690,10 +723,28 @@ def validate_artifacts(
     return errors
 
 
+def artifact_paths(out_dir: Path) -> tuple[Path, Path, Path, Path]:
+    return (
+        out_dir / "m217-reference-timeline.json",
+        out_dir / "m217-reference-digests.jsonl",
+        out_dir / "m217-reference-named-graphs.json",
+        out_dir / "m217-reference-amend-provenance.json",
+    )
+
+
+def unreadable(reason: str) -> "ReviewInputError":
+    return ReviewInputError(f"unreadable inputs: {reason}")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--corpus-dir", default=CORPUS_DIR)
     parser.add_argument("--catalog", default=CATALOG)
+    parser.add_argument(
+        "--out-dir",
+        default=str(OUT_DIR),
+        help="directory holding the reference artifacts (check compares, default writes)",
+    )
     parser.add_argument(
         "--check", action="store_true", help="byte-compare re-derived artifacts instead of writing"
     )
@@ -712,20 +763,25 @@ def main(argv: list[str] | None = None) -> int:
         if not args.out:
             print("--g-layer requires --out", file=sys.stderr)
             return EXIT_ARGV
-        files = sorted(glob_files(corpus))
-        target = next(
-            (p for p in files if int(RE_EDNO.search(p.name).group(1)) == args.g_layer), None
-        )
+        try:
+            files = sorted(glob_files(corpus))
+            target = next((p for p in files if edition_number_of(p.name) == args.g_layer), None)
+        except ReviewInputError as exc:
+            print(str(exc), file=sys.stderr)
+            return EXIT_INPUT
         if target is None:
             print(f"edition {args.g_layer} not found under {corpus}", file=sys.stderr)
             return EXIT_INPUT
         m_from = RE_FROM.search(target.name)
         m_rev = RE_REV.search(target.name)
         day = (m_from or m_rev).group(1) if (m_from or m_rev) else "9999-12-31"
-        Path(args.out).write_bytes(edition_layer_document(target, args.g_layer, day))
+        try:
+            Path(args.out).write_bytes(edition_layer_document(target, args.g_layer, day))
+        except ET.ParseError as exc:
+            print(unreadable(str(exc)), file=sys.stderr)
+            return EXIT_INPUT
         print(f"wrote {args.out} ({Path(args.out).stat().st_size} bytes)")
         return EXIT_OK
-    corpus = Path(args.corpus_dir)
     if not corpus.is_dir() or not Path(args.catalog).exists():
         print(f"unreadable inputs: corpus={corpus} catalog={args.catalog}", file=sys.stderr)
         return EXIT_INPUT
@@ -733,21 +789,27 @@ def main(argv: list[str] | None = None) -> int:
         editions, ctv, nonmono, digests_by_ed, spans_by_ed, shas_by_ed, amend_rows, named = derive(
             corpus, args.catalog
         )
+        g_volume = measure_g_layer(corpus, editions, args.catalog)
     except ReviewInputError as exc:
         print(str(exc), file=sys.stderr)
         return EXIT_INPUT
+    except (ET.ParseError, sqlite3.Error, OSError, ValueError, KeyError, ZeroDivisionError) as exc:
+        # ADR-0031 D6: unreadable input is exit 3, never a traceback.
+        print(unreadable(f"{type(exc).__name__}: {exc}"), file=sys.stderr)
+        return EXIT_INPUT
 
-    g_volume = measure_g_layer(corpus, editions)
+    out_dir = Path(args.out_dir)
+    timeline_path, digests_path, graphs_path, amend_path = artifact_paths(out_dir)
     digests_body = render_digests(editions, digests_by_ed, spans_by_ed, shas_by_ed)
     g_volume["digest_timeline_bytes_alternative"] = len(digests_body.encode())
     timeline = render(editions, ctv, nonmono, g_volume)
     graphs = render_named_graphs(named)
     amend_doc = render_amend(amend_rows)
     artifacts = (
-        (TIMELINE_ARTIFACT, timeline),
-        (DIGESTS_ARTIFACT, digests_body),
-        (NAMED_GRAPHS_ARTIFACT, graphs),
-        (AMEND_ARTIFACT, amend_doc),
+        (timeline_path, timeline),
+        (digests_path, digests_body),
+        (graphs_path, graphs),
+        (amend_path, amend_doc),
     )
     schema_path = Path(__file__).resolve().parent / "m217_reference.schema.json"
     violations = validate_artifacts(timeline, digests_body, graphs, amend_doc, schema_path)

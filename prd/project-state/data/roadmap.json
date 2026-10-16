@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-10-14T18:25:40Z",
+  "generated_at": "2026-10-16T00:00:00Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -612,15 +612,15 @@
     ]
   },
   "current_milestone": {
-    "id": "M224-554vju",
-    "status": "complete",
-    "title": "URI-якорь, corpus pageindex и темпоральность нормативного акта над JSONL",
-    "goal": "Байт-точные URI-якоря, read-only corpus pageindex, закрытые группы документов, census hierarchy-lift и полный 118-редакционный таймлайн 44-ФЗ с bounded FRBR-ELI-мостом поверх сохранённого JSONL-источника; доказательства целостности и провенанса, не семантическая приёмка."
+    "id": "M225-qrwdfv",
+    "status": "active",
+    "title": "Reference knowledge layer in Rust: ADR-0031 port with byte parity to the Python reference",
+    "goal": "Порт исполненного Python-эталона (ADR-0031, D778) в ln-consultant-parser с критерием byte-parity против закоммиченных артефактов m217-reference-*: Rust-порт воспроизводит все четыре артефакта байт-в-байт на корпусе 44-ФЗ (118 редакций) и на расширенном fixture-корпусе, и обе реализации соблюдают контракт exit-кодов D6. В GSD у M225 запланировано 0 задач (S01-S03). Не утверждает R1000/R035/R070, не промоутит ADR-0030/0031."
   },
   "recommended_next": {
-    "title": "Operator decision required: all remaining milestones are parked",
-    "why": "M214-es3jvw completed and validated pass (remediation round 1). The GSD engine now reports that every remaining milestone is parked (M208-wrz6fg, M215-w9jsgn, M216-8dps6e, M217-kbike0, M218-xnkwf0, M219-2erzz3, M220-djlrxl) and will not start one without an explicit unpark or a new milestone.",
-    "constraint": "Do not auto-start the horizon. Unparking M215-M220 requires the M214 foundation evidence to be re-read against their own input contracts first, and M208 needs a separate decision about its relation to the preserved temporal plan in 214-RESEARCH.md. Auto and wakeup remain stopped; parked is a real gate, not prose."
+    "title": "Планирование задач M225/S01-S03 в GSD (либо authorized waiver для out-of-band кода)",
+    "why": "Rust-порт эталонного слоя уже проходит byte-parity и fail-closed контракт exit-кодов, но в GSD у M225 ноль задач: ROADMAP предусматривает закрытие слайсов через Attempts при /gsd auto. Из 226 вех 220 завершены, 5 припаркованы (M208-wrz6fg, M217-kbike0, M218-xnkwf0, M219-2erzz3, M220-djlrxl), одна ожидает: M225-qrwdfv.",
+    "constraint": "Не запускать горизонт автоматически. Unpark припаркованных вех требует перепроверки их входных доказательств; S02 (pageindex-лестница) не имеет ни кода модуля, ни артефакта."
   },
   "downstream_blocked": [
     {
@@ -873,6 +873,10 @@
       "id": "roadmap-sync-20261005-m214-complete-horizon-held",
       "lifecycle": "proposed",
       "text": "GSD sync (2026-10-05): M214-es3jvw completed 2026-10-05T02:03:44Z and was validated pass at remediation round 1 (revision sha256:ddb108a1b4e3ed54d56048f60c982ddfe1df10ba3cfd725c8c4094586fc3cc8f), so completed_milestone_groups gains M214-M214 and current_milestone moves M213 -> M214. recommended_next no longer names an execution step: with M214 closed the engine reports active=0, pending=0 and seven parked milestones, and it explicitly refuses to start one without an operator unpark. Honest residuals recorded: R1000 active/unclosed (corpus-wide acceptance and display-cleaning still open), R038/R063/R064/R071 active with their own owners, semantic adjudication deliberately absent (structural-only), no corpus-wide acceptance claim, M208-wrz6fg still parked, and a pre-existing unrelated ln-consultant-parser test failure in amendment_provenance recorded as open repository debt rather than an M214 regression."
-    }
+    },
+    "ADR-0031 reference layer (2026-10-16): the Rust port (crates/ln-consultant-parser/src/reference_layer.rs + bin reference_layer) reproduces all four committed artifacts byte for byte on the 118-edition 44-ФЗ corpus (`--check` exit 0) and on a labelled synthetic fixture corpus; reference_layer_parity.rs is the oracle battery.",
+    "ADR-0031 corpus scope measured 2026-10-16: of 36 989 catalog editions / 36 458 documents only 401 documents have more than one edition row, and exactly one (44-ФЗ, 118 editions) carries `edition_number` plus distinguishable revision days. The other 400 pair export snapshots whose names both say `rev-unknown` and whose catalog dates are equal — no honest edition order and no in-force day, so the digest timeline is a per-act contract exercised by one act, not a corpus-wide layer.",
+    "ADR-0031 input contract (2026-10-16): both implementations now return exit 3 for unreadable inputs (empty corpus incl. the loose-file exports/npa layout, missing dir, missing or non-sqlite catalog, 0-byte edition, malformed/unclosed XML, undeclared entity, WordML 2006, non-numeric edition name, duplicate edition numbers). The Rust port previously panicked on five of these and the Python reference tracebacked (exit 1). The scanner is defined over the WordML 2003 namespace; other namespaces are refused rather than silently re-parsed.",
+    "ADR-0031 schema (2026-10-16): timeline.counts.editions was pinned to `const: 118`, which made the Draft-2020-12 subset validate only the 44-ФЗ artifact set; it is now `minimum: 1` so the schema is corpus-agnostic."
   ]
 }

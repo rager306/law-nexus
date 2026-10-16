@@ -119,6 +119,46 @@ above. Until they are executed by the reference module and committed (M225/S02),
 these two decisions are sandbox-measured design substance, not repository
 evidence.
 
+## Corpus scope and input contract (measured 2026-10-16)
+
+**The corpus carries edition ordering for exactly one act.** Across all 36 989
+`editions` rows (36 458 documents) only 401 documents have more than one edition
+row, and of those exactly one — the 44-ФЗ act, 118 editions — has a populated
+`edition_number` and distinguishable revision/`valid_from` days. The other 400
+pair two export snapshots of the same act whose filenames both say `rev-unknown`
+and whose catalog dates are equal: there is **no honest ordering and no in-force
+day** for them. The digest timeline is therefore a **per-act contract exercised
+in the corpus by one act only**; deriving it for those 400 documents would invent
+the temporal order, which this contract does not do.
+
+**Namespace scope.** The scanner is defined over the WordML 2003 namespace
+(`http://schemas.microsoft.com/office/word/2003/wordml`), which every committed
+edition uses. Both implementations now refuse a document that does not declare
+it (exit 3) instead of silently deriving a different paragraph set.
+
+**Unreadable input is an exit code, not a crash.** D6 fixes exit 3 for
+unreadable inputs. Both implementations now honour it for an empty corpus
+(including the loose-file `exports/npa` layout, where no `edition-*.xml` exists),
+a missing directory, a missing or non-sqlite catalog, a 0-byte edition, malformed
+or unclosed XML, an undeclared entity, a WordML 2006 document, a file name
+without a numeric edition number, and duplicate edition numbers. Before this,
+the Rust port panicked (exit 101) on five of those and the Python reference
+raised uncaught `ParseError`/`sqlite3.Error`/`ZeroDivisionError`/`AttributeError`
+(exit 1).
+
+**The schema is not corpus-pinned.** `timeline.counts.editions` was
+`const: 118`, so the Draft-2020-12 subset could only ever validate the 44-ФЗ
+artifact set and reported any other act as a schema violation (exit 5) even when
+the artifacts were correct. It is now `minimum: 1`, like the sibling counters.
+
+**Extended-corpus parity is asserted, not assumed.** The 44-ФЗ artifacts remain
+the oracle, and a labelled synthetic fixture corpus
+(`crates/ln-consultant-parser/tests/fixtures/reference-layer/`, 18 cases) now
+pins both implementations against each other: ten derivable cases must be
+byte-identical, ten unreadable cases must fail closed with exit 3
+(`scripts/test_m217_reference_parity.py`, plus the Rust-side
+`tests/reference_layer_fail_closed.rs`).
+
 ## Rationale
 
 The spine's strictness makes an evolvable knowledge layer safe (ADR-0030);

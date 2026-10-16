@@ -69,7 +69,7 @@
           "type": "object",
           "required": ["editions", "ctv_events", "non_monotonic"],
           "properties": {
-            "editions": {"type": "integer", "const": 118},
+            "editions": {"type": "integer", "minimum": 1},
             "ctv_events": {"type": "integer", "minimum": 0},
             "non_monotonic": {"type": "integer", "minimum": 0}
           }

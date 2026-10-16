@@ -6,12 +6,16 @@
 //! here**: Draft-2020-12 subset validation lives in the Python reference
 //! (`scripts/m217_reference_jsonld.py --check`), which gates the artifacts this
 //! bin only compares byte for byte.
+//!
+//! `--corpus-dir`, `--catalog` and `--out-dir` mirror the Python reference's
+//! flags so the two implementations can be run over the same corpus and
+//! compared byte for byte.
 
 use ln_consultant_parser::reference_layer::{
     DeriveOptions, EXIT_ARGV, EXIT_INPUT, EXIT_OK, artifact_paths, artifacts_dir, catalog_path,
-    corpus_dir, derive, filename_day, run_check,
+    corpus_dir, edition_layer_document, filename_day, run_check, try_derive,
 };
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
@@ -19,9 +23,9 @@ fn main() -> ExitCode {
     // (`<repo>/crates/ln-consultant-parser`), so they get the manifest, not the
     // already-canonicalized repo root.
     let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let corpus = corpus_dir(manifest);
-    let catalog = catalog_path(manifest);
-    let out_dir = artifacts_dir(manifest);
+    let mut corpus: PathBuf = corpus_dir(manifest);
+    let mut catalog: PathBuf = catalog_path(manifest);
+    let mut out_dir: PathBuf = artifacts_dir(manifest);
 
     let mut args = std::env::args().skip(1);
     let mut check = false;
@@ -30,6 +34,18 @@ fn main() -> ExitCode {
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--check" => check = true,
+            "--corpus-dir" => match args.next() {
+                Some(v) => corpus = PathBuf::from(v),
+                None => return fail("--corpus-dir requires a path", EXIT_ARGV),
+            },
+            "--catalog" => match args.next() {
+                Some(v) => catalog = PathBuf::from(v),
+                None => return fail("--catalog requires a path", EXIT_ARGV),
+            },
+            "--out-dir" => match args.next() {
+                Some(v) => out_dir = PathBuf::from(v),
+                None => return fail("--out-dir requires a path", EXIT_ARGV),
+            },
             "--g-layer" => match args.next().and_then(|v| v.parse::<u32>().ok()) {
                 Some(n) => g_layer = Some(n),
                 None => return fail("--g-layer requires an edition number", EXIT_ARGV),
@@ -46,15 +62,16 @@ fn main() -> ExitCode {
         let Some(out_path) = out else {
             return fail("--g-layer requires --out", EXIT_ARGV);
         };
-        if !corpus.is_dir() {
-            return fail(
-                &format!("unreadable corpus: {}", corpus.display()),
-                EXIT_INPUT,
-            );
-        }
-        // Deterministic pick, mirroring the Python reference `sorted(glob_files(...))`.
-        let mut files: Vec<_> = std::fs::read_dir(&corpus)
-            .expect("corpus dir readable")
+        let read = match std::fs::read_dir(&corpus) {
+            Ok(read) => read,
+            Err(err) => {
+                return fail(
+                    &format!("unreadable corpus {}: {err}", corpus.display()),
+                    EXIT_INPUT,
+                );
+            }
+        };
+        let mut files: Vec<PathBuf> = read
             .filter_map(|e| e.ok().map(|e| e.path()))
             .filter(|p| {
                 p.file_name()
@@ -71,24 +88,15 @@ fn main() -> ExitCode {
             .and_then(|n| n.to_str())
             .and_then(filename_day)
             .unwrap_or_else(|| "9999-12-31".into());
-        let bytes =
-            ln_consultant_parser::reference_layer::edition_layer_document(path, edition_no, &day);
+        let bytes = match edition_layer_document(path, edition_no, &day) {
+            Ok(bytes) => bytes,
+            Err(err) => return fail(&format!("unreadable inputs: {err}"), err.exit_code()),
+        };
         if let Err(err) = std::fs::write(&out_path, &bytes) {
             return fail(&format!("cannot write {out_path}: {err}"), EXIT_INPUT);
         }
         println!("wrote {out_path} ({} bytes)", bytes.len());
         return ExitCode::from(EXIT_OK as u8);
-    }
-
-    if !corpus.is_dir() || !catalog.exists() {
-        return fail(
-            &format!(
-                "unreadable inputs: corpus={} catalog={}",
-                corpus.display(),
-                catalog.display()
-            ),
-            EXIT_INPUT,
-        );
     }
 
     if check {
@@ -100,17 +108,30 @@ fn main() -> ExitCode {
         corpus_dir: corpus,
         catalog,
     };
-    let reference = derive(&opts);
+    let reference = match try_derive(&opts) {
+        Ok(reference) => reference,
+        Err(err) => return fail(&format!("unreadable inputs: {err}"), err.exit_code()),
+    };
     for (path, body) in artifact_paths(&out_dir).iter().zip([
         reference.timeline.as_bytes(),
         reference.digests.as_bytes(),
         reference.named_graphs.as_bytes(),
         reference.amend.as_bytes(),
     ]) {
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).expect("mkdir");
+        if let Some(parent) = path.parent()
+            && let Err(err) = std::fs::create_dir_all(parent)
+        {
+            return fail(
+                &format!("cannot create {}: {err}", parent.display()),
+                EXIT_INPUT,
+            );
         }
-        std::fs::write(path, body).expect("write artifact");
+        if let Err(err) = std::fs::write(path, body) {
+            return fail(
+                &format!("cannot write {}: {err}", path.display()),
+                EXIT_INPUT,
+            );
+        }
         println!("wrote {} ({} bytes)", path.display(), body.len());
     }
     ExitCode::from(EXIT_OK as u8)

@@ -36,6 +36,52 @@ pub const EXIT_DRIFT: i32 = 6;
 
 pub const SAMPLE_ARTICLE: &str = "statya-44";
 
+/// WordML 2003 namespace the reference scanner is defined over. The Python
+/// reference matches `w:p` in this namespace only; the Rust scanner is prefix
+/// agnostic, so it verifies the namespace up front and refuses anything else
+/// instead of silently deriving a different paragraph set.
+pub const WORDML_NAMESPACE: &str = "http://schemas.microsoft.com/office/word/2003/wordml";
+
+/// Unreadable or underivable input. ADR-0031 D6 maps this to exit 3, and the
+/// port must never panic its way out of a bad input: a panic is not an exit
+/// code, and the Python reference returns 3 for the same inputs.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RefError {
+    reason: String,
+}
+
+impl RefError {
+    pub fn new(reason: impl Into<String>) -> Self {
+        Self {
+            reason: reason.into(),
+        }
+    }
+
+    pub fn reason(&self) -> &str {
+        &self.reason
+    }
+
+    pub fn exit_code(&self) -> i32 {
+        EXIT_INPUT
+    }
+}
+
+impl std::fmt::Display for RefError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.reason)
+    }
+}
+
+impl std::error::Error for RefError {}
+
+/// The corpus must declare the WordML 2003 namespace the contract is written
+/// over; the declarations sit on the root element. Bounded to the preamble.
+fn declares_wordml_namespace(bytes: &[u8]) -> bool {
+    let head = &bytes[..bytes.len().min(64 * 1024)];
+    head.windows(WORDML_NAMESPACE.len())
+        .any(|w| w == WORDML_NAMESPACE.as_bytes())
+}
+
 const NON_AUTHORITY: [&str; 4] = [
     "Non-authoritative reference projection",
     "Does not validate M224 pins or promote requirements",
@@ -196,18 +242,28 @@ fn sha12(text: &str) -> String {
 
 // ---------- WordML paragraph scanner (ElementTree parity) ----------
 
-fn decode_entities(raw: &str) -> String {
+fn decode_entities(raw: &str) -> Result<String, RefError> {
     if !raw.contains('&') {
-        return raw.to_string();
+        return Ok(raw.to_string());
     }
     let mut out = String::with_capacity(raw.len());
     let bytes = raw.as_bytes();
     let mut i = 0usize;
     while i < bytes.len() {
-        if bytes[i] == b'&'
-            && let Some(semi) = raw[i + 1..].find(';').map(|k| i + 1 + k)
-            && semi - i <= 12
-        {
+        if bytes[i] == b'&' {
+            // ElementTree refuses an undeclared entity or a bare `&`; a byte
+            // scanner would silently keep `&nbsp;` as literal text, so the
+            // Rust port must fail closed on the same input.
+            let semi = raw[i + 1..]
+                .find(';')
+                .map(|k| i + 1 + k)
+                .filter(|semi| semi - i <= 12)
+                .ok_or_else(|| {
+                    RefError::new(format!(
+                        "invalid XML: '&' without a terminating entity reference near {:?}",
+                        &raw[i..raw.len().min(i + 16)]
+                    ))
+                })?;
             let ent = &raw[i + 1..semi];
             let decoded = match ent {
                 "amp" => Some('&'),
@@ -225,17 +281,18 @@ fn decode_entities(raw: &str) -> String {
                     }
                 }
             };
-            if let Some(c) = decoded {
-                out.push(c);
-                i = semi + 1;
-                continue;
-            }
+            let c = decoded.ok_or_else(|| {
+                RefError::new(format!("invalid XML: undeclared entity '&{ent};'"))
+            })?;
+            out.push(c);
+            i = semi + 1;
+            continue;
         }
-        let ch = raw[i..].chars().next().unwrap();
+        let ch = raw[i..].chars().next().unwrap_or('\u{fffd}');
         out.push(ch);
         i += ch.len_utf8();
     }
-    out
+    Ok(out)
 }
 
 fn find_sub(hay: &[u8], from: usize, needle: &[u8]) -> Option<usize> {
@@ -246,7 +303,7 @@ fn find_sub(hay: &[u8], from: usize, needle: &[u8]) -> Option<usize> {
 }
 
 /// Text of one `w:p` inner byte range: concat of all `w:t` data, entities decoded.
-fn paragraph_text(inner: &[u8]) -> String {
+fn paragraph_text(inner: &[u8]) -> Result<String, RefError> {
     let mut out = String::new();
     let mut i = 0usize;
     while i < inner.len() {
@@ -255,11 +312,21 @@ fn paragraph_text(inner: &[u8]) -> String {
             let (gt, selfc) = match after {
                 Some(b'>') => (i + 4, false),
                 Some(b'/') => {
-                    let g = i + 4 + inner[i + 4..].iter().position(|&b| b == b'>').unwrap();
+                    let g = i
+                        + 4
+                        + inner[i + 4..]
+                            .iter()
+                            .position(|&b| b == b'>')
+                            .ok_or_else(|| RefError::new("<w:t/> without '>'"))?;
                     (g, true)
                 }
                 Some(b' ') => {
-                    let g = i + 4 + inner[i + 4..].iter().position(|&b| b == b'>').unwrap();
+                    let g = i
+                        + 4
+                        + inner[i + 4..]
+                            .iter()
+                            .position(|&b| b == b'>')
+                            .ok_or_else(|| RefError::new("<w:t ...> without '>'"))?;
                     (g, inner[g - 1] == b'/')
                 }
                 _ => {
@@ -271,10 +338,11 @@ fn paragraph_text(inner: &[u8]) -> String {
                 i = gt + 1;
                 continue;
             }
-            let close = find_sub(inner, gt + 1, b"</w:t>").expect("w:t without close");
+            let close = find_sub(inner, gt + 1, b"</w:t>")
+                .ok_or_else(|| RefError::new("<w:t> without closing </w:t>"))?;
             out.push_str(&decode_entities(
                 std::str::from_utf8(&inner[gt + 1..close]).unwrap_or(""),
-            ));
+            )?);
             i = close + 6;
         } else {
             // Advance exactly one UTF-8 character: `inner[i]` is a leading
@@ -289,12 +357,12 @@ fn paragraph_text(inner: &[u8]) -> String {
             i = j;
         }
     }
-    out.replace('\u{a0}', " ").trim().to_string()
+    Ok(out.replace('\u{a0}', " ").trim().to_string())
 }
 
 /// Scan WordML bytes: one entry per `w:p` element (document order, including
 /// self-closing and paragraphs inside tables), Python-parity text extraction.
-pub fn scan_wordml_paragraphs(bytes: &[u8]) -> Vec<String> {
+pub fn scan_wordml_paragraphs(bytes: &[u8]) -> Result<Vec<String>, RefError> {
     let mut paras = Vec::new();
     let mut i = 0usize;
     while i < bytes.len() {
@@ -307,16 +375,16 @@ pub fn scan_wordml_paragraphs(bytes: &[u8]) -> Vec<String> {
                         + bytes[i + 4..]
                             .iter()
                             .position(|&b| b == b'>')
-                            .expect("w:p open tag without '>'");
+                            .ok_or_else(|| RefError::new("<w:p ...> without '>'"))?;
                     if bytes[gt - 1] == b'/' {
                         paras.push(String::new()); // <w:p ... />
                         i = gt + 1;
                         continue;
                     }
-                    let close =
-                        find_sub(bytes, gt + 1, b"</w:p>").expect("w:p without closing tag");
+                    let close = find_sub(bytes, gt + 1, b"</w:p>")
+                        .ok_or_else(|| RefError::new("<w:p> without closing </w:p>"))?;
                     let inner = &bytes[gt + 1..close];
-                    paras.push(paragraph_text(inner));
+                    paras.push(paragraph_text(inner)?);
                     i = close + 6;
                 }
                 Some(b'/') => {
@@ -326,7 +394,7 @@ pub fn scan_wordml_paragraphs(bytes: &[u8]) -> Vec<String> {
                         + bytes[i + 4..]
                             .iter()
                             .position(|&b| b == b'>')
-                            .expect("w:p self-closing without '>'");
+                            .ok_or_else(|| RefError::new("<w:p/> without '>'"))?;
                     i = gt + 1;
                 }
                 _ => {
@@ -338,7 +406,7 @@ pub fn scan_wordml_paragraphs(bytes: &[u8]) -> Vec<String> {
             i += 1;
         }
     }
-    paras
+    Ok(paras)
 }
 
 // ---------- hand parsers (regex-free, Python-regex parity) ----------
@@ -552,10 +620,25 @@ pub struct ScannedEdition {
     pub source_sha256: String,
 }
 
-pub fn scan_edition(path: &Path) -> ScannedEdition {
-    let bytes = std::fs::read(path).expect("edition file readable");
+pub fn scan_edition(path: &Path) -> Result<ScannedEdition, RefError> {
+    let file_name = path.file_name().and_then(|n| n.to_str()).ok_or_else(|| {
+        RefError::new(format!("unreadable edition file name: {}", path.display()))
+    })?;
+    let edition_no = edition_no_of(file_name).ok_or_else(|| {
+        RefError::new(format!(
+            "edition file name has no numeric edition number: {file_name}"
+        ))
+    })?;
+    let bytes = std::fs::read(path)
+        .map_err(|e| RefError::new(format!("unreadable edition file {}: {e}", path.display())))?;
+    if !declares_wordml_namespace(&bytes) {
+        return Err(RefError::new(format!(
+            "edition file {} does not declare the WordML 2003 namespace {WORDML_NAMESPACE}",
+            path.display()
+        )));
+    }
     let source_sha256 = sha256_hex(&bytes);
-    let paras = scan_wordml_paragraphs(&bytes);
+    let paras = scan_wordml_paragraphs(&bytes)?;
     let mut digests: BTreeMap<String, String> = BTreeMap::new();
     let mut spans: BTreeMap<String, ArticleSpan> = BTreeMap::new();
     let mut full_text: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -575,7 +658,7 @@ pub fn scan_edition(path: &Path) -> ScannedEdition {
         if let Some((no, body)) = article_heading(text) {
             raw_headings += 1;
             cur = Some(format!("statya-{no}"));
-            let aid = cur.clone().expect("article id");
+            let aid = cur.clone().unwrap_or_default();
             digests.insert(aid.clone(), sha12(&format!("H:{body}")));
             spans.insert(
                 aid.clone(),
@@ -632,8 +715,8 @@ pub fn scan_edition(path: &Path) -> ScannedEdition {
         .iter()
         .flat_map(|(a, set)| set.iter().map(move |b| (a.clone(), b.clone())))
         .collect();
-    ScannedEdition {
-        edition_no: edition_no_of(path.file_name().unwrap().to_str().unwrap()).unwrap_or(0),
+    Ok(ScannedEdition {
+        edition_no,
         digests,
         spans,
         edges: edge_list,
@@ -641,73 +724,119 @@ pub fn scan_edition(path: &Path) -> ScannedEdition {
         part_count,
         amend,
         source_sha256,
-    }
+    })
 }
 
 // ---------- catalog ----------
 
-fn cat_days_map(catalog: &Path) -> BTreeMap<String, String> {
-    let con =
-        rusqlite::Connection::open_with_flags(catalog, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
-            .expect("catalog readable");
+/// Act directory (last path segment) whose catalog rows this derivation may
+/// read. The Python reference used to hardcode `law_2013-04-05_44-fz`; the
+/// reference layer must be able to serve any act directory, so the filter is
+/// derived from the corpus dir the caller passed.
+pub fn act_dir_name(corpus_dir: &Path) -> Result<String, RefError> {
+    corpus_dir
+        .file_name()
+        .and_then(|n| n.to_str())
+        .map(str::to_string)
+        .ok_or_else(|| RefError::new(format!("corpus dir has no name: {}", corpus_dir.display())))
+}
+
+fn open_catalog(catalog: &Path) -> Result<rusqlite::Connection, RefError> {
+    if !catalog.is_file() {
+        return Err(RefError::new(format!(
+            "unreadable catalog: {}",
+            catalog.display()
+        )));
+    }
+    rusqlite::Connection::open_with_flags(catalog, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+        .map_err(|e| RefError::new(format!("unreadable catalog {}: {e}", catalog.display())))
+}
+
+fn cat_days_map(catalog: &Path, act_dir: &str) -> Result<BTreeMap<String, String>, RefError> {
+    let con = open_catalog(catalog)?;
     let mut stmt = con
         .prepare(
             "select relative_path, document_date from editions \
-             where relative_path like '%/npa/law_2013-04-05_44-fz/%'",
+             where relative_path like ?",
         )
-        .expect("catalog query");
+        .map_err(|e| RefError::new(format!("catalog query failed: {e}")))?;
+    let pattern = format!("%/npa/{act_dir}/%");
     let mut map = BTreeMap::new();
-    let mut rows = stmt.query([]).expect("catalog rows");
-    while let Ok(Some(row)) = rows.next() {
+    let mut rows = stmt
+        .query([pattern])
+        .map_err(|e| RefError::new(format!("catalog query failed: {e}")))?;
+    while let Some(row) = rows
+        .next()
+        .map_err(|e| RefError::new(format!("catalog row failed: {e}")))?
+    {
         let rel: String = row.get(0).unwrap_or_default();
         let day: String = row.get(1).unwrap_or_default();
         map.insert(rel, day);
     }
-    map
+    Ok(map)
 }
 
-fn corpus_editions_count(catalog: &Path) -> i64 {
-    let con =
-        rusqlite::Connection::open_with_flags(catalog, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
-            .expect("catalog readable");
+fn corpus_editions_count(catalog: &Path) -> Result<i64, RefError> {
+    let con = open_catalog(catalog)?;
     con.query_row("select count(*) from editions", [], |r| r.get::<_, i64>(0))
-        .expect("catalog count")
+        .map_err(|e| RefError::new(format!("catalog count failed: {e}")))
+}
+
+/// Prefix prepended to catalog relative paths to form the reported
+/// `resolved_path`: the corpus root relative to the repository root
+/// (`consru_export/consru_export` for the shipped corpus). Taken from the
+/// corpus dir actually in use, so the reference layer is not bound to one act.
+fn corpus_prefix(corpus_dir: &Path) -> String {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
+    let canon_dir = std::fs::canonicalize(corpus_dir).unwrap_or_else(|_| corpus_dir.to_path_buf());
+    let canon_root = std::fs::canonicalize(&root).unwrap_or(root);
+    let rel = canon_dir
+        .strip_prefix(&canon_root)
+        .map(Path::to_path_buf)
+        .unwrap_or(canon_dir);
+    let s = rel
+        .to_string_lossy()
+        .replace(std::path::MAIN_SEPARATOR, "/");
+    match s.find("/exports/") {
+        Some(k) => s[..k].to_string(),
+        None => String::new(),
+    }
 }
 
 fn resolve_amend(
     con: &rusqlite::Connection,
     iso_date: &str,
     number: &str,
-) -> (String, Option<String>) {
+    prefix: &str,
+) -> Result<(String, Option<String>), RefError> {
     let pattern = format!("%{number}%");
     let mut stmt = con
         .prepare("select relative_path, document_date from editions where number like ? limit 60")
-        .expect("query");
+        .map_err(|e| RefError::new(format!("amend query failed: {e}")))?;
     let rows: Vec<(String, String)> = stmt
         .query_map([pattern], |r| {
             Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
         })
-        .expect("query map")
+        .map_err(|e| RefError::new(format!("amend query failed: {e}")))?
         .filter_map(Result::ok)
         .collect();
-    let prefix = match CORPUS_DIR.find("/exports/") {
-        Some(k) => CORPUS_DIR[..k].to_string(),
-        None => String::new(),
-    };
     let exact: Vec<&(String, String)> = rows.iter().filter(|(_, d)| d == iso_date).collect();
+    // An empty prefix (corpus outside the repository root) must not leave a
+    // leading slash: the Python reference reports the bare catalog path.
+    let joined = |rel: &str| {
+        if prefix.is_empty() {
+            rel.to_string()
+        } else {
+            format!("{prefix}/{rel}")
+        }
+    };
     if let Some((rel, _)) = exact.first() {
-        return (
-            "resolved_enacting_date".into(),
-            Some(format!("{prefix}/{rel}")),
-        );
+        return Ok(("resolved_enacting_date".into(), Some(joined(rel))));
     }
     if let Some((rel, _)) = rows.first() {
-        return (
-            "resolved_number_only".into(),
-            Some(format!("{prefix}/{rel}")),
-        );
+        return Ok(("resolved_number_only".into(), Some(joined(rel))));
     }
-    ("unresolved".into(), None)
+    Ok(("unresolved".into(), None))
 }
 
 // ---------- derivation ----------
@@ -725,22 +854,15 @@ pub struct Reference {
     pub amend: String,
 }
 
-fn effective_day(name: &str, cat_days: &BTreeMap<String, String>) -> String {
+fn effective_day(name: &str, cat_days: &BTreeMap<String, String>, act_dir: &str) -> String {
     if let Some(day) = filename_day(name) {
         return day;
     }
-    let rel = format!("exports/npa/{}/{}", cat_dir_name(), name);
+    let rel = format!("exports/npa/{act_dir}/{name}");
     cat_days
         .get(&rel)
         .cloned()
         .unwrap_or_else(|| "9999-12-31".into())
-}
-
-fn cat_dir_name() -> String {
-    Path::new(CORPUS_DIR)
-        .file_name()
-        .map(|s| s.to_string_lossy().to_string())
-        .unwrap_or_default()
 }
 
 /// `from-YYYY-MM-DD`, else `rev-YYYY-MM-DD`, from a corpus filename — mirrors
@@ -779,30 +901,63 @@ fn edition_no_of(name: &str) -> Option<u32> {
 }
 
 pub fn derive(opts: &DeriveOptions) -> Reference {
-    let mut files: Vec<PathBuf> = std::fs::read_dir(&opts.corpus_dir)
-        .expect("corpus dir readable")
-        .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| {
-            p.file_name()
-                .and_then(|n| n.to_str())
-                .is_some_and(|n| n.starts_with("edition-") && n.ends_with(".xml"))
-        })
-        .collect();
-    files.sort_by_key(|p| edition_no_of(p.file_name().unwrap().to_str().unwrap()).unwrap_or(0));
-    let files: Vec<PathBuf> = match opts.limit_editions {
-        Some(max) => files
-            .into_iter()
-            .filter(|p| edition_no_of(p.file_name().unwrap().to_str().unwrap()) <= Some(max))
-            .collect(),
-        None => files,
-    };
+    try_derive(opts).unwrap_or_else(|e| panic!("reference-layer derivation failed: {e}"))
+}
 
-    let cat_days = cat_days_map(&opts.catalog);
-    let con = rusqlite::Connection::open_with_flags(
-        &opts.catalog,
-        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
-    )
-    .expect("catalog readable");
+/// Fallible derivation. Every unreadable or underivable input returns
+/// `RefError` (ADR-0031 D6 exit 3) instead of panicking, which is what the
+/// Python reference does and what the CLI contract requires.
+pub fn try_derive(opts: &DeriveOptions) -> Result<Reference, RefError> {
+    if !opts.corpus_dir.is_dir() {
+        return Err(RefError::new(format!(
+            "unreadable corpus dir: {}",
+            opts.corpus_dir.display()
+        )));
+    }
+    let act_dir = act_dir_name(&opts.corpus_dir)?;
+    let mut files: Vec<(u32, PathBuf)> = Vec::new();
+    let read = std::fs::read_dir(&opts.corpus_dir)
+        .map_err(|e| RefError::new(format!("unreadable corpus dir: {e}")))?;
+    for entry in read {
+        let path = entry
+            .map_err(|e| RefError::new(format!("unreadable corpus entry: {e}")))?
+            .path();
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+        if !(name.starts_with("edition-") && name.ends_with(".xml")) {
+            continue;
+        }
+        let no = edition_no_of(name).ok_or_else(|| {
+            RefError::new(format!(
+                "edition file name has no numeric edition number: {name}"
+            ))
+        })?;
+        files.push((no, path));
+    }
+    if files.is_empty() {
+        return Err(RefError::new(format!(
+            "no edition files under corpus dir {}",
+            opts.corpus_dir.display()
+        )));
+    }
+    files.sort_by_key(|(no, _)| *no);
+    for pair in files.windows(2) {
+        if pair[0].0 == pair[1].0 {
+            return Err(RefError::new(format!(
+                "duplicate edition number {} in corpus dir {}",
+                pair[0].0,
+                opts.corpus_dir.display()
+            )));
+        }
+    }
+    if let Some(max) = opts.limit_editions {
+        files.retain(|(no, _)| *no <= max);
+    }
+
+    let cat_days = cat_days_map(&opts.catalog, &act_dir)?;
+    let con = open_catalog(&opts.catalog)?;
+    let amend_prefix = corpus_prefix(&opts.corpus_dir);
     let mut editions: Vec<EditionDigest> = Vec::new();
     let mut digests_by_ed: BTreeMap<u32, BTreeMap<String, String>> = BTreeMap::new();
     let mut spans_by_ed: BTreeMap<u32, BTreeMap<String, ArticleSpan>> = BTreeMap::new();
@@ -812,11 +967,15 @@ pub fn derive(opts: &DeriveOptions) -> Reference {
     let mut prev_day: Option<String> = None;
     let mut prev_digests: Option<BTreeMap<String, String>> = None;
 
-    for path in &files {
-        let name = path.file_name().unwrap().to_str().unwrap().to_string();
-        let ed_no = edition_no_of(&name).unwrap_or(0);
-        let raw_day = effective_day(&name, &cat_days);
-        let scanned = scan_edition(path);
+    for (ed_no, path) in &files {
+        let ed_no = *ed_no;
+        let name = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or_default()
+            .to_string();
+        let raw_day = effective_day(&name, &cat_days, &act_dir);
+        let scanned = scan_edition(path)?;
         let applied_day;
         let clamped;
         if let Some(prev) = &prev_day
@@ -861,7 +1020,7 @@ pub fn derive(opts: &DeriveOptions) -> Reference {
             let (tier, rel) = match amend_cache.get(&key) {
                 Some(v) => v.clone(),
                 None => {
-                    let v = resolve_amend(&con, iso, num);
+                    let v = resolve_amend(&con, iso, num, &amend_prefix)?;
                     amend_cache.insert(key.clone(), v.clone());
                     v
                 }
@@ -940,19 +1099,25 @@ pub fn derive(opts: &DeriveOptions) -> Reference {
         .iter()
         .max_by_key(|e| (e.part_count, e.edition_no))
         .cloned()
-        .expect("editions non-empty");
+        .ok_or_else(|| RefError::new("no editions derived"))?;
+    if measured.part_count == 0 {
+        // Python divides by `part_count` here and raises ZeroDivisionError; the
+        // port must not emit `NaN` as a JSON number (invalid JSON that no one
+        // validates), so the same input fails closed with exit 3.
+        return Err(RefError::new(
+            "no article parts under corpus dir: G-layer volume is not measurable",
+        ));
+    }
     let measured_path = files
         .iter()
-        .find(|p| {
-            edition_no_of(p.file_name().unwrap().to_str().unwrap()) == Some(measured.edition_no)
-        })
-        .cloned()
-        .expect("measured edition file");
+        .find(|(no, _)| *no == measured.edition_no)
+        .map(|(_, p)| p.clone())
+        .ok_or_else(|| RefError::new("measured edition file not found"))?;
     let day = measured.applied_day.clone();
-    let blob = edition_layer_document(&measured_path, measured.edition_no, &day);
+    let blob = edition_layer_document(&measured_path, measured.edition_no, &day)?;
     let per_part = blob.len() as f64 / measured.part_count as f64;
     let act_parts: usize = editions.iter().map(|e| e.part_count).sum();
-    let corpus_editions = corpus_editions_count(&opts.catalog);
+    let corpus_editions = corpus_editions_count(&opts.catalog)?;
     let act_projection = py_round(act_parts as f64 * per_part + editions.len() as f64 * 400.0);
     let corpus_projection =
         py_round(act_projection as f64 / editions.len() as f64 * corpus_editions as f64);
@@ -1153,12 +1318,12 @@ pub fn derive(opts: &DeriveOptions) -> Reference {
         ("markers", J::Arr(amend_sorted)),
     ]));
 
-    Reference {
+    Ok(Reference {
         timeline,
         digests: digests_body,
         named_graphs,
         amend: amend_artifact,
-    }
+    })
 }
 
 /// Python round(x) half-to-even on the decimal digit (used for integer results).
@@ -1166,9 +1331,24 @@ fn py_round(x: f64) -> i64 {
     format!("{x:.0}").parse().unwrap_or(0)
 }
 
-/// Python round(x, 2) rendered with two decimals.
+/// Python `round(x, 2)` rendered the way `json.dumps` renders it: the shortest
+/// round-trip repr of the rounded double (`698.0`, `403.5`, `522.57`).
+///
+/// `format!("{x:.2}")` is not enough: it keeps the padding (`698.00`) and the
+/// 44-FZ corpus hides that because its value happens to have two decimals.
 fn py_round2(x: f64) -> String {
-    format!("{x:.2}")
+    if !x.is_finite() {
+        // Unreachable: a corpus with no article parts fails closed before the
+        // G-layer volume is computed. Kept explicit so NaN can never reach the
+        // JSON writer as a bare `NaN` token (invalid JSON).
+        return format!("{x}");
+    }
+    let rounded: f64 = format!("{x:.2}").parse().unwrap_or(x);
+    let mut s = format!("{rounded}");
+    if !s.contains('.') && !s.contains('e') && !s.contains('E') {
+        s.push_str(".0");
+    }
+    s
 }
 
 fn render_digests(
@@ -1237,8 +1417,20 @@ fn render_digests(
 /// Full-text JSON-LD layer for one edition (on-demand projection; not
 /// committed as an artifact). Python parity: `edition_layer_document` in
 /// `scripts/m217_reference_jsonld.py`.
-pub fn edition_layer_document(path: &Path, edition_no: u32, day: &str) -> Vec<u8> {
-    let paras = scan_wordml_paragraphs(&std::fs::read(path).expect("edition readable"));
+pub fn edition_layer_document(
+    path: &Path,
+    edition_no: u32,
+    day: &str,
+) -> Result<Vec<u8>, RefError> {
+    let bytes = std::fs::read(path)
+        .map_err(|e| RefError::new(format!("unreadable edition file {}: {e}", path.display())))?;
+    if !declares_wordml_namespace(&bytes) {
+        return Err(RefError::new(format!(
+            "edition file {} does not declare the WordML 2003 namespace {WORDML_NAMESPACE}",
+            path.display()
+        )));
+    }
+    let paras = scan_wordml_paragraphs(&bytes)?;
     let mut nodes: Vec<J> = Vec::new();
     let mut index: BTreeMap<String, usize> = BTreeMap::new();
     let mut cur: Option<String> = None;
@@ -1327,7 +1519,7 @@ pub fn edition_layer_document(path: &Path, edition_no: u32, day: &str) -> Vec<u8
     ]);
     let mut s = String::new();
     j_pretty(&doc, 0, &mut s);
-    s.into_bytes()
+    Ok(s.into_bytes())
 }
 
 pub fn artifacts_dir(manifest_dir: &Path) -> PathBuf {
@@ -1368,7 +1560,13 @@ pub fn run_check(corpus: &Path, catalog: &Path, out_dir: &Path) -> i32 {
         corpus_dir: corpus.to_path_buf(),
         catalog: catalog.to_path_buf(),
     };
-    let reference = derive(&opts);
+    let reference = match try_derive(&opts) {
+        Ok(reference) => reference,
+        Err(err) => {
+            eprintln!("unreadable inputs: {err}");
+            return err.exit_code();
+        }
+    };
     let bodies = [
         reference.timeline,
         reference.digests,

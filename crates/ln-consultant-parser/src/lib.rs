@@ -86,6 +86,8 @@ pub use page_index_catalog::{
 };
 pub use raw_link::RawLink;
 pub use reference_layer::{
-    DeriveOptions as ReferenceDeriveOptions, Reference, derive as derive_reference_layer,
+    DeriveOptions as ReferenceDeriveOptions, RefError as ReferenceLayerError, Reference,
+    act_dir_name as reference_layer_act_dir_name, derive as derive_reference_layer,
     edition_layer_document, run_check as reference_layer_run_check,
+    try_derive as try_derive_reference_layer,
 };
