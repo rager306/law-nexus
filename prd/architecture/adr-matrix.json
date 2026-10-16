@@ -381,11 +381,25 @@
         "architecture": true,
         "root_readme": true
       }
+    },
+    {
+      "adr_id": "ADR-0031",
+      "index_lifecycle": "proposed",
+      "oracle_lifecycle": "proposed",
+      "path": "doc/adr/0031-reference-knowledge-layer-contract.md",
+      "status_lifecycle": "proposed",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
     }
   ],
   "schema_version": "law-nexus-adr-matrix/v1",
   "summary": {
-    "adr_count": 26,
+    "adr_count": 27,
     "supersession_edge_count": 2
   }
 }

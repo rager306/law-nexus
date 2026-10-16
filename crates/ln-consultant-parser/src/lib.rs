@@ -35,6 +35,7 @@ pub mod observation;
 pub mod page_index_catalog;
 pub mod promotion_gate;
 pub mod raw_link;
+pub mod reference_layer;
 
 pub use anchor_coverage::{
     AnchorCoverage, AnchorCoverageEntry, AnchorCoverageError, COVERAGE_NON_CLAIMS, COVERAGE_SCHEMA,
@@ -84,3 +85,7 @@ pub use page_index_catalog::{
     CatalogPageIndexRecord, InMemoryPageIndexCatalog, PageIndexCatalogPort,
 };
 pub use raw_link::RawLink;
+pub use reference_layer::{
+    DeriveOptions as ReferenceDeriveOptions, Reference, derive as derive_reference_layer,
+    edition_layer_document, run_check as reference_layer_run_check,
+};

@@ -91,6 +91,7 @@ completion and green repository checks are not product readiness.
   ADR-0028 [proposed] typed lexer, LawRef FSM, layered NPA process and explicit future local-grammar boundary
   ADR-0029 [proposed] requisites-anchored member-assembly FSM for NPA reference capture (M207 model); bounded Rust reference-capture runtime landed (M211); downstream stays blocked
   ADR-0030 [proposed] consultant URI anchor as cross-system legal identity + JSON-LD knowledge layers over the XML→JSONL spine; practice/control banks stay single-version; the temporal model consumes materialized JSONL layers, never raw XML at runtime (R066 stands)
+  ADR-0031 [proposed] reference knowledge-layer contract over the XML→JSONL spine (executed Python reference + Rust port contract): digest timeline per (edition, article), m217-norm/v1 profile, corpus-wide amend provenance, 7-level pageindex ladder, qualified references with byte-checked artifacts; the Rust port is accepted only on byte parity against the committed reference artifacts
 
 [DOWNSTREAM — BLOCKED until parser data + RuVector/TEI ready]
   graph materialization → citation-safe retrieval → R035/R038 validation
