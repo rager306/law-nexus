@@ -29,6 +29,10 @@ Artifacts (prd/migration/rust-evidence/):
                                       --check-ed only when the corpus carries
                                       edition 50, otherwise explicitly not
                                       applicable
+  m217-reference-pageindex.json       schema m217-reference-pageindex/v1
+                                      ed-50 contents ladder (D5, D782) under the
+                                      same applicability gate as the references
+                                      artifact
 
 Non-authoritative: this module is a repository-control reference, not product
 runtime; it does not validate M224 pins, does not promote requirements, and
@@ -80,6 +84,19 @@ RE_REQ_PPA = re.compile(
     r"(\d{2}\.\d{2}\.\d{4})\s+N\s*([^\s,;)]+)",
     re.I,
 )
+# ADR-0031 D5 contents ladder. Seven levels over the recognized heading
+# paragraphs: 1 section, 2 chapter/paragraph(§) (one slot, `kind` discriminates),
+# 3 article, 4 part, 5 punkt, 6 subpoint, 7 paragraph-block. Levels 4 and 6 use
+# the dotted/general number form (`^§\s*(\d+)` would collapse § 3. and § 3.1. into
+# one path id and break the uniqueness invariant). Level 7 is the D783 fallback:
+# *every* remaining non-empty paragraph — preamble and appendix included — which
+# is what makes the corpus-wide block count 669, not the article-scoped 633.
+PAGEINDEX_BLOCK_LEVEL = 7
+RE_SECTION = re.compile(r"^Раздел\s*([IVXLCXХ\d]+)?")
+RE_PARA = re.compile(r"^§\s*(\d+(?:\.\d+)*)")
+RE_PART_DOTTED = re.compile(r"^(\d+(?:\.\d+)*)\.\s")
+RE_PUNKT = re.compile(r"^(\d+)\)\s")
+RE_SUBPUNKT = re.compile(r"^([а-яё])\)\s")
 
 EXIT_OK = 0
 EXIT_ARGV = 2
@@ -96,6 +113,7 @@ DIGESTS_SCHEMA = "m217-reference-digests/v1"
 NAMED_GRAPHS_SCHEMA = "m217-reference-named-graphs/v1"
 AMEND_SCHEMA = "m217-reference-amend-provenance/v1"
 REFS_SCHEMA = "m217-reference-references/v1"
+PAGEINDEX_SCHEMA = "m217-reference-pageindex/v1"
 # ed-50-scoped measurement (D782): the D4/D5 decisions are measured on edition 50,
 # so their artifacts are only derivable from a corpus that carries that edition.
 MEASUREMENT_EDITION = 50
@@ -128,6 +146,20 @@ REFS_NON_CLAIMS = (
     "Reference and requisite scope is the article body text; the article heading "
     "line is structural metadata (its digest already carries the H: prefix), so a "
     "requisite appearing only on a heading line is not counted",
+)
+PAGEINDEX_NON_CLAIMS = (
+    "The ladder is a structural contents projection of one edition: a node is a "
+    "recognized heading paragraph and every remaining non-empty paragraph is a "
+    "level-7 paragraph-block (D783, corpus-wide — preamble and appendix paragraphs "
+    "included); the ladder is not a text CTV or a semantic segmentation",
+    "A node owns exactly one paragraph, so chars is that paragraph's character count "
+    "and the nodes partition the non-empty paragraphs; char conservation is over "
+    "all nodes, not over leaves",
+    "max_depth is the deepest ladder level present (the ladder defines seven levels: "
+    "section, chapter/paragraph(§), article, part, punkt, subpoint, paragraph-block), "
+    "not the longest ancestor chain",
+    "Numbering keeps its dotted form in the label (§ 3. vs § 3.1.) so path ids stay "
+    "unique; empty paragraphs stay out of the ladder and add no chars",
 )
 
 
@@ -606,6 +638,166 @@ def render_references(measurement: dict[str, object]) -> str:
     return json.dumps(measurement, ensure_ascii=False, sort_keys=True, indent=1) + "\n"
 
 
+def pageindex_level(text: str) -> tuple[int, str, str] | None:
+    """(level, kind, label) of a recognized heading paragraph, else None (block).
+
+    Level precedence is ADR-0031 D5: section, chapter/paragraph(§) (one level-2
+    slot, `kind` discriminates), article, part, punkt, subpoint. A paragraph that
+    matches none of them is a level-7 block (D783).
+    """
+    match = RE_SECTION.match(text)
+    if match:
+        return 1, "section", match.group(1) or "unnumbered"
+    match = RE_CH.match(text)
+    if match:
+        return 2, "chapter", match.group(1)
+    match = RE_PARA.match(text)
+    if match:
+        return 2, "paragraph", match.group(1)
+    match = RE_ART.match(text)
+    if match:
+        return 3, "statya", match.group(1)
+    match = RE_PART_DOTTED.match(text)
+    if match:
+        return 4, "part", match.group(1)
+    match = RE_PUNKT.match(text)
+    if match:
+        return 5, "punkt", match.group(1)
+    match = RE_SUBPUNKT.match(text)
+    if match:
+        return 6, "subpunkt", match.group(1)
+    return None
+
+
+def check_pageindex_invariants(
+    paras: list[str], digests: dict[str, str], nodes: list[dict[str, object]]
+) -> None:
+    """The four ADR-0031 D5 invariants, executed on the derived ladder.
+
+    (a) char conservation: Σ node chars == the non-empty paragraph characters;
+    (b) single assignment: every non-empty paragraph is in exactly one node;
+    (c) no article outside the ladder: the ladder articles are the digest spine;
+    (d) id uniqueness: path ids do not collide.
+    A violation is a ReviewInputError (unreadable input, exit 3) — the ladder is
+    never published half-derived.
+    """
+    owned = [node["p_start"] for node in nodes]
+    expected = [idx for idx, text in enumerate(paras) if text]
+    if owned != expected or any(node["p_start"] != node["p_end"] for node in nodes):
+        raise ReviewInputError(
+            "pageindex invariant violated: every non-empty paragraph must belong to "
+            "exactly one node"
+        )
+    if sum(int(node["chars"]) for node in nodes) != sum(len(text) for text in paras if text):
+        raise ReviewInputError("pageindex invariant violated: char conservation")
+    ladder_articles = {
+        str(node["id"]).rsplit("/", 1)[-1] for node in nodes if node["kind"] == "statya"
+    }
+    if ladder_articles != set(digests):
+        raise ReviewInputError(
+            "pageindex invariant violated: the ladder must carry exactly the "
+            f"{len(digests)} articles of the digest spine"
+        )
+    ids = [node["id"] for node in nodes]
+    if len(ids) != len(set(ids)):
+        raise ReviewInputError("pageindex invariant violated: duplicate path id")
+
+
+def build_pageindex(
+    paras: list[str], digests: dict[str, str], act_dir: str, edition_no: int
+) -> dict[str, object]:
+    """ADR-0031 D5 contents ladder over one edition's paragraphs.
+
+    A new node of level L closes every open node of level >= L (the level-2 slot
+    is shared by chapter and §), so the ladder is a tree whose path ids
+    (`chapter-1/statya-44/part-2/punkt-3/subpunkt-а/block-2718`) cannot collide
+    across articles. Every non-empty paragraph is exactly one node: a recognized
+    heading at its own level, or a level-7 block (D783). Empty paragraphs stay
+    out of the ladder and add no chars, and a node owns exactly that one
+    paragraph, so char conservation is over all nodes.
+
+    `digests` is the digest spine of the same paragraphs (article_chunks), used by
+    the no-article-outside-the-ladder invariant; `build_pageindex` executes all
+    four D5 invariants before returning.
+    """
+    offsets: list[int] = []
+    offset = 0
+    for text in paras:
+        offsets.append(offset)
+        offset += len(text) + 1
+    nodes: list[dict[str, object]] = []
+    stack: list[tuple[int, str]] = []
+    for idx, text in enumerate(paras):
+        if not text:
+            continue
+        recognized = pageindex_level(text)
+        if recognized is None:
+            level, kind, label = PAGEINDEX_BLOCK_LEVEL, "block", str(idx)
+        else:
+            level, kind, label = recognized
+        while stack and stack[-1][0] >= level:
+            stack.pop()
+        parent = stack[-1][1] if stack else None
+        node_id = f"{parent}/{kind}-{label}" if parent is not None else f"{kind}-{label}"
+        nodes.append(
+            {
+                "id": node_id,
+                "level": level,
+                "kind": kind,
+                "label": label,
+                "parent": parent,
+                "p_start": idx,
+                "p_end": idx,
+                "chars": len(text),
+                "char_start": offsets[idx],
+                "char_end": offsets[idx] + len(text),
+            }
+        )
+        stack.append((level, node_id))
+    check_pageindex_invariants(paras, digests, nodes)
+    kinds = collections.Counter(node["kind"] for node in nodes)
+    counts = {
+        "total_nodes": len(nodes),
+        "sections": kinds["section"],
+        "chapters": kinds["chapter"],
+        "paragraphs": kinds["paragraph"],
+        "articles": kinds["statya"],
+        "parts": kinds["part"],
+        "punkts": kinds["punkt"],
+        "subpoints": kinds["subpunkt"],
+        "blocks": kinds["block"],
+        # deepest ladder level present (level index), not the longest ancestor chain
+        "max_depth": max((int(node["level"]) for node in nodes), default=0),
+        "chars": sum(int(node["chars"]) for node in nodes),
+    }
+    return {
+        "schema_version": PAGEINDEX_SCHEMA,
+        "authoritative": False,
+        "scope": {"act_dir": act_dir, "edition_no": edition_no},
+        "non_claims": list(NON_AUTHORITY) + list(PAGEINDEX_NON_CLAIMS),
+        "counts": counts,
+        "nodes": nodes,
+    }
+
+
+def render_pageindex(document: dict[str, object]) -> str:
+    """Canonical pageindex document: ensure_ascii=False, sorted keys, one-space
+    indent, trailing newline (same style as render_references)."""
+    return json.dumps(document, ensure_ascii=False, sort_keys=True, indent=1) + "\n"
+
+
+def build_pageindex_measurement(
+    corpus_dir: Path, edition_no: int = MEASUREMENT_EDITION
+) -> dict[str, object]:
+    """Derive the D5 contents ladder from one edition of `corpus_dir`."""
+    path = measurement_edition_path(corpus_dir, edition_no)
+    if path is None:
+        raise ReviewInputError(f"corpus has no edition {edition_no}")
+    paras = scan_paragraphs(path)
+    digests, _spans, _full_text, _amend = article_chunks(paras)
+    return build_pageindex(paras, digests, corpus_dir.name, edition_no)
+
+
 def article_sort_key(a: str) -> tuple[int, ...]:
     return tuple(int(p) for p in a.split("-")[1].split("."))
 
@@ -880,7 +1072,7 @@ SCHEMA_FILE = Path(__file__).resolve().parent / "m217_reference.schema.json"
 
 def _schema_validate(instance: object, schema: dict, root: dict, path: str) -> list[str]:
     """Minimal Draft-2020-12 subset: type/required/properties/additionalProperties/
-    items/enum/const/pattern/minItems/minimum/$ref. Honest non-claim: subset only."""
+    items/enum/const/pattern/minItems/minimum/maximum/$ref. Honest non-claim: subset only."""
     errors: list[str] = []
     if "$ref" in schema:
         ref = schema["$ref"]
@@ -900,6 +1092,8 @@ def _schema_validate(instance: object, schema: dict, root: dict, path: str) -> l
         errors.append(f"{path}: pattern mismatch ({schema['pattern']})")
     if "minimum" in schema and isinstance(instance, (int, float)) and instance < schema["minimum"]:
         errors.append(f"{path}: below minimum")
+    if "maximum" in schema and isinstance(instance, (int, float)) and instance > schema["maximum"]:
+        errors.append(f"{path}: above maximum")
     if "minItems" in schema and isinstance(instance, list) and len(instance) < schema["minItems"]:
         errors.append(f"{path}: fewer than minItems")
     types = schema.get("type")
@@ -946,6 +1140,7 @@ def validate_artifacts(
     graphs_text: str,
     amend_text: str,
     references_text: str | None,
+    pageindex_text: str | None,
     schema_path: Path,
 ) -> list[str]:
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
@@ -967,6 +1162,9 @@ def validate_artifacts(
     if references_text is not None:
         references = json.loads(references_text)
         errors += _schema_validate(references, schema["$defs"]["references"], schema, "references")
+    if pageindex_text is not None:
+        pageindex = json.loads(pageindex_text)
+        errors += _schema_validate(pageindex, schema["$defs"]["pageindex"], schema, "pageindex")
     return errors
 
 
@@ -979,10 +1177,14 @@ def artifact_paths(out_dir: Path) -> tuple[Path, Path, Path, Path]:
     )
 
 
-def measurement_artifact_paths(out_dir: Path) -> tuple[Path, ...]:
+def measurement_artifact_paths(out_dir: Path) -> tuple[Path, Path]:
     """ed-50-scoped measurement artifacts (ADR-0031 D782), kept separate from the
-    four full-corpus artifacts in artifact_paths(). T03 adds the pageindex path."""
-    return (out_dir / "m217-reference-references.json",)
+    four full-corpus artifacts in artifact_paths(): the D4 references and the D5
+    contents ladder."""
+    return (
+        out_dir / "m217-reference-references.json",
+        out_dir / "m217-reference-pageindex.json",
+    )
 
 
 def unreadable(reason: str) -> "ReviewInputError":
@@ -1043,13 +1245,11 @@ def main(argv: list[str] | None = None) -> int:
             corpus, args.catalog
         )
         g_volume = measure_g_layer(corpus, editions, args.catalog)
-        # D782: the D4 measurement is ed-50-scoped; it is built only where the
-        # corpus carries edition 50, so a fixture corpus without it stays exit 0.
-        measurement = (
-            build_references_measurement(corpus, args.catalog)
-            if measurement_applicable(corpus)
-            else None
-        )
+        # D782: the D4/D5 measurements are ed-50-scoped; they are built only where
+        # the corpus carries edition 50, so a fixture corpus without it stays exit 0.
+        applicable = measurement_applicable(corpus)
+        measurement = build_references_measurement(corpus, args.catalog) if applicable else None
+        pageindex = build_pageindex_measurement(corpus) if applicable else None
     except ReviewInputError as exc:
         print(str(exc), file=sys.stderr)
         return EXIT_INPUT
@@ -1066,6 +1266,8 @@ def main(argv: list[str] | None = None) -> int:
     graphs = render_named_graphs(named)
     amend_doc = render_amend(amend_rows)
     references_doc = render_references(measurement) if measurement is not None else None
+    pageindex_doc = render_pageindex(pageindex) if pageindex is not None else None
+    references_path, pageindex_path = measurement_artifact_paths(out_dir)
     artifacts = (
         (timeline_path, timeline),
         (digests_path, digests_body),
@@ -1073,10 +1275,12 @@ def main(argv: list[str] | None = None) -> int:
         (amend_path, amend_doc),
     )
     if references_doc is not None:
-        artifacts = artifacts + ((measurement_artifact_paths(out_dir)[0], references_doc),)
+        artifacts = artifacts + ((references_path, references_doc),)
+    if pageindex_doc is not None:
+        artifacts = artifacts + ((pageindex_path, pageindex_doc),)
     schema_path = Path(__file__).resolve().parent / "m217_reference.schema.json"
     violations = validate_artifacts(
-        timeline, digests_body, graphs, amend_doc, references_doc, schema_path
+        timeline, digests_body, graphs, amend_doc, references_doc, pageindex_doc, schema_path
     )
     if violations:
         for line in violations[:10]:
@@ -1111,7 +1315,17 @@ def main(argv: list[str] | None = None) -> int:
             f"deep_link_candidates={counts['deep_link_candidates']} "
             f"deep_links={counts['deep_links']}"
         )
-    else:
+    if pageindex is not None:
+        ladder = pageindex["counts"]
+        print(
+            f"pageindex ed-{MEASUREMENT_EDITION}: total_nodes={ladder['total_nodes']} "
+            f"sections={ladder['sections']} chapters={ladder['chapters']} "
+            f"paragraphs={ladder['paragraphs']} articles={ladder['articles']} "
+            f"parts={ladder['parts']} punkts={ladder['punkts']} "
+            f"subpoints={ladder['subpoints']} blocks={ladder['blocks']} "
+            f"max_depth={ladder['max_depth']} chars={ladder['chars']}"
+        )
+    if measurement is None and pageindex is None:
         print(f"measurement not applicable: corpus has no edition {MEASUREMENT_EDITION}")
     return EXIT_OK
 
