@@ -6,6 +6,16 @@
 //! Rust port is accepted only when it reproduces them byte for byte. The
 //! negative test pins the fail-closed path: a tampered artifact must be
 //! reported as drift (exit 6), never silently accepted.
+//!
+//! The 44-FZ corpus (`consru_export/`) is gitignored, while CI runs
+//! `cargo test --workspace --offline` on a clean checkout. The suite is
+//! therefore corpus-gated: when the corpus is absent every corpus-dependent
+//! test prints `SKIP:` and returns (exit 0) instead of panicking inside
+//! `derive` or asserting `EXIT_OK` against `EXIT_INPUT`. When the corpus is
+//! present the run is the full, unweakened oracle — no `#[ignore]` and no
+//! opt-in env var. Set `M225_S01_REPO_ROOT=<dir>` to point at another
+//! checkout, or at a nonexistent directory to exercise the skip path locally
+//! (the same knob is used by `reference_layer_digests_prefix.rs`).
 
 use ln_consultant_parser::reference_layer::{
     DeriveOptions, EXIT_DRIFT, EXIT_OK, Reference, derive, run_check,
@@ -13,12 +23,41 @@ use ln_consultant_parser::reference_layer::{
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
+/// Repository root. `M225_S01_REPO_ROOT` wins when set (it may be a
+/// nonexistent path, which is the documented way to exercise the skip path).
 fn repo_root() -> PathBuf {
+    if let Some(root) = std::env::var_os("M225_S01_REPO_ROOT") {
+        return PathBuf::from(root);
+    }
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("..")
         .join("..")
         .canonicalize()
         .expect("repo root")
+}
+
+/// Pure, corpus-free predicate: does `root` hold the 44-FZ corpus and catalog?
+fn corpus_available_at(root: &Path) -> bool {
+    root.join("consru_export/consru_export/exports/npa/law_2013-04-05_44-fz")
+        .is_dir()
+        && root
+            .join("consru_export/consru_export/catalog.sqlite")
+            .is_file()
+}
+
+fn corpus_available() -> bool {
+    corpus_available_at(&repo_root())
+}
+
+/// Corpus-gated hermeticity guard. Must run before any corpus or artifact read.
+fn skip_without_corpus() -> bool {
+    if corpus_available() {
+        return false;
+    }
+    eprintln!(
+        "SKIP: consru_export 44-FZ corpus not available (set M225_S01_REPO_ROOT to a full checkout, or to a nonexistent dir to force this skip)"
+    );
+    true
 }
 
 fn corpus_dir() -> PathBuf {
@@ -71,6 +110,9 @@ const ARTIFACTS: [&str; 4] = [
 
 #[test]
 fn all_reference_artifacts_are_byte_identical_to_the_python_reference() {
+    if skip_without_corpus() {
+        return;
+    }
     let r = reference();
     let bodies = [&r.timeline, &r.digests, &r.named_graphs, &r.amend];
     for (name, body) in ARTIFACTS.iter().zip(bodies) {
@@ -84,6 +126,9 @@ fn all_reference_artifacts_are_byte_identical_to_the_python_reference() {
 
 #[test]
 fn structural_breaks_match_documented_law_history() {
+    if skip_without_corpus() {
+        return;
+    }
     let derived: serde_json::Value =
         serde_json::from_str(&reference().timeline).expect("derived timeline parses");
     let breaks: Vec<(u64, u64)> = derived["editions"]
@@ -107,12 +152,18 @@ fn structural_breaks_match_documented_law_history() {
 
 #[test]
 fn check_reports_ok_against_the_committed_artifacts() {
+    if skip_without_corpus() {
+        return;
+    }
     let code = run_check(&corpus_dir(), &catalog_path(), &committed_dir());
     assert_eq!(code, EXIT_OK, "--check must accept the committed artifacts");
 }
 
 #[test]
 fn check_fails_closed_on_a_tampered_artifact() {
+    if skip_without_corpus() {
+        return;
+    }
     let tmp = std::env::temp_dir().join("ln-reference-layer-drift");
     let _ = std::fs::remove_dir_all(&tmp);
     std::fs::create_dir_all(&tmp).expect("temp dir");
@@ -130,6 +181,24 @@ fn check_fails_closed_on_a_tampered_artifact() {
         code, EXIT_DRIFT,
         "a tampered artifact must fail closed with drift"
     );
+}
+
+/// Runs in both modes: absent roots are always unavailable; the positive
+/// branch is only asserted when the real corpus is present.
+#[test]
+fn corpus_gate_reports_an_absent_root_as_unavailable() {
+    assert!(
+        !corpus_available_at(Path::new("/nonexistent-lns01")),
+        "a nonexistent root must report the corpus as unavailable"
+    );
+    if corpus_available() {
+        assert!(
+            corpus_available_at(&repo_root()),
+            "the resolved repo root must report the corpus as available"
+        );
+    } else {
+        eprintln!("SKIP: positive corpus gate assertion needs the 44-FZ corpus");
+    }
 }
 
 fn committed_dir() -> PathBuf {
