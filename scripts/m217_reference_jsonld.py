@@ -23,6 +23,12 @@ Artifacts (prd/migration/rust-evidence/):
   m217-reference-timeline.json        schema m217-reference-timeline/v1
   m217-reference-digests.jsonl        schema m217-reference-digests/v1
   m217-reference-named-graphs.json    schema m217-reference-named-graphs/v1
+  m217-reference-amend-provenance.json  schema m217-reference-amend-provenance/v1
+  m217-reference-references.json      schema m217-reference-references/v1
+                                      ed-50 measurement (D4, D782); written and
+                                      --check-ed only when the corpus carries
+                                      edition 50, otherwise explicitly not
+                                      applicable
 
 Non-authoritative: this module is a repository-control reference, not product
 runtime; it does not validate M224 pins, does not promote requirements, and
@@ -39,6 +45,7 @@ import re
 import sqlite3
 import sys
 import xml.etree.ElementTree as ET
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -55,6 +62,24 @@ RE_AMEND_MARK = re.compile(r"\(в ред\.[^)]*?от\s+(\d{2}\.\d{2}\.\d{4})\s+N
 RE_REF = re.compile(r"стать(?:ё|е|ей|и|ю|я)?\s+(\d{1,3})", re.I)
 RE_EXT = re.compile(r"Федерального закона|закона|Кодекса|ТК РФ|ГК РФ|законе", re.I)
 RE_SENT = re.compile(r"(?<=[.;])\s+")
+# ADR-0031 D4 external requisite rules: each names the (type, DD.MM.YYYY, number)
+# family it qualifies, so the counts are reproducible from a named rule instead
+# of an anonymous magic constant.
+# - law: any «Федеральный закон…»/«закон…» form followed by «от <date> N <number>».
+# - sub-legislative acts: постановление / приказ / распоряжение / письмо, with an
+#   optional issuing body (Government/Minfn/FNS of Russia) before the date.
+# Bare code shorthands (ТК РФ, ГК РФ, …) carry neither date nor number, so they are
+# outside the D4 «type+date+number» requisite rule.
+RE_REQ_LAW = re.compile(
+    r"(?:Федеральн\w+ закон\w+|закон\w*)\s+от\s+(\d{2}\.\d{2}\.\d{4})\s+N\s*([^\s,;)]+)",
+    re.I,
+)
+RE_REQ_PPA = re.compile(
+    r"(Постановлени\w+|Приказ\w*|Распоряжени\w+|Письмо)\s+([^)]{0,60}?"
+    r"Правительств\w+ РФ|[^)]{0,60}?Минфина России|[^)]{0,60}?ФНС России)?\s*от\s+"
+    r"(\d{2}\.\d{2}\.\d{4})\s+N\s*([^\s,;)]+)",
+    re.I,
+)
 
 EXIT_OK = 0
 EXIT_ARGV = 2
@@ -70,6 +95,10 @@ TIMELINE_SCHEMA_V2 = "m217-reference-timeline/v2"
 DIGESTS_SCHEMA = "m217-reference-digests/v1"
 NAMED_GRAPHS_SCHEMA = "m217-reference-named-graphs/v1"
 AMEND_SCHEMA = "m217-reference-amend-provenance/v1"
+REFS_SCHEMA = "m217-reference-references/v1"
+# ed-50-scoped measurement (D782): the D4/D5 decisions are measured on edition 50,
+# so their artifacts are only derivable from a corpus that carries that edition.
+MEASUREMENT_EDITION = 50
 NORMALIZATION_PROFILE = {
     "id": "m217-norm/v1",
     "rules": [
@@ -85,6 +114,20 @@ NON_AUTHORITY = (
     "Does not validate M224 pins or promote requirements",
     "Does not close review findings or lifecycle state",
     "Digest identity is not text CTV resolution",
+)
+REFS_NON_CLAIMS = (
+    "Deep-link mechanics are proven by non-empty candidates; a resolved deep link "
+    "needs the target act's corpus and the edition in force at the citing act's "
+    "applied day (ADR-0031 D4, never the enacting-date edition alone), which is "
+    "outside this measurement's scope — the zero deep_links is a derived honest "
+    "zero, not a silent skip",
+    "Amendment-fact sentences and own-edition markers resolve to amendment "
+    "provenance (D3), never to deep links (ADR-0031 D4)",
+    "Requisite resolution identifies the citing act's changing act; it does not "
+    "interpret amendment semantics",
+    "Reference and requisite scope is the article body text; the article heading "
+    "line is structural metadata (its digest already carries the H: prefix), so a "
+    "requisite appearing only on a heading line is not counted",
 )
 
 
@@ -125,19 +168,29 @@ class ArticleSpan:
     p_end: int
 
 
-def parse_edition(
-    path: Path,
-) -> tuple[dict[str, str], list[tuple[str, str, str]], int, int, dict[str, ArticleSpan]]:
-    """Return (digests, qualified edges, raw headings, part count, article spans)."""
+def scan_paragraphs(path: Path) -> list[str]:
+    """WordML 2003 paragraphs in document order under the pinned normalization
+    (NBSP to space, strip; empty paragraphs stay as empty strings)."""
     paras: list[str] = []
-    raw_headings = 0
     for _ev, el in ET.iterparse(path, events=("end",)):
         if el.tag == W + "p":
             text = "".join(x.text or "" for x in el.iter(W + "t")).replace("\xa0", " ").strip()
-            if RE_ART.match(text):
-                raw_headings += 1
             paras.append(text)
             el.clear()
+    return paras
+
+
+def article_chunks(
+    paras: list[str],
+) -> tuple[
+    dict[str, str], dict[str, ArticleSpan], dict[str, list[str]], list[tuple[str, str, str]]
+]:
+    """Single article-scoped marking shared by the timeline and the D4 measurement.
+
+    Returns (digests, spans, full_text, amend): the progressive sha12 per article,
+    the paragraph span per article, the ordered chunks per article, and the
+    amendment markers as (article|act, ISO date, number).
+    """
     digests: dict[str, str] = {}
     spans: dict[str, ArticleSpan] = {}
     full_text: dict[str, list[str]] = collections.defaultdict(list)
@@ -165,6 +218,16 @@ def parse_edition(
             full_text[cur_art].append(text)
             digests[cur_art] = sha12(digests[cur_art] + "|" + text)
             spans[cur_art] = ArticleSpan(spans[cur_art].p_start, idx)
+    return digests, spans, full_text, amend
+
+
+def parse_edition(
+    path: Path,
+) -> tuple[dict[str, str], list[tuple[str, str, str]], int, int, dict[str, ArticleSpan]]:
+    """Return (digests, qualified edges, raw headings, part count, article spans)."""
+    paras = scan_paragraphs(path)
+    raw_headings = sum(1 for text in paras if RE_ART.match(text))
+    digests, spans, full_text, amend = article_chunks(paras)
     edges: dict[str, set[str]] = collections.defaultdict(set)
     for aid, chunks in full_text.items():
         for chunk in chunks:
@@ -361,6 +424,186 @@ def resolve_amend(
         tier = "resolved_enacting_date" if exact else "resolved_number_only"
         return tier, f"{prefix}/{rel}" if prefix else rel
     return "unresolved", None
+
+
+PAIR = tuple[str, str]
+
+
+def iter_sentences(full_text: dict[str, list[str]]) -> Iterator[tuple[str, str]]:
+    """(article, sentence) stream — the single sentence-scope definition shared by
+    D4 classification, requisite measurement and deep-link candidates (the same
+    RE_SENT split parse_edition uses)."""
+    for aid, chunks in full_text.items():
+        for chunk in chunks:
+            for sent in RE_SENT.split(chunk):
+                yield aid, sent
+
+
+def article_body(full_text: dict[str, list[str]]) -> dict[str, list[str]]:
+    """Chunks after the article heading line — the D4 measurement scope.
+
+    The heading line is structural metadata (its text is already carried as the
+    `H:` digest prefix), so the ADR-0031 D4 reference/requisite measurement is
+    over the article body text. This is the scope the committed ed-50 oracle
+    pins (379/346/33 candidates, 611/609 exact-date requisites); including the
+    heading line would add three ed-50 heading-only requisite mentions.
+    """
+    return {aid: chunks[1:] for aid, chunks in full_text.items()}
+
+
+def iso_from_dotted(value: str) -> str:
+    """DD.MM.YYYY -> YYYY-MM-DD (catalog/date comparison form)."""
+    return f"{value[6:10]}-{value[3:5]}-{value[0:2]}"
+
+
+def find_requisites(sentence: str) -> list[tuple[str, str, str]]:
+    """External requisite occurrences (type, ISO date, number) named by family:
+    'law' for any «Федеральный закон…/закон…» form; the act-type word
+    (постановление, приказ, распоряжение, письмо) for sub-legislative acts."""
+    found: list[tuple[str, str, str]] = []
+    for m in RE_REQ_LAW.finditer(sentence):
+        found.append(("law", iso_from_dotted(m.group(1)), m.group(2).rstrip(").,")))
+    for m in RE_REQ_PPA.finditer(sentence):
+        found.append((m.group(1).lower(), iso_from_dotted(m.group(3)), m.group(4).rstrip(").,")))
+    return found
+
+
+def classify_references(
+    digests: dict[str, str], full_text: dict[str, list[str]]
+) -> tuple[list[PAIR], list[PAIR], list[PAIR]]:
+    """Sentence-scoped reference qualification (ADR-0031 D4).
+
+    candidates: (article, target) pairs whose target exists in this edition and is
+    not the article itself.
+    internal: candidates whose sentence has no external-law marker, or carries
+    «настоящего/прежнему».
+    external_sentence: the remaining candidates (sentence names an external act).
+    """
+    candidates: set[PAIR] = set()
+    internal: set[PAIR] = set()
+    external: set[PAIR] = set()
+    for aid, sent in iter_sentences(full_text):
+        external_marker = (
+            bool(RE_EXT.search(sent)) and "настоящего" not in sent and "прежнему" not in sent
+        )
+        for m in RE_REF.finditer(sent):
+            ref = f"statya-{m.group(1)}"
+            if ref != aid and ref in digests:
+                candidates.add((aid, ref))
+                (external if external_marker else internal).add((aid, ref))
+    return sorted(candidates), sorted(internal), sorted(external)
+
+
+def measure_requisites(
+    full_text: dict[str, list[str]], con: sqlite3.Connection, prefix: str
+) -> dict[str, object]:
+    """External requisites (type+date+number) resolved through resolve_amend.
+
+    Returns the occurrence total, the exact-date (enacting-date tier) count, the
+    unique (type, date, number) count and the sorted unique rows."""
+    occurrences: list[tuple[str, str, str]] = []
+    for _aid, sent in iter_sentences(full_text):
+        occurrences.extend(find_requisites(sent))
+    resolved: dict[tuple[str, str, str], tuple[str, str | None]] = {}
+    tiers: collections.Counter = collections.Counter()
+    for key in occurrences:
+        if key not in resolved:
+            resolved[key] = resolve_amend(con, key[1], key[2], prefix)
+        tiers[resolved[key][0]] += 1
+    rows: list[dict[str, object]] = []
+    for typ, iso, num in sorted(resolved):
+        tier, rel = resolved[(typ, iso, num)]
+        row: dict[str, object] = {"type": typ, "date": iso, "number": num, "tier": tier}
+        if rel:
+            row["resolved_path"] = rel
+        rows.append(row)
+    return {
+        "total": len(occurrences),
+        "exact_date": tiers["resolved_enacting_date"],
+        "unique": len(resolved),
+        "tiers": dict(sorted(tiers.items())),
+        "rows": rows,
+    }
+
+
+def measure_deep_links(full_text: dict[str, list[str]]) -> tuple[list[PAIR], list[PAIR]]:
+    """Deep-link mechanics (ADR-0031 D4): a candidate is a (citing article, target
+    article) pair whose sentence carries an external requisite and a reference to a
+    different article. A *resolved* deep link additionally needs the target act's
+    corpus and the edition in force at the citing act's applied day; the S02 corpus
+    carries only 44-FZ, so resolution is empty by construction — an honest derived
+    zero, published as counts.deep_links and qualified in non_claims."""
+    candidates: set[PAIR] = set()
+    for aid, sent in iter_sentences(full_text):
+        if not find_requisites(sent):
+            continue
+        for m in RE_REF.finditer(sent):
+            target = f"statya-{m.group(1)}"
+            if target != aid:
+                candidates.add((aid, target))
+    resolved: set[PAIR] = set()
+    return sorted(candidates), sorted(resolved)
+
+
+def measurement_edition_path(corpus_dir: Path, edition_no: int) -> Path | None:
+    """The edition file carrying `edition_no`, if the corpus has one. This is the
+    applicability predicate both main branches (write and --check) must share."""
+    for path in glob_files(corpus_dir):
+        try:
+            if edition_number_of(path.name) == edition_no:
+                return path
+        except ReviewInputError:
+            continue
+    return None
+
+
+def measurement_applicable(corpus_dir: Path) -> bool:
+    """The ed-50 measurement applies only where the corpus carries edition 50
+    (D782). Fixture corpora without it must stay exit 0, never exit 3."""
+    return measurement_edition_path(corpus_dir, MEASUREMENT_EDITION) is not None
+
+
+def build_references_measurement(
+    corpus_dir: Path, catalog: str, edition_no: int = MEASUREMENT_EDITION
+) -> dict[str, object]:
+    """Derive the D4 reference measurement from one edition of `corpus_dir`."""
+    path = measurement_edition_path(corpus_dir, edition_no)
+    if path is None:
+        raise ReviewInputError(f"corpus has no edition {edition_no}")
+    digests, _spans, full_text, _amend = article_chunks(scan_paragraphs(path))
+    body = article_body(full_text)
+    candidates, internal, external = classify_references(digests, body)
+    con = sqlite3.connect(f"file:{catalog}?mode=ro", uri=True)
+    try:
+        requisites = measure_requisites(body, con, corpus_prefix(corpus_dir))
+    finally:
+        con.close()
+    deep_candidates, deep_links = measure_deep_links(body)
+    return {
+        "schema_version": REFS_SCHEMA,
+        "authoritative": False,
+        "scope": {"act_dir": corpus_dir.name, "edition_no": edition_no},
+        "non_claims": list(NON_AUTHORITY) + list(REFS_NON_CLAIMS),
+        "counts": {
+            "candidates": len(candidates),
+            "internal": len(internal),
+            "external_sentence": len(external),
+            "deep_link_candidates": len(deep_candidates),
+            "deep_links": len(deep_links),
+            "requisites": requisites["total"],
+            "requisites_exact_date": requisites["exact_date"],
+            "requisites_unique": requisites["unique"],
+        },
+        "edges_internal": [[a, b] for a, b in internal],
+        "edges_external_sentence": [[a, b] for a, b in external],
+        "requisites": requisites["rows"],
+    }
+
+
+def render_references(measurement: dict[str, object]) -> str:
+    """Canonical measurement document: ensure_ascii=False, sorted keys, one-space
+    indent, trailing newline (same style as render_amend)."""
+    return json.dumps(measurement, ensure_ascii=False, sort_keys=True, indent=1) + "\n"
 
 
 def article_sort_key(a: str) -> tuple[int, ...]:
@@ -702,6 +945,7 @@ def validate_artifacts(
     digests_text: str,
     graphs_text: str,
     amend_text: str,
+    references_text: str | None,
     schema_path: Path,
 ) -> list[str]:
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
@@ -720,6 +964,9 @@ def validate_artifacts(
     errors += _schema_validate(graphs, schema["$defs"]["named_graphs"], schema, "named_graphs")
     amend = json.loads(amend_text)
     errors += _schema_validate(amend, schema["$defs"]["amend_provenance"], schema, "amend")
+    if references_text is not None:
+        references = json.loads(references_text)
+        errors += _schema_validate(references, schema["$defs"]["references"], schema, "references")
     return errors
 
 
@@ -730,6 +977,12 @@ def artifact_paths(out_dir: Path) -> tuple[Path, Path, Path, Path]:
         out_dir / "m217-reference-named-graphs.json",
         out_dir / "m217-reference-amend-provenance.json",
     )
+
+
+def measurement_artifact_paths(out_dir: Path) -> tuple[Path, ...]:
+    """ed-50-scoped measurement artifacts (ADR-0031 D782), kept separate from the
+    four full-corpus artifacts in artifact_paths(). T03 adds the pageindex path."""
+    return (out_dir / "m217-reference-references.json",)
 
 
 def unreadable(reason: str) -> "ReviewInputError":
@@ -790,6 +1043,13 @@ def main(argv: list[str] | None = None) -> int:
             corpus, args.catalog
         )
         g_volume = measure_g_layer(corpus, editions, args.catalog)
+        # D782: the D4 measurement is ed-50-scoped; it is built only where the
+        # corpus carries edition 50, so a fixture corpus without it stays exit 0.
+        measurement = (
+            build_references_measurement(corpus, args.catalog)
+            if measurement_applicable(corpus)
+            else None
+        )
     except ReviewInputError as exc:
         print(str(exc), file=sys.stderr)
         return EXIT_INPUT
@@ -805,14 +1065,19 @@ def main(argv: list[str] | None = None) -> int:
     timeline = render(editions, ctv, nonmono, g_volume)
     graphs = render_named_graphs(named)
     amend_doc = render_amend(amend_rows)
+    references_doc = render_references(measurement) if measurement is not None else None
     artifacts = (
         (timeline_path, timeline),
         (digests_path, digests_body),
         (graphs_path, graphs),
         (amend_path, amend_doc),
     )
+    if references_doc is not None:
+        artifacts = artifacts + ((measurement_artifact_paths(out_dir)[0], references_doc),)
     schema_path = Path(__file__).resolve().parent / "m217_reference.schema.json"
-    violations = validate_artifacts(timeline, digests_body, graphs, amend_doc, schema_path)
+    violations = validate_artifacts(
+        timeline, digests_body, graphs, amend_doc, references_doc, schema_path
+    )
     if violations:
         for line in violations[:10]:
             print(f"schema violation: {line}", file=sys.stderr)
@@ -830,12 +1095,24 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"drift: {line}", file=sys.stderr)
             return EXIT_DRIFT
         print("check=ok artifacts byte-identical")
-        return EXIT_OK
-
-    for path, body in artifacts:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(body, encoding="utf-8")
-        print(f"wrote {path} ({len(body)} bytes)")
+    else:
+        for path, body in artifacts:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(body, encoding="utf-8")
+            print(f"wrote {path} ({len(body)} bytes)")
+    if measurement is not None:
+        counts = measurement["counts"]
+        print(
+            f"measurement ed-{MEASUREMENT_EDITION}: candidates={counts['candidates']} "
+            f"internal={counts['internal']} external_sentence={counts['external_sentence']} "
+            f"requisites={counts['requisites']} "
+            f"requisites_exact_date={counts['requisites_exact_date']} "
+            f"requisites_unique={counts['requisites_unique']} "
+            f"deep_link_candidates={counts['deep_link_candidates']} "
+            f"deep_links={counts['deep_links']}"
+        )
+    else:
+        print(f"measurement not applicable: corpus has no edition {MEASUREMENT_EDITION}")
     return EXIT_OK
 
 

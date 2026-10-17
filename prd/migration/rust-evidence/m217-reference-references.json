@@ -1,0 +1,1898 @@
+{
+ "authoritative": false,
+ "counts": {
+  "candidates": 379,
+  "deep_link_candidates": 1,
+  "deep_links": 0,
+  "external_sentence": 33,
+  "internal": 346,
+  "requisites": 611,
+  "requisites_exact_date": 609,
+  "requisites_unique": 50
+ },
+ "edges_external_sentence": [
+  [
+   "statya-110.2",
+   "statya-54"
+  ],
+  [
+   "statya-113",
+   "statya-1"
+  ],
+  [
+   "statya-113",
+   "statya-10"
+  ],
+  [
+   "statya-113",
+   "statya-2"
+  ],
+  [
+   "statya-113",
+   "statya-20"
+  ],
+  [
+   "statya-113",
+   "statya-21"
+  ],
+  [
+   "statya-113",
+   "statya-24"
+  ],
+  [
+   "statya-113",
+   "statya-25"
+  ],
+  [
+   "statya-113",
+   "statya-27"
+  ],
+  [
+   "statya-113",
+   "statya-29"
+  ],
+  [
+   "statya-113",
+   "statya-3"
+  ],
+  [
+   "statya-113",
+   "statya-30"
+  ],
+  [
+   "statya-113",
+   "statya-31"
+  ],
+  [
+   "statya-113",
+   "statya-33"
+  ],
+  [
+   "statya-113",
+   "statya-4"
+  ],
+  [
+   "statya-113",
+   "statya-44"
+  ],
+  [
+   "statya-113",
+   "statya-46"
+  ],
+  [
+   "statya-113",
+   "statya-5"
+  ],
+  [
+   "statya-113",
+   "statya-55"
+  ],
+  [
+   "statya-113",
+   "statya-58"
+  ],
+  [
+   "statya-113",
+   "statya-65"
+  ],
+  [
+   "statya-113",
+   "statya-7"
+  ],
+  [
+   "statya-15",
+   "statya-2"
+  ],
+  [
+   "statya-30",
+   "statya-31"
+  ],
+  [
+   "statya-31",
+   "statya-19"
+  ],
+  [
+   "statya-34",
+   "statya-19"
+  ],
+  [
+   "statya-39",
+   "statya-19"
+  ],
+  [
+   "statya-45",
+   "statya-12"
+  ],
+  [
+   "statya-45",
+   "statya-76"
+  ],
+  [
+   "statya-50",
+   "statya-19"
+  ],
+  [
+   "statya-50",
+   "statya-24"
+  ],
+  [
+   "statya-54.3",
+   "statya-19"
+  ],
+  [
+   "statya-54.3",
+   "statya-24"
+  ]
+ ],
+ "edges_internal": [
+  [
+   "statya-1",
+   "statya-15"
+  ],
+  [
+   "statya-1",
+   "statya-24"
+  ],
+  [
+   "statya-101",
+   "statya-30"
+  ],
+  [
+   "statya-103",
+   "statya-83"
+  ],
+  [
+   "statya-103",
+   "statya-84"
+  ],
+  [
+   "statya-103",
+   "statya-93"
+  ],
+  [
+   "statya-104",
+   "statya-93"
+  ],
+  [
+   "statya-106",
+   "statya-105"
+  ],
+  [
+   "statya-106",
+   "statya-32"
+  ],
+  [
+   "statya-106",
+   "statya-99"
+  ],
+  [
+   "statya-108",
+   "statya-32"
+  ],
+  [
+   "statya-109",
+   "statya-22"
+  ],
+  [
+   "statya-110",
+   "statya-22"
+  ],
+  [
+   "statya-111",
+   "statya-24"
+  ],
+  [
+   "statya-111.1",
+   "statya-104"
+  ],
+  [
+   "statya-111.1",
+   "statya-99"
+  ],
+  [
+   "statya-111.3",
+   "statya-93"
+  ],
+  [
+   "statya-111.4",
+   "statya-111"
+  ],
+  [
+   "statya-111.4",
+   "statya-93"
+  ],
+  [
+   "statya-112",
+   "statya-103"
+  ],
+  [
+   "statya-112",
+   "statya-105"
+  ],
+  [
+   "statya-112",
+   "statya-15"
+  ],
+  [
+   "statya-112",
+   "statya-2"
+  ],
+  [
+   "statya-112",
+   "statya-24"
+  ],
+  [
+   "statya-112",
+   "statya-26"
+  ],
+  [
+   "statya-112",
+   "statya-30"
+  ],
+  [
+   "statya-112",
+   "statya-31"
+  ],
+  [
+   "statya-112",
+   "statya-34"
+  ],
+  [
+   "statya-112",
+   "statya-36"
+  ],
+  [
+   "statya-112",
+   "statya-37"
+  ],
+  [
+   "statya-112",
+   "statya-38"
+  ],
+  [
+   "statya-112",
+   "statya-4"
+  ],
+  [
+   "statya-112",
+   "statya-45"
+  ],
+  [
+   "statya-112",
+   "statya-55"
+  ],
+  [
+   "statya-112",
+   "statya-61"
+  ],
+  [
+   "statya-112",
+   "statya-62"
+  ],
+  [
+   "statya-112",
+   "statya-71"
+  ],
+  [
+   "statya-112",
+   "statya-73"
+  ],
+  [
+   "statya-112",
+   "statya-79"
+  ],
+  [
+   "statya-112",
+   "statya-83"
+  ],
+  [
+   "statya-112",
+   "statya-94"
+  ],
+  [
+   "statya-112",
+   "statya-95"
+  ],
+  [
+   "statya-112",
+   "statya-96"
+  ],
+  [
+   "statya-114",
+   "statya-103"
+  ],
+  [
+   "statya-114",
+   "statya-104"
+  ],
+  [
+   "statya-114",
+   "statya-16"
+  ],
+  [
+   "statya-114",
+   "statya-20"
+  ],
+  [
+   "statya-114",
+   "statya-21"
+  ],
+  [
+   "statya-114",
+   "statya-23"
+  ],
+  [
+   "statya-114",
+   "statya-25"
+  ],
+  [
+   "statya-114",
+   "statya-26"
+  ],
+  [
+   "statya-114",
+   "statya-34"
+  ],
+  [
+   "statya-114",
+   "statya-35"
+  ],
+  [
+   "statya-114",
+   "statya-38"
+  ],
+  [
+   "statya-114",
+   "statya-4"
+  ],
+  [
+   "statya-114",
+   "statya-42"
+  ],
+  [
+   "statya-114",
+   "statya-45"
+  ],
+  [
+   "statya-114",
+   "statya-97"
+  ],
+  [
+   "statya-114",
+   "statya-99"
+  ],
+  [
+   "statya-12",
+   "statya-2"
+  ],
+  [
+   "statya-14",
+   "statya-95"
+  ],
+  [
+   "statya-15",
+   "statya-1"
+  ],
+  [
+   "statya-15",
+   "statya-78"
+  ],
+  [
+   "statya-15",
+   "statya-80"
+  ],
+  [
+   "statya-15",
+   "statya-93"
+  ],
+  [
+   "statya-15",
+   "statya-99"
+  ],
+  [
+   "statya-16",
+   "statya-13"
+  ],
+  [
+   "statya-17",
+   "statya-13"
+  ],
+  [
+   "statya-17",
+   "statya-18"
+  ],
+  [
+   "statya-17",
+   "statya-19"
+  ],
+  [
+   "statya-17",
+   "statya-20"
+  ],
+  [
+   "statya-17",
+   "statya-23"
+  ],
+  [
+   "statya-18",
+   "statya-13"
+  ],
+  [
+   "statya-18",
+   "statya-19"
+  ],
+  [
+   "statya-18",
+   "statya-22"
+  ],
+  [
+   "statya-18",
+   "statya-99"
+  ],
+  [
+   "statya-2",
+   "statya-1"
+  ],
+  [
+   "statya-20",
+   "statya-36"
+  ],
+  [
+   "statya-21",
+   "statya-111"
+  ],
+  [
+   "statya-21",
+   "statya-18"
+  ],
+  [
+   "statya-21",
+   "statya-20"
+  ],
+  [
+   "statya-21",
+   "statya-23"
+  ],
+  [
+   "statya-21",
+   "statya-32"
+  ],
+  [
+   "statya-21",
+   "statya-33"
+  ],
+  [
+   "statya-21",
+   "statya-35"
+  ],
+  [
+   "statya-21",
+   "statya-55"
+  ],
+  [
+   "statya-21",
+   "statya-71"
+  ],
+  [
+   "statya-21",
+   "statya-79"
+  ],
+  [
+   "statya-21",
+   "statya-82"
+  ],
+  [
+   "statya-21",
+   "statya-83"
+  ],
+  [
+   "statya-21",
+   "statya-93"
+  ],
+  [
+   "statya-22",
+   "statya-19"
+  ],
+  [
+   "statya-24",
+   "statya-22"
+  ],
+  [
+   "statya-24",
+   "statya-84"
+  ],
+  [
+   "statya-24.1",
+   "statya-1"
+  ],
+  [
+   "statya-24.2",
+   "statya-24"
+  ],
+  [
+   "statya-25",
+   "statya-26"
+  ],
+  [
+   "statya-3",
+   "statya-15"
+  ],
+  [
+   "statya-3",
+   "statya-24"
+  ],
+  [
+   "statya-3",
+   "statya-26"
+  ],
+  [
+   "statya-3",
+   "statya-4"
+  ],
+  [
+   "statya-3",
+   "statya-40"
+  ],
+  [
+   "statya-30",
+   "statya-93"
+  ],
+  [
+   "statya-30",
+   "statya-94"
+  ],
+  [
+   "statya-31",
+   "statya-111"
+  ],
+  [
+   "statya-32",
+   "statya-22"
+  ],
+  [
+   "statya-32",
+   "statya-34"
+  ],
+  [
+   "statya-32",
+   "statya-37"
+  ],
+  [
+   "statya-33",
+   "statya-111"
+  ],
+  [
+   "statya-33",
+   "statya-83"
+  ],
+  [
+   "statya-34",
+   "statya-111"
+  ],
+  [
+   "statya-34",
+   "statya-30"
+  ],
+  [
+   "statya-34",
+   "statya-35"
+  ],
+  [
+   "statya-34",
+   "statya-93"
+  ],
+  [
+   "statya-34",
+   "statya-94"
+  ],
+  [
+   "statya-34",
+   "statya-95"
+  ],
+  [
+   "statya-38",
+   "statya-26"
+  ],
+  [
+   "statya-4",
+   "statya-1"
+  ],
+  [
+   "statya-4",
+   "statya-112"
+  ],
+  [
+   "statya-4",
+   "statya-22"
+  ],
+  [
+   "statya-42",
+   "statya-14"
+  ],
+  [
+   "statya-42",
+   "statya-15"
+  ],
+  [
+   "statya-42",
+   "statya-33"
+  ],
+  [
+   "statya-42",
+   "statya-35"
+  ],
+  [
+   "statya-42",
+   "statya-96"
+  ],
+  [
+   "statya-44",
+   "statya-104"
+  ],
+  [
+   "statya-44",
+   "statya-24"
+  ],
+  [
+   "statya-44",
+   "statya-31"
+  ],
+  [
+   "statya-44",
+   "statya-45"
+  ],
+  [
+   "statya-44",
+   "statya-54"
+  ],
+  [
+   "statya-44",
+   "statya-67"
+  ],
+  [
+   "statya-44",
+   "statya-69"
+  ],
+  [
+   "statya-45",
+   "statya-44"
+  ],
+  [
+   "statya-45",
+   "statya-96"
+  ],
+  [
+   "statya-49",
+   "statya-31"
+  ],
+  [
+   "statya-49",
+   "statya-42"
+  ],
+  [
+   "statya-5",
+   "statya-1"
+  ],
+  [
+   "statya-50",
+   "statya-33"
+  ],
+  [
+   "statya-50",
+   "statya-34"
+  ],
+  [
+   "statya-50",
+   "statya-51"
+  ],
+  [
+   "statya-50",
+   "statya-95"
+  ],
+  [
+   "statya-50",
+   "statya-96"
+  ],
+  [
+   "statya-51",
+   "statya-14"
+  ],
+  [
+   "statya-51",
+   "statya-30"
+  ],
+  [
+   "statya-51",
+   "statya-31"
+  ],
+  [
+   "statya-51",
+   "statya-37"
+  ],
+  [
+   "statya-51",
+   "statya-45"
+  ],
+  [
+   "statya-53",
+   "statya-14"
+  ],
+  [
+   "statya-53",
+   "statya-34"
+  ],
+  [
+   "statya-53",
+   "statya-51"
+  ],
+  [
+   "statya-54",
+   "statya-37"
+  ],
+  [
+   "statya-54",
+   "statya-44"
+  ],
+  [
+   "statya-54.2",
+   "statya-31"
+  ],
+  [
+   "statya-54.2",
+   "statya-42"
+  ],
+  [
+   "statya-54.3",
+   "statya-33"
+  ],
+  [
+   "statya-54.3",
+   "statya-34"
+  ],
+  [
+   "statya-54.3",
+   "statya-54"
+  ],
+  [
+   "statya-54.3",
+   "statya-95"
+  ],
+  [
+   "statya-54.3",
+   "statya-96"
+  ],
+  [
+   "statya-54.4",
+   "statya-14"
+  ],
+  [
+   "statya-54.4",
+   "statya-24"
+  ],
+  [
+   "statya-54.4",
+   "statya-30"
+  ],
+  [
+   "statya-54.4",
+   "statya-31"
+  ],
+  [
+   "statya-54.4",
+   "statya-32"
+  ],
+  [
+   "statya-54.4",
+   "statya-44"
+  ],
+  [
+   "statya-54.5",
+   "statya-14"
+  ],
+  [
+   "statya-54.5",
+   "statya-32"
+  ],
+  [
+   "statya-54.5",
+   "statya-54"
+  ],
+  [
+   "statya-54.6",
+   "statya-42"
+  ],
+  [
+   "statya-54.6",
+   "statya-54"
+  ],
+  [
+   "statya-54.7",
+   "statya-14"
+  ],
+  [
+   "statya-54.7",
+   "statya-24"
+  ],
+  [
+   "statya-54.7",
+   "statya-31"
+  ],
+  [
+   "statya-54.7",
+   "statya-32"
+  ],
+  [
+   "statya-54.7",
+   "statya-34"
+  ],
+  [
+   "statya-54.7",
+   "statya-54"
+  ],
+  [
+   "statya-55",
+   "statya-51"
+  ],
+  [
+   "statya-55",
+   "statya-53"
+  ],
+  [
+   "statya-55",
+   "statya-54"
+  ],
+  [
+   "statya-55",
+   "statya-56"
+  ],
+  [
+   "statya-55",
+   "statya-57"
+  ],
+  [
+   "statya-55",
+   "statya-83"
+  ],
+  [
+   "statya-55",
+   "statya-93"
+  ],
+  [
+   "statya-55.1",
+   "statya-24"
+  ],
+  [
+   "statya-55.1",
+   "statya-54"
+  ],
+  [
+   "statya-55.1",
+   "statya-83"
+  ],
+  [
+   "statya-55.1",
+   "statya-93"
+  ],
+  [
+   "statya-56",
+   "statya-31"
+  ],
+  [
+   "statya-56",
+   "statya-51"
+  ],
+  [
+   "statya-56.1",
+   "statya-31"
+  ],
+  [
+   "statya-56.1",
+   "statya-54"
+  ],
+  [
+   "statya-56.1",
+   "statya-56"
+  ],
+  [
+   "statya-57",
+   "statya-44"
+  ],
+  [
+   "statya-57",
+   "statya-56"
+  ],
+  [
+   "statya-57.1",
+   "statya-44"
+  ],
+  [
+   "statya-57.1",
+   "statya-56"
+  ],
+  [
+   "statya-61",
+   "statya-62"
+  ],
+  [
+   "statya-62",
+   "statya-61"
+  ],
+  [
+   "statya-63",
+   "statya-31"
+  ],
+  [
+   "statya-63",
+   "statya-42"
+  ],
+  [
+   "statya-63",
+   "statya-67"
+  ],
+  [
+   "statya-63",
+   "statya-68"
+  ],
+  [
+   "statya-64",
+   "statya-31"
+  ],
+  [
+   "statya-64",
+   "statya-33"
+  ],
+  [
+   "statya-64",
+   "statya-66"
+  ],
+  [
+   "statya-64",
+   "statya-67"
+  ],
+  [
+   "statya-64",
+   "statya-68"
+  ],
+  [
+   "statya-64",
+   "statya-95"
+  ],
+  [
+   "statya-65",
+   "statya-63"
+  ],
+  [
+   "statya-66",
+   "statya-14"
+  ],
+  [
+   "statya-66",
+   "statya-24"
+  ],
+  [
+   "statya-66",
+   "statya-30"
+  ],
+  [
+   "statya-66",
+   "statya-31"
+  ],
+  [
+   "statya-66",
+   "statya-44"
+  ],
+  [
+   "statya-67",
+   "statya-14"
+  ],
+  [
+   "statya-67",
+   "statya-66"
+  ],
+  [
+   "statya-68",
+   "statya-24"
+  ],
+  [
+   "statya-68",
+   "statya-42"
+  ],
+  [
+   "statya-69",
+   "statya-14"
+  ],
+  [
+   "statya-69",
+   "statya-24"
+  ],
+  [
+   "statya-69",
+   "statya-31"
+  ],
+  [
+   "statya-69",
+   "statya-66"
+  ],
+  [
+   "statya-69",
+   "statya-68"
+  ],
+  [
+   "statya-71",
+   "statya-24"
+  ],
+  [
+   "statya-71",
+   "statya-66"
+  ],
+  [
+   "statya-71",
+   "statya-67"
+  ],
+  [
+   "statya-71",
+   "statya-68"
+  ],
+  [
+   "statya-71",
+   "statya-69"
+  ],
+  [
+   "statya-71",
+   "statya-83"
+  ],
+  [
+   "statya-71",
+   "statya-93"
+  ],
+  [
+   "statya-73",
+   "statya-14"
+  ],
+  [
+   "statya-73",
+   "statya-30"
+  ],
+  [
+   "statya-73",
+   "statya-31"
+  ],
+  [
+   "statya-73",
+   "statya-42"
+  ],
+  [
+   "statya-73",
+   "statya-95"
+  ],
+  [
+   "statya-73",
+   "statya-96"
+  ],
+  [
+   "statya-74",
+   "statya-76"
+  ],
+  [
+   "statya-75",
+   "statya-111"
+  ],
+  [
+   "statya-75",
+   "statya-72"
+  ],
+  [
+   "statya-75",
+   "statya-73"
+  ],
+  [
+   "statya-75",
+   "statya-74"
+  ],
+  [
+   "statya-75",
+   "statya-77"
+  ],
+  [
+   "statya-75",
+   "statya-78"
+  ],
+  [
+   "statya-76",
+   "statya-95"
+  ],
+  [
+   "statya-77",
+   "statya-76"
+  ],
+  [
+   "statya-78",
+   "statya-14"
+  ],
+  [
+   "statya-78",
+   "statya-73"
+  ],
+  [
+   "statya-79",
+   "statya-77"
+  ],
+  [
+   "statya-79",
+   "statya-78"
+  ],
+  [
+   "statya-79",
+   "statya-93"
+  ],
+  [
+   "statya-80",
+   "statya-31"
+  ],
+  [
+   "statya-80",
+   "statya-33"
+  ],
+  [
+   "statya-80",
+   "statya-42"
+  ],
+  [
+   "statya-82",
+   "statya-73"
+  ],
+  [
+   "statya-82",
+   "statya-93"
+  ],
+  [
+   "statya-82.2",
+   "statya-31"
+  ],
+  [
+   "statya-82.2",
+   "statya-42"
+  ],
+  [
+   "statya-82.2",
+   "statya-95"
+  ],
+  [
+   "statya-82.2",
+   "statya-96"
+  ],
+  [
+   "statya-82.3",
+   "statya-14"
+  ],
+  [
+   "statya-82.3",
+   "statya-24"
+  ],
+  [
+   "statya-82.3",
+   "statya-30"
+  ],
+  [
+   "statya-82.3",
+   "statya-31"
+  ],
+  [
+   "statya-82.4",
+   "statya-14"
+  ],
+  [
+   "statya-82.4",
+   "statya-82"
+  ],
+  [
+   "statya-82.5",
+   "statya-83"
+  ],
+  [
+   "statya-82.6",
+   "statya-82"
+  ],
+  [
+   "statya-82.6",
+   "statya-83"
+  ],
+  [
+   "statya-82.6",
+   "statya-93"
+  ],
+  [
+   "statya-83",
+   "statya-103"
+  ],
+  [
+   "statya-83",
+   "statya-14"
+  ],
+  [
+   "statya-83",
+   "statya-31"
+  ],
+  [
+   "statya-83",
+   "statya-33"
+  ],
+  [
+   "statya-83",
+   "statya-42"
+  ],
+  [
+   "statya-83",
+   "statya-55"
+  ],
+  [
+   "statya-83",
+   "statya-93"
+  ],
+  [
+   "statya-83",
+   "statya-95"
+  ],
+  [
+   "statya-83",
+   "statya-96"
+  ],
+  [
+   "statya-83.1",
+   "statya-103"
+  ],
+  [
+   "statya-83.1",
+   "statya-14"
+  ],
+  [
+   "statya-83.1",
+   "statya-24"
+  ],
+  [
+   "statya-83.1",
+   "statya-30"
+  ],
+  [
+   "statya-83.1",
+   "statya-31"
+  ],
+  [
+   "statya-83.1",
+   "statya-33"
+  ],
+  [
+   "statya-83.1",
+   "statya-42"
+  ],
+  [
+   "statya-83.1",
+   "statya-44"
+  ],
+  [
+   "statya-83.1",
+   "statya-55"
+  ],
+  [
+   "statya-83.1",
+   "statya-71"
+  ],
+  [
+   "statya-83.1",
+   "statya-83"
+  ],
+  [
+   "statya-83.1",
+   "statya-93"
+  ],
+  [
+   "statya-83.1",
+   "statya-95"
+  ],
+  [
+   "statya-83.1",
+   "statya-96"
+  ],
+  [
+   "statya-83.2",
+   "statya-37"
+  ],
+  [
+   "statya-83.2",
+   "statya-44"
+  ],
+  [
+   "statya-83.2",
+   "statya-54"
+  ],
+  [
+   "statya-83.2",
+   "statya-68"
+  ],
+  [
+   "statya-83.2",
+   "statya-69"
+  ],
+  [
+   "statya-83.2",
+   "statya-82"
+  ],
+  [
+   "statya-83.2",
+   "statya-83"
+  ],
+  [
+   "statya-84.1",
+   "statya-84"
+  ],
+  [
+   "statya-85",
+   "statya-84"
+  ],
+  [
+   "statya-86",
+   "statya-84"
+  ],
+  [
+   "statya-87",
+   "statya-14"
+  ],
+  [
+   "statya-87",
+   "statya-30"
+  ],
+  [
+   "statya-87",
+   "statya-33"
+  ],
+  [
+   "statya-87",
+   "statya-88"
+  ],
+  [
+   "statya-87",
+   "statya-95"
+  ],
+  [
+   "statya-88",
+   "statya-14"
+  ],
+  [
+   "statya-88",
+   "statya-44"
+  ],
+  [
+   "statya-89",
+   "statya-14"
+  ],
+  [
+   "statya-89",
+   "statya-44"
+  ],
+  [
+   "statya-92",
+   "statya-93"
+  ],
+  [
+   "statya-93",
+   "statya-1"
+  ],
+  [
+   "statya-93",
+   "statya-103"
+  ],
+  [
+   "statya-93",
+   "statya-111"
+  ],
+  [
+   "statya-93",
+   "statya-15"
+  ],
+  [
+   "statya-93",
+   "statya-22"
+  ],
+  [
+   "statya-93",
+   "statya-42"
+  ],
+  [
+   "statya-93",
+   "statya-55"
+  ],
+  [
+   "statya-93",
+   "statya-71"
+  ],
+  [
+   "statya-93",
+   "statya-78"
+  ],
+  [
+   "statya-93",
+   "statya-79"
+  ],
+  [
+   "statya-93",
+   "statya-82"
+  ],
+  [
+   "statya-93",
+   "statya-83"
+  ],
+  [
+   "statya-93",
+   "statya-84"
+  ],
+  [
+   "statya-93",
+   "statya-92"
+  ],
+  [
+   "statya-93",
+   "statya-96"
+  ],
+  [
+   "statya-94",
+   "statya-93"
+  ],
+  [
+   "statya-94",
+   "statya-95"
+  ],
+  [
+   "statya-95",
+   "statya-111"
+  ],
+  [
+   "statya-95",
+   "statya-14"
+  ],
+  [
+   "statya-95",
+   "statya-83"
+  ],
+  [
+   "statya-95",
+   "statya-93"
+  ],
+  [
+   "statya-96",
+   "statya-37"
+  ],
+  [
+   "statya-96",
+   "statya-45"
+  ],
+  [
+   "statya-96",
+   "statya-54"
+  ],
+  [
+   "statya-96",
+   "statya-83"
+  ],
+  [
+   "statya-96",
+   "statya-93"
+  ],
+  [
+   "statya-97",
+   "statya-13"
+  ],
+  [
+   "statya-97",
+   "statya-18"
+  ],
+  [
+   "statya-97",
+   "statya-4"
+  ],
+  [
+   "statya-98",
+   "statya-13"
+  ],
+  [
+   "statya-99",
+   "statya-18"
+  ],
+  [
+   "statya-99",
+   "statya-19"
+  ],
+  [
+   "statya-99",
+   "statya-31"
+  ],
+  [
+   "statya-99",
+   "statya-32"
+  ]
+ ],
+ "non_claims": [
+  "Non-authoritative reference projection",
+  "Does not validate M224 pins or promote requirements",
+  "Does not close review findings or lifecycle state",
+  "Digest identity is not text CTV resolution",
+  "Deep-link mechanics are proven by non-empty candidates; a resolved deep link needs the target act's corpus and the edition in force at the citing act's applied day (ADR-0031 D4, never the enacting-date edition alone), which is outside this measurement's scope — the zero deep_links is a derived honest zero, not a silent skip",
+  "Amendment-fact sentences and own-edition markers resolve to amendment provenance (D3), never to deep links (ADR-0031 D4)",
+  "Requisite resolution identifies the citing act's changing act; it does not interpret amendment semantics",
+  "Reference and requisite scope is the article body text; the article heading line is structural metadata (its digest already carries the H: prefix), so a requisite appearing only on a heading line is not counted"
+ ],
+ "requisites": [
+  {
+   "date": "2013-04-05",
+   "number": "44-ФЗ(ред",
+   "tier": "unresolved",
+   "type": "law"
+  },
+  {
+   "date": "2013-07-02",
+   "number": "188-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2013-07-02_188-fz_rev-unknown_5ea52dab.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2013-12-28",
+   "number": "396-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2013-12-28_396-fz_rev-2025-03-20_5195aa84.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2014-06-04",
+   "number": "140-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2014-06-04_140-fz_rev-2021-07-02_8b84e06f.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2014-07-21",
+   "number": "224-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2014-07-21_224-fz_rev-2018-04-18_bf974de0.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2014-11-24",
+   "number": "356-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2014-11-24_356-fz_rev-2017-12-31_3d04594c.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2014-12-01",
+   "number": "416-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2014-12-01_416-fz_rev-unknown_703e185c.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2014-12-31",
+   "number": "498-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2014-12-31_498-fz_rev-2021-07-02_fca490f0.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-03-08",
+   "number": "23-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-03-08_23-fz_rev-2025-03-20_1a72ca1c.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-03-08",
+   "number": "48-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-03-08_48-fz_rev-2017-12-31_c5a43370.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-04-06",
+   "number": "82-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-04-06_82-fz_rev-2021-07-02_9b6fcdf0.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-06-29",
+   "number": "188-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-06-29_188-fz_rev-unknown_3edb2c42.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-06-29",
+   "number": "210-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-06-29_210-fz_rev-2021-07-02_1b462557.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-07-13",
+   "number": "216-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-07-13_216-fz_rev-2022-12-29_4dedd65e.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-07-13",
+   "number": "220-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-07-13_220-fz_rev-2025-07-31_7832fee0.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-07-13",
+   "number": "226-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-07-13_226-fz_rev-unknown_c6e7b5e8.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-07-13",
+   "number": "227-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-07-13_227-fz_rev-2021-07-02_135fceb9.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-07-13",
+   "number": "249-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-07-13_249-fz_rev-2017-12-29_19212d3c.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-12-29",
+   "number": "390-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-12-29_390-fz_rev-unknown_09995a89.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2015-12-30",
+   "number": "469-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2015-12-30_469-fz_rev-unknown_f6523d93.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2016-03-09",
+   "number": "66-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2016-03-09_66-fz_rev-2023-12-12_a24a38da.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2016-04-05",
+   "number": "104-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2016-04-05_104-fz_rev-2024-12-28_a57709bc.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2016-04-05",
+   "number": "96-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2016-04-05_96-fz_rev-2017-12-29_553c7eb1.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2016-06-23",
+   "number": "203-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2016-06-23_203-fz_rev-unknown_3e1e1425.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2016-07-03",
+   "number": "266-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2016-07-03_266-fz_rev-2024-08-08_6da322d0.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2016-07-03",
+   "number": "314-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2016-07-03_314-fz_rev-unknown_f55831ca.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2016-07-03",
+   "number": "320-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2016-07-03_320-fz_rev-2021-07-02_2dcbff9b.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2016-07-03",
+   "number": "321-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2016-07-03_321-fz_rev-unknown_e35cd2fd.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2016-07-03",
+   "number": "365-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2016-07-03_365-fz_rev-2021-07-02_921efdab.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2016-12-28",
+   "number": "474-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2016-12-28_474-fz_rev-unknown_513a706a.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2016-12-28",
+   "number": "489-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2016-12-28_489-fz_rev-unknown_48da709a.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2017-03-28",
+   "number": "36-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2017-03-28_36-fz_rev-unknown_dba1b516.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2017-03-28",
+   "number": "45-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2017-03-28_45-fz_rev-unknown_7be48e5b.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2017-05-01",
+   "number": "83-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2017-05-01_83-fz_rev-unknown_d4d46f2a.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2017-06-07",
+   "number": "106-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2017-06-07_106-fz_rev-unknown_a8ad16f2.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2017-07-26",
+   "number": "198-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2017-07-26_198-fz_rev-unknown_bde87a73.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2017-07-26",
+   "number": "211-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2017-07-26_211-fz_rev-unknown_d4ef519e.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2017-07-29",
+   "number": "267-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2017-07-29_267-fz_rev-2025-12-15_3ae3a16f.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2017-12-29",
+   "number": "475-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2017-12-29_475-fz_rev-unknown_66f038d6.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2017-12-31",
+   "number": "503-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2017-12-31_503-fz_rev-2021-12-21_6b1b40d8.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2017-12-31",
+   "number": "504-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2017-12-31_504-fz_rev-2021-07-02_f2247176.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2017-12-31",
+   "number": "506-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2017-12-31_506-fz_rev-unknown_706c3818.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2018-04-23",
+   "number": "108-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2018-04-23_108-fz_rev-unknown_5244bd75.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2018-06-29",
+   "number": "174-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2018-06-29_174-fz_rev-unknown_1a7dab62.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2018-07-29",
+   "number": "267-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2018-07-29_267-fz_rev-2021-12-21_2d4351d3.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2018-07-29",
+   "number": "272-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2018-07-29_272-fz_rev-unknown_05e20fd7.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2018-08-03",
+   "number": "311-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2018-08-03_311-fz_rev-unknown_3fccb9bf.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2018-12-27",
+   "number": "502-ФЗ",
+   "resolved_path": "consru_export/consru_export/exports/npa/law_2018-12-27_502-fz_rev-2021-07-02_8af294d8.xml",
+   "tier": "resolved_enacting_date",
+   "type": "law"
+  },
+  {
+   "date": "2018-05-23",
+   "number": "24-02-05/34911",
+   "tier": "unresolved",
+   "type": "письмо"
+  },
+  {
+   "date": "2018-04-28",
+   "number": "824-р",
+   "resolved_path": "consru_export/consru_export/exports/npa/directive_2018-04-28_824-r_rev-2025-01-16_6b2554bc.xml",
+   "tier": "resolved_enacting_date",
+   "type": "распоряжение"
+  }
+ ],
+ "schema_version": "m217-reference-references/v1",
+ "scope": {
+  "act_dir": "law_2013-04-05_44-fz",
+  "edition_no": 50
+ }
+}

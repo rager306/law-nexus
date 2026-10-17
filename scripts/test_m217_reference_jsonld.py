@@ -19,11 +19,12 @@ TIMELINE = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-timeli
 DIGESTS = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-digests.jsonl"
 NAMED = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-named-graphs.json"
 AMEND = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-amend-provenance.json"
+REFERENCES = REPO / "prd" / "migration" / "rust-evidence" / "m217-reference-references.json"
 D767_RESIDUAL = {"applied_day": "2017-08-06", "from_edition_no": 36, "raw_day": "2017-07-29"}
 
 
 def test_artifacts_present() -> None:
-    for path in (TIMELINE, DIGESTS, NAMED, AMEND):
+    for path in (TIMELINE, DIGESTS, NAMED, AMEND, REFERENCES):
         assert path.exists(), f"missing committed artifact: {path}"
 
 

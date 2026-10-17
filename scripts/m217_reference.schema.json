@@ -168,6 +168,76 @@
           "items": {"$ref": "#/$defs/amend_marker"}
         }
       }
+    },
+    "references_pair": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^statya-"}
+    },
+    "requisite": {
+      "type": "object",
+      "required": ["type", "date", "number", "tier"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {"type": "string", "minLength": 1},
+        "date": {"$ref": "#/$defs/iso_date"},
+        "number": {"type": "string", "minLength": 1},
+        "tier": {
+          "enum": ["resolved_enacting_date", "resolved_number_only", "unresolved"]
+        },
+        "resolved_path": {"type": "string"}
+      }
+    },
+    "references": {
+      "type": "object",
+      "required": [
+        "schema_version", "authoritative", "scope", "non_claims", "counts",
+        "edges_internal", "edges_external_sentence", "requisites"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"const": "m217-reference-references/v1"},
+        "authoritative": {"const": false},
+        "scope": {
+          "type": "object",
+          "required": ["act_dir", "edition_no"],
+          "additionalProperties": false,
+          "properties": {
+            "act_dir": {"type": "string", "minLength": 1},
+            "edition_no": {"type": "integer", "minimum": 1}
+          }
+        },
+        "non_claims": {"type": "array", "items": {"type": "string"}},
+        "counts": {
+          "type": "object",
+          "required": [
+            "candidates", "internal", "external_sentence", "deep_link_candidates",
+            "deep_links", "requisites", "requisites_exact_date", "requisites_unique"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "candidates": {"type": "integer", "minimum": 0},
+            "internal": {"type": "integer", "minimum": 0},
+            "external_sentence": {"type": "integer", "minimum": 0},
+            "deep_link_candidates": {"type": "integer", "minimum": 0},
+            "deep_links": {"type": "integer", "minimum": 0},
+            "requisites": {"type": "integer", "minimum": 0},
+            "requisites_exact_date": {"type": "integer", "minimum": 0},
+            "requisites_unique": {"type": "integer", "minimum": 0}
+          }
+        },
+        "edges_internal": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/references_pair"}
+        },
+        "edges_external_sentence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/references_pair"}
+        },
+        "requisites": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/requisite"}
+        }
+      }
     }
   }
 }
