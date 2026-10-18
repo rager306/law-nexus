@@ -14,7 +14,8 @@
 use ln_consultant_parser::reference_layer::{
     DeriveOptions, EXIT_ARGV, EXIT_INPUT, EXIT_OK, MEASUREMENT_EDITION, artifact_paths,
     artifacts_dir, catalog_path, corpus_dir, edition_layer_document, filename_day,
-    measurement_applicable, measurement_artifact_paths, references_document, run_check, try_derive,
+    measurement_applicable, measurement_artifact_paths, pageindex_document, references_document,
+    run_check, try_derive,
 };
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -135,30 +136,35 @@ fn main() -> ExitCode {
         }
         println!("wrote {} ({} bytes)", path.display(), body.len());
     }
-    // D782: the ed-50 measurement is written only where the corpus carries
+    // D782: the ed-50 measurements are written only where the corpus carries
     // edition 50; elsewhere the same explicitness the --check branch uses.
+    // Both measurement documents (D4 references, D5 pageindex) are derived and
+    // written in `measurement_artifact_paths` order.
     if measurement_applicable(&corpus) {
-        match references_document(&corpus, &catalog, MEASUREMENT_EDITION) {
-            Ok(body) => {
-                for path in measurement_artifact_paths(&out_dir) {
-                    if let Some(parent) = path.parent()
-                        && let Err(err) = std::fs::create_dir_all(parent)
-                    {
-                        return fail(
-                            &format!("cannot create {}: {err}", parent.display()),
-                            EXIT_INPUT,
-                        );
-                    }
-                    if let Err(err) = std::fs::write(&path, body.as_bytes()) {
-                        return fail(
-                            &format!("cannot write {}: {err}", path.display()),
-                            EXIT_INPUT,
-                        );
-                    }
-                    println!("wrote {} ({} bytes)", path.display(), body.len());
-                }
+        let bodies = [
+            references_document(&corpus, &catalog, MEASUREMENT_EDITION),
+            pageindex_document(&corpus, MEASUREMENT_EDITION),
+        ];
+        for (path, body) in measurement_artifact_paths(&out_dir).iter().zip(bodies) {
+            let body = match body {
+                Ok(body) => body,
+                Err(err) => return fail(&format!("unreadable inputs: {err}"), err.exit_code()),
+            };
+            if let Some(parent) = path.parent()
+                && let Err(err) = std::fs::create_dir_all(parent)
+            {
+                return fail(
+                    &format!("cannot create {}: {err}", parent.display()),
+                    EXIT_INPUT,
+                );
             }
-            Err(err) => return fail(&format!("unreadable inputs: {err}"), err.exit_code()),
+            if let Err(err) = std::fs::write(path, body.as_bytes()) {
+                return fail(
+                    &format!("cannot write {}: {err}", path.display()),
+                    EXIT_INPUT,
+                );
+            }
+            println!("wrote {} ({} bytes)", path.display(), body.len());
         }
     } else {
         println!("measurement not applicable: corpus has no edition {MEASUREMENT_EDITION}");

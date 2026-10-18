@@ -90,6 +90,7 @@ pub use reference_layer::{
     act_dir_name as reference_layer_act_dir_name, derive as derive_reference_layer,
     edition_layer_document, measurement_applicable as reference_layer_measurement_applicable,
     measurement_artifact_paths as reference_layer_measurement_artifact_paths,
+    pageindex_document as reference_layer_pageindex_document,
     references_document as reference_layer_references_document,
     run_check as reference_layer_run_check, try_derive as try_derive_reference_layer,
 };

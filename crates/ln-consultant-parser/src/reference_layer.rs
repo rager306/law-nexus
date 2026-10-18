@@ -34,6 +34,7 @@ pub const NORM_PROFILE_ID: &str = "m217-norm/v1";
 /// the `--check` branch share one applicability predicate.
 pub const MEASUREMENT_EDITION: u32 = 50;
 pub const REFS_SCHEMA: &str = "m217-reference-references/v1";
+pub const PAGEINDEX_SCHEMA: &str = "m217-reference-pageindex/v1";
 
 /// The measurement's own non-claims, appended to `NON_AUTHORITY` (Python
 /// `REFS_NON_CLAIMS`). Kept verbatim: the artifact is byte-compared.
@@ -42,6 +43,15 @@ const REFS_NON_CLAIMS: [&str; 4] = [
     "Amendment-fact sentences and own-edition markers resolve to amendment provenance (D3), never to deep links (ADR-0031 D4)",
     "Requisite resolution identifies the citing act's changing act; it does not interpret amendment semantics",
     "Reference and requisite scope is the article body text; the article heading line is structural metadata (its digest already carries the H: prefix), so a requisite appearing only on a heading line is not counted",
+];
+
+/// The D5 ladder's own non-claims, appended to `NON_AUTHORITY` (Python
+/// `PAGEINDEX_NON_CLAIMS`). Kept verbatim: the artifact is byte-compared.
+const PAGEINDEX_NON_CLAIMS: [&str; 4] = [
+    "The ladder is a structural contents projection of one edition: a node is a recognized heading paragraph and every remaining non-empty paragraph is a level-7 paragraph-block (D783, corpus-wide — preamble and appendix paragraphs included); the ladder is not a text CTV or a semantic segmentation",
+    "A node owns exactly one paragraph, so chars is that paragraph's character count and the nodes partition the non-empty paragraphs; char conservation is over all nodes, not over leaves",
+    "max_depth is the deepest ladder level present (the ladder defines seven levels: section, chapter/paragraph(§), article, part, punkt, subpoint, paragraph-block), not the longest ancestor chain",
+    "Numbering keeps its dotted form in the label (§ 3. vs § 3.1.) so path ids stay unique; empty paragraphs stay out of the ladder and add no chars",
 ];
 
 pub const EXIT_OK: i32 = 0;
@@ -1993,6 +2003,386 @@ pub fn references_document(
     Ok(j_pretty_str(&document))
 }
 
+// ---------- D5 pageindex ladder (ADR-0031 D5) ----------
+
+/// Ladder level of a paragraph block (D783): any non-empty paragraph the six
+/// heading levels above do not recognize — preamble and appendix included.
+const PAGEINDEX_BLOCK_LEVEL: u8 = 7;
+
+/// One ladder node. A node owns exactly one paragraph (`p_start == p_end`), so
+/// `chars` is that paragraph's character count and the nodes partition the
+/// non-empty paragraphs of the edition.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PageIndexNode {
+    pub id: String,
+    pub level: u8,
+    pub kind: String,
+    pub label: String,
+    pub parent: Option<String>,
+    pub p_start: usize,
+    pub p_end: usize,
+    pub chars: usize,
+    pub char_start: usize,
+    pub char_end: usize,
+}
+
+/// Byte length of the leading whitespace run (Python `\s` over a `str`).
+/// Paragraph text is already stripped, so this only ever sees interior runs.
+fn ws_len(s: &str) -> usize {
+    let mut k = 0;
+    for c in s.chars() {
+        if !c.is_whitespace() {
+            break;
+        }
+        k += c.len_utf8();
+    }
+    k
+}
+
+/// Byte length of the leading ASCII digit run (Python `\d`; the corpus is
+/// ASCII-numbered, same choice the T04 requisite port took).
+fn digit_run(s: &str) -> usize {
+    s.bytes().take_while(|b| b.is_ascii_digit()).count()
+}
+
+/// Python `\d+(?:\d+)*`: the maximal dotted-number label and its byte length.
+/// Greedy with nothing required after it, so the longest prefix always wins.
+fn dotted_label(s: &str) -> Option<(String, usize)> {
+    let d = digit_run(s);
+    if d == 0 {
+        return None;
+    }
+    let mut end = d;
+    while s[end..].starts_with('.') {
+        let d2 = digit_run(&s[end + 1..]);
+        if d2 == 0 {
+            break;
+        }
+        end += 1 + d2;
+    }
+    Some((s[..end].to_string(), end))
+}
+
+/// Python `RE_SECTION = ^Раздел\s*([IVXLCXХ\d]+)?` — the label group is
+/// optional, so any paragraph starting with "Раздел" matches; a missing or
+/// unrecognized label is "unnumbered".
+fn section_of(text: &str) -> Option<String> {
+    let rest = text.strip_prefix("Раздел")?;
+    let rest = &rest[ws_len(rest)..];
+    let mut k = 0usize;
+    for c in rest.chars() {
+        if c.is_ascii_digit() || matches!(c, 'I' | 'V' | 'X' | 'L' | 'C' | 'Х') {
+            k += c.len_utf8();
+        } else {
+            break;
+        }
+    }
+    Some(if k == 0 {
+        "unnumbered".to_string()
+    } else {
+        rest[..k].to_string()
+    })
+}
+
+/// Python `RE_CH = ^Глава (\d+(?:\.\d+)?)\.?\s+(.+)`. `\s+` then `.+` means a
+/// match needs whitespace plus at least one further character, or two
+/// whitespace characters `.+` can consume after backtracking.
+fn chapter_of(text: &str) -> Option<String> {
+    let rest = text.strip_prefix("Глава ")?;
+    let d = digit_run(rest);
+    if d == 0 {
+        return None;
+    }
+    let num = &rest[..d];
+    let after = &rest[d..];
+    let mut candidates: Vec<&str> = Vec::new();
+    if let Some(tail) = after.strip_prefix('.') {
+        let d2 = digit_run(tail);
+        if d2 > 0 {
+            candidates.push(&tail[d2..]);
+        }
+    }
+    candidates.push(after);
+    for cand in candidates {
+        for tail in [cand.strip_prefix('.'), Some(cand)] {
+            let Some(tail) = tail else { continue };
+            let w = ws_len(tail);
+            if w >= 1 && (!tail[w..].is_empty() || w >= 2) {
+                return Some(num.to_string());
+            }
+        }
+    }
+    None
+}
+
+/// Python `RE_PARA = ^§\s*(\d+(?:\.\d+)*)`.
+fn paragraph_of(text: &str) -> Option<String> {
+    let rest = text.strip_prefix('§')?;
+    let rest = &rest[ws_len(rest)..];
+    dotted_label(rest).map(|(label, _)| label)
+}
+
+/// Python `RE_PART_DOTTED = ^(\d+(?:\.\d+)*)\.\s`.
+fn part_of(text: &str) -> Option<String> {
+    let (label, end) = dotted_label(text)?;
+    let rest = text[end..].strip_prefix('.')?;
+    (ws_len(rest) >= 1).then_some(label)
+}
+
+/// Python `RE_PUNKT = ^(\d+)\)\s`.
+fn punkt_of(text: &str) -> Option<String> {
+    let d = digit_run(text);
+    if d == 0 {
+        return None;
+    }
+    let rest = text[d..].strip_prefix(')')?;
+    (ws_len(rest) >= 1).then(|| text[..d].to_string())
+}
+
+/// Python class `[а-яё]`.
+fn is_subpunkt_letter(c: char) -> bool {
+    ('а'..='я').contains(&c) || c == 'ё'
+}
+
+/// Python `RE_SUBPUNKT = ^([а-яё])\)\s`.
+fn subpunkt_of(text: &str) -> Option<String> {
+    let c = text.chars().next()?;
+    if !is_subpunkt_letter(c) {
+        return None;
+    }
+    let rest = text[c.len_utf8()..].strip_prefix(')')?;
+    (ws_len(rest) >= 1).then(|| c.to_string())
+}
+
+/// Python `pageindex_level`: `(level, kind, label)` of a recognized heading
+/// paragraph, else `None` (a level-7 block). Precedence is ADR-0031 D5:
+/// section, chapter/§ (one level-2 slot, `kind` discriminates), article, part,
+/// punkt, subpunkt.
+fn pageindex_level(text: &str) -> Option<(u8, &'static str, String)> {
+    if let Some(label) = section_of(text) {
+        return Some((1, "section", label));
+    }
+    if let Some(label) = chapter_of(text) {
+        return Some((2, "chapter", label));
+    }
+    if let Some(label) = paragraph_of(text) {
+        return Some((2, "paragraph", label));
+    }
+    if let Some((no, _)) = article_heading(text) {
+        return Some((3, "statya", no));
+    }
+    if let Some(label) = part_of(text) {
+        return Some((4, "part", label));
+    }
+    if let Some(label) = punkt_of(text) {
+        return Some((5, "punkt", label));
+    }
+    if let Some(label) = subpunkt_of(text) {
+        return Some((6, "subpunkt", label));
+    }
+    None
+}
+
+/// Python `check_pageindex_invariants`: the four ADR-0031 D5 invariants,
+/// executed on the derived ladder. A violation is a `RefError` (ADR-0031 D6
+/// exit 3, fail-closed): the ladder is never published half-derived.
+fn check_pageindex_invariants(
+    paras: &[String],
+    digests: &BTreeMap<String, String>,
+    nodes: &[PageIndexNode],
+) -> Result<(), RefError> {
+    use std::collections::BTreeSet;
+    // (b) single assignment: every non-empty paragraph is in exactly one node.
+    let owned: Vec<usize> = nodes.iter().map(|n| n.p_start).collect();
+    let expected: Vec<usize> = paras
+        .iter()
+        .enumerate()
+        .filter(|(_, text)| !text.is_empty())
+        .map(|(idx, _)| idx)
+        .collect();
+    if owned != expected || nodes.iter().any(|n| n.p_start != n.p_end) {
+        return Err(RefError::new(
+            "pageindex invariant violated: every non-empty paragraph must belong to exactly one node",
+        ));
+    }
+    // (a) char conservation.
+    let node_chars: usize = nodes.iter().map(|n| n.chars).sum();
+    let para_chars: usize = paras
+        .iter()
+        .filter(|text| !text.is_empty())
+        .map(|text| text.chars().count())
+        .sum();
+    if node_chars != para_chars {
+        return Err(RefError::new(
+            "pageindex invariant violated: char conservation",
+        ));
+    }
+    // (c) no article outside the ladder: the ladder's statya ids are the digest
+    // spine (articles are the last path segment of the node id).
+    let ladder: BTreeSet<&str> = nodes
+        .iter()
+        .filter(|n| n.kind == "statya")
+        .filter_map(|n| n.id.rsplit('/').next())
+        .collect();
+    let spine: BTreeSet<&str> = digests.keys().map(|k| k.as_str()).collect();
+    if ladder != spine {
+        return Err(RefError::new(format!(
+            "pageindex invariant violated: the ladder must carry exactly the {} articles of the digest spine",
+            digests.len()
+        )));
+    }
+    // (d) id uniqueness.
+    let ids: BTreeSet<&str> = nodes.iter().map(|n| n.id.as_str()).collect();
+    if ids.len() != nodes.len() {
+        return Err(RefError::new(
+            "pageindex invariant violated: duplicate path id",
+        ));
+    }
+    Ok(())
+}
+
+/// Python `build_pageindex`: the ADR-0031 D5 contents ladder over one edition's
+/// paragraphs. A new node of level L closes every open node of level >= L (the
+/// level-2 slot is shared by chapter and §), so the path ids
+/// (`chapter-1/statya-44/part-2/punkt-3/subpunkt-а/block-2718`) cannot collide
+/// across articles. Every non-empty paragraph is exactly one node: a recognized
+/// heading at its own level, or a level-7 block (D783). Empty paragraphs stay
+/// out of the ladder and add no chars. All four D5 invariants are executed
+/// before the ladder is returned.
+///
+/// `char_start`/`char_end` are character offsets into `"\n".join(paras)`
+/// (Python `len(str)` counts code points, so this counts `chars()` too).
+pub fn build_pageindex(paras: &[String]) -> Result<Vec<PageIndexNode>, RefError> {
+    let mut offsets: Vec<usize> = Vec::with_capacity(paras.len());
+    let mut offset = 0usize;
+    for text in paras {
+        offsets.push(offset);
+        offset += text.chars().count() + 1;
+    }
+    // The digest spine of the same paragraphs drives invariant (c).
+    let (digests, _full_text) = article_chunks(paras);
+    let mut nodes: Vec<PageIndexNode> = Vec::new();
+    let mut stack: Vec<(u8, String)> = Vec::new();
+    for (idx, text) in paras.iter().enumerate() {
+        if text.is_empty() {
+            continue;
+        }
+        let (level, kind, label) = match pageindex_level(text) {
+            Some((level, kind, label)) => (level, kind.to_string(), label),
+            None => (PAGEINDEX_BLOCK_LEVEL, "block".to_string(), idx.to_string()),
+        };
+        while stack.last().is_some_and(|(open, _)| *open >= level) {
+            stack.pop();
+        }
+        let parent = stack.last().map(|(_, id)| id.clone());
+        let id = match &parent {
+            Some(p) => format!("{p}/{kind}-{label}"),
+            None => format!("{kind}-{label}"),
+        };
+        let chars = text.chars().count();
+        nodes.push(PageIndexNode {
+            id: id.clone(),
+            level,
+            kind,
+            label,
+            parent,
+            p_start: idx,
+            p_end: idx,
+            chars,
+            char_start: offsets[idx],
+            char_end: offsets[idx] + chars,
+        });
+        stack.push((level, id));
+    }
+    check_pageindex_invariants(paras, &digests, &nodes)?;
+    Ok(nodes)
+}
+
+/// Python `render_pageindex(build_pageindex_measurement(..))`: the D5 contents
+/// ladder document (sorted keys, one-space indent, trailing newline).
+pub fn pageindex_document(corpus_dir: &Path, edition_no: u32) -> Result<String, RefError> {
+    let path = measurement_edition_path(corpus_dir, edition_no)
+        .ok_or_else(|| RefError::new(format!("corpus has no edition {edition_no}")))?;
+    let bytes = std::fs::read(&path)
+        .map_err(|e| RefError::new(format!("unreadable edition file {}: {e}", path.display())))?;
+    if !declares_wordml_namespace(&bytes) {
+        return Err(RefError::new(format!(
+            "edition file {} does not declare the WordML 2003 namespace {WORDML_NAMESPACE}",
+            path.display()
+        )));
+    }
+    let paras = scan_wordml_paragraphs(&bytes)?;
+    let nodes = build_pageindex(&paras)?;
+    let act_dir = act_dir_name(corpus_dir)?;
+    // section chapter paragraph statya part punkt subpunkt block
+    let mut counts = [0usize; 8];
+    for node in &nodes {
+        let slot = match node.kind.as_str() {
+            "section" => 0,
+            "chapter" => 1,
+            "paragraph" => 2,
+            "statya" => 3,
+            "part" => 4,
+            "punkt" => 5,
+            "subpunkt" => 6,
+            "block" => 7,
+            _ => continue,
+        };
+        counts[slot] += 1;
+    }
+    let max_depth = nodes.iter().map(|n| n.level).max().unwrap_or(0);
+    let chars: usize = nodes.iter().map(|n| n.chars).sum();
+    let non_claims: Vec<J> = NON_AUTHORITY
+        .iter()
+        .chain(PAGEINDEX_NON_CLAIMS.iter())
+        .map(|s| J::Str(s.to_string()))
+        .collect();
+    let node_json = |n: &PageIndexNode| {
+        obj(vec![
+            ("id", J::Str(n.id.clone())),
+            ("level", J::Int(n.level as i64)),
+            ("kind", J::Str(n.kind.clone())),
+            ("label", J::Str(n.label.clone())),
+            ("parent", n.parent.clone().map(J::Str).unwrap_or(J::Null)),
+            ("p_start", J::Int(n.p_start as i64)),
+            ("p_end", J::Int(n.p_end as i64)),
+            ("chars", J::Int(n.chars as i64)),
+            ("char_start", J::Int(n.char_start as i64)),
+            ("char_end", J::Int(n.char_end as i64)),
+        ])
+    };
+    let document = obj(vec![
+        ("schema_version", J::Str(PAGEINDEX_SCHEMA.into())),
+        ("authoritative", J::Bool(false)),
+        (
+            "scope",
+            obj(vec![
+                ("act_dir", J::Str(act_dir)),
+                ("edition_no", J::Int(edition_no as i64)),
+            ]),
+        ),
+        ("non_claims", J::Arr(non_claims)),
+        (
+            "counts",
+            obj(vec![
+                ("total_nodes", J::Int(nodes.len() as i64)),
+                ("sections", J::Int(counts[0] as i64)),
+                ("chapters", J::Int(counts[1] as i64)),
+                ("paragraphs", J::Int(counts[2] as i64)),
+                ("articles", J::Int(counts[3] as i64)),
+                ("parts", J::Int(counts[4] as i64)),
+                ("punkts", J::Int(counts[5] as i64)),
+                ("subpoints", J::Int(counts[6] as i64)),
+                ("blocks", J::Int(counts[7] as i64)),
+                ("max_depth", J::Int(max_depth as i64)),
+                ("chars", J::Int(chars as i64)),
+            ]),
+        ),
+        ("nodes", J::Arr(nodes.iter().map(node_json).collect())),
+    ]);
+    Ok(j_pretty_str(&document))
+}
+
 // ---------- CLI support ----------
 
 /// Full-text JSON-LD layer for one edition (on-demand projection; not
@@ -2136,10 +2526,13 @@ pub fn artifact_paths(out_dir: &Path) -> [PathBuf; 4] {
 }
 
 /// ed-50-scoped measurement artifacts (ADR-0031 D782), kept separate from the
-/// four full-corpus artifacts in `artifact_paths()`. The D4 references document
-/// lands here; the D5 contents ladder (T05) extends this list.
+/// four full-corpus artifacts in `artifact_paths()`. In this order: the D4
+/// references document and the D5 contents ladder.
 pub fn measurement_artifact_paths(out_dir: &Path) -> Vec<PathBuf> {
-    vec![out_dir.join("m217-reference-references.json")]
+    vec![
+        out_dir.join("m217-reference-references.json"),
+        out_dir.join("m217-reference-pageindex.json"),
+    ]
 }
 
 /// Append a drift entry when `path` is missing or byte-differs from `body`.
@@ -2178,19 +2571,23 @@ pub fn run_check(corpus: &Path, catalog: &Path, out_dir: &Path) -> i32 {
     for (path, body) in paths.iter().zip(bodies.iter()) {
         note_drift(&mut drift, path, body);
     }
-    // D782 applicability: the ed-50 measurement is compared only where the
-    // corpus carries edition 50; elsewhere it is explicitly not applicable and
-    // never counts as drift (fixture corpora keep their exit 0).
+    // D782 applicability: the ed-50 measurements are compared only where the
+    // corpus carries edition 50; elsewhere they are explicitly not applicable
+    // and never count as drift (fixture corpora keep their exit 0). Both
+    // measurement documents are derived, then compared against their own path
+    // in `measurement_artifact_paths` order.
     if measurement_applicable(corpus) {
-        match references_document(corpus, catalog, MEASUREMENT_EDITION) {
-            Ok(body) => {
-                for path in measurement_artifact_paths(out_dir) {
-                    note_drift(&mut drift, &path, &body);
+        let bodies = [
+            references_document(corpus, catalog, MEASUREMENT_EDITION),
+            pageindex_document(corpus, MEASUREMENT_EDITION),
+        ];
+        for (path, body) in measurement_artifact_paths(out_dir).iter().zip(bodies) {
+            match body {
+                Ok(body) => note_drift(&mut drift, path, &body),
+                Err(err) => {
+                    eprintln!("unreadable inputs: {err}");
+                    return err.exit_code();
                 }
-            }
-            Err(err) => {
-                eprintln!("unreadable inputs: {err}");
-                return err.exit_code();
             }
         }
     } else {
