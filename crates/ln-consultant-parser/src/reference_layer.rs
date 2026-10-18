@@ -29,6 +29,21 @@ pub const NAMED_GRAPHS_SCHEMA: &str = "m217-reference-named-graphs/v1";
 pub const AMEND_SCHEMA: &str = "m217-reference-amend-provenance/v1";
 pub const NORM_PROFILE_ID: &str = "m217-norm/v1";
 
+/// ed-50-scoped measurement edition (D782): the D4 references measurement is
+/// derivable only from a corpus that carries edition 50, so both the write and
+/// the `--check` branch share one applicability predicate.
+pub const MEASUREMENT_EDITION: u32 = 50;
+pub const REFS_SCHEMA: &str = "m217-reference-references/v1";
+
+/// The measurement's own non-claims, appended to `NON_AUTHORITY` (Python
+/// `REFS_NON_CLAIMS`). Kept verbatim: the artifact is byte-compared.
+const REFS_NON_CLAIMS: [&str; 4] = [
+    "Deep-link mechanics are proven by non-empty candidates; a resolved deep link needs the target act's corpus and the edition in force at the citing act's applied day (ADR-0031 D4, never the enacting-date edition alone), which is outside this measurement's scope — the zero deep_links is a derived honest zero, not a silent skip",
+    "Amendment-fact sentences and own-edition markers resolve to amendment provenance (D3), never to deep links (ADR-0031 D4)",
+    "Requisite resolution identifies the citing act's changing act; it does not interpret amendment semantics",
+    "Reference and requisite scope is the article body text; the article heading line is structural metadata (its digest already carries the H: prefix), so a requisite appearing only on a heading line is not counted",
+];
+
 pub const EXIT_OK: i32 = 0;
 pub const EXIT_ARGV: i32 = 2;
 pub const EXIT_INPUT: i32 = 3;
@@ -1412,6 +1427,572 @@ fn render_digests(
     out.join("\n") + "\n"
 }
 
+// ---------- D4 measurement (ADR-0031 D4, ed-50 scoped per D782) ----------
+//
+// Ported 1:1 from the Python reference (`classify_references`,
+// `measure_requisites`, `measure_deep_links`, `references_document`). The two
+// requisite patterns are hand-rolled because ADR-0031 D8 forbids new crate
+// dependencies; the matchers reproduce the Python regexes' leftmost,
+// greedy-quantifier semantics for the shapes that actually occur (and the
+// general shape otherwise).
+
+/// Python `\w`: Unicode alphanumeric plus underscore.
+fn is_word_char(c: char) -> bool {
+    c.is_alphanumeric() || c == '_'
+}
+
+/// Case-insensitive literal prefix match at `pos` (Python `re.I`);
+/// `needle_lower` must already be lowercase. Returns the end byte offset.
+fn ci_literal_end(s: &str, pos: usize, needle_lower: &str) -> Option<usize> {
+    let mut consumed = 0usize;
+    let mut it = s[pos..].chars();
+    for nc in needle_lower.chars() {
+        let hc = it.next()?;
+        if !hc.to_lowercase().eq(std::iter::once(nc)) {
+            return None;
+        }
+        consumed += hc.len_utf8();
+    }
+    Some(pos + consumed)
+}
+
+/// End of the maximal `\w` run starting at `pos` (Python greedy `\w+`/`\w*`:
+/// a shorter run could only be followed by another word char, never by the
+/// literal/`\s` the patterns require next).
+fn word_run_end(s: &str, pos: usize) -> usize {
+    let mut end = pos;
+    for (i, c) in s[pos..].char_indices() {
+        if is_word_char(c) {
+            end = pos + i + c.len_utf8();
+        } else {
+            break;
+        }
+    }
+    end
+}
+
+/// End of the maximal whitespace run starting at `pos` (Python greedy `\s+`).
+fn ws_run_end(s: &str, pos: usize) -> usize {
+    let mut end = pos;
+    for (i, c) in s[pos..].char_indices() {
+        if c.is_whitespace() {
+            end = pos + i + c.len_utf8();
+        } else {
+            break;
+        }
+    }
+    end
+}
+
+fn next_char_boundary(s: &str, pos: usize) -> usize {
+    match s[pos..].chars().next() {
+        Some(c) => pos + c.len_utf8(),
+        None => pos + 1,
+    }
+}
+
+/// All char-boundary offsets in `[a, b]`, ascending (both are boundaries).
+fn boundaries_between(s: &str, a: usize, b: usize) -> Vec<usize> {
+    let mut out = vec![a];
+    let mut i = a;
+    while i < b {
+        i = next_char_boundary(s, i);
+        out.push(i);
+    }
+    out
+}
+
+/// Python `(\d{2})\.(\d{2})\.(\d{4})` at `pos`; returns (end, ISO date).
+fn dated_at(s: &str, pos: usize) -> Option<(usize, String)> {
+    let window = s.as_bytes().get(pos..pos + 10)?;
+    let shape_ok = window.iter().enumerate().all(|(i, c)| {
+        if i == 2 || i == 5 {
+            *c == b'.'
+        } else {
+            c.is_ascii_digit()
+        }
+    });
+    if !shape_ok {
+        return None;
+    }
+    let iso = format!(
+        "{}-{}-{}",
+        &s[pos + 6..pos + 10],
+        &s[pos + 3..pos + 5],
+        &s[pos..pos + 2]
+    );
+    Some((pos + 10, iso))
+}
+
+/// Python `[^\s,;)]+` at `pos`; returns the end offset, `None` when empty.
+fn number_run_end(s: &str, pos: usize) -> Option<usize> {
+    let mut end = pos;
+    for (i, c) in s[pos..].char_indices() {
+        if c.is_whitespace() || c == ',' || c == ';' || c == ')' {
+            break;
+        }
+        end = pos + i + c.len_utf8();
+    }
+    if end == pos { None } else { Some(end) }
+}
+
+/// The `от\s+date\s+N\s*number` tail with the literal `от` already positioned
+/// at `pos` (the `\s*`/`\s+` that precedes it is handled by the callers).
+fn requisite_tail_at(s: &str, pos: usize) -> Option<(usize, String, String)> {
+    let ot_end = ci_literal_end(s, pos, "от")?;
+    let ws = ws_run_end(s, ot_end);
+    if ws == ot_end {
+        return None;
+    }
+    let (date_end, iso) = dated_at(s, ws)?;
+    let ws2 = ws_run_end(s, date_end);
+    if ws2 == date_end {
+        return None;
+    }
+    let n_end = ci_literal_end(s, ws2, "n")?;
+    let ns = ws_run_end(s, n_end);
+    let num_end = number_run_end(s, ns)?;
+    let number = s[ns..num_end].trim_end_matches('.').to_string();
+    Some((num_end, iso, number))
+}
+
+/// Python `\s*от\s+date\s+N\s*number` starting at `pos` (group 2 is
+/// followed by `\s*`, not `\s+`, before `от`).
+fn optional_space_requisite_tail_at(s: &str, pos: usize) -> Option<(usize, String, String)> {
+    let ws = ws_run_end(s, pos);
+    requisite_tail_at(s, ws)
+}
+
+/// Python `\s+от\s+date\s+N\s*number` starting at `pos`.
+fn spaced_requisite_tail_at(s: &str, pos: usize) -> Option<(usize, String, String)> {
+    let ws = ws_run_end(s, pos);
+    if ws == pos {
+        return None;
+    }
+    requisite_tail_at(s, ws)
+}
+
+/// Python `RE_REQ_LAW` at `pos`:
+/// `(?:Федеральн\w+ закон\w+|закон\w*)\s+от\s+date\s+N\s*number`.
+fn law_at(s: &str, pos: usize) -> Option<(usize, String, String)> {
+    if let Some(after_stem) = ci_literal_end(s, pos, "федеральн") {
+        let r1 = word_run_end(s, after_stem);
+        // Branch A carries a single *literal* space between the two words
+        // (not `\s`); only the maximal `\w` run can be followed by it.
+        if r1 > after_stem && s.as_bytes().get(r1) == Some(&b' ') {
+            let zakon = r1 + 1;
+            if let Some(z_end) = ci_literal_end(s, zakon, "закон") {
+                let r2 = word_run_end(s, z_end);
+                if r2 > z_end
+                    && let Some(hit) = spaced_requisite_tail_at(s, r2)
+                {
+                    return Some(hit);
+                }
+            }
+        }
+    }
+    let z_end = ci_literal_end(s, pos, "закон")?;
+    let r = word_run_end(s, z_end);
+    spaced_requisite_tail_at(s, r)
+}
+
+/// One body alternative of the Python `RE_REQ_PPA` group 2, in alternation
+/// order: 0 `Правительств\w+ РФ`, 1 `Минфина России`, 2 `ФНС России`.
+fn ppa_body_end(s: &str, pos: usize, kind: usize) -> Option<usize> {
+    match kind {
+        0 => {
+            let after = ci_literal_end(s, pos, "правительств")?;
+            let r = word_run_end(s, after);
+            if r == after {
+                return None;
+            }
+            ci_literal_end(s, r, " рф")
+        }
+        1 => ci_literal_end(s, pos, "минфина россии"),
+        2 => ci_literal_end(s, pos, "фнс россии"),
+        _ => None,
+    }
+}
+
+/// Python `(group2)?\s*от\s+date\s+N\s*number` from the `\s+` run that starts
+/// at `p` and ends at `w`. The `\s+` is greedy, so it backtracks from `w`
+/// downwards; `group2`'s lazy `[^)]{0,60}?` tries the shortest prefix first.
+fn ppa_group2_or_absent(s: &str, p: usize, w: usize) -> Option<(usize, String, String)> {
+    let starts = boundaries_between(s, p + 1, w);
+    for (idx, &start) in starts.iter().enumerate().rev() {
+        for kind in 0..3 {
+            let mut b = start;
+            let mut count = 0usize;
+            loop {
+                if let Some(hit) = ppa_body_end(s, b, kind)
+                    .and_then(|body_end| optional_space_requisite_tail_at(s, body_end))
+                {
+                    return Some(hit);
+                }
+                if count >= 60 {
+                    break;
+                }
+                let Some(c) = s[b..].chars().next() else {
+                    break;
+                };
+                // `[^)]` stops at the first closing paren.
+                if c == ')' {
+                    break;
+                }
+                b += c.len_utf8();
+                count += 1;
+            }
+        }
+        // group 2 absent: `\s*` soaks up the rest of the whitespace run, so
+        // `от` must sit at `w`. Constant across `s`, hence checked once.
+        if idx == starts.len() - 1
+            && let Some(hit) = requisite_tail_at(s, w)
+        {
+            return Some(hit);
+        }
+    }
+    None
+}
+
+/// Python `RE_REQ_PPA` at `pos`. Returns (end, lowercased type word, ISO
+/// date, number).
+fn ppa_at(s: &str, pos: usize) -> Option<(usize, String, String, String)> {
+    // (stem, minimum `\w` tail length) in the Python alternation order.
+    const FORMS: [(&str, usize); 4] = [
+        ("постановлени", 1),
+        ("приказ", 0),
+        ("распоряжени", 1),
+        ("письмо", 0),
+    ];
+    for (stem, min_tail) in FORMS {
+        let Some(after) = ci_literal_end(s, pos, stem) else {
+            continue;
+        };
+        let r = word_run_end(s, after);
+        if r < after + min_tail {
+            continue;
+        }
+        let w = ws_run_end(s, r);
+        if w == r {
+            continue;
+        }
+        if let Some((end, iso, number)) = ppa_group2_or_absent(s, r, w) {
+            return Some((end, s[pos..r].to_lowercase(), iso, number));
+        }
+    }
+    None
+}
+
+/// Python `find_requisites`: external requisite occurrences over one sentence,
+/// from two independent scans (law first, then sub-legislative acts).
+fn find_requisites(sent: &str) -> Vec<(String, String, String)> {
+    let mut found: Vec<(String, String, String)> = Vec::new();
+    let mut pos = 0usize;
+    while pos < sent.len() {
+        if let Some((end, iso, number)) = law_at(sent, pos) {
+            found.push(("law".into(), iso, number));
+            pos = end;
+        } else {
+            pos = next_char_boundary(sent, pos);
+        }
+    }
+    pos = 0;
+    while pos < sent.len() {
+        if let Some((end, typ, iso, number)) = ppa_at(sent, pos) {
+            found.push((typ, iso, number));
+            pos = end;
+        } else {
+            pos = next_char_boundary(sent, pos);
+        }
+    }
+    found
+}
+
+/// Python `article_chunks` (digests + per-article chunks). `scan_edition` keeps
+/// its own inline copy for the four byte-pinned artifacts; this one feeds the
+/// D4 measurement only.
+fn article_chunks(paras: &[String]) -> (BTreeMap<String, String>, BTreeMap<String, Vec<String>>) {
+    let mut digests: BTreeMap<String, String> = BTreeMap::new();
+    let mut full_text: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut cur: Option<String> = None;
+    for text in paras {
+        if let Some((no, body)) = article_heading(text) {
+            let aid = format!("statya-{no}");
+            digests.insert(aid.clone(), sha12(&format!("H:{body}")));
+            if !body.is_empty() {
+                full_text.entry(aid.clone()).or_default().push(body);
+            }
+            cur = Some(aid);
+            continue;
+        }
+        if let (Some(aid), false) = (cur.as_deref(), text.is_empty()) {
+            let aid = aid.to_string();
+            full_text.entry(aid.clone()).or_default().push(text.clone());
+            let d = digests.get(&aid).cloned().unwrap_or_default();
+            digests.insert(aid, sha12(&format!("{d}|{text}")));
+        }
+    }
+    (digests, full_text)
+}
+
+/// Python `article_body`: the article chunks after the heading line — the D4
+/// measurement scope. The heading line is structural metadata (its text is
+/// already carried as the `H:` digest prefix), so including it would add three
+/// ed-50 heading-only requisite mentions and drift from the 611/609 oracle.
+fn article_body(full_text: &BTreeMap<String, Vec<String>>) -> BTreeMap<String, Vec<String>> {
+    full_text
+        .iter()
+        .map(|(aid, chunks)| {
+            let rest = if chunks.len() > 1 {
+                chunks[1..].to_vec()
+            } else {
+                Vec::new()
+            };
+            (aid.clone(), rest)
+        })
+        .collect()
+}
+
+/// Candidate (citing article, target article) pair.
+type RefPair = (String, String);
+
+/// Python `classify_references` (ADR-0031 D4): sentence-scoped reference
+/// qualification into candidates / internal / external-sentence.
+fn classified_references(
+    digests: &BTreeMap<String, String>,
+    body: &BTreeMap<String, Vec<String>>,
+) -> (Vec<RefPair>, Vec<RefPair>, Vec<RefPair>) {
+    use std::collections::BTreeSet;
+    let mut candidates: BTreeSet<RefPair> = BTreeSet::new();
+    let mut internal: BTreeSet<RefPair> = BTreeSet::new();
+    let mut external: BTreeSet<RefPair> = BTreeSet::new();
+    for (aid, chunks) in body {
+        for chunk in chunks {
+            for sent in split_sentences(chunk) {
+                let external_marker = contains_external_marker_ci(&sent)
+                    && !sent.contains("настоящего")
+                    && !sent.contains("прежнему");
+                for num in refs_in_sentence(&sent) {
+                    let target = format!("statya-{num}");
+                    if target != *aid && digests.contains_key(&target) {
+                        let pair = (aid.clone(), target);
+                        if external_marker {
+                            external.insert(pair.clone());
+                        } else {
+                            internal.insert(pair.clone());
+                        }
+                        candidates.insert(pair);
+                    }
+                }
+            }
+        }
+    }
+    (
+        candidates.into_iter().collect(),
+        internal.into_iter().collect(),
+        external.into_iter().collect(),
+    )
+}
+
+/// D4 requisite measurement (occurrence totals + sorted unique rows).
+struct RequisiteMeasurement {
+    total: usize,
+    exact_date: usize,
+    unique: usize,
+    /// Sorted by `(type, ISO date, number)` — the Python `sorted(resolved)`.
+    rows: Vec<(String, String, String, String, Option<String>)>,
+}
+
+/// Python `measure_requisites`: requisites resolved through `resolve_amend`.
+fn measure_requisites(
+    body: &BTreeMap<String, Vec<String>>,
+    con: &rusqlite::Connection,
+    prefix: &str,
+) -> Result<RequisiteMeasurement, RefError> {
+    let mut occurrences: Vec<(String, String, String)> = Vec::new();
+    for chunks in body.values() {
+        for chunk in chunks {
+            for sent in split_sentences(chunk) {
+                occurrences.extend(find_requisites(&sent));
+            }
+        }
+    }
+    let mut resolved: BTreeMap<(String, String, String), (String, Option<String>)> =
+        BTreeMap::new();
+    let mut exact_date = 0usize;
+    for key in &occurrences {
+        let entry = match resolved.get(key) {
+            Some(v) => v.clone(),
+            None => {
+                let v = resolve_amend(con, &key.1, &key.2, prefix)?;
+                resolved.insert(key.clone(), v.clone());
+                v
+            }
+        };
+        if entry.0 == "resolved_enacting_date" {
+            exact_date += 1;
+        }
+    }
+    let rows = resolved
+        .iter()
+        .map(|((typ, iso, num), (tier, rel))| {
+            (
+                typ.clone(),
+                iso.clone(),
+                num.clone(),
+                tier.clone(),
+                rel.clone(),
+            )
+        })
+        .collect();
+    Ok(RequisiteMeasurement {
+        total: occurrences.len(),
+        exact_date,
+        unique: resolved.len(),
+        rows,
+    })
+}
+
+/// Python `measure_deep_links`: (candidates, resolved). Resolution needs the
+/// target act's corpus and the edition in force at the citing act's applied
+/// day, neither of which is in this measurement's scope, so `resolved` is
+/// empty by construction — an honest derived zero, not a silent skip.
+fn measure_deep_links(body: &BTreeMap<String, Vec<String>>) -> (Vec<RefPair>, Vec<RefPair>) {
+    use std::collections::BTreeSet;
+    let mut candidates: BTreeSet<RefPair> = BTreeSet::new();
+    for (aid, chunks) in body {
+        for chunk in chunks {
+            for sent in split_sentences(chunk) {
+                if find_requisites(&sent).is_empty() {
+                    continue;
+                }
+                for num in refs_in_sentence(&sent) {
+                    let target = format!("statya-{num}");
+                    if target != *aid {
+                        candidates.insert((aid.clone(), target));
+                    }
+                }
+            }
+        }
+    }
+    (candidates.into_iter().collect(), Vec::new())
+}
+
+/// Python `measurement_edition_path`: the corpus file carrying `edition_no`.
+fn measurement_edition_path(corpus_dir: &Path, edition_no: u32) -> Option<PathBuf> {
+    let mut files: Vec<PathBuf> = std::fs::read_dir(corpus_dir)
+        .ok()?
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter(|p| {
+            p.file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(|n| n.starts_with("edition-") && n.ends_with(".xml"))
+        })
+        .collect();
+    files.sort();
+    files.into_iter().find(|p| {
+        p.file_name()
+            .and_then(|n| n.to_str())
+            .and_then(edition_no_of)
+            == Some(edition_no)
+    })
+}
+
+/// The ed-50 measurement applies only where the corpus carries edition 50
+/// (D782). Fixture corpora without it must stay exit 0, never exit 3.
+pub fn measurement_applicable(corpus_dir: &Path) -> bool {
+    measurement_edition_path(corpus_dir, MEASUREMENT_EDITION).is_some()
+}
+
+/// Python `render_references(build_references_measurement(..))`: the D4
+/// measurement document (sorted keys, one-space indent, trailing newline).
+pub fn references_document(
+    corpus_dir: &Path,
+    catalog: &Path,
+    edition_no: u32,
+) -> Result<String, RefError> {
+    let path = measurement_edition_path(corpus_dir, edition_no)
+        .ok_or_else(|| RefError::new(format!("corpus has no edition {edition_no}")))?;
+    let bytes = std::fs::read(&path)
+        .map_err(|e| RefError::new(format!("unreadable edition file {}: {e}", path.display())))?;
+    if !declares_wordml_namespace(&bytes) {
+        return Err(RefError::new(format!(
+            "edition file {} does not declare the WordML 2003 namespace {WORDML_NAMESPACE}",
+            path.display()
+        )));
+    }
+    let paras = scan_wordml_paragraphs(&bytes)?;
+    let (digests, full_text) = article_chunks(&paras);
+    let body = article_body(&full_text);
+    let (candidates, internal, external) = classified_references(&digests, &body);
+    let con = open_catalog(catalog)?;
+    let prefix = corpus_prefix(corpus_dir);
+    let requisites = measure_requisites(&body, &con, &prefix)?;
+    let (deep_candidates, deep_links) = measure_deep_links(&body);
+    let act_dir = act_dir_name(corpus_dir)?;
+    let non_claims: Vec<J> = NON_AUTHORITY
+        .iter()
+        .chain(REFS_NON_CLAIMS.iter())
+        .map(|s| J::Str(s.to_string()))
+        .collect();
+    let edge_array = |pairs: &[RefPair]| {
+        J::Arr(
+            pairs
+                .iter()
+                .map(|(a, b)| J::Arr(vec![J::Str(a.clone()), J::Str(b.clone())]))
+                .collect(),
+        )
+    };
+    let rows: Vec<J> = requisites
+        .rows
+        .iter()
+        .map(|(typ, iso, num, tier, rel)| {
+            let mut entries: Vec<(&str, J)> = vec![
+                ("type", J::Str(typ.clone())),
+                ("date", J::Str(iso.clone())),
+                ("number", J::Str(num.clone())),
+                ("tier", J::Str(tier.clone())),
+            ];
+            if let Some(rel) = rel {
+                entries.push(("resolved_path", J::Str(rel.clone())));
+            }
+            obj(entries)
+        })
+        .collect();
+    let document = obj(vec![
+        ("schema_version", J::Str(REFS_SCHEMA.into())),
+        ("authoritative", J::Bool(false)),
+        (
+            "scope",
+            obj(vec![
+                ("act_dir", J::Str(act_dir)),
+                ("edition_no", J::Int(edition_no as i64)),
+            ]),
+        ),
+        ("non_claims", J::Arr(non_claims)),
+        (
+            "counts",
+            obj(vec![
+                ("candidates", J::Int(candidates.len() as i64)),
+                ("internal", J::Int(internal.len() as i64)),
+                ("external_sentence", J::Int(external.len() as i64)),
+                ("deep_link_candidates", J::Int(deep_candidates.len() as i64)),
+                ("deep_links", J::Int(deep_links.len() as i64)),
+                ("requisites", J::Int(requisites.total as i64)),
+                (
+                    "requisites_exact_date",
+                    J::Int(requisites.exact_date as i64),
+                ),
+                ("requisites_unique", J::Int(requisites.unique as i64)),
+            ]),
+        ),
+        ("edges_internal", edge_array(&internal)),
+        ("edges_external_sentence", edge_array(&external)),
+        ("requisites", J::Arr(rows)),
+    ]);
+    Ok(j_pretty_str(&document))
+}
+
 // ---------- CLI support ----------
 
 /// Full-text JSON-LD layer for one edition (on-demand projection; not
@@ -1554,6 +2135,25 @@ pub fn artifact_paths(out_dir: &Path) -> [PathBuf; 4] {
     ]
 }
 
+/// ed-50-scoped measurement artifacts (ADR-0031 D782), kept separate from the
+/// four full-corpus artifacts in `artifact_paths()`. The D4 references document
+/// lands here; the D5 contents ladder (T05) extends this list.
+pub fn measurement_artifact_paths(out_dir: &Path) -> Vec<PathBuf> {
+    vec![out_dir.join("m217-reference-references.json")]
+}
+
+/// Append a drift entry when `path` is missing or byte-differs from `body`.
+fn note_drift(drift: &mut Vec<String>, path: &Path, body: &str) {
+    match std::fs::read_to_string(path) {
+        Ok(existing) => {
+            if existing != *body {
+                drift.push(format!("{}: byte drift", path.display()));
+            }
+        }
+        Err(_) => drift.push(format!("{}: missing artifact", path.display())),
+    }
+}
+
 pub fn run_check(corpus: &Path, catalog: &Path, out_dir: &Path) -> i32 {
     let opts = DeriveOptions {
         limit_editions: None,
@@ -1576,14 +2176,25 @@ pub fn run_check(corpus: &Path, catalog: &Path, out_dir: &Path) -> i32 {
     let paths = artifact_paths(out_dir);
     let mut drift = Vec::new();
     for (path, body) in paths.iter().zip(bodies.iter()) {
-        match std::fs::read_to_string(path) {
-            Ok(existing) => {
-                if existing != *body {
-                    drift.push(format!("{}: byte drift", path.display()));
+        note_drift(&mut drift, path, body);
+    }
+    // D782 applicability: the ed-50 measurement is compared only where the
+    // corpus carries edition 50; elsewhere it is explicitly not applicable and
+    // never counts as drift (fixture corpora keep their exit 0).
+    if measurement_applicable(corpus) {
+        match references_document(corpus, catalog, MEASUREMENT_EDITION) {
+            Ok(body) => {
+                for path in measurement_artifact_paths(out_dir) {
+                    note_drift(&mut drift, &path, &body);
                 }
             }
-            Err(_) => drift.push(format!("{}: missing artifact", path.display())),
+            Err(err) => {
+                eprintln!("unreadable inputs: {err}");
+                return err.exit_code();
+            }
         }
+    } else {
+        println!("measurement not applicable: corpus has no edition {MEASUREMENT_EDITION}");
     }
     if !drift.is_empty() {
         for d in drift {

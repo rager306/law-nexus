@@ -88,6 +88,8 @@ pub use raw_link::RawLink;
 pub use reference_layer::{
     DeriveOptions as ReferenceDeriveOptions, RefError as ReferenceLayerError, Reference,
     act_dir_name as reference_layer_act_dir_name, derive as derive_reference_layer,
-    edition_layer_document, run_check as reference_layer_run_check,
-    try_derive as try_derive_reference_layer,
+    edition_layer_document, measurement_applicable as reference_layer_measurement_applicable,
+    measurement_artifact_paths as reference_layer_measurement_artifact_paths,
+    references_document as reference_layer_references_document,
+    run_check as reference_layer_run_check, try_derive as try_derive_reference_layer,
 };
