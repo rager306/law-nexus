@@ -65,4 +65,8 @@ path = "src/bin/edition-timeline.rs"
 name = "frbr-bridge"
 path = "src/bin/frbr-bridge.rs"
 
+[[bin]]
+name = "reference_layer"
+path = "src/bin/reference_layer.rs"
+
 [dev-dependencies]
