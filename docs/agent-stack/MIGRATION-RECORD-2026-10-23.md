@@ -170,3 +170,14 @@ git revert for tracked changes; ignored/local state restored from the backup
   local dirs (backup holds the private copies, mode 0700).
 - Working tree clean; 5 migration commits on
   `chore/allspark-path-pdd-bootstrap`, nothing pushed.
+
+
+## Rust battery (2026-10-23, head `c4c45c8a` + docs)
+
+- `cargo clippy --workspace --offline --all-targets -- -D warnings`: exit 0.
+- `cargo test --workspace --offline` (full log `/tmp/mig-rust-full.log` on the
+  build machine; not a tracked artifact): exit 0, **465 suites, 3264 passed,
+  0 failed** — includes the earlier read-only pilot probe
+  (`argument_parsing_is_closed_and_requires_one_action`, exactly 1 test, PASS).
+- `cargo fmt --all -- --check` and `cargo check --workspace --offline`: exit 0
+  (after `cargo fetch --locked`).
