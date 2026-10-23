@@ -6,6 +6,20 @@
 >
 > Initial front synchronization was frozen in EA-05 at `94d58ea`. EA-10 D150 remains revision-bound `accepted-with-findings` for packet `120d44b`; post-D150 repository-control remediation is recorded separately in `assessment/13-current-head-gap-audit.md` and `assessment/14-post-remediation-gap-disposition.md` and does not extend D150. Roadmap completion is not product readiness.
 
+## Workflow transition (2026-10-23)
+
+The delivery workflow is migrating from GSD-Pi to GSD Path
+(Allspark + GSD Path + PDD Kit; runbook: `docs/agent-stack/MIGRATION.md`).
+Until native Path state exists and the bootstrap PR is accepted on the
+default branch, this projection keeps describing the **frozen legacy
+GSD-Pi milestone ledger** (M-IDs) exactly as recorded at freeze. Legacy
+IDs are not renamed and no readiness is raised by the migration itself.
+Active obligations and non-transferable human gates are inventoried in
+`docs/agent-stack/history/LEGACY_CROSSWALK.md`. After native Path
+initialization, the projection is rebuilt with explicit legacy references
+per MIGRATION.md §4.2 (roadmap freshness follows the typed adapter in
+`src/law_nexus_harness/workflow_state.py`, not emoji markers).
+
 ## Active Direction Contract
 
 ```text

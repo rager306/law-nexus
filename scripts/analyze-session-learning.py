@@ -5,6 +5,12 @@ The script is intentionally conservative: it reads local evidence, writes a
 retrospective report, and optionally saves short durable lessons to agentmemory.
 It does not edit skills automatically. Humans/agents should review suggested
 skill changes before applying them.
+
+Legacy scope (2026-10-23): the `.gsd/exec` surface this tool reads is the
+frozen GSD-Pi snapshot, retained read-only for historical retrospectives
+(docs/agent-stack/MIGRATION-RECORD-2026-10-23.md). It is not part of the
+active Allspark + GSD Path workflow and must not be re-pointed at `.project`
+artifacts; new-workflow retrospectives belong to Path review artifacts.
 """
 
 from __future__ import annotations

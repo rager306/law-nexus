@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "projectDir": ".project",
+  "worker": ["scripts/ai/allspark-worker", "-p"],
+  "capacity": 1,
+  "childTimeoutSeconds": 900,
+  "pollSeconds": 5,
+  "maxAttempts": 1
+}

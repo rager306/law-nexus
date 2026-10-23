@@ -1,0 +1,455 @@
+#!/usr/bin/env python3
+"""Install this starter's pinned tools. Linux / WSL2, Python >=3.12.
+
+Local glue, not an upstream Allspark/Path/PDD command. No git commits, updates,
+credential copying or legacy cleanup. See docs/agent-stack/INSTALL.md.
+"""
+
+import argparse
+import base64
+import hashlib
+import json
+import os
+import platform
+import runpy
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
+import urllib.request
+from pathlib import Path
+
+SCRIPT_ROOT = Path(__file__).resolve().parents[2]
+ROOT = SCRIPT_ROOT
+LOCAL = ROOT / ".ai/local"
+PINS = json.loads((ROOT / ".ai/versions.json").read_text())
+ENV_HELPER = runpy.run_path(str(SCRIPT_ROOT / "scripts/ai/stack-env.py"))
+BUILD_ENV = ENV_HELPER["build_env"]
+
+
+def fail(message):
+    raise SystemExit("bootstrap: " + message)
+
+
+def run(command, *, dry=False, env=None):
+    import shlex
+
+    print("+ " + shlex.join(map(str, command)), flush=True)
+    if not dry:
+        subprocess.run(list(map(str, command)), cwd=ROOT, env=env, check=True)
+
+
+def environment(*, isolated=False):
+    env = BUILD_ENV(ROOT, isolated=isolated)
+    if not isolated:
+        # Restore the host cache even when bootstrap is run by Allspark,
+        # whose launcher has already moved HOME into the repository.
+        env["HOME"] = env["AI_STACK_HOST_HOME"]
+    env["npm_config_update_notifier"] = "false"
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    return env
+
+
+def preflight():
+    if sys.version_info < (3, 12):
+        fail("Python 3.12+ required (Ubuntu 24.04 / WSL2 recommended).")
+    if platform.system() != "Linux":
+        fail("this bootstrap supports Linux / WSL2 only; see INSTALL.md.")
+    machine = platform.machine().lower()
+    arch = {"x86_64": "x64", "amd64": "x64"}.get(machine)
+    if not arch:
+        fail("fork.009 publishes Linux x86_64 only; this bootstrap cannot install " + machine)
+    libc, libc_version = platform.libc_ver()
+    if libc != "glibc" or tuple(map(int, libc_version.split(".")[:2])) < (2, 39):
+        fail("Allspark fork.009 requires glibc >=2.39; use Ubuntu 24.04 / WSL2.")
+    try:
+        top = subprocess.check_output(
+            ["git", "-C", str(ROOT), "rev-parse", "--show-toplevel"], text=True
+        ).strip()
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        fail("copy repo/ into an existing Git checkout first; git must be installed.")
+    if Path(top).resolve() != ROOT:
+        fail("scripts/ai must be installed directly in the target repository.")
+    ignored = subprocess.run(
+        ["git", "-C", str(ROOT), "check-ignore", "-q", "--no-index", ".ai/local/probe"]
+    )
+    if ignored.returncode != 0:
+        fail("merge examples/gitignore.fragment into .gitignore first; .ai/local must be ignored.")
+    return arch
+
+
+def matches(path, spec):
+    algorithm = "sha256" if "sha256" in spec else spec["integrity"].split("-", 1)[0]
+    digest = hashlib.new(algorithm)
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    actual = (
+        digest.hexdigest() if algorithm == "sha256" else base64.b64encode(digest.digest()).decode()
+    )
+    expected = spec.get("sha256") if algorithm == "sha256" else spec["integrity"].split("-", 1)[1]
+    return actual == expected
+
+
+def download(spec):
+    destination = LOCAL / "downloads" / spec["url"].rsplit("/", 1)[-1]
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.exists():
+        if not matches(destination, spec):
+            fail(
+                "cached archive checksum differs; inspect/remove this local archive: "
+                + str(destination)
+            )
+        return destination
+    print("Downloading " + spec["url"], flush=True)
+    request = urllib.request.Request(
+        spec["url"], headers={"User-Agent": "allspark-path-pdd-starter/1"}
+    )
+    partial = destination.with_suffix(destination.suffix + ".partial")
+    try:
+        with urllib.request.urlopen(request, timeout=90) as response, partial.open("wb") as output:
+            shutil.copyfileobj(response, output)
+        if not matches(partial, spec):
+            fail("download checksum mismatch: " + spec["url"])
+        partial.replace(destination)
+    finally:
+        partial.unlink(missing_ok=True)
+    return destination
+
+
+def unpack(archive, destination, *, strip_directory=False, receipt):
+    marker = destination / ".ai-install.json"
+    if destination.exists():
+        if marker.is_file() and json.loads(marker.read_text()) == receipt:
+            print("Already installed: " + str(destination.relative_to(ROOT)))
+            return
+        fail(
+            "existing tool directory has a different/no receipt; do not overwrite automatically: "
+            + str(destination)
+        )
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="extract-", dir=LOCAL) as temp:
+        stage = Path(temp) / "payload"
+        stage.mkdir()
+        with tarfile.open(archive) as tar:
+            regular_files = [
+                (member.name, member.size) for member in tar.getmembers() if member.isfile()
+            ]
+            tar.extractall(stage, filter="data")
+        # Detect partial extraction before accepting a tool installation.
+        for name, expected_size in regular_files:
+            if (stage / name).stat().st_size != expected_size:
+                fail("incomplete extraction: " + name)
+        if strip_directory:
+            entries = list(stage.iterdir())
+            if len(entries) != 1 or not entries[0].is_dir():
+                fail("archive layout changed: " + str(archive))
+            stage = entries[0]
+        shutil.move(str(stage), destination)
+        for name, expected_size in regular_files:
+            relative = Path(*Path(name).parts[1:]) if strip_directory else Path(name)
+            if (destination / relative).stat().st_size != expected_size:
+                fail("incomplete installed file: " + str(destination / relative))
+        (destination / ".ai-install.json").write_text(json.dumps(receipt, indent=2) + "\n")
+
+
+def install_tools(arch, dry):
+    if dry:
+        for name in ("node", "uv", "allspark", "path", "pdd"):
+            spec = PINS[name].get("artifacts", {}).get(arch, PINS[name])
+            print(name + ": " + spec["url"])
+        print("allspark source sidecars: " + PINS["allspark"]["source"]["url"])
+        print(
+            "Destinations: .ai/local/{node,uv-dist,allspark-dist,allspark-source,allspark-home,vendor,pdd,kernel-venv}."
+        )
+        print(
+            "Runs the official --allspark-bootstrap after installation (Python dependencies; no LLM request)."
+        )
+        return
+    LOCAL.mkdir(parents=True, exist_ok=True)
+    for name, directory, strip in (
+        ("node", "node", True),
+        ("uv", "uv-dist", True),
+        ("allspark", "allspark-dist", True),
+    ):
+        spec = PINS[name]["artifacts"][arch]
+        unpack(
+            download(spec),
+            LOCAL / directory,
+            strip_directory=strip,
+            receipt={
+                "name": name,
+                "version": PINS[name]["version"],
+                "arch": arch,
+                "sha256": spec["sha256"],
+            },
+        )
+    # The published fork.009 tar contains the launcher and payload only.
+    # Its Python runtime and bundled skills must come from the SAME source
+    # commit. PI_PACKAGE_DIR selects this complete, verified package root.
+    source = PINS["allspark"]["source"]
+    unpack(
+        download(source),
+        LOCAL / "allspark-source",
+        strip_directory=True,
+        receipt={
+            "name": "allspark-source",
+            "commit": PINS["allspark"]["commit"],
+            "sha256": source["sha256"],
+        },
+    )
+    # Fail before npm can silently fall back to an unrelated system Node.
+    run([LOCAL / "node/bin/node", "--version"])
+    run([LOCAL / "uv-dist/uv", "--version"])
+    launcher = LOCAL / "allspark-dist/bin/allspark"
+    check = subprocess.run(
+        [str(launcher), "--version"],
+        env=environment(isolated=True),
+        text=True,
+        capture_output=True,
+        timeout=15,
+        check=True,
+    )
+    if check.stdout.strip() != PINS["allspark"]["versionOutput"]:
+        fail("Allspark launcher/payload does not match the pinned fork build")
+    print(check.stdout.strip())
+    bins = LOCAL / "tools/bin"
+    bins.mkdir(parents=True, exist_ok=True)
+    for name in ("uv", "uvx"):
+        source = LOCAL / "uv-dist" / name
+        if source.exists():
+            destination = bins / name
+            if destination.is_symlink() and destination.resolve() == source.resolve():
+                continue
+            if destination.exists() or destination.is_symlink():
+                fail("existing tool would be replaced: " + str(destination))
+            destination.symlink_to(os.path.relpath(source, bins))
+    path_archive = download(PINS["path"])
+    unpack(
+        path_archive,
+        LOCAL / "vendor/gsd-path",
+        strip_directory=True,
+        receipt={
+            "name": "path",
+            "version": PINS["path"]["version"],
+            "integrity": PINS["path"]["integrity"],
+        },
+    )
+    pdd_archive = download(PINS["pdd"])
+    pdd_prefix = LOCAL / "pdd"
+    receipt = pdd_prefix / ".ai-install.json"
+    expected = {
+        "name": "pdd",
+        "version": PINS["pdd"]["version"],
+        "integrity": PINS["pdd"]["integrity"],
+    }
+    if receipt.is_file() and json.loads(receipt.read_text()) == expected:
+        print("Already installed: .ai/local/pdd")
+    else:
+        if pdd_prefix.exists():
+            fail("PDD tool directory exists without matching receipt: " + str(pdd_prefix))
+        pdd_prefix.mkdir()
+        # This writes a local package-lock. Transitive dependencies are resolved
+        # by npm on first install; top-level pins are not a hermetic full lock.
+        run(
+            [
+                LOCAL / "node/bin/npm",
+                "install",
+                "--prefix",
+                pdd_prefix,
+                "--no-audit",
+                "--no-fund",
+                "--save-exact",
+                str(pdd_archive),
+            ],
+            env=environment(),
+        )
+        receipt.write_text(json.dumps(expected, indent=2) + "\n")
+    run([LOCAL / "pdd/node_modules/.bin/pdd-kit", "--version"], env=environment())
+    profile = LOCAL / "allspark-home/.prime/agent"
+    profile.mkdir(mode=0o700, parents=True, exist_ok=True)
+    settings = profile / "settings.json"
+    if not settings.exists():
+        settings.write_text((ROOT / ".ai/allspark/settings.json").read_text())
+        settings.chmod(0o600)
+    print("Allspark profile initialized once; existing login/model preferences preserved.")
+    # An install-time check supplied by the fork itself: resolve/bootstrap
+    # the runtime now, without contacting a model or opening a session.
+    run([launcher, "--allspark-bootstrap"], env=environment(isolated=True))
+
+
+def path_installer():
+    script = LOCAL / "vendor/gsd-path/scripts/install.py"
+    if not script.is_file():
+        fail("run `python3 scripts/ai/bootstrap tools` first.")
+    return [sys.executable, "-B", script]
+
+
+def validated_path_pin():
+    path = ROOT / ".gsd-path/runtime.json"
+    if path.parent.is_symlink() or path.is_symlink():
+        fail("Path runtime declaration must be a real repository file: " + str(path))
+    if not os.path.lexists(path):
+        return None
+    pin = json.loads(path.read_text())
+    expected = {
+        "schema": "gsd-path/runtime/v1",
+        "version": PINS["path"]["version"],
+        "digest": PINS["path"]["runtimeDigest"],
+    }
+    if not isinstance(pin, dict) or any(pin.get(key) != value for key, value in expected.items()):
+        fail(
+            "existing Path runtime declaration differs from versions.json; review an explicit migration/upgrade first"
+        )
+    return pin
+
+
+def owned_path_skills():
+    skills = ROOT / ".agents/skills"
+    if skills.parent.is_symlink() or skills.is_symlink():
+        fail("local skills directory must not be a symlink: " + str(skills))
+    if not skills.exists():
+        return False
+    source = LOCAL / "vendor/gsd-path"
+    expected = {
+        entry.name for entry in (source / "skills").iterdir() if (entry / "SKILL.md").is_file()
+    }
+    reserved = [
+        entry
+        for entry in skills.iterdir()
+        if entry.name.casefold() in {"path", "gsd-path", "ogsd"}
+        or entry.name.casefold().startswith(("gsd-path-", "ogsd-"))
+    ]
+    if not reserved:
+        return False
+    for entry in reserved:
+        if (
+            entry.name not in expected
+            or entry.is_symlink()
+            or not entry.is_dir()
+            or not (entry / "SKILL.md").is_file()
+            or (entry / "SKILL.md").is_symlink()
+        ):
+            fail("unowned/partial Path skill collision; review it before bootstrap: " + str(entry))
+    # Prove this is our pinned installed bundle, not an unrelated `path` skill.
+    # Local changes in owned skills are preserved by upstream in its backup.
+    for alias in ("path", "gsd-path"):
+        version = skills / alias / "VERSION"
+        runtime = skills / alias / "scripts/pipeline_state.py"
+        if (
+            version.is_symlink()
+            or runtime.is_symlink()
+            or not version.is_file()
+            or version.read_text().strip() != PINS["path"]["version"]
+            or not runtime.is_file()
+            or runtime.read_bytes() != (source / "scripts/pipeline_state.py").read_bytes()
+        ):
+            fail(
+                "existing Path skills lack the pinned ownership markers; inspect before reinstall: "
+                + str(skills / alias)
+            )
+    return True
+
+
+def install_skills(dry):
+    installer = path_installer()
+    pin = validated_path_pin()
+    existing_skills = owned_path_skills()
+    preview = ["--dry-run"] if dry else []
+    command = installer + ["--codex", "--local"]
+    if pin is not None:
+        # A fresh clone has the tracked declaration but no machine-local cache.
+        # Exact restore leaves the declaration and tracked contracts untouched.
+        run(
+            installer
+            + ["--runtime-restore", "--project", ROOT, "--source-root", LOCAL / "vendor/gsd-path"]
+            + preview,
+            env=environment(),
+        )
+    else:
+        command += ["--project", ROOT]
+    if existing_skills:
+        command += ["--update"]
+    run(command + preview, env=environment())
+    if not dry or pin is not None:
+        # Path resolves its exact runtime under HOME. The shell and Allspark
+        # use different HOME values, so restore the same immutable digest
+        # with the native installer into both caches. Never symlink caches.
+        run(
+            installer
+            + ["--runtime-restore", "--project", ROOT, "--source-root", LOCAL / "vendor/gsd-path"]
+            + preview,
+            env=environment(isolated=True),
+        )
+    else:
+        print(
+            "After project initialization, restore the same Path digest into Allspark HOME as well."
+        )
+    pdd = LOCAL / "pdd/node_modules/.bin/pdd-kit"
+    if not pdd.is_file():
+        fail("PDD CLI missing; run bootstrap tools first.")
+    run(
+        [
+            pdd,
+            "install",
+            "--providers",
+            "agents",
+            "--scope",
+            "project",
+            "--orchestrate=off",
+            "--yes",
+        ],
+        dry=dry,
+        env=environment(),
+    )
+    if dry:
+        print(
+            "PDD has no install --dry-run: its command was printed only. Path preview ran upstream."
+        )
+    elif pin is not None:
+        print(
+            "Restored the exact Path runtime and local skills; tracked project contracts were kept. Git hooks are a separate step."
+        )
+    else:
+        print(
+            "Review generated AGENTS.md, WORKFLOW.md and .gsd-path/. Git hooks are a separate step."
+        )
+
+
+def install_hooks(dry):
+    if validated_path_pin() is None:
+        fail("install the pinned project skills/contracts before hooks: bootstrap skills")
+    run(
+        path_installer()
+        + ["--codex", "--local", "--project", ROOT, "--hooks-init"]
+        + (["--dry-run"] if dry else []),
+        env=environment(),
+    )
+    print("These are Path's Git/Codex hooks. Allspark does not execute Codex PreToolUse hooks.")
+
+
+def main():
+    global ROOT, LOCAL, PINS
+    os.umask(0o077)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("stage", choices=["tools", "skills", "hooks"])
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+    ROOT = ENV_HELPER["canonical_root"](SCRIPT_ROOT)
+    LOCAL = ROOT / ".ai/local"
+    PINS = json.loads((ROOT / ".ai/versions.json").read_text())
+    arch = preflight()
+    if args.stage == "tools":
+        install_tools(arch, args.dry_run)
+    elif args.stage == "skills":
+        install_skills(args.dry_run)
+    else:
+        install_hooks(args.dry_run)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (subprocess.CalledProcessError, OSError, ValueError) as error:
+        fail(str(error))

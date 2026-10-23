@@ -1,12 +1,21 @@
 # Local/runtime agent state
-.agents/skills/
+# Generated skill bundles are restored from .ai/versions.json pins (docs/agent-stack/INSTALL.md §7).
+# Project-owned skills (law-nexus-rust, law-nexus-subagent) are tracked in Git.
+.agents/skills/path/
+.agents/skills/gsd-path*/
+.agents/skills/pdd-*/
+.agents/skills/.pdd-kit-install.json
+.agents/skills/gitnexus-*/
+.agents/skills/pi-skill-creator/
+.agents/disabled-gsd-skills*/
 .bg-shell/
 .gsd/
 .claude/
 .artifacts/
 .commandcode/
 CLAUDE.md
-AGENTS.md
+# Allspark local payloads: binaries, caches, auth, sessions. Tracked config is .ai/.
+/.ai/local/
 
 # Historical vaults — not active product truth (R066 / ADR-0014 era / D104).
 # Trees may remain on disk for human archaeology; they must not be git-tracked

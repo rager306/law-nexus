@@ -1,0 +1,67 @@
+{
+  "schema": 2,
+  "checkedAt": "2026-10-23",
+  "platform": "linux-x86_64-glibc-2.39",
+  "pythonMinimum": "3.12",
+  "node": {
+    "version": "22.23.4",
+    "artifacts": {
+      "x64": {
+        "url": "https://nodejs.org/dist/v22.23.4/node-v22.23.4-linux-x64.tar.xz",
+        "sha256": "1805bcd35e6815559bd2eb97db438d3fdb0eb3a5e6a977b7c1badca76337e9ce"
+      },
+      "arm64": {
+        "url": "https://nodejs.org/dist/v22.23.4/node-v22.23.4-linux-arm64.tar.xz",
+        "sha256": "6287aa46b6c375d816e63ae66d024fbbfd70404825aabdfdf898a970871d2f4b"
+      }
+    }
+  },
+  "uv": {
+    "version": "0.13.5",
+    "artifacts": {
+      "x64": {
+        "url": "https://github.com/astral-sh/uv/releases/download/0.13.5/uv-x86_64-unknown-linux-gnu.tar.gz",
+        "sha256": "f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
+      },
+      "arm64": {
+        "url": "https://github.com/astral-sh/uv/releases/download/0.13.5/uv-aarch64-unknown-linux-gnu.tar.gz",
+        "sha256": "4bb69cf95ed13f23713bb7bc09f241896ea0c75b7c557e615a20604b82f9c403"
+      }
+    }
+  },
+  "path": {
+    "package": "@opengsd/gsd-path",
+    "version": "1.6.2",
+    "runtimeDigest": "6f95a31e4b8a434672421a604bdce71e5179409eb19496097219cd6cdb5d9f6f",
+    "url": "https://registry.npmjs.org/@opengsd/gsd-path/-/gsd-path-1.6.2.tgz",
+    "integrity": "sha512-GLad/kSVFx/fboPGmd5cZccLUs3o7oN00ck1bFe+4sgxOapJh5Emy16OUpKtumhlu5s68e3GylzXDcxv/utB0Q=="
+  },
+  "pdd": {
+    "package": "pdd-toolkit",
+    "version": "0.37.1",
+    "commit": "a833ce7efa3d37adfae77128b4b153ddaa3ff0ea",
+    "url": "https://registry.npmjs.org/pdd-toolkit/-/pdd-toolkit-0.37.1.tgz",
+    "integrity": "sha512-DOmzwUARGtAfCgJ4e5l34QfE0hjNMPfdupfjNys81SfU5WTfTj+LY6H78vgvoxhg2bpx0sCjCSHIzWWYp/rXcw==",
+    "schema": 11
+  },
+  "glibcMinimum": "2.39",
+  "allspark": {
+    "repository": "rager306/allspark",
+    "version": "0.10.1-beta.38",
+    "forkBuild": "fork.009",
+    "tag": "allspark-v0.10.1-beta.38-fork.009",
+    "commit": "91ef629272eea1f556025ef0dbfe2b07bf8053fc",
+    "versionOutput": "allspark 0.10.1-beta.38 (fork build fork.009; upstream prime-agent 0.10.1-beta.38)",
+    "artifacts": {
+      "x64": {
+        "url": "https://github.com/rager306/allspark/releases/download/allspark-v0.10.1-beta.38-fork.009/allspark-v0.10.1-beta.38-fork.009-linux-x86_64.tar.gz",
+        "sha256": "e910a9277a456f239a77d82cae16d630f199e43d730186a04370463b8efd4600"
+      }
+    },
+    "source": {
+      "url": "https://codeload.github.com/rager306/allspark/tar.gz/91ef629272eea1f556025ef0dbfe2b07bf8053fc",
+      "sha256": "8685c004e6096dad56b00f7313014af70a0f1c7d991930d9bc91906cefc042f8"
+    },
+    "sourceBuildToolchain": "1.98.1"
+  }
+}

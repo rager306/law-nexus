@@ -1,0 +1,249 @@
+#!/usr/bin/env python3
+"""Repository-local Allspark fork.009 launcher (Ubuntu 24.04 / WSL2).
+
+Wrapper options: --role owner|worker|reviewer, --check-config.
+All other arguments go to Allspark. AI_STACK_ROOT selects the canonical checkout
+when this script is invoked from a copy in another worktree.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import runpy
+import subprocess
+import sys
+from pathlib import Path
+
+VERSION = "allspark 0.10.1-beta.38 (fork build fork.009; upstream prime-agent 0.10.1-beta.38)"
+PUBLIC_COMMANDS = {
+    "help",
+    "agents",
+    "list",
+    "sessions",
+    "attach",
+    "stop",
+    "rename",
+    "send",
+    "schedule",
+    "status",
+    "telemetry",
+    "doctor",
+    "incident",
+    "shutdown",
+    "mcp",
+    "package",
+    "update",
+    "model",
+    "session",
+    "config",
+    "factory",
+    "prompt",
+}
+REQUIRED = {
+    ("updateChannel",): "stable",
+    ("rlmMaxDepth",): 0,
+    ("harnessRefinements",): False,
+    ("autoRefine", "enabled"): False,
+    ("autoRefine", "compact"): False,
+    ("factory", "enabled"): False,
+    ("agentTraces", "enabled"): False,
+    ("telemetry", "enabled"): False,
+    ("jev", "enabled"): "off",
+    ("jev", "autoThinking"): "off",
+    ("jev", "graphRerank"): "off",
+    ("jev", "toolArbiter"): "off",
+}
+MISSING = object()
+
+
+def fail(message: str) -> None:
+    raise SystemExit("AI stack: " + message)
+
+
+def git(directory: Path, *arguments: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(directory), *arguments],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode:
+        fail(f"{directory} is not an available Git checkout")
+    return result.stdout.strip()
+
+
+def read_settings(path: Path, *, required: bool = False) -> dict:
+    if not path.exists():
+        if required:
+            fail(f"missing {path}; run scripts/ai/bootstrap first")
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        fail(f"cannot parse {path}: {type(error).__name__}")
+    if not isinstance(data, dict):
+        fail(f"{path} must contain a JSON object")
+    return data
+
+
+def leaf(data: dict, keys: tuple[str, ...]):
+    value = data
+    for key in keys:
+        if not isinstance(value, dict) or key not in value:
+            return MISSING
+        value = value[key]
+    return value
+
+
+def validate_settings(global_path: Path, project_path: Path) -> tuple[dict, dict]:
+    global_settings = read_settings(global_path, required=True)
+    project_settings = read_settings(project_path)
+    for path, data, complete in (
+        (global_path, global_settings, True),
+        (project_path, project_settings, False),
+    ):
+        for keys, expected in REQUIRED.items():
+            value = leaf(data, keys)
+            if value is MISSING and not complete:
+                continue
+            # Strict type comparison: bool is a subclass of int in Python.
+            if type(value) is not type(expected) or value != expected:
+                fail(f"{path}: {'.'.join(keys)} conflicts with the starter profile")
+        if "autoUpdate" in data or leaf(data, ("autonomous", "enabled")) is not MISSING:
+            fail(f"{path}: autoUpdate/autonomous.enabled are not pinned Allspark settings")
+        if "sessionDir" in data:
+            fail(f"{path}: remove sessionDir; the launcher supplies a shared absolute directory")
+        if data.get("enableSkillCommands") is False:
+            fail(f"{path}: enableSkillCommands=false disables /skill: commands")
+    return global_settings, project_settings
+
+
+def main() -> None:
+    os.umask(0o077)
+    if sys.platform != "linux":
+        fail("this starter targets Ubuntu Linux and Ubuntu under WSL2")
+    script_root = Path(__file__).resolve().parents[2]
+    helper = runpy.run_path(str(script_root / "scripts/ai/stack-env.py"))
+    root = helper["canonical_root"](script_root)
+    role = os.environ.get("AI_STACK_ROLE", "owner")
+    check = False
+    args: list[str] = []
+    incoming = iter(sys.argv[1:])
+    for arg in incoming:
+        if arg == "--":
+            args.append(arg)
+            args.extend(incoming)
+            break
+        if arg == "--role":
+            role = next(incoming, "")
+        elif arg == "--check-config":
+            check = True
+        else:
+            args.append(arg)
+    if role not in {"owner", "worker", "reviewer"}:
+        fail("--role must be owner, worker, or reviewer")
+
+    cwd = Path.cwd().resolve()
+    before_message = args[: args.index("--")] if "--" in args else args
+    for index, arg in enumerate(before_message):
+        if arg == "--cwd":
+            if index + 1 == len(before_message):
+                fail("--cwd needs a worktree path")
+            cwd = Path(before_message[index + 1]).expanduser().resolve()
+    worktree = Path(git(cwd, "rev-parse", "--show-toplevel")).resolve()
+    if cwd != worktree:
+        fail("start in the worktree root, or pass --cwd <worktree-root>")
+    main_common = git(root, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    work_common = git(worktree, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if Path(main_common).resolve() != Path(work_common).resolve():
+        fail("AI_STACK_ROOT and the working directory must belong to the same Git repository")
+
+    local = root / ".ai/local"
+    env = helper["build_env"](root)
+    env["AI_STACK_ROLE"] = role
+    profile = Path(env["PRIME_AGENT_CODING_AGENT_DIR"])
+    binary = local / "allspark-dist/bin/allspark"
+    sessions = profile / "sessions"
+    global_settings, project_settings = validate_settings(
+        profile / "settings.json", worktree / ".prime/agent/settings.json"
+    )
+    model = project_settings.get("defaultModel", global_settings.get("defaultModel"))
+    provider = project_settings.get("defaultProvider", global_settings.get("defaultProvider"))
+    info = {
+        "stackRoot": str(root),
+        "worktree": str(worktree),
+        "role": role,
+        "binary": str(binary),
+        "requiredVersion": VERSION,
+        "agentDir": str(profile),
+        "sessionDir": str(sessions),
+        "isolatedHome": env["ALLSPARK_HOME"],
+        "packageRoot": env["PI_PACKAGE_DIR"],
+        "kernelVenv": env["PRIME_AGENT_KERNEL_VENV"],
+        "daemonSocket": env["PRIME_AGENT_DAEMON_SOCKET"],
+        "pathWorktreeRoot": env["GSD_PATH_WORKTREE_ROOT"],
+        "defaultProvider": provider,
+        "defaultModel": model,
+        "modelSource": "project" if "defaultModel" in project_settings else "private profile",
+    }
+    if check:
+        print(json.dumps(info, ensure_ascii=False, indent=2))
+        return
+    if not binary.is_file() or not os.access(binary, os.X_OK):
+        fail(f"missing executable {binary}; run scripts/ai/bootstrap")
+
+    for arg in before_message:
+        flag = arg.split("=", 1)[0]
+        if flag.startswith("--autonomous") or flag in {"--goal", "--goal-token-budget"}:
+            fail("the starter starts without autonomous continuation or goals")
+        if flag in {"--session-dir", "--daemon-socket"}:
+            fail("session and daemon locations are managed by this launcher")
+        if flag in {"-c", "--continue", "-r", "--resume", "--fork"}:
+            fail(
+                "the starter uses fresh sessions; saved sessions can carry autonomous/depth overrides"
+            )
+    if args and (args[0] == "update" or args[:2] == ["package", "update"]):
+        fail("versions are pinned; update versions.json and bootstrap deliberately")
+    if any(arg == "-m" or arg.startswith("--model=") for arg in before_message):
+        fail("the pinned Allspark payload accepts --model <value> (two arguments)")
+
+    probe = subprocess.run(
+        [str(binary), "--version"], env=env, text=True, capture_output=True, check=False, timeout=15
+    )
+    if probe.returncode or probe.stdout.strip() != VERSION:
+        fail("Allspark binary does not report the pinned fork version: " + VERSION)
+
+    public_command = bool(args and args[0] in PUBLIC_COMMANDS)
+    resource_free = args in (["--version"], ["-v"], ["--help"], ["-h"], ["--allspark-bootstrap"])
+    if not public_command and not resource_free:
+        if any(flag in before_message for flag in ("-p", "--print")):
+            if "--model" not in before_message and not (model and provider):
+                fail(
+                    "select a provider/model in the owner UI first (/login, /model), or pass --model explicitly"
+                )
+        prompt = root / ".ai/allspark/roles" / (role + ".md")
+        skills = root / ".agents/skills"
+        bundled = local / "allspark-source/skills"
+        for path in (prompt, skills, bundled):
+            if not path.exists():
+                fail(f"required role/skill resource is missing: {path}")
+        # An absolute canonical skills path keeps sibling worktrees on the same
+        # installed provider-neutral PDD/Path skills, including their references.
+        args = [
+            "--no-skills",
+            "--skill",
+            str(skills),
+            "--skill",
+            str(bundled),
+            "--append-system-prompt",
+            str(prompt),
+            *args,
+        ]
+    sessions.mkdir(parents=True, exist_ok=True)
+    os.chdir(worktree)
+    os.execve(binary, [str(binary), *args], env)
+
+
+if __name__ == "__main__":
+    main()
