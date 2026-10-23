@@ -158,3 +158,15 @@ Recovery: private backup `/root/law-nexus-migration-backup-2026-10-23`
 (manifest id `3a691ee67857bf153ceaa0cf93d23757ee2330cfcd70b4444247a6800a433d50`);
 git revert for tracked changes; ignored/local state restored from the backup
 (separate recovery checkout, read-only first).
+
+
+## Final gate (2026-10-23, head `ddbe7784`)
+
+- Targeted suites `test_harness_governor.py + test_harness_preflight.py +
+  test_project_state_roadmap_freshness.py`: **242 passed, 0 failed**.
+- Tracked-tree hygiene confirmed: no `.project/` contents, no
+  `m210/temporal-legal-model/crates/product-model` mutations, M210
+  `not-adopted` pin untouched; credentials/runtime state only in ignored
+  local dirs (backup holds the private copies, mode 0700).
+- Working tree clean; 5 migration commits on
+  `chore/allspark-path-pdd-bootstrap`, nothing pushed.
