@@ -100,3 +100,61 @@ overlay (`AGENTS.md`, `CLAUDE.md`, `.mcp.json`, hooks, skills). Manifest:
   `docs/agent-stack/TESTED.md`) and then removed from the working tree.
 - Pi-era hooks were not found in `.git/hooks`; the pre-commit chain is kept
   as-is. Path guards are installed only by `bootstrap hooks` per INSTALL §8.
+
+## Bootstrap validation receipts (2026-10-23, local branch `chore/allspark-path-pdd-bootstrap`)
+
+- `python3 scripts/ai/bootstrap tools` — pinned Node 22.23.4, uv 0.13.5,
+  Allspark fork.009 (`allspark 0.10.1-beta.38 (fork build fork.009; upstream
+  prime-agent 0.10.1-beta.38)`, commit `91ef62927...`), PDD 0.37.1, kernel
+  ready (`kernel-venv`, Python 3.11). Sources: pins in `.ai/versions.json`.
+- `python3 scripts/ai/bootstrap skills` — 16 Path skills + 3 PDD skills,
+  runtime 1.6.2 digest `6f95a31e…` verified in two caches
+  (`/root/.allspark-home/.gsd-path/runtimes/…` for this shell HOME and
+  `.ai/local/allspark-home/.gsd-path/…` for the isolated fork HOME; plus a
+  host-HOME restore under `/root/.gsd-path/runtimes/…`).
+- `python3 scripts/ai/bootstrap hooks` — Git guards with chained
+  `pre-commit.gsd-path-chained` (pre-commit framework hook preserved).
+- `python3 scripts/ai/doctor.py` — all component checks OK; PENDING:
+  model selection (owner `/login` + `/model`) and Path initialization
+  (bootstrap PR merge first, per MIGRATION.md C3/C4).
+- Harness: governor `status ok, errors 0, warns 1` (workflow-state-surface
+  bootstrap warn); preflight `status ok, errors 0, warns 3`
+  (gitnexus-index-freshness, workflow-state-surface, trajectory-governor).
+- `ruff check`/`ruff format --check` clean for all new/edited files;
+  `basedpyright`/`ty`/`pyrefly` clean for the new modules; the 51
+  basedpyright + 57 ty diagnostics in `governor.py` are pre-existing
+  baseline debt (MIGRATION.md L9), untouched.
+- Live source snapshot: `verify-source-snapshot-v2.py` on the working tree —
+  2,286 files, aggregate `4cd946bf…`, `--check` matches (exit 0).
+- Phase-dispatch adapter on deterministic stubs: ready path exit 0, timeout
+  path exit 5 with full child reaping, dry-run prints without spawning.
+- `cargo fmt --check` clean; `cargo check --workspace --offline` green after
+  `cargo fetch --locked`. Pilot-shaped probe (read-only, not the C6 pilot):
+  `amendment_provenance::…::argument_parsing_is_closed_and_requires_one_action`
+  matches exactly 1 test and passes — 1 passed, 0 failed.
+- Path router on this branch: `path-run.py status/route` correctly report
+  `project directory must be real` (no `.project` before merge); `--dry-run
+  round` resolves the plan without spawning. Not-workflow-ready is the
+  expected honest outcome here — it is not hidden behind any PASS.
+
+## Owner gates required to proceed
+
+| # | Gate | Exact command / action |
+|---|---|---|
+| 1 | Push the branch | `git push -u origin chore/allspark-path-pdd-bootstrap` (note: `main` is 251 commits ahead of `origin/main`; pushing this branch publishes nothing beyond it, but the bootstrap PR cannot merge to `origin/main` until those 251 commits are also pushed — owner decision) |
+| 2 | Review and accept the bootstrap PR | 4 commits (overlay+instructions, native Path contracts, hook-chain verifier, migration control plane) |
+| 3 | Allspark login + model selection | In Allspark: `/login`, then `/model`; afterwards `python3 scripts/ai/allspark-settings.py export-model` on this branch |
+| 4 | Clean baseline + native Path init | After PR merge: fetch, checkout `origin/main`, run `/skill:path` initialize/bind-initial per INSTALL.md §12 |
+| 5 | Carry M225 over | First Path milestone re-plans the frozen M225 attention from `docs/agent-stack/history/LEGACY_CROSSWALK.md`; M210 `not-adopted` stays `hold` |
+
+Bootstrap commits on this branch (reviewable unit, 67 files):
+
+- `e7bed926` starter overlay + tracked agent instructions + C0/C1 records;
+- `446e20be` native GSD Path contracts (installer-generated);
+- `19561041` pre-commit hook guard-chain verifier;
+- `c4c45c8a` typed adapter + source snapshot + phase dispatch + CI inventory.
+
+Recovery: private backup `/root/law-nexus-migration-backup-2026-10-23`
+(manifest id `3a691ee67857bf153ceaa0cf93d23757ee2330cfcd70b4444247a6800a433d50`);
+git revert for tracked changes; ignored/local state restored from the backup
+(separate recovery checkout, read-only first).
