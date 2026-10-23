@@ -1738,6 +1738,10 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
         # projection entries), not a repo regression.
         "journal-retry-loops",
         "compat-marker-hygiene",
+        # Workflow transition (2026-10-23): GSD-Pi is frozen and Path native
+        # state is intentionally absent until the bootstrap PR merges; the
+        # typed adapter reports the honest bootstrap not-cut-over warn.
+        "workflow-state-surface",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
@@ -1784,6 +1788,10 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
         # projection entries), not a repo regression.
         "journal-retry-loops",
         "compat-marker-hygiene",
+        # Workflow transition (2026-10-23): GSD-Pi is frozen and Path native
+        # state is intentionally absent until the bootstrap PR merges; the
+        # typed adapter reports the honest bootstrap not-cut-over warn.
+        "workflow-state-surface",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids

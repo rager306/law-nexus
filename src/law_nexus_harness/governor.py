@@ -30,6 +30,10 @@ from law_nexus_harness.adr_matrix import (
     DEFAULT_ADR_MATRIX_PATH,
     check_adr_matrix_output,
 )
+from law_nexus_harness.workflow_state import (
+    WorkflowStateKind,
+    read_workflow_state,
+)
 
 GOVERNOR_SCHEMA_VERSION = "law-nexus-governor-report/v1"
 
@@ -493,6 +497,72 @@ def check_forward_roadmap_sequence(root: Path) -> list[GovernorFinding]:
             message="Forward product roadmap has a unique post-M130 sequence",
             observed="product_sequence=M131-M140",
             remediation="none",
+        )
+    ]
+
+
+def check_workflow_state_surface(root: Path) -> list[GovernorFinding]:
+    """Typed workflow-state adapter check for the GSD Path backend.
+
+    Distinguishes bootstrap not-cut-over from operational Path state; missing
+    or invalid operational state is a blocking diagnostic, never a silent
+    PASS (docs/agent-stack/MIGRATION.md 4.1). Read-only: never repairs state,
+    never completes tasks, never emits Review Case events.
+    """
+    report = read_workflow_state(root)
+    evidence = tuple(GovernorEvidence(path=path) for path in report.evidence)
+    legacy = "present" if report.legacy_gsd_present else "absent"
+    runtime = report.runtime
+    runtime_note = (
+        f"{runtime.version}@{runtime.digest[:12]}"
+        if runtime.version is not None and runtime.digest is not None
+        else "unresolved"
+    )
+    if report.kind is WorkflowStateKind.OPERATIONAL_VALID:
+        return [
+            GovernorFinding(
+                check_id="workflow-state-surface",
+                status="pass",
+                severity="ok",
+                message="workflow backend resolves to an operational GSD Path project",
+                observed=(
+                    f"backend=gsd-path; runtime={runtime_note}; "
+                    f"legacy_gsd={legacy}; {report.observed}"
+                ),
+                remediation="none",
+                rule_id="workflow-state-surface.operational",
+                expected="The typed adapter resolves an operational Path state with a verified runtime.",
+                evidence=evidence,
+            )
+        ]
+    if report.kind is WorkflowStateKind.BOOTSTRAP_NOT_CUT_OVER:
+        return [
+            GovernorFinding(
+                check_id="workflow-state-surface",
+                status="fail",
+                severity="warn",
+                message="workflow backend is GSD Path but native state is not initialized (bootstrap)",
+                observed=f"mode=bootstrap; not-cut-over; legacy_gsd={legacy}; {report.observed}",
+                remediation=(
+                    "Complete the bootstrap PR, then run native Path initialization per "
+                    "docs/agent-stack/INSTALL.md 12; portable repository checks are unaffected."
+                ),
+                rule_id="workflow-state-surface.bootstrap",
+                expected="Bootstrap preparation keeps workflow readiness explicit instead of silent PASS.",
+                evidence=evidence,
+            )
+        ]
+    return [
+        GovernorFinding(
+            check_id="workflow-state-surface",
+            status="fail",
+            severity="error",
+            message="workflow backend state is missing, invalid, or conflicting",
+            observed=f"kind={report.kind.value}; runtime={runtime_note}; legacy_gsd={legacy}; {report.observed}",
+            remediation=report.remediation,
+            rule_id="workflow-state-surface.blocking",
+            expected="Operational mode requires a valid Path state and a verified runtime.",
+            evidence=evidence,
         )
     ]
 
@@ -7543,6 +7613,19 @@ def _check_spec(
 
 
 GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
+    _check_spec(
+        "workflow-state-surface",
+        "docs",
+        "deterministic",
+        check_workflow_state_surface,
+        "Keep the typed GSD Path workflow-state surface explicit instead of a silent legacy PASS.",
+        (
+            "prd/project-state/workflow-backend.json",
+            ".gsd-path/runtime.json",
+            ".project/STATE.md",
+        ),
+        "error",
+    ),
     _check_spec(
         "architecture-direction-contract",
         "docs",

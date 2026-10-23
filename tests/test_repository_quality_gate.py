@@ -28,6 +28,9 @@ CI_PROCESS_SUITE = {
     "tests/test_harness_subprocess_failure_modes.py",
     "tests/test_harness_no_forbidden_imports.py",
     "tests/test_harness_governor.py",
+    "tests/test_harness_workflow_state.py",
+    "tests/test_verify_source_snapshot_v2.py",
+    "tests/test_phase_dispatch_adapter.py",
     "tests/test_harness_cli_entrypoints.py",
     "tests/test_harness_preflight.py",
     "tests/test_harness_review_case_cli.py",
@@ -98,8 +101,9 @@ def test_pre_commit_commands_are_expected_and_non_mutating() -> None:
     assert "always_run" not in by_id["cargo-check-rust"]
     assert "always_run" not in by_id["cargo-clippy-rust"]
     assert by_id["architecture-claim-conformance"]["always_run"] is True
-    assert by_id["ruff-check-python"].get("exclude") == "^python_archive/"
-    assert by_id["ruff-format-python"].get("exclude") == "^python_archive/"
+    # .gsd-path/ launchers are pinned installer-generated native contracts.
+    assert by_id["ruff-check-python"].get("exclude") == "^python_archive/|^\\.gsd-path/"
+    assert by_id["ruff-format-python"].get("exclude") == "^python_archive/|^\\.gsd-path/"
 
 
 def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() -> None:

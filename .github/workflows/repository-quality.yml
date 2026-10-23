@@ -109,6 +109,9 @@ jobs:
           tests/test_harness_subprocess_failure_modes.py
           tests/test_harness_no_forbidden_imports.py
           tests/test_harness_governor.py
+          tests/test_harness_workflow_state.py
+          tests/test_verify_source_snapshot_v2.py
+          tests/test_phase_dispatch_adapter.py
           tests/test_harness_cli_entrypoints.py
           tests/test_harness_preflight.py
           tests/test_harness_review_case_cli.py
