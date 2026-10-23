@@ -49,8 +49,13 @@ def test_current_hook_is_standard_and_matches_transition_record() -> None:
     module = load_module()
     payload = module.verify(ROOT)
     assert payload["status"] == "pass", payload
-    assert payload["hook"]["owner"] == "pre-commit"
+    # Since 2026-10-23 the active hook is the GSD Path guard chaining the
+    # standard pre-commit framework hook (pre-commit.gsd-path-chained).
+    assert payload["hook"]["owner"] == "gsd-path"
     assert payload["hook"]["contains_git_lex"] is False
+    chained = payload["hook"]["chained_hook"]
+    assert chained["owner"] == "pre-commit"
+    assert chained["contains_git_lex"] is False
 
 
 def test_git_lex_hook_is_rejected(tmp_path: Path) -> None:

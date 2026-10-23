@@ -41,6 +41,65 @@ def inspect_hook(root: Path) -> dict[str, object]:
     text = data.decode("utf-8", errors="replace")
     has_git_lex = "git-lex" in text or "git lex" in text
     has_pre_commit = "pre_commit" in text or "pre-commit" in text
+    # GSD Path guard chain (2026-10-23): the active pre-commit is the pinned
+    # installer guard that first runs .gsd-path/git_guard.py and then execs the
+    # pre-commit framework hook preserved as pre-commit.gsd-path-chained.
+    chained = hook.with_name("pre-commit.gsd-path-chained")
+    chained_entry: dict[str, object] | None = None
+    if "gsd-path guard" in text:
+        guard = root / ".gsd-path/git_guard.py"
+        if not guard.is_file():
+            return {
+                "exists": True,
+                "owner": "gsd-path",
+                "errors": ["gsd_path_guard_missing"],
+            }
+        if "git_guard.py" not in text or "pre-commit.gsd-path-chained" not in text:
+            return {
+                "exists": True,
+                "owner": "gsd-path",
+                "errors": ["gsd_path_chain_incomplete"],
+            }
+        if not chained.exists() or not chained.stat().st_mode & 0o111:
+            return {
+                "exists": True,
+                "owner": "gsd-path",
+                "errors": ["chained_pre_commit_missing"],
+            }
+        chained_data = chained.read_bytes()
+        chained_text = chained_data.decode("utf-8", errors="replace")
+        chained_has_git_lex = "git-lex" in chained_text or "git lex" in chained_text
+        if chained_has_git_lex:
+            return {
+                "exists": True,
+                "owner": "gsd-path",
+                "errors": ["git_lex_invocation_present"],
+            }
+        if not hook.stat().st_mode & 0o111:
+            return {
+                "exists": True,
+                "owner": "gsd-path",
+                "errors": ["hook_not_executable"],
+            }
+        legacy_hook = hook.with_name("pre-commit.legacy")
+        chained_entry = {
+            "owner": "pre-commit",
+            "sha256": sha256_bytes(chained_data),
+            "size_bytes": len(chained_data),
+            "contains_git_lex": False,
+            "legacy_hook_present": legacy_hook.exists(),
+        }
+        return {
+            "exists": True,
+            "owner": "gsd-path",
+            "sha256": sha256_bytes(data),
+            "size_bytes": len(data),
+            "contains_git_lex": False,
+            "contains_pre_commit": True,
+            "legacy_hook_present": legacy_hook.exists(),
+            "chained_hook": chained_entry,
+            "errors": [],
+        }
     owner = (
         "pre-commit"
         if has_pre_commit and not has_git_lex
@@ -77,7 +136,10 @@ def verify_transition(root: Path, hook: dict[str, object]) -> list[str]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     errors: list[str] = []
     expected = payload.get("new_hook", {})
-    if hook.get("sha256") != expected.get("sha256"):
+    # For a gsd-path chain, the recorded standard pre-commit hook is the
+    # chained framework hook; the guard wrapper itself is installer-owned.
+    compared = hook.get("chained_hook") if isinstance(hook.get("chained_hook"), dict) else hook
+    if compared.get("sha256") != expected.get("sha256"):
         errors.append("hook_sha256_drift")
     if expected.get("contains_git_lex") is not False:
         errors.append("transition_record_allows_git_lex")
