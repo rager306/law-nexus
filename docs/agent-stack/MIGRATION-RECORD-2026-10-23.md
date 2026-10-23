@@ -181,3 +181,19 @@ git revert for tracked changes; ignored/local state restored from the backup
   (`argument_parsing_is_closed_and_requires_one_action`, exactly 1 test, PASS).
 - `cargo fmt --all -- --check` and `cargo check --workspace --offline`: exit 0
   (after `cargo fetch --locked`).
+
+
+## Disposable-clone restore proof (2026-10-23)
+
+A fresh `git clone` of the branch head into `/tmp/mig-restore2` and checkout
+`chore/allspark-path-pdd-bootstrap` (head `ee49f458`) shows exactly what Git
+carries and what a new machine must restore:
+
+- Tracked and present: `.ai/` pins and settings (6 files), `scripts/ai/`
+  launchers (10 files), native Path contracts, runbooks, the cutover marker
+  (`cutover: false`), the typed adapter and successor checks.
+- Absent by design: `.ai/local/` (pinned tool payloads), generated skill
+  bundles (Path/PDD), `.project/` (created only by native initialization),
+  credentials/sessions. A new machine runs `bootstrap tools → skills →
+  hooks` then `allspark-settings.py apply` + `/login` (see INSTALL.md §14),
+  and no auth material ever travels through Git.
