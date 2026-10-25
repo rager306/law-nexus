@@ -452,7 +452,26 @@ def check_architecture_direction(root: Path) -> list[GovernorFinding]:
 
 
 def check_active_requirement_contradictions(root: Path) -> list[GovernorFinding]:
-    """Inspect the local GSD requirements projection without making CI depend on it."""
+    """Inspect the local GSD requirements projection without making CI depend on it.
+
+    The register is a legacy Pi artifact. Once cutover lands it is history: an
+    archived projection must not be read as the current requirement set, which
+    is why the guard goes through the same LegacySurface policy as the milestone
+    registry instead of passing silently on absence.
+    """
+
+    check_id = "active-requirement-contradictions"
+    decision = read_legacy_surface(root)
+    if decision.policy(check_id) != "applies":
+        return [
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="active requirement contradictions",
+                extra="requirements=not-scanned",
+                evidence_path=".gsd/REQUIREMENTS.md",
+            )
+        ]
 
     path = root / ".gsd" / "REQUIREMENTS.md"
     if not path.is_file():
@@ -1290,7 +1309,24 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     blocked STATE.md projection cannot thrash the Governor with false hard debt
     while still remaining triage-visible. One hard-open milestone is allowed when
     it is exactly the next sequence after the latest completed milestone.
+
+    At cutover the registry is an archive: a frozen 2026-10-18 backlog must not
+    raise a BLOCKING error about current readiness, so this goes through the
+    LegacySurface policy like the other legacy checks.
     """
+
+    check_id = "gsd-residual-debt"
+    decision = read_legacy_surface(root)
+    if decision.policy(check_id) != "applies":
+        return [
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="residual legacy delivery debt",
+                extra="backlog=not-scanned",
+                evidence_path=LEGACY_GSD_STATE_RELATIVE_PATH,
+            )
+        ]
 
     findings: list[GovernorFinding] = []
     state_path = root / ".gsd" / "STATE.md"

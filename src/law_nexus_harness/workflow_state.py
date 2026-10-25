@@ -96,10 +96,18 @@ LegacyPolicy = Literal["applies", "historical-only", "not-applicable"]
 
 # The governor checks whose only current-state input lives on the legacy
 # surface, one per legacy artifact: the milestone registry (.gsd/STATE.md),
-# the flow journal (.gsd/journal/*.jsonl), and the projection marker
-# (.gsd/.compat.json).
+# the requirements register (.gsd/REQUIREMENTS.md), the flow journal
+# (.gsd/journal/*.jsonl), and the projection marker (.gsd/.compat.json).
+#
+# An independent review showed two of these still treated frozen Pi data as the
+# current truth: at cutover=true, `.gsd/STATE.md` produced a BLOCKING error from
+# a 2026-10-18 backlog, and `.gsd/REQUIREMENTS.md` was read as live
+# requirements. A retained archive may be history; it must not decide current
+# readiness, so they now go through the same policy as the other four.
 LEGACY_SURFACE_CHECKS: tuple[str, ...] = (
+    "active-requirement-contradictions",
     "compat-marker-hygiene",
+    "gsd-residual-debt",
     "gsd-review-dual-truth",
     "journal-retry-loops",
     "roadmap-freshness",

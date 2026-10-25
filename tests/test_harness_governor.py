@@ -1742,8 +1742,15 @@ def test_requirement_contradictions_pass_when_local_projection_is_unavailable(
 ) -> None:
     finding = check_active_requirement_contradictions(tmp_path)[0]
 
+    # The claim is not asserted, and now says so through the legacy-surface
+    # policy instead of a bare "unavailable-local-projection" pass. Same
+    # verdict (pass/ok - an absent surface has nothing to inherit), but the
+    # observed string names the surface and the policy so a reader can tell
+    # "nothing to check" from "checked and clean".
     assert finding.status == "pass"
-    assert "unavailable-local-projection" in finding.observed
+    assert finding.severity == "ok"
+    assert "policy=not-applicable" in finding.observed
+    assert "requirements=not-scanned" in finding.observed
 
 
 def test_requirement_contradictions_fail_closed_on_malformed_local_projection(
