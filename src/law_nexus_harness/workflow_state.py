@@ -217,7 +217,13 @@ def run_pinned_native_status(root: Path, runtime_path: Path) -> dict[str, Any]:
 
 @dataclass(frozen=True)
 class WorkflowStateReport:
-    """Stable, read-only workflow-state diagnostic for humans and auto-mode."""
+    """Stable, read-only workflow-state diagnostic for humans and auto-mode.
+
+    ``native_milestone`` and ``native_phase`` name WHICH milestone and phase the
+    native helper validated, and are populated only for ``OPERATIONAL_VALID``:
+    a surface that is not operational has no current milestone to report. They
+    are identity, not proof - callers still gate on ``kind`` first.
+    """
 
     schema_version: str
     kind: WorkflowStateKind
@@ -227,6 +233,11 @@ class WorkflowStateReport:
     evidence: tuple[str, ...]
     runtime: WorkflowRuntimeInfo
     legacy_gsd_present: bool
+    # Additive over law-nexus-workflow-state-report/v1: new optional keys whose
+    # absence means "not proven", so the schema version does not move and an
+    # older consumer that ignores them stays correct.
+    native_milestone: str | None = None
+    native_phase: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Return the stable JSON-compatible result mapping."""
@@ -275,7 +286,11 @@ def _report(
     detail: str = "",
     evidence: tuple[str, ...] = (),
     runtime: WorkflowRuntimeInfo = NO_RUNTIME_INFO,
+    native_milestone: str | None = None,
+    native_phase: str | None = None,
 ) -> WorkflowStateReport:
+    """Build one report; only the operational branch passes native identity."""
+
     return WorkflowStateReport(
         schema_version=WORKFLOW_STATE_SCHEMA_VERSION,
         kind=kind,
@@ -285,6 +300,8 @@ def _report(
         evidence=evidence,
         runtime=runtime,
         legacy_gsd_present=legacy_gsd_present,
+        native_milestone=native_milestone,
+        native_phase=native_phase,
     )
 
 
@@ -538,12 +555,26 @@ class _NativeStatusError(Exception):
         self.detail = detail
 
 
+def _identity_field(container: Mapping[str, Any], field: str) -> str | None:
+    """Read one workflow-identity field, tolerating an absent or null value."""
+
+    value = container.get(field)
+    return value if isinstance(value, str) and value else None
+
+
 @dataclass(frozen=True)
 class _NativeStatusVerdict:
-    """The single positive signal the adapter accepts from the native helper."""
+    """The single positive signal the adapter accepts from the native helper.
+
+    ``milestone`` and ``phase`` name WHICH milestone and phase the helper just
+    validated. They are identity, not proof: a payload that omits them still
+    produces a verdict, with the missing half left None.
+    """
 
     action: str
     reason: str
+    milestone: str | None = None
+    phase: str | None = None
 
     @property
     def operational(self) -> bool:
@@ -563,7 +594,9 @@ def _native_status_verdict(
     proof that STATE.md passed native validation. Three keys are read:
     ``schema`` (must be ``gsd-path/status/v1``), ``state`` (the parsed STATE.md
     fields), and ``route`` (``action`` plus ``reason``). Anything else is
-    refused rather than guessed at.
+    refused rather than guessed at. ``state.milestone`` and ``state.phase`` are
+    carried through as identity when present; a payload that omits either still
+    yields a verdict, because identity is what the helper proved, not the proof.
     """
 
     try:
@@ -576,8 +609,10 @@ def _native_status_verdict(
         )
     if payload.get("schema") != NATIVE_STATUS_SCHEMA:
         raise _NativeStatusError(f"native status schema must be {NATIVE_STATUS_SCHEMA!r}")
+    # `state` must still be a parsed-state object: the identity fields inside it
+    # are optional, but a payload that carries nothing parsed proves nothing.
     state = payload.get("state")
-    if not isinstance(state, dict) or not isinstance(state.get("phase"), str):
+    if not isinstance(state, dict) or not state:
         raise _NativeStatusError("native status payload must carry the parsed state fields")
     route = payload.get("route")
     if not isinstance(route, dict):
@@ -591,6 +626,12 @@ def _native_status_verdict(
     return _NativeStatusVerdict(
         action=action,
         reason=reason if isinstance(reason, str) and reason else "<missing>",
+        # Identity, not proof: a payload that omits these still yields a verdict.
+        # `state` is the parsed STATE.md and is authoritative when it carries
+        # the field; `route` repeats the phase for routed actions and is only a
+        # fallback.
+        milestone=_identity_field(state, "milestone") or _identity_field(route, "milestone"),
+        phase=_identity_field(state, "phase") or _identity_field(route, "phase"),
     )
 
 
@@ -785,6 +826,8 @@ def read_workflow_state(
             evidence=(PROJECT_STATE_RELATIVE_PATH, RUNTIME_DECLARATION_RELATIVE_PATH),
             runtime=runtime_info,
             legacy_gsd_present=legacy_gsd_present,
+            native_milestone=verdict.milestone,
+            native_phase=verdict.phase,
         )
     return _report(
         WorkflowStateKind.CONFLICTING_OWNERSHIP,

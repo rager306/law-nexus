@@ -455,6 +455,10 @@ def test_malformed_native_status_payloads_are_invalid_schema(tmp_path: Path) -> 
     wrong_schema["schema"] = "gsd-path/status/v0"
     non_string_action = copy.deepcopy(NATIVE_STATUS_VALID)
     non_string_action["route"] = {"action": None}
+    empty_state = copy.deepcopy(NATIVE_STATUS_VALID)
+    empty_state["state"] = {}
+    scalar_state = copy.deepcopy(NATIVE_STATUS_VALID)
+    scalar_state["state"] = "build/active"
     cases: list[Any] = [
         # The pre-fix adapter's invented shape: no schema, no state, no route.
         {"ok": True},
@@ -463,6 +467,8 @@ def test_malformed_native_status_payloads_are_invalid_schema(tmp_path: Path) -> 
         "gsd-path/status/v1",
         without_route,
         without_state,
+        empty_state,
+        scalar_state,
         wrong_schema,
         non_string_action,
     ]
@@ -518,6 +524,104 @@ def test_operational_valid_via_fake_resolver_and_native_status(tmp_path: Path) -
     assert payload["schema_version"] == WORKFLOW_STATE_SCHEMA_VERSION
     assert payload["kind"] == "operational-valid"
     assert json.loads(report.to_json())["kind"] == "operational-valid"
+
+
+def test_operational_report_surfaces_native_milestone_and_phase(tmp_path: Path) -> None:
+    """The adapter keeps WHICH milestone and phase the native helper proved.
+
+    Discarding that identity leaves a freshness consumer with no live Path
+    comparison source, which is why it still had to fall back to the frozen
+    Pi registry. The report carries it read-only, on the operational verdict.
+    """
+    write_cutover_marker(tmp_path, cutover=True)
+    write_project_state(tmp_path)
+    write_runtime_declaration(tmp_path)
+
+    report = read_workflow_state(
+        tmp_path,
+        runtime_resolver=resolved_runtime_resolver(),
+        native_status_runner=ok_native_status,
+    )
+
+    assert report.kind is WorkflowStateKind.OPERATIONAL_VALID
+    # Verbatim from the pinned helper: state.milestone "001-probe", state.phase "build".
+    assert report.native_milestone == "001-probe"
+    assert report.native_phase == "build"
+    payload = report.to_dict()
+    assert payload["native_milestone"] == "001-probe"
+    assert payload["native_phase"] == "build"
+    # The two fields are additive; the report schema version does not move.
+    assert payload["schema_version"] == WORKFLOW_STATE_SCHEMA_VERSION
+
+
+def test_operational_report_tolerates_absent_identity_fields(tmp_path: Path) -> None:
+    """An identity field a payload omits reads as None, never as a failure."""
+    write_cutover_marker(tmp_path, cutover=True)
+    write_project_state(tmp_path)
+    write_runtime_declaration(tmp_path)
+
+    # Real shape of /tmp/wf-probe2: state.milestone null and a block route
+    # that carries no phase at all.
+    null_milestone = copy.deepcopy(NATIVE_STATUS_VALID)
+    null_milestone["state"]["milestone"] = None
+    del null_milestone["route"]["phase"]
+
+    no_phase_in_state = copy.deepcopy(NATIVE_STATUS_VALID)
+    del no_phase_in_state["state"]["phase"]
+
+    no_identity_anywhere = copy.deepcopy(no_phase_in_state)
+    del no_identity_anywhere["state"]["milestone"]
+    del no_identity_anywhere["route"]["phase"]
+
+    cases: list[tuple[dict[str, Any], str | None, str | None]] = [
+        (null_milestone, None, "build"),
+        # state lacks the phase, so the route's phase is the fallback.
+        (no_phase_in_state, "001-probe", "build"),
+        (no_identity_anywhere, None, None),
+    ]
+    for payload, milestone, phase in cases:
+        report = read_workflow_state(
+            tmp_path,
+            runtime_resolver=resolved_runtime_resolver(),
+            native_status_runner=native_status(payload),
+        )
+        assert report.kind is WorkflowStateKind.OPERATIONAL_VALID, payload
+        assert workflow_readiness(report) == "operational", payload
+        assert report.native_milestone == milestone, payload
+        assert report.native_phase == phase, payload
+
+
+def test_non_operational_reports_carry_no_native_identity(tmp_path: Path) -> None:
+    """Only OPERATIONAL_VALID names a current milestone and phase.
+
+    The blocked and unverified payloads below DO carry state.milestone
+    "001-probe", so their None proves the kind rule rather than an absence.
+    """
+    write_cutover_marker(tmp_path, cutover=True)
+    write_project_state(tmp_path)
+    write_runtime_declaration(tmp_path)
+
+    blocked = read_workflow_state(
+        tmp_path,
+        runtime_resolver=resolved_runtime_resolver(),
+        native_status_runner=blocking_native_status("branch-mismatch"),
+    )
+    unverified = read_workflow_state(
+        tmp_path, runtime_resolver=resolved_runtime_resolver(), native_status_runner=None
+    )
+    bootstrap_root = tmp_path / "bootstrap"
+    write_cutover_marker(bootstrap_root, cutover=False)
+    bootstrap = read_workflow_state(bootstrap_root, runtime_resolver=resolved_runtime_resolver())
+
+    assert blocked.kind is WorkflowStateKind.CONFLICTING_OWNERSHIP
+    assert unverified.kind is WorkflowStateKind.STATE_UNVERIFIED
+    assert bootstrap.kind is WorkflowStateKind.BOOTSTRAP_NOT_CUT_OVER
+    for report in (blocked, unverified, bootstrap):
+        assert report.native_milestone is None, report.kind
+        assert report.native_phase is None, report.kind
+        payload = report.to_dict()
+        assert payload["native_milestone"] is None, report.kind
+        assert payload["native_phase"] is None, report.kind
 
 
 def test_state_without_native_validation_is_not_operational(tmp_path: Path) -> None:
