@@ -165,7 +165,56 @@ crates/ln-testkit/src/lib.rs` -> 0) and the isolated run is
 The migration touches **0 files under `crates/`**
 (`git diff --name-only main HEAD -- crates/` is empty), so this cannot be ours.
 
-### Open: `M207 S04 integrity battery chain` — a frozen-contract conflict
+### Open: the M207 battery — a frozen-contract conflict, wider than S04
+
+Not one chain: **four** offline M207 chains trip on product code, on **two**
+different tokens, in **two** files.
+
+| Chain | Token that trips | Product file |
+|---|---|---|
+| `m207_s01_t04_verify.sh` | `prd/annotation` | `amendment_provenance.rs`, `npa_wire.rs` |
+| `m207_s02_t07_verify.sh` | `prd/annotation` | same two |
+| `m207_s03_t06_verify.sh` | `prd/annotation` | same two |
+| `m207_s04_t04_verify.sh` | `m207-s04` | `amendment_provenance.rs` |
+
+Measured occurrence counts:
+
+```
+crates/ln-consultant-parser/src/amendment_provenance.rs   prd/annotation: 1   m207-s04: 2
+crates/ln-decode/src/npa_wire.rs                          prd/annotation: 1   m207-s04: 0
+```
+
+Both hits are a **path in a comment or a gate witness**, never a read of a
+M207 result. `npa_wire.rs:4` names
+`prd/annotation/m207-hybrid-records-contract.md` to cite the wire contract its
+own emitter implements; `amendment_provenance.rs:3086-3120` asserts the human
+pilot was *absent*, including `operational_acceptance=non-pass`.
+
+Two facts that decide the disposition:
+
+1. **The scanner is a bare substring test.** `check_crates_isolation`
+   (`scripts/m207_s04_schemas.py:2049-2052`) is `if pattern in text` — no regex,
+   no import shape. It cannot tell a forbidden rate import from a required
+   absence witness.
+2. **The tokens are frozen in several places at once.** The S04 pattern list is
+   frozen in `prd/annotation/m207-s04-schemas.json` and re-pinned in
+   `m207_s04_pilot.py` and `m207_s07_schemas.py`; the `prd/annotation` token is
+   separately frozen in `m207_s01_pilot.py`, `m207_s02_pilot.py` and
+   `m207_s03_pilot.py`; and the M209 contract suite
+   (`m209_s03_commencement_transition_contract.test.mjs`) pins the same
+   `m207_*_c4_*_relative_path` strings **on the artifact side**, feeding them
+   into `owner_decisions_outstanding.evidence_paths`. Moving the witness out of
+   `crates/` therefore pushes work onto that contract's owner too.
+
+A third option exists and is deliberately **rejected**: splitting the literals
+(`concat!`/`join`) makes every chain green and changes no behaviour — the
+analyst confirmed it by mutation test (0 hits). It is pure obfuscation of a
+forbidden token and would defeat the check's intent, so it is not a fix.
+
+So this cannot be closed by an agent without amending a frozen proof contract,
+and it is not one chain but four. Escalated with the table above.
+
+### Detail: `M207 S04 integrity battery chain`
 
 ```
 FAIL S03_RATE_IMPORTED: crates/ln-consultant-parser/src/amendment_provenance.rs
