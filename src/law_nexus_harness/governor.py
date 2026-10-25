@@ -2063,8 +2063,6 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
         ]
 
     try:
-        import yaml
-
         catalog = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError) as exc:
         return [
@@ -2263,8 +2261,6 @@ def _document_groups_path_needles(root: Path) -> list[str]:
     if not yaml_path.is_file():
         return []
     try:
-        import yaml
-
         catalog = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError):
         return []
@@ -2316,8 +2312,6 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
         ]
 
     try:
-        import yaml
-
         text = yaml_path.read_text(encoding="utf-8")
         catalog = yaml.safe_load(text) or {}
     except (OSError, yaml.YAMLError) as exc:
@@ -3155,8 +3149,6 @@ def _kb_force_set_honesty_gaps(root: Path, vocabulary: dict[str, Any]) -> list[s
         return []
     gaps: list[str] = []
     try:
-        import yaml
-
         control = yaml.safe_load(catalog_path.read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError) as exc:
         return [f"review_control:unreadable={exc}"]
@@ -3186,8 +3178,6 @@ def _kb_force_set_honesty_gaps(root: Path, vocabulary: dict[str, Any]) -> list[s
     if interval_path.is_file():
         interval_text = interval_path.read_text(encoding="utf-8")
         try:
-            import yaml
-
             interval = yaml.safe_load(interval_text) or {}
         except (OSError, yaml.YAMLError):
             interval = {}
