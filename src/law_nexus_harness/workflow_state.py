@@ -31,6 +31,7 @@ WORKFLOW_BACKEND = "gsd-path"
 RUNTIME_DECLARATION_RELATIVE_PATH = ".gsd-path/runtime.json"
 RUNTIME_DECLARATION_SCHEMA = "gsd-path/runtime/v1"
 STATUS_RUNTIME_SHIM_RELATIVE_PATH = ".gsd-path/status_runtime.py"
+NATIVE_STATUS_SCHEMA = "gsd-path/status/v1"
 PROJECT_RELATIVE_PATH = ".project"
 PROJECT_STATE_RELATIVE_PATH = ".project/STATE.md"
 LEGACY_GSD_STATE_RELATIVE_PATH = ".gsd/STATE.md"
@@ -40,13 +41,23 @@ _DETAIL_LIMIT = 240
 _LEGACY_VALUE_LIMIT = 80
 _LEGACY_HEADER_SCAN_LIMIT = 100
 
-_CONFLICTING_OWNERSHIP_REASONS = frozenset(
+# Route actions of the pinned helper (`pipeline_state.py status`, Path 1.6.2).
+# `run-phase` and `wait` mean the workflow needs no native recovery: the router
+# either runs the current phase or waits for a promotion. The recovery actions
+# mean a native helper step must happen first, which is never an operational
+# verdict. An action outside both sets is contract drift and yields no verdict
+# at all rather than a guess.
+_NATIVE_ROUTE_ACTIONS_OPERATIONAL = frozenset({"run-phase", "wait"})
+_NATIVE_ROUTE_ACTIONS_RECOVERY = frozenset(
     {
-        "branch-mismatch",
-        "ownership",
-        "partial-transaction",
-        "stale-source",
-        "writer-conflict",
+        "bind-initial",
+        "block",
+        "resume-checkpoint",
+        "resume-next-handoff",
+        "resume-promotion",
+        "resume-shipment",
+        "resume-undo",
+        "validate-integrated",
     }
 )
 
@@ -56,6 +67,7 @@ class WorkflowStateKind(Enum):
 
     BOOTSTRAP_NOT_CUT_OVER = "bootstrap-not-cut-over"
     OPERATIONAL_VALID = "operational-valid"
+    STATE_UNVERIFIED = "state-unverified"
     MISSING_STATE = "missing-state"
     INVALID_SCHEMA = "invalid-schema"
     RUNTIME_UNAVAILABLE = "runtime-unavailable"
@@ -116,6 +128,43 @@ class RuntimeResolution:
 
 RuntimeResolver = Callable[[Path], RuntimeResolution]
 NativeStatusRunner = Callable[[Path, Path], dict[str, Any]]
+
+
+def run_pinned_native_status(root: Path, runtime_path: Path) -> dict[str, Any]:
+    """Read the pinned Path helper's own status verdict (the only real proof).
+
+    ``pipeline_state.py status --repo <abs>`` prints exactly one sorted JSON
+    object on success and exits non-zero with ``error: ...`` on stderr when it
+    cannot prove the state. Anything other than one clean JSON object raises:
+    a payload we could not read is not evidence that the state is valid.
+
+    This is the production runner. It is deliberately the default in
+    :func:`read_workflow_state` callers so that "no runner wired" cannot read as
+    operational; passing ``None`` explicitly now yields ``state-unverified``.
+    """
+
+    helper = runtime_path / "pipeline_state.py"
+    if not helper.is_file():
+        raise RuntimeError(f"pinned runtime has no pipeline_state.py at {runtime_path}")
+    completed = subprocess.run(
+        [sys.executable, "-B", str(helper), "status", "--repo", str(root)],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    if completed.returncode != 0:
+        detail = (completed.stderr or completed.stdout or "").strip().splitlines()
+        raise RuntimeError(
+            f"exit {completed.returncode}: {detail[0] if detail else 'no diagnostic'}"
+        )
+    try:
+        payload = json.loads(completed.stdout)
+    except ValueError as error:
+        raise RuntimeError(f"status output is not JSON: {error}") from error
+    if not isinstance(payload, dict):
+        raise RuntimeError("status output must be a JSON object")
+    return payload
 
 
 @dataclass(frozen=True)
@@ -361,11 +410,75 @@ def _resolved_runtime_info(resolution: RuntimeResolution) -> WorkflowRuntimeInfo
     )
 
 
+class _NativeStatusError(Exception):
+    """The native status helper produced no usable verdict."""
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(detail)
+        self.detail = detail
+
+
+@dataclass(frozen=True)
+class _NativeStatusVerdict:
+    """The single positive signal the adapter accepts from the native helper."""
+
+    action: str
+    reason: str
+
+    @property
+    def operational(self) -> bool:
+        return self.action in _NATIVE_ROUTE_ACTIONS_OPERATIONAL
+
+
+def _native_status_verdict(
+    runner: NativeStatusRunner,
+    root: Path,
+    runtime_path: Path,
+) -> _NativeStatusVerdict:
+    """Translate one pinned-helper status payload into a verdict.
+
+    The pinned helper (``pipeline_state.py status``, Path 1.6.2) prints exactly
+    one JSON object with ``sort_keys=True`` and exits 1 with ``error: ...`` on
+    stderr when it cannot prove the state, so a parsed payload is itself the
+    proof that STATE.md passed native validation. Three keys are read:
+    ``schema`` (must be ``gsd-path/status/v1``), ``state`` (the parsed STATE.md
+    fields), and ``route`` (``action`` plus ``reason``). Anything else is
+    refused rather than guessed at.
+    """
+
+    try:
+        payload = runner(root, runtime_path)
+    except Exception as error:  # a helper that did not print a payload proved nothing
+        raise _NativeStatusError(f"native status helper failed: {_head(str(error))}") from error
+    if not isinstance(payload, dict):
+        raise _NativeStatusError(
+            f"native status payload must be a JSON object, got {type(payload).__name__}"
+        )
+    if payload.get("schema") != NATIVE_STATUS_SCHEMA:
+        raise _NativeStatusError(f"native status schema must be {NATIVE_STATUS_SCHEMA!r}")
+    state = payload.get("state")
+    if not isinstance(state, dict) or not isinstance(state.get("phase"), str):
+        raise _NativeStatusError("native status payload must carry the parsed state fields")
+    route = payload.get("route")
+    if not isinstance(route, dict):
+        raise _NativeStatusError("native status payload must carry a route object")
+    action = route.get("action")
+    if not isinstance(action, str) or not action:
+        raise _NativeStatusError("native status payload must carry a route action")
+    if action not in _NATIVE_ROUTE_ACTIONS_OPERATIONAL | _NATIVE_ROUTE_ACTIONS_RECOVERY:
+        raise _NativeStatusError(f"native status route action is unknown: {action!r}")
+    reason = route.get("reason")
+    return _NativeStatusVerdict(
+        action=action,
+        reason=reason if isinstance(reason, str) and reason else "<missing>",
+    )
+
+
 def read_workflow_state(
     root: Path,
     *,
     runtime_resolver: RuntimeResolver = resolve_pinned_runtime,
-    native_status_runner: NativeStatusRunner | None = None,
+    native_status_runner: NativeStatusRunner | None = run_pinned_native_status,
 ) -> WorkflowStateReport:
     """Classify the GSD Path workflow state surface without mutating anything."""
 
@@ -504,57 +617,66 @@ def read_workflow_state(
     runtime_info = _resolved_runtime_info(resolution)
     if native_status_runner is None:
         return _report(
-            WorkflowStateKind.OPERATIONAL_VALID,
+            WorkflowStateKind.STATE_UNVERIFIED,
             observed=(
-                "GSD Path workflow state is present and the pinned runtime is resolved; "
-                "the native status helper is not wired, so deeper state validation "
-                "is unverified."
+                "GSD Path workflow state is present and the pinned runtime is resolved, "
+                "but the state is unverified: the native status helper is not wired, "
+                "so STATE.md itself was never validated."
             ),
-            remediation="none",
+            remediation=(
+                "Wire the native status helper (pipeline_state.py status) into the "
+                "caller; until it runs, this project is not operational."
+            ),
             detail="unverified: native status helper not wired",
             evidence=(PROJECT_STATE_RELATIVE_PATH, RUNTIME_DECLARATION_RELATIVE_PATH),
             runtime=runtime_info,
             legacy_gsd_present=legacy_gsd_present,
         )
-    status = native_status_runner(resolved_root, resolution.runtime_path)
-    ok = status.get("ok") if isinstance(status, dict) else None
-    if not isinstance(ok, bool):
+    try:
+        verdict = _native_status_verdict(
+            native_status_runner, resolved_root, resolution.runtime_path
+        )
+    except _NativeStatusError as error:
         return _report(
             WorkflowStateKind.INVALID_SCHEMA,
-            observed="The native Path status payload is malformed.",
-            remediation=(
-                "Wire the native status helper to emit its typed status JSON; "
-                "do not guess the workflow state from STATE.md text."
+            observed=(
+                "The native status helper produced no usable verdict, so STATE.md "
+                "is not proven valid."
             ),
-            detail="native status payload must carry a boolean ok",
+            remediation=(
+                "Make the native status helper emit its typed gsd-path/status/v1 "
+                "payload and exit non-zero on failure; do not guess the workflow "
+                "state from STATE.md text."
+            ),
+            detail=error.detail,
             evidence=(PROJECT_STATE_RELATIVE_PATH,),
             runtime=runtime_info,
             legacy_gsd_present=legacy_gsd_present,
         )
-    if ok:
+    if verdict.operational:
         return _report(
             WorkflowStateKind.OPERATIONAL_VALID,
-            observed="GSD Path workflow state is valid; native status reports ok.",
+            observed=(
+                "GSD Path workflow state is valid; native status validated STATE.md "
+                f"and routes {verdict.action}."
+            ),
             remediation="none",
-            detail="native status ok",
+            detail=f"native status route={verdict.action}: {verdict.reason}",
             evidence=(PROJECT_STATE_RELATIVE_PATH, RUNTIME_DECLARATION_RELATIVE_PATH),
             runtime=runtime_info,
             legacy_gsd_present=legacy_gsd_present,
         )
-    reason = status.get("reason")
-    reason_text = reason if isinstance(reason, str) and reason else "<missing>"
-    mapped = reason_text in _CONFLICTING_OWNERSHIP_REASONS
     return _report(
         WorkflowStateKind.CONFLICTING_OWNERSHIP,
         observed=(
-            "Native Path status reports a conflicting workflow state "
-            f"(reason: {reason_text}{'' if mapped else ' [unmapped reason]'})."
+            "Native status validated STATE.md but routes a native recovery step "
+            f"first (route: {verdict.action}; reason: {verdict.reason})."
         ),
         remediation=(
-            "Follow the native Path recovery flow for the reported reason; "
+            "Follow the native Path recovery flow for the reported route; "
             "do not repair STATE.md by hand."
         ),
-        detail=f"native status reason: {reason_text}",
+        detail=f"native status route={verdict.action}: {verdict.reason}",
         evidence=(PROJECT_STATE_RELATIVE_PATH,),
         runtime=runtime_info,
         legacy_gsd_present=legacy_gsd_present,
@@ -620,7 +742,13 @@ def read_legacy_gsd_snapshot(root: Path) -> WorkflowStateReport:
 
 
 def workflow_readiness(report: WorkflowStateReport) -> WorkflowReadiness:
-    """Map one workflow-state report to the coarse harness readiness verdict."""
+    """Map one workflow-state report to the coarse harness readiness verdict.
+
+    Only a state the native helper actually validated is operational. Everything
+    else blocks, including ``STATE_UNVERIFIED`` (present but never validated),
+    ``MISSING_STATE``, ``INVALID_SCHEMA``, and ``CONFLICTING_OWNERSHIP``; the
+    fallthrough keeps a future kind fail-closed by default.
+    """
 
     if report.kind is WorkflowStateKind.OPERATIONAL_VALID:
         return "operational"

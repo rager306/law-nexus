@@ -22,6 +22,10 @@ The adapter executes one dispatch plan:
   the exit code plus bounded stdout/stderr tails.
 - It classifies each child against the Path outcome contract and writes one
   per-role artifact and one summary dispatch record.
+- A `SIGTERM`/`SIGINT` to the adapter stops the running worker group, reaps it,
+  and still writes the per-role artifact and the summary record before the
+  adapter dies by that signal. The active role is recorded `interrupted`; roles
+  that never started get no record.
 
 The adapter **never**:
 
@@ -112,9 +116,17 @@ Per role, in plan order:
    environment.
 3. Wait up to `timeout_seconds`. On timeout: `SIGKILL` the child's whole
    process group, then reap the child (`wait`) so no orphan or zombie remains.
-4. Capture stdout/stderr through bounded tail buffers (last 256 KiB per
+4. If the adapter itself receives `SIGTERM`/`SIGINT` while the child runs:
+   `SIGTERM` the child's whole process group, wait up to
+   `INTERRUPT_GRACE_SECONDS` (2 s) for the **group** to disappear, then `SIGKILL`
+   the group and reap the child. The grace is measured on the group, not just
+   the direct child, so a worker helper that ignores `SIGTERM` after its parent
+   exits is still cleared. The role is recorded `interrupted`, later roles do
+   not start, and the default signal disposition is restored and re-raised so
+   the adapter itself dies by the signal it received (exit -15 / -2).
+5. Capture stdout/stderr through bounded tail buffers (last 256 KiB per
    stream); the exit code is the observed child status (negative = signal).
-5. Classify, write the per-role artifact atomically, emit one stderr status
+6. Classify, write the per-role artifact atomically, emit one stderr status
    line.
 
 A role whose process cannot even be started is recorded as `failed` with the
@@ -124,8 +136,13 @@ record is not written — the evidence contract is broken, and silently
 continuing would hide it.
 
 Known limitation: an adapter killed by `SIGKILL` mid-role can leave a running
-child. Before re-dispatch, check for leftover children as PATH_SETUP.md §6
-already requires; the summary record is only written for a fully executed plan.
+child, because `SIGKILL` cannot be caught. Before re-dispatch, check for
+leftover children as PATH_SETUP.md §6 already requires. `SIGTERM`/`SIGINT`
+(including the owner's `Ctrl-C` and an ordinary supervisor stop) are handled:
+the worker group is stopped, the role artifact and the summary record are
+written with `interrupted`, and only then does the adapter terminate. Roles
+that never started are absent from the summary `roles` array; they are not
+reported as if they ran.
 
 ## 6. Outcome classification
 
@@ -135,12 +152,13 @@ is a failure even when it wrote a question or a RESULT line.
 
 | Priority | Child evidence | Outcome |
 |---|---|---|
-| 1 | killed on the per-role timeout | `timeout` |
-| 2 | non-zero exit code (incl. death by signal) | `failed` |
-| 3 | a stdout-tail line containing `NEEDS-ORCHESTRATOR` | `question` |
-| 4 | last stdout-tail line matching `RESULT: <task> ready` | `ready` |
-| 5 | last stdout-tail line matching `RESULT: <task> blocked` | `blocked` |
-| 6 | clean exit with no terminal marker | `failed` |
+| 1 | adapter received `SIGTERM`/`SIGINT` while the child ran | `interrupted` |
+| 2 | killed on the per-role timeout | `timeout` |
+| 3 | non-zero exit code (incl. death by signal) | `failed` |
+| 4 | a stdout-tail line containing `NEEDS-ORCHESTRATOR` | `question` |
+| 5 | last stdout-tail line matching `RESULT: <task> ready` | `ready` |
+| 6 | last stdout-tail line matching `RESULT: <task> blocked` | `blocked` |
+| 7 | clean exit with no terminal marker | `failed` |
 
 Notes:
 
@@ -150,6 +168,10 @@ Notes:
   artifact so the orchestrator can verify it.
 - A clean Allspark exit code is **not** task completion; only the terminal
   RESULT line classifies readiness (WORKFLOW.md §3).
+- `interrupted` is not a task verdict: it says the dispatch did not finish. It
+  is never `ready` and never a plain `failed`, because a normal failure has a
+  child that ran to completion and produced its own evidence; an interrupted
+  role was stopped by the adapter. It must be re-dispatched, not reviewed.
 - A `question` is recorded and surfaced (exit 4); the answer itself goes
   through the native Path channel (`path-run.py answer`), never through this
   adapter.
@@ -168,7 +190,7 @@ Per-role artifact (one JSON file per role, at `roles[].artifact`):
 | `exit_code` | observed child status (negative = signal; `null` if the spawn failed) |
 | `timed_out` | whether the per-role timeout killed the child |
 | `stdout_tail`, `stderr_tail` | bounded capture, last 256 KiB per stream |
-| `outcome` | `ready` \| `blocked` \| `question` \| `timeout` \| `failed` |
+| `outcome` | `ready` \| `blocked` \| `question` \| `timeout` \| `failed` \| `interrupted` |
 
 Summary dispatch record (at `--record`):
 
@@ -187,7 +209,9 @@ Summary dispatch record (at `--record`):
 `failed > timeout > blocked > question > ready`; when a plan has two or more
 distinct non-ready outcomes it is `mixed`. (`timeout` is a valid `overall`
 value: a timeout-only plan must not be silently relabeled `failed`, and the
-per-role records always carry the precise outcome.)
+per-role records always carry the precise outcome.) `overall` is
+`interrupted` whenever the adapter was interrupted, even if no role was running
+at that moment; the summary then contains only the roles that actually ran.
 
 Exit codes:
 
@@ -198,6 +222,7 @@ Exit codes:
 | 3 | usage error: bad CLI arguments, unreadable plan file, malformed `--child-command`, unusable worker configuration, unwritable record |
 | 4 | at least one role is `blocked` or `question` (needs orchestrator attention) and none failed or timed out |
 | 5 | at least one role `failed` or `timeout` (5 wins over 4) |
+| 6 | at least one role `interrupted` (6 wins over 5 and 4); the adapter still terminates by the received signal afterwards, so a caller of an interrupted dispatch normally observes the signal status (`-15`/`-2`), never `0` |
 
 ## 8. Security and isolation
 
@@ -232,7 +257,7 @@ from this component alone.
 | Fork HOME | Both runtime caches resolve one digest; Git identity/hooks/signing and worktree root agree | **Not satisfied** — outside adapter scope (doctor/bootstrap) |
 | Role isolation | Two independent briefs get different fresh contexts | **Satisfied** — two roles in one plan ran as separate fresh processes with different cwds and produced different, correct answers (§9.1) |
 | Planner/Research | Real outputs pass native gates; no emulated status | **Not satisfied** — no real planner/research role run; the pilot was an inspect-shaped probe, not a gated plan |
-| Error/timeout | A wrong result never becomes success; the child is accounted for and stopped | **Partially satisfied** — two real failures were classified `failed` with the child's own stderr captured (`no model selected`, `model unavailable`); SIGTERM/timeout paths remain stub-tested |
+| Error/timeout | A wrong result never becomes success; the child is accounted for and stopped | **Partially satisfied** — two real failures were classified `failed` with the child's own stderr captured (`no model selected`, `model unavailable`); timeout and SIGTERM/SIGINT reaping are stub-tested (the real-model pilot did not exercise an interrupted dispatch, so the cancellation path has no real-process evidence yet) |
 | Question | A blocking question and the real answer go through the intended Path channel | **Not satisfied** — the adapter only classifies questions; the answer path stays with native helpers |
 | Build→Review | A separate reviewer checks the landed scope per contract | **Not satisfied** — no real wave review dispatched |
 | Resume | After the owner process ends, a new session picks the correct native route | **Not satisfied** — outside adapter scope |
@@ -283,5 +308,13 @@ uv run ruff format --check scripts/ai/phase-dispatch.py tests/test_phase_dispatc
 Covered: ready/blocked/question/failed/timeout classification, timeout
 process-group kill with full reaping (pid gone), per-role artifact and summary
 record fields, plan validation (invalid JSON, unknown keys, schema violations),
-dry-run resolution without spawning, stdout tail bounding, and independent
-per-role processes/cwds.
+dry-run resolution without spawning, stdout tail bounding, independent
+per-role processes/cwds, and adapter cancellation: a real adapter subprocess
+sent `SIGTERM` or `SIGINT` stops and reaps its worker group, writes
+`outcome=interrupted` for the active role only, and still exits by the signal
+(`test_signal_reaps_active_worker_and_records_interrupted_outcome`). A worker
+that ignores `SIGTERM` is escalated to `SIGKILL`
+(`test_signal_escalates_to_sigkill_when_the_worker_ignores_it`), a group member
+that ignores `SIGTERM` is cleared within the grace
+(`test_signal_clears_a_group_member_that_ignores_sigterm`), and `interrupted`
+never maps to exit 0 (`test_interrupted_outcome_never_exits_zero`).

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import os
 from collections.abc import Callable
@@ -10,11 +11,13 @@ from typing import Any
 
 from law_nexus_harness.workflow_state import (
     CUTOVER_MARKER_RELATIVE_PATH,
+    NO_RUNTIME_INFO,
     RUNTIME_DECLARATION_RELATIVE_PATH,
     STATUS_RUNTIME_SHIM_RELATIVE_PATH,
     WORKFLOW_STATE_SCHEMA_VERSION,
     RuntimeResolution,
     WorkflowStateKind,
+    WorkflowStateReport,
     read_legacy_gsd_snapshot,
     read_workflow_state,
     workflow_readiness,
@@ -103,15 +106,86 @@ def resolved_runtime_resolver(
     return resolver
 
 
-def ok_native_status(root: Path, runtime_path: Path) -> dict[str, Any]:
-    return {"ok": True}
+# Verbatim payload of the pinned Path 1.6.2 helper on a probe repo:
+#     python3 -B "<runtime>/pipeline_state.py" status --repo /tmp/wf-probe3
+# The probe STATE.md was build/active on branch gsd-path/M001, so the router
+# routes the build phase. Only `schema`, `state`, and `route` are consumed by
+# the adapter; the remaining keys are kept so the fixture stays a real payload.
+NATIVE_STATUS_VALID: dict[str, Any] = {
+    "advance": False,
+    "completion": {"status": "not-shipped"},
+    "default_branch": "main",
+    "git": {
+        "ancestor_of_origin_main": False,
+        "branch": "gsd-path/M001",
+        "dirty": [],
+        "head": "8e9454a45f6d2a7707222f96fa999faee4ef8767",
+        "origin_branch": None,
+        "origin_main": None,
+        "published": False,
+        "subject": "init",
+    },
+    "handoff": {
+        "next": "Invoke $gsd-path to continue with build.",
+        "outcome": "build/active",
+        "phase_next": "Invoke $gsd-path to continue with build.",
+        "review": "/tmp/wf-probe3/.project/STATE.md",
+        "router_next": "Continue with build; honor its input and approval gates.",
+    },
+    "journals": {
+        "abandon": None,
+        "bind_next": None,
+        "checkpoint": None,
+        "collect_artifact": None,
+        "promotion": None,
+        "shipment": None,
+        "undo": None,
+    },
+    "lookahead": False,
+    "next_skill": "gsd-path-build",
+    "path": "/tmp/wf-probe3/.project/STATE.md",
+    "pending_answers": [],
+    "pending_error": None,
+    "route": {
+        "action": "run-phase",
+        "mode": "recovery",
+        "phase": "build",
+        "reason": "state is build/active",
+    },
+    "schema": "gsd-path/status/v1",
+    "state": {
+        "archive": None,
+        "branch": "gsd-path/M001",
+        "integration": "direct",
+        "integration_default": "direct",
+        "integration_source": "default",
+        "milestone": "001-probe",
+        "phase": "build",
+        "pipeline": "gsd-path/v2",
+        "project": "probe",
+        "status": "active",
+    },
+}
 
 
-def conflicting_native_status(reason: str) -> Callable[[Path, Path], dict[str, Any]]:
+def native_status(payload: dict[str, Any]) -> Callable[[Path, Path], dict[str, Any]]:
     def runner(root: Path, runtime_path: Path) -> dict[str, Any]:
-        return {"ok": False, "reason": reason}
+        return payload
 
     return runner
+
+
+def ok_native_status(root: Path, runtime_path: Path) -> dict[str, Any]:
+    return NATIVE_STATUS_VALID
+
+
+def blocking_native_status(reason: str) -> Callable[[Path, Path], dict[str, Any]]:
+    # Verbatim shape of the pinned helper's own block route:
+    #     {"route": {"action": "block",
+    #                "reason": "current branch main != STATE.branch gsd-path/M001"}}
+    payload = copy.deepcopy(NATIVE_STATUS_VALID)
+    payload["route"] = {"action": "block", "reason": reason}
+    return native_status(payload)
 
 
 def test_bootstrap_mode_without_project_is_bootstrap_not_cut_over(tmp_path: Path) -> None:
@@ -312,14 +386,15 @@ def test_conflicting_ownership_reasons_map_from_native_status(tmp_path: Path) ->
         report = read_workflow_state(
             tmp_path,
             runtime_resolver=resolved_runtime_resolver(),
-            native_status_runner=conflicting_native_status(reason),
+            native_status_runner=blocking_native_status(reason),
         )
         assert report.kind is WorkflowStateKind.CONFLICTING_OWNERSHIP, reason
         assert reason in report.detail
         assert workflow_readiness(report) == "blocked"
 
 
-def test_unmapped_native_status_reason_stays_conflicting_ownership(tmp_path: Path) -> None:
+def test_real_native_block_route_maps_to_conflicting_ownership(tmp_path: Path) -> None:
+    """The pinned helper's own block reason is the reason the adapter reports."""
     write_cutover_marker(tmp_path, cutover=True)
     write_project_state(tmp_path)
     write_runtime_declaration(tmp_path)
@@ -327,30 +402,93 @@ def test_unmapped_native_status_reason_stays_conflicting_ownership(tmp_path: Pat
     report = read_workflow_state(
         tmp_path,
         runtime_resolver=resolved_runtime_resolver(),
-        native_status_runner=conflicting_native_status("unexpected-thing"),
+        native_status_runner=blocking_native_status(
+            "current branch main != STATE.branch gsd-path/M001"
+        ),
     )
 
     assert report.kind is WorkflowStateKind.CONFLICTING_OWNERSHIP
-    assert "unexpected-thing" in report.detail
-    assert "unmapped" in report.observed
+    assert "current branch main != STATE.branch gsd-path/M001" in report.detail
+    assert workflow_readiness(report) == "blocked"
 
 
-def test_malformed_native_status_payload_is_invalid_schema(tmp_path: Path) -> None:
+def test_block_route_reason_is_reported_verbatim(tmp_path: Path) -> None:
+    """The helper's block reason is free text; the adapter quotes it, not maps it."""
     write_cutover_marker(tmp_path, cutover=True)
     write_project_state(tmp_path)
     write_runtime_declaration(tmp_path)
 
-    def bad_runner(root: Path, runtime_path: Path) -> dict[str, Any]:
-        return {"ok": "yes"}
+    reason = "ship is blocked without valid PATCH-FINDINGS.md"
 
     report = read_workflow_state(
         tmp_path,
         runtime_resolver=resolved_runtime_resolver(),
-        native_status_runner=bad_runner,
+        native_status_runner=blocking_native_status(reason),
     )
 
-    assert report.kind is WorkflowStateKind.INVALID_SCHEMA
-    assert "boolean ok" in report.detail
+    assert report.kind is WorkflowStateKind.CONFLICTING_OWNERSHIP
+    assert report.detail == f"native status route=block: {reason}"
+    assert "block" in report.observed
+
+
+def test_malformed_native_status_payloads_are_invalid_schema(tmp_path: Path) -> None:
+    write_cutover_marker(tmp_path, cutover=True)
+    write_project_state(tmp_path)
+    write_runtime_declaration(tmp_path)
+
+    def payload_case(payload: Any) -> Callable[[Path, Path], Any]:
+        def runner(root: Path, runtime_path: Path) -> Any:
+            return payload
+
+        return runner
+
+    without_route = copy.deepcopy(NATIVE_STATUS_VALID)
+    del without_route["route"]
+    without_state = copy.deepcopy(NATIVE_STATUS_VALID)
+    del without_state["state"]
+    wrong_schema = copy.deepcopy(NATIVE_STATUS_VALID)
+    wrong_schema["schema"] = "gsd-path/status/v0"
+    non_string_action = copy.deepcopy(NATIVE_STATUS_VALID)
+    non_string_action["route"] = {"action": None}
+    cases: list[Any] = [
+        # The pre-fix adapter's invented shape: no schema, no state, no route.
+        {"ok": True},
+        {"ok": "yes"},
+        [],
+        "gsd-path/status/v1",
+        without_route,
+        without_state,
+        wrong_schema,
+        non_string_action,
+    ]
+    for case in cases:
+        report = read_workflow_state(
+            tmp_path,
+            runtime_resolver=resolved_runtime_resolver(),
+            native_status_runner=payload_case(case),
+        )
+        assert report.kind is WorkflowStateKind.INVALID_SCHEMA, case
+        assert workflow_readiness(report) == "blocked", case
+        assert report.detail, case
+
+
+def test_native_status_runner_failure_is_never_operational(tmp_path: Path) -> None:
+    write_cutover_marker(tmp_path, cutover=True)
+    write_project_state(tmp_path)
+    write_runtime_declaration(tmp_path)
+
+    def exploding_runner(root: Path, runtime_path: Path) -> dict[str, Any]:
+        raise RuntimeError("helper exited 1: error: STATE.md is missing YAML frontmatter")
+
+    report = read_workflow_state(
+        tmp_path,
+        runtime_resolver=resolved_runtime_resolver(),
+        native_status_runner=exploding_runner,
+    )
+
+    assert report.kind is not WorkflowStateKind.OPERATIONAL_VALID
+    assert workflow_readiness(report) == "blocked"
+    assert "STATE.md is missing YAML frontmatter" in report.detail
 
 
 def test_operational_valid_via_fake_resolver_and_native_status(tmp_path: Path) -> None:
@@ -366,7 +504,7 @@ def test_operational_valid_via_fake_resolver_and_native_status(tmp_path: Path) -
 
     assert report.kind is WorkflowStateKind.OPERATIONAL_VALID
     assert workflow_readiness(report) == "operational"
-    assert report.detail == "native status ok"
+    assert report.detail == "native status route=run-phase: state is build/active"
     assert report.remediation == "none"
     assert report.runtime.version == PINNED_RUNTIME_VERSION
     assert report.runtime.digest == PINNED_RUNTIME_DIGEST
@@ -377,16 +515,60 @@ def test_operational_valid_via_fake_resolver_and_native_status(tmp_path: Path) -
     assert json.loads(report.to_json())["kind"] == "operational-valid"
 
 
-def test_unverified_operational_detail_without_native_runner(tmp_path: Path) -> None:
+def test_state_without_native_validation_is_not_operational(tmp_path: Path) -> None:
+    """Defect T-C: a never-validated state must not read as operational.
+
+    Runtime resolved and STATE.md present are two facts; neither of them is
+    "STATE.md passed native validation", which is the only fact that may
+    yield OPERATIONAL_VALID.
+    """
     write_cutover_marker(tmp_path, cutover=True)
     write_project_state(tmp_path)
     write_runtime_declaration(tmp_path)
 
-    report = read_workflow_state(tmp_path, runtime_resolver=resolved_runtime_resolver())
+    # The production default now wires the real pinned runner, so "unwired" has
+    # to be requested explicitly - that is the point: it can no longer happen by
+    # accident.
+    report = read_workflow_state(
+        tmp_path, runtime_resolver=resolved_runtime_resolver(), native_status_runner=None
+    )
 
-    assert report.kind is WorkflowStateKind.OPERATIONAL_VALID
+    assert report.kind is WorkflowStateKind.STATE_UNVERIFIED
+    assert report.kind is not WorkflowStateKind.OPERATIONAL_VALID
+    assert report.kind.value == "state-unverified"
+    assert workflow_readiness(report) == "blocked"
     assert report.detail == "unverified: native status helper not wired"
     assert "unverified" in report.observed
+    assert report.runtime.version == PINNED_RUNTIME_VERSION
+    assert report.runtime.digest == PINNED_RUNTIME_DIGEST
+    assert report.runtime.path is not None
+    assert report.remediation != "none"
+
+
+def test_state_unverified_kind_maps_to_blocked_readiness() -> None:
+    """`workflow_readiness` is the single mapping authority for every kind."""
+    readiness = {
+        kind: workflow_readiness(
+            WorkflowStateReport(
+                schema_version=WORKFLOW_STATE_SCHEMA_VERSION,
+                kind=kind,
+                observed="",
+                remediation="",
+                detail="",
+                evidence=(),
+                runtime=NO_RUNTIME_INFO,
+                legacy_gsd_present=False,
+            )
+        )
+        for kind in WorkflowStateKind
+    }
+
+    assert readiness[WorkflowStateKind.STATE_UNVERIFIED] == "blocked"
+    assert readiness[WorkflowStateKind.OPERATIONAL_VALID] == "operational"
+    assert readiness[WorkflowStateKind.BOOTSTRAP_NOT_CUT_OVER] == "bootstrap-not-cut-over"
+    assert {kind for kind, value in readiness.items() if value == "operational"} == {
+        WorkflowStateKind.OPERATIONAL_VALID
+    }
 
 
 def test_new_project_without_completed_history_is_operational_valid(tmp_path: Path) -> None:

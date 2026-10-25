@@ -31,6 +31,9 @@ PLAN_SCHEMA_NAME = "law-nexus-phase-dispatch-plan/v1"
 CAPTURE_LIMIT_BYTES = 256 * 1024
 READ_CHUNK_BYTES = 65536
 JOIN_GRACE_SECONDS = 5.0
+INTERRUPT_SIGNALS = (signal.SIGTERM, signal.SIGINT)
+INTERRUPT_GRACE_SECONDS = 2.0
+WAIT_SLICE_SECONDS = 0.05
 TOP_FIELDS = ("schema", "phase", "roles")
 ROLE_FIELDS = ("name", "brief_file", "cwd", "timeout_seconds", "artifact")
 # Mirrors the vendored GSD Path 1.6.2 dispatch_driver.py contract markers.
@@ -216,11 +219,85 @@ def classify(timed_out: bool, exit_code: int | None, stdout_tail: str) -> str:
     return "failed"
 
 
-def kill_process_group(process: subprocess.Popen) -> None:
+def kill_process_group(process: subprocess.Popen, number: int = signal.SIGKILL) -> None:
     try:
-        os.killpg(process.pid, signal.SIGKILL)
+        os.killpg(process.pid, number)
     except ProcessLookupError:
         pass
+
+
+def process_group_alive(pgid: int) -> bool:
+    try:
+        os.killpg(pgid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def stop_process_group(process: subprocess.Popen) -> int:
+    """Stop the whole worker group: SIGTERM, bounded grace, then SIGKILL; reap the child.
+
+    The grace is measured on the group, not just the direct child: a worker that
+    spawns helpers of its own can exit while a helper ignores SIGTERM.
+    """
+    kill_process_group(process, signal.SIGTERM)
+    deadline = time.monotonic() + INTERRUPT_GRACE_SECONDS
+    exit_code = None
+    while True:
+        if exit_code is None:
+            exit_code = process.poll()
+        if exit_code is not None and not process_group_alive(process.pid):
+            return exit_code
+        if time.monotonic() >= deadline:
+            break
+        time.sleep(WAIT_SLICE_SECONDS)
+    kill_process_group(process)
+    return process.wait()
+
+
+class InterruptGuard:
+    """Record SIGTERM/SIGINT so the active role can stop its worker and record it.
+
+    Only a flag is set from the handler; cleanup and the default disposition
+    re-raise happen on the main path, where the worker group is known.
+    """
+
+    def __init__(self) -> None:
+        self._numbers: list[int] = []
+        self._lock = threading.Lock()
+
+    def install(self) -> InterruptGuard:
+        for number in INTERRUPT_SIGNALS:
+            signal.signal(number, self._record)
+        return self
+
+    def _record(self, number: int, frame: object) -> None:
+        with self._lock:
+            self._numbers.append(number)
+
+    @property
+    def signal_number(self) -> int | None:
+        with self._lock:
+            return self._numbers[0] if self._numbers else None
+
+    @property
+    def interrupted(self) -> bool:
+        return self.signal_number is not None
+
+    def terminate(self) -> None:
+        """Die by the original signal, so the caller sees an interrupted exit.
+
+        The default disposition is restored first so the signal really kills the
+        process instead of re-entering this handler.
+        """
+        number = self.signal_number
+        if number is None:
+            return
+        for candidate in INTERRUPT_SIGNALS:
+            signal.signal(candidate, signal.SIG_DFL)
+        os.kill(os.getpid(), number)
 
 
 def feed_stdin(stream, payload: bytes) -> None:
@@ -261,12 +338,35 @@ class TailReader(threading.Thread):
             return bytes(self._buffer).decode("utf-8", errors="replace")
 
 
-def run_role(role: dict, argv: list[str], brief: bytes) -> dict:
+def await_child(
+    process: subprocess.Popen, timeout_seconds: float, guard: InterruptGuard
+) -> tuple[str, int]:
+    """Wait for the child, honouring the role timeout and adapter interruptions.
+
+    Returns ``(status, exit_code)`` where status is ``exited``, ``timeout`` or
+    ``interrupted``; the timeout and interruption branches stop the whole
+    worker group before returning, so no child outlives the adapter.
+    """
+    deadline = time.monotonic() + timeout_seconds
+    while True:
+        if guard.interrupted:
+            return "interrupted", stop_process_group(process)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            kill_process_group(process)
+            return "timeout", process.wait()
+        try:
+            return "exited", process.wait(timeout=min(remaining, WAIT_SLICE_SECONDS))
+        except subprocess.TimeoutExpired:
+            continue
+
+
+def run_role(role: dict, argv: list[str], brief: bytes, guard: InterruptGuard) -> dict:
     started_at = now()
     started = time.monotonic()
     pid = None
     exit_code = None
-    timed_out = False
+    status = "not-started"  # replaced by await_child; a failed spawn never waits
     stdout_reader = None
     stderr_reader = None
     spawn_error = None
@@ -291,20 +391,20 @@ def run_role(role: dict, argv: list[str], brief: bytes) -> dict:
         feeder = threading.Thread(target=feed_stdin, args=(process.stdin, brief), daemon=True)
         feeder.start()
         try:
-            exit_code = process.wait(timeout=role["timeout_seconds"])
-        except subprocess.TimeoutExpired:
-            timed_out = True
-            kill_process_group(process)
-            exit_code = process.wait()
-        for thread in (feeder, stdout_reader, stderr_reader):
-            thread.join(JOIN_GRACE_SECONDS)
+            status, exit_code = await_child(process, role["timeout_seconds"], guard)
+        finally:
+            for thread in (feeder, stdout_reader, stderr_reader):
+                thread.join(JOIN_GRACE_SECONDS)
     ended = time.monotonic()
     stdout_tail = stdout_reader.text() if stdout_reader is not None else ""
     stderr_tail = stderr_reader.text() if stderr_reader is not None else ""
+    timed_out = status == "timeout"
     if spawn_error is not None:
         outcome = "failed"
         exit_code = None
         stderr_tail = f"spawn error: {spawn_error}"
+    elif status == "interrupted":
+        outcome = "interrupted"
     else:
         outcome = classify(timed_out, exit_code, stdout_tail)
     return {
@@ -342,6 +442,8 @@ def overall_outcome(outcomes: list[str]) -> str:
 
 
 def dispatch_exit_code(outcomes: list[str]) -> int:
+    if "interrupted" in outcomes:
+        return 6
     if "failed" in outcomes or "timeout" in outcomes:
         return 5
     if "blocked" in outcomes or "question" in outcomes:
@@ -349,11 +451,13 @@ def dispatch_exit_code(outcomes: list[str]) -> int:
     return 0
 
 
-def run_plan(plan: dict, argv: list[str]) -> dict:
+def run_plan(plan: dict, argv: list[str], guard: InterruptGuard) -> dict:
     started_at = now()
     records = []
     for role in plan["roles"]:
-        record = run_role(role, argv, read_brief(role))
+        if guard.interrupted:
+            break
+        record = run_role(role, argv, read_brief(role), guard)
         try:
             write_json(Path(role["artifact"]), record)
         except OSError as error:
@@ -366,13 +470,17 @@ def run_plan(plan: dict, argv: list[str]) -> dict:
             f"exit_code={record['exit_code']} timed_out={record['timed_out']}",
             file=sys.stderr,
         )
+    outcomes = [record["outcome"] for record in records]
+    # An interruption that arrived between roles leaves no interrupted role
+    # record, but the dispatch as a whole is still unfinished.
+    overall = "interrupted" if guard.interrupted else overall_outcome(outcomes)
     return {
         "schema": RECORD_SCHEMA,
         "phase": plan["phase"],
         "started_at": started_at,
         "ended_at": now(),
         "roles": records,
-        "overall": overall_outcome([record["outcome"] for record in records]),
+        "overall": overall,
     }
 
 
@@ -422,14 +530,23 @@ def main(argv: list[str] | None = None) -> int:
         if arguments.dry_run:
             print_resolved_plan(plan, worker_argv)
             return 0
-        record = run_plan(plan, worker_argv)
+        guard = InterruptGuard().install()
+        record = run_plan(plan, worker_argv, guard)
         try:
             write_json(Path(arguments.record), record)
         except OSError as error:
             raise UsageError(
                 f"usage error: cannot write record {arguments.record}: {error}"
             ) from error
-        return dispatch_exit_code([role["outcome"] for role in record["roles"]])
+        exit_code = dispatch_exit_code([role["outcome"] for role in record["roles"]])
+        if guard.interrupted:
+            print(
+                f"interrupted by signal {guard.signal_number}; "
+                f"active worker stopped and {len(record['roles'])} role record(s) written",
+                file=sys.stderr,
+            )
+            guard.terminate()
+        return exit_code
     except PlanError as error:
         print(str(error), file=sys.stderr)
         return 2

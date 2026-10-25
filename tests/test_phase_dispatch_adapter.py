@@ -7,11 +7,13 @@ Allspark process or model call is ever spawned. Contract under test:
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import signal
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -58,6 +60,59 @@ NO_MARKER_STUB = """print("finished without a terminal marker")"""
 SLEEPER_STUB = """import time
 
 print("working")
+time.sleep(30)
+"""
+
+PID_SLEEPER_STUB = """import os
+import pathlib
+import sys
+import time
+
+pathlib.Path(sys.argv[1]).write_text(str(os.getpid()), encoding="utf-8")
+print("working")
+sys.stdout.flush()
+time.sleep(30)
+"""
+
+STUBBORN_SLEEPER_STUB = """import os
+import pathlib
+import signal
+import sys
+import time
+
+signal.signal(signal.SIGTERM, signal.SIG_IGN)
+pathlib.Path(sys.argv[1]).write_text(str(os.getpid()), encoding="utf-8")
+print("working")
+sys.stdout.flush()
+time.sleep(30)
+"""
+
+HELPER_STUB = """import pathlib
+import signal
+import sys
+import time
+
+signal.signal(signal.SIGTERM, signal.SIG_IGN)
+pathlib.Path(sys.argv[1]).write_text("ready", encoding="utf-8")
+time.sleep(30)
+"""
+
+GROUP_MEMBER_STUB = """import os
+import pathlib
+import subprocess
+import sys
+import time
+
+ready = pathlib.Path(sys.argv[2])
+helper = subprocess.Popen([sys.executable, sys.argv[3], str(ready)])
+deadline = time.monotonic() + 10
+while not ready.exists() and time.monotonic() < deadline:
+    time.sleep(0.01)
+if not ready.exists():
+    raise SystemExit("helper never reported ready")
+pathlib.Path(sys.argv[1]).write_text(f"{os.getpid()} {helper.pid}", encoding="utf-8")
+print("working")
+sys.stdout.flush()
 time.sleep(30)
 """
 
@@ -136,6 +191,33 @@ def run_adapter(
 
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_adapter_module():
+    spec = importlib.util.spec_from_file_location("phase_dispatch_adapter_under_test", ADAPTER)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def wait_for_worker_pid(path: Path, timeout_seconds: float = 10.0) -> str:
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        if path.exists():
+            text = path.read_text(encoding="utf-8").strip()
+            if text:
+                return text
+        time.sleep(0.02)
+    raise AssertionError(f"worker never started; {path} stayed empty")
+
+
+def assert_process_gone(pid: int) -> None:
+    with pytest.raises(ProcessLookupError):
+        os.kill(pid, 0)
+    with pytest.raises(ProcessLookupError):
+        os.killpg(pid, 0)
 
 
 def test_ready_role_writes_artifact_and_record(tmp_path: Path) -> None:
@@ -467,3 +549,158 @@ def test_dry_run_resolves_configured_worker_against_primary(tmp_path: Path) -> N
     assert result.returncode == 0
     payload = json.loads(result.stdout)
     assert payload["worker"] == [str((ROOT / "scripts/ai/allspark-worker").resolve()), "-p"]
+
+
+SIGNALLED_ADAPTER_CASES = [signal.SIGTERM, signal.SIGINT]
+
+
+def signal_adapter_while_a_worker_runs(
+    plan: Path, record: Path, child_command: list[str], pid_file: Path, number: int
+) -> tuple[int | None, str, float]:
+    """Run the adapter, wait for its worker to report pids, then signal the adapter.
+
+    Returns the adapter exit status, the worker pids it reported, and how long
+    the adapter took to stop after the signal. Never leaves a process behind.
+    """
+    command = [
+        sys.executable,
+        str(ADAPTER),
+        "--plan",
+        str(plan),
+        "--record",
+        str(record),
+        "--child-command",
+        json.dumps(child_command),
+    ]
+    adapter = subprocess.Popen(
+        command,
+        cwd=ROOT,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        encoding="utf-8",
+        errors="replace",
+    )
+    pids = ""
+    elapsed = 0.0
+    try:
+        pids = wait_for_worker_pid(pid_file)
+        started = time.monotonic()
+        adapter.send_signal(number)
+        adapter.wait(timeout=20)
+        elapsed = time.monotonic() - started
+    finally:
+        if adapter.poll() is None:
+            adapter.kill()
+            adapter.wait(timeout=20)
+        adapter.stdout.close()
+        adapter.stderr.close()
+        for value in pids.split():
+            try:
+                os.killpg(int(value), signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+    return adapter.returncode, pids, elapsed
+
+
+@pytest.mark.parametrize("number", SIGNALLED_ADAPTER_CASES)
+def test_signal_reaps_active_worker_and_records_interrupted_outcome(
+    tmp_path: Path, number: int
+) -> None:
+    stub = write_stub(tmp_path, "pid_sleeper", PID_SLEEPER_STUB)
+    pid_file = tmp_path / "worker.pid"
+    role = make_role(tmp_path)
+    later = make_role(tmp_path, "review_wave_1_cycle_1")
+    plan = write_plan(tmp_path, [role, later])
+    record = tmp_path / "record.json"
+
+    returncode, pid_text, elapsed = signal_adapter_while_a_worker_runs(
+        plan, record, [sys.executable, str(stub), str(pid_file)], pid_file, number
+    )
+    worker_pid = int(pid_text)
+
+    # The adapter still dies by the signal it was given, but only afterwards.
+    assert returncode == -number
+    assert elapsed < 10, f"the adapter did not stop promptly: {elapsed:.1f}s"
+    assert_process_gone(worker_pid)
+
+    artifact = load_json(Path(role["artifact"]))
+    assert list(artifact) == ROLE_FIELDS
+    assert artifact["outcome"] == "interrupted"
+    assert artifact["timed_out"] is False
+    assert artifact["pid"] == worker_pid
+    assert "working" in artifact["stdout_tail"]
+
+    summary = load_json(record)
+    assert list(summary) == ["schema", "phase", "started_at", "ended_at", "roles", "overall"]
+    assert summary["overall"] == "interrupted"
+    assert [entry["name"] for entry in summary["roles"]] == [role["name"]]
+    assert [entry["outcome"] for entry in summary["roles"]] == ["interrupted"]
+    # A role that never started is not reported as if it ran.
+    assert not Path(later["artifact"]).exists()
+
+
+def test_signal_escalates_to_sigkill_when_the_worker_ignores_it(tmp_path: Path) -> None:
+    stub = write_stub(tmp_path, "stubborn", STUBBORN_SLEEPER_STUB)
+    pid_file = tmp_path / "worker.pid"
+    role = make_role(tmp_path)
+    plan = write_plan(tmp_path, [role])
+    record = tmp_path / "record.json"
+
+    returncode, pid_text, elapsed = signal_adapter_while_a_worker_runs(
+        plan, record, [sys.executable, str(stub), str(pid_file)], pid_file, signal.SIGTERM
+    )
+    worker_pid = int(pid_text)
+
+    assert returncode == -signal.SIGTERM
+    assert elapsed < 10, f"the grace period was not bounded: {elapsed:.1f}s"
+    assert_process_gone(worker_pid)
+    artifact = load_json(Path(role["artifact"]))
+    assert artifact["outcome"] == "interrupted"
+    assert artifact["exit_code"] == -signal.SIGKILL
+    assert load_json(record)["overall"] == "interrupted"
+
+
+def test_signal_clears_a_group_member_that_ignores_sigterm(tmp_path: Path) -> None:
+    # The helper installs SIG_IGN and reports ready before the adapter is
+    # signalled, so the escalation is measured, not raced.
+    helper_stub = write_stub(tmp_path, "helper", HELPER_STUB)
+    stub = write_stub(tmp_path, "group_member", GROUP_MEMBER_STUB)
+    pid_file = tmp_path / "worker.pid"
+    role = make_role(tmp_path)
+    plan = write_plan(tmp_path, [role])
+
+    _, pid_text, elapsed = signal_adapter_while_a_worker_runs(
+        plan,
+        tmp_path / "record.json",
+        [
+            sys.executable,
+            str(stub),
+            str(pid_file),
+            str(tmp_path / "helper.ready"),
+            str(helper_stub),
+        ],
+        pid_file,
+        signal.SIGTERM,
+    )
+    worker_pid, helper_pid = (int(value) for value in pid_text.split())
+
+    assert elapsed < 10, f"the grace period was not bounded: {elapsed:.1f}s"
+    assert_process_gone(helper_pid)
+    assert_process_gone(worker_pid)
+    artifact = load_json(Path(role["artifact"]))
+    assert artifact["outcome"] == "interrupted"
+    # The direct child honoured SIGTERM; the group escalation is what cleared
+    # the helper, and it took at most the grace plus the kill.
+    assert artifact["exit_code"] == -signal.SIGTERM
+    assert elapsed == pytest.approx(2.0, abs=1.5)
+
+
+def test_interrupted_outcome_never_exits_zero() -> None:
+    module = load_adapter_module()
+
+    assert module.dispatch_exit_code(["ready", "interrupted"]) == 6
+    assert module.dispatch_exit_code(["interrupted"]) == 6
+    assert module.overall_outcome(["interrupted"]) == "interrupted"
+    assert module.overall_outcome(["ready", "interrupted"]) == "interrupted"
+    assert module.overall_outcome(["interrupted", "failed"]) == "mixed"
