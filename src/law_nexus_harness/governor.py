@@ -31,7 +31,10 @@ from law_nexus_harness.adr_matrix import (
     check_adr_matrix_output,
 )
 from law_nexus_harness.workflow_state import (
+    LEGACY_GSD_STATE_RELATIVE_PATH,
+    LegacySurfaceDecision,
     WorkflowStateKind,
+    read_legacy_surface,
     read_workflow_state,
 )
 
@@ -682,11 +685,89 @@ def check_workflow_state_surface(root: Path) -> list[GovernorFinding]:
     ]
 
 
-def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
-    """Mirror the project-state roadmap freshness invariants."""
+def _legacy_surface_skip(
+    decision: LegacySurfaceDecision,
+    check_id: str,
+    *,
+    subject: str,
+    extra: str,
+    evidence_path: str,
+) -> GovernorFinding:
+    """One finding stating that a legacy claim is not asserted here.
 
+    An absent surface has nothing to inherit, so the claim is merely
+    not-applicable and stays pass/ok. A frozen surface is different: the data
+    exists but no longer measures the current workflow, so the claim is
+    historical-only and surfaces as an advisory warn. Frozen evidence is never
+    reported as a pass on current state and never as an error.
+    """
+
+    policy = decision.policy(check_id)
+    if policy == "applies":
+        raise ValueError(f"{check_id} applies on {decision.surface.value}; nothing to skip")
+    historical = policy == "historical-only"
+    return GovernorFinding(
+        check_id=check_id,
+        status="fail" if historical else "pass",
+        severity="warn" if historical else "ok",
+        message=(
+            f"{subject} is not asserted: the legacy surface is {decision.surface.value} "
+            f"(policy={policy})"
+        ),
+        observed=f"{decision.observed(check_id)}; {extra}",
+        remediation=(
+            "Read the archived snapshot as history only; record which tracked artifact now "
+            "proves this claim, or accept that it is no longer monitored."
+            if historical
+            else "none"
+        ),
+        rule_id=f"{check_id}.{policy}",
+        expected=(
+            "A legacy-surface check states the authority of the surface it read "
+            "instead of reporting an unreadable or frozen input as a pass."
+        ),
+        evidence=(GovernorEvidence(path=evidence_path),),
+    )
+
+
+def _with_legacy_surface(
+    findings: list[GovernorFinding],
+    decision: LegacySurfaceDecision,
+    check_id: str,
+) -> list[GovernorFinding]:
+    """Name the live legacy surface on every finding it produced.
+
+    A check that compared against the live surface must say which surface it
+    compared against, so a later reader cannot mistake a pre-cutover read for a
+    frozen-snapshot read or for the Path state itself. Guard findings already
+    carry the token and never pass through here.
+    """
+
+    if decision.policy(check_id) != "applies":
+        raise ValueError(
+            f"{check_id} does not apply on {decision.surface.value}; "
+            "only live-surface findings carry the live token"
+        )
+    token = decision.observed(check_id)
+    return [
+        replace(finding, observed=f"{finding.observed}; {token}" if finding.observed else token)
+        for finding in findings
+    ]
+
+
+def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
+    """Mirror the project-state roadmap freshness invariants.
+
+    The comparison source is the legacy milestone registry, so the check asks
+    :func:`read_legacy_surface` what that registry is worth. After cutover an
+    absent registry leaves nobody to compare against: the roadmap can no
+    longer be verified, and reporting a pass would assert freshness that was
+    never checked.
+    """
+
+    check_id = "roadmap-freshness"
     findings: list[GovernorFinding] = []
-    state_path = root / ".gsd" / "STATE.md"
+    state_path = root / LEGACY_GSD_STATE_RELATIVE_PATH
     roadmap_path = root / "prd" / "project-state" / "data" / "roadmap.json"
     if not roadmap_path.is_file():
         return [
@@ -699,15 +780,57 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                 remediation="Restore prd/project-state/data/roadmap.json",
             )
         ]
+    decision = read_legacy_surface(root)
+    if decision.blocks(check_id):
+        return [
+            GovernorFinding(
+                check_id="roadmap-freshness-unverifiable",
+                status="fail",
+                severity="error",
+                message=(
+                    "tracked roadmap freshness cannot be verified: the legacy milestone "
+                    "registry is absent after cutover"
+                ),
+                observed=f"{decision.surface_tokens()}; comparison=unverifiable; {decision.detail}",
+                remediation=(
+                    "Restore a milestone registry the check may compare against, or record "
+                    "in the tracked Path state which artifact now proves roadmap freshness; "
+                    "until then do not treat the tracked roadmap as current."
+                ),
+                rule_id="roadmap-freshness.unverifiable",
+                expected=(
+                    "An absent comparison source blocks the freshness claim instead of passing it."
+                ),
+                evidence=(
+                    GovernorEvidence(path=LEGACY_GSD_STATE_RELATIVE_PATH),
+                    GovernorEvidence(path="prd/project-state/data/roadmap.json"),
+                ),
+            )
+        ]
+    if decision.policy(check_id) != "applies":
+        return [
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="tracked roadmap freshness",
+                extra="comparison=not-performed",
+                evidence_path=LEGACY_GSD_STATE_RELATIVE_PATH,
+            )
+        ]
     if not state_path.is_file():
         return [
             GovernorFinding(
-                check_id="roadmap-state-present",
-                status="pass",
-                severity="ok",
-                message="local GSD roadmap projection is unavailable; tracked roadmap remains authoritative",
-                observed="local_projection=absent; comparison=not-applicable",
-                remediation="none",
+                check_id="roadmap-freshness-unverifiable",
+                status="fail",
+                severity="error",
+                message="legacy milestone registry is present but unreadable",
+                observed=f"{decision.surface_tokens()}; registry=unreadable",
+                remediation=(
+                    "Restore .gsd/STATE.md or remove the stale legacy surface; the roadmap "
+                    "is compared against the registry, not guessed from it."
+                ),
+                rule_id="roadmap-freshness.unverifiable",
+                evidence=(GovernorEvidence(path=LEGACY_GSD_STATE_RELATIVE_PATH),),
             )
         ]
 
@@ -734,7 +857,7 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                 remediation="Complete at least one milestone before relying on roadmap freshness",
             )
         )
-        return findings
+        return _with_legacy_surface(findings, decision, check_id)
 
     latest_completed_id = _last_completed_id(state_text, latest_completed)
     latest_completed_line = next(
@@ -850,7 +973,7 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
             )
         )
 
-    return findings
+    return _with_legacy_surface(findings, decision, check_id)
 
 
 def check_hostile_proof_chain(root: Path) -> list[GovernorFinding]:
@@ -1450,7 +1573,7 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
 
     check_id = "gsd-review-dual-truth"
     bridge_path = root / _GSD_REVIEW_BRIDGE_REL
-    state_path = root / ".gsd" / "STATE.md"
+    state_path = root / LEGACY_GSD_STATE_RELATIVE_PATH
 
     if not bridge_path.is_file():
         return [
@@ -1480,18 +1603,36 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
         ]
 
     declared_seqs = sorted({int(m.group(1)) for m in _DT_LAG_MILESTONE_RE.finditer(bridge_text)})
+    decision = read_legacy_surface(root)
+    if decision.policy(check_id) != "applies":
+        # The only way to match a declared DT-lag against a milestone is the
+        # legacy registry. Without it the lag stays a tracked declaration and
+        # nothing here may claim the lag is current or clear.
+        return [
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="declared GSD↔Review DT-lag against a registry",
+                extra=f"dt_lag_declared={declared_seqs}; match=not-performed",
+                evidence_path=LEGACY_GSD_STATE_RELATIVE_PATH,
+            )
+        ]
     if not state_path.is_file():
         return [
             GovernorFinding(
                 check_id=check_id,
-                status="pass",
-                severity="ok",
-                message="DT-lag declared but local GSD STATE projection unavailable",
+                status="fail",
+                severity="warn",
+                message="legacy registry is present but unreadable, DT-lag not assessable",
                 observed=(
-                    f"dt_lag_declared=true; milestones={declared_seqs}; local_projection=absent"
+                    f"{decision.surface_tokens()}; dt_lag_declared={declared_seqs}; "
+                    "registry=unreadable"
                 ),
-                remediation="none",
-                evidence=(GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),),
+                remediation=(
+                    "Restore .gsd/STATE.md or remove the stale legacy surface; the declared "
+                    "DT-lag cannot be matched against a registry that is not there."
+                ),
+                evidence=(GovernorEvidence(path=LEGACY_GSD_STATE_RELATIVE_PATH),),
             )
         ]
 
@@ -1506,44 +1647,54 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
 
     if matched:
         preview = ",".join(f"M{seq}" for seq in matched)
-        return [
+        return _with_legacy_surface(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message=(
+                        "Declared GSD↔Review DT-lag overlaps an active/hard-open GSD milestone"
+                    ),
+                    observed=(
+                        f"dt_lag_active=[{preview}]; active={active}; "
+                        f"bridge={_GSD_REVIEW_BRIDGE_REL.as_posix()} "
+                        f"(lifecycle [bounded]; process visibility only; not GSD complete, "
+                        f"not product readiness, not automatic close)."
+                    ),
+                    remediation=(
+                        "Keep DT-lag visible, complete via real GSD Attempts, or apply an "
+                        "explicit planning waiver. Do not fabricate gsd_task_complete or "
+                        "rewrite STATE.md outside the engine (D154)."
+                    ),
+                    evidence=(
+                        GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),
+                        GovernorEvidence(path=".gsd/STATE.md"),
+                    ),
+                )
+            ],
+            decision,
+            check_id,
+        )
+
+    return _with_legacy_surface(
+        [
             GovernorFinding(
                 check_id=check_id,
-                status="fail",
-                severity="warn",
-                message=("Declared GSD↔Review DT-lag overlaps an active/hard-open GSD milestone"),
+                status="pass",
+                severity="ok",
+                message="Declared DT-lag milestones are not active/hard-open in GSD registry",
                 observed=(
-                    f"dt_lag_active=[{preview}]; active={active}; "
-                    f"bridge={_GSD_REVIEW_BRIDGE_REL.as_posix()} "
-                    f"(lifecycle [bounded]; process visibility only; not GSD complete, "
-                    f"not product readiness, not automatic close)."
+                    f"dt_lag_declared={declared_seqs}; hard_open={sorted(hard_open_seqs)}; "
+                    f"active={active} (historical bridge note only)."
                 ),
-                remediation=(
-                    "Keep DT-lag visible, complete via real GSD Attempts, or apply an "
-                    "explicit planning waiver. Do not fabricate gsd_task_complete or "
-                    "rewrite STATE.md outside the engine (D154)."
-                ),
-                evidence=(
-                    GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),
-                    GovernorEvidence(path=".gsd/STATE.md"),
-                ),
+                remediation="none",
+                evidence=(GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),),
             )
-        ]
-
-    return [
-        GovernorFinding(
-            check_id=check_id,
-            status="pass",
-            severity="ok",
-            message="Declared DT-lag milestones are not active/hard-open in GSD registry",
-            observed=(
-                f"dt_lag_declared={declared_seqs}; hard_open={sorted(hard_open_seqs)}; "
-                f"active={active} (historical bridge note only)."
-            ),
-            remediation="none",
-            evidence=(GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),),
-        )
-    ]
+        ],
+        decision,
+        check_id,
+    )
 
 
 _CAPABILITY_PROMOTION_BOARD_REL = Path("prd/architecture/capability-promotion-board.md")
@@ -7371,21 +7522,36 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
     """
 
     check_id = "journal-retry-loops"
-    journal_dir = root / ".gsd" / "journal"
-    if not journal_dir.is_dir():
+    decision = read_legacy_surface(root)
+    if decision.policy(check_id) != "applies":
         return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="journal directory missing, retry-loop surface not assessable",
-                observed="missing journal dir",
-                remediation=(
-                    "Point the governor at a checkout whose .gsd/journal/ holds flow jsonl files."
-                ),
-                evidence=(GovernorEvidence(path=".gsd/journal/"),),
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="journal retry/wedge observability",
+                extra="journal=not-scanned",
+                evidence_path=".gsd/journal/",
             )
         ]
+    journal_dir = root / ".gsd" / "journal"
+    if not journal_dir.is_dir():
+        return _with_legacy_surface(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="journal directory missing, retry-loop surface not assessable",
+                    observed="missing journal dir",
+                    remediation=(
+                        "Point the governor at a checkout whose .gsd/journal/ holds flow jsonl files."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/journal/"),),
+                )
+            ],
+            decision,
+            check_id,
+        )
 
     journal_files = sorted(journal_dir.glob("*.jsonl"))
     skipped_lines = 0
@@ -7617,7 +7783,7 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
             remediation="",
         )
     )
-    return findings
+    return _with_legacy_surface(findings, decision, check_id)
 
 
 _COMPAT_MARKER_SCHEMA = 2
@@ -7660,89 +7826,116 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
     """
 
     check_id = "compat-marker-hygiene"
-    marker_path = root / ".gsd" / ".compat.json"
-    if not marker_path.is_file():
+    decision = read_legacy_surface(root)
+    if decision.policy(check_id) != "applies":
         return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="compat marker missing, compat-marker-hygiene not assessable",
-                observed="missing .gsd/.compat.json",
-                remediation=(
-                    "Point the governor at a checkout whose .gsd/.compat.json "
-                    "exists; the engine creates it on its first projection write."
-                ),
-                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="compat projection marker hygiene",
+                extra="marker=not-audited",
+                evidence_path=".gsd/.compat.json",
             )
         ]
+
+    def _named(items: list[GovernorFinding]) -> list[GovernorFinding]:
+        """Name the live legacy surface on every finding this check emits."""
+        return _with_legacy_surface(items, decision, check_id)
+
+    marker_path = root / ".gsd" / ".compat.json"
+    if not marker_path.is_file():
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="compat marker missing, compat-marker-hygiene not assessable",
+                    observed="missing .gsd/.compat.json",
+                    remediation=(
+                        "Point the governor at a checkout whose .gsd/.compat.json "
+                        "exists; the engine creates it on its first projection write."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+                )
+            ]
+        )
 
     try:
         payload = json.loads(marker_path.read_text(encoding="utf-8", errors="replace"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="compat marker unreadable, compat-marker-hygiene not assessable",
-                observed=f"invalid JSON: {type(exc).__name__}",
-                remediation=(
-                    "Let the engine's single-writer path regenerate .compat.json; "
-                    "never hand-edit it."
-                ),
-                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
-            )
-        ]
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="compat marker unreadable, compat-marker-hygiene not assessable",
+                    observed=f"invalid JSON: {type(exc).__name__}",
+                    remediation=(
+                        "Let the engine's single-writer path regenerate .compat.json; "
+                        "never hand-edit it."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+                )
+            ]
+        )
     if not isinstance(payload, dict):
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="compat marker payload is not a JSON object",
-                observed=f"top-level type={type(payload).__name__}",
-                remediation=(
-                    "Let the engine's single-writer path regenerate .compat.json; "
-                    "never hand-edit it."
-                ),
-                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
-            )
-        ]
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="compat marker payload is not a JSON object",
+                    observed=f"top-level type={type(payload).__name__}",
+                    remediation=(
+                        "Let the engine's single-writer path regenerate .compat.json; "
+                        "never hand-edit it."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+                )
+            ]
+        )
     schema = payload.get("schema")
     if schema != _COMPAT_MARKER_SCHEMA:
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="compat marker schema is not the audited version",
-                observed=(
-                    f"schema={schema!r} expected={_COMPAT_MARKER_SCHEMA}; projections not audited"
-                ),
-                remediation=(
-                    "Update the compat-projection writer before trusting marker "
-                    "hygiene; the governor never migrates engine state."
-                ),
-                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
-            )
-        ]
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="compat marker schema is not the audited version",
+                    observed=(
+                        f"schema={schema!r} expected={_COMPAT_MARKER_SCHEMA}; "
+                        "projections not audited"
+                    ),
+                    remediation=(
+                        "Update the compat-projection writer before trusting marker "
+                        "hygiene; the governor never migrates engine state."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+                )
+            ]
+        )
     projections = payload.get("projections")
     if not isinstance(projections, dict):
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="compat marker projections section is not an object",
-                observed=f"projections type={type(projections).__name__}",
-                remediation=(
-                    "Let the engine's single-writer path regenerate .compat.json; "
-                    "never hand-edit it."
-                ),
-                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
-            )
-        ]
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="compat marker projections section is not an object",
+                    observed=f"projections type={type(projections).__name__}",
+                    remediation=(
+                        "Let the engine's single-writer path regenerate .compat.json; "
+                        "never hand-edit it."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+                )
+            ]
+        )
 
     stale: list[str] = []
     bad_sha: list[str] = []
@@ -7774,18 +7967,21 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
         f"root_artifacts_without_entities={len(unscoped_empty_entities)}"
     )
     if not (stale or bad_sha or empty_entities or malformed):
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="pass",
-                severity="ok",
-                message=(
-                    f"compat marker hygiene clean read-only across {len(projections)} projection(s)"
-                ),
-                observed=counters,
-                remediation="",
-            )
-        ]
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="pass",
+                    severity="ok",
+                    message=(
+                        "compat marker hygiene clean read-only across "
+                        f"{len(projections)} projection(s)"
+                    ),
+                    observed=counters,
+                    remediation="",
+                )
+            ]
+        )
 
     observed = counters
     if stale:
@@ -7796,20 +7992,22 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
     if bad_sha or empty_entities or malformed:
         first_offender = (bad_sha or empty_entities or malformed)[0]
         observed = f"{observed} first_offender={first_offender}"
-    return [
-        GovernorFinding(
-            check_id=check_id,
-            status="fail",
-            severity="warn",
-            message="compat marker has stale or malformed projection entries",
-            observed=observed,
-            remediation=(
-                "Regenerate projections through the engine's single-writer path "
-                "so .compat.json matches disk; do not hand-edit .compat.json."
-            ),
-            evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
-        )
-    ]
+    return _named(
+        [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="compat marker has stale or malformed projection entries",
+                observed=observed,
+                remediation=(
+                    "Regenerate projections through the engine's single-writer path "
+                    "so .compat.json matches disk; do not hand-edit .compat.json."
+                ),
+                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+            )
+        ]
+    )
 
 
 def _check_spec(

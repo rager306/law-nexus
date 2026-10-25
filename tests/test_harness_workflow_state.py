@@ -9,16 +9,21 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from law_nexus_harness.workflow_state import (
     CUTOVER_MARKER_RELATIVE_PATH,
+    LEGACY_SURFACE_CHECKS,
     NO_RUNTIME_INFO,
     RUNTIME_DECLARATION_RELATIVE_PATH,
     STATUS_RUNTIME_SHIM_RELATIVE_PATH,
     WORKFLOW_STATE_SCHEMA_VERSION,
+    LegacySurface,
     RuntimeResolution,
     WorkflowStateKind,
     WorkflowStateReport,
     read_legacy_gsd_snapshot,
+    read_legacy_surface,
     read_workflow_state,
     workflow_readiness,
 )
@@ -649,3 +654,95 @@ def test_default_resolver_runs_real_shim_end_to_end(tmp_path: Path) -> None:
     assert report.runtime.path == str(runtime_dir)
     assert report.runtime.digest == PINNED_RUNTIME_DIGEST
     assert report.runtime.version == PINNED_RUNTIME_VERSION
+
+
+class TestLegacySurfaceDecision:
+    """The one decision point four governor checks read instead of guessing.
+
+    Each case states what the checkout holds and what a legacy-surface check
+    is then allowed to claim. The two failure modes this replaces are an
+    absence read as a pass, and frozen data read as current state.
+    """
+
+    def test_absent_surface_applies_cutover_false(self, tmp_path: Path) -> None:
+        write_cutover_marker(tmp_path, cutover=False)
+
+        decision = read_legacy_surface(tmp_path)
+
+        assert decision.surface is LegacySurface.ABSENT
+        assert decision.cutover is False
+        for check_id in LEGACY_SURFACE_CHECKS:
+            assert decision.policy(check_id) == "not-applicable"
+            assert decision.blocks(check_id) is False
+
+    def test_absent_surface_after_cutover_blocks_only_roadmap_freshness(
+        self, tmp_path: Path
+    ) -> None:
+        write_cutover_marker(tmp_path, cutover=True)
+
+        decision = read_legacy_surface(tmp_path)
+
+        assert decision.surface is LegacySurface.ABSENT
+        assert decision.blocks("roadmap-freshness") is True
+        assert decision.policy("roadmap-freshness") == "not-applicable"
+        for check_id in ("gsd-review-dual-truth", "journal-retry-loops", "compat-marker-hygiene"):
+            assert decision.blocks(check_id) is False
+            assert decision.policy(check_id) == "not-applicable"
+
+    def test_missing_cutover_marker_never_blocks(self, tmp_path: Path) -> None:
+        # A cutover nobody recorded has not happened, so it cannot turn an
+        # absent surface into a blocker.
+        decision = read_legacy_surface(tmp_path)
+
+        assert decision.surface is LegacySurface.ABSENT
+        assert decision.cutover is False
+        assert decision.blocks("roadmap-freshness") is False
+        assert "cutover marker missing" in decision.detail
+
+    def test_present_surface_after_cutover_is_historical_only(self, tmp_path: Path) -> None:
+        write_cutover_marker(tmp_path, cutover=True)
+        write_legacy_gsd_state(tmp_path)
+
+        decision = read_legacy_surface(tmp_path)
+
+        assert decision.surface is LegacySurface.FROZEN_HISTORICAL
+        for check_id in LEGACY_SURFACE_CHECKS:
+            assert decision.policy(check_id) == "historical-only"
+            assert decision.blocks(check_id) is False
+
+    def test_present_surface_before_cutover_applies(self, tmp_path: Path) -> None:
+        write_cutover_marker(tmp_path, cutover=False)
+        write_legacy_gsd_state(tmp_path)
+
+        decision = read_legacy_surface(tmp_path)
+
+        assert decision.surface is LegacySurface.OPERATIONAL_NOT_CUT_OVER
+        for check_id in LEGACY_SURFACE_CHECKS:
+            assert decision.policy(check_id) == "applies"
+            assert decision.blocks(check_id) is False
+
+    def test_dangling_legacy_symlink_is_a_present_surface(self, tmp_path: Path) -> None:
+        write_cutover_marker(tmp_path, cutover=True)
+        os.symlink(tmp_path / "nowhere-gsd", tmp_path / ".gsd")
+
+        decision = read_legacy_surface(tmp_path)
+
+        # A surface pointing at a vanished snapshot still exists: the checks
+        # must report an unreadable registry, not an absent one.
+        assert decision.surface is LegacySurface.FROZEN_HISTORICAL
+
+    def test_unknown_check_id_is_refused(self, tmp_path: Path) -> None:
+        decision = read_legacy_surface(tmp_path)
+
+        with pytest.raises(ValueError, match="not a legacy-surface check"):
+            decision.policy("workflow-state-surface")
+
+    def test_observed_tokens_name_surface_policy_and_cutover(self, tmp_path: Path) -> None:
+        write_cutover_marker(tmp_path, cutover=True)
+        write_legacy_gsd_state(tmp_path)
+
+        observed = read_legacy_surface(tmp_path).observed("compat-marker-hygiene")
+
+        assert observed == (
+            "legacy_surface=frozen-historical; cutover=true; policy=historical-only"
+        )

@@ -10,6 +10,10 @@ never completes tasks, and never emits review events. The frozen GSD-Pi
 snapshot is exposed as clearly marked historical evidence only; it is never a
 runtime fallback. Operational Path decisions never parse STATE.md frontmatter;
 the only sanctioned plain-text STATE.md surface is the legacy snapshot reader.
+
+Every consumer of the legacy surface asks :func:`read_legacy_surface` what it
+may claim, so an absent surface, a frozen surface, and a live pre-cutover
+surface cannot be confused with one another.
 """
 
 from __future__ import annotations
@@ -17,7 +21,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
@@ -34,6 +38,7 @@ STATUS_RUNTIME_SHIM_RELATIVE_PATH = ".gsd-path/status_runtime.py"
 NATIVE_STATUS_SCHEMA = "gsd-path/status/v1"
 PROJECT_RELATIVE_PATH = ".project"
 PROJECT_STATE_RELATIVE_PATH = ".project/STATE.md"
+LEGACY_GSD_RELATIVE_PATH = ".gsd"
 LEGACY_GSD_STATE_RELATIVE_PATH = ".gsd/STATE.md"
 
 RUNTIME_RESOLUTION_TIMEOUT_SECONDS = 30
@@ -77,6 +82,41 @@ class WorkflowStateKind(Enum):
 
 
 WorkflowReadiness = Literal["operational", "bootstrap-not-cut-over", "blocked"]
+
+
+class LegacySurface(Enum):
+    """What the checkout holds where the frozen legacy GSD-Pi surface belongs."""
+
+    ABSENT = "absent"
+    FROZEN_HISTORICAL = "frozen-historical"
+    OPERATIONAL_NOT_CUT_OVER = "operational-not-cut-over"
+
+
+LegacyPolicy = Literal["applies", "historical-only", "not-applicable"]
+
+# The governor checks whose only current-state input lives on the legacy
+# surface, one per legacy artifact: the milestone registry (.gsd/STATE.md),
+# the flow journal (.gsd/journal/*.jsonl), and the projection marker
+# (.gsd/.compat.json).
+LEGACY_SURFACE_CHECKS: tuple[str, ...] = (
+    "compat-marker-hygiene",
+    "gsd-review-dual-truth",
+    "journal-retry-loops",
+    "roadmap-freshness",
+)
+
+_LEGACY_SURFACE_POLICY: Mapping[LegacySurface, LegacyPolicy] = {
+    LegacySurface.ABSENT: "not-applicable",
+    LegacySurface.FROZEN_HISTORICAL: "historical-only",
+    LegacySurface.OPERATIONAL_NOT_CUT_OVER: "applies",
+}
+
+# The one claim whose only comparison source is the legacy registry. Once
+# cutover lands and the registry is gone, nobody can compare the tracked
+# roadmap against anything, so the claim becomes unverifiable instead of true.
+# The other three lose coverage rather than correctness and stay
+# not-applicable.
+_LEGACY_SURFACE_BLOCKING_CHECKS: frozenset[str] = frozenset({"roadmap-freshness"})
 
 
 @dataclass(frozen=True)
@@ -242,6 +282,78 @@ def _report(
 
 def _is_sha256_hex(value: str) -> bool:
     return len(value) == 64 and all(char in "0123456789abcdef" for char in value)
+
+
+@dataclass(frozen=True)
+class LegacySurfaceDecision:
+    """The single decision point for reads of the frozen legacy GSD surface.
+
+    ``surface`` states what the checkout holds; :meth:`policy` states what a
+    legacy-surface check may claim about it. ``cutover`` is the tracked marker
+    value, and False whenever the marker is missing or unreadable: a cutover
+    nobody proved has not happened, so it can never turn into a blocker.
+    """
+
+    surface: LegacySurface
+    cutover: bool
+    detail: str = ""
+
+    def policy(self, check_id: str) -> LegacyPolicy:
+        """Return the policy that governs ``check_id`` on this surface."""
+
+        self._require_legacy_check(check_id)
+        return _LEGACY_SURFACE_POLICY[self.surface]
+
+    def blocks(self, check_id: str) -> bool:
+        """Whether this surface makes ``check_id``'s claim unverifiable.
+
+        Only a check whose sole comparison source is the legacy registry can
+        lose its whole claim with that registry (``roadmap-freshness``), and
+        only after cutover: before cutover the missing projection is a state
+        the bootstrap path already owns.
+        """
+
+        return (
+            self._require_legacy_check(check_id) in _LEGACY_SURFACE_BLOCKING_CHECKS
+            and self.surface is LegacySurface.ABSENT
+            and self.cutover
+        )
+
+    def observed(self, check_id: str) -> str:
+        """Stable observed tokens naming the surface, its policy, and cutover."""
+
+        return f"{self.surface_tokens()}; policy={self.policy(check_id)}"
+
+    def surface_tokens(self) -> str:
+        """Stable observed tokens naming the surface and the cutover marker."""
+
+        return f"legacy_surface={self.surface.value}; cutover={'true' if self.cutover else 'false'}"
+
+    @staticmethod
+    def _require_legacy_check(check_id: str) -> str:
+        if check_id not in LEGACY_SURFACE_CHECKS:
+            raise ValueError(f"not a legacy-surface check: {check_id}")
+        return check_id
+
+
+def read_legacy_surface(root: Path) -> LegacySurfaceDecision:
+    """Classify the legacy surface and its authority in one read-only call.
+
+    A surface that exists counts even as a dangling symlink: a checkout
+    pointing at a vanished snapshot has not stopped carrying the surface, and
+    the checks must say the registry is unreadable rather than absent.
+    """
+
+    resolved_root = root.resolve()
+    marker, marker_detail = _read_cutover_marker(resolved_root)
+    cutover = marker is not None and marker.cutover
+    if not _legacy_gsd_present(resolved_root):
+        detail = f"{LEGACY_GSD_RELATIVE_PATH} is absent"
+        if marker_detail:
+            detail = f"{detail}; {marker_detail}"
+        return LegacySurfaceDecision(surface=LegacySurface.ABSENT, cutover=cutover, detail=detail)
+    surface = LegacySurface.FROZEN_HISTORICAL if cutover else LegacySurface.OPERATIONAL_NOT_CUT_OVER
+    return LegacySurfaceDecision(surface=surface, cutover=cutover, detail=marker_detail)
 
 
 def _read_cutover_marker(root: Path) -> tuple[CutoverMarker | None, str]:

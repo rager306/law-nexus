@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
@@ -58,6 +59,7 @@ from law_nexus_harness.governor import (
     check_verify_test_coverage_drift,
     run_governor,
 )
+from law_nexus_harness.workflow_state import LEGACY_SURFACE_CHECKS
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -456,6 +458,153 @@ def test_tracked_roadmap_is_required_without_local_gsd_state(tmp_path: Path) -> 
     assert findings[0].severity == "error"
 
 
+def _write_cutover_marker(root: Path, *, cutover: bool) -> None:
+    path = root / "prd" / "project-state" / "workflow-backend.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps({"schema": 1, "backend": "gsd-path", "cutover": cutover}),
+        encoding="utf-8",
+    )
+
+
+def _write_legacy_registry(root: Path) -> None:
+    legacy = root / ".gsd"
+    legacy.mkdir(parents=True, exist_ok=True)
+    (legacy / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Last Completed Milestone:** M117-a06sez: HC 05\n"
+        "**Phase:** complete\n\n"
+        "## Milestone Registry\n"
+        "- ✅ **M116-l1avxb:** HC 04\n"
+        "- ✅ **M117-a06sez:** HC 05\n",
+        encoding="utf-8",
+    )
+
+
+def _write_roadmap(root: Path) -> None:
+    roadmap_dir = root / "prd" / "project-state" / "data"
+    roadmap_dir.mkdir(parents=True)
+    (roadmap_dir / "roadmap.json").write_text(
+        json.dumps(
+            {
+                "completed_milestone_groups": [{"range": "M116-M117", "status": "complete"}],
+                "current_milestone": {"id": "M117-a06sez", "status": "complete"},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def test_roadmap_freshness_absent_registry_after_cutover_blocks(tmp_path: Path) -> None:
+    """An absent comparison source cannot pass: freshness was never checked."""
+    _write_roadmap(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=True)
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "roadmap-freshness-unverifiable"
+    assert finding.status == "fail"
+    assert finding.severity == "error"
+    assert finding.rule_id == "roadmap-freshness.unverifiable"
+    assert "cannot be verified" in finding.message
+    assert "legacy_surface=absent" in finding.observed
+    assert "cutover=true" in finding.observed
+
+
+def test_roadmap_freshness_absent_registry_before_cutover_is_not_applicable(
+    tmp_path: Path,
+) -> None:
+    _write_roadmap(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert finding.rule_id == "roadmap-freshness.not-applicable"
+    assert "legacy_surface=absent" in finding.observed
+    assert "policy=not-applicable" in finding.observed
+    assert "comparison=not-performed" in finding.observed
+    assert "tracks" not in finding.message
+
+
+def test_roadmap_freshness_frozen_registry_is_historical_only(tmp_path: Path) -> None:
+    """A frozen registry warns as history and never errors as current state."""
+    _write_roadmap(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=True)
+    _write_legacy_registry(tmp_path)
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert finding.rule_id == "roadmap-freshness.historical-only"
+    assert "legacy_surface=frozen-historical" in finding.observed
+    assert "current" not in finding.observed
+
+
+def test_roadmap_freshness_unreadable_registry_blocks(tmp_path: Path) -> None:
+    """A surface that exists but cannot be read is not an absence to pass over."""
+    _write_roadmap(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+    os.symlink(tmp_path / "nowhere-gsd", tmp_path / ".gsd")
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "roadmap-freshness-unverifiable"
+    assert finding.status == "fail"
+    assert finding.severity == "error"
+    assert "registry=unreadable" in finding.observed
+
+
+def test_every_legacy_surface_check_is_a_registered_governor_check() -> None:
+    registered = {spec.check_id for spec in GOVERNOR_CHECK_SPECS}
+    missing = sorted(set(LEGACY_SURFACE_CHECKS) - registered)
+
+    assert missing == []
+
+
+def test_live_surface_findings_name_the_surface_they_compared_against(
+    tmp_path: Path,
+) -> None:
+    """A pre-cutover read is the live source, and says so on every finding.
+
+    Without the token a reader cannot tell a comparison made against the live
+    registry from one made against a frozen snapshot or against the Path state.
+    """
+    _write_roadmap(tmp_path)
+    _write_legacy_registry(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    assert len(findings) == 3
+    for finding in findings:
+        assert finding.status == "pass"
+        assert finding.severity == "ok"
+        assert "legacy_surface=operational-not-cut-over" in finding.observed
+        assert "policy=applies" in finding.observed
+
+
+def test_live_surface_never_emits_a_historical_or_not_applicable_rule(tmp_path: Path) -> None:
+    _write_roadmap(tmp_path)
+    _write_legacy_registry(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    rules = {finding.rule_id for finding in findings if finding.rule_id}
+    assert not any(rule.endswith((".historical-only", ".not-applicable")) for rule in rules)
+
+
 def test_open_next_wave_milestone_is_not_residual_debt(tmp_path: Path) -> None:
     state = tmp_path / ".gsd"
     state.mkdir()
@@ -584,6 +733,67 @@ def test_gsd_review_dual_truth_pass_when_bridge_absent(tmp_path: Path) -> None:
     findings = check_gsd_review_dual_truth(tmp_path)
     assert findings[0].status == "pass"
     assert findings[0].severity == "ok"
+
+
+def _write_dual_truth_bridge(root: Path) -> None:
+    bridge = root / "prd" / "architecture" / "review-cases"
+    bridge.mkdir(parents=True)
+    (bridge / "gsd-review-bridge.md").write_text(
+        "# bridge\n\n```text\nclass: DT-lag\ndelivery_unit=gsd:M167-odlgt8\n```\n",
+        encoding="utf-8",
+    )
+
+
+def test_gsd_review_dual_truth_absent_registry_makes_no_match_claim(tmp_path: Path) -> None:
+    """Without a registry the lag stays a declaration, not a satisfied check."""
+    from law_nexus_harness.governor import check_gsd_review_dual_truth
+
+    _write_dual_truth_bridge(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+
+    findings = check_gsd_review_dual_truth(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert finding.rule_id == "gsd-review-dual-truth.not-applicable"
+    assert "legacy_surface=absent" in finding.observed
+    assert "match=not-performed" in finding.observed
+    assert "dt_lag_declared=[167]" in finding.observed
+
+
+def test_gsd_review_dual_truth_frozen_registry_is_historical_only(tmp_path: Path) -> None:
+    from law_nexus_harness.governor import check_gsd_review_dual_truth
+
+    _write_dual_truth_bridge(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=True)
+    _write_legacy_registry(tmp_path)
+
+    findings = check_gsd_review_dual_truth(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert finding.rule_id == "gsd-review-dual-truth.historical-only"
+    assert "legacy_surface=frozen-historical" in finding.observed
+
+
+def test_gsd_review_dual_truth_unreadable_registry_is_not_assessable(tmp_path: Path) -> None:
+    from law_nexus_harness.governor import check_gsd_review_dual_truth
+
+    _write_dual_truth_bridge(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+    os.symlink(tmp_path / "nowhere-gsd", tmp_path / ".gsd")
+
+    findings = check_gsd_review_dual_truth(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "registry=unreadable" in finding.observed
 
 
 def test_capability_promotion_board_warns_when_tsg_missing(tmp_path: Path) -> None:
@@ -4602,9 +4812,42 @@ def test_journal_retry_loops_skips_broken_json_line(tmp_path: Path) -> None:
     assert "skipped_lines_total=1" in findings[0].observed
 
 
+def test_journal_retry_loops_absent_legacy_surface_is_not_applicable(tmp_path: Path) -> None:
+    # The whole legacy surface is gone, so nothing here is a signal about the
+    # flow: an absence of the surface is not a pass, it is a claim this check
+    # may not make.
+    findings = check_journal_retry_loops(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "legacy_surface=absent" in findings[0].observed
+    assert "policy=not-applicable" in findings[0].observed
+
+
+def test_journal_retry_loops_frozen_surface_is_historical_only(tmp_path: Path) -> None:
+    """Frozen journal traffic is history; it may not be read as current flow."""
+    base = datetime(2026, 8, 30, 12, 0, 0, tzinfo=UTC)
+    _write_journal_file(
+        tmp_path,
+        [_journal_event(base.isoformat(), "unit-start", {"unitId": "M1/S1/T1"})],
+    )
+    _write_cutover_marker(tmp_path, cutover=True)
+
+    findings = check_journal_retry_loops(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert finding.rule_id == "journal-retry-loops.historical-only"
+    assert "legacy_surface=frozen-historical" in finding.observed
+    assert "journal=not-scanned" in finding.observed
+
+
 def test_journal_retry_loops_missing_journal_dir_is_not_assessable(
     tmp_path: Path,
 ) -> None:
+    (tmp_path / ".gsd").mkdir()
     findings = check_journal_retry_loops(tmp_path)
     assert len(findings) == 1
     assert findings[0].status == "fail"
@@ -4766,7 +5009,35 @@ def test_compat_marker_hygiene_survives_invalid_json(tmp_path: Path) -> None:
     assert findings[0].severity == "warn"
 
 
+def test_compat_marker_hygiene_absent_legacy_surface_is_not_applicable(
+    tmp_path: Path,
+) -> None:
+    findings = check_compat_marker_hygiene(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "legacy_surface=absent" in findings[0].observed
+    assert "policy=not-applicable" in findings[0].observed
+
+
+def test_compat_marker_hygiene_frozen_surface_is_historical_only(tmp_path: Path) -> None:
+    (tmp_path / ".gsd").mkdir()
+    (tmp_path / ".gsd" / ".compat.json").write_text(_compat_marker_json({}), encoding="utf-8")
+    _write_cutover_marker(tmp_path, cutover=True)
+
+    findings = check_compat_marker_hygiene(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert finding.rule_id == "compat-marker-hygiene.historical-only"
+    assert "legacy_surface=frozen-historical" in finding.observed
+    assert "marker=not-audited" in finding.observed
+
+
 def test_compat_marker_hygiene_missing_marker_is_not_assessable(tmp_path: Path) -> None:
+    (tmp_path / ".gsd").mkdir()
     findings = check_compat_marker_hygiene(tmp_path)
     assert len(findings) == 1
     assert findings[0].status == "fail"
