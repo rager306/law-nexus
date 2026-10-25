@@ -6,6 +6,27 @@ fn repo_path(relative: &str) -> std::path::PathBuf {
         .join("../..")
         .join(relative)
 }
+
+/// The gitignored 44-FZ corpus is absent on CI and on any cold clone, so a
+/// corpus-dependent test must skip visibly instead of asserting against a
+/// missing input. Path resolution stays with the binaries' own resolver
+/// ([`ln_decode::npa_sweep::default_sweep_root`]).
+///
+/// The skip line goes to file descriptor 2 rather than through `eprintln!`:
+/// libtest captures the print macros of a *passing* test, so a plain
+/// `cargo test` would show nothing and the skip would read as a silent pass.
+fn require_corpus(test_name: &str) -> Option<std::path::PathBuf> {
+    let root = ln_decode::npa_sweep::default_sweep_root();
+    if root.is_dir() {
+        return Some(root);
+    }
+    use std::io::Write;
+    let _ = writeln!(
+        std::io::stderr(),
+        "SKIP(corpus-absent): {test_name} needs consru_export/consru_export/exports"
+    );
+    None
+}
 fn manifest(n: usize) -> corpus_manifest::CorpusManifest {
     corpus_manifest::load(&repo_path(&format!(
         "prd/migration/rust-evidence/m204-s02-c5-gold-manifest-{n}.json"
@@ -119,7 +140,9 @@ fn durable_receipts_have_three_rungs_and_fail_closed_pins() {
 
 #[test]
 fn ladder_cli_check_detects_staleness() {
-    let root = repo_path("consru_export/consru_export/exports");
+    let Some(root) = require_corpus("ladder_cli_check_detects_staleness") else {
+        return;
+    };
     let garant = repo_path("law-source/garant");
     let out = repo_path("prd/migration/rust-evidence");
     let status = std::process::Command::new(env!("CARGO_BIN_EXE_npa-gold-ladder"))
