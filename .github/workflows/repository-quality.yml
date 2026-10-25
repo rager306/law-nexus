@@ -117,24 +117,17 @@ jobs:
           TMPDIR: ${{ github.workspace }}/tmp/scripts
           CARGO_TARGET_DIR: ${{ github.workspace }}/target
 
-      - name: Process-only harness tests
+      - name: Product and architecture harness tests
         run: >-
           uv run pytest -q
-          tests/test_harness_status_tracer.py
           tests/test_harness_subprocess_failure_modes.py
-          tests/test_harness_no_forbidden_imports.py
+          tests/test_harness_status_tracer.py
           tests/test_harness_governor.py
-          tests/test_harness_workflow_state.py
-          tests/test_verify_source_snapshot_v2.py
-          tests/test_phase_dispatch_adapter.py
-          tests/test_harness_cli_entrypoints.py
           tests/test_harness_preflight.py
           tests/test_harness_review_case_cli.py
           tests/test_review_case_governor.py
           tests/test_review_case_schema.py
           tests/test_review_case_delta_fixture.py
-          tests/test_documentation_navigation.py
-          tests/test_repository_quality_gate.py
           tests/test_verify_crate_dependency_allowlist.py
           tests/test_verify_port_contract_coverage.py
           tests/test_verify_hostile_negative_suite_coverage.py
@@ -154,6 +147,65 @@ jobs:
           && uv run python scripts/verify-hostile-negative-suite-coverage.py
           && uv run python scripts/verify-multi-adapter-port-coverage.py
           && uv run python scripts/verify-live-adapter-readiness.py
+
+  migration-layer-quality:
+    # The migration's own tests must never sit behind a product gate that is
+    # red for pre-existing debt: the default branch's Rust tests have failed
+    # since 2026-08-22, which silently skipped every harness check below them.
+    # This job depends on nothing but checkout + uv, so a red product job and a
+    # red migration job are two separate, visible signals.
+    name: Migration layer (workflow state, dispatch, source snapshot, hooks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.0
+
+      - name: Create repo-local temp tree
+        run: mkdir -p "${{ github.workspace }}/tmp/scripts" "${{ github.workspace }}/tmp/pytest"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install Python harness dependencies
+        run: uv sync --frozen
+
+      - name: Migration-layer tests
+        run: >-
+          uv run pytest -q
+          tests/test_harness_workflow_state.py
+          tests/test_phase_dispatch_adapter.py
+          tests/test_verify_source_snapshot_v2.py
+          tests/test_harness_cli_entrypoints.py
+          tests/test_harness_no_forbidden_imports.py
+          tests/test_documentation_navigation.py
+          tests/test_repository_quality_gate.py
+
+      - name: Pre-commit hook guard chain
+        run: uv run pytest -q tests/test_verify_repository_pre_commit_hook.py
+
+      - name: Harness status and preflight contracts
+        run: >-
+          uv run pytest -q
+          tests/test_harness_preflight.py
+          tests/test_harness_governor.py
+
+      - name: Governor report is honest about bootstrap mode
+        run: |
+          uv run python -m law_nexus_harness.governor > governor.json
+          python - <<'PY'
+          import json, sys
+          report = json.load(open("governor.json"))
+          print("governor:", report["status"], "pass", report["pass_count"],
+                "warn", report["warn_count"], "errors", report["tool_error_count"])
+          if report["tool_error_count"]:
+              sys.exit("governor reported tool errors: a check could not read its inputs")
+          PY
 
   offline-contract-verifiers:
     name: Milestone offline contract chains (M207/S03, M207/S04, M208/S04)
