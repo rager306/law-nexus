@@ -8,6 +8,8 @@ import os
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+import pytest
+
 from law_nexus_harness.cli import main
 from law_nexus_harness.governor import (
     _ACTIVE_REQUIREMENT_POLICY,
@@ -5120,13 +5122,13 @@ def _group_governor_findings_by_check_id(
 
 
 def _skip_without_pi_journal(test_name: str) -> None:
-    """Visible skip for checks whose sole input is the frozen Pi snapshot."""
-    import sys
+    """A real skip for checks whose sole input is the frozen Pi snapshot.
 
-    print(
-        f"SKIP(no-pi-journal): {test_name} needs .gsd/journal/ (frozen Pi snapshot)",
-        file=sys.stderr,
-    )
+    Not print+return: a passing test captures its own output, so that form
+    counted as passed and was invisible in CI. pytest.skip is reported in the
+    summary and visible under `-rs`.
+    """
+    pytest.skip(f"no-pi-journal: {test_name} needs .gsd/journal/ (frozen Pi snapshot)")
 
 
 def test_live_governor_reports_journal_retry_loops() -> None:
@@ -5140,7 +5142,6 @@ def test_live_governor_reports_journal_retry_loops() -> None:
     """
     if not (ROOT / ".gsd" / "journal").is_dir():
         _skip_without_pi_journal("test_live_governor_reports_journal_retry_loops")
-        return
     report = run_governor(ROOT)
     grouped = _group_governor_findings_by_check_id(report)
     assert "journal-retry-loops" in grouped
@@ -5180,7 +5181,6 @@ def test_live_governor_reports_compat_marker_hygiene() -> None:
     """
     if not (ROOT / ".gsd" / ".compat.json").is_file():
         _skip_without_pi_journal("test_live_governor_reports_compat_marker_hygiene")
-        return
     report = run_governor(ROOT)
     grouped = _group_governor_findings_by_check_id(report)
     assert "compat-marker-hygiene" in grouped

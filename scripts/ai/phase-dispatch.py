@@ -262,11 +262,18 @@ class InterruptGuard:
 
     Only a flag is set from the handler; cleanup and the default disposition
     re-raise happen on the main path, where the worker group is known.
+
+    The handler takes NO lock. ``threading.Lock`` is not reentrant, so a signal
+    landing while the main thread holds it inside ``signal_number`` would make
+    the handler block on a lock the interrupted frame already owns - the process
+    then waits on itself until an outside timeout. ``list.append`` and reading
+    ``[0]`` are atomic under the GIL, which is the only synchronisation this
+    needs; the second write is intentional, so the FIRST signal wins as the exit
+    disposition.
     """
 
     def __init__(self) -> None:
         self._numbers: list[int] = []
-        self._lock = threading.Lock()
 
     def install(self) -> InterruptGuard:
         for number in INTERRUPT_SIGNALS:
@@ -274,17 +281,19 @@ class InterruptGuard:
         return self
 
     def _record(self, number: int, frame: object) -> None:
-        with self._lock:
+        # Deliberately lock-free: see the class docstring. At most one append
+        # after the first is ever read, so this cannot grow unbounded in
+        # practice and never blocks.
+        if not self._numbers:
             self._numbers.append(number)
 
     @property
     def signal_number(self) -> int | None:
-        with self._lock:
-            return self._numbers[0] if self._numbers else None
+        return self._numbers[0] if self._numbers else None
 
     @property
     def interrupted(self) -> bool:
-        return self.signal_number is not None
+        return bool(self._numbers)
 
     def terminate(self) -> None:
         """Die by the original signal, so the caller sees an interrupted exit.

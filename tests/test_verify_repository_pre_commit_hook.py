@@ -6,6 +6,8 @@ import os
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/verify-repository-pre-commit-hook.py"
 
@@ -56,14 +58,12 @@ def test_current_hook_is_standard_and_matches_transition_record() -> None:
     """
     hook_path = ROOT / ".git" / "hooks" / "pre-commit"
     if not hook_path.is_file():
-        import sys
-
-        print(
-            f"SKIP(hook-not-installed): {hook_path} is absent; "
-            "Git hooks are installed per checkout by `bootstrap hooks`",
-            file=sys.stderr,
+        # A real pytest skip, not a print+return: a passing test captures its
+        # own output, so the old form was invisible in CI and counted as passed.
+        pytest.skip(
+            f"hook-not-installed: {hook_path} is absent; "
+            "Git hooks are installed per checkout by `bootstrap hooks`"
         )
-        return
     module = load_module()
     payload = module.verify(ROOT)
     assert payload["status"] == "pass", payload

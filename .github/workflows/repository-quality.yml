@@ -119,7 +119,7 @@ jobs:
 
       - name: Product and architecture harness tests
         run: >-
-          uv run pytest -q
+          uv run pytest -q -rs
           tests/test_harness_subprocess_failure_modes.py
           tests/test_harness_status_tracer.py
           tests/test_harness_governor.py
@@ -177,7 +177,7 @@ jobs:
 
       - name: Migration-layer tests
         run: >-
-          uv run pytest -q
+          uv run pytest -q -rs
           tests/test_harness_workflow_state.py
           tests/test_phase_dispatch_adapter.py
           tests/test_verify_source_snapshot_v2.py
@@ -187,11 +187,11 @@ jobs:
           tests/test_repository_quality_gate.py
 
       - name: Pre-commit hook guard chain
-        run: uv run pytest -q tests/test_verify_repository_pre_commit_hook.py
+        run: uv run pytest -q -rs tests/test_verify_repository_pre_commit_hook.py
 
       - name: Harness status and preflight contracts
         run: >-
-          uv run pytest -q
+          uv run pytest -q -rs
           tests/test_harness_preflight.py
           tests/test_harness_governor.py
 
