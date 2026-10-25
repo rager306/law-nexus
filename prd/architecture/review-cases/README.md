@@ -31,7 +31,9 @@ Orthogonal to L0–L5 packaging, residual continuity uses three lifecycles:
 | **L_capability** | TSG + owning ADR + ADR-0015 proof | capability row actually satisfied |
 
 Operator contract: [`continuity-contract.md`](continuity-contract.md).
-GSD bridge / dual-truth: [`gsd-review-bridge.md`](gsd-review-bridge.md).
+Delivery bridge / dual-truth: [`path-review-bridge.md`](path-review-bridge.md)
+(successor; `delivery:path:<id>`) — [`gsd-review-bridge.md`](gsd-review-bridge.md)
+is its historical predecessor and keeps the recorded `delivery:gsd:<MID>` events.
 L_capability promotion board: [`../capability-promotion-board.md`](../capability-promotion-board.md).
 
 Closure ceilings: `spine` | `bounded_runtime` | `evidence` | `accepted`.
