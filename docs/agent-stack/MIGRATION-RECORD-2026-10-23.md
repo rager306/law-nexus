@@ -137,6 +137,76 @@ overlay (`AGENTS.md`, `CLAUDE.md`, `.mcp.json`, hooks, skills). Manifest:
   round` resolves the plan without spawning. Not-workflow-ready is the
   expected honest outcome here — it is not hidden behind any PASS.
 
+## Residual CI blockers after the migration overlay (2026-10-25)
+
+The bootstrap branch clears one of the three long-red steps and leaves two,
+both shown to be pre-existing on `main` and both requiring a decision this
+migration cannot make.
+
+### Cleared: `Basedpyright active Python harness`
+
+51 errors, all in `src/law_nexus_harness/governor.py`; 46 were a `list` passed
+where `tuple[GovernorEvidence, ...]` is declared, 5 were Optional member access.
+Fixed at the type declaration sites (tuple literals, explicit None guards, one
+wrong `dict[str, str]` key annotation corrected), with **no cast and no
+suppression**. Behaviour proven unchanged, not asserted: the governor report is
+byte-identical before and after on a clean tree, with and without `.gsd`; the
+only differing finding is `document-freshness-triggers`, which fires *because*
+`governor.py` is dirty. Two tests now pin the shape at runtime so the class
+cannot return silently.
+
+### Open: `Rust tests` — doctest build race, not a defect
+
+`cargo test --workspace --offline` is green locally: **463 suites, 3264 passed,
+0 failed, exit 0**. One run reported `E0463: can't find crate for ln_query` in
+the `ln-testkit` doctest step; `ln-testkit` has **zero doctests** (`grep -c '```'
+crates/ln-testkit/src/lib.rs` -> 0) and the isolated run is
+`0 tests, ok`. That is a build-graph race under a saturated `--workspace` run.
+The migration touches **0 files under `crates/`**
+(`git diff --name-only main HEAD -- crates/` is empty), so this cannot be ours.
+
+### Open: `M207 S04 integrity battery chain` — a frozen-contract conflict
+
+```
+FAIL S03_RATE_IMPORTED: crates/ln-consultant-parser/src/amendment_provenance.rs
+     references 'm207-s04': the product runtime gains no M207 reader
+```
+
+The finding's *message* is false about this code. The block at
+`amendment_provenance.rs:3086-3120` asserts that the M207 human pilot was
+**absent**: it checks the C4 protocol file exists, that three declared markers
+are present, that the operational receipt carries
+`operational_acceptance=non-pass`, and fails closed otherwise. It imports no
+rate, no evaluation report and no battery — `grep -rn 's03_rates|rate_import'
+crates/ --include=*.rs` is empty. The code does the opposite of what the check
+forbids.
+
+The check is nonetheless *complying with its own frozen contract*:
+`prd/annotation/m207-s04-schemas.json` declares
+`crates_reference_forbidden: true`, scope "every tracked file under crates/",
+and `crates_reference_patterns: ["m207-s03","m207_s03","m207-s04","m207_s04"]`.
+A bare substring match cannot distinguish a forbidden rate import from a
+required absence witness.
+
+So this is a **conflict between two frozen proof contracts**, not a code defect
+and not a scanner bug. Resolving it means amending one of them — which belongs
+to the owning ADR, not to this migration and not to an agent. Options, none of
+which are taken here:
+
+1. narrow the scanner to an import/use shape instead of a substring (amends the
+   frozen S04 contract);
+2. keep the scanner and move the absence witness out of product code into a
+   test fixture (amends the frozen M209/S03 provenance contract);
+3. record a formal waiver with provenance (needs the owner).
+
+Filed as a blocker with evidence rather than waived in silence.
+
+### Consequence for the merge
+
+The branch does not add a red check. It removes one and leaves two that `main`
+already has. Merging is therefore neutral-to-positive for the default branch's
+CI state, and unblocking the remaining two is a decision, not a chore.
+
 ## Model selection receipt (2026-10-25)
 
 Owner gate 3 was blocking every headless dispatch: the private profile carried
