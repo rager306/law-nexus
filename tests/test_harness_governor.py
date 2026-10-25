@@ -5462,3 +5462,54 @@ class TestEvidenceIsATupleThroughout:
         rendered = json.loads(report.to_json())
         for finding in rendered["findings"]:
             assert isinstance(finding["evidence"], list)
+
+
+class TestScopedCheckRunnerIsDeclaredNotPatched:
+    """The scoped dispatch hook is data on the spec, not an attribute on a function.
+
+    It used to be `check_archive_path_policy.run_scoped = ...` plus a
+    `getattr(spec.runner, "run_scoped", None)` lookup, which no static checker
+    could see (ty reported `unresolved-attribute`). It is now a declared
+    `CheckSpec` field. These tests keep it that way: the field is what dispatch
+    reads, and the monkey-patch surface is gone.
+    """
+
+    def test_every_spec_exposes_run_scoped_as_a_field(self) -> None:
+        for spec in GOVERNOR_CHECK_SPECS:
+            assert hasattr(spec, "run_scoped"), (
+                f"{spec.check_id} has no declared run_scoped field; dispatch would "
+                "fall back to an attribute lookup the type checkers cannot see"
+            )
+            assert spec.run_scoped is None or callable(spec.run_scoped)
+
+    def test_the_scoped_hook_is_no_longer_attached_to_the_runner(self) -> None:
+        from law_nexus_harness.governor import check_archive_path_policy
+
+        # The old shape set this attribute at import time. Its reappearance means
+        # the dispatch surface regressed to a monkey-patch.
+        assert not hasattr(check_archive_path_policy, "run_scoped"), (
+            "check_archive_path_policy.run_scoped is back; declare it on the CheckSpec instead"
+        )
+
+    def test_exactly_the_declaring_checks_carry_a_scoped_variant(self) -> None:
+        declaring = {spec.check_id for spec in GOVERNOR_CHECK_SPECS if spec.run_scoped}
+        # archive-path-policy is the one check that needs the shared inventory;
+        # the assertion is exact so a new scoped check is a deliberate edit.
+        assert declaring == {"archive-path-policy"}
+
+    def test_a_scoped_run_matches_the_plain_run_for_the_declaring_check(self) -> None:
+        """Both dispatch shapes must produce the same verdict on a real tree.
+
+        Run against the repository itself, not tmp_path: the check needs a git
+        work tree, and on a non-repo it correctly reports a tool error - which
+        would compare equal for the wrong reason.
+        """
+        from law_nexus_harness.governor import GovernorContext, _run_spec_scoped
+
+        spec = next(s for s in GOVERNOR_CHECK_SPECS if s.check_id == "archive-path-policy")
+        assert spec.run_scoped is not None
+        scoped = _run_spec_scoped(spec, GovernorContext(root=ROOT))
+        plain = spec.runner(ROOT)
+        assert [item.check_id for item in scoped] == [item.check_id for item in plain]
+        assert [item.status for item in scoped] == [item.status for item in plain]
+        assert [item.severity for item in scoped] == [item.severity for item in plain]

@@ -130,6 +130,10 @@ class GovernorFinding:
 
 
 CheckRunner = Callable[[Path], list[GovernorFinding]]
+# Context-backed variant of a check: same verdict, shared inventory. Declared
+# here rather than attached to the runner function, so the dispatch surface is
+# a field the type checkers can see instead of a monkey-patched attribute.
+ScopedCheckRunner = Callable[["GovernorContext"], list[GovernorFinding]]
 CheckKind = Literal["deterministic", "heuristic"]
 
 
@@ -143,6 +147,8 @@ class CheckSpec:
     authority_inputs: tuple[str, ...]
     default_severity: Severity
     non_claim: str
+    # Optional; None means the check only has the plain ``runner(root)`` form.
+    run_scoped: ScopedCheckRunner | None = None
 
     def to_explanation(self) -> dict[str, Any]:
         return {
@@ -4832,9 +4838,6 @@ def _archive_path_policy_scoped(ctx: GovernorContext) -> list[GovernorFinding]:
     )
 
 
-check_archive_path_policy.run_scoped = _archive_path_policy_scoped  # type: ignore[attr-defined]
-
-
 def _archive_policy_findings(
     root: Path,
     gitignore_text: str,
@@ -7458,7 +7461,11 @@ def _journal_retry_attempt(data: object) -> int | None:
 
     if not isinstance(data, dict):
         return None
-    attempt = data.get("attempt")
+    # Journal payloads come from json.loads, whose objects always carry string
+    # keys; this is the one place the loose dict an isinstance check leaves
+    # becomes the mapping the field lookup below can read.
+    fields = cast(dict[str, Any], data)
+    attempt = fields.get("attempt")
     if isinstance(attempt, bool) or not isinstance(attempt, int) or attempt < 1:
         return None
     return attempt
@@ -7936,13 +7943,18 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
                 )
             ]
         )
+    # The marker is JSON, so its object keys are strings and each value is
+    # whatever the writer stored. This single cast is the boundary where the
+    # loose parsed payload becomes a typed mapping; every use below (relpath
+    # keys, entry lookups) is then str-keyed without a cast per site.
+    table = cast(dict[str, Any], projections)
 
     stale: list[str] = []
     bad_sha: list[str] = []
     empty_entities: list[str] = []
     unscoped_empty_entities: list[str] = []
     malformed: list[str] = []
-    for relpath, entry in sorted(projections.items()):
+    for relpath, entry in sorted(table.items()):
         if not isinstance(entry, dict):
             malformed.append(relpath)
             continue
@@ -7958,9 +7970,9 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
         if not (root / ".gsd" / relpath).exists():
             stale.append(relpath)
 
-    phase_roots = sorted({relpath.split("/", 1)[0] for relpath in projections if relpath})
+    phase_roots = sorted({relpath.split("/", 1)[0] for relpath in table if relpath})
     counters = (
-        f"projections={len(projections)} "
+        f"projections={len(table)} "
         f"phases={len(phase_roots)} "
         f"stale={len(stale)} bad_sha={len(bad_sha)} "
         f"empty_entities={len(empty_entities)} malformed={len(malformed)} "
@@ -8018,6 +8030,8 @@ def _check_spec(
     purpose: str,
     authority_inputs: tuple[str, ...],
     default_severity: Severity,
+    *,
+    run_scoped: ScopedCheckRunner | None = None,
 ) -> CheckSpec:
     return CheckSpec(
         check_id=check_id,
@@ -8028,6 +8042,7 @@ def _check_spec(
         authority_inputs=authority_inputs,
         default_severity=default_severity,
         non_claim=_PROCESS_NON_CLAIM,
+        run_scoped=run_scoped,
     )
 
 
@@ -8304,6 +8319,7 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "Keep historical vaults ignored, untracked and unreachable from active symlinks.",
         (".gitignore", "python_archive/", "archive/", "prd/archive/"),
         "warn",
+        run_scoped=_archive_path_policy_scoped,
     ),
     _check_spec(
         "law-source-fixture-guard",
@@ -8627,15 +8643,15 @@ def format_governor_report_text(report: GovernorReport) -> str:
 def _run_spec_scoped(spec: CheckSpec, ctx: GovernorContext) -> list[GovernorFinding]:
     """Run one check through the shared context; scoped variants win.
 
-    Checks that declare a ``run_scoped(ctx)`` hook run against the shared
+    A spec that declares ``run_scoped`` runs against the shared
     :class:`GovernorContext` (memoized inventory, no duplicate git/tree
     walks). All other checks keep their exact ``runner(root)`` behavior.
     Tool-error wrapping matches :func:`run_governor`.
     """
-    runner = getattr(spec.runner, "run_scoped", None)
+    scoped = spec.run_scoped
     try:
-        if runner is not None:
-            items = runner(ctx)
+        if scoped is not None:
+            items = scoped(ctx)
         else:
             items = spec.runner(ctx.root)
         return [_enrich_finding(item, spec) for item in items]
