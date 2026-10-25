@@ -1461,7 +1461,7 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
                 message="GSD↔Review dual-truth bridge register not present",
                 observed="bridge=absent; dual-truth-check=not-applicable",
                 remediation="none",
-                evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
+                evidence=(GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),),
             )
         ]
 
@@ -1475,7 +1475,7 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
                 message="GSD↔Review bridge register has no DT-lag class entries",
                 observed="dt_lag_declared=false",
                 remediation="none",
-                evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
+                evidence=(GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),),
             )
         ]
 
@@ -1491,7 +1491,7 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
                     f"dt_lag_declared=true; milestones={declared_seqs}; local_projection=absent"
                 ),
                 remediation="none",
-                evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
+                evidence=(GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),),
             )
         ]
 
@@ -1523,10 +1523,10 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
                     "explicit planning waiver. Do not fabricate gsd_task_complete or "
                     "rewrite STATE.md outside the engine (D154)."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),
                     GovernorEvidence(path=".gsd/STATE.md"),
-                ],
+                ),
             )
         ]
 
@@ -1541,7 +1541,7 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
                 f"active={active} (historical bridge note only)."
             ),
             remediation="none",
-            evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
+            evidence=(GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),),
         )
     ]
 
@@ -1693,7 +1693,7 @@ def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
                     "Add prd/architecture/capability-promotion-board.md with non-authority "
                     "declaration and a §5 board table covering every active TSG id."
                 ),
-                evidence=[GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL))],
+                evidence=(GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),),
             )
         ]
 
@@ -1715,7 +1715,7 @@ def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
                     "Keep explicit Non-authority language: board does not close TSG rows "
                     "and is L_capability inventory only."
                 ),
-                evidence=[GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL))],
+                evidence=(GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),),
             )
         ]
 
@@ -1728,7 +1728,7 @@ def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
                 message="Promotion board present; gap register absent (not applicable)",
                 observed="gap_register=absent",
                 remediation="none",
-                evidence=[GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL))],
+                evidence=(GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),),
             )
         ]
 
@@ -1756,10 +1756,10 @@ def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
                     "Name every gap-register TSG-XXX id in capability-promotion-board.md §5 "
                     "with ladder state and next honest step."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),
                     GovernorEvidence(path=str(_TEMPORAL_GAP_REGISTER_REL)),
-                ],
+                ),
             )
         ]
 
@@ -1775,10 +1775,10 @@ def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
                 f"(lifecycle [bounded]; not product readiness or TSG semantic validation)."
             ),
             remediation="none",
-            evidence=[
+            evidence=(
                 GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),
                 GovernorEvidence(path=str(_TEMPORAL_GAP_REGISTER_REL)),
-            ],
+            ),
         )
     ]
 
@@ -1824,12 +1824,12 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "Add kb-ontology.yaml plus requirements, draft, and projection "
                     "contract under prd/architecture/."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_DRAFT_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-                ],
+                ),
             )
         ]
 
@@ -1851,10 +1851,10 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "Keep explicit Non-authority language: not production graph schema, "
                     "not Applicable, inventory only."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_DRAFT_REL)),
-                ],
+                ),
             )
         ]
 
@@ -1869,7 +1869,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 message="KB ontology projection contract is not valid JSON",
                 observed=f"error={exc}",
                 remediation="Fix kb-ontology-projection-contract.json to valid JSON.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),),
             )
         ]
 
@@ -1882,11 +1882,11 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 message="KB ontology projection contract must set authoritative=false",
                 observed=f"authoritative={contract.get('authoritative')!r}",
                 remediation="Set authoritative to false on the draft contract.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),),
             )
         ]
 
-    node_kinds = {
+    node_kinds: set[Any] = {
         item.get("kind") for item in contract.get("node_kinds") or [] if isinstance(item, dict)
     }
     forbidden = set(contract.get("forbidden_node_kinds") or [])
@@ -1901,7 +1901,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 message="KB ontology requirements register has too few KBO-R ids",
                 observed=f"kbo_r_count={len(req_ids)}",
                 remediation="Keep append-only KBO-R### requirement rows in the register.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),),
             )
         ]
 
@@ -1918,7 +1918,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 message="KB ontology YAML catalog is not valid",
                 observed=f"error={exc}",
                 remediation="Fix prd/architecture/kb-ontology.yaml as the FSM/vocabulary source.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -1943,7 +1943,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     f"levels={yaml_levels}"
                 ),
                 remediation="Declare fsm.current, fsm.states, and vocabulary.hierarchy_levels in YAML.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -1970,10 +1970,10 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "Keep projection-contract node/forbidden kinds aligned with "
                     "prd/architecture/kb-ontology.yaml vocabulary."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-                ],
+                ),
             )
         ]
     if contract_fsm and contract_fsm != yaml_current:
@@ -1985,10 +1985,10 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 message="KB ontology contract fsm_state differs from YAML fsm.current",
                 observed=f"contract={contract_fsm!r}; yaml={yaml_current!r}",
                 remediation="Set contract.fsm_state to kb-ontology.yaml fsm.current.",
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-                ],
+                ),
             )
         ]
 
@@ -2011,11 +2011,11 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "Keep YAML closed_vocabularies aligned with the named Rust enums; "
                     "Rust tokens must be a subset of the YAML list/map."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
                     GovernorEvidence(path="crates/ln-decode/src/domain.rs"),
                     GovernorEvidence(path="crates/ln-temporal/src/domain.rs"),
-                ],
+                ),
             )
         ]
 
@@ -2033,7 +2033,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "its current must be one of its own states and must not replace "
                     "fsm.current or contract.fsm_state."
                 ),
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -2058,11 +2058,11 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "written_statuses. Do not treat list length as alignment. "
                     "No new check_id (D272)."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
                     GovernorEvidence(path=str(_FORCE_INTERVAL_REL)),
                     GovernorEvidence(path=str(_REVIEW_CONTROL_REL)),
-                ],
+                ),
             )
         ]
 
@@ -2084,12 +2084,12 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 f"(lifecycle [proposed]; YAML FSM is source; not production schema)."
             ),
             remediation="none",
-            evidence=[
+            evidence=(
                 GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),
                 GovernorEvidence(path=str(_KB_ONTOLOGY_DRAFT_REL)),
                 GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
                 GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-            ],
+            ),
         )
     ]
 
@@ -2154,7 +2154,7 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                 remediation=(
                     "Add prd/architecture/kb-ontology.yaml with a document_groups section."
                 ),
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -2172,7 +2172,7 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                 message="KB ontology YAML catalog is not valid",
                 observed=f"error={exc}",
                 remediation="Fix prd/architecture/kb-ontology.yaml.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -2193,7 +2193,7 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                     "Keep the document_groups: section present in kb-ontology.yaml "
                     "so the FNV-1a 64 catalog version stays computable."
                 ),
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -2207,7 +2207,7 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                 message="document_groups section is not a mapping",
                 observed=f"document_groups={type(doc_groups).__name__}",
                 remediation="Declare document_groups: in kb-ontology.yaml.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -2304,7 +2304,7 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                     "structural_only_tokens, roles inside structural_roles, and "
                     "federal_law@v1 declared in document_groups."
                 ),
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -2321,7 +2321,7 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                 "visible warning, not a silent skip; not TSG)."
             ),
             remediation="none",
-            evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+            evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
         )
     ]
 
@@ -2770,7 +2770,7 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                 message="hierarchy registry missing, corpus grounding not assessable",
                 observed="missing registry",
                 remediation="Add prd/architecture/kb-hierarchy-registry.yaml.",
-                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+                evidence=(GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),),
             )
         ]
 
@@ -2787,7 +2787,7 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                 message="no path_needle rows in hierarchy registry",
                 observed="needles_total=0",
                 remediation="Add path_needle rows to the registry bindings/works/editions.",
-                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+                evidence=(GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),),
             )
         ]
 
@@ -2811,7 +2811,7 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                     "(advisory; not applicable without a real export)."
                 ),
                 remediation="none",
-                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+                evidence=(GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),),
             )
         ]
 
@@ -2858,7 +2858,7 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                     "Align at least one hierarchy-registry path_needle with a real "
                     "consru_export path (see ln-decode/tests/registry_bindings_generator.rs)."
                 ),
-                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+                evidence=(GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),),
             )
         ]
 
@@ -2880,10 +2880,10 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                     "Align at least one document_groups path needle (field: path) with a "
                     "real consru_export path in prd/architecture/kb-ontology.yaml."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-                ],
+                ),
             )
         ]
 
@@ -2904,10 +2904,10 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                 "(advisory [bounded]; fixture-only needles may stay ungrounded)."
             ),
             remediation="none",
-            evidence=[
+            evidence=(
                 GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),
                 GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-            ],
+            ),
         )
     ]
 
@@ -3060,7 +3060,8 @@ def _kb_assembly_fsm_gaps(catalog: dict[str, Any]) -> list[str]:
         return []
     if not isinstance(assembly, dict):
         return ["assembly_fsm:not_a_mapping"]
-    readiness = catalog.get("fsm") if isinstance(catalog.get("fsm"), dict) else {}
+    fsm_section = catalog.get("fsm")
+    readiness: dict[str, Any] = fsm_section if isinstance(fsm_section, dict) else {}
     readiness_current = readiness.get("current")
     readiness_states = set(readiness.get("states") or {})
     assembly_current = assembly.get("current")
@@ -7184,7 +7185,7 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
     quotes = [m.group("quote") for m in _MODEL_CRYSTAL_ANCHOR_RE.finditer(crystal_text)]
     missing_quotes: list[str] = []
     unknown_sources: set[str] = set()
-    loaded_sources: dict[str, str] = {}
+    loaded_sources: dict[Path, str] = {}
     for m in _MODEL_CRYSTAL_ANCHOR_RE.finditer(crystal_text):
         src = m.group("src")
         quote = m.group("quote")
@@ -7382,7 +7383,7 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
                 remediation=(
                     "Point the governor at a checkout whose .gsd/journal/ holds flow jsonl files."
                 ),
-                evidence=[GovernorEvidence(path=".gsd/journal/")],
+                evidence=(GovernorEvidence(path=".gsd/journal/"),),
             )
         ]
 
@@ -7442,7 +7443,7 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
                     is_wedge_exit,
                 )
             )
-            if not is_wedge_exit:
+            if backstop_match is None or wedge_id_match is None:
                 continue
             wedge_id = wedge_id_match.group(1)
             unit_match = _JOURNAL_WEDGE_UNIT_RE.search(serialized)
@@ -7579,7 +7580,7 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
                     f"{observed_closure}"
                 ),
                 remediation=remediation,
-                evidence=[GovernorEvidence(path=".gsd/journal/")],
+                evidence=(GovernorEvidence(path=".gsd/journal/"),),
             )
         )
     wedges_unanchored = sum(1 for info in wedges.values() if info["when"] is None)
@@ -7672,7 +7673,7 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
                     "Point the governor at a checkout whose .gsd/.compat.json "
                     "exists; the engine creates it on its first projection write."
                 ),
-                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
             )
         ]
 
@@ -7690,7 +7691,7 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
                     "Let the engine's single-writer path regenerate .compat.json; "
                     "never hand-edit it."
                 ),
-                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
             )
         ]
     if not isinstance(payload, dict):
@@ -7705,7 +7706,7 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
                     "Let the engine's single-writer path regenerate .compat.json; "
                     "never hand-edit it."
                 ),
-                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
             )
         ]
     schema = payload.get("schema")
@@ -7723,7 +7724,7 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
                     "Update the compat-projection writer before trusting marker "
                     "hygiene; the governor never migrates engine state."
                 ),
-                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
             )
         ]
     projections = payload.get("projections")
@@ -7739,7 +7740,7 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
                     "Let the engine's single-writer path regenerate .compat.json; "
                     "never hand-edit it."
                 ),
-                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
             )
         ]
 
@@ -7806,7 +7807,7 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
                 "Regenerate projections through the engine's single-writer path "
                 "so .compat.json matches disk; do not hand-edit .compat.json."
             ),
-            evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+            evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
         )
     ]
 

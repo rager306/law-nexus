@@ -5121,3 +5121,42 @@ class TestGovernorContextAndParallelRun:
         monkeypatch.setattr("concurrent.futures.ThreadPoolExecutor", explode)
         report = governor.run_governor(tmp_path, check="workflow-state-surface", jobs=8)
         assert [item.check_id for item in report.findings] == ["workflow-state-surface"]
+
+
+class TestEvidenceIsATupleThroughout:
+    """Pin the typed contract that basedpyright was reporting as 46 errors.
+
+    ``GovernorFinding.evidence`` is ``tuple[GovernorEvidence, ...]``. Forty-six
+    call sites passed a ``list``; the runtime never complained because nothing
+    depended on the type, so the defect only ever surfaced as static noise that
+    pushed the CI gate red for two months. These tests make the shape a runtime
+    fact instead of a report.
+    """
+
+    def test_every_finding_carries_a_tuple_of_evidence(self) -> None:
+        for spec in GOVERNOR_CHECK_SPECS:
+            findings = spec.runner(Path("."))
+            for finding in findings:
+                assert isinstance(finding, GovernorFinding)
+                assert isinstance(finding.evidence, tuple), (
+                    f"{spec.check_id} returned {type(finding.evidence).__name__}; "
+                    "GovernorFinding.evidence is declared tuple[GovernorEvidence, ...]"
+                )
+                assert all(isinstance(item, GovernorEvidence) for item in finding.evidence)
+
+    def test_a_live_report_keeps_evidence_a_tuple_and_serializes_it(self) -> None:
+        from law_nexus_harness.governor import run_governor
+
+        report = run_governor(Path("."))
+        # to_dict uses asdict, which preserves a tuple; JSON renders it as an
+        # array. Both properties are the contract, so both are asserted.
+        for finding in report.to_dict()["findings"]:
+            assert isinstance(finding["evidence"], tuple)
+            for item in finding["evidence"]:
+                assert set(item) == {"path", "line"}
+
+        import json
+
+        rendered = json.loads(report.to_json())
+        for finding in rendered["findings"]:
+            assert isinstance(finding["evidence"], list)
