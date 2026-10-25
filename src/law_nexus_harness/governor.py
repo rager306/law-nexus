@@ -18,7 +18,7 @@ import os
 import re
 import subprocess
 import sys
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Hashable, Mapping
 from dataclasses import asdict, dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -196,9 +196,12 @@ class GovernorContext:
     """
 
     root: Path
-    _cache: dict[str, Any] = field(default_factory=dict, repr=False)
+    # Keys are bare names for singleton inventories ("tracked_files") and
+    # (name, arguments) tuples for parameterized ones (gitignore verdicts for a
+    # specific path tuple), so the key type is the union rather than str alone.
+    _cache: dict[Hashable, Any] = field(default_factory=dict, repr=False)
 
-    def memo(self, key: str, compute: Callable[[], Any]) -> Any:
+    def memo(self, key: Hashable, compute: Callable[[], Any]) -> Any:
         """Return the cached value for ``key``, computing it once per run."""
         if key not in self._cache:
             self._cache[key] = compute()
