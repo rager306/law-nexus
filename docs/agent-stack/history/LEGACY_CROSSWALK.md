@@ -13,12 +13,40 @@ only through native Path planning with their own IDs; legacy IDs stay legacy.
 
 | Legacy identity | Observed state | Remaining work | Dependencies / approvals | New mapping |
 |---|---|---|---|---|
-| M225-qrwdfv (Reference knowledge layer in Rust: ADR-0031 port with byte parity) | 🔄 active, phase `blocked`; milestone validation returned `needs-attention` (journal 2026-10-18 11:10, orchestrator stop `pause`) | Resolve the M225 validation attention (re-run `gsd_validate_milestone` with current structured evidence or record the honest remediation), then closeout; S03 plan D788 lists T01–T07 with T06 battery JSON already on disk (commit 12599fd6) | Owner validation decision; no running Attempt at freeze | **unmapped** — carry as the first active obligation; re-plan natively in Path after bootstrap |
+| M225-qrwdfv (Reference knowledge layer in Rust: ADR-0031 port with byte parity) | 🔄 active, phase `blocked`; milestone validation returned `needs-attention` (journal 2026-10-18 11:10, orchestrator stop `pause`). **The code is NOT missing** — see the note below | Close the validation residual only: **fill `tested_source_revision`** in the battery (it still reads `pending-fill-by-validate-unit`), re-bind the source pin to the current HEAD, then re-run native validation and record the honest verdict. Do NOT re-implement S02 | Owner validation decision; no running Attempt at freeze | **unmapped** — carry as the first active obligation; re-plan natively in Path after bootstrap |
 | M208-wrz6fg (Грамматика изменений и доказательная temporal вертикаль) | ⏸ paused (queue) | Full milestone; see DECISIONS.md D-records in the frozen snapshot | Unknown from projection — inspect snapshot before planning | **unmapped** |
 | M217-kbike0 (Материализация graph-vector с crash consistency и citation contract) | ⏸ paused (queue) | Full milestone | Depends on M216 lineage (completed); citation contract gates | **unmapped** |
 | M218-xnkwf0 (Типизированный KnowQL и безопасность генерируемого Cypher) | ⏸ paused (queue) | Full milestone | Depends on graph-vector materialization | **unmapped** |
 | M219-2erzz3 (Границы доступа и доказательство полномочий) | ⏸ paused (queue) | Full milestone | Unknown from projection | **unmapped** |
 | M220-djlrxl (Доказательные границы ODT и пересмотр парсерных гейтов) | ⏸ paused (queue) | Full milestone | Garant ODT corpus availability | **unmapped** |
+
+### M225: implementation exists, the projection is stale
+
+Three projections say "nothing is implemented" and all three are out of date.
+The code is on this tree:
+
+| Evidence | Fact |
+|---|---|
+| `crates/ln-consultant-parser/src/reference_layer.rs` | 94 890 bytes; `references_document`, `build_pageindex`, `pageindex_document` all present |
+| `crates/ln-consultant-parser/tests/reference_layer_*.rs` | five suites, including `pageindex_document_is_byte_identical_to_the_python_reference` and `reference_layer_parity` |
+| local `cargo test --workspace` (2026-10-25) | 463 suites, 3264 passed, 0 failed |
+
+And the projections that disagree with it:
+
+- `prd/project-state/data/roadmap.json` `current_milestone.goal` still says
+  "в GSD у M225 запланировано 0 задач (S01-S03)";
+- ADR-0031 carries a similar stale claim;
+- the battery's own `tested_source_revision` is `pending-fill-by-validate-unit`.
+
+So the open work is **one narrow thing**: the battery was prepared before the
+validation unit ran, and the source revision it pins is a placeholder. The first
+product task after the migration fills that field, re-binds the pin to the
+actual HEAD, re-runs validation and records what comes out — including
+`needs-attention` if that is the honest answer.
+
+Explicitly **not** the task: re-implementing the S02 port. A new agent handed
+this crosswalk without this note would rebuild 95 KB of working, parity-tested
+code.
 
 ## Historical rows with accepted blockers (not auto-transferred)
 
@@ -29,14 +57,40 @@ These are **historical evidence of accepted blockers**, not open work. Any
 resumption is a new decision with its own scope; do not import them as
 pending Path tasks.
 
-## Human-authority gates that do not transfer (M210/S02)
+## M210/S02 and M210/S03 — an owner decision that IS in force
 
-`prd/architecture/m210-s02-adoption-checkpoint.md` records
-`admission: not-adopted`, `owner_admission_ref: none`, `f13_status: hold`,
-`runtime_stop` active, 0 Review Case events, 0 requirements promoted, with a
-byte-bound source pin. The workflow migration grants nothing here: bounded
-normative IR implementation, §3 glossary edits, requirement promotion and
-S03 stay blocked until a separate human owner decision on its own surface.
+**Correction (2026-10-25).** An earlier revision of this crosswalk carried only
+v1 and therefore reported "no owner decision exists". That was wrong and would
+have made the owner re-decide something already decided. Both checkpoints are
+on this tree:
+
+| Document | State | Standing |
+|---|---|---|
+| `prd/architecture/m210-s02-adoption-checkpoint.md` (v1) | `admission: not-adopted`, `owner_admission_ref: none`, `f13_status: hold` | **historical** — superseded, byte-identical, not rewritten |
+| `prd/architecture/m210-s02-adoption-checkpoint-v2.md` (v2) | **`admission: granted`**, variant **C `abstention_first_candidates_only`**, `f13_status: deferred-explicit` | **in force** — the owner's authenticated interactive decision |
+| `prd/architecture/m210-s03-runtime-admission.md` | **`admission: granted`**, derived from v2; explicitly states no repeat owner decision is required | **in force** |
+| `prd/architecture/m210-s03-runtime-activation-delta.json` | `grant_recorded: true`, `applied: false`, `implementation_present: false`, `readiness: not-ready` | **in force** — the honest gap |
+
+What the grant covers, exactly (v2 §Scope): source-bound candidate emission with
+explicit Unknown or Conflict verdicts, i.e. candidates, source anchors,
+classification hypotheses and provenance. What it does **not** cover: rule
+composition, precedence resolution, facet defaults, case applicability, the
+final normative-rule format, and anything in §3 of
+`prd/temporal-legal-model.md`.
+
+What the migration may therefore carry forward:
+
+- the decision is **made**; a new agent must not re-ask it;
+- the **implementation and activation are not** (`applied: false`,
+  `implementation_present: false`, `readiness: not-ready`);
+- F13 is `deferred-explicit`, not `hold`: amendment operations stay deferred and
+  the owning slice reopens F13 with a fresh rebind before any bounded temporal
+  replay relies on it.
+
+`f13_status` and the activation delta are the two fields that keep this honest.
+Neither the migration nor a Path task may raise `applied`, declare readiness, or
+widen the variant beyond C. Requirement promotion and Review Case events remain
+0 in both checkpoints.
 
 ## Requirement projection (state only)
 
