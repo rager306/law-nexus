@@ -34,6 +34,7 @@ from law_nexus_harness.workflow_state import (
     LEGACY_GSD_STATE_RELATIVE_PATH,
     LegacySurfaceDecision,
     WorkflowStateKind,
+    WorkflowStateReport,
     read_legacy_surface,
     read_workflow_state,
 )
@@ -451,6 +452,74 @@ def check_architecture_direction(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def _roadmap_freshness_against_native(
+    findings: list[GovernorFinding],
+    roadmap: dict[str, Any],
+    roadmap_text: str,
+    native: WorkflowStateReport,
+    decision: LegacySurfaceDecision,
+    check_id: str,
+) -> list[GovernorFinding]:
+    """Compare the tracked roadmap against the LIVE native Path milestone.
+
+    This is the Path successor of the legacy registry comparison. The native
+    state is the authority once it is operational; the frozen Pi registry is
+    history and is not consulted, so the verdict no longer depends on whether
+    an archive happens to exist on the machine.
+    """
+
+    current_id = str(roadmap.get("current_milestone", {}).get("id", ""))
+    native_milestone = str(native.native_milestone)
+    current_line = _line_containing(roadmap_text, current_id) or _line_containing(
+        roadmap_text, '"current_milestone"'
+    )
+    evidence = (GovernorEvidence(path="prd/project-state/data/roadmap.json", line=current_line),)
+    # The comparison is by identity, never by parsed sequence number: Path
+    # milestone ids need not share the legacy M### shape, and guessing an order
+    # from a string is exactly the emoji-and-number reasoning the migration set
+    # out to remove.
+    if current_id and current_id == native_milestone:
+        findings.append(
+            GovernorFinding(
+                check_id="roadmap-current-tracks-path",
+                status="pass",
+                severity="ok",
+                message=("roadmap current_milestone matches the live native Path milestone"),
+                observed=(
+                    f"native_state={native.kind.value}; native_phase={native.native_phase}; "
+                    f"roadmap_current={current_id}; comparison=path"
+                ),
+                remediation="none",
+                rule_id="roadmap-freshness.path",
+                expected=("The tracked roadmap names the milestone the native Path state is in."),
+                evidence=evidence,
+            )
+        )
+        return findings
+
+    findings.append(
+        GovernorFinding(
+            check_id="roadmap-current-tracks-path",
+            status="fail",
+            severity="error",
+            message="roadmap current_milestone does not match the live native Path milestone",
+            observed=(
+                f"native_state={native.kind.value}; native_milestone={native_milestone}; "
+                f"native_phase={native.native_phase}; roadmap_current={current_id or 'absent'}; "
+                "comparison=path"
+            ),
+            remediation=(
+                "Refresh prd/project-state/data/roadmap.json (and roadmap.md) to the "
+                "milestone the native Path state reports, or correct the Path state."
+            ),
+            rule_id="roadmap-freshness.path-mismatch",
+            expected=("The tracked roadmap and the native Path state name the same milestone."),
+            evidence=evidence,
+        )
+    )
+    return findings
+
+
 def check_active_requirement_contradictions(root: Path) -> list[GovernorFinding]:
     """Inspect the local GSD requirements projection without making CI depend on it.
 
@@ -806,6 +875,45 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
             )
         ]
     decision = read_legacy_surface(root)
+
+    # Path successor FIRST. An operational native state is the authority, and the
+    # frozen registry is not consulted - so a machine WITH an archive and a
+    # machine WITHOUT one reach the same verdict, which they did not before.
+    native = read_workflow_state(root)
+    if native.kind is WorkflowStateKind.OPERATIONAL_VALID:
+        if native.native_milestone is None:
+            # Operational but no milestone (real case: before the first one).
+            # The claim cannot be compared, and that must not read as fresh.
+            return [
+                GovernorFinding(
+                    check_id="roadmap-freshness-unverifiable",
+                    status="fail",
+                    severity="error",
+                    message=(
+                        "tracked roadmap freshness cannot be verified: the native Path "
+                        "state is operational but reports no milestone"
+                    ),
+                    observed=(
+                        f"native_state={native.kind.value}; native_milestone=absent; "
+                        "comparison=unverifiable"
+                    ),
+                    remediation=(
+                        "Record the current milestone in the native Path state, or state "
+                        "in the tracked roadmap which artifact now proves freshness."
+                    ),
+                    rule_id="roadmap-freshness.unverifiable",
+                    evidence=(GovernorEvidence(path="prd/project-state/data/roadmap.json"),),
+                )
+            ]
+        return _roadmap_freshness_against_native(
+            [],
+            json.loads(roadmap_path.read_text(encoding="utf-8")),
+            roadmap_path.read_text(encoding="utf-8"),
+            native,
+            decision,
+            check_id,
+        )
+
     if decision.blocks(check_id):
         return [
             GovernorFinding(
@@ -862,6 +970,7 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
     state_text = state_path.read_text(encoding="utf-8")
     roadmap_text = roadmap_path.read_text(encoding="utf-8")
     roadmap = json.loads(roadmap_text)
+
     rows = _registry_milestones(state_text)
     completed_seqs = [seq for seq, marker, _ in rows if marker == "✅"]
     latest_completed = max(completed_seqs) if completed_seqs else None

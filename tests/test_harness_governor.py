@@ -5520,3 +5520,97 @@ class TestScopedCheckRunnerIsDeclaredNotPatched:
         assert [item.check_id for item in scoped] == [item.check_id for item in plain]
         assert [item.status for item in scoped] == [item.status for item in plain]
         assert [item.severity for item in scoped] == [item.severity for item in plain]
+
+
+class TestRoadmapFreshnessAgainstNativePath:
+    """The Path successor: the live native milestone is the authority.
+
+    Before this, roadmap freshness could only compare against the frozen Pi
+    registry, so whether an archive happened to exist on the machine decided the
+    verdict's strictness. These tests pin that an operational native state wins
+    and that the comparison is by identity, not by parsing an M### order out of
+    a string.
+    """
+
+    @staticmethod
+    def _repo(tmp_path: Path, native_milestone: str | None) -> Path:
+        import shutil
+
+        for rel in ("prd/project-state", "prd/architecture"):
+            source = ROOT / rel
+            if source.exists():
+                shutil.copytree(source, tmp_path / rel)
+        (tmp_path / "prd/project-state/workflow-backend.json").write_text(
+            json.dumps({"schema": 1, "backend": "gsd-path", "cutover": True}),
+            encoding="utf-8",
+        )
+        return tmp_path
+
+    def test_matching_native_milestone_passes(self, tmp_path: Path, monkeypatch) -> None:
+        from dataclasses import replace
+
+        from law_nexus_harness import workflow_state as ws
+
+        self._repo(tmp_path, "M225-qrwdfv")
+        real = ws.read_workflow_state
+
+        def operational(root):
+            return replace(
+                real(root),
+                kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
+                native_milestone="M225-qrwdfv",
+                native_phase="build",
+            )
+
+        monkeypatch.setattr("law_nexus_harness.governor.read_workflow_state", operational)
+        findings = check_roadmap_freshness(tmp_path)
+        by_id = {item.check_id: item for item in findings}
+
+        assert by_id["roadmap-current-tracks-path"].status == "pass"
+        assert by_id["roadmap-current-tracks-path"].severity == "ok"
+        assert "comparison=path" in by_id["roadmap-current-tracks-path"].observed
+
+    def test_diverging_native_milestone_blocks(self, tmp_path: Path, monkeypatch) -> None:
+        from dataclasses import replace
+
+        from law_nexus_harness import workflow_state as ws
+
+        self._repo(tmp_path, "M999-other")
+        real = ws.read_workflow_state
+
+        def operational(root):
+            return replace(
+                real(root),
+                kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
+                native_milestone="M999-other",
+                native_phase="build",
+            )
+
+        monkeypatch.setattr("law_nexus_harness.governor.read_workflow_state", operational)
+        by_id = {item.check_id: item for item in check_roadmap_freshness(tmp_path)}
+
+        assert by_id["roadmap-current-tracks-path"].status == "fail"
+        assert by_id["roadmap-current-tracks-path"].severity == "error"
+
+    def test_operational_without_a_milestone_blocks(self, tmp_path: Path, monkeypatch) -> None:
+        from dataclasses import replace
+
+        from law_nexus_harness import workflow_state as ws
+
+        self._repo(tmp_path, None)
+        real = ws.read_workflow_state
+
+        def operational(root):
+            return replace(
+                real(root),
+                kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
+                native_milestone=None,
+                native_phase="research",
+            )
+
+        monkeypatch.setattr("law_nexus_harness.governor.read_workflow_state", operational)
+        by_id = {item.check_id: item for item in check_roadmap_freshness(tmp_path)}
+
+        assert by_id["roadmap-freshness-unverifiable"].status == "fail"
+        assert by_id["roadmap-freshness-unverifiable"].severity == "error"
+        assert "native_milestone=absent" in by_id["roadmap-freshness-unverifiable"].observed
