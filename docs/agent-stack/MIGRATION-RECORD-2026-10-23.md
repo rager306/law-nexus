@@ -333,11 +333,11 @@ anything about the plan.
 
 | # | Gate | Exact command / action |
 |---|---|---|
-| 1 | Push the branch | `git push -u origin chore/allspark-path-pdd-bootstrap` (note: `main` is 251 commits ahead of `origin/main`; pushing this branch publishes nothing beyond it, but the bootstrap PR cannot merge to `origin/main` until those 251 commits are also pushed — owner decision) |
-| 2 | Review and accept the bootstrap PR | 4 commits (overlay+instructions, native Path contracts, hook-chain verifier, migration control plane) |
+| 1 | ~~Push the branch~~ **DONE** | `chore/allspark-path-pdd-bootstrap` is pushed and PR #1 is open. It carries `main`'s 251 previously-unpublished commits too, because `bind-initial` requires `HEAD == origin/<default>`. CI is green. |
+| 2 | Review and accept the bootstrap PR | The branch now carries 29 migration commits on top of `main` (the record below lists the original 8; the rest are the CI, state-gate, dispatch, crosswalk and legacy-surface fixes that followed). Review by diffing `main..HEAD`. |
 | 3 | Allspark login + model selection | In Allspark: `/login`, then `/model`; afterwards `python3 scripts/ai/allspark-settings.py export-model` on this branch |
 | 4 | Clean baseline + native Path init | After PR merge: fetch, checkout `origin/main`, run `/skill:path` initialize/bind-initial per INSTALL.md §12 |
-| 5 | Carry M225 over | First Path milestone re-plans the frozen M225 attention from `docs/agent-stack/history/LEGACY_CROSSWALK.md`; M210 `not-adopted` stays `hold` |
+| 5 | Carry M225 over | First Path milestone re-plans the frozen M225 attention from `docs/agent-stack/history/LEGACY_CROSSWALK.md`. **M210 is NOT `not-adopted`**: v2 records `admission: granted` (variant C, `abstention_first_candidates_only`), F13 is `deferred-explicit`, and S03 states no repeat owner decision is required. What is missing is the implementation (`applied:false`, `readiness:not-ready`), not the decision. |
 
 Bootstrap commits on this branch (reviewable unit, 67 files):
 
@@ -360,8 +360,8 @@ git revert for tracked changes; ignored/local state restored from the backup
   `m210/temporal-legal-model/crates/product-model` mutations, M210
   `not-adopted` pin untouched; credentials/runtime state only in ignored
   local dirs (backup holds the private copies, mode 0700).
-- Working tree clean; 5 migration commits on
-  `chore/allspark-path-pdd-bootstrap`, nothing pushed.
+- Working tree clean; the branch has since grown well past these 8 commits
+  (see the later sections of this record) and is pushed.
 
 
 ## Rust battery (2026-10-23, head `c4c45c8a` + docs)
