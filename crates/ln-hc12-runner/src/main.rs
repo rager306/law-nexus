@@ -4,8 +4,8 @@ use std::process::ExitCode;
 use ln_projection::adapters::{HonestExecutor, HostileAuthoritativeExecutor};
 use ln_projection::application::RebuildDisposableProjection;
 use ln_projection::domain::{
-    BaselineId, CompletenessLabel, CurrencyLabel, CutoffId, NodeId, RebuildOutcome, RebuildRequest,
-    RequestId, RuleVersion, ScopeId, PROJECTION_POLICY_VERSION,
+    BaselineId, CompletenessLabel, CurrencyLabel, CutoffId, NodeId, PROJECTION_POLICY_VERSION,
+    RebuildOutcome, RebuildRequest, RequestId, RuleVersion, ScopeId,
 };
 
 struct ScenarioResult {

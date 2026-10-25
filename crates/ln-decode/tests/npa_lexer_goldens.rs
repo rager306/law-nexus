@@ -14,8 +14,8 @@
 #[allow(dead_code)]
 mod npa_support;
 
-use ln_decode::lexer::{lex, TokenKind};
-use npa_support::{fixtures_dir, load_golden_fixtures, repo_root, LoadedFragment};
+use ln_decode::lexer::{TokenKind, lex};
+use npa_support::{LoadedFragment, fixtures_dir, load_golden_fixtures, repo_root};
 
 /// S01 pinned the fixture set at 44 fragments (the corpus quota plus the
 /// syn-001 / syn-002 collision pair); the sweep must cover the whole set,

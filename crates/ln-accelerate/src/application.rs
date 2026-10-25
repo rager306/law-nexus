@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::domain::{
-    AccelerationOutcome, AccelerationRequest, AccelerationResult, ProvisionalId,
-    ACCELERATION_POLICY_VERSION,
+    ACCELERATION_POLICY_VERSION, AccelerationOutcome, AccelerationRequest, AccelerationResult,
+    ProvisionalId,
 };
 use crate::ports::AccelerationLedgerPort;
 

@@ -21,8 +21,8 @@ use std::path::{Component, Path, PathBuf};
 
 use ln_decode::hierarchy_artifact::parse_candidate_artifact_view;
 use ln_kb_ontology::registry_admission::{
-    admit_candidates, parse_admission_source, parse_registry_tables, render_complete_registry,
     AdmissionSource, CandidateEvidence, CandidateIdentity, CompleteRegistryRenderInput,
+    admit_candidates, parse_admission_source, parse_registry_tables, render_complete_registry,
 };
 
 /// Canonical production write target: the only tracked-tree `--out` that

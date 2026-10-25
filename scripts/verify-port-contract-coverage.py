@@ -42,6 +42,8 @@ COVERED_INMEMORY_ADAPTERS: frozenset[str] = frozenset(
         "ln-accelerate::InMemoryAccelerationLedger",
         "ln-conformance::InMemoryConformanceOracle",
         "ln-consultant-parser::InMemoryCatalog",
+        "ln-consultant-parser::InMemoryCatalogAnchor",
+        "ln-consultant-parser::InMemoryPageIndexCatalog",
         "ln-dispose::InMemoryDispositionStore",
         "ln-dispose::InMemoryPromotionGate",
         "ln-relation::InMemoryClosedRegistry",

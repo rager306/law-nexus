@@ -18,8 +18,8 @@ import os
 import re
 import subprocess
 import sys
-from collections.abc import Callable
-from dataclasses import asdict, dataclass, replace
+from collections.abc import Callable, Hashable, Mapping
+from dataclasses import asdict, dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal, cast
@@ -29,6 +29,14 @@ import yaml
 from law_nexus_harness.adr_matrix import (
     DEFAULT_ADR_MATRIX_PATH,
     check_adr_matrix_output,
+)
+from law_nexus_harness.workflow_state import (
+    LEGACY_GSD_STATE_RELATIVE_PATH,
+    LegacySurfaceDecision,
+    WorkflowStateKind,
+    WorkflowStateReport,
+    read_legacy_surface,
+    read_workflow_state,
 )
 
 GOVERNOR_SCHEMA_VERSION = "law-nexus-governor-report/v1"
@@ -123,6 +131,10 @@ class GovernorFinding:
 
 
 CheckRunner = Callable[[Path], list[GovernorFinding]]
+# Context-backed variant of a check: same verdict, shared inventory. Declared
+# here rather than attached to the runner function, so the dispatch surface is
+# a field the type checkers can see instead of a monkey-patched attribute.
+ScopedCheckRunner = Callable[["GovernorContext"], list[GovernorFinding]]
 CheckKind = Literal["deterministic", "heuristic"]
 
 
@@ -136,6 +148,8 @@ class CheckSpec:
     authority_inputs: tuple[str, ...]
     default_severity: Severity
     non_claim: str
+    # Optional; None means the check only has the plain ``runner(root)`` form.
+    run_scoped: ScopedCheckRunner | None = None
 
     def to_explanation(self) -> dict[str, Any]:
         return {
@@ -177,6 +191,121 @@ class GovernorReport:
             json.dumps(self.to_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
             + "\n"
         )
+
+
+@dataclass
+class GovernorContext:
+    """Shared, read-only per-run surfaces for governor checks.
+
+    Every check is a pure reader of the repository tree, so expensive
+    inventory operations (git listings, corpus walks, parsed state files) are
+    computed at most once per ``run_governor`` call and shared between
+    checks. The context is created fresh for each run (including each worker
+    thread batch) and never escapes the run: checks must treat every
+    attribute as immutable snapshot data and must not write through it.
+    """
+
+    root: Path
+    # Keys are bare names for singleton inventories ("tracked_files") and
+    # (name, arguments) tuples for parameterized ones (gitignore verdicts for a
+    # specific path tuple), so the key type is the union rather than str alone.
+    _cache: dict[Hashable, Any] = field(default_factory=dict, repr=False)
+
+    def memo(self, key: Hashable, compute: Callable[[], Any]) -> Any:
+        """Return the cached value for ``key``, computing it once per run."""
+        if key not in self._cache:
+            self._cache[key] = compute()
+        return self._cache[key]
+
+    def tracked_files(self) -> frozenset[str]:
+        """All git-tracked repo-relative paths (single ``git ls-files``)."""
+        return self.memo("tracked_files", lambda: _context_tracked_files(self.root))
+
+    def gitignore_map(self, paths: tuple[str, ...]) -> Mapping[str, bool]:
+        """Batch ``git check-ignore`` verdicts for ``paths`` (single git call)."""
+        return self.memo(("gitignore_map", paths), lambda: _context_gitignore_map(self.root, paths))
+
+    def gsd_state_text(self) -> str | None:
+        """Raw ``.gsd/STATE.md`` text, or None when the legacy surface is absent."""
+        return self.memo("gsd_state_text", lambda: _context_gsd_state_text(self.root))
+
+
+def _context_git(args: list[str], root: Path, what: str) -> str:
+    """Run one read-only git inventory command; fail closed with context."""
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root), *args],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError(f"git {what} inventory unavailable") from error
+    if completed.returncode != 0:
+        raise RuntimeError(f"git {what} inventory failed")
+    return completed.stdout
+
+
+def _context_tracked_files(root: Path) -> frozenset[str]:
+    """All tracked repo-relative paths via a single ``git ls-files -z``."""
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-z"],
+            check=False,
+            capture_output=True,
+            timeout=60,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError("git tracked-file inventory unavailable") from error
+    if completed.returncode != 0:
+        raise RuntimeError("git tracked-file inventory failed")
+    return frozenset(
+        item for item in completed.stdout.decode("utf-8", "replace").split("\0") if item.strip()
+    )
+
+
+def _context_gitignore_map(root: Path, paths: tuple[str, ...]) -> Mapping[str, bool]:
+    """Batch ``git check-ignore -q --no-index`` verdicts in one git call.
+
+    ``git check-ignore`` exits 0 when at least one path is ignored, so
+    per-path verdicts come from ``--verbose`` output instead of the exit code.
+    A nonzero exit with no verbose output means nothing is ignored.
+    """
+    if not paths:
+        return {}
+    # ``git check-ignore`` matches directory patterns (``probes/``) only
+    # against slash-terminated candidates when ``--no-index`` is used without
+    # a work tree context, so vault entries are probed in directory form.
+    # Reported keys stay the caller-supplied paths.
+    probes = [path if path.endswith("/") else f"{path}/" for path in paths]
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root), "check-ignore", "-v", "--no-index", "--stdin"],
+            input="\n".join(probes),
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError("git check-ignore inventory unavailable") from error
+    if completed.returncode not in (0, 1):
+        raise RuntimeError("git check-ignore inventory failed")
+    covered_probe: set[str] = set()
+    for line in completed.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 2 and parts[-1].strip():
+            covered_probe.add(parts[-1].strip())
+    return {path: probe in covered_probe for path, probe in zip(paths, probes)}
+
+
+def _context_gsd_state_text(root: Path) -> str | None:
+    """Read the frozen legacy ``.gsd/STATE.md`` once per run, if present."""
+    state_path = root / ".gsd" / "STATE.md"
+    if not state_path.is_file():
+        return None
+    return state_path.read_text(encoding="utf-8", errors="replace")
 
 
 def _line_containing(text: str, needle: str) -> int | None:
@@ -323,8 +452,95 @@ def check_architecture_direction(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def _roadmap_freshness_against_native(
+    findings: list[GovernorFinding],
+    roadmap: dict[str, Any],
+    roadmap_text: str,
+    native: WorkflowStateReport,
+    decision: LegacySurfaceDecision,
+    check_id: str,
+) -> list[GovernorFinding]:
+    """Compare the tracked roadmap against the LIVE native Path milestone.
+
+    This is the Path successor of the legacy registry comparison. The native
+    state is the authority once it is operational; the frozen Pi registry is
+    history and is not consulted, so the verdict no longer depends on whether
+    an archive happens to exist on the machine.
+    """
+
+    current_id = str(roadmap.get("current_milestone", {}).get("id", ""))
+    native_milestone = str(native.native_milestone)
+    current_line = _line_containing(roadmap_text, current_id) or _line_containing(
+        roadmap_text, '"current_milestone"'
+    )
+    evidence = (GovernorEvidence(path="prd/project-state/data/roadmap.json", line=current_line),)
+    # The comparison is by identity, never by parsed sequence number: Path
+    # milestone ids need not share the legacy M### shape, and guessing an order
+    # from a string is exactly the emoji-and-number reasoning the migration set
+    # out to remove.
+    if current_id and current_id == native_milestone:
+        findings.append(
+            GovernorFinding(
+                check_id="roadmap-current-tracks-path",
+                status="pass",
+                severity="ok",
+                message=("roadmap current_milestone matches the live native Path milestone"),
+                observed=(
+                    f"native_state={native.kind.value}; native_phase={native.native_phase}; "
+                    f"roadmap_current={current_id}; comparison=path"
+                ),
+                remediation="none",
+                rule_id="roadmap-freshness.path",
+                expected=("The tracked roadmap names the milestone the native Path state is in."),
+                evidence=evidence,
+            )
+        )
+        return findings
+
+    findings.append(
+        GovernorFinding(
+            check_id="roadmap-current-tracks-path",
+            status="fail",
+            severity="error",
+            message="roadmap current_milestone does not match the live native Path milestone",
+            observed=(
+                f"native_state={native.kind.value}; native_milestone={native_milestone}; "
+                f"native_phase={native.native_phase}; roadmap_current={current_id or 'absent'}; "
+                "comparison=path"
+            ),
+            remediation=(
+                "Refresh prd/project-state/data/roadmap.json (and roadmap.md) to the "
+                "milestone the native Path state reports, or correct the Path state."
+            ),
+            rule_id="roadmap-freshness.path-mismatch",
+            expected=("The tracked roadmap and the native Path state name the same milestone."),
+            evidence=evidence,
+        )
+    )
+    return findings
+
+
 def check_active_requirement_contradictions(root: Path) -> list[GovernorFinding]:
-    """Inspect the local GSD requirements projection without making CI depend on it."""
+    """Inspect the local GSD requirements projection without making CI depend on it.
+
+    The register is a legacy Pi artifact. Once cutover lands it is history: an
+    archived projection must not be read as the current requirement set, which
+    is why the guard goes through the same LegacySurface policy as the milestone
+    registry instead of passing silently on absence.
+    """
+
+    check_id = "active-requirement-contradictions"
+    decision = read_legacy_surface(root)
+    if decision.policy(check_id) != "applies":
+        return [
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="active requirement contradictions",
+                extra="requirements=not-scanned",
+                evidence_path=".gsd/REQUIREMENTS.md",
+            )
+        ]
 
     path = root / ".gsd" / "REQUIREMENTS.md"
     if not path.is_file():
@@ -497,11 +713,155 @@ def check_forward_roadmap_sequence(root: Path) -> list[GovernorFinding]:
     ]
 
 
-def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
-    """Mirror the project-state roadmap freshness invariants."""
+def check_workflow_state_surface(root: Path) -> list[GovernorFinding]:
+    """Typed workflow-state adapter check for the GSD Path backend.
 
+    Distinguishes bootstrap not-cut-over from operational Path state; missing
+    or invalid operational state is a blocking diagnostic, never a silent
+    PASS (docs/agent-stack/MIGRATION.md 4.1). Read-only: never repairs state,
+    never completes tasks, never emits Review Case events.
+    """
+    report = read_workflow_state(root)
+    evidence = tuple(GovernorEvidence(path=path) for path in report.evidence)
+    legacy = "present" if report.legacy_gsd_present else "absent"
+    runtime = report.runtime
+    runtime_note = (
+        f"{runtime.version}@{runtime.digest[:12]}"
+        if runtime.version is not None and runtime.digest is not None
+        else "unresolved"
+    )
+    if report.kind is WorkflowStateKind.OPERATIONAL_VALID:
+        return [
+            GovernorFinding(
+                check_id="workflow-state-surface",
+                status="pass",
+                severity="ok",
+                message="workflow backend resolves to an operational GSD Path project",
+                observed=(
+                    f"backend=gsd-path; runtime={runtime_note}; "
+                    f"legacy_gsd={legacy}; {report.observed}"
+                ),
+                remediation="none",
+                rule_id="workflow-state-surface.operational",
+                expected="The typed adapter resolves an operational Path state with a verified runtime.",
+                evidence=evidence,
+            )
+        ]
+    if report.kind is WorkflowStateKind.BOOTSTRAP_NOT_CUT_OVER:
+        return [
+            GovernorFinding(
+                check_id="workflow-state-surface",
+                status="fail",
+                severity="warn",
+                message="workflow backend is GSD Path but native state is not initialized (bootstrap)",
+                observed=f"mode=bootstrap; not-cut-over; legacy_gsd={legacy}; {report.observed}",
+                remediation=(
+                    "Complete the bootstrap PR, then run native Path initialization per "
+                    "docs/agent-stack/INSTALL.md 12; portable repository checks are unaffected."
+                ),
+                rule_id="workflow-state-surface.bootstrap",
+                expected="Bootstrap preparation keeps workflow readiness explicit instead of silent PASS.",
+                evidence=evidence,
+            )
+        ]
+    return [
+        GovernorFinding(
+            check_id="workflow-state-surface",
+            status="fail",
+            severity="error",
+            message="workflow backend state is missing, invalid, or conflicting",
+            observed=f"kind={report.kind.value}; runtime={runtime_note}; legacy_gsd={legacy}; {report.observed}",
+            remediation=report.remediation,
+            rule_id="workflow-state-surface.blocking",
+            expected="Operational mode requires a valid Path state and a verified runtime.",
+            evidence=evidence,
+        )
+    ]
+
+
+def _legacy_surface_skip(
+    decision: LegacySurfaceDecision,
+    check_id: str,
+    *,
+    subject: str,
+    extra: str,
+    evidence_path: str,
+) -> GovernorFinding:
+    """One finding stating that a legacy claim is not asserted here.
+
+    An absent surface has nothing to inherit, so the claim is merely
+    not-applicable and stays pass/ok. A frozen surface is different: the data
+    exists but no longer measures the current workflow, so the claim is
+    historical-only and surfaces as an advisory warn. Frozen evidence is never
+    reported as a pass on current state and never as an error.
+    """
+
+    policy = decision.policy(check_id)
+    if policy == "applies":
+        raise ValueError(f"{check_id} applies on {decision.surface.value}; nothing to skip")
+    historical = policy == "historical-only"
+    return GovernorFinding(
+        check_id=check_id,
+        status="fail" if historical else "pass",
+        severity="warn" if historical else "ok",
+        message=(
+            f"{subject} is not asserted: the legacy surface is {decision.surface.value} "
+            f"(policy={policy})"
+        ),
+        observed=f"{decision.observed(check_id)}; {extra}",
+        remediation=(
+            "Read the archived snapshot as history only; record which tracked artifact now "
+            "proves this claim, or accept that it is no longer monitored."
+            if historical
+            else "none"
+        ),
+        rule_id=f"{check_id}.{policy}",
+        expected=(
+            "A legacy-surface check states the authority of the surface it read "
+            "instead of reporting an unreadable or frozen input as a pass."
+        ),
+        evidence=(GovernorEvidence(path=evidence_path),),
+    )
+
+
+def _with_legacy_surface(
+    findings: list[GovernorFinding],
+    decision: LegacySurfaceDecision,
+    check_id: str,
+) -> list[GovernorFinding]:
+    """Name the live legacy surface on every finding it produced.
+
+    A check that compared against the live surface must say which surface it
+    compared against, so a later reader cannot mistake a pre-cutover read for a
+    frozen-snapshot read or for the Path state itself. Guard findings already
+    carry the token and never pass through here.
+    """
+
+    if decision.policy(check_id) != "applies":
+        raise ValueError(
+            f"{check_id} does not apply on {decision.surface.value}; "
+            "only live-surface findings carry the live token"
+        )
+    token = decision.observed(check_id)
+    return [
+        replace(finding, observed=f"{finding.observed}; {token}" if finding.observed else token)
+        for finding in findings
+    ]
+
+
+def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
+    """Mirror the project-state roadmap freshness invariants.
+
+    The comparison source is the legacy milestone registry, so the check asks
+    :func:`read_legacy_surface` what that registry is worth. After cutover an
+    absent registry leaves nobody to compare against: the roadmap can no
+    longer be verified, and reporting a pass would assert freshness that was
+    never checked.
+    """
+
+    check_id = "roadmap-freshness"
     findings: list[GovernorFinding] = []
-    state_path = root / ".gsd" / "STATE.md"
+    state_path = root / LEGACY_GSD_STATE_RELATIVE_PATH
     roadmap_path = root / "prd" / "project-state" / "data" / "roadmap.json"
     if not roadmap_path.is_file():
         return [
@@ -514,21 +874,103 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                 remediation="Restore prd/project-state/data/roadmap.json",
             )
         ]
+    decision = read_legacy_surface(root)
+
+    # Path successor FIRST. An operational native state is the authority, and the
+    # frozen registry is not consulted - so a machine WITH an archive and a
+    # machine WITHOUT one reach the same verdict, which they did not before.
+    native = read_workflow_state(root)
+    if native.kind is WorkflowStateKind.OPERATIONAL_VALID:
+        if native.native_milestone is None:
+            # Operational but no milestone (real case: before the first one).
+            # The claim cannot be compared, and that must not read as fresh.
+            return [
+                GovernorFinding(
+                    check_id="roadmap-freshness-unverifiable",
+                    status="fail",
+                    severity="error",
+                    message=(
+                        "tracked roadmap freshness cannot be verified: the native Path "
+                        "state is operational but reports no milestone"
+                    ),
+                    observed=(
+                        f"native_state={native.kind.value}; native_milestone=absent; "
+                        "comparison=unverifiable"
+                    ),
+                    remediation=(
+                        "Record the current milestone in the native Path state, or state "
+                        "in the tracked roadmap which artifact now proves freshness."
+                    ),
+                    rule_id="roadmap-freshness.unverifiable",
+                    evidence=(GovernorEvidence(path="prd/project-state/data/roadmap.json"),),
+                )
+            ]
+        return _roadmap_freshness_against_native(
+            [],
+            json.loads(roadmap_path.read_text(encoding="utf-8")),
+            roadmap_path.read_text(encoding="utf-8"),
+            native,
+            decision,
+            check_id,
+        )
+
+    if decision.blocks(check_id):
+        return [
+            GovernorFinding(
+                check_id="roadmap-freshness-unverifiable",
+                status="fail",
+                severity="error",
+                message=(
+                    "tracked roadmap freshness cannot be verified: the legacy milestone "
+                    "registry is absent after cutover"
+                ),
+                observed=f"{decision.surface_tokens()}; comparison=unverifiable; {decision.detail}",
+                remediation=(
+                    "Restore a milestone registry the check may compare against, or record "
+                    "in the tracked Path state which artifact now proves roadmap freshness; "
+                    "until then do not treat the tracked roadmap as current."
+                ),
+                rule_id="roadmap-freshness.unverifiable",
+                expected=(
+                    "An absent comparison source blocks the freshness claim instead of passing it."
+                ),
+                evidence=(
+                    GovernorEvidence(path=LEGACY_GSD_STATE_RELATIVE_PATH),
+                    GovernorEvidence(path="prd/project-state/data/roadmap.json"),
+                ),
+            )
+        ]
+    if decision.policy(check_id) != "applies":
+        return [
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="tracked roadmap freshness",
+                extra="comparison=not-performed",
+                evidence_path=LEGACY_GSD_STATE_RELATIVE_PATH,
+            )
+        ]
     if not state_path.is_file():
         return [
             GovernorFinding(
-                check_id="roadmap-state-present",
-                status="pass",
-                severity="ok",
-                message="local GSD roadmap projection is unavailable; tracked roadmap remains authoritative",
-                observed="local_projection=absent; comparison=not-applicable",
-                remediation="none",
+                check_id="roadmap-freshness-unverifiable",
+                status="fail",
+                severity="error",
+                message="legacy milestone registry is present but unreadable",
+                observed=f"{decision.surface_tokens()}; registry=unreadable",
+                remediation=(
+                    "Restore .gsd/STATE.md or remove the stale legacy surface; the roadmap "
+                    "is compared against the registry, not guessed from it."
+                ),
+                rule_id="roadmap-freshness.unverifiable",
+                evidence=(GovernorEvidence(path=LEGACY_GSD_STATE_RELATIVE_PATH),),
             )
         ]
 
     state_text = state_path.read_text(encoding="utf-8")
     roadmap_text = roadmap_path.read_text(encoding="utf-8")
     roadmap = json.loads(roadmap_text)
+
     rows = _registry_milestones(state_text)
     completed_seqs = [seq for seq, marker, _ in rows if marker == "✅"]
     latest_completed = max(completed_seqs) if completed_seqs else None
@@ -549,7 +991,7 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                 remediation="Complete at least one milestone before relying on roadmap freshness",
             )
         )
-        return findings
+        return _with_legacy_surface(findings, decision, check_id)
 
     latest_completed_id = _last_completed_id(state_text, latest_completed)
     latest_completed_line = next(
@@ -665,7 +1107,7 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
             )
         )
 
-    return findings
+    return _with_legacy_surface(findings, decision, check_id)
 
 
 def check_hostile_proof_chain(root: Path) -> list[GovernorFinding]:
@@ -914,6 +1356,60 @@ def _next_required_wave(latest_completed: int, deferral_seqs: set[int]) -> int:
     return seq
 
 
+def _sanctioned_execution_chain(root: Path) -> list[tuple[int, str]]:
+    """Owner-declared execution order that may run below the numeric frontier.
+
+    GSD milestone sequence numbers are monotone, but the project deliberately
+    completed the remediation milestones M221/M222 while the delivery chain
+    M215..M220 was still parked (D687). That leaves the numeric frontier above
+    the next real deliverable, so the strict next-wave rule would deadlock the
+    chain: the next milestone can neither run nor close.
+
+    The allowance is never implicit. It requires an explicit, tracked
+    declaration in `prd/project-state/data/roadmap.json` under
+    `sanctioned_execution_chain`, carrying the declaring decision id, a
+    rationale and the ordered milestone ids. Without that declaration the
+    governor keeps the original monotone behaviour, so a silent out-of-order
+    closeout is still real debt.
+    """
+
+    roadmap_path = root / "prd" / "project-state" / "data" / "roadmap.json"
+    if not roadmap_path.is_file():
+        return []
+    try:
+        payload = json.loads(roadmap_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return []
+    declaration = payload.get("sanctioned_execution_chain")
+    if not isinstance(declaration, dict):
+        return []
+    if not str(declaration.get("declared_by") or "").strip():
+        return []
+    if not str(declaration.get("rationale") or "").strip():
+        return []
+    order = declaration.get("order")
+    if not isinstance(order, list) or not order:
+        return []
+    chain: list[tuple[int, str]] = []
+    for entry in order:
+        match = _MSEQ_RE.match(str(entry))
+        if match is None:
+            # A malformed entry invalidates the whole declaration: a partially
+            # understood chain must not widen the invariant.
+            return []
+        chain.append((int(match.group(1)), str(entry)))
+    return chain
+
+
+def _sanctioned_next_chain_seq(root: Path, completed_seqs: set[int]) -> int | None:
+    """First milestone in the declared chain that is not yet complete."""
+
+    for seq, _mid in _sanctioned_execution_chain(root):
+        if seq not in completed_seqs:
+            return seq
+    return None
+
+
 def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     """Detect residual incomplete GSD milestones that are true debt.
 
@@ -922,7 +1418,24 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     blocked STATE.md projection cannot thrash the Governor with false hard debt
     while still remaining triage-visible. One hard-open milestone is allowed when
     it is exactly the next sequence after the latest completed milestone.
+
+    At cutover the registry is an archive: a frozen 2026-10-18 backlog must not
+    raise a BLOCKING error about current readiness, so this goes through the
+    LegacySurface policy like the other legacy checks.
     """
+
+    check_id = "gsd-residual-debt"
+    decision = read_legacy_surface(root)
+    if decision.policy(check_id) != "applies":
+        return [
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="residual legacy delivery debt",
+                extra="backlog=not-scanned",
+                evidence_path=LEGACY_GSD_STATE_RELATIVE_PATH,
+            )
+        ]
 
     findings: list[GovernorFinding] = []
     state_path = root / ".gsd" / "STATE.md"
@@ -978,7 +1491,10 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     elif (
         len(hard_open) == 1
         and latest_completed is not None
-        and hard_open[0][0] == _next_required_wave(latest_completed, deferral_seqs)
+        and (
+            hard_open[0][0] == _next_required_wave(latest_completed, deferral_seqs)
+            or hard_open[0][0] == _sanctioned_next_chain_seq(root, set(completed_seqs))
+        )
     ):
         findings.append(
             GovernorFinding(
@@ -1055,7 +1571,29 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
         (line for line in state_text.splitlines() if line.startswith("**Phase:**")),
         "",
     )
-    if latest_completed is not None and active is not None and active <= latest_completed:
+    if (
+        latest_completed is not None
+        and active is not None
+        and active <= latest_completed
+        and active == _sanctioned_next_chain_seq(root, set(completed_seqs))
+    ):
+        findings.append(
+            GovernorFinding(
+                check_id="gsd-phase-complete-consistent",
+                status="pass",
+                severity="ok",
+                message=(
+                    "Active milestone is the sanctioned next member of the declared "
+                    "execution chain below the numeric frontier"
+                ),
+                observed=(
+                    f"active=M{active}; last_completed=M{latest_completed}; {phase_line}; "
+                    "chain=sanctioned_execution_chain"
+                ),
+                remediation="none",
+            )
+        )
+    elif latest_completed is not None and active is not None and active <= latest_completed:
         findings.append(
             GovernorFinding(
                 check_id="gsd-phase-complete-consistent",
@@ -1186,7 +1724,7 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
 
     check_id = "gsd-review-dual-truth"
     bridge_path = root / _GSD_REVIEW_BRIDGE_REL
-    state_path = root / ".gsd" / "STATE.md"
+    state_path = root / LEGACY_GSD_STATE_RELATIVE_PATH
 
     if not bridge_path.is_file():
         return [
@@ -1197,7 +1735,7 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
                 message="GSD↔Review dual-truth bridge register not present",
                 observed="bridge=absent; dual-truth-check=not-applicable",
                 remediation="none",
-                evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
+                evidence=(GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),),
             )
         ]
 
@@ -1211,23 +1749,41 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
                 message="GSD↔Review bridge register has no DT-lag class entries",
                 observed="dt_lag_declared=false",
                 remediation="none",
-                evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
+                evidence=(GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),),
             )
         ]
 
     declared_seqs = sorted({int(m.group(1)) for m in _DT_LAG_MILESTONE_RE.finditer(bridge_text)})
+    decision = read_legacy_surface(root)
+    if decision.policy(check_id) != "applies":
+        # The only way to match a declared DT-lag against a milestone is the
+        # legacy registry. Without it the lag stays a tracked declaration and
+        # nothing here may claim the lag is current or clear.
+        return [
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="declared GSD↔Review DT-lag against a registry",
+                extra=f"dt_lag_declared={declared_seqs}; match=not-performed",
+                evidence_path=LEGACY_GSD_STATE_RELATIVE_PATH,
+            )
+        ]
     if not state_path.is_file():
         return [
             GovernorFinding(
                 check_id=check_id,
-                status="pass",
-                severity="ok",
-                message="DT-lag declared but local GSD STATE projection unavailable",
+                status="fail",
+                severity="warn",
+                message="legacy registry is present but unreadable, DT-lag not assessable",
                 observed=(
-                    f"dt_lag_declared=true; milestones={declared_seqs}; local_projection=absent"
+                    f"{decision.surface_tokens()}; dt_lag_declared={declared_seqs}; "
+                    "registry=unreadable"
                 ),
-                remediation="none",
-                evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
+                remediation=(
+                    "Restore .gsd/STATE.md or remove the stale legacy surface; the declared "
+                    "DT-lag cannot be matched against a registry that is not there."
+                ),
+                evidence=(GovernorEvidence(path=LEGACY_GSD_STATE_RELATIVE_PATH),),
             )
         ]
 
@@ -1242,44 +1798,54 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
 
     if matched:
         preview = ",".join(f"M{seq}" for seq in matched)
-        return [
+        return _with_legacy_surface(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message=(
+                        "Declared GSD↔Review DT-lag overlaps an active/hard-open GSD milestone"
+                    ),
+                    observed=(
+                        f"dt_lag_active=[{preview}]; active={active}; "
+                        f"bridge={_GSD_REVIEW_BRIDGE_REL.as_posix()} "
+                        f"(lifecycle [bounded]; process visibility only; not GSD complete, "
+                        f"not product readiness, not automatic close)."
+                    ),
+                    remediation=(
+                        "Keep DT-lag visible, complete via real GSD Attempts, or apply an "
+                        "explicit planning waiver. Do not fabricate gsd_task_complete or "
+                        "rewrite STATE.md outside the engine (D154)."
+                    ),
+                    evidence=(
+                        GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),
+                        GovernorEvidence(path=".gsd/STATE.md"),
+                    ),
+                )
+            ],
+            decision,
+            check_id,
+        )
+
+    return _with_legacy_surface(
+        [
             GovernorFinding(
                 check_id=check_id,
-                status="fail",
-                severity="warn",
-                message=("Declared GSD↔Review DT-lag overlaps an active/hard-open GSD milestone"),
+                status="pass",
+                severity="ok",
+                message="Declared DT-lag milestones are not active/hard-open in GSD registry",
                 observed=(
-                    f"dt_lag_active=[{preview}]; active={active}; "
-                    f"bridge={_GSD_REVIEW_BRIDGE_REL.as_posix()} "
-                    f"(lifecycle [bounded]; process visibility only; not GSD complete, "
-                    f"not product readiness, not automatic close)."
+                    f"dt_lag_declared={declared_seqs}; hard_open={sorted(hard_open_seqs)}; "
+                    f"active={active} (historical bridge note only)."
                 ),
-                remediation=(
-                    "Keep DT-lag visible, complete via real GSD Attempts, or apply an "
-                    "explicit planning waiver. Do not fabricate gsd_task_complete or "
-                    "rewrite STATE.md outside the engine (D154)."
-                ),
-                evidence=[
-                    GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),
-                    GovernorEvidence(path=".gsd/STATE.md"),
-                ],
+                remediation="none",
+                evidence=(GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),),
             )
-        ]
-
-    return [
-        GovernorFinding(
-            check_id=check_id,
-            status="pass",
-            severity="ok",
-            message="Declared DT-lag milestones are not active/hard-open in GSD registry",
-            observed=(
-                f"dt_lag_declared={declared_seqs}; hard_open={sorted(hard_open_seqs)}; "
-                f"active={active} (historical bridge note only)."
-            ),
-            remediation="none",
-            evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
-        )
-    ]
+        ],
+        decision,
+        check_id,
+    )
 
 
 _CAPABILITY_PROMOTION_BOARD_REL = Path("prd/architecture/capability-promotion-board.md")
@@ -1429,7 +1995,7 @@ def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
                     "Add prd/architecture/capability-promotion-board.md with non-authority "
                     "declaration and a §5 board table covering every active TSG id."
                 ),
-                evidence=[GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL))],
+                evidence=(GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),),
             )
         ]
 
@@ -1451,7 +2017,7 @@ def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
                     "Keep explicit Non-authority language: board does not close TSG rows "
                     "and is L_capability inventory only."
                 ),
-                evidence=[GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL))],
+                evidence=(GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),),
             )
         ]
 
@@ -1464,7 +2030,7 @@ def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
                 message="Promotion board present; gap register absent (not applicable)",
                 observed="gap_register=absent",
                 remediation="none",
-                evidence=[GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL))],
+                evidence=(GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),),
             )
         ]
 
@@ -1492,10 +2058,10 @@ def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
                     "Name every gap-register TSG-XXX id in capability-promotion-board.md §5 "
                     "with ladder state and next honest step."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),
                     GovernorEvidence(path=str(_TEMPORAL_GAP_REGISTER_REL)),
-                ],
+                ),
             )
         ]
 
@@ -1511,10 +2077,10 @@ def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
                 f"(lifecycle [bounded]; not product readiness or TSG semantic validation)."
             ),
             remediation="none",
-            evidence=[
+            evidence=(
                 GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),
                 GovernorEvidence(path=str(_TEMPORAL_GAP_REGISTER_REL)),
-            ],
+            ),
         )
     ]
 
@@ -1560,12 +2126,12 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "Add kb-ontology.yaml plus requirements, draft, and projection "
                     "contract under prd/architecture/."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_DRAFT_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-                ],
+                ),
             )
         ]
 
@@ -1587,10 +2153,10 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "Keep explicit Non-authority language: not production graph schema, "
                     "not Applicable, inventory only."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_DRAFT_REL)),
-                ],
+                ),
             )
         ]
 
@@ -1605,7 +2171,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 message="KB ontology projection contract is not valid JSON",
                 observed=f"error={exc}",
                 remediation="Fix kb-ontology-projection-contract.json to valid JSON.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),),
             )
         ]
 
@@ -1618,11 +2184,11 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 message="KB ontology projection contract must set authoritative=false",
                 observed=f"authoritative={contract.get('authoritative')!r}",
                 remediation="Set authoritative to false on the draft contract.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),),
             )
         ]
 
-    node_kinds = {
+    node_kinds: set[Any] = {
         item.get("kind") for item in contract.get("node_kinds") or [] if isinstance(item, dict)
     }
     forbidden = set(contract.get("forbidden_node_kinds") or [])
@@ -1637,13 +2203,11 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 message="KB ontology requirements register has too few KBO-R ids",
                 observed=f"kbo_r_count={len(req_ids)}",
                 remediation="Keep append-only KBO-R### requirement rows in the register.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),),
             )
         ]
 
     try:
-        import yaml
-
         catalog = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError) as exc:
         return [
@@ -1654,7 +2218,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 message="KB ontology YAML catalog is not valid",
                 observed=f"error={exc}",
                 remediation="Fix prd/architecture/kb-ontology.yaml as the FSM/vocabulary source.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -1679,7 +2243,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     f"levels={yaml_levels}"
                 ),
                 remediation="Declare fsm.current, fsm.states, and vocabulary.hierarchy_levels in YAML.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -1706,10 +2270,10 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "Keep projection-contract node/forbidden kinds aligned with "
                     "prd/architecture/kb-ontology.yaml vocabulary."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-                ],
+                ),
             )
         ]
     if contract_fsm and contract_fsm != yaml_current:
@@ -1721,10 +2285,10 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 message="KB ontology contract fsm_state differs from YAML fsm.current",
                 observed=f"contract={contract_fsm!r}; yaml={yaml_current!r}",
                 remediation="Set contract.fsm_state to kb-ontology.yaml fsm.current.",
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-                ],
+                ),
             )
         ]
 
@@ -1747,11 +2311,11 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "Keep YAML closed_vocabularies aligned with the named Rust enums; "
                     "Rust tokens must be a subset of the YAML list/map."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
                     GovernorEvidence(path="crates/ln-decode/src/domain.rs"),
                     GovernorEvidence(path="crates/ln-temporal/src/domain.rs"),
-                ],
+                ),
             )
         ]
 
@@ -1769,7 +2333,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "its current must be one of its own states and must not replace "
                     "fsm.current or contract.fsm_state."
                 ),
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -1794,11 +2358,11 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                     "written_statuses. Do not treat list length as alignment. "
                     "No new check_id (D272)."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
                     GovernorEvidence(path=str(_FORCE_INTERVAL_REL)),
                     GovernorEvidence(path=str(_REVIEW_CONTROL_REL)),
-                ],
+                ),
             )
         ]
 
@@ -1820,12 +2384,12 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 f"(lifecycle [proposed]; YAML FSM is source; not production schema)."
             ),
             remediation="none",
-            evidence=[
+            evidence=(
                 GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),
                 GovernorEvidence(path=str(_KB_ONTOLOGY_DRAFT_REL)),
                 GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
                 GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-            ],
+            ),
         )
     ]
 
@@ -1842,8 +2406,6 @@ def _document_groups_path_needles(root: Path) -> list[str]:
     if not yaml_path.is_file():
         return []
     try:
-        import yaml
-
         catalog = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError):
         return []
@@ -1890,13 +2452,11 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                 remediation=(
                     "Add prd/architecture/kb-ontology.yaml with a document_groups section."
                 ),
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
     try:
-        import yaml
-
         text = yaml_path.read_text(encoding="utf-8")
         catalog = yaml.safe_load(text) or {}
     except (OSError, yaml.YAMLError) as exc:
@@ -1908,7 +2468,7 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                 message="KB ontology YAML catalog is not valid",
                 observed=f"error={exc}",
                 remediation="Fix prd/architecture/kb-ontology.yaml.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -1929,7 +2489,7 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                     "Keep the document_groups: section present in kb-ontology.yaml "
                     "so the FNV-1a 64 catalog version stays computable."
                 ),
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -1943,7 +2503,7 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                 message="document_groups section is not a mapping",
                 observed=f"document_groups={type(doc_groups).__name__}",
                 remediation="Declare document_groups: in kb-ontology.yaml.",
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -2040,7 +2600,7 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                     "structural_only_tokens, roles inside structural_roles, and "
                     "federal_law@v1 declared in document_groups."
                 ),
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+                evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
             )
         ]
 
@@ -2057,7 +2617,7 @@ def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
                 "visible warning, not a silent skip; not TSG)."
             ),
             remediation="none",
-            evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+            evidence=(GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),),
         )
     ]
 
@@ -2506,7 +3066,7 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                 message="hierarchy registry missing, corpus grounding not assessable",
                 observed="missing registry",
                 remediation="Add prd/architecture/kb-hierarchy-registry.yaml.",
-                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+                evidence=(GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),),
             )
         ]
 
@@ -2523,7 +3083,7 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                 message="no path_needle rows in hierarchy registry",
                 observed="needles_total=0",
                 remediation="Add path_needle rows to the registry bindings/works/editions.",
-                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+                evidence=(GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),),
             )
         ]
 
@@ -2547,7 +3107,7 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                     "(advisory; not applicable without a real export)."
                 ),
                 remediation="none",
-                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+                evidence=(GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),),
             )
         ]
 
@@ -2594,7 +3154,7 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                     "Align at least one hierarchy-registry path_needle with a real "
                     "consru_export path (see ln-decode/tests/registry_bindings_generator.rs)."
                 ),
-                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+                evidence=(GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),),
             )
         ]
 
@@ -2616,10 +3176,10 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                     "Align at least one document_groups path needle (field: path) with a "
                     "real consru_export path in prd/architecture/kb-ontology.yaml."
                 ),
-                evidence=[
+                evidence=(
                     GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-                ],
+                ),
             )
         ]
 
@@ -2640,10 +3200,10 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                 "(advisory [bounded]; fixture-only needles may stay ungrounded)."
             ),
             remediation="none",
-            evidence=[
+            evidence=(
                 GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),
                 GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
-            ],
+            ),
         )
     ]
 
@@ -2734,8 +3294,6 @@ def _kb_force_set_honesty_gaps(root: Path, vocabulary: dict[str, Any]) -> list[s
         return []
     gaps: list[str] = []
     try:
-        import yaml
-
         control = yaml.safe_load(catalog_path.read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError) as exc:
         return [f"review_control:unreadable={exc}"]
@@ -2765,8 +3323,6 @@ def _kb_force_set_honesty_gaps(root: Path, vocabulary: dict[str, Any]) -> list[s
     if interval_path.is_file():
         interval_text = interval_path.read_text(encoding="utf-8")
         try:
-            import yaml
-
             interval = yaml.safe_load(interval_text) or {}
         except (OSError, yaml.YAMLError):
             interval = {}
@@ -2796,7 +3352,8 @@ def _kb_assembly_fsm_gaps(catalog: dict[str, Any]) -> list[str]:
         return []
     if not isinstance(assembly, dict):
         return ["assembly_fsm:not_a_mapping"]
-    readiness = catalog.get("fsm") if isinstance(catalog.get("fsm"), dict) else {}
+    fsm_section = catalog.get("fsm")
+    readiness: dict[str, Any] = fsm_section if isinstance(fsm_section, dict) else {}
     readiness_current = readiness.get("current")
     readiness_states = set(readiness.get("states") or {})
     assembly_current = assembly.get("current")
@@ -4253,14 +4810,21 @@ _ADR_ID_RE = re.compile(r"\bADR-(?P<id>\d{4})\b", re.IGNORECASE)
 def _gitignore_covers(gitignore_text: str, path: str) -> bool:
     """Return True if a simple gitignore entry covers ``path``.
 
-    Accepts exact path, trailing-slash directory form, or a leading-slash form.
-    Does not implement full gitignore semantics — sufficient for vault policy.
+    Accepts exact path, with- and without-trailing-slash directory forms, and
+    the same forms with a leading slash. A bare ``probes`` entry also covers
+    the ``probes/`` directory (real git semantics). Does not implement full
+    gitignore semantics — sufficient for vault policy.
     """
+    stripped = path.rstrip("/")
     candidates = {
         path,
+        stripped,
         f"{path}/",
+        f"{stripped}/",
         f"/{path}",
+        f"/{stripped}",
         f"/{path}/",
+        f"/{stripped}/",
     }
     for raw in gitignore_text.splitlines():
         line = raw.strip()
@@ -4288,8 +4852,45 @@ def _git_tracked_paths(root: Path, path: str) -> list[str]:
     return [line for line in completed.stdout.splitlines() if line.strip()]
 
 
+def _tracked_symlinks_into_vaults(root: Path, tracked: frozenset[str]) -> list[str]:
+    """Find tracked symlinks whose resolved target is inside a historical vault.
+
+    Only git-tracked paths are inspected: untracked working-tree noise can
+    never become an active-tree alias through version control, and a full
+    ``os.walk`` of the checkout (including multi-GB corpus trees) costs ~11s
+    per governor run for the same verdict. ``.gsd`` itself is a tracked-ignored
+    symlink into a project dir, never into a vault, so it cannot hit.
+    """
+
+    root = root.resolve()
+    vaults = tuple((root / path).resolve() for path in _HISTORICAL_VAULT_PATHS)
+    hits: list[str] = []
+
+    def is_vault_path(path: Path) -> bool:
+        return any(path == vault or vault in path.parents for vault in vaults)
+
+    for rel in sorted(tracked):
+        candidate = root / rel
+        if not candidate.is_symlink():
+            continue
+        target = candidate.resolve(strict=False)
+        if not is_vault_path(target):
+            continue
+        try:
+            target_label = target.relative_to(root).as_posix()
+        except ValueError:
+            target_label = "external-vault-target"
+        hits.append(f"{rel}->{target_label}")
+
+    return hits
+
+
 def _active_symlinks_into_vaults(root: Path) -> list[str]:
-    """Find active-tree symlinks whose resolved target is inside a historical vault."""
+    """Legacy full-tree scan; kept for the unscoped ``check=`` entry point.
+
+    Scoped runs through :class:`GovernorContext` use
+    :func:`_tracked_symlinks_into_vaults` instead (same verdict, ~100x faster).
+    """
 
     root = root.resolve()
     vaults = tuple((root / path).resolve() for path in _HISTORICAL_VAULT_PATHS)
@@ -4339,18 +4940,59 @@ def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
     do not re-enter active index/governor surfaces. Trees may remain on disk.
     Lifecycle [bounded]; process anti-drift, not product readiness.
     """
-    check_id = "archive-path-policy"
-    remediation = (
-        "Add vault paths to .gitignore (.lex/, python_archive/, Old_project/), "
-        "then `git rm -r --cached <path>` to untrack while keeping on-disk history. "
-        "Do not delete vaults without an explicit archive decision."
-    )
 
     gitignore_path = root / ".gitignore"
     gitignore_text = (
         gitignore_path.read_text(encoding="utf-8", errors="replace")
         if gitignore_path.is_file()
         else ""
+    )
+
+    return _archive_policy_findings(root, gitignore_text, ignored=None, tracked=None)
+
+
+def _archive_path_policy_scoped(ctx: GovernorContext) -> list[GovernorFinding]:
+    """Context-backed ``archive-path-policy`` variant for parallel runs.
+
+    Same verdict as :func:`check_archive_path_policy`; inventory comes from
+    the shared context (one ``git ls-files`` + one batched ``check-ignore``)
+    instead of a full-tree ``os.walk`` plus per-vault git calls.
+    """
+    root = ctx.root
+    gitignore_path = root / ".gitignore"
+    gitignore_text = (
+        gitignore_path.read_text(encoding="utf-8", errors="replace")
+        if gitignore_path.is_file()
+        else ""
+    )
+    return _archive_policy_findings(
+        root,
+        gitignore_text,
+        ignored=ctx.gitignore_map(_HISTORICAL_VAULT_PATHS),
+        tracked=ctx.tracked_files(),
+    )
+
+
+def _archive_policy_findings(
+    root: Path,
+    gitignore_text: str,
+    *,
+    ignored: Mapping[str, bool] | None,
+    tracked: frozenset[str] | None,
+) -> list[GovernorFinding]:
+    """Shared verdict builder for ``archive-path-policy``.
+
+    Unscoped runs (``check=archive-path-policy`` and the legacy helper path)
+    pass ``ignored=None``/``tracked=None`` and fall back to the per-vault
+    git calls plus the full-tree symlink scan. Scoped runs through
+    :class:`GovernorContext` supply one batched ``git check-ignore`` map and
+    the single ``git ls-files`` snapshot instead — same verdict, no tree walk.
+    """
+    check_id = "archive-path-policy"
+    remediation = (
+        "Add vault paths to .gitignore (.lex/, python_archive/, Old_project/), "
+        "then `git rm -r --cached <path>` to untrack while keeping on-disk history. "
+        "Do not delete vaults without an explicit archive decision."
     )
 
     missing_ignore: list[str] = []
@@ -4361,18 +5003,35 @@ def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
         if (root / path).exists() or (root / path).is_symlink()
     ]
     known_aliases = set(active_aliases)
-    active_aliases.extend(
-        item
-        for item in _active_symlinks_into_vaults(root)
-        if item.split("->", 1)[0] not in known_aliases
-    )
+    if tracked is None:
+        active_aliases.extend(
+            item
+            for item in _active_symlinks_into_vaults(root)
+            if item.split("->", 1)[0] not in known_aliases
+        )
+    else:
+        active_aliases.extend(
+            item
+            for item in _tracked_symlinks_into_vaults(root, tracked)
+            if item.split("->", 1)[0] not in known_aliases
+        )
     active_aliases = sorted(set(active_aliases))
     for vault in _HISTORICAL_VAULT_PATHS:
-        if not _gitignore_covers(gitignore_text, vault):
+        covered = (
+            ignored[vault]
+            if ignored is not None and vault in ignored
+            else _gitignore_covers(gitignore_text, vault)
+        )
+        if not covered:
             missing_ignore.append(vault)
-        tracked = _git_tracked_paths(root, vault)
-        if tracked:
-            still_tracked.append(f"{vault}:{len(tracked)}")
+        if tracked is None:
+            tracked_paths = _git_tracked_paths(root, vault)
+        else:
+            tracked_paths = sorted(
+                path for path in tracked if path == vault or path.startswith(vault + "/")
+            )
+        if tracked_paths:
+            still_tracked.append(f"{vault}:{len(tracked_paths)}")
 
     if missing_ignore or still_tracked or active_aliases:
         return [
@@ -4401,6 +5060,84 @@ def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
             observed=(
                 f"vaults={list(_HISTORICAL_VAULT_PATHS)} ignored+untracked "
                 f"(lifecycle [bounded]; process anti-drift)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
+def check_law_source_fixture_guard(root: Path) -> list[GovernorFinding]:
+    """Ensure law-source/consultant is marked as a fixture vault, not corpus.
+
+    Fixture vault (82 tracked XML) is not the corpus (43 785 XML under
+    consru_export/exports/). The 2026-09-26 incident: a flat glob of
+    ``exports/npa/*.xml`` saw 798 of 916 files, missed 44-FZ (subdirectory,
+    edition files lack "44-fz" in the name) and treated this vault as the
+    44-FZ source. This check keeps the marker and the untracked .deprecated
+    residue in place so the trap cannot silently return.
+    Lifecycle [bounded]; process anti-drift, not corpus completeness.
+    """
+    check_id = "law-source-fixture-guard"
+    remediation = (
+        "Restore law-source/consultant/README.md (fixture-vault marker), keep "
+        "law-source/consultant/.deprecated/ in .gitignore and untracked, and "
+        "consult consru_export/exports/ for corpus-wide work."
+    )
+
+    marker = root / "law-source" / "consultant" / "README.md"
+    marker_text = marker.read_text(encoding="utf-8", errors="replace") if marker.is_file() else ""
+    missing_marker = not marker.is_file()
+    marker_ok = (
+        not missing_marker
+        and "НЕ КОРПУС" in marker_text
+        and "consru_export" in marker_text
+        and "43 785" in marker_text
+    )
+
+    gitignore_path = root / ".gitignore"
+    gitignore_text = (
+        gitignore_path.read_text(encoding="utf-8", errors="replace")
+        if gitignore_path.is_file()
+        else ""
+    )
+    ignore_ok = _gitignore_covers(gitignore_text, "law-source/consultant/.deprecated/")
+
+    deprecated_tracked = _git_tracked_paths(root, "law-source/consultant/.deprecated")
+
+    problems: list[str] = []
+    if missing_marker:
+        problems.append("README-marker-missing")
+    elif not marker_ok:
+        problems.append("README-marker-incomplete")
+    if not ignore_ok:
+        problems.append("deprecated-not-ignored")
+    if deprecated_tracked:
+        problems.append(f"deprecated-still-tracked:{len(deprecated_tracked)}")
+
+    if problems:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="law-source/consultant fixture-vault marker incomplete",
+                observed=(
+                    f"problems={problems} (lifecycle [bounded]; process "
+                    f"anti-drift; advisory until the marker lands)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="law-source/consultant is marked as a fixture vault",
+            observed=(
+                "README marker present, .deprecated ignored and untracked "
+                "(lifecycle [bounded]; process anti-drift)."
             ),
             remediation="none",
         )
@@ -6737,7 +7474,7 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
     quotes = [m.group("quote") for m in _MODEL_CRYSTAL_ANCHOR_RE.finditer(crystal_text)]
     missing_quotes: list[str] = []
     unknown_sources: set[str] = set()
-    loaded_sources: dict[str, str] = {}
+    loaded_sources: dict[Path, str] = {}
     for m in _MODEL_CRYSTAL_ANCHOR_RE.finditer(crystal_text):
         src = m.group("src")
         quote = m.group("quote")
@@ -6859,7 +7596,11 @@ def _journal_retry_attempt(data: object) -> int | None:
 
     if not isinstance(data, dict):
         return None
-    attempt = data.get("attempt")
+    # Journal payloads come from json.loads, whose objects always carry string
+    # keys; this is the one place the loose dict an isinstance check leaves
+    # becomes the mapping the field lookup below can read.
+    fields = cast(dict[str, Any], data)
+    attempt = fields.get("attempt")
     if isinstance(attempt, bool) or not isinstance(attempt, int) or attempt < 1:
         return None
     return attempt
@@ -6923,21 +7664,36 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
     """
 
     check_id = "journal-retry-loops"
-    journal_dir = root / ".gsd" / "journal"
-    if not journal_dir.is_dir():
+    decision = read_legacy_surface(root)
+    if decision.policy(check_id) != "applies":
         return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="journal directory missing, retry-loop surface not assessable",
-                observed="missing journal dir",
-                remediation=(
-                    "Point the governor at a checkout whose .gsd/journal/ holds flow jsonl files."
-                ),
-                evidence=[GovernorEvidence(path=".gsd/journal/")],
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="journal retry/wedge observability",
+                extra="journal=not-scanned",
+                evidence_path=".gsd/journal/",
             )
         ]
+    journal_dir = root / ".gsd" / "journal"
+    if not journal_dir.is_dir():
+        return _with_legacy_surface(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="journal directory missing, retry-loop surface not assessable",
+                    observed="missing journal dir",
+                    remediation=(
+                        "Point the governor at a checkout whose .gsd/journal/ holds flow jsonl files."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/journal/"),),
+                )
+            ],
+            decision,
+            check_id,
+        )
 
     journal_files = sorted(journal_dir.glob("*.jsonl"))
     skipped_lines = 0
@@ -6995,7 +7751,7 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
                     is_wedge_exit,
                 )
             )
-            if not is_wedge_exit:
+            if backstop_match is None or wedge_id_match is None:
                 continue
             wedge_id = wedge_id_match.group(1)
             unit_match = _JOURNAL_WEDGE_UNIT_RE.search(serialized)
@@ -7132,7 +7888,7 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
                     f"{observed_closure}"
                 ),
                 remediation=remediation,
-                evidence=[GovernorEvidence(path=".gsd/journal/")],
+                evidence=(GovernorEvidence(path=".gsd/journal/"),),
             )
         )
     wedges_unanchored = sum(1 for info in wedges.values() if info["when"] is None)
@@ -7169,7 +7925,7 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
             remediation="",
         )
     )
-    return findings
+    return _with_legacy_surface(findings, decision, check_id)
 
 
 _COMPAT_MARKER_SCHEMA = 2
@@ -7212,96 +7968,128 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
     """
 
     check_id = "compat-marker-hygiene"
-    marker_path = root / ".gsd" / ".compat.json"
-    if not marker_path.is_file():
+    decision = read_legacy_surface(root)
+    if decision.policy(check_id) != "applies":
         return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="compat marker missing, compat-marker-hygiene not assessable",
-                observed="missing .gsd/.compat.json",
-                remediation=(
-                    "Point the governor at a checkout whose .gsd/.compat.json "
-                    "exists; the engine creates it on its first projection write."
-                ),
-                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+            _legacy_surface_skip(
+                decision,
+                check_id,
+                subject="compat projection marker hygiene",
+                extra="marker=not-audited",
+                evidence_path=".gsd/.compat.json",
             )
         ]
+
+    def _named(items: list[GovernorFinding]) -> list[GovernorFinding]:
+        """Name the live legacy surface on every finding this check emits."""
+        return _with_legacy_surface(items, decision, check_id)
+
+    marker_path = root / ".gsd" / ".compat.json"
+    if not marker_path.is_file():
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="compat marker missing, compat-marker-hygiene not assessable",
+                    observed="missing .gsd/.compat.json",
+                    remediation=(
+                        "Point the governor at a checkout whose .gsd/.compat.json "
+                        "exists; the engine creates it on its first projection write."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+                )
+            ]
+        )
 
     try:
         payload = json.loads(marker_path.read_text(encoding="utf-8", errors="replace"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="compat marker unreadable, compat-marker-hygiene not assessable",
-                observed=f"invalid JSON: {type(exc).__name__}",
-                remediation=(
-                    "Let the engine's single-writer path regenerate .compat.json; "
-                    "never hand-edit it."
-                ),
-                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
-            )
-        ]
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="compat marker unreadable, compat-marker-hygiene not assessable",
+                    observed=f"invalid JSON: {type(exc).__name__}",
+                    remediation=(
+                        "Let the engine's single-writer path regenerate .compat.json; "
+                        "never hand-edit it."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+                )
+            ]
+        )
     if not isinstance(payload, dict):
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="compat marker payload is not a JSON object",
-                observed=f"top-level type={type(payload).__name__}",
-                remediation=(
-                    "Let the engine's single-writer path regenerate .compat.json; "
-                    "never hand-edit it."
-                ),
-                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
-            )
-        ]
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="compat marker payload is not a JSON object",
+                    observed=f"top-level type={type(payload).__name__}",
+                    remediation=(
+                        "Let the engine's single-writer path regenerate .compat.json; "
+                        "never hand-edit it."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+                )
+            ]
+        )
     schema = payload.get("schema")
     if schema != _COMPAT_MARKER_SCHEMA:
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="compat marker schema is not the audited version",
-                observed=(
-                    f"schema={schema!r} expected={_COMPAT_MARKER_SCHEMA}; projections not audited"
-                ),
-                remediation=(
-                    "Update the compat-projection writer before trusting marker "
-                    "hygiene; the governor never migrates engine state."
-                ),
-                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
-            )
-        ]
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="compat marker schema is not the audited version",
+                    observed=(
+                        f"schema={schema!r} expected={_COMPAT_MARKER_SCHEMA}; "
+                        "projections not audited"
+                    ),
+                    remediation=(
+                        "Update the compat-projection writer before trusting marker "
+                        "hygiene; the governor never migrates engine state."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+                )
+            ]
+        )
     projections = payload.get("projections")
     if not isinstance(projections, dict):
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="compat marker projections section is not an object",
-                observed=f"projections type={type(projections).__name__}",
-                remediation=(
-                    "Let the engine's single-writer path regenerate .compat.json; "
-                    "never hand-edit it."
-                ),
-                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
-            )
-        ]
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="fail",
+                    severity="warn",
+                    message="compat marker projections section is not an object",
+                    observed=f"projections type={type(projections).__name__}",
+                    remediation=(
+                        "Let the engine's single-writer path regenerate .compat.json; "
+                        "never hand-edit it."
+                    ),
+                    evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+                )
+            ]
+        )
+    # The marker is JSON, so its object keys are strings and each value is
+    # whatever the writer stored. This single cast is the boundary where the
+    # loose parsed payload becomes a typed mapping; every use below (relpath
+    # keys, entry lookups) is then str-keyed without a cast per site.
+    table = cast(dict[str, Any], projections)
 
     stale: list[str] = []
     bad_sha: list[str] = []
     empty_entities: list[str] = []
     unscoped_empty_entities: list[str] = []
     malformed: list[str] = []
-    for relpath, entry in sorted(projections.items()):
+    for relpath, entry in sorted(table.items()):
         if not isinstance(entry, dict):
             malformed.append(relpath)
             continue
@@ -7317,27 +8105,30 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
         if not (root / ".gsd" / relpath).exists():
             stale.append(relpath)
 
-    phase_roots = sorted({relpath.split("/", 1)[0] for relpath in projections if relpath})
+    phase_roots = sorted({relpath.split("/", 1)[0] for relpath in table if relpath})
     counters = (
-        f"projections={len(projections)} "
+        f"projections={len(table)} "
         f"phases={len(phase_roots)} "
         f"stale={len(stale)} bad_sha={len(bad_sha)} "
         f"empty_entities={len(empty_entities)} malformed={len(malformed)} "
         f"root_artifacts_without_entities={len(unscoped_empty_entities)}"
     )
     if not (stale or bad_sha or empty_entities or malformed):
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="pass",
-                severity="ok",
-                message=(
-                    f"compat marker hygiene clean read-only across {len(projections)} projection(s)"
-                ),
-                observed=counters,
-                remediation="",
-            )
-        ]
+        return _named(
+            [
+                GovernorFinding(
+                    check_id=check_id,
+                    status="pass",
+                    severity="ok",
+                    message=(
+                        "compat marker hygiene clean read-only across "
+                        f"{len(projections)} projection(s)"
+                    ),
+                    observed=counters,
+                    remediation="",
+                )
+            ]
+        )
 
     observed = counters
     if stale:
@@ -7348,20 +8139,22 @@ def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
     if bad_sha or empty_entities or malformed:
         first_offender = (bad_sha or empty_entities or malformed)[0]
         observed = f"{observed} first_offender={first_offender}"
-    return [
-        GovernorFinding(
-            check_id=check_id,
-            status="fail",
-            severity="warn",
-            message="compat marker has stale or malformed projection entries",
-            observed=observed,
-            remediation=(
-                "Regenerate projections through the engine's single-writer path "
-                "so .compat.json matches disk; do not hand-edit .compat.json."
-            ),
-            evidence=[GovernorEvidence(path=".gsd/.compat.json")],
-        )
-    ]
+    return _named(
+        [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="compat marker has stale or malformed projection entries",
+                observed=observed,
+                remediation=(
+                    "Regenerate projections through the engine's single-writer path "
+                    "so .compat.json matches disk; do not hand-edit .compat.json."
+                ),
+                evidence=(GovernorEvidence(path=".gsd/.compat.json"),),
+            )
+        ]
+    )
 
 
 def _check_spec(
@@ -7372,6 +8165,8 @@ def _check_spec(
     purpose: str,
     authority_inputs: tuple[str, ...],
     default_severity: Severity,
+    *,
+    run_scoped: ScopedCheckRunner | None = None,
 ) -> CheckSpec:
     return CheckSpec(
         check_id=check_id,
@@ -7382,10 +8177,24 @@ def _check_spec(
         authority_inputs=authority_inputs,
         default_severity=default_severity,
         non_claim=_PROCESS_NON_CLAIM,
+        run_scoped=run_scoped,
     )
 
 
 GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
+    _check_spec(
+        "workflow-state-surface",
+        "docs",
+        "deterministic",
+        check_workflow_state_surface,
+        "Keep the typed GSD Path workflow-state surface explicit instead of a silent legacy PASS.",
+        (
+            "prd/project-state/workflow-backend.json",
+            ".gsd-path/runtime.json",
+            ".project/STATE.md",
+        ),
+        "error",
+    ),
     _check_spec(
         "architecture-direction-contract",
         "docs",
@@ -7644,6 +8453,16 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         check_archive_path_policy,
         "Keep historical vaults ignored, untracked and unreachable from active symlinks.",
         (".gitignore", "python_archive/", "archive/", "prd/archive/"),
+        "warn",
+        run_scoped=_archive_path_policy_scoped,
+    ),
+    _check_spec(
+        "law-source-fixture-guard",
+        "docs",
+        "deterministic",
+        check_law_source_fixture_guard,
+        "Keep law-source/consultant marked as a fixture vault, not the corpus.",
+        ("law-source/consultant/README.md", ".gitignore"),
         "warn",
     ),
     _check_spec(
@@ -7956,33 +8775,85 @@ def format_governor_report_text(report: GovernorReport) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _run_spec_scoped(spec: CheckSpec, ctx: GovernorContext) -> list[GovernorFinding]:
+    """Run one check through the shared context; scoped variants win.
+
+    A spec that declares ``run_scoped`` runs against the shared
+    :class:`GovernorContext` (memoized inventory, no duplicate git/tree
+    walks). All other checks keep their exact ``runner(root)`` behavior.
+    Tool-error wrapping matches :func:`run_governor`.
+    """
+    scoped = spec.run_scoped
+    try:
+        if scoped is not None:
+            items = scoped(ctx)
+        else:
+            items = spec.runner(ctx.root)
+        return [_enrich_finding(item, spec) for item in items]
+    except Exception as error:  # noqa: BLE001 - bounded tool-error report
+        return [
+            GovernorFinding(
+                check_id=spec.check_id,
+                status="fail",
+                severity="error",
+                message="governor check could not read or parse its required inputs",
+                observed=f"tool_error={type(error).__name__}",
+                remediation="Repair the required repository inputs or tool environment and rerun.",
+                rule_id="tool-error",
+                expected="The check runner reads and parses every required input.",
+                evidence=tuple(GovernorEvidence(path=path) for path in spec.authority_inputs),
+            )
+        ]
+
+
+def _gil_enabled() -> bool:
+    """True when the running interpreter holds the GIL.
+
+    ``sys._is_gil_enabled`` exists only on 3.13+; older interpreters always
+    hold the GIL, so absence means enabled.
+    """
+    probe = getattr(sys, "_is_gil_enabled", None)
+    if probe is None:
+        return True
+    try:
+        return bool(probe())
+    except Exception:  # noqa: BLE001 - a failed probe must not break the run
+        return True
+
+
 def run_governor(
     root: Path | None = None,
     *,
     only: str | None = None,
     check: str | None = None,
+    jobs: int = 1,
 ) -> GovernorReport:
-    """Run selected governor checks and return a machine-readable report."""
+    """Run selected governor checks and return a machine-readable report.
+
+    ``jobs`` parallelizes checks across threads sharing one
+    :class:`GovernorContext`. Threads pay off only on a free-threaded
+    interpreter (GIL disabled): on a GIL build thread fan-out serializes on
+    the interpreter lock and only adds overhead, so ``jobs > 1`` there
+    falls back to the sequential run instead of pretending to parallelize.
+    Finding order always follows registry order, so reports stay
+    deterministic and byte-identical between sequential and parallel runs.
+    """
 
     resolved = (root or Path.cwd()).resolve()
+    specs = _selected_specs(only, check)
+    ctx = GovernorContext(root=resolved)
     findings: list[GovernorFinding] = []
-    for spec in _selected_specs(only, check):
-        try:
-            findings.extend(_enrich_finding(item, spec) for item in spec.runner(resolved))
-        except Exception as error:  # noqa: BLE001 - bounded tool-error report
-            findings.append(
-                GovernorFinding(
-                    check_id=spec.check_id,
-                    status="fail",
-                    severity="error",
-                    message="governor check could not read or parse its required inputs",
-                    observed=f"tool_error={type(error).__name__}",
-                    remediation="Repair the required repository inputs or tool environment and rerun.",
-                    rule_id="tool-error",
-                    expected="The check runner reads and parses every required input.",
-                    evidence=tuple(GovernorEvidence(path=path) for path in spec.authority_inputs),
-                )
-            )
+    if jobs == 1 or len(specs) <= 1 or _gil_enabled():
+        for spec in specs:
+            findings.extend(_run_spec_scoped(spec, ctx))
+    else:
+        from concurrent.futures import ThreadPoolExecutor
+
+        workers = len(specs) if jobs <= 0 else min(jobs, len(specs))
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            ordered = list(pool.map(lambda spec: _run_spec_scoped(spec, ctx), specs))
+        for batch in ordered:
+            findings.extend(batch)
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")
     pass_count = sum(1 for item in findings if item.status == "pass")

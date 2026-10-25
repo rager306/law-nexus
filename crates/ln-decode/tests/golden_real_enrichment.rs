@@ -1,9 +1,9 @@
 use std::{fs, path::PathBuf};
 
 use ln_decode::{
-    adapters::{garant_odt::GarantOdtBlockDecoder, ConsultantWordMlBlockDecoder},
+    adapters::{ConsultantWordMlBlockDecoder, garant_odt::GarantOdtBlockDecoder},
     deontic::extract_deontic_lexemes,
-    domain::{fingerprint_bytes, DecodeRequest, FamilyFormat, PayloadRef, SourceFormatId},
+    domain::{DecodeRequest, FamilyFormat, PayloadRef, SourceFormatId, fingerprint_bytes},
     evaluator::evaluate,
     golden::{GoldenAnnotation, GoldenFixture, GoldenLayer, GoldenSource},
     hierarchy::extract_hierarchy,

@@ -13,15 +13,15 @@ mod npa_support;
 use std::fs;
 use std::path::PathBuf;
 
-use ln_decode::lawref::{capture_lawrefs, LawRef};
+use ln_decode::lawref::{LawRef, capture_lawrefs};
 use ln_decode::lexer::lex;
 use ln_decode::npa_bounds::{
-    arbitrate_pair, on_candidate_limit, span_relation, validate_bounds_jsonl,
-    CandidateLimitOutcome, PairDiagnostic, PairOutcome, SpanRelation, CANDIDATE_LIMIT_REACHED,
-    PROPOSED_CANDIDATE_CEILING, UNAVAILABLE_METRICS,
+    CANDIDATE_LIMIT_REACHED, CandidateLimitOutcome, PROPOSED_CANDIDATE_CEILING, PairDiagnostic,
+    PairOutcome, SpanRelation, UNAVAILABLE_METRICS, arbitrate_pair, on_candidate_limit,
+    span_relation, validate_bounds_jsonl,
 };
 use ln_decode::unknown_forms::collect_unknown_forms_from_text;
-use npa_support::{parse_json, Json};
+use npa_support::{Json, parse_json};
 
 // Pinned values (accepted S02 evidence chain).
 
@@ -1579,8 +1579,7 @@ fn t13_executable_families_exercise_production_surfaces() {
                         .filter(|capture| capture.pattern_id == "date-docno-window")
                         .count();
                     assert_eq!(
-                        date_docno,
-                        1,
+                        date_docno, 1,
                         "{ctx}: only the fully shaped doc-no window binds; lone dates and N-only tails invent nothing"
                     );
                 }

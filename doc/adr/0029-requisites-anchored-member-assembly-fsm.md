@@ -12,12 +12,16 @@ related: [ADR-0028, ADR-0027, ADR-0016, ADR-0019, ADR-0020, ADR-0013, ADR-0004]
 
 ## Status
 
-**Proposed [proposed]** — design decision for the future Rust implementation
-of reference capture. No Rust engine code has landed for this layer; the
-evidence base is the M207 Python prototype (`scripts/m207_context_graph_demo.py`)
-and corpus-scale censuses described below. Demo-only evidence does not close
-product requirements and does not promote any claim beyond `[proposed]`
-(R035-class honesty).
+**Proposed [proposed]** — design decision for the Rust implementation of
+reference capture. A bounded Rust reference-capture runtime landed under M211
+(crates `crates/ln-decode/src/npa_anchor.rs`, `npa_typed.rs`,
+`npa_continuation.rs`, `npa_link.rs`, `npa_classify.rs`, `npa_report.rs`,
+`npa_wire.rs`; bin `npa-integration-runner.rs`); the evidence base is the M207
+Python prototype (`scripts/m207_context_graph_demo.py`) plus that bounded
+runtime and the corpus-scale censuses described below. Prompt-FSM residue and
+corpus-wide / semantic acceptance remain deferred and unclaimed, so the claim
+stays `[proposed]` (bounded runtime, no lifecycle promotion) and demo-only
+evidence does not close product requirements (R035-class honesty).
 
 ## Context
 

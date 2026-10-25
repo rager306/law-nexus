@@ -11,7 +11,7 @@
 //! remains the responsibility of later corpus slices. Therefore this suite
 //! deliberately does not modify `npa-corpus-control.yaml`.
 
-use ln_decode::lexer::{lex, NpaToken, TokenKind};
+use ln_decode::lexer::{NpaToken, TokenKind, lex};
 
 fn kinds(tokens: &[NpaToken]) -> Vec<TokenKind> {
     tokens.iter().map(|token| token.kind).collect()
@@ -131,12 +131,16 @@ fn date_and_hierarchy_windows_do_not_confuse_each_other() {
     // exact span; the surrounding punctuation/space is still covered.
     let source = "x 01.01.2020 (1.2)";
     let tokens = lex(source);
-    assert!(tokens
-        .iter()
-        .any(|token| { token.kind == TokenKind::Date && token.lexeme(source) == "01.01.2020" }));
-    assert!(tokens
-        .iter()
-        .any(|token| { token.kind == TokenKind::HierNum && token.lexeme(source) == "1.2" }));
+    assert!(
+        tokens
+            .iter()
+            .any(|token| { token.kind == TokenKind::Date && token.lexeme(source) == "01.01.2020" })
+    );
+    assert!(
+        tokens
+            .iter()
+            .any(|token| { token.kind == TokenKind::HierNum && token.lexeme(source) == "1.2" })
+    );
     assert_covering(source);
 }
 
@@ -172,9 +176,11 @@ fn enum_markers_survive_hostile_positions_without_panicking() {
     assert_eq!(quoted[3].kind, TokenKind::EnumMarker);
 
     let trailing = lex("текст 1.");
-    assert!(!trailing
-        .iter()
-        .any(|token| token.kind == TokenKind::EnumMarker));
+    assert!(
+        !trailing
+            .iter()
+            .any(|token| token.kind == TokenKind::EnumMarker)
+    );
 
     let block_end = lex("1. текст");
     assert_eq!(block_end[0].kind, TokenKind::EnumMarker);

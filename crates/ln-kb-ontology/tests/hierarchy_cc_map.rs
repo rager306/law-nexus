@@ -4,8 +4,8 @@
 //! Missing map → Unknown. Duplicate key → Conflict.
 
 use ln_kb_ontology::domain::{
-    advance_ontology_fsm, map_hierarchy_marker, HierarchyBinding, HierarchyMap,
-    HierarchyMapOutcome, HierarchyMarker, WriteSetError,
+    HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker, WriteSetError,
+    advance_ontology_fsm, map_hierarchy_marker,
 };
 use ln_temporal::domain::ComponentConceptId;
 
@@ -122,12 +122,16 @@ fn lift_does_not_claim_force_or_expression_presence() {
         .expect("reg");
     let outcome = map_hierarchy_marker(&map, &marker("statya", "93"));
     let claims = outcome.non_claims();
-    assert!(claims
-        .iter()
-        .any(|c| c.contains("Force") || c.contains("InForce")));
-    assert!(claims
-        .iter()
-        .any(|c| c.contains("Expression") || c.contains("presence")));
+    assert!(
+        claims
+            .iter()
+            .any(|c| c.contains("Force") || c.contains("InForce"))
+    );
+    assert!(
+        claims
+            .iter()
+            .any(|c| c.contains("Expression") || c.contains("presence"))
+    );
     assert!(claims.iter().any(|c| c.contains("Unknown")));
 }
 

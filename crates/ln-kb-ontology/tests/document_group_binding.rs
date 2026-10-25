@@ -12,10 +12,10 @@
 //! vocabulary itself stays in the YAML catalog and never transfers to the
 //! graph — only the binding (group + catalog version) does.
 
-use ln_identity::domain::{mint_work, FrbrWork};
+use ln_identity::domain::{FrbrWork, mint_work};
 use ln_kb_ontology::catalog::OntologyCatalog;
 use ln_kb_ontology::domain::{
-    project_document_group_binding, reject_forbidden_kind, GraphEdge, WriteSet, WriteSetError,
+    GraphEdge, WriteSet, WriteSetError, project_document_group_binding, reject_forbidden_kind,
 };
 
 fn work() -> FrbrWork {
@@ -173,9 +173,11 @@ fn catalog_version_is_deterministic_fnv1a64() {
         "unexpected version format: {v1}"
     );
     assert_eq!(v1.len(), "fnv1a64-".len() + 16, "16 lowercase hex digits");
-    assert!(v1["fnv1a64-".len()..]
-        .chars()
-        .all(|c| c.is_ascii_hexdigit()));
+    assert!(
+        v1["fnv1a64-".len()..]
+            .chars()
+            .all(|c| c.is_ascii_hexdigit())
+    );
 }
 
 #[test]

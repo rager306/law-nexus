@@ -11,8 +11,8 @@
 use ln_publish::adapters::HostileDualWriterLedger;
 use ln_publish::application::PublishAuthoritativeH1;
 use ln_publish::domain::{
-    AuthoritySurface, CompletenessEvidence, CutoffId, InputDigest, OperationId, PublicationOutcome,
-    PublishRequest, RuleVersion, ScopeId, WriterId, PUBLICATION_POLICY_VERSION,
+    AuthoritySurface, CompletenessEvidence, CutoffId, InputDigest, OperationId,
+    PUBLICATION_POLICY_VERSION, PublicationOutcome, PublishRequest, RuleVersion, ScopeId, WriterId,
 };
 
 fn hostile() -> PublishAuthoritativeH1<HostileDualWriterLedger> {

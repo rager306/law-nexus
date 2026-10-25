@@ -1,8 +1,8 @@
 use ln_decode::document_context::{
-    build_document_analysis_overlay, build_document_structure_index, reduce_context_results,
     BlockId, ContainerRole, ContextBudgets, ContextEnvironment, ContextPhase, ContextRequest,
     ContextRequestKind, ContextStatus, ContextTransition, ContextWorklist, DocumentVersionRef,
     FrameRef, IndexBuildError, MAX_LINKING_PASSES, PROPOSED_MAX_ADJACENT_RADIUS,
+    build_document_analysis_overlay, build_document_structure_index, reduce_context_results,
 };
 use ln_decode::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
@@ -46,19 +46,22 @@ fn index_has_source_and_structural_nodes_with_closed_roles_and_edges() {
     let index = build_document_structure_index(version, &fixture()).unwrap();
     assert_eq!(index.source_blocks().len(), 4);
     assert_eq!(index.containers().len(), 4); // document, requisites, division, article
-    assert!(index
-        .containers()
-        .iter()
-        .all(|n| ContainerRole::ALL.contains(&n.role())));
-    assert!(index
-        .edges()
-        .iter()
-        .any(|e| e.from() == "block-3" && e.to() == "container-2"));
-    assert!(index
-        .edges()
-        .iter()
-        .any(|e| e.relation()
-            == ln_decode::document_context::StructureEdgeRelation::ImmediatelyPrecedes));
+    assert!(
+        index
+            .containers()
+            .iter()
+            .all(|n| ContainerRole::ALL.contains(&n.role()))
+    );
+    assert!(
+        index
+            .edges()
+            .iter()
+            .any(|e| e.from() == "block-3" && e.to() == "container-2")
+    );
+    assert!(
+        index.edges().iter().any(|e| e.relation()
+            == ln_decode::document_context::StructureEdgeRelation::ImmediatelyPrecedes)
+    );
 }
 
 #[test]
@@ -186,11 +189,13 @@ fn aliases_use_closed_markers_and_preserve_scope() {
     assert_eq!(aliases[0].declaration_anchor.start(), 34);
     assert_eq!(aliases[0].declaration_anchor.end(), 61);
     assert_eq!(aliases[0].scope_container_id, scope);
-    assert!(ln_decode::document_context::detect_declared_aliases(
-        "Федеральный закон (далее: Закон) действует.",
-        aliases[0].scope_container_id.clone(),
-    )
-    .is_empty());
+    assert!(
+        ln_decode::document_context::detect_declared_aliases(
+            "Федеральный закон (далее: Закон) действует.",
+            aliases[0].scope_container_id.clone(),
+        )
+        .is_empty()
+    );
 }
 
 #[test]
@@ -296,9 +301,11 @@ fn worklist_cycle_and_global_limit_are_typed_and_bounded() {
     let limited_report = limited_worklist.run(environment, &[limited]);
     let limited_result = limited_report.results.values().next().unwrap();
     assert_eq!(limited_result.status, ContextStatus::Limit);
-    assert!(limited_result
-        .diagnostics
-        .contains(&ln_decode::document_context::ContextDiagnostic::ContextQueryLimitReached));
+    assert!(
+        limited_result
+            .diagnostics
+            .contains(&ln_decode::document_context::ContextDiagnostic::ContextQueryLimitReached)
+    );
 }
 
 #[test]

@@ -1,8 +1,8 @@
 //! Scoring engine tests: multi-signal templates with AND/OR logic (ADR-0027).
 
 use ln_consultant_parser::{
-    classify_all_scored, classify_all_scored_for_path, classify_link_scored, extract_hyperlinks,
-    load_templates, score_template, RawLink, Template,
+    RawLink, Template, classify_all_scored, classify_all_scored_for_path, classify_link_scored,
+    extract_hyperlinks, load_templates, score_template,
 };
 
 fn link(context: &str) -> RawLink {

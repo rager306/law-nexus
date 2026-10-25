@@ -1,0 +1,90 @@
+# m211-classification-parity-fixture/v1 [bounded]
+# source = Python differential reference, NOT independent gold (D519)
+# exporter = scripts/m211_s04_export_classification_reference.py
+# frozen docs/canons = crates/ln-decode/tests/fixtures/npa-members/typed-parity-fixture.tsv
+# doc_text convention = raw UTF-8 fragment files from
+#   crates/ln-decode/tests/fixtures/npa-lawref/, concatenated with a single
+#   "\n" separator and NO trimming. Per-block Python pipeline text is
+#   deliberately NOT reproduced here; both sides MUST use this convention.
+# synthetic body = single-line snippet (no newlines); doc column is "-" for
+#   synthetic rows; frozen rows keep body empty (both sides compute doc_text).
+# cyrillic is verbatim UTF-8, never escaped
+# kind	doc	canon	body	lemma	bucket	verdict	graph	identity_key	why
+frozen	npa-doc-005	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-006	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-007	Постановление КС РФ		постановление	government	form_in_dictionary	overlay	overlay_not_rank	постановление КС — не НПА и не ступенька ADR-0019, но общеобязательно в части судьбы проверенной нормы (исключение G без F)
+frozen	npa-doc-007	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-008	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-009	Постановление Пленума ВАС РФ		постановление	government	form_in_dictionary	overlay	overlay_not_rank	постановление Пленум ВАС РФ — разъяснение практики, не НПА и не ступенька ADR-0019; overlay судебной практики (ADR-0020)
+frozen	npa-doc-009	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-010	Постановление Пленума ВАС РФ		постановление	government	form_in_dictionary	overlay	overlay_not_rank	постановление Пленум ВАС РФ — разъяснение практики, не НПА и не ступенька ADR-0019; overlay судебной практики (ADR-0020)
+frozen	npa-doc-010	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-011	Постановление Пленума ВАС РФ		постановление	government	form_in_dictionary	overlay	overlay_not_rank	постановление Пленум ВАС РФ — разъяснение практики, не НПА и не ступенька ADR-0019; overlay судебной практики (ADR-0020)
+frozen	npa-doc-011	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-012	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-013	Приказ Минэкономразвития России		приказ	agency	form_in_dictionary	hold	do_not_project	приказ — форма, не класс: бывает НПА и индивидуальный; пока F неясна, OfficialIdentityClaim не проецируем
+frozen	npa-doc-014	Приказ ФАНО России		приказ	agency	form_in_dictionary	hold	do_not_project	приказ — форма, не класс: бывает НПА и индивидуальный; пока F неясна, OfficialIdentityClaim не проецируем
+frozen	npa-doc-015	Приказ Росгидромета		приказ	agency	form_in_dictionary	hold	do_not_project	приказ — форма, не класс: бывает НПА и индивидуальный; пока F неясна, OfficialIdentityClaim не проецируем
+frozen	npa-doc-016	Приказ Роструда		приказ	agency	form_in_dictionary	hold	do_not_project	приказ — форма, не класс: бывает НПА и индивидуальный; пока F неясна, OfficialIdentityClaim не проецируем
+frozen	npa-doc-017	Приказ Минэкономразвития России		приказ	agency	form_in_dictionary	hold	do_not_project	приказ — форма, не класс: бывает НПА и индивидуальный; пока F неясна, OfficialIdentityClaim не проецируем
+frozen	npa-doc-018	Приказ Минобрнауки России		приказ	agency	form_in_dictionary	hold	do_not_project	приказ — форма, не класс: бывает НПА и индивидуальный; пока F неясна, OfficialIdentityClaim не проецируем
+frozen	npa-doc-019	Постановление Правительства РФ		постановление	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-020	Постановление Правительства РФ		постановление	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-021	Постановление Правительства РФ		постановление	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-022	Постановление Правительства РФ		постановление	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-023	распоряжение Правительства РФ		распоряжение	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-024	распоряжение Правительства РФ		распоряжение	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-025	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-025	распоряжение Правительства РФ		распоряжение	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-026	Указ Президента РФ		указ	presidential	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-027	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-027	Закон РФ		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-027	Постановление Правительства РФ		постановление	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-027	лицензия		лицензия	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-028	Постановление Правительства РФ		постановление	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-028	доверенность		доверенность	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-028	Решение Брянского УФАС России		решение	unknown	unknown_kind	overlay	hold	решение УФАС/ФАС по делу — индивидуальный акт территориального ФОИВ, не НПА и не ступенька ADR-0019; overlay практики (ADR-0020); GEO города не делает его муниципальным
+frozen	npa-doc-029	Постановление КС РФ		постановление	government	form_in_dictionary	overlay	overlay_not_rank	постановление КС — не НПА и не ступенька ADR-0019, но общеобязательно в части судьбы проверенной нормы (исключение G без F)
+frozen	npa-doc-029	Постановление Пленума ВС РФ		постановление	government	form_in_dictionary	overlay	overlay_not_rank	постановление Пленум ВС РФ — разъяснение практики, не НПА и не ступенька ADR-0019; overlay судебной практики (ADR-0020)
+frozen	npa-doc-030	доверенность		доверенность	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-030	Приказ Минздрава России		приказ	agency	form_in_dictionary	hold	do_not_project	приказ — форма, не класс: бывает НПА и индивидуальный; пока F неясна, OfficialIdentityClaim не проецируем
+frozen	npa-doc-030	Постановление Правительства РФ		постановление	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-031	соглашение		соглашение	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-031	контракт		контракт	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-032	Распоряжение МТУ Росимущества в Челябинской и Курганской областях		распоряжение	government	form_in_dictionary	hold	do_not_project	распоряжение органа — форма, не класс: как приказ бывает НПА и индивидуальным; распоряжение Правительства — отдельная ветка НПА
+frozen	npa-doc-032	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-032	жалоба		жалоба	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-032	Письмо Челябинского УФАС России		письмо	agency	form_in_dictionary	refuse	do_not_project	письмо ФОИВ — не НПА (ПП 1009) и не общеобязательно; GEO города не делает его муниципальным; ребро идентичности НПА не строим
+frozen	npa-doc-032	Постановление Правительства РФ		постановление	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-033	Распоряжение МТУ Росимущества в Челябинской и Курганской областях		распоряжение	government	form_in_dictionary	hold	do_not_project	распоряжение органа — форма, не класс: как приказ бывает НПА и индивидуальным; распоряжение Правительства — отдельная ветка НПА
+frozen	npa-doc-033	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-033	жалоба		жалоба	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-033	Письмо Челябинского УФАС России		письмо	agency	form_in_dictionary	refuse	do_not_project	письмо ФОИВ — не НПА (ПП 1009) и не общеобязательно; GEO города не делает его муниципальным; ребро идентичности НПА не строим
+frozen	npa-doc-033	Постановление Правительства РФ		постановление	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-034	доверенность		доверенность	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-034	жалоба		жалоба	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-034	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-034	Постановление Правительства РФ		постановление	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-035	доверенность		доверенность	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-035	Постановление Правительства РФ		постановление	government	form_in_dictionary	identifying_act	presidential_agency	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-035	протокол		протокол	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-035	жалоба		жалоба	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-035	Приказ Министерства строительства		приказ	agency	form_in_dictionary	hold	do_not_project	приказ — форма, не класс: бывает НПА и индивидуальный; пока F неясна, OfficialIdentityClaim не проецируем
+frozen	npa-doc-035	Письмо Магаданского УФАС России		письмо	agency	form_in_dictionary	refuse	do_not_project	письмо ФОИВ — не НПА (ПП 1009) и не общеобязательно; GEO города не делает его муниципальным; ребро идентичности НПА не строим
+frozen	npa-doc-035	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-035	приказ		приказ	agency	form_in_dictionary	refuse	do_not_project	приказ юрлица (ООО/АО/ИП) — не акт ФОИВ; не НПА и не hold до F
+frozen	npa-doc-036	доверенность		доверенность	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-036	жалоба		жалоба	instrument	instrument_not_npa	refuse	do_not_project	простой/первичный документ: не акт власти как источник права; не нормативность, не общеобязательность
+frozen	npa-doc-036	Письмо Магаданского УФАС России		письмо	agency	form_in_dictionary	refuse	do_not_project	письмо ФОИВ — не НПА (ПП 1009) и не общеобязательно; GEO города не делает его муниципальным; ребро идентичности НПА не строим
+frozen	npa-doc-036	Федеральный закон		закон	federal	form_in_dictionary	identifying_act	federal	форма закона/указа/постановления Правительства — НПА; общеобязательность после режима силы (публикация), не из номера
+frozen	npa-doc-036	приказ		приказ	agency	form_in_dictionary	refuse	do_not_project	приказ юрлица (ООО/АО/ИП) — не акт ФОИВ; не НПА и не hold до F
+frozen	npa-doc-038	Приказ МВД России		приказ	agency	form_in_dictionary	hold	do_not_project	приказ — форма, не класс: бывает НПА и индивидуальный; пока F неясна, OfficialIdentityClaim не проецируем
+synthetic	-	ТК		тк	unknown	unknown_kind	refuse	do_not_project	вида нет в словаре — не выдумываем узел графа
+synthetic	-	ГОСТ 1234-2020		гост	unknown	unknown_kind	overlay	do_not_project	ГОСТ/ИСО/СНиП/СанПиН — стандарт, не НПА ПП 1009; обязательность только через техрегламент; не Work identity
+synthetic	-	ТР ТС 005/2011		тр	unknown	unknown_kind	overlay	deferred-undefined	технический регламент (ТР ТС/ЕАЭС) — обязательный; голый «ТР» не ловим (омограф «третье»); international identity_key deferred-undefined
+synthetic	-	Письмо Минфина России		письмо	agency	form_in_dictionary	refuse	do_not_project	письмо ФОИВ — не НПА (ПП 1009) и не общеобязательно; GEO города не делает его муниципальным; ребро идентичности НПА не строим
+synthetic	-	Приказ	ООО Ромашка	приказ	agency	form_in_dictionary	refuse	do_not_project	приказ юрлица (ООО/АО/ИП) — не акт ФОИВ; не НПА и не hold до F
+synthetic	-	КоАП РФ		кодекс	federal	form_in_dictionary	identifying_act	federal	КоАП как кодекс = ФЗ; постановление по делу КоАП сюда не входит
+synthetic	-	Постановление Пленума ВС РФ		постановление	government	form_in_dictionary	overlay	overlay_not_rank	постановление Пленум ВС РФ — разъяснение практики, не НПА и не ступенька ADR-0019; overlay судебной практики (ADR-0020)
+synthetic	-	Решение УФАС по Челябинской области		решение	unknown	unknown_kind	overlay	hold	решение УФАС/ФАС по делу — индивидуальный акт территориального ФОИВ, не НПА и не ступенька ADR-0019; overlay практики (ADR-0020); GEO города не делает его муниципальным
+synthetic	-	Распоряжение		распоряжение	government	form_in_dictionary	hold	do_not_project	распоряжение органа — форма, не класс: как приказ бывает НПА и индивидуальным; распоряжение Правительства — отдельная ветка НПА

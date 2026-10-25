@@ -1,0 +1,125 @@
+{
+  "schema": "m223-s06-navigation-census/v1",
+  "version": 1,
+  "counts_schema": "m223-s06-navigation-counts/v1",
+  "non_claims": [
+    "not_r1000_closure",
+    "not_semantic_or_legal_interpretation",
+    "not_normalization",
+    "not_authenticity_evidence",
+    "bounded_sample_not_full_corpus_s05_s07",
+    "bounded_by_input_size_guard",
+    "no_xml_reparse",
+    "no_physical_pagination_surface",
+    "census_counts_only_no_decoded_text"
+  ],
+  "manifest_path": "prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl",
+  "manifest_sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c",
+  "manifest_entries": 43785,
+  "manifest_entries_over_cap": 286,
+  "sample_max_bytes": 1048576,
+  "corpus_root": "consru_export/consru_export/exports",
+  "binary_path": "target/release/reader-nav",
+  "binary_sha256": "sha256:b0ebff60a1f5eb3dde6e8f9018dd953d7e0cc5fd12345d3d2ae456ee5ba87e4b",
+  "contract_path": "prd/architecture/intermediate-source-navigation-contract.md",
+  "contract_sha256": "sha256:1db63b5a3d5285cb37da46bcd68d7852eb08f286c86392f7d9d8d704f674b723",
+  "sample_seed": 22306,
+  "sample_per_decile": 2,
+  "sample_tail_n": 6,
+  "sample_strata": {
+    "decile_0": 2,
+    "decile_1": 2,
+    "decile_2": 2,
+    "decile_3": 2,
+    "decile_4": 2,
+    "decile_5": 2,
+    "decile_6": 2,
+    "decile_7": 2,
+    "decile_8": 2,
+    "decile_9": 2
+  },
+  "sample_size": 26,
+  "documents": {
+    "attempted": 26,
+    "accepted": 26,
+    "failed": 0
+  },
+  "views_total": 13287,
+  "segments_total": 118668,
+  "references_total": 25471,
+  "views_by_kind": {
+    "cell": 87,
+    "paragraph": 12706,
+    "residual": 478,
+    "row": 15,
+    "table": 1
+  },
+  "segments_by_kind": {
+    "text": 118668
+  },
+  "segments_by_origin": {
+    "source_fragment": 118668
+  },
+  "references_by_type": {
+    "foreign_element": 25412,
+    "unknown_wordml_element": 59
+  },
+  "links_by_kind": {
+    "contains": 537,
+    "owns": 144139,
+    "precedes": 13158
+  },
+  "resolved_total": 0,
+  "unresolved_total": 25471,
+  "unresolved_by_reason": {
+    "not_a_resolvable_reference": 25471
+  },
+  "max_depth": 3,
+  "max_path_len": 4,
+  "subtree_chars": {
+    "primary": 2472976,
+    "service": 672510
+  },
+  "observed_node_kinds": [
+    "reference",
+    "segment",
+    "view"
+  ],
+  "observed_link_kinds": [
+    "contains",
+    "owns",
+    "precedes"
+  ],
+  "observed_view_kinds": [
+    "cell",
+    "paragraph",
+    "residual",
+    "row",
+    "table"
+  ],
+  "observed_segment_kinds": [
+    "text"
+  ],
+  "observed_origins": [
+    "source_fragment"
+  ],
+  "observed_reference_types": [
+    "foreign_element",
+    "unknown_wordml_element"
+  ],
+  "observed_resolve_reasons": [
+    "not_a_resolvable_reference"
+  ],
+  "uncovered": [],
+  "path_terminal": true,
+  "cycles": 0,
+  "reference_accounting_ok": true,
+  "s03_baseline_reconciled": {
+    "entries": 43785,
+    "accepted": 43785,
+    "refused": 0,
+    "incomplete": 0,
+    "r1000_status": "active/unclosed"
+  },
+  "wall_s": 7.325
+}

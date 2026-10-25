@@ -1,0 +1,182 @@
+{
+  "approved_fixtures": [
+    {
+      "bytes": 875,
+      "file": "mixed-wordml.xml",
+      "measurement": {
+        "blocks": 11,
+        "classifications": 0,
+        "completion": "complete",
+        "completion_basis": "bounded_analysis_complete",
+        "diagnostics": 1,
+        "envelope_lines": 20,
+        "envelope_sha256": "cb64eeed8e984b5f140f6dc3a60fbe4a8e180184796da7d85da7a1152dd7e6a5",
+        "families": {
+          "diagnostic": 1,
+          "document": 1,
+          "fragment": 15
+        },
+        "linked_members": 0,
+        "records": 17,
+        "refused_refs": 0,
+        "relations": 0,
+        "resolved_typed_members": 0,
+        "typed_members": 0,
+        "unresolved_members": 0
+      },
+      "sha256": "d2fc1cd17f0697f575e94f09d83da5027d73afd37c700772eafa4c4a4fbc76db"
+    },
+    {
+      "bytes": 1047,
+      "file": "controls.xml",
+      "measurement": {
+        "blocks": 6,
+        "classifications": 0,
+        "completion": "complete",
+        "completion_basis": "bounded_analysis_complete",
+        "diagnostics": 1,
+        "envelope_lines": 17,
+        "envelope_sha256": "232de86d7df575013a32a83f2c333b16dd7237ad08dea1f1fb15d5fb75b7bd0e",
+        "families": {
+          "diagnostic": 1,
+          "document": 1,
+          "fragment": 12
+        },
+        "linked_members": 0,
+        "records": 14,
+        "refused_refs": 0,
+        "relations": 0,
+        "resolved_typed_members": 0,
+        "typed_members": 0,
+        "unresolved_members": 0
+      },
+      "sha256": "86440c8cf2f16b88f9da919c77f04e9a2487ed3a0032305dd195aaf48e40988f"
+    },
+    {
+      "bytes": 509,
+      "file": "text-only.xml",
+      "measurement": {
+        "blocks": 1,
+        "classifications": 0,
+        "completion": "complete",
+        "completion_basis": "bounded_analysis_complete",
+        "diagnostics": 1,
+        "envelope_lines": 6,
+        "envelope_sha256": "53182b2ff9283784018d660b56b7d62e8321bb0bf74398735af26e1a992fed36",
+        "families": {
+          "diagnostic": 1,
+          "document": 1,
+          "fragment": 1
+        },
+        "linked_members": 0,
+        "records": 3,
+        "refused_refs": 0,
+        "relations": 0,
+        "resolved_typed_members": 0,
+        "typed_members": 0,
+        "unresolved_members": 0
+      },
+      "sha256": "e13b8c7424100989028d95bd4c37bfadcd3970972329d93624c8da384507c55f"
+    }
+  ],
+  "ascii_only": true,
+  "count_only": true,
+  "declared_real_input": {
+    "bytes": 193726,
+    "measurement": {
+      "blocks": 169,
+      "classifications": 51,
+      "completion": "incomplete",
+      "completion_basis": "refused_record",
+      "diagnostics": 37,
+      "envelope_lines": 459,
+      "envelope_sha256": "49a0cba1c4c0c4e2d94df3653e7f3079264d55669abcb052ee74d2fb58d723ec",
+      "families": {
+        "classification": 51,
+        "diagnostic": 37,
+        "document": 1,
+        "fragment": 295,
+        "member": 72
+      },
+      "linked_members": 51,
+      "records": 456,
+      "refused_refs": 18,
+      "relations": 0,
+      "resolved_typed_members": 21,
+      "typed_members": 21,
+      "unresolved_members": 0
+    },
+    "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+    "sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d"
+  },
+  "generated_utc": "2026-10-04T19:04:54Z",
+  "lifecycle": "[bounded]",
+  "milestone": "M214-es3jvw",
+  "non_claims": [
+    "this receipt is [bounded] to the three approved reader fixtures and the single declared real input; it is not corpus coverage",
+    "the declared real input is one tracked bounded Consultant WordML fixture, not the restricted corpus (consru_export/exports/); no decoded legal text enters tracked evidence",
+    "counts and sha256 are integrity evidence, not coverage and not source authenticity",
+    "this is not a read-back verifier (S03), not a context export and not semantic/legal gold",
+    "R1000 stays active and unclosed; this receipt never auto-closes it",
+    "frozen oracles and the M213 cleaned wire bytes are not modified"
+  ],
+  "pipeline": "source_package::capture -> reader_gate::gate_reader -> reader_projection::build_projection -> npa_analysis_records::analyze_document -> npa_analysis_wire::render_npa_analysis -> npa_analysis_wire::inspect_npa_analysis_wire",
+  "proof_classes": {
+    "block_binding": "analysis blocks are reader primary views; block text is the ordered concatenation of source-fragment segments and each span localizes to exactly one fragment",
+    "bounded_real_input": "the declared real input is pinned by byte length and sha256; only counts and hashes are recorded",
+    "coordinates": "every bound record span resolves through the seam to the exact substrate UTF-8 slice; a bound span is a non-empty range",
+    "cross_fragment_refusal": "a span that straddles two source fragments is a closed cross_fragment refusal, never rebased and never dropped",
+    "envelope": "manifest/policies/records/footer shape, two recomputable non-cyclic seals and a closed completion marker",
+    "fail_closed": "a document with records yields resolved typed members or explicit refused spans; a refused span forces completion=incomplete/refused_record and is never promoted",
+    "identity": "the envelope parent pins the captured manifest sha256/bytes and both footer seals; check_parent_citation and check_document_version succeed on the pipeline's own output",
+    "no_corpus_transfer": "fragment records are count/hash only; the envelope carries no inline decoded text",
+    "no_temporal_fields": "no temporal stop-sign field enters the identity/coordinate envelope",
+    "unresolved_not_promoted": "an unresolved typed member keeps TypeDerivation::Unresolved and an empty TYPE surface"
+  },
+  "re_test_set": [
+    "cargo test -p ln-decode --offline --test npa_analysis_export_integration --test analysis_source_mapping_contract --test analysis_source_mapping_hostile --test analysis_source_mapping_integration --test npa_document_context_contract --test npa_document_context_hostile_contract --test npa_link_pipeline_integration --test cleaned_projection_verify",
+    "cargo fmt --all --check",
+    "cargo clippy --workspace --all-targets --offline -- -D warnings",
+    "cargo check --workspace --offline"
+  ],
+  "refusals_observed": [
+    "cross_fragment: a whole-block span over two source-fragment segments",
+    "invalid_span: an empty local span",
+    "out_of_bounds: a local span beyond the block text",
+    "SourceIdentityMismatch: a tampered source sha256 and a claimed seal on an unsealed parent",
+    "DocumentVersionMismatch: a record revision differing from the envelope triple",
+    "CrossDocument: a fragment from another fixture pinned into this envelope",
+    "TemporalFieldForbidden: a temporal stop-sign field"
+  ],
+  "schema": "m214-s02-analysis-export/v1",
+  "schema_version": 1,
+  "slice": "S02",
+  "source_binding": {
+    "contract_doc": {
+      "path": "prd/architecture/npa-analysis-jsonl-contract.md",
+      "sha256": "0fa5a70280a39ed8713d8b4778a682f765b21fb8bb270b955b16689dda20bac4"
+    },
+    "declared_real_input": {
+      "bytes": 193726,
+      "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+      "sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d"
+    },
+    "integration_test": {
+      "path": "crates/ln-decode/tests/npa_analysis_export_integration.rs",
+      "sha256": "1cfe4d4dc40e480f74e944706e3a82348cb534de7f625b0bb12e332cb764fd07"
+    },
+    "records_module": {
+      "path": "crates/ln-decode/src/npa_analysis_records.rs",
+      "sha256": "726850327e4278f15674e1aa146722de2c1f48917077394b94ec30f24b96a4e8"
+    },
+    "seam_module": {
+      "path": "crates/ln-decode/src/analysis_source_mapping.rs",
+      "sha256": "7ef3864ea8bdae7d6370685cfa8de1b9a820f9ed214d3531d6e1bd6d9ce27ce4"
+    },
+    "wire_module": {
+      "path": "crates/ln-decode/src/npa_analysis_wire.rs",
+      "sha256": "9ca43389177e3e8c271b88f8fb2f63a0a2b0b2f935a1f6bb5bd585991b0e889a"
+    }
+  },
+  "task": "T05"
+}

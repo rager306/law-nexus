@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Self-authored non-legal synthetic fixture. Purpose: the minimal positive case — one WordML wordDocument with a single paragraph, no controls, notes, tables or references. Provenance: tmp/pageindex/iteration15/package_fixtures.py text_only. See prd/architecture/reader-fixture-manifest.md. -->
+<w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml"><w:body><w:p><w:r><w:t>Только текст</w:t></w:r></w:p></w:body></w:wordDocument>

@@ -36,8 +36,8 @@ use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use ln_product_cli::hierarchy_registry_generation::{
-    parse_generator_args, render_projection, GeneratorCli, GeneratorError, GeneratorMode,
-    CANONICAL_REGISTRY_PATH,
+    CANONICAL_REGISTRY_PATH, GeneratorCli, GeneratorError, GeneratorMode, parse_generator_args,
+    render_projection,
 };
 
 /// Successor M209 admission source (102 `m209-candidate-backed` rows).

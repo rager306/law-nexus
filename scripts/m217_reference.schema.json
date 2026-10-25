@@ -1,0 +1,315 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "m217-reference/v1",
+  "title": "M217 reference prototype artifacts (Draft 2020-12 subset validator applies)",
+  "non_claims": [
+    "Non-authoritative reference projection",
+    "Validation subset is not a full JSON Schema implementation",
+    "Does not promote requirements, ADRs, or lifecycle"
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "digest12": {"type": "string", "pattern": "^[a-f0-9]{12}$"},
+    "iso_date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "edition": {
+      "type": "object",
+      "required": [
+        "edition_no", "source_sha256", "raw_day", "applied_day", "clamped",
+        "article_count", "raw_headings", "parse_loss", "break_from_previous",
+        "removed_from_previous", "part_count", "edge_count"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "edition_no": {"type": "integer", "minimum": 1},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "raw_day": {"$ref": "#/$defs/iso_date"},
+        "applied_day": {"$ref": "#/$defs/iso_date"},
+        "clamped": {"type": "boolean"},
+        "article_count": {"type": "integer", "minimum": 0},
+        "raw_headings": {"type": "integer", "minimum": 0},
+        "parse_loss": {"type": "integer", "minimum": 0},
+        "break_from_previous": {"type": "boolean"},
+        "removed_from_previous": {"type": "integer", "minimum": 0},
+        "part_count": {"type": "integer", "minimum": 0},
+        "edge_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "ctv": {
+      "type": "object",
+      "required": ["article", "edition_no", "op"],
+      "additionalProperties": false,
+      "properties": {
+        "article": {"type": "string", "pattern": "^statya-"},
+        "edition_no": {"type": "integer", "minimum": 1},
+        "op": {"enum": ["created", "amended", "removed"]}
+      }
+    },
+    "nonmono": {
+      "type": "object",
+      "required": ["from_edition_no", "raw_day", "applied_day"],
+      "additionalProperties": false,
+      "properties": {
+        "from_edition_no": {"type": "integer", "minimum": 1},
+        "raw_day": {"$ref": "#/$defs/iso_date"},
+        "applied_day": {"$ref": "#/$defs/iso_date"}
+      }
+    },
+    "timeline": {
+      "type": "object",
+      "required": [
+        "schema_version", "authoritative", "non_claims", "normalization_profile",
+        "counts", "g_layer_volume", "editions", "ctv_events", "non_monotonic"
+      ],
+      "properties": {
+        "schema_version": {"const": "m217-reference-timeline/v2"},
+        "authoritative": {"const": false},
+        "non_claims": {"type": "array", "items": {"type": "string"}},
+        "normalization_profile": {"$ref": "#/$defs/profile"},
+        "counts": {
+          "type": "object",
+          "required": ["editions", "ctv_events", "non_monotonic"],
+          "properties": {
+            "editions": {"type": "integer", "minimum": 1},
+            "ctv_events": {"type": "integer", "minimum": 0},
+            "non_monotonic": {"type": "integer", "minimum": 0}
+          }
+        },
+        "g_layer_volume": {"type": "object"},
+        "editions": {"type": "array", "items": {"$ref": "#/$defs/edition"}},
+        "ctv_events": {"type": "array", "items": {"$ref": "#/$defs/ctv"}},
+        "non_monotonic": {"type": "array", "items": {"$ref": "#/$defs/nonmono"}}
+      }
+    },
+    "profile": {
+      "type": "object",
+      "required": ["id", "rules"],
+      "properties": {
+        "id": {"const": "m217-norm/v1"},
+        "rules": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "digests_header": {
+      "type": "object",
+      "required": ["record_kind", "schema_version", "normalization_profile", "non_claims"],
+      "properties": {
+        "record_kind": {"const": "header"},
+        "schema_version": {"const": "m217-reference-digests/v1"},
+        "normalization_profile": {"$ref": "#/$defs/profile"},
+        "non_claims": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "digests_record": {
+      "type": "object",
+      "required": [
+        "record_kind", "schema_version", "edition_no", "article", "digest", "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "record_kind": {"const": "art_digest"},
+        "schema_version": {"const": "m217-reference-digests/v1"},
+        "edition_no": {"type": "integer", "minimum": 1},
+        "article": {"type": "string", "pattern": "^statya-"},
+        "digest": {"$ref": "#/$defs/digest12"},
+        "source": {
+          "type": "object",
+          "required": ["sha256", "p_start", "p_end"],
+          "properties": {
+            "sha256": {"$ref": "#/$defs/sha256"},
+            "p_start": {"type": "integer", "minimum": 0},
+            "p_end": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "named_graphs": {
+      "type": "object",
+      "required": ["schema_version", "authoritative", "non_claims", "graphs"],
+      "properties": {
+        "schema_version": {"const": "m217-reference-named-graphs/v1"},
+        "authoritative": {"const": false},
+        "non_claims": {"type": "array", "items": {"type": "string"}},
+        "graphs": {"type": "array", "minItems": 2}
+      }
+    },
+    "amend_marker": {
+      "type": "object",
+      "required": ["edition_no", "article", "date", "number", "tier"],
+      "additionalProperties": false,
+      "properties": {
+        "edition_no": {"type": "integer", "minimum": 1},
+        "article": {"type": "string"},
+        "date": {"$ref": "#/$defs/iso_date"},
+        "number": {"type": "string", "minLength": 1},
+        "tier": {
+          "enum": ["resolved_enacting_date", "resolved_number_only", "unresolved"]
+        },
+        "resolved_path": {"type": "string"}
+      }
+    },
+    "amend_provenance": {
+      "type": "object",
+      "required": ["schema_version", "authoritative", "non_claims", "counts", "resolution_tiers", "markers"],
+      "properties": {
+        "schema_version": {"const": "m217-reference-amend-provenance/v1"},
+        "authoritative": {"const": false},
+        "non_claims": {"type": "array", "items": {"type": "string"}},
+        "counts": {
+          "type": "object",
+          "required": ["editions_with_markers", "markers", "unique_amending_laws"],
+          "properties": {
+            "editions_with_markers": {"type": "integer", "minimum": 0},
+            "markers": {"type": "integer", "minimum": 0},
+            "unique_amending_laws": {"type": "integer", "minimum": 0}
+          }
+        },
+        "resolution_tiers": {"type": "object"},
+        "markers": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/amend_marker"}
+        }
+      }
+    },
+    "references_pair": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^statya-"}
+    },
+    "requisite": {
+      "type": "object",
+      "required": ["type", "date", "number", "tier"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {"type": "string", "minLength": 1},
+        "date": {"$ref": "#/$defs/iso_date"},
+        "number": {"type": "string", "minLength": 1},
+        "tier": {
+          "enum": ["resolved_enacting_date", "resolved_number_only", "unresolved"]
+        },
+        "resolved_path": {"type": "string"}
+      }
+    },
+    "references": {
+      "type": "object",
+      "required": [
+        "schema_version", "authoritative", "scope", "non_claims", "counts",
+        "edges_internal", "edges_external_sentence", "requisites"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"const": "m217-reference-references/v1"},
+        "authoritative": {"const": false},
+        "scope": {
+          "type": "object",
+          "required": ["act_dir", "edition_no"],
+          "additionalProperties": false,
+          "properties": {
+            "act_dir": {"type": "string", "minLength": 1},
+            "edition_no": {"type": "integer", "minimum": 1}
+          }
+        },
+        "non_claims": {"type": "array", "items": {"type": "string"}},
+        "counts": {
+          "type": "object",
+          "required": [
+            "candidates", "internal", "external_sentence", "deep_link_candidates",
+            "deep_links", "requisites", "requisites_exact_date", "requisites_unique"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "candidates": {"type": "integer", "minimum": 0},
+            "internal": {"type": "integer", "minimum": 0},
+            "external_sentence": {"type": "integer", "minimum": 0},
+            "deep_link_candidates": {"type": "integer", "minimum": 0},
+            "deep_links": {"type": "integer", "minimum": 0},
+            "requisites": {"type": "integer", "minimum": 0},
+            "requisites_exact_date": {"type": "integer", "minimum": 0},
+            "requisites_unique": {"type": "integer", "minimum": 0}
+          }
+        },
+        "edges_internal": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/references_pair"}
+        },
+        "edges_external_sentence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/references_pair"}
+        },
+        "requisites": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/requisite"}
+        }
+      }
+    },
+    "pageindex_node": {
+      "type": "object",
+      "required": [
+        "id", "level", "kind", "label", "parent", "p_start", "p_end",
+        "chars", "char_start", "char_end"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "level": {"type": "integer", "minimum": 1, "maximum": 7},
+        "kind": {
+          "enum": [
+            "section", "chapter", "paragraph", "statya", "part", "punkt",
+            "subpunkt", "block"
+          ]
+        },
+        "label": {"type": "string", "minLength": 1},
+        "parent": {"type": ["string", "null"]},
+        "p_start": {"type": "integer", "minimum": 0},
+        "p_end": {"type": "integer", "minimum": 0},
+        "chars": {"type": "integer", "minimum": 0},
+        "char_start": {"type": "integer", "minimum": 0},
+        "char_end": {"type": "integer", "minimum": 0}
+      }
+    },
+    "pageindex": {
+      "type": "object",
+      "required": [
+        "schema_version", "authoritative", "scope", "non_claims", "counts", "nodes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"const": "m217-reference-pageindex/v1"},
+        "authoritative": {"const": false},
+        "scope": {
+          "type": "object",
+          "required": ["act_dir", "edition_no"],
+          "additionalProperties": false,
+          "properties": {
+            "act_dir": {"type": "string", "minLength": 1},
+            "edition_no": {"type": "integer", "minimum": 1}
+          }
+        },
+        "non_claims": {"type": "array", "items": {"type": "string"}},
+        "counts": {
+          "type": "object",
+          "required": [
+            "total_nodes", "sections", "chapters", "paragraphs", "articles",
+            "parts", "punkts", "subpoints", "blocks", "max_depth", "chars"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "total_nodes": {"type": "integer", "minimum": 0},
+            "sections": {"type": "integer", "minimum": 0},
+            "chapters": {"type": "integer", "minimum": 0},
+            "paragraphs": {"type": "integer", "minimum": 0},
+            "articles": {"type": "integer", "minimum": 0},
+            "parts": {"type": "integer", "minimum": 0},
+            "punkts": {"type": "integer", "minimum": 0},
+            "subpoints": {"type": "integer", "minimum": 0},
+            "blocks": {"type": "integer", "minimum": 0},
+            "max_depth": {"type": "integer", "minimum": 0, "maximum": 7},
+            "chars": {"type": "integer", "minimum": 0}
+          }
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/pageindex_node"}
+        }
+      }
+    }
+  }
+}

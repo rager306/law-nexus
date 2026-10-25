@@ -80,7 +80,7 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
             Err(_) => {
                 return Err(parse_error(
                     event_start.or_else(|| offset(reader.error_position())),
-                ))
+                ));
             }
         };
         let namespace = namespace_kind(&resolved);

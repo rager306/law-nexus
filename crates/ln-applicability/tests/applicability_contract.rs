@@ -6,7 +6,7 @@
 use ln_applicability::application::EvaluateApplicability;
 use ln_applicability::domain::{
     AbstentionKind, ApplicabilityDecision, ApplicabilityRequest, CaseFactsRevision, NormRuleId,
-    PredicateRegistryRevision, PrerequisiteSnapshot, ProfileInputRevision, PROTOCOL_VERSION,
+    PROTOCOL_VERSION, PredicateRegistryRevision, PrerequisiteSnapshot, ProfileInputRevision,
 };
 
 fn request(rule: &str) -> ApplicabilityRequest {

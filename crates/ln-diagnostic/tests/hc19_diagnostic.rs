@@ -1,7 +1,7 @@
 use ln_diagnostic::adapters::{HostileCanarySink, InMemoryDiagnosticSink};
 use ln_diagnostic::application::EmitSafeDiagnostics;
 use ln_diagnostic::domain::{
-    DiagnosticEntry, DiagnosticId, DiagnosticOutcome, SinkId, DIAGNOSTIC_POLICY_VERSION,
+    DIAGNOSTIC_POLICY_VERSION, DiagnosticEntry, DiagnosticId, DiagnosticOutcome, SinkId,
 };
 
 fn entry(sink: &str, content: &str) -> DiagnosticEntry {

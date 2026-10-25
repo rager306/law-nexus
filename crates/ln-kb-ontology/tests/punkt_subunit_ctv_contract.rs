@@ -28,7 +28,7 @@ use std::collections::HashSet;
 
 use ln_kb_ontology::catalog::OntologyCatalog;
 use ln_kb_ontology::domain::{
-    build_text_log_from_articles, resolve_ctv, CtvResolution, HierarchyBinding, HierarchyMap,
+    CtvResolution, HierarchyBinding, HierarchyMap, build_text_log_from_articles, resolve_ctv,
 };
 use ln_temporal::domain::ComponentConceptId;
 

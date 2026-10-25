@@ -1,0 +1,12 @@
+86440c8cf2f16b88f9da919c77f04e9a2487ed3a0032305dd195aaf48e40988f  crates/ln-decode/tests/fixtures/reader/diverse/controls.xml
+84a17e721a37879a8bd3e424a991168639766ec02921892bdc8994e9fcddeec4  crates/ln-decode/tests/fixtures/reader/diverse/empty-structure.xml
+6eaff6f86c7c542f875065f1ba383e52b0bd0703576d5fc58f90d7316807dbb2  crates/ln-decode/tests/fixtures/reader/diverse/encoding.xml
+4e6ca62093eefb95fa49471b41de072a8e144ac2a867ffe894c0ce507ff17b0e  crates/ln-decode/tests/fixtures/reader/diverse/fields-revisions.xml
+b12bed26bde92a5516c9e2cbfe25333168cdd32101c3a4790c77357554c0a3f0  crates/ln-decode/tests/fixtures/reader/diverse/navigation-demo.xml
+adb26741e000e46a4864ab059d1ec774f66b064fea6a827f6e9000df6a805504  crates/ln-decode/tests/fixtures/reader/diverse/negative-namespace-absent.xml
+bbc5cd34baa0627a4d892ee64db95acf9cf0e79472c743f3a6f8559cb360420d  crates/ln-decode/tests/fixtures/reader/diverse/negative-not-wordml.xml
+72775bca9394d2e491945fbc6e0fdc8cbbf7747e71577832e276df9eed687ed7  crates/ln-decode/tests/fixtures/reader/diverse/negative-unsupported-schema.xml
+36d874f81bc456583687b6189d21ae2c7f5c3621a0373c6248cbe733e4fa9a75  crates/ln-decode/tests/fixtures/reader/diverse/notes-nested.xml
+424f7f117255472e320a1d86adb2a63d8985b97b435a262e3d2403c2767a6834  crates/ln-decode/tests/fixtures/reader/diverse/residual-and-tails.xml
+e13b8c7424100989028d95bd4c37bfadcd3970972329d93624c8da384507c55f  crates/ln-decode/tests/fixtures/reader/diverse/text-only.xml
+afdfbd3f50377e95d31e736a14cbb2d72d1b2cd13446c4a672ebbc2037a20232  crates/ln-decode/tests/fixtures/reader/diverse/unknown-wordml.xml

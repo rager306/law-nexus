@@ -1,5 +1,5 @@
 use ln_replay::adapters::{
-    sample_checkpoint, HostileDuplicateEffectLedger, InMemoryCheckpointStore,
+    HostileDuplicateEffectLedger, InMemoryCheckpointStore, sample_checkpoint,
 };
 use ln_replay::application::CoordinateCheckpointAndReplay;
 use ln_replay::domain::{
@@ -18,8 +18,8 @@ fn request(digest: &str, rules: &str) -> ReplayRequest {
     }
 }
 
-fn hostile_svc(
-) -> CoordinateCheckpointAndReplay<InMemoryCheckpointStore, HostileDuplicateEffectLedger> {
+fn hostile_svc()
+-> CoordinateCheckpointAndReplay<InMemoryCheckpointStore, HostileDuplicateEffectLedger> {
     let store = InMemoryCheckpointStore::new().insert(sample_checkpoint(
         "cp:1",
         "digest:abc",

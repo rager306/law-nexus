@@ -3,7 +3,7 @@
 //! interpretation, no citation authority. `ProviderComment` blocks never
 //! contribute; empty bodies are skipped, not invented.
 
-use ln_decode::article_body::{collect_marker_bodies, MarkerBody};
+use ln_decode::article_body::{MarkerBody, collect_marker_bodies};
 use ln_decode::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
 };

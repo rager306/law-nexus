@@ -49,16 +49,24 @@ fn durable_receipts_are_complete_and_blocked() {
     )
     .unwrap();
     assert_eq!(receipts.lines().count(), 24);
-    assert!(receipts
-        .lines()
-        .all(|line| line.contains("\"schema\":\"npa-promotion-receipts/v1\"")));
-    assert!(receipts
-        .lines()
-        .all(|line| line.contains("\"human_acceptance\":null")));
-    assert!(receipts
-        .lines()
-        .all(|line| line.contains("\"outcome\":\"blocked-")));
-    assert!(receipts
-        .lines()
-        .all(|line| line.contains("\"requirement_debt\":[\"R035\",\"R070\"]")));
+    assert!(
+        receipts
+            .lines()
+            .all(|line| line.contains("\"schema\":\"npa-promotion-receipts/v1\""))
+    );
+    assert!(
+        receipts
+            .lines()
+            .all(|line| line.contains("\"human_acceptance\":null"))
+    );
+    assert!(
+        receipts
+            .lines()
+            .all(|line| line.contains("\"outcome\":\"blocked-"))
+    );
+    assert!(
+        receipts
+            .lines()
+            .all(|line| line.contains("\"requirement_debt\":[\"R035\",\"R070\"]"))
+    );
 }

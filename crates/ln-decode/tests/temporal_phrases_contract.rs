@@ -3,7 +3,7 @@ use ln_decode::{
         ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
         TextSpan,
     },
-    temporal::{extract_temporal_phrases, TemporalPhraseKind},
+    temporal::{TemporalPhraseKind, extract_temporal_phrases},
 };
 
 fn block(text: &str, style: ParagraphStyle) -> ParsedBlock {

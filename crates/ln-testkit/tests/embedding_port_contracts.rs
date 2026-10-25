@@ -4,8 +4,8 @@
 //! Lifecycle: `[bounded]` preparation. Not live TEI validation.
 
 use ln_storage::{
-    adapters::tei::{EmbeddingTransport, TeiEmbeddingAdapter, TransportError},
     EmbeddingPort, EmbeddingRequest, StorageError,
+    adapters::tei::{EmbeddingTransport, TeiEmbeddingAdapter, TransportError},
 };
 use ln_testkit::assert_embedding_port_contract;
 
@@ -94,6 +94,6 @@ fn tei_stub_transport_maps_transport_failure() {
         .expect("valid tei adapter");
     assert!(matches!(
         adapter.embed(&request("tei-contract-model", 8)),
-        Err(StorageError::Internal(_))
+        Err(StorageError::TransportUnavailable)
     ));
 }

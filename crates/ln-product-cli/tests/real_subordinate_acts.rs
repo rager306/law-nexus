@@ -12,7 +12,7 @@
 //! (points of orders and government resolutions get CCs and their bodies
 //! resolve via text-CTV).
 
-use ln_decode::article_body::{collect_article_texts, ArticleText};
+use ln_decode::article_body::{ArticleText, collect_article_texts};
 use ln_decode::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
 };
@@ -23,7 +23,7 @@ use ln_decode::{
     ports::BlockDecoderPort,
 };
 use ln_kb_ontology::domain::{
-    build_text_log_from_articles, resolve_ctv, CtvResolution, HierarchyBinding, HierarchyMap,
+    CtvResolution, HierarchyBinding, HierarchyMap, build_text_log_from_articles, resolve_ctv,
 };
 use ln_temporal::calendar::legal_act_effect_day_to_ordinal;
 use ln_temporal::domain::ComponentConceptId;

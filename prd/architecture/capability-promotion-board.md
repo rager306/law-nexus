@@ -198,8 +198,30 @@ InForce ≠ Applicable, cross-act edges, practice overlay. Axes still behind
   added=24 / removed=57, seed commit → apply → fold, drift=0;
 - text-only probe 0001→0002: empty structural diff — oracle assert, not a
   replay proof;
-- non-claim: no 118-edition verify; file dates are process truth, not
-  legal truth (D116/D117).
+- 118-edition bounded corpus timeline (44-ФЗ, single act); per-edition drift=0,
+  documented residual edition 0036→0037; file dates are process truth, not
+  legal truth (D116/D117); R070 stays active.
+
+### FRBR bridge axis (44-ФЗ Work × 118 Expressions, M224 S07)
+
+Bounded FRBR bridge over the S06 edition timeline, published as the tracked
+counts-only mapping artifact
+`prd/migration/rust-evidence/m224-s07-frbr-bridge.json` (schema
+`m224-s07-frbr-bridge/v1`): one registry Work
+(`work:ru:federal:zakon:2013-04-05:44-fz`) × 118 Expressions by S06
+`effect_day`, three-layer join (S02 identity envelope, m223-S07 receipts,
+editions catalog) at `118/118`. The ELI-compatible URN
+(`urn:lex:ru:federal:zakon:2013-04-05;44-fz`; Expression form `<work>@<iso>`)
+stays a **compatibility projection**, not project-local canon — the `cc:`
+component-concept canon is neither replaced nor rekeyed; `uri_anchor` is
+never decoded, normalized, or re-derived; the expression day is the S06
+timeline `effect_day`, not the registry `rev` date. Documented
+`registry_expression_id_divergence=46` (registry rev-only path id vs timeline
+`effect_day` binding) with all join totals zero. Intra-S3 step under the S3
+ceiling — no promotion: `R1000` stays `active/unclosed` and `R035` stays
+bounded mapping evidence only (not a promotion). Module anchors:
+`crates/ln-kb-ontology/src/frbr_bridge.rs`,
+`crates/ln-consultant-parser/src/frbr_bridge.rs`.
 
 ### Punkt/subunit text-CTV axis (M172 S03, intra-S3 step)
 
@@ -218,13 +240,14 @@ lifecycle move for ADR-0017 (stays `[proposed]`).
 | 333-ФЗ | 2025-07-31 | ст. 95 | real C1 edge executed (KBO-R049 S1) |
 | 484-ФЗ | 2024-12-26 | general amendments | acquired; edge not executed |
 
-### Support acts by document_group (five groups, M171 catalog)
+### Support acts by document_group (six groups, M171 catalog + M211 presidential_decree)
 
 | document_group | Anchor act | Executed proof |
 |---|---|---|
 | `federal_law@v1` | 402-ФЗ tracked fixture; real 44-ФЗ edition-0118 | full FSM to `S_ready_bounded`, `oracle_drift=0` |
 | `code` | 145-ФЗ (Budget kodeks XML, `law-source/consultant/`) | catalog-only; pipeline never run on `code` |
 | `government_resolution` | PP_60 (real Garant ПП corpus) | inspect: YAML granularity punkt, ctv_resolved>0; punkt units executed; recursive depth 3 |
+| `presidential_decree` | decree_2020-09-14_558 / decree_2021-11-15_657 (exports/npa/) | catalog-only: declared and loaded, never executed by the pipeline |
 | `departmental_order` | Росгвардии приказ № 45 от 15.02.2021 (НМЦК; on disk, pipeline not run) | inline fixture: two punkt units resolve text-CTV (M171) |
 | `court_practice` | — (ADR-0020: practice ≠ AST) | probe-only; no parser surface |
 

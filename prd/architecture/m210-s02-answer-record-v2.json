@@ -1,0 +1,98 @@
+{
+  "schema": "law-nexus/m210-s02-answer-record/v2",
+  "schema_version": 2,
+  "kind": "m210-s02-answer-record",
+  "milestone": "M210-3afp79",
+  "slice": "S02",
+  "task": "T03",
+  "lifecycle": [
+    "recorded"
+  ],
+  "authoritative": true,
+  "ascii_only": false,
+  "ascii_only_reason": "the owner verbatim response is Russian; recording it unedited is required, so ASCII-only is intentionally not asserted for this artifact",
+  "requirement_refs": [
+    "RC28-F18",
+    "R074"
+  ],
+  "packet_ref": "prd/architecture/m210-s02-owner-decision-packet-v2.json",
+  "presentation_ref": "prd/architecture/m210-s02-owner-decision-presentation-v2.md",
+  "source_revision": "sha256:618aaf127decb28e211b9fbb044516f442c55b25be90d47e197abaf5311c6eb7",
+  "supersedes": {
+    "path": "prd/architecture/m210-s02-answer-record.json",
+    "sha256": "efc1b820506dabadde87d1ff8f338b95d6bd85417bce127ca17a07e5b3f9528b",
+    "policy": "append-or-supersede per RC28-F19; v1 stays byte-identical and hash-bound in m210-s02-adoption-checkpoint.md"
+  },
+  "answer_source": "interactive",
+  "status": "owner_decision_recorded",
+  "sanctioned_stop": false,
+  "conduit_available": true,
+  "interactive_refs": {
+    "ir": {
+      "criterion_id": "37181c25-88b0-4896-bffe-d10642970e6f",
+      "question_id": "57ef54f3-aa0a-4e5e-82a7-b4dc7057e25c",
+      "interaction_id": "456709c8-4da5-4835-a0fe-7a2af3a45e64",
+      "selected_option_id": "a08f0659-68a5-4208-aa66-e7bd5abd818f",
+      "disposition": "accepted",
+      "channel": "authenticated subjective-UAT"
+    },
+    "f13": {
+      "criterion_id": "70e39300-851b-4412-a322-a8f0c51ca71c",
+      "question_id": "a4b5bc2d-0519-45db-bc78-a5d0a3b6a99d",
+      "interaction_id": "5bb68ce2-fdfe-47ac-8db3-e1446377f38c",
+      "selected_option_id": "7cd5435a-4e38-46e8-aff1-ac7236be2c87",
+      "disposition": "accepted",
+      "channel": "authenticated subjective-UAT"
+    }
+  },
+  "ir_answer": {
+    "question_id": "m210-s02-ir-question",
+    "criterion_id": "37181c25-88b0-4896-bffe-d10642970e6f",
+    "interaction_id": "456709c8-4da5-4835-a0fe-7a2af3a45e64",
+    "selected_option": "C abstention_first_candidates_only",
+    "option_resolution": "resolved-variant-c",
+    "verbatim_response": "Для текущего этапа выбираю вариант 3 — хранение кандидатов нормативных утверждений с точной привязкой к источнику. Кандидат не считается установленной нормой; отсутствие кандидата не означает отсутствия нормы. Композиция правил, разрешение приоритетов и применение к конкретным делам остаются вне этого этапа. Выбор варианта 3 не фиксирует окончательный формат нормативных правил: его проектирование и принятие должны быть отдельным следующим решением, с сохранением исходных кандидатов и их происхождения.",
+    "tested_source_revision": "sha256:618aaf127decb28e211b9fbb044516f442c55b25be90d47e197abaf5311c6eb7"
+  },
+  "f13_answer": {
+    "question_id": "m210-s02-f13-question",
+    "criterion_id": "70e39300-851b-4412-a322-a8f0c51ca71c",
+    "interaction_id": "5bb68ce2-fdfe-47ac-8db3-e1446377f38c",
+    "selected_option": "keep_deferred",
+    "option_resolution": "resolved-deferred",
+    "verbatim_response": "оставить отложенным",
+    "tested_source_revision": "sha256:618aaf127decb28e211b9fbb044516f442c55b25be90d47e197abaf5311c6eb7"
+  },
+  "f13_status": "deferred-explicit",
+  "owner_clarifications": [
+    "A typed card does not prevent recognition error: separate types do not silently merge at the data level, but the extractor can still file a permission as an obligation.",
+    "Variant 3 is not \"decide nothing\": the system still makes preliminary decisions about fragment boundaries and the hypothesized family, without presenting them as established rules.",
+    "The eighth family is temporal_qualification, not \"expiry date\".",
+    "Three new terms versus six is the size of the required semantic decision surface, not a measured development cost.",
+    "Candidates stay a permanent evidence layer; later formalized normative assertions are separate records with their own versions and grounds."
+  ],
+  "guards": {
+    "review_case_events_written": 0,
+    "answer_is_owner_direction": true,
+    "answer_treated_as_automatic_adoption": false,
+    "agent_selected": false
+  },
+  "non_claims": [
+    "Rule composition, precedence resolution and case applicability are outside this decision and stay unavailable.",
+    "The final format of normative rules is a separate future decision; variant C does not preselect it.",
+    "No Review Case event was written and no requirement was promoted by this record.",
+    "Section 3 is unchanged: the deferred terms stay deferred-undefined; variant C requires no new section 3 term.",
+    "A verified provenance anchor never raises the legal status of a candidate; absence of a candidate never means that no norm exists."
+  ],
+  "fail_closed_codes": [
+    "answer_field_set_incomplete",
+    "answer_source_not_interactive",
+    "verbatim_missing",
+    "reference_missing",
+    "agent_selected_answer",
+    "scope_overclaim",
+    "stale_answer_revision",
+    "status_not_in_dictionary",
+    "runtime_claim_present"
+  ]
+}

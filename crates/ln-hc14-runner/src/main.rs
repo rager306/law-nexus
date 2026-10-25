@@ -2,12 +2,12 @@ use std::env;
 use std::process::ExitCode;
 
 use ln_replay::adapters::{
-    sample_checkpoint, HostileDuplicateEffectLedger, InMemoryCheckpointStore, InMemoryEffectLedger,
+    HostileDuplicateEffectLedger, InMemoryCheckpointStore, InMemoryEffectLedger, sample_checkpoint,
 };
 use ln_replay::application::CoordinateCheckpointAndReplay;
 use ln_replay::domain::{
-    CheckpointDigest, CheckpointId, EffectId, OperationId, ReplayOutcome, ReplayRequest, RequestId,
-    RuleVersion, REPLAY_POLICY_VERSION,
+    CheckpointDigest, CheckpointId, EffectId, OperationId, REPLAY_POLICY_VERSION, ReplayOutcome,
+    ReplayRequest, RequestId, RuleVersion,
 };
 
 struct ScenarioResult {

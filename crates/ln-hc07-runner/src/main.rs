@@ -4,8 +4,8 @@ use std::process::ExitCode;
 use ln_identity::adapters::InMemoryIdentityStore;
 use ln_identity::application::AssertIdentity;
 use ln_identity::domain::{
-    AssertRequest, ContributionId, EvidenceContribution, EvidenceSide, FamilyId, IdentityId,
-    IdentityOutcome, IdentityReason, C12_GATE_VERSION,
+    AssertRequest, C12_GATE_VERSION, ContributionId, EvidenceContribution, EvidenceSide, FamilyId,
+    IdentityId, IdentityOutcome, IdentityReason,
 };
 
 struct ScenarioResult {

@@ -1,6 +1,6 @@
 //! Explicit fixture bindings. Not legal identity and not a membership log.
 
-use crate::catalog::{flow_field, strip_comment, CatalogError};
+use crate::catalog::{CatalogError, flow_field, strip_comment};
 use crate::domain::{HierarchyBinding, HierarchyMap, WriteSetError};
 use ln_temporal::domain::ComponentConceptId;
 
@@ -141,10 +141,14 @@ fn edition_date_from_table(path: &str) -> Option<String> {
     None
 }
 
-/// One `works:` entry used for filename-grounded identity minting.
-struct WorkEntry {
-    authority: String,
-    enactment_date: String,
+/// One `works:` entry used for filename-grounded identity minting and for
+/// the FRBR bridge (authority + enactment date + act number, no derived
+/// fields).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WorkEntry {
+    pub authority: String,
+    pub enactment_date: String,
+    pub act_number: String,
 }
 
 /// Parse `law_YYYY-MM-DD_N-fz` from a consru_export path.
@@ -214,11 +218,12 @@ fn parse_edition_rev(path: &str) -> Option<String> {
         }
         // must be terminated by '_', '/' or end (not a longer token)
         let terminator = bytes.get(start + 10).copied();
-        if let Some(c) = terminator {
-            if c != b'_' && c != b'/' {
-                from = start;
-                continue;
-            }
+        if let Some(c) = terminator
+            && c != b'_'
+            && c != b'/'
+        {
+            from = start;
+            continue;
         }
         return Some(date.to_owned());
     }
@@ -242,7 +247,11 @@ fn expression_id_from_edition_path(path: &str) -> Option<String> {
     Some(expression.expression_id.as_str().to_owned())
 }
 
-fn works_entry_for_act(act_number: &str) -> Option<WorkEntry> {
+/// Look up a `works:` row by its act number token (e.g. `44-fz`).
+/// Catalogue `authority`/`number` columns are never used here: a Cyrillic
+/// act number ("44-ФЗ") and NULL authority do not satisfy `LegalActNumber`,
+/// so an unmapped act fails closed rather than inventing an authority.
+pub fn works_entry_for_act(act_number: &str) -> Option<WorkEntry> {
     let text = EMBEDDED_HIERARCHY_REGISTRY_YAML;
     let works_start = text.find("\nworks:")?;
     let slice = &text[works_start..];
@@ -259,6 +268,7 @@ fn works_entry_for_act(act_number: &str) -> Option<WorkEntry> {
         return Some(WorkEntry {
             authority: flow_field(line, "authority")?,
             enactment_date: flow_field(line, "enactment_date")?,
+            act_number: number,
         });
     }
     None

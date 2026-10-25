@@ -24,8 +24,8 @@ use ln_decode::domain::{
     SourceFormatId, SourceLocation, SourceSpan, SourceStreamId, TextSpan,
 };
 use ln_decode::hierarchy::{
-    catalog_token, extract_hierarchy_candidates, HierarchyCandidateReport,
-    HierarchyExtractDiagnostic,
+    HierarchyCandidateReport, HierarchyExtractDiagnostic, catalog_token,
+    extract_hierarchy_candidates,
 };
 use ln_decode::ports::BlockDecoderPort;
 

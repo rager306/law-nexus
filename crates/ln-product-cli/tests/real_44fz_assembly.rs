@@ -13,18 +13,18 @@ use ln_decode::{
     hierarchy::extract_hierarchy,
     ports::BlockDecoderPort,
 };
+use ln_kb_ontology::domain::{AmendmentDraftOp, diff_marker_sets, drafts_from_marker_diff};
 use ln_kb_ontology::domain::{
-    admit_membership_proposals, assemble_with_oracle_diff, marker_from_decode_token,
-    propose_membership_from_markers, HierarchyBinding, HierarchyMarker,
+    HierarchyBinding, HierarchyMarker, admit_membership_proposals, assemble_with_oracle_diff,
+    marker_from_decode_token, propose_membership_from_markers,
 };
-use ln_kb_ontology::domain::{diff_marker_sets, drafts_from_marker_diff, AmendmentDraftOp};
 use ln_kb_ontology::registry::{
     load_edition_day_for_path, load_expression_id_for_path, load_hierarchy_map_for_path,
 };
 use ln_temporal::calendar::legal_act_effect_day_to_ordinal;
 use ln_temporal::domain::{
-    fold_membership_at, AmendingActId, ComponentConceptId, MembershipChangeKind,
-    VersionedMembershipEvent, VersionedMembershipLog,
+    AmendingActId, ComponentConceptId, MembershipChangeKind, VersionedMembershipEvent,
+    VersionedMembershipLog, fold_membership_at,
 };
 
 const CONSULTANT_EXPORT_DIR_ENV: &str = "CONSULTANT_EXPORT_DIR";
@@ -71,12 +71,11 @@ fn real_44fz_edition_0118_full_assembly_zero_drift() {
     // S_extract → S_bind prep: decode tokens → HierarchyMarker
     let mut markers = Vec::new();
     for block in &blocks {
-        if let Some(node) = extract_hierarchy(block) {
-            if let Ok(marker) =
+        if let Some(node) = extract_hierarchy(block)
+            && let Ok(marker) =
                 marker_from_decode_token(None, node.level().as_str(), node.number(), node.title())
-            {
-                markers.push(marker);
-            }
+        {
+            markers.push(marker);
         }
     }
     assert!(
@@ -149,15 +148,15 @@ fn real_44fz_edition_0001_to_0002_replay_drafts() {
             .expect("decode");
         let mut markers = Vec::new();
         for block in &blocks {
-            if let Some(node) = extract_hierarchy(block) {
-                if let Ok(m) = marker_from_decode_token(
+            if let Some(node) = extract_hierarchy(block)
+                && let Ok(m) = marker_from_decode_token(
                     None,
                     node.level().as_str(),
                     node.number(),
                     node.title(),
-                ) {
-                    markers.push(m);
-                }
+                )
+            {
+                markers.push(m);
             }
         }
         markers
@@ -207,12 +206,11 @@ fn read_markers(dir: &std::path::Path, file: &str) -> Vec<HierarchyMarker> {
         .expect("decode");
     let mut markers = Vec::new();
     for block in &blocks {
-        if let Some(node) = extract_hierarchy(block) {
-            if let Ok(m) =
+        if let Some(node) = extract_hierarchy(block)
+            && let Ok(m) =
                 marker_from_decode_token(None, node.level().as_str(), node.number(), node.title())
-            {
-                markers.push(m);
-            }
+        {
+            markers.push(m);
         }
     }
     markers

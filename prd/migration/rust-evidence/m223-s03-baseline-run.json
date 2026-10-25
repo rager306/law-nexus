@@ -1,0 +1,129 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "receipts": 443
+    },
+    {
+      "attempt": 2,
+      "receipts": 12447
+    },
+    {
+      "attempt": 3,
+      "receipts": 10155
+    },
+    {
+      "attempt": 4,
+      "receipts": 8843
+    },
+    {
+      "attempt": 5,
+      "receipts": 5795
+    },
+    {
+      "attempt": 6,
+      "receipts": 4469
+    },
+    {
+      "attempt": 7,
+      "receipts": 2076
+    }
+  ],
+  "binary_drift": false,
+  "bindings": {
+    "binary_path": "/root/law-nexus/target/release/cleaned-project",
+    "binary_sha256": "sha256:536f83527fc9414cc0b35f8bcff5d483f4262d0ce5652c73594fcabca4292be0",
+    "code_revision": "sha256:40f6a815d16fd3e3722b4663385ec53d774e20acbf23346ed00f031eaa00e849",
+    "rules_digest": "sha256:b5ead62ad024a50001068f265d9e01000cdb611207b1bd6620618a2510259a87"
+  },
+  "counts": {
+    "accepted": 43785,
+    "entries": 43785,
+    "incomplete": 0,
+    "refused": 0,
+    "remaining": 0,
+    "terminal": 43785
+  },
+  "disk": {
+    "after": {
+      "free_bytes": 68995747840,
+      "total_bytes": 258906374144
+    },
+    "before": {
+      "free_bytes": 69004955648,
+      "total_bytes": 258906374144
+    },
+    "persisted_layer_bytes": 0
+  },
+  "incomplete_by_class": {},
+  "manifest": {
+    "counts": {
+      "entries": 43785,
+      "max_bytes": 29372660,
+      "total_bytes": 3789431364
+    },
+    "entries": 43785,
+    "inventory_digest": "sha256:aa7e14e31059c906f291423a2e8151f8bf0f857e9fd7370545d7e3b5800766dd",
+    "path": "/root/law-nexus/prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl",
+    "sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c"
+  },
+  "non_claims": [
+    "Not an authenticity or legal-completeness claim; R1000 stays active/unclosed.",
+    "Read-back (cleaned-project read) is a counts-only re-read by this same process; it is NOT an independent substrate verification.",
+    "A partial run is never reported as full (partial_is_not_full=true).",
+    "No raw decoded text reaches receipts, the report, diagnostics or stdout.",
+    "Feasibility projections come from S02; this runner records baseline outcomes only."
+  ],
+  "partial_is_not_full": true,
+  "preflight": {
+    "checks": [
+      {
+        "id": "free_disk_bytes",
+        "observed_bytes": 69005008896,
+        "ok": true,
+        "threshold_bytes": 3221225472
+      },
+      {
+        "id": "available_memory_bytes",
+        "observed_bytes": 37306277888,
+        "ok": true,
+        "threshold_bytes": 6442450944
+      },
+      {
+        "id": "binary_present",
+        "ok": true,
+        "path": "/root/law-nexus/target/release/cleaned-project"
+      }
+    ],
+    "failures": [],
+    "ok": true,
+    "stop_thresholds": {
+      "enforcement": "polled while the run is live; a crossing stops the run (SIGKILL)",
+      "kind": "stop_threshold",
+      "not_an_upper_bound": true,
+      "overshoot_note": "observed consumption may overshoot a stop threshold by up to one poll interval; the run is stopped, not capped in advance",
+      "peak_rss_kb": 6291456,
+      "single_artifact_bytes": 2147483648,
+      "wall_s": 14400
+    }
+  },
+  "r1000_status": "active/unclosed",
+  "readback": {
+    "counts_only": true,
+    "independent_substrate_verify": false,
+    "note": "Read-back (cleaned-project read) is a counts-only re-read by this same process; it is NOT an independent substrate verification."
+  },
+  "readback_is_substrate_verify": false,
+  "refused_by_class": {},
+  "schema": "m223-s03-baseline-run/v1",
+  "status": "complete",
+  "stop_thresholds": {
+    "enforcement": "polled while the run is live; a crossing stops the run (SIGKILL)",
+    "kind": "stop_threshold",
+    "not_an_upper_bound": true,
+    "overshoot_note": "observed consumption may overshoot a stop threshold by up to one poll interval; the run is stopped, not capped in advance",
+    "peak_rss_kb": 6291456,
+    "single_artifact_bytes": 2147483648,
+    "wall_s": 14400
+  }
+}

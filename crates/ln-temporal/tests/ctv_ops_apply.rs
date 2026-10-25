@@ -4,9 +4,9 @@
 //! Not temporal CTV resolution, not legal amendment correctness.
 
 use ln_temporal::domain::{
-    apply_industrial_op, plan_industrial_op, AmendingActId, ComponentConceptId,
-    CtvIndustrialOpKind, CtvOpsError, IndustrialOpId, IndustrialOpRequest, MembershipEdge,
-    MembershipGraph, StructuralEventLog,
+    AmendingActId, ComponentConceptId, CtvIndustrialOpKind, CtvOpsError, IndustrialOpId,
+    IndustrialOpRequest, MembershipEdge, MembershipGraph, StructuralEventLog, apply_industrial_op,
+    plan_industrial_op,
 };
 
 fn cc(id: &str) -> ComponentConceptId {
@@ -180,8 +180,10 @@ fn apply_does_not_claim_temporal_ctv_resolution() {
     };
     let plan = plan_industrial_op(&graph, &req).expect("plan");
     let receipt = apply_industrial_op(&mut graph, &mut log, &req, &plan).expect("apply");
-    assert!(receipt
-        .non_claims
-        .iter()
-        .any(|c| c.contains("not full CTV") || c.contains("Structural")));
+    assert!(
+        receipt
+            .non_claims
+            .iter()
+            .any(|c| c.contains("not full CTV") || c.contains("Structural"))
+    );
 }

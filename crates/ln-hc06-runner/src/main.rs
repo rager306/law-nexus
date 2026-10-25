@@ -4,7 +4,7 @@ use std::process::ExitCode;
 use ln_gate::adapters::InMemoryCandidateStore;
 use ln_gate::application::GateLifecycle;
 use ln_gate::domain::{
-    CandidateId, EvidenceRef, GateOutcome, GateReason, GateRequest, LifecycleType, C10_GATE_VERSION,
+    C10_GATE_VERSION, CandidateId, EvidenceRef, GateOutcome, GateReason, GateRequest, LifecycleType,
 };
 
 struct ScenarioResult {

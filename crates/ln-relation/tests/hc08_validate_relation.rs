@@ -2,8 +2,8 @@ use ln_relation::{
     adapters::InMemoryClosedRegistry,
     application::ValidateRelation,
     domain::{
-        EndpointId, EvidenceRef, FamilyId, PredicateId, RelationOutcome, RelationProposal,
-        C13_GATE_VERSION, DEFAULT_REGISTRY_VERSION,
+        C13_GATE_VERSION, DEFAULT_REGISTRY_VERSION, EndpointId, EvidenceRef, FamilyId, PredicateId,
+        RelationOutcome, RelationProposal,
     },
 };
 

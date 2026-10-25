@@ -89,7 +89,9 @@ completion and green repository checks are not product readiness.
   ADR-0022 [proposed] L7 industry profiles
   ADR-0023 [proposed] applicability ownership boundary; runtime [deferred]
   ADR-0028 [proposed] typed lexer, LawRef FSM, layered NPA process and explicit future local-grammar boundary
-  ADR-0029 [proposed] requisites-anchored member-assembly FSM for NPA reference capture (M207 model); no Rust engine code yet
+  ADR-0029 [proposed] requisites-anchored member-assembly FSM for NPA reference capture (M207 model); bounded Rust reference-capture runtime landed (M211); downstream stays blocked
+  ADR-0030 [proposed] consultant URI anchor as cross-system legal identity + JSON-LD knowledge layers over the XML→JSONL spine; practice/control banks stay single-version; the temporal model consumes materialized JSONL layers, never raw XML at runtime (R066 stands)
+  ADR-0031 [proposed] reference knowledge-layer contract over the XML→JSONL spine (executed Python reference + Rust port contract): digest timeline per (edition, article), m217-norm/v1 profile, corpus-wide amend provenance, 7-level pageindex ladder, qualified references with byte-checked artifacts; the Rust port is accepted only on byte parity against the committed reference artifacts
 
 [DOWNSTREAM — BLOCKED until parser data + RuVector/TEI ready]
   graph materialization → citation-safe retrieval → R035/R038 validation
@@ -255,7 +257,10 @@ tooling are intentionally omitted from cold-reader navigation.
 
 The ADR-0028 document-control projection is the non-authoritative
 `prd/architecture/m205-s04-docs-reconciliation.yaml`
-(`m205-s04-docs-reconciliation/v1`). It is design-only, keeps
+(`m205-s04-docs-reconciliation/v1`). This section and the pinned YAML are the
+human-readable reconciliation surface: since the M205/S04 block was compacted,
+`prd/ARCHITECTURE.md` keeps only a one-line pointer so the living oracle stays
+within its one-page budget. It is design-only, keeps
 `human_adoption: pending` and `runtime_stop` active, and is checked offline by
 the fail-closed verifier plus adversarial and hashed-closeout contracts. D459,
 G02 already-wired residual behavior, the 13 individually deferred gates, P9

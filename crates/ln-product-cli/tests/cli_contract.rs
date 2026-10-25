@@ -33,6 +33,15 @@ fn inspect_u64(stdout: &str, key: &str) -> u64 {
         .unwrap_or_else(|_| panic!("non-integer {key} in {stdout}"))
 }
 
+fn inspect_str(stdout: &str, key: &str) -> String {
+    let token = format!("\"{key}\":\"");
+    let rest = stdout
+        .split(&token)
+        .nth(1)
+        .unwrap_or_else(|| panic!("missing JSON string key {key} in {stdout}"));
+    rest.split('"').next().unwrap_or_default().to_owned()
+}
+
 fn consultant_fixture() -> String {
     [env!("CARGO_MANIFEST_DIR"), "..", "..", "law-source", "consultant",
      "federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml"]
@@ -49,6 +58,27 @@ fn accounting_fixture() -> String {
         .collect::<std::path::PathBuf>()
         .to_string_lossy()
         .into_owned()
+}
+
+/// Non-normative practice (FAS) fixture from the full consru corpus. FAS
+/// decisions carry latin transliterated filenames; the `fas/decision_` path
+/// needle binds `court_practice` (text_only). Skip-safe: absent corpus is a
+/// visible skip, not a false pass.
+fn practice_fixture() -> String {
+    [
+        env!("CARGO_MANIFEST_DIR"),
+        "..",
+        "..",
+        "consru_export",
+        "consru_export",
+        "exports",
+        "fas",
+        "decision_2025-01-09_25-44-104-1_rev-unknown_eb092d4a.xml",
+    ]
+    .iter()
+    .collect::<std::path::PathBuf>()
+    .to_string_lossy()
+    .into_owned()
 }
 
 #[test]
@@ -306,6 +336,11 @@ fn inspect_402_fz_reports_non_zero_attach_from_yaml_ranks() {
         inspect_u64(&stdout, "ctv_resolved") > 0,
         "402-FZ titled articles must produce resolvable CTVs; {stdout}"
     );
+    assert_eq!(
+        inspect_str(&stdout, "ctv_gate"),
+        "",
+        "a normative group (federal_law@v1) must not trip the non-normative CTV barrier; {stdout}"
+    );
     assert!(
         stdout.contains("402-fz"),
         "expression_id must contain the act number (not synthetic fallback); {stdout}"
@@ -332,6 +367,56 @@ fn inspect_402_fz_reports_non_zero_attach_from_yaml_ranks() {
         !stdout.contains("ОБЩИЕ ПОЛОЖЕНИЯ"),
         "raw legal text must not be persisted; got first 400 chars: {}",
         &stdout[..stdout.len().min(400)]
+    );
+}
+
+/// S04 T04 explicit non-normative CTV barrier: a FAS practice document binds
+/// `court_practice` (text_only) and must NOT resolve text-CTV. The observable
+/// `ctv_gate` names the barrier ("non_normative") so the zero is provably the
+/// barrier, not an incidental empty ladder (ADR-0030 D2, ADR-0020).
+#[test]
+fn inspect_practice_document_does_not_apply_ctv() {
+    let fixture = practice_fixture();
+    if !std::path::Path::new(&fixture).exists() {
+        eprintln!("SKIP: full consru corpus not available");
+        return;
+    }
+    let out = Command::new(binary())
+        .args(["inspect", &fixture])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("spawn");
+    assert!(
+        out.status.success(),
+        "inspect practice must exit 0; stderr={}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    let group = inspect_str(&stdout, "document_group");
+    assert!(
+        group == "court_practice" || group == "non_normative",
+        "practice bank must bind a non-normative group; got {group}: {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "ctv_resolved"),
+        0,
+        "practice text is not an AST; CTV must not mint; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "detection_unknown"),
+        0,
+        "FAS practice must bind, not quarantine unknown; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "detection_conflict"),
+        0,
+        "FAS practice needles must not produce a same-rank Conflict; {stdout}"
+    );
+    assert_eq!(
+        inspect_str(&stdout, "ctv_gate"),
+        "non_normative",
+        "the named non-normative barrier must be the observable reason; {stdout}"
     );
 }
 

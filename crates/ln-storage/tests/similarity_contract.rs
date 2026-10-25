@@ -5,7 +5,7 @@
 //! adapter state. Lifecycle: [bounded] — exact arithmetic on f32 slices; no
 //! live embedding or corpus claim.
 
-use ln_storage::{cosine_similarity, StorageError};
+use ln_storage::{StorageError, cosine_similarity};
 
 #[test]
 fn identical_vectors_score_one() {

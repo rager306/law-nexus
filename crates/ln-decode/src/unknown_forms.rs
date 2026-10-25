@@ -1,4 +1,4 @@
-use crate::domain::{fingerprint_bytes, ParagraphStyle, ParsedBlock, TextSpan};
+use crate::domain::{ParagraphStyle, ParsedBlock, TextSpan, fingerprint_bytes};
 use crate::tokenizer::tokenize;
 use std::fmt;
 
@@ -359,7 +359,7 @@ pub fn apply_patch_candidates(yaml: &str) -> Result<AppliedPatch, PatchParseErro
                         return Err(PatchParseError::UnknownKind {
                             label: other.to_owned(),
                             line_number,
-                        })
+                        });
                     }
                 });
             } else if let Some(value) = field.strip_prefix("token:") {
@@ -393,7 +393,7 @@ pub fn apply_patch_candidates(yaml: &str) -> Result<AppliedPatch, PatchParseErro
                 return Err(PatchParseError::MalformedLine {
                     line_number,
                     line: line.to_owned(),
-                })
+                });
             }
         };
         if !has_count {
@@ -842,7 +842,7 @@ pub fn apply_structural_patch_candidates(
                         return Err(StructuralPatchParseError::UnknownKind {
                             label: other.to_owned(),
                             line_number,
-                        })
+                        });
                     }
                 });
             } else if let Some(value) = field.strip_prefix("group:") {
@@ -897,7 +897,7 @@ pub fn apply_structural_patch_candidates(
                 return Err(StructuralPatchParseError::MalformedLine {
                     line_number,
                     line: line.to_owned(),
-                })
+                });
             }
         };
         if !has_count {
@@ -957,7 +957,10 @@ impl fmt::Display for StructuralPatchParseError {
                 write!(f, "malformed structural patch line {line_number}: {line:?}")
             }
             Self::UnknownKind { label, line_number } => {
-                write!(f, "unknown structural kind label {label:?} on line {line_number}")
+                write!(
+                    f,
+                    "unknown structural kind label {label:?} on line {line_number}"
+                )
             }
             Self::InvalidToken { token, line_number } => write!(
                 f,

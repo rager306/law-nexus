@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use ln_decode::{
     adapters::{garant_odt::GarantOdtBlockDecoder, garant_odt_package::read_odt_content_xml},
-    domain::{fingerprint_bytes, DecodeRequest, FamilyFormat, PayloadRef},
+    domain::{DecodeRequest, FamilyFormat, PayloadRef, fingerprint_bytes},
     hierarchy::extract_hierarchy,
     ports::BlockDecoderPort,
 };
@@ -75,7 +75,9 @@ fn tracked_real_garant_act_is_deterministic_and_bounded() {
     );
     assert_eq!(source_fingerprint, EXPECTED_SOURCE_FINGERPRINT);
     assert_eq!(first.len(), EXPECTED_BLOCK_COUNT);
-    assert!(hierarchy.len() >= EXPECTED_HIERARCHY_COUNT,
+    assert!(
+        hierarchy.len() >= EXPECTED_HIERARCHY_COUNT,
         "hierarchy count must be >= {EXPECTED_HIERARCHY_COUNT}; got: {}; numbered sub-markers add to count",
-        hierarchy.len());
+        hierarchy.len()
+    );
 }

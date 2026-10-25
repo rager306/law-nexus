@@ -4,20 +4,20 @@
 //! This is an evidence-backed integration fixture, not a corpus coverage claim.
 //! The staged manifest remains non-authoritative and R070 remains open.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use ln_decode::lawref::capture_lawrefs;
 use ln_temporal::calendar::legal_act_effect_day_to_ordinal;
 use ln_temporal::document_context::{BlockId, TextSpan};
 use ln_temporal::domain::{
-    checkout_projection_at, edition_delta, AmendingActId, AmendmentFacetKind, C1Candidate,
-    CanonRecordId, ComponentConceptId, EvidenceClass, ForceStatusEvent, ForceStatusTimeline,
-    NormativeState, ThreeCanonEventLog,
+    AmendingActId, AmendmentFacetKind, C1Candidate, CanonRecordId, ComponentConceptId,
+    EvidenceClass, ForceStatusEvent, ForceStatusTimeline, NormativeState, ThreeCanonEventLog,
+    checkout_projection_at, edition_delta,
 };
 use ln_temporal::identity_binding::{
-    assemble_identifying_act, build_official_identity_claim, ActAssemblyOutcome, BindingEndpoints,
-    BindingOutcome, BindingUnresolvedReason, BoundTarget, FieldKind, FieldSource, FieldStatus,
-    IdentityFieldClaim, ReferenceBindingCandidate, ReferenceEndpoint,
+    ActAssemblyOutcome, BindingEndpoints, BindingOutcome, BindingUnresolvedReason, BoundTarget,
+    FieldKind, FieldSource, FieldStatus, IdentityFieldClaim, ReferenceBindingCandidate,
+    ReferenceEndpoint, assemble_identifying_act, build_official_identity_claim,
 };
 use ln_temporal::provenance::{
     EditionProvenanceEnvelope, ProvenanceAdmission, TransitionalEvidence,
@@ -33,13 +33,35 @@ const RECORD: &str = "rec:amend:484-93";
 const RULE_REF: &str = "rec:commencement:484-93:hypothesized";
 const TRANSITIONAL_NOTE: &str = "affirmative fixture declaration that no transitional rule is evidenced in this bounded packet; not a product default and not a chronology guess (D406 / ADR-0021 TSG-009).";
 
-fn root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").join(
-        std::env::var("CONSULTANT_EXPORT_DIR")
-            .ok()
-            .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| "consru_export".to_owned()),
-    )
+/// The gitignored 44-FZ corpus is absent on CI and on any cold clone, so a
+/// corpus-dependent test must skip visibly instead of asserting against a
+/// missing input. Path resolution stays with the binaries' own resolver
+/// ([`ln_decode::npa_sweep::default_sweep_root`], which owns the
+/// `CONSULTANT_EXPORT_DIR` convention).
+///
+/// The skip line goes to file descriptor 2 rather than through `eprintln!`:
+/// libtest captures the print macros of a *passing* test, so a plain
+/// `cargo test` would show nothing and the skip would read as a silent pass.
+fn require_corpus(test_name: &str) -> Option<PathBuf> {
+    let root = ln_decode::npa_sweep::default_sweep_root();
+    if root.is_dir() {
+        return Some(root);
+    }
+    // A runnable cold clone may skip; a job that CLAIMS corpus integration must
+    // not. LAW_NEXUS_REQUIRE_CORPUS=1 makes the absence a hard failure, so
+    // "corpus absent" can never be reported as "corpus green".
+    if ln_decode::npa_sweep::require_corpus_from_env() {
+        panic!(
+            "corpus is REQUIRED (LAW_NEXUS_REQUIRE_CORPUS=1) but {test_name} cannot find \"{}\"",
+            root.display()
+        );
+    }
+    use std::io::Write;
+    let _ = writeln!(
+        std::io::stderr(),
+        "SKIP(corpus-absent): {test_name} needs consru_export/consru_export/exports"
+    );
+    None
 }
 
 fn day(value: &str) -> i64 {
@@ -107,7 +129,14 @@ fn staged_manifest_runs_the_complete_temporal_vertical() {
 
     // XML -> mention: invalid UTF-8 is a typed, file-specific failure rather
     // than a lossy read or a skipped evidence-backed test.
-    let path = root().join(CANON_484.strip_prefix("consru_export/").unwrap());
+    let Some(corpus) = require_corpus("staged_manifest_runs_the_complete_temporal_vertical") else {
+        return;
+    };
+    let path = corpus.join(
+        CANON_484
+            .strip_prefix("consru_export/consru_export/exports/")
+            .unwrap(),
+    );
     let bytes = std::fs::read(&path).unwrap_or_else(|error| panic!("{}: {error}", path.display()));
     let xml = String::from_utf8(bytes)
         .unwrap_or_else(|error| panic!("{} is not UTF-8: {error}", path.display()));

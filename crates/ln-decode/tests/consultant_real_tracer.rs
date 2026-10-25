@@ -4,8 +4,8 @@ use std::path::PathBuf;
 use ln_decode::{
     adapters::ConsultantWordMlBlockDecoder,
     domain::{
-        fingerprint_bytes, BlockDecodeErrorKind, DecodePhase, DecodeRequest, FamilyFormat,
-        PayloadRef,
+        BlockDecodeErrorKind, DecodePhase, DecodeRequest, FamilyFormat, PayloadRef,
+        fingerprint_bytes,
     },
     hierarchy::extract_hierarchy,
     ports::BlockDecoderPort,

@@ -377,10 +377,10 @@ fn numbered_marker_prefix(candidate: &str) -> Option<(HierarchyLevel, usize)> {
             continue;
         }
         // Check that the suffix matches
-        if let Some(&suffix_byte) = bytes.get(end) {
-            if suffix_byte as char == rule.suffix {
-                return Some((rule.level, 0));
-            }
+        if let Some(&suffix_byte) = bytes.get(end)
+            && suffix_byte as char == rule.suffix
+        {
+            return Some((rule.level, 0));
         }
     }
     None

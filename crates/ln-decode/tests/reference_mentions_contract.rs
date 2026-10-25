@@ -3,7 +3,7 @@ use ln_decode::{
         ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
         TextSpan,
     },
-    references::{extract_reference_mentions, ReferenceMentionKind},
+    references::{ReferenceMentionKind, extract_reference_mentions},
 };
 
 fn block(text: &str, style: ParagraphStyle) -> ParsedBlock {

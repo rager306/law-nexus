@@ -1,0 +1,35 @@
+{
+  "schema": "m223-s07-documented-residuals/v1",
+  "version": 1,
+  "r1000_status": "active/unclosed",
+  "pinned_peak_rss_kb": 6291456,
+  "classes": [
+    "rss_limit_exceeded"
+  ],
+  "reason": "The pinned S02 stop_thresholds.peak_rss_kb (6291456 KiB = 6 GiB) stops these two entries with a closed rss_limit_exceeded outcome. They are a pinned-threshold limitation, NOT a consumer defect: the consumer-run stage would accept the entry if the pinned ceiling were raised. The pinned threshold is enforced by the S02 feasibility decision and checked by the S02 battery; it is not changed here.",
+  "residuals": [
+    {
+      "relative_path": "xml/law/143149/edition-c723d4f701b0eb8512688917.xml",
+      "outcome_class": "rss_limit_exceeded",
+      "input_sha256": "sha256:98a7fdf7b67cdc2093ddf0ba55684c3d3616a437e17cb81b2b3af64b19024018",
+      "input_bytes": 29372660,
+      "pinned_peak_rss_kb": 6291456,
+      "note": "largest pinned manifest entry; observed peak RSS exceeded the pinned ceiling during the consumer capture/analyze stage"
+    },
+    {
+      "relative_path": "xml/law/297837/edition-cdddfc8997fcc1e82ebf7195.xml",
+      "outcome_class": "rss_limit_exceeded",
+      "input_sha256": "sha256:10912b1b4ad1462d8cb7a30cf7609920bd23ab2382a77d685a169ee816b76004",
+      "input_bytes": 22042074,
+      "pinned_peak_rss_kb": 6291456,
+      "note": "second-largest pinned manifest entry; observed peak RSS exceeded the pinned ceiling during the consumer capture/analyze stage"
+    }
+  ],
+  "non_claims": [
+    "Not an R1000 closure artifact and not a semantic or legal interpretation; R1000 stays active/unclosed.",
+    "A documented residual is a pinned-threshold limitation, never a consumer defect and never a functional success.",
+    "A documented residual is NOT terminal: it stays in the remaining tail and the run is never reported as full (partial_is_not_full=true).",
+    "A documented residual never blanket-accepts an incomplete entry: the observed peak_rss_kb must provably exceed the pinned threshold and every input pin must match the manifest exactly.",
+    "No raw decoded text reaches this declaration; every string is a path, a hash, a count or a closed token."
+  ]
+}

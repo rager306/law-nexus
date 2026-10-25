@@ -1,8 +1,8 @@
 use ln_projection::adapters::HonestExecutor;
 use ln_projection::application::RebuildDisposableProjection;
 use ln_projection::domain::{
-    BaselineId, CompletenessLabel, CurrencyLabel, CutoffId, NodeId, RebuildOutcome, RebuildRequest,
-    RequestId, RuleVersion, ScopeId, PROJECTION_POLICY_VERSION,
+    BaselineId, CompletenessLabel, CurrencyLabel, CutoffId, NodeId, PROJECTION_POLICY_VERSION,
+    RebuildOutcome, RebuildRequest, RequestId, RuleVersion, ScopeId,
 };
 
 fn req(gaps: &[&str]) -> RebuildRequest {
@@ -35,16 +35,20 @@ fn partial_rebuild_is_non_authoritative_with_ceiling() {
     assert_eq!(result.ceiling.currency, CurrencyLabel::NotCurrent);
     assert!(result.publication_authority.is_none());
     assert!(!result.publication_authority_changed);
-    assert!(result
-        .ceiling
-        .gaps
-        .iter()
-        .any(|g| g.as_str() == "node:gap1"));
-    assert!(result
-        .ceiling
-        .stale
-        .iter()
-        .any(|g| g.as_str() == "node:stale1"));
+    assert!(
+        result
+            .ceiling
+            .gaps
+            .iter()
+            .any(|g| g.as_str() == "node:gap1")
+    );
+    assert!(
+        result
+            .ceiling
+            .stale
+            .iter()
+            .any(|g| g.as_str() == "node:stale1")
+    );
     assert_eq!(result.ceiling.baseline.as_str(), "baseline:B1");
     assert_eq!(result.ceiling.scope.as_str(), "scope:S1");
     assert_eq!(result.ceiling.cutoff.as_str(), "cutoff:C1");
@@ -64,11 +68,13 @@ fn stale_input_cancelled_and_failed_preserve_non_authority() {
         assert!(!result.ceiling.authoritative);
         assert!(result.publication_authority.is_none());
         assert!(!result.publication_authority_changed);
-        assert!(result
-            .ceiling
-            .gaps
-            .iter()
-            .any(|g| g.as_str() == "node:gapX"));
+        assert!(
+            result
+                .ceiling
+                .gaps
+                .iter()
+                .any(|g| g.as_str() == "node:gapX")
+        );
     }
 }
 

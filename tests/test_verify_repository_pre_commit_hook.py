@@ -6,6 +6,8 @@ import os
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/verify-repository-pre-commit-hook.py"
 
@@ -46,11 +48,32 @@ def make_repo(tmp_path: Path, hook: str) -> Path:
 
 
 def test_current_hook_is_standard_and_matches_transition_record() -> None:
+    """Guard the installed hook, which is a local install artefact, not a file in Git.
+
+    Git hooks never travel with a clone: `bootstrap hooks` installs them per
+    checkout (INSTALL.md 8). A clean CI checkout therefore has no hook at all,
+    and asserting `status == "pass"` there measures the runner, not the
+    repository. Skip with a visible reason instead of failing, and keep the
+    real assertion wherever the hook IS installed.
+    """
+    hook_path = ROOT / ".git" / "hooks" / "pre-commit"
+    if not hook_path.is_file():
+        # A real pytest skip, not a print+return: a passing test captures its
+        # own output, so the old form was invisible in CI and counted as passed.
+        pytest.skip(
+            f"hook-not-installed: {hook_path} is absent; "
+            "Git hooks are installed per checkout by `bootstrap hooks`"
+        )
     module = load_module()
     payload = module.verify(ROOT)
     assert payload["status"] == "pass", payload
-    assert payload["hook"]["owner"] == "pre-commit"
+    # Since 2026-10-23 the active hook is the GSD Path guard chaining the
+    # standard pre-commit framework hook (pre-commit.gsd-path-chained).
+    assert payload["hook"]["owner"] == "gsd-path"
     assert payload["hook"]["contains_git_lex"] is False
+    chained = payload["hook"]["chained_hook"]
+    assert chained["owner"] == "pre-commit"
+    assert chained["contains_git_lex"] is False
 
 
 def test_git_lex_hook_is_rejected(tmp_path: Path) -> None:

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::adapters::{next_attempt_id, DigestBackedItemIdentity};
+use crate::adapters::{DigestBackedItemIdentity, next_attempt_id};
 #[cfg(test)]
 use crate::domain::InventoryItemId;
 use crate::domain::{

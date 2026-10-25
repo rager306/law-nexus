@@ -35,6 +35,7 @@ NON_REAL_ADAPTER_RE = re.compile(
     r"InMemory|"
     r"Hostile|"
     r"Honest|"
+    r"Fixture|"
     r"Fixed|"
     r"Stub|"
     r"Malicious|"
@@ -186,7 +187,7 @@ def build_report(
         "with_shared_suite": covered_real,
         "missing_shared_suite": missing_real,
         "non_claims": [
-            "Real-adapter classification is name-heuristic (excludes InMemory/Hostile/Honest/Fixed/Stub/Malicious fixtures).",
+            "Real-adapter classification is name-heuristic (excludes InMemory/Hostile/Honest/Fixture/Fixed/Stub/Malicious fixtures).",
             "Shared-suite classification is mention-based in ln-testkit sources/tests.",
             "Does not prove semantic suite completeness.",
             "Does not validate live TEI/RuVector adapters or product readiness.",

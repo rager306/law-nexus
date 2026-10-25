@@ -8,10 +8,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use ln_decode::npa_bounds::{
-    parse_bounds_args, run_bounds_scan, validate_bounds_jsonl, write_partial_out, BoundsAcc,
-    BoundsCli, BoundsRunMeta,
+    BoundsAcc, BoundsCli, BoundsRunMeta, parse_bounds_args, run_bounds_scan, validate_bounds_jsonl,
+    write_partial_out,
 };
-use ln_decode::npa_sweep::{walk_and_observe, EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING};
+use ln_decode::npa_sweep::{EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING, walk_and_observe};
 
 const ABSENT: &str = "/npa-bounds-cli-t03-absent-root";
 

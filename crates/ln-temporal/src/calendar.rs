@@ -213,12 +213,10 @@ fn scalar_under(text: &str, section: &str, key: &str) -> Option<String> {
         if in_section && indent <= section_indent && trimmed.trim().ends_with(':') {
             in_section = false;
         }
-        if in_section {
-            if let Some(rest) = trimmed.trim().strip_prefix(key) {
-                let value = rest.trim().trim_matches('"');
-                if !value.is_empty() {
-                    return Some(value.to_owned());
-                }
+        if in_section && let Some(rest) = trimmed.trim().strip_prefix(key) {
+            let value = rest.trim().trim_matches('"');
+            if !value.is_empty() {
+                return Some(value.to_owned());
             }
         }
     }

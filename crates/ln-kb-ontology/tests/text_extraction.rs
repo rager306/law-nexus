@@ -2,8 +2,8 @@
 //! Wires resolve_ctv into the real assembly pipeline (KBO-R051).
 
 use ln_kb_ontology::domain::{
-    build_text_log_from_articles, build_text_log_from_markers, resolve_ctv, CtvResolution,
-    HierarchyBinding, HierarchyMap, HierarchyMarker,
+    CtvResolution, HierarchyBinding, HierarchyMap, HierarchyMarker, build_text_log_from_articles,
+    build_text_log_from_markers, resolve_ctv,
 };
 use ln_temporal::domain::ComponentConceptId;
 
@@ -193,7 +193,7 @@ fn unbound_article_mints_nothing() {
 // with the same number never collide, and punkt-4 under different statya
 // ladders stay distinct (R8-11 / D192). Tuples are (level, number, path, text).
 
-use ln_kb_ontology::domain::{changed_article_texts, AmendmentDraftOp};
+use ln_kb_ontology::domain::{AmendmentDraftOp, changed_article_texts};
 
 #[test]
 fn changed_text_becomes_text_facet_draft() {

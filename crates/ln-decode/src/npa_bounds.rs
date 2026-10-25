@@ -27,14 +27,14 @@ use std::fs;
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
 
-use crate::domain::{fingerprint_bytes, ParsedBlock};
-use crate::lawref::{capture_lawrefs, LawRef};
+use crate::domain::{ParsedBlock, fingerprint_bytes};
+use crate::lawref::{LawRef, capture_lawrefs};
 use crate::lexer::{self, NpaToken, TokenKind};
-use crate::npa_sweep::{walk_and_observe, FileTerminal, SweepObserver};
+use crate::npa_sweep::{FileTerminal, SweepObserver, walk_and_observe};
 
 pub use crate::capture_bounds::{
-    arbitrate_pair, on_candidate_limit, span_relation, CandidateLimitOutcome, PairDiagnostic,
-    PairOutcome, SpanRelation, CANDIDATE_LIMIT_REACHED, PROPOSED_CANDIDATE_CEILING,
+    CANDIDATE_LIMIT_REACHED, CandidateLimitOutcome, PROPOSED_CANDIDATE_CEILING, PairDiagnostic,
+    PairOutcome, SpanRelation, arbitrate_pair, on_candidate_limit, span_relation,
 };
 
 /// Exit-code contract reused verbatim from the corpus sweep (same walk /
@@ -1469,7 +1469,7 @@ pub fn validate_bounds_jsonl(output: &str) -> Result<(), String> {
                     return Err(format!(
                         "npa-bounds-scan line {}: unknown record_kind '{other}'",
                         index + 1
-                    ))
+                    ));
                 }
             };
             if !allowed {

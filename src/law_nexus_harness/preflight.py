@@ -16,6 +16,10 @@ from pathlib import Path
 from typing import Any, Literal
 
 from law_nexus_harness.governor import GovernorReport, run_governor
+from law_nexus_harness.workflow_state import (
+    WorkflowStateKind,
+    read_workflow_state,
+)
 
 PREFLIGHT_SCHEMA_VERSION = "law-nexus-preflight-report/v1"
 
@@ -308,43 +312,61 @@ def _gitnexus_freshness_check(root: Path, runner: Runner) -> PreflightCheck:
     )
 
 
-def _gsd_state_surface_check(root: Path) -> PreflightCheck:
-    state_path = root / ".gsd" / "STATE.md"
-    command = ("read", ".gsd/STATE.md")
-    remediation = "Use GSD tools such as `gsd_milestone_status` to inspect active task/slice state."
-    if not state_path.is_file():
-        return _warning_check(
-            check_id="gsd-state-surface",
-            phase="gsd-state",
-            command=command,
-            observed="GSD STATE.md surface is missing; preflight will not query .gsd/gsd.db directly.",
-            remediation=remediation,
+def _workflow_state_surface_check(root: Path) -> PreflightCheck:
+    """Typed workflow-state surface (GSD Path backend, MIGRATION.md 4.1/4.2).
+
+    Reads the read-only adapter instead of the legacy .gsd projection. In
+    bootstrap mode a missing .project is an explicit not-cut-over warning,
+    never a silent PASS; in operational mode it is a blocking failure.
+    """
+    command = ("internal", "workflow-state-adapter")
+    report = read_workflow_state(root)
+    legacy = "present" if report.legacy_gsd_present else "absent"
+    if report.kind is WorkflowStateKind.OPERATIONAL_VALID:
+        runtime = report.runtime
+        runtime_note = (
+            f"{runtime.version}@{runtime.digest[:12]}"
+            if runtime.version is not None and runtime.digest is not None
+            else "unresolved"
         )
-    state_text = state_path.read_text(encoding="utf-8")
-    terminal = "**Phase:** complete" in state_text
-    required = (
-        ("**Last Completed Milestone:**", "**Active Slice:**", "**Phase:**")
-        if terminal
-        else ("**Active Milestone:**", "**Active Slice:**", "**Phase:**")
-    )
-    missing = [field for field in required if field not in state_text]
-    if missing:
-        return _warning_check(
-            check_id="gsd-state-surface",
-            phase="gsd-state",
-            command=command,
-            observed=f"GSD STATE.md is present but missing fields: {', '.join(missing)}.",
-            remediation=remediation,
+        observed = (
+            f"backend=gsd-path; state=operational; runtime={runtime_note}; legacy_gsd={legacy}"
         )
-    return _pass_check(
-        check_id="gsd-state-surface",
-        phase="gsd-state",
+        if report.detail:
+            observed += f"; {report.detail}"
+        return _pass_check(
+            check_id="workflow-state-surface",
+            phase="workflow-state",
+            command=command,
+            observed=observed,
+        )
+    if report.kind is WorkflowStateKind.BOOTSTRAP_NOT_CUT_OVER:
+        return _warning_check(
+            check_id="workflow-state-surface",
+            phase="workflow-state",
+            command=command,
+            observed=(
+                f"backend=gsd-path; mode=bootstrap; workflow readiness: not-cut-over; "
+                f"legacy_gsd_snapshot={legacy}; {report.observed}"
+            ),
+            remediation=(
+                "Follow docs/agent-stack/INSTALL.md §12: merge the bootstrap PR, then "
+                "run native Path initialization; flip "
+                "prd/project-state/workflow-backend.json cutover only at C7."
+            ),
+        )
+    return PreflightCheck(
+        check_id="workflow-state-surface",
+        phase="workflow-state",
+        status="fail",
+        severity="error",
         command=command,
-        observed=(
-            "GSD STATE.md exposes a completed terminal state."
-            if terminal
-            else "GSD STATE.md exposes active milestone, slice, and phase surface."
-        ),
+        duration_ms=0,
+        exit_code=1,
+        stdout_tail="",
+        stderr_tail="",
+        observed=f"kind={report.kind.value}; {report.observed}; legacy_gsd={legacy}",
+        remediation=report.remediation,
     )
 
 
@@ -617,7 +639,7 @@ def run_preflight(
         ),
         _port_contract_coverage_check(resolved_root, runner),
         _gitnexus_freshness_check(resolved_root, runner),
-        _gsd_state_surface_check(resolved_root),
+        _workflow_state_surface_check(resolved_root),
         _docs_freshness_surface_check(resolved_root),
         _trajectory_governor_check(resolved_root, governor_runner),
     )

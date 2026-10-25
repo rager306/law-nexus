@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml"><w:p><w:r><w:t>Статья 1. Заголовок с NBSP.</w:t></w:r></w:p><w:p><w:r><w:t>а) подпункт один;</w:t></w:r></w:p><w:p><w:r><w:t>2. Вторая часть.</w:t></w:r></w:p><w:p><w:r><w:t>Текст с &amp; и &#160; и &lt;/w:p&gt; и &quot;кавычками&quot;.</w:t></w:r></w:p></w:wordDocument>

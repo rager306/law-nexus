@@ -1,0 +1,85 @@
+{
+  "schema": "law-nexus/milestone-remediation-battery/v1",
+  "milestoneId": "M214-es3jvw",
+  "remediationRound": 1,
+  "recordedAt": "2026-10-05T02:05:00Z",
+  "finding": {
+    "source": "M214-es3jvw milestone validation, remediation round 0",
+    "verdict": "needs-attention",
+    "criterion": "SC4",
+    "class": "Operational",
+    "summary": "The two S04 acceptance binaries published artifacts with std::fs::write: no create_new, no canonicalize/containment, symlink-follow allowed, --out could alias --sample, and no negative test existed. Parameter tampering could overwrite an arbitrary file. R038 stayed PARTIAL.",
+    "confirmedInCode": [
+      "crates/ln-consultant-parser/src/bin/npa-corpus-sample.rs",
+      "crates/ln-consultant-parser/src/bin/npa-corpus-acceptance.rs"
+    ]
+  },
+  "repair": {
+    "commit": "c8885db",
+    "subject": "fix: publish S04 acceptance artifacts fail-closed",
+    "newModule": "crates/ln-consultant-parser/src/artifact_output.rs",
+    "behaviour": [
+      "refuses a symlinked parent component",
+      "refuses a symlinked or non-regular target via symlink_metadata; never follows it",
+      "default mode publishes with create_new(true), so an existing artifact is refused atomically",
+      "--force replaces only after the target canonicalises to the canonical parent join, using a create_new temp sibling and rename, so the link entry is replaced rather than followed",
+      "npa-corpus-acceptance refuses --out/--packet/--entries resolving onto --sample and refuses pairwise output collisions",
+      "npa-corpus-sample refuses --out resolving onto a declared root"
+    ],
+    "unchangedOnPurpose": [
+      "acceptance semantics, thresholds, report/packet/manifest schemas",
+      "the pinned sample manifest and every tracked evidence artifact"
+    ]
+  },
+  "commands": [
+    {
+      "command": "cargo test -p ln-consultant-parser --offline --test npa_corpus_acceptance_run_contract",
+      "exitCode": 0,
+      "observed": "14 passed; 0 failed (6 pre-existing cases plus 8 new fail-closed cases)"
+    },
+    {
+      "command": "cargo test -p ln-consultant-parser --offline --lib artifact_output",
+      "exitCode": 0,
+      "observed": "7 passed; 0 failed"
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "exitCode": 0,
+      "observed": "clean under pinned Rust 1.99.0"
+    },
+    {
+      "command": "cargo check --workspace --offline",
+      "exitCode": 0,
+      "observed": "clean under pinned Rust 1.99.0"
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets --offline -- -D warnings",
+      "exitCode": 0,
+      "observed": "No issues found under pinned Rust 1.99.0"
+    }
+  ],
+  "independentVerification": {
+    "preCommitHooks": "Rust workspace formatting, offline check, clippy, crate dependency allowlist and ADR conformance all reported Passed for commit c8885db"
+  },
+  "preExistingFailureNotCausedByThisRepair": {
+    "test": "amendment_provenance::tests::argument_parsing_is_closed_and_requires_one_action",
+    "reason": "the assertion expects parse_provenance_args to reject a ledger/--write combination that the function does not implement",
+    "evidence": "crates/ln-consultant-parser/src/amendment_provenance.rs is untouched by this repair; its last change is commit dbf1458 (2026-09-23)",
+    "status": "open repository debt, not a M214 regression"
+  },
+  "s04EvidenceCitedFromRoundZeroValidation": {
+    "durableRefs": [
+      "prd/migration/rust-evidence/m214-s04-corpus-acceptance.json",
+      "prd/migration/rust-evidence/m214-s04-acceptance-battery.json",
+      "prd/migration/rust-evidence/m214-s04-adjudication-packet.json",
+      "prd/migration/rust-evidence/m214-s04-corpus-sample.json"
+    ],
+    "pinnedRun": "verdict=pass, entries_total=400, verified_ok=400, structural_failures=0, refusals=0, tamper_probe_detected=12, false_negative=0, promotion=false, coverage_claim=null"
+  },
+  "nonClaims": [
+    "no semantic or legal gold was produced",
+    "no corpus-wide acceptance claim is made",
+    "R1000 remains active/unclosed and R038 keeps its own owner; this repair closes the Operational gap only",
+    "M208-wrz6fg stays parked; the pre-M214 temporal plan stays in 214-RESEARCH.md"
+  ]
+}

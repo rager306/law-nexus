@@ -63,30 +63,11 @@ falkordb=historical-only
 | ADR-0026 | RuVector as agent memory layer for the meta-parser (graph + vectors + SONA + GNN) | `[proposed]` |
 | ADR-0027 | Multi-layer manifest classifier for document-specific link classification | `[bounded]` |
 | [ADR-0028](0028-typed-lexer-legal-marker-lexicon.md) | Typed lexer and legal-marker lexicon (LawRef FSM, clause/list_item, act tree). Dual tokenizer living: `lex()` covering vs private alphabetic `tokenize()`; morphology on covering Word. Pullenti 4.34 = development-stage grammar/slot alphabet only (D380). Identifying spans + CurrentDocumentRequisites sidecar, not `lex()` input (D381); GEO beside ORG (D382). Coordinating lists/ranges expose a local-reference-grammar plane above lexer/morph evidence (D383/D384; `prd/architecture/npa-identifying-cycle.yaml`; `assessment/26-pullenti-semantic-morphology-synthesis.md`). Whole-document reach is a version-bound base `DocumentStructureIndex` + immutable analysis overlay + deterministic ContextRequest worklist (D385/D386), not whole-document input or model recursion (`prd/architecture/npa-document-context.yaml`). Canonical D387 process uses orthogonal DocumentReadiness/Mention/ContextDependency/Binding FSMs and isolates meta/prompt authority (`prd/architecture/npa-semantic-process.yaml`; `assessment/28-npa-process-fsm-meta-prompt-audit.md`). D388 adds explicit capture-arbitration and per-source requisites contracts; numeric bounds await full-corpus/hostile evidence (`npa-capture-arbitration.yaml`, `current-document-requisites.yaml`, `assessment/29-npa-bounds-hostile-plan.md`). No cross-block TextAnchor, TokenKind/S01 widening, grammar-frame identity, LLM, or RLM runtime. Dictionary morphology runtime and grammar/context bounds remain deferred | `[proposed]` |
-| ADR-0029 | Requisites-anchored member-assembly FSM for NPA reference capture (M207 model) — design decision for the future Rust implementation of reference capture; no Rust engine code has landed for this layer, the evidence base is the M207 Python prototype and corpus censuses, and demo-only evidence does not promote any claim beyond `[proposed]` (R035-class honesty) | `[proposed]` |
+| ADR-0029 | Requisites-anchored member-assembly FSM for NPA reference capture (M207 model) — design decision for the Rust implementation of reference capture; a bounded Rust reference-capture runtime landed under M211 (npa_anchor/npa_typed/npa_link/npa_classify/npa_continuation, npa-integration-runner) under bounded parity batteries; prompt-FSM residue and corpus-wide/semantic acceptance remain deferred/unclaimed, so the claim stays `[proposed]` | `[proposed]` |
+| ADR-0030 | Consultant URI anchor as cross-system legal identity (byte-exact preservation everywhere; opaque-token exact-match catalog join via editions.source_id; internal-URI (bank,document_key,para); no decoding) and JSON-LD knowledge layers (G1 identity/edition, G2 reference, G3 temporal, G4 practice overlay) derived from the XML→JSONL spine as deterministic reversible projections with legal-identity keys and source anchors; practice/control banks single-version; practice temporality sequenced after normative temporality (edition timeline first); RDF tooling runtime-admissible under standard gates (D777) | `[proposed]` |
+| ADR-0031 | Reference knowledge-layer contract over the XML→JSONL spine (Python reference executed + Rust port contract, ADR-0030 refinement): digest timeline per (edition, article) with source anchors and D765/D767 day policy; normalization profile m217-norm/v1; amend provenance corpus-wide (18 593 markers / 62 amending laws, enacting-date resolution); qualified internal references with sentence-scoped external-marker exclusion, byte-checked against the committed Python artifacts (`--check` exit 0/3/6); G-layer text projection on-demand (act ≈173 MB, corpus ≈54 GB — persistent text-inline rejected by measurement). Scope measured 2026-10-16: the corpus carries edition ordering for **one** act (44-ФЗ, 118 editions) — of 401 multi-edition documents no other has distinguishable revision days, so the timeline is a per-act contract exercised once, not a corpus-wide layer; the scanner is defined over the WordML 2003 namespace and both implementations refuse other namespaces with exit 3. **Not executed yet:** the pageindex contents ladder (D5) and requisite-resolved external deep links (D4) — no module code, no committed artifact | `[proposed]` |
 
-Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as
-active ADR substance.
-
-### M205/S04 documentation reconciliation [proposed]
-
-The design-only pin `prd/architecture/m205-s04-docs-reconciliation.yaml`
-(`m205-s04-docs-reconciliation/v1`) reconciles ADR-0028, the NPA architecture
-contracts and their verification companions. It is `authoritative: false`,
-keeps `human_adoption: pending` and `runtime_stop` active, and does not promote
-lifecycle or alter the frozen S01-S03 and M200 YAML bytes. D459 records the
-clean-room prior-art boundary: no `DecreeChange`, identifying-cycle `Change`,
-G0 adoption, or Pullenti runtime is introduced; PC-X rows remain leave rows.
-
-The selected gates are G01/G02/G14. G02 is already wired in `capture_lawrefs`
-with defaults-only arbitration and the proposed 1024 refusal ceiling; only
-residual resource behavior remains open. G03-G13, G15 and G16 remain
-individually `deferred-undefined`; `not_required` is process-side only and
-`resolved` is not `sufficient`. P9 is `not-s04-after-this` /
-`deferred-to-later`, with no S04 emission or ownership. Candidate glossary
-names are not §3 first-cells: NormRule, Condition, LegalEffect, Exception and
-force remain deferred, and IR belongs to M210. F19 is supporting-only and the
-packet remains open; human adoption and all findings remain pending.
+Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as active ADR substance. M205/S04 reconciliation detail is a design-only pin `prd/architecture/m205-s04-docs-reconciliation.yaml` (`m205-s04-docs-reconciliation/v1`, D459; reconciles ADR-0028; gates G01/G02/G14; P9 `not-s04-after-this/deferred-to-later`; F19 supporting-only; `[proposed]`; human adoption and all findings remain pending).
 
 ## Knowledge-base ontology draft (O1, `[proposed]`)
 
@@ -209,7 +190,7 @@ Proposed semantic reconciliation, glossary and graduation gates are tracked in [
 **Kernel canon, standards compatibility (D046):** the project-local evidence
 kernel (D119 C10/C12/C13) owns substance; LRMoo/CIDOC-CRM/AKML/ELI/LKIF are
 deterministic reversible projections for interoperability. Budget cycle is a
-profile projection over the five clocks (ADR-0009), NOT a sixth clock. SHACL/SPARQL remain **anti-runtime** (archive-only, R066); review-control: [`architecture/temporal-ast-review-control.md`](architecture/temporal-ast-review-control.md).
+profile projection over the five clocks (ADR-0009), NOT a sixth clock. SHACL/SPARQL are runtime-admissible under standard admission gates (D777, 2026-10-14; the former archive-only clause mis-cited R066); review-control: [`architecture/temporal-ast-review-control.md`](architecture/temporal-ast-review-control.md).
 
 ## Where we actually are (truth, not optimism)
 

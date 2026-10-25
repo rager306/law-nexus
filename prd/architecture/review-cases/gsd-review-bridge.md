@@ -1,10 +1,23 @@
 # GSD ↔ Review Case Bridge Policy (P2)
 
-**Lifecycle:** `[proposed]` process contract  
+**Lifecycle:** `[proposed]` process contract — **historical since the delivery
+workflow migration (2026-10-23)**  
+**Successor:** [`path-review-bridge.md`](path-review-bridge.md) carries the
+delivery-intent vocabulary for work executed under GSD Path. This document
+stays readable as recorded history: its `delivery:gsd:<MID>` intents and the
+events that cite them are not rewritten.  
 **Authority companions:** ADR-0024 §9 / §9a,  
 `prd/architecture/review-cases/continuity-contract.md` (D153)  
 **Non-authority:** does not complete GSD milestones, accept findings, close TSG
-rows, or claim product readiness.
+rows, or claim product readiness. Neither does its successor.
+
+> **Migration boundary.** The three orthogonal lifecycles (`L_review`,
+> `L_delivery`, `L_capability`) and the opaque `execution_linked.to` pointer are
+> unchanged by the succession — only the spelling of a new delivery reference
+> changes, from `delivery:gsd:<MID>` to `delivery:path:<path-…-id>`. A successor
+> reference never mutates Path state and never proves a Path task completed
+> (ADR-0024). `MIGRATION.md` §4.2 and §7.3 govern what the migration may and may
+> not promote; nothing here widens them.
 
 ## 1. Problem
 

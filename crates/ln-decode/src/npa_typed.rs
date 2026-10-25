@@ -1,27 +1,63 @@
-//! NPA typed members (M211 S02, ADR-0029).
+//! NPA typed members (M211 S01/S02, ADR-0029).
+//!
+//! Единый producer якорей: типизированный поток потребляет канонические
+//! anchor'ы `npa_anchor::scan_anchors_diagnosed` (все guards: INBOUND,
+//! MINJUST, date-overlap; локальные UTF-8 byte spans; occurrences не
+//! сливаются по `(date, number)`). Собственный сканер дат удалён —
+//! смысловое дублирование `scan_dates` устранено.
 //!
 //! TYPE-кандидаты сканируются в тексте, приклейка — `_type_for_span`
 //! прототипа: ближайший preceding TYPE без TYPE за другим якорем.
 
-/// Типизированный член.
+use crate::npa_anchor::{self, AnchorDiagnostic, LocalSpan};
+
+/// Как получен TYPE члена: записан в этом же блоке либо не разрешён.
+///
+/// `InheritedFromSeriesHead` здесь намеренно отсутствует: cross-block
+/// наследование — граница S03, intra-block наследование живёт в
+/// `local_grammar::DerivationSource` (T04). Здесь фиксируется только
+/// provenance самого typed-потока.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum TypeDerivation {
+    /// TYPE-голова найдена среди кандидатов текущего блока.
+    WrittenHere,
+    /// Ни одного кандидата до якоря не выжило — TYPE не разрешён.
+    Unresolved,
+}
+
+/// Конкурирующее чтение TYPE с source-span головы в том же блоке.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct TypeHypothesis {
+    pub canon: String,
+    pub evidence: LocalSpan,
+}
+
+/// Типизированный член: нормализованная дата + номер + TYPE и локальный
+/// byte-span якоря-вхождения (тот же поток, что S01; M207 `{fragment_id,
+/// start, end}` shape, hand-rolled без внешнего (de)serializer'а).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct TypedMember {
     pub date: String,
     pub number: String,
     pub type_name: String,
     pub approved_by: String,
+    pub span: LocalSpan,
+    /// Provenance победившего TYPE (RC28-F09: победитель больше не молчит).
+    pub derivation: TypeDerivation,
+    /// Byte-span головы-победителя в блоке (`None` при `Unresolved`).
+    pub type_evidence: Option<LocalSpan>,
+    /// Соперники среди выживших гипотез (без победителя), с source-span.
+    pub alternatives: Vec<TypeHypothesis>,
+    /// `true`, если ни одна гипотеза не выжила: `type_name` пуст,
+    /// `derivation == Unresolved`.
+    pub unresolved: bool,
 }
 
+#[derive(Debug)]
 pub struct TypeCandidate {
     pub start: usize,
     pub end: usize,
     pub canon: String,
-}
-
-pub struct DateHit {
-    pub start: usize,
-    pub date: String,
-    pub number: String,
 }
 
 fn is_cyr(c: char) -> bool {
@@ -57,171 +93,81 @@ fn skip_ws(text: &[char], mut i: usize) -> usize {
     i
 }
 
-fn is_num_start(c: char) -> bool {
-    c.is_ascii_alphanumeric() || is_cyr(c)
-}
-
-fn read_num(text: &[char], mut i: usize) -> (usize, String) {
-    let s = i;
-    while i < text.len() && (is_num_start(text[i])) {
+/// Конец слова (буквы/цифры/дефис) от позиции `i`.
+fn word_end(text: &[char], mut i: usize) -> usize {
+    while i < text.len() && (is_word(text[i]) || text[i] == '-') {
         i += 1;
     }
-    let mut end = i;
-    loop {
-        if end < text.len() && matches!(text[end], '.' | '/' | '-') {
-            let g0 = end + 1;
-            let mut g = g0;
-            while g < text.len() && is_num_start(text[g]) {
-                g += 1;
-            }
-            if g > g0 {
-                end = g;
-            } else {
-                break;
-            }
-        } else {
+    i
+}
+
+/// Полное совпадение слова с границей справа (`word_eq`), регистр снят.
+fn word_eq(lower: &[char], i: usize, w: &str) -> bool {
+    let wc: Vec<char> = w.chars().collect();
+    if i + wc.len() > lower.len() || lower[i..i + wc.len()] != wc[..] {
+        return false;
+    }
+    i + wc.len() == lower.len() || !is_word(lower[i + wc.len()])
+}
+
+/// Generic издатель после ствола («распоряжением МТУ Росимущества в ...»).
+/// Возвращает (char-конец, текст издателя как написан). Останавливается на
+/// служебных словах `от`/`об`/`о`/`не` и пунктуации (эталон TYPE_HEAD).
+fn generic_issuer(text: &[char], from: usize) -> Option<(usize, String)> {
+    let n = text.len();
+    let mut pos = skip_ws(text, word_end(text, from));
+    if pos >= n || !is_word(text[pos]) || !text[pos].is_uppercase() {
+        return None;
+    }
+    let mut words: Vec<String> = Vec::new();
+    let mut last_end = pos;
+    for _ in 0..16 {
+        let w0 = skip_ws(text, pos);
+        if w0 >= n || !is_word(text[w0]) {
             break;
         }
+        let w1 = word_end(text, w0);
+        let w: String = text[w0..w1].iter().collect();
+        let wl: Vec<char> = w.to_lowercase().chars().collect();
+        let stop = wl == ['о', 'т'] || wl == ['о', 'б'] || wl == ['о'] || wl == ['н', 'е'];
+        if stop {
+            break;
+        }
+        words.push(w);
+        last_end = w1;
+        pos = w1;
     }
-    (end, text[s..end].iter().collect())
+    if words.is_empty() {
+        return None;
+    }
+    Some((last_end, words.join(" ")))
 }
 
-fn read_dot_date(text: &[char], mut i: usize) -> Option<(usize, String)> {
-    let mut parts = Vec::new();
-    for len in [2usize, 2, 4] {
-        let s = i;
-        while i < text.len() && text[i].is_ascii_digit() && i - s < len {
-            i += 1;
-        }
-        if i - s != len {
-            return None;
-        }
-        parts.push(text[s..i].iter().collect::<String>());
-        if parts.len() < 3 {
-            if i < text.len() && text[i] == '.' {
-                i += 1;
-            } else {
-                return None;
-            }
-        }
-    }
-    Some((i, parts.join(".")))
-}
-
-fn month_num(name: &str) -> Option<u8> {
-    match name {
-        "января" => Some(1),
-        "февраля" => Some(2),
-        "марта" => Some(3),
-        "апреля" => Some(4),
-        "мая" => Some(5),
-        "июня" => Some(6),
-        "июля" => Some(7),
-        "августа" => Some(8),
-        "сентября" => Some(9),
-        "октября" => Some(10),
-        "ноября" => Some(11),
-        "декабря" => Some(12),
-        _ => None,
-    }
-}
-
-/// Скан всех дат (OT_DATE + OT_DUMA) в абзаце.
-pub fn scan_dates(text: &[char]) -> Vec<DateHit> {
+/// «Конституционн… Суд… (Российск… Федераци…)? в Постановлен…» —
+/// вынесенный эмитент; canon «Постановление КС РФ» (TYPE_HEAD, D519).
+fn constitutional_court_carry(text: &[char], lower: &[char], i: usize) -> Option<usize> {
     let n = text.len();
-    let lower: Vec<char> = text
-        .iter()
-        .map(|c| c.to_lowercase().next().unwrap_or(*c))
-        .collect();
-    let mut hits = Vec::new();
-    let mut i = 0usize;
-    while i < n {
-        // OT_DATE: от DD.MM.YYYY (N NUM | б/н)
-        if starts_lower(&lower, i, "от ") {
-            let d0 = skip_ws(text, i + 2);
-            if let Some((dend, date)) = read_dot_date(text, d0) {
-                let j = skip_ws(text, dend);
-                if j < n && (lower[j] == 'n' || text[j] == '№') {
-                    let k = skip_ws(text, j + 1);
-                    let (nend, num) = read_num(text, k);
-                    if nend > k {
-                        hits.push(DateHit {
-                            start: i,
-                            date,
-                            number: num,
-                        });
-                        i = nend;
-                        continue;
-                    }
-                }
-            }
-        }
-        // OT_DUMA: от D месяца YYYY г[ода|.] N NUM
-        if starts_lower(&lower, i, "от ") {
-            let d0 = skip_ws(text, i + 2);
-            let mut d1 = d0;
-            while d1 < n && text[d1].is_ascii_digit() && d1 - d0 < 2 {
-                d1 += 1;
-            }
-            if d1 > d0 {
-                let m0 = skip_ws(text, d1);
-                let mut m1 = m0;
-                while m1 < n && is_cyr(text[m1]) {
-                    m1 += 1;
-                }
-                if m1 > m0 {
-                    let mon: String = text[m0..m1].iter().collect();
-                    if let Some(mm) = month_num(&mon) {
-                        let y0 = skip_ws(text, m1);
-                        let mut y1 = y0;
-                        while y1 < n && text[y1].is_ascii_digit() && y1 - y0 < 4 {
-                            y1 += 1;
-                        }
-                        if y1 - y0 == 4 {
-                            let g0 = skip_ws(text, y1);
-                            let (gend, ok) = if g0 + 4 <= n && slice_eq(&lower, g0, "года") {
-                                (g0 + 4, true)
-                            } else if g0 < n && lower[g0] == 'г' {
-                                if g0 + 1 < n && text[g0 + 1] == '.' {
-                                    (g0 + 2, true)
-                                } else {
-                                    (g0 + 1, true)
-                                }
-                            } else {
-                                (g0, false)
-                            };
-                            if ok {
-                                let j = skip_ws(text, gend);
-                                if j < n && lower[j] == 'n' {
-                                    let k = skip_ws(text, j + 1);
-                                    let (nend, num) = read_num(text, k);
-                                    if nend > k {
-                                        let day: String = text[d0..d1].iter().collect();
-                                        let year: String = text[y0..y1].iter().collect();
-                                        let date = format!(
-                                            "{:02}.{:02}.{}",
-                                            day.parse::<u32>().unwrap_or(0),
-                                            mm,
-                                            year
-                                        );
-                                        hits.push(DateHit {
-                                            start: i,
-                                            date,
-                                            number: num,
-                                        });
-                                        i = nend;
-                                        continue;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        i += 1;
+    let cend = word_end(text, i);
+    let n1 = skip_ws(text, cend);
+    if n1 >= n || !starts_lower(lower, n1, "суд") {
+        return None;
     }
-    hits
+    let mut n2 = skip_ws(text, word_end(text, n1));
+    if n2 < n && starts_lower(lower, n2, "российск") {
+        let r1 = word_end(text, n2);
+        let r2 = skip_ws(text, r1);
+        if r2 < n && starts_lower(lower, r2, "федераци") {
+            n2 = skip_ws(text, word_end(text, r2));
+        }
+    }
+    if n2 >= n || !word_eq(lower, n2, "в") {
+        return None;
+    }
+    let n3 = skip_ws(text, n2 + 1);
+    if n3 >= n || !starts_lower(lower, n3, "постановлен") {
+        return None;
+    }
+    Some(word_end(text, n3))
 }
 
 /// Скан TYPE-кандидатов.
@@ -288,6 +234,36 @@ pub fn scan_types(text: &[char]) -> Vec<TypeCandidate> {
             i = we;
             continue;
         }
+        // --- Постановление КС РФ (аббревиатура) ---
+        if starts_lower(&lower, i, "постановлен") {
+            let pwend = word_end(text, i);
+            let nks = skip_ws(text, pwend);
+            if word_eq(&lower, nks, "кс") {
+                let nrf = skip_ws(text, nks + 2);
+                if word_eq(&lower, nrf, "рф") {
+                    let e = word_end(text, nrf);
+                    out.push(TypeCandidate {
+                        start: i,
+                        end: e,
+                        canon: "Постановление КС РФ".into(),
+                    });
+                    i = e;
+                    continue;
+                }
+            }
+        }
+        // --- вынесенный эмитент: «Конституционн… Суд… в Постановлен…» ---
+        if starts_lower(&lower, i, "конституционн")
+            && let Some(e) = constitutional_court_carry(text, &lower, i)
+        {
+            out.push(TypeCandidate {
+                start: i,
+                end: e,
+                canon: "Постановление КС РФ".into(),
+            });
+            i = e;
+            continue;
+        }
         // --- Постановление КС / Пленум / Правительства ---
         if starts_lower(&lower, i, "постановлен") {
             if contains_lower(&lower, i, "конституционн") {
@@ -331,9 +307,11 @@ pub fn scan_types(text: &[char]) -> Vec<TypeCandidate> {
                 continue;
             }
         }
-        // --- распоряжение Правительства / Президента ---
+        // --- распоряжение Правительства / Президента / generic <issuer> ---
         if starts_lower(&lower, i, "распоряжен") {
-            if contains_lower(&lower, i, "правительств") {
+            let wend = word_end(text, i);
+            let n1 = skip_ws(text, wend);
+            if starts_lower(&lower, n1, "правительств") {
                 let e = type_end(text, i);
                 out.push(TypeCandidate {
                     start: i,
@@ -343,12 +321,21 @@ pub fn scan_types(text: &[char]) -> Vec<TypeCandidate> {
                 i = e;
                 continue;
             }
-            if contains_lower(&lower, i, "президента") {
+            if starts_lower(&lower, n1, "президента") {
                 let e = type_end(text, i);
                 out.push(TypeCandidate {
                     start: i,
                     end: e,
                     canon: "Распоряжение Президента РФ".into(),
+                });
+                i = e;
+                continue;
+            }
+            if let Some((e, issuer)) = generic_issuer(text, i) {
+                out.push(TypeCandidate {
+                    start: i,
+                    end: e,
+                    canon: format!("Распоряжение {issuer}"),
                 });
                 i = e;
                 continue;
@@ -440,23 +427,31 @@ pub fn scan_types(text: &[char]) -> Vec<TypeCandidate> {
             }
         }
         // --- первичные ---
+        // ВАЖНО: `i` — индекс по Vec<char>, поэтому шаг считается в char'ах
+        // (`pat.chars().count()`), а не в байтах кириллицы (иначе перескок).
+        let mut matched = false;
         for (pat, canon) in [
             ("жалоб", "жалоба"),
             ("доверенност", "доверенность"),
             ("контракт", "контракт"),
             ("соглашени", "соглашение"),
             ("протокол", "протокол"),
-            ("лицензия", "лицензия"),
+            ("лицензи", "лицензия"),
         ] {
             if starts_lower(&lower, i, pat) {
+                let plen = pat.chars().count();
                 out.push(TypeCandidate {
                     start: i,
-                    end: i + pat.len(),
+                    end: i + plen,
                     canon: canon.into(),
                 });
-                i += pat.len();
+                i += plen;
+                matched = true;
                 break;
             }
+        }
+        if matched {
+            continue;
         }
         i += 1;
     }
@@ -554,62 +549,124 @@ fn canon_fas(span: &str, label: &str) -> String {
     }
 }
 
-/// Приклейка TYPE по `_type_for_span` прототипа:
-/// ближайший preceding TYPE, отфильтрованный по date-crossing.
-pub fn scan_typed(paras: &[String]) -> Vec<TypedMember> {
-    let mut out: Vec<TypedMember> = Vec::new();
-    let mut seen: std::collections::BTreeMap<(String, String), usize> =
-        std::collections::BTreeMap::new();
+/// Приклейка TYPE по `_type_for_span` прототипа: ближайший preceding TYPE,
+/// отфильтрованный по date-crossing. Вход — канонический поток якорей S01
+/// (occurrences + локальные byte spans), поэтому приклейка идёт по
+/// `span.block`.
+fn attach_types(paras: &[String], anchors: &[npa_anchor::Anchor]) -> Vec<TypedMember> {
+    let mut out: Vec<TypedMember> = Vec::with_capacity(anchors.len());
+    let mut idx = 0usize;
 
-    for para in paras {
+    for (block, para) in paras.iter().enumerate() {
+        // якоря отсортированы по (block, start) — берём свою порцию блока
+        let start_idx = idx;
+        while idx < anchors.len() && anchors[idx].span.block == block {
+            idx += 1;
+        }
+        if start_idx == idx {
+            continue;
+        }
+
         let chars: Vec<char> = para.chars().collect();
-        let dates = scan_dates(&chars);
         let types = scan_types(&chars);
-        let date_starts: Vec<usize> = dates.iter().map(|d| d.start).collect();
 
-        for d in &dates {
+        // byte → char: префиксные байтовые смещения (границы code point
+        // гарантированы `check_span` в producer'е).
+        let mut offs: Vec<usize> = Vec::with_capacity(chars.len() + 1);
+        let mut b = 0usize;
+        for c in &chars {
+            offs.push(b);
+            b += c.len_utf8();
+        }
+        offs.push(b);
+        let date_starts: Vec<usize> = (start_idx..idx)
+            .map(|k| offs.partition_point(|&o| o < anchors[k].span.start))
+            .collect();
+
+        for (k, &d_start) in date_starts.iter().enumerate() {
+            let a = &anchors[start_idx + k];
             // TYPE candidates before this date
-            let mut before: Vec<&TypeCandidate> =
-                types.iter().filter(|t| t.start <= d.start).collect();
-            // date-crossing filter
-            if !date_starts.is_empty() {
+            let before: Vec<&TypeCandidate> = types.iter().filter(|t| t.start <= d_start).collect();
+            // date-crossing filter (intra-block). Reuse of a candidate crossed by an
+            // intervening date is intra-block series-head inheritance, exactly as the
+            // differential reference _type_for_span does (`if filtered: before = filtered`),
+            // e.g. a list of Federal laws D1/D2/D3 in one sentence. Cross-block reuse is
+            // structurally impossible because types/date_starts are built per block
+            // (RC28-F07); silent-winner UX (RC28-F09) is addressed by the provenance
+            // buffer in T02.
+            let before: Vec<&TypeCandidate> = before;
+            let survivors: Vec<&TypeCandidate> = if date_starts.is_empty() {
+                before
+            } else {
                 let filtered: Vec<&TypeCandidate> = before
                     .iter()
-                    .filter(|t| !date_starts.iter().any(|&ds| t.start < ds && ds < d.start))
+                    .filter(|t| !date_starts.iter().any(|&ds| t.start < ds && ds < d_start))
                     .copied()
                     .collect();
-                if !filtered.is_empty() {
-                    before = filtered;
+                if filtered.is_empty() {
+                    before
+                } else {
+                    filtered
                 }
-            }
-            let mut canon = before
-                .iter()
-                .max_by_key(|t| t.start)
-                .map(|t| t.canon.clone());
+            };
+            let winner = survivors.iter().max_by_key(|t| t.start).copied();
+            let mut canon = winner.map(|t| t.canon.clone());
             // -ФЗ суффикс → Федеральный закон (Закон РФ override)
-            if canon.as_deref() == Some("Закон РФ") && d.number.ends_with("-ФЗ") {
+            if canon.as_deref() == Some("Закон РФ") && a.number.ends_with("-ФЗ") {
                 canon = Some("Федеральный закон".to_string());
             }
-            let key = (d.date.clone(), d.number.clone());
-            match seen.get(&key) {
-                None => {
-                    seen.insert(key.clone(), out.len());
-                    out.push(TypedMember {
-                        date: d.date.clone(),
-                        number: d.number.clone(),
-                        type_name: canon.unwrap_or_default(),
-                        approved_by: String::new(),
-                    });
-                }
-                Some(&j) => {
-                    if let Some(c) = canon {
-                        if out[j].type_name.is_empty() {
-                            out[j].type_name = c;
-                        }
-                    }
-                }
-            }
+            // Provenance победителя: byte-span головы в том же блоке.
+            let type_evidence = winner.map(|t| LocalSpan {
+                block,
+                start: offs[t.start],
+                end: offs[t.end],
+            });
+            // Буфер конкурирующих гипотез: все выжившие, кроме победителя.
+            let alternatives: Vec<TypeHypothesis> = survivors
+                .iter()
+                .filter(|t| Some(t.start) != winner.map(|w| w.start))
+                .map(|t| TypeHypothesis {
+                    canon: t.canon.clone(),
+                    evidence: LocalSpan {
+                        block,
+                        start: offs[t.start],
+                        end: offs[t.end],
+                    },
+                })
+                .collect();
+            let unresolved = survivors.is_empty();
+            let derivation = if unresolved {
+                TypeDerivation::Unresolved
+            } else {
+                TypeDerivation::WrittenHere
+            };
+            // Occurrences не сливаются по `(date, number)`: каждая запись
+            // несёт свой source-local byte span (M207 AMBIGUOUS_DUPLICATE).
+            out.push(TypedMember {
+                date: a.date.clone(),
+                number: a.number.clone(),
+                type_name: canon.unwrap_or_default(),
+                approved_by: String::new(),
+                span: a.span,
+                derivation,
+                type_evidence,
+                alternatives,
+                unresolved,
+            });
         }
     }
     out
+}
+
+/// Единый producer: типизированный поток поверх канонических якорей S01.
+/// Возвращает (`members`, `diagnostics`) — отказы guard'ов и duplicate
+/// occurrences не проглатываются (та же семантика, что у `npa_anchor`).
+pub fn scan_typed_diagnosed(paras: &[String]) -> (Vec<TypedMember>, Vec<AnchorDiagnostic>) {
+    let (anchors, diagnostics) = npa_anchor::scan_anchors_diagnosed(paras);
+    (attach_types(paras, &anchors), diagnostics)
+}
+
+/// Совместимый wrapper: типизированные члены без диагностик.
+pub fn scan_typed(paras: &[String]) -> Vec<TypedMember> {
+    scan_typed_diagnosed(paras).0
 }

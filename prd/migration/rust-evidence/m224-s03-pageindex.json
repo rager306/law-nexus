@@ -1,0 +1,32 @@
+{
+  "schema": "m224-s03-pageindex/v1",
+  "kind": "pageindex_coverage",
+  "whole_document_para": 4294967295,
+  "counts": {"entries": 43785, "anchored": 36989, "unresolved": 6796, "token_index": 36989, "keyed": 5776, "key_unresolved": 31213, "key_collision": 2, "token_multi_keyed": 0},
+  "keyed_by_bank": {"ACN": 165, "ADV": 86, "AMS": 338, "APV": 118, "ARB": 20, "ASK": 195, "ASZ": 276, "AUR": 140, "AVS": 121, "AVV": 134, "AZS": 162, "KSOJ001": 8, "KSOJ002": 1, "KSOJ003": 8, "KSOJ004": 3, "KSOJ005": 1, "KSOJ006": 5, "KSOJ007": 3, "KSOJ008": 7, "KSOJ009": 6, "LAW": 129, "MARB": 733, "RAPS001": 142, "RAPS002": 116, "RAPS003": 119, "RAPS004": 138, "RAPS005": 183, "RAPS006": 85, "RAPS007": 229, "RAPS008": 180, "RAPS011": 133, "RAPS012": 113, "RAPS013": 336, "RAPS014": 174, "RAPS015": 322, "RAPS016": 121, "RAPS017": 177, "RAPS018": 194, "RAPS019": 126, "RAPS020": 80, "RAPS021": 92, "RASVR": 25, "SIP": 3, "SOCN": 1, "SODV": 13, "SOKI": 1, "SOPV": 5, "SOSZ": 2, "SOUG": 7},
+  "key_unresolved_by_bank": {"courts": 18, "fas": 30399, "npa": 796},
+  "negative_probe": {
+    "numbers": ["44-\u0424\u0417", "402-\u0424\u0417", "5-\u0444\u043a\u0437"],
+    "key_matches": 0,
+    "token_matches": 0,
+    "per_number": [
+      {"number": "44-\u0424\u0417", "key_matches": 0, "token_matches": 0},
+      {"number": "402-\u0424\u0417", "key_matches": 0, "token_matches": 0},
+      {"number": "5-\u0444\u043a\u0437", "key_matches": 0, "token_matches": 0}
+    ]
+  },
+  "meta": {
+    "envelope": {"path": "prd/migration/rust-evidence/m224-s02-identity-envelope.jsonl", "sha256": "sha256:eb236b1bead4efc70fa0505eaf062622eda65aee21862ccc40a4e3a13b0e76dd"},
+    "catalog": {"path": "consru_export/consru_export/catalog.sqlite", "sha256": "sha256:9f3dc86a64d2fcd8678fd39831f1a670a5fdfe2a7162ae3d70d4b266f92c29b8"},
+    "manifest": {"path": "prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl", "sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c", "inventory_digest": "sha256:aa7e14e31059c906f291423a2e8151f8bf0f857e9fd7370545d7e3b5800766dd"}
+  },
+  "r1000_status": "active/unclosed",
+  "non_claims": [
+    "integrity_is_not_semantic_completeness",
+    "consultant_uri_tokens_are_opaque_external_references_not_credentials",
+    "no_offline_token_is_decoded_normalized_or_re_derived",
+    "internal_uri_bank_is_not_a_catalog_bank_without_a_tracked_mapping",
+    "paragraph_extent_resolution_is_S05",
+    "no_file_path_is_a_resolution_key"
+  ]
+}

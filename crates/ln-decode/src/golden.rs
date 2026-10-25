@@ -211,12 +211,11 @@ impl GoldenFixture {
             if let Some(number) = match annotation {
                 GoldenAnnotation::Reference { number, .. } => Some(number.as_str()),
                 _ => None,
-            } {
-                if !is_valid_reference_number(number) {
-                    return Err(GoldenError::InvalidReferenceNumber {
-                        number: number.to_owned(),
-                    });
-                }
+            } && !is_valid_reference_number(number)
+            {
+                return Err(GoldenError::InvalidReferenceNumber {
+                    number: number.to_owned(),
+                });
             }
             if !seen.insert(annotation.duplicate_key()) {
                 return Err(GoldenError::DuplicateAnnotation {

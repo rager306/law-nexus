@@ -4,8 +4,8 @@
 use ln_decode::lawref::capture_lawrefs;
 use ln_decode::lexer::lex;
 use ln_decode::local_grammar::{
-    extract_act_list_frames, extract_structural_frames, DerivationSource, FrameDiagnostic,
-    FrameKind, FrameStatus, OwnerPathState, PROPOSED_MAX_FRAME_MEMBERS,
+    DerivationSource, FrameDiagnostic, FrameKind, FrameStatus, OwnerPathState,
+    PROPOSED_MAX_FRAME_MEMBERS, extract_act_list_frames, extract_structural_frames,
 };
 use ln_decode::morphology::find_legal_markers;
 
@@ -32,10 +32,12 @@ fn act_list_has_three_explicit_date_number_members() {
     assert_eq!(frame.members.len(), 3);
     assert_eq!(frame.members[0].date.as_deref(), Some("01.01.2020"));
     assert_eq!(frame.members[0].doc_no.as_deref(), Some("1-ФЗ"));
-    assert!(frame
-        .members
-        .iter()
-        .all(|member| member.value_span.start() < member.value_span.end()));
+    assert!(
+        frame
+            .members
+            .iter()
+            .all(|member| member.value_span.start() < member.value_span.end())
+    );
 }
 
 #[test]
@@ -139,10 +141,12 @@ fn comma_and_i_members_are_explicit_without_invented_inheritance() {
     let src = "пунктами 4.1, 4.2 и 4.4";
     let frame = &extract(src)[0];
     assert_eq!(frame.values.len(), 3);
-    assert!(frame
-        .values
-        .iter()
-        .all(|member| member.derivation == DerivationSource::ExplicitMember));
+    assert!(
+        frame
+            .values
+            .iter()
+            .all(|member| member.derivation == DerivationSource::ExplicitMember)
+    );
     assert!(frame.values.iter().all(|member| member.evidence.len() == 1));
 }
 

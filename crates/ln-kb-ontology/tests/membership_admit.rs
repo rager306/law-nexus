@@ -1,7 +1,7 @@
 //! S_admit: conflict quarantine. Two-parent, cycle, self-parent, duplicate.
 //! No log write. Proposals that survive become admitted drafts.
 
-use ln_kb_ontology::domain::{admit_membership_proposals, MembershipProposal, QuarantineReason};
+use ln_kb_ontology::domain::{MembershipProposal, QuarantineReason, admit_membership_proposals};
 use ln_temporal::domain::ComponentConceptId;
 
 fn cc(id: &str) -> ComponentConceptId {
@@ -82,8 +82,10 @@ fn self_parent_quarantined() {
 #[test]
 fn admit_non_claims_forbid_log_write() {
     let report = admit_membership_proposals(&[proposal("cc:a", "cc:b")]);
-    assert!(report
-        .non_claims()
-        .iter()
-        .any(|line| line.contains("do not append VersionedMembershipLog")));
+    assert!(
+        report
+            .non_claims()
+            .iter()
+            .any(|line| line.contains("do not append VersionedMembershipLog"))
+    );
 }

@@ -2,7 +2,7 @@
 //! Provenance is synthetic for C2 editions until S_identify mints Expression IDs.
 
 use ln_kb_ontology::domain::{
-    admit_membership_proposals, commit_admitted_to_log, MembershipProposal,
+    MembershipProposal, admit_membership_proposals, commit_admitted_to_log,
 };
 use ln_temporal::domain::{
     AmendingActId, ComponentConceptId, MembershipChangeKind, VersionedMembershipLog,

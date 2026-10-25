@@ -1,6 +1,6 @@
 use crate::domain::{
-    DecisionTrace, ResolutionOutcome, ResolutionRequest, ResolutionResult, SubstituteKind,
-    D118_POLICY_VERSION,
+    D118_POLICY_VERSION, DecisionTrace, ResolutionOutcome, ResolutionRequest, ResolutionResult,
+    SubstituteKind,
 };
 use crate::ports::ClockEvidencePort;
 

@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use crate::domain::{
-    next_state, CheckpointId, DomainSnapshotId, LegalMappingAttempt, PublicationSnapshotId,
-    TransitionOutcome, TransitionRequest, TransitionResult, TransitionTrace, WorkState, WorkUnitId,
-    WORK_POLICY_VERSION,
+    CheckpointId, DomainSnapshotId, LegalMappingAttempt, PublicationSnapshotId, TransitionOutcome,
+    TransitionRequest, TransitionResult, TransitionTrace, WORK_POLICY_VERSION, WorkState,
+    WorkUnitId, next_state,
 };
 use crate::ports::DomainEvidencePort;
 
@@ -123,22 +123,22 @@ where
         };
 
         // Stale checkpoint: typed failure; domain/publication frozen ids stay.
-        if let Some(expected) = request.expected_checkpoint.as_ref() {
-            if expected != &prior.checkpoint {
-                return self.result_for(
-                    request.work_unit_id,
-                    request.event,
-                    TransitionOutcome::StaleCheckpoint,
-                    prior.state,
-                    prior.state,
-                    &prior,
-                    &prior,
-                    request.legal_mapping,
-                    false,
-                    prior.checkpoint.clone(),
-                    prior.checkpoint.clone(),
-                );
-            }
+        if let Some(expected) = request.expected_checkpoint.as_ref()
+            && expected != &prior.checkpoint
+        {
+            return self.result_for(
+                request.work_unit_id,
+                request.event,
+                TransitionOutcome::StaleCheckpoint,
+                prior.state,
+                prior.state,
+                &prior,
+                &prior,
+                request.legal_mapping,
+                false,
+                prior.checkpoint.clone(),
+                prior.checkpoint.clone(),
+            );
         }
 
         // Forbidden legal-mapping attempts never apply and never rewrite snapshots.

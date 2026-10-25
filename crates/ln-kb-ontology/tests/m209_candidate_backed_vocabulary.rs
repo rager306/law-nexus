@@ -29,8 +29,8 @@
 //! `crates/ln-kb-ontology/tests/hierarchy_registry_admission.rs`).
 
 use ln_kb_ontology::registry_admission::{
-    admit_candidates, parse_admission_source, AdmissionBinding, AdmissionProvenance,
-    AdmissionSource, CandidateEvidence, CandidateIdentity, RegistryAdmissionError,
+    AdmissionBinding, AdmissionProvenance, AdmissionSource, CandidateEvidence, CandidateIdentity,
+    RegistryAdmissionError, admit_candidates, parse_admission_source,
 };
 
 const CANDIDATE_ARTIFACT_SCHEMA: &str = "law-nexus-hierarchy-candidate-artifact/v1";
@@ -378,14 +378,18 @@ fn m202_candidate_backed_still_parses_and_resolves() {
     assert_eq!(admitted.bindings.len(), 2);
     // The m202 row resolves against the same evidence; the legacy row does
     // not need a candidate at all.
-    assert!(admitted
-        .bindings
-        .iter()
-        .any(|row| row.provenance == AdmissionProvenance::CandidateBackedM202));
-    assert!(admitted
-        .bindings
-        .iter()
-        .any(|row| row.provenance == AdmissionProvenance::LegacyHuman));
+    assert!(
+        admitted
+            .bindings
+            .iter()
+            .any(|row| row.provenance == AdmissionProvenance::CandidateBackedM202)
+    );
+    assert!(
+        admitted
+            .bindings
+            .iter()
+            .any(|row| row.provenance == AdmissionProvenance::LegacyHuman)
+    );
 }
 
 #[test]
@@ -469,10 +473,12 @@ fn m209_admission_takes_cc_from_the_row_and_mints_nothing() {
     assert_eq!(row.cc, "cc:legacy-authority:some-existing-identity");
     // Non-claim: the nested punkt candidate exists but is never admitted.
     assert!(admitted.bindings.iter().all(|row| row.level != "punkt"));
-    assert!(admitted
-        .bindings
-        .iter()
-        .all(|row| row.cc != "cc:44-fz:statya-9"));
+    assert!(
+        admitted
+            .bindings
+            .iter()
+            .all(|row| row.cc != "cc:44-fz:statya-9")
+    );
 }
 
 #[test]
@@ -560,11 +566,13 @@ fn d548_shared_bare_key_path_across_levels_is_not_a_conflicting_duplicate() {
     assert!(m209.contains(&("paragraph", "1", "cc:44-fz:paragraph-1")));
     // The pair key never leaks an identity into the admitted CC: the row's
     // own `cc:` field is what is bound.
-    assert!(admitted
-        .bindings
-        .iter()
-        .all(|row| row.cc != "cc:44-fz:glava-1"
-            || row.provenance != AdmissionProvenance::CandidateBackedM209));
+    assert!(
+        admitted
+            .bindings
+            .iter()
+            .all(|row| row.cc != "cc:44-fz:glava-1"
+                || row.provenance != AdmissionProvenance::CandidateBackedM209)
+    );
 }
 
 #[test]
@@ -678,9 +686,11 @@ fn d548_frozen_m202_generation_still_resolves_unchanged() {
     let src = parse_admission_source(&text).expect("frozen M202 source parses");
     let admitted = admit_candidates(&m202_evidence(), &src).expect("frozen generation resolves");
     assert_eq!(admitted.bindings.len(), 3);
-    assert!(admitted
-        .bindings
-        .iter()
-        .all(|row| row.provenance == AdmissionProvenance::CandidateBackedM202));
+    assert!(
+        admitted
+            .bindings
+            .iter()
+            .all(|row| row.provenance == AdmissionProvenance::CandidateBackedM202)
+    );
     assert!(admitted.bindings.iter().all(|row| row.level != "punkt"));
 }

@@ -24,7 +24,7 @@ fn group<'a>(catalog: &'a OntologyCatalog, id: &str) -> &'a ln_kb_ontology::cata
 // ─── embedded catalog shape ────────────────────────────────────────────────
 
 #[test]
-fn embedded_catalog_declares_five_document_groups() {
+fn embedded_catalog_declares_seven_document_groups() {
     let catalog = catalog();
     let ids: Vec<&str> = catalog
         .document_groups
@@ -37,8 +37,18 @@ fn embedded_catalog_declares_five_document_groups() {
             "federal_law@v1",
             "code",
             "government_resolution",
+            // Замер 2026-09-27: указы Президента (exports/npa/decree_*) норматся
+            // пунктами `1.` с подпунктами `а)` и приложениями — ни federal_law@v1
+            // (unit = statya), ни government_resolution (тот же суффикс `.`, но
+            // другой тип акта) не описывают указ. Профиль добавлен в канон.
+            "presidential_decree",
             "departmental_order",
-            "court_practice"
+            "court_practice",
+            // ADR-0030 D2: явный structural класс для практики, чьи имена файлов
+            // не несут специфичного court_practice-needle (courts/acn/*,
+            // fas/determination_*); банк-широкие needle`ы courts/ и fas/ (rank 40)
+            // ниже приоритета специфичных court_practice-needle`ов (rank 10-15).
+            "non_normative",
         ]
     );
 }
@@ -244,12 +254,21 @@ fn razdel_is_active_only_in_code_ladder() {
 // ─── per-group structure ───────────────────────────────────────────────────
 
 #[test]
-fn code_group_is_razdel_glava_statya_depth_2() {
+fn code_group_is_razdel_plus_the_federal_law_subunit_ladder_depth_2() {
     let catalog = catalog();
     let code = group(&catalog, "code");
     assert_eq!(code.max_depth, Some(2));
     let tokens: Vec<&str> = code.ladder.iter().map(|e| e.token.as_str()).collect();
-    assert_eq!(tokens, ["razdel", "glava", "statya"]);
+    // Замер 2026-09-27 (КоАП, document_2001-12-30_195-fz): статей 1121, но в
+    // тексте ещё 3165 частей `1.`, 910 пунктов `1)` и 15 подпунктов `а)`. При
+    // усечённой лестнице [razdel, glava, statya] они уходили в границы и терялись.
+    // Кодекс = федеральный закон плюс razdel, поэтому subunit-уровни объявлены
+    // так же, как в federal_law@v1. Отличие code от federal_law@v1 остаётся одно:
+    // razdel (R8-08 — в федеральном законе маркер «Раздел» остаётся fail-closed).
+    assert_eq!(
+        tokens,
+        ["razdel", "glava", "statya", "chast", "punkt", "podpunkt"]
+    );
     assert_eq!(code.granularity.as_deref(), Some("statya"));
 }
 
@@ -292,10 +311,12 @@ fn departmental_order_primechanie_is_subunit_text() {
         .find(|entry| entry.token == "primechanie")
         .expect("primechanie");
     assert_eq!(primechanie.role, "subunit-text");
-    assert!(catalog
-        .structural_only_tokens
-        .iter()
-        .any(|token| token == "primechanie"));
+    assert!(
+        catalog
+            .structural_only_tokens
+            .iter()
+            .any(|token| token == "primechanie")
+    );
 }
 
 #[test]
@@ -303,9 +324,93 @@ fn court_practice_is_text_only_without_ladder() {
     let catalog = catalog();
     let practice = group(&catalog, "court_practice");
     assert!(practice.text_only, "court practice is text-only");
+    assert!(
+        practice.is_non_normative(),
+        "court_practice is structural non-normative (text_only)"
+    );
     assert!(practice.ladder.is_empty(), "no ladder for text-only group");
     assert!(practice.granularity.is_none());
     assert!(practice.text_boundary.is_empty());
+}
+
+#[test]
+fn non_normative_is_text_only_without_ladder_or_granularity() {
+    // ADR-0030 D2: the explicit non-normative structural class. It is declared
+    // by text_only (ADR-0020); no granularity, no ladder, no CTV machinery.
+    let catalog = catalog();
+    let practice = group(&catalog, "non_normative");
+    assert!(practice.text_only, "non_normative is text-only");
+    assert!(practice.is_non_normative());
+    assert!(
+        practice.ladder.is_empty(),
+        "non-normative has no normative ladder"
+    );
+    assert!(practice.granularity.is_none(), "no granularity");
+    assert!(practice.text_boundary.is_empty());
+}
+
+#[test]
+fn structural_groups_are_never_non_normative() {
+    // text_only is the single source of truth for the structural side of
+    // non-normativity: every AST-bearing group must report false.
+    let catalog = catalog();
+    for group in &catalog.document_groups {
+        if group.text_only {
+            assert!(group.is_non_normative(), "{} is text_only", group.id);
+        } else {
+            assert!(
+                !group.is_non_normative(),
+                "{} declares a ladder and must stay normative",
+                group.id
+            );
+            assert!(
+                group.ladder.iter().any(|entry| entry.role == "unit"),
+                "{} must declare a unit role",
+                group.id
+            );
+        }
+    }
+}
+
+#[test]
+fn non_normative_binds_bank_wide_practice_paths() {
+    // The bank-wide needles cover practice whose names carry no specific
+    // court_practice needle: courts/acn/* and fas/determination_*.
+    use ln_kb_ontology::catalog::DocumentGroupOutcome;
+    let catalog = catalog();
+    for path in [
+        "exports/fas/determination_2026.xml",
+        "exports/courts/acn/x.xml",
+    ] {
+        match catalog.classify_document_group(Some(path), None, None) {
+            DocumentGroupOutcome::Bound { group, .. } => {
+                assert_eq!(group, "non_normative", "path {path}")
+            }
+            other => panic!("expected Bound non_normative for {path}, got {other:?}"),
+        }
+    }
+}
+
+#[test]
+fn specific_court_practice_needle_beats_bank_wide_non_normative() {
+    // Rank 40 (non_normative) is coarser than rank 12 (court_practice): the
+    // specific needle must keep winning so no same-rank Conflict appears.
+    use ln_kb_ontology::catalog::DocumentGroupOutcome;
+    let catalog = catalog();
+    match catalog.classify_document_group(Some("exports/fas/decision_2025.xml"), None, None) {
+        DocumentGroupOutcome::Bound { group, needle } => {
+            assert_eq!(group, "court_practice");
+            assert_eq!(needle, "fas/decision_");
+        }
+        other => panic!("expected Bound court_practice, got {other:?}"),
+    }
+    match catalog.classify_document_group(Some("exports/courts/court_2025.xml"), None, None) {
+        DocumentGroupOutcome::Bound { group, needle } => {
+            assert_eq!(group, "court_practice");
+            assert_eq!(needle, "courts/court_");
+        }
+        other => panic!("expected Bound court_practice, got {other:?}"),
+    }
 }
 
 // ─── fail-closed validation: fixtures ──────────────────────────────────────
@@ -704,12 +809,10 @@ fn yaml_alias_keys(text: &str, heading: &str) -> Vec<String> {
         if in_map && indent <= heading_indent {
             break;
         }
-        if in_map {
-            if let Some((key, _)) = trimmed.trim().split_once(':') {
-                let key = key.trim();
-                if !key.is_empty() {
-                    keys.push(key.to_owned());
-                }
+        if in_map && let Some((key, _)) = trimmed.trim().split_once(':') {
+            let key = key.trim();
+            if !key.is_empty() {
+                keys.push(key.to_owned());
             }
         }
     }

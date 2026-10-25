@@ -1,0 +1,100 @@
+{
+  "schema": "law-nexus/npa-analysis-corpus-acceptance/v2",
+  "schema_version": 2,
+  "lifecycle": "[bounded]",
+  "milestone": "M221-wbslul",
+  "slice": "S04",
+  "count_only": true,
+  "ascii_only": true,
+  "promotion": false,
+  "coverage_claim": null,
+  "verdicts": {
+    "transport_integrity": "pass",
+    "analysis_completion": "incomplete",
+    "semantic_acceptance": "not_attempted"
+  },
+  "structural_integrity": {
+    "entries_total": 2,
+    "verified_ok": 2,
+    "read_back_refused": 0,
+    "verify_refused": 0,
+    "decode_refused": 0,
+    "gate_refused": 0,
+    "analysis_refused": 0,
+    "limit_line_bytes": 0,
+    "limit_records": 0,
+    "manifest_pin_mismatch": 0,
+    "verify_codes": {},
+    "tamper_probe_entries": 12,
+    "tamper_probe_detected": 12,
+    "tamper_probe_false_negative": 0,
+    "structural_failures": 0,
+    "pass": true
+  },
+  "analysis_completion": {
+    "entries_total": 2,
+    "entries_complete": 1,
+    "entries_incomplete": 1,
+    "entries_missing_capture": 0,
+    "observed_completion_ratio_ppm": 500000,
+    "min_completion_ratio_ppm": 1000000,
+    "completion_basis": {
+      "bounded_analysis_complete": 1,
+      "context_incomplete": 1
+    },
+    "incomplete_reasons": {
+      "context_incomplete": 1,
+      "context_unavailable": 1
+    },
+    "context_result_distribution": {
+      "not_requested": 1,
+      "unavailable": 1
+    },
+    "per_family_yields": {
+      "classification": 3,
+      "context": 5,
+      "diagnostic": 5,
+      "document": 2,
+      "fragment": 4,
+      "member": 5,
+      "relation": 1
+    },
+    "min_family_yields": {
+      "document": 1,
+      "fragment": 1
+    },
+    "below_expected_yield": []
+  },
+  "expectation_gate": "below_declared",
+  "provider_coverage": {
+    "declared": [
+      "consultant_export",
+      "garant"
+    ],
+    "covered": [
+      "consultant_export"
+    ],
+    "uncovered": [
+      {
+        "provider": "garant",
+        "uncovered_reason": "no_candidates"
+      }
+    ]
+  },
+  "declared_thresholds": {
+    "min_completion_ratio_ppm": 1000000,
+    "min_family_yields": {
+      "document": 1,
+      "fragment": 1
+    }
+  },
+  "non_claims": [
+    "transport integrity, analysis completion and semantic acceptance are three independent facts",
+    "a transport_integrity pass is neither completeness nor semantic acceptance",
+    "no C5 promotion; semantic_acceptance is always not_attempted (D667)",
+    "R1000 stays active/unclosed (D638/D656); M221 adds no requirement binding",
+    "downstream M208-wrz6fg and M215-M220 stay parked",
+    "bounded fixture-first; not a corpus-wide accuracy or breadth claim",
+    "count/hash only; no decoded corpus text"
+  ]
+}

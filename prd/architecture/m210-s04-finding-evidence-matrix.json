@@ -1,0 +1,1270 @@
+{
+  "schema": "law-nexus/m210-s04-finding-evidence-matrix/v1",
+  "schema_version": 1,
+  "kind": "m210-s04-finding-evidence-matrix",
+  "milestone": "M210-3afp79",
+  "slice": "S04",
+  "task": "T02",
+  "lifecycle": [
+    "proposed"
+  ],
+  "authoritative": false,
+  "ascii_only": true,
+  "status_effect": "unchanged",
+  "requirement_promotion": false,
+  "required_proof_derivation": {
+    "packet_field": "required_proof_class",
+    "packet_has_verbatim_required_proof": false,
+    "verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+    "inventory_source": "assessment/33-rc28-disposition-inventory.md",
+    "note": "the packet carries required_proof_class only and no required-proof sentence, so each sentence is taken verbatim from the owning program record (and its Required proof (verbatim) column in the disposition inventory) and is re-validated against the program document by the contract"
+  },
+  "vocabularies": {
+    "required_proof_class": [
+      "evidence",
+      "process",
+      "implementation",
+      "design",
+      "docs"
+    ],
+    "machine_verdict": [
+      "evidence_present_class_matched",
+      "evidence_present_residual_named",
+      "evidence_absent_residual_named",
+      "evidence_class_mismatch",
+      "awaiting_owner_decision",
+      "gate_hold"
+    ],
+    "mismatch_reason_code": [
+      "adoption_docs_are_not_implementation_proof",
+      "measurement_protocol_is_not_measured_evidence",
+      "human_labels_absent",
+      "operational_acceptance_non_pass",
+      "pending_task_identity_unresolved",
+      "adoption_owner_absent",
+      "gate_conflicted_no_promotion",
+      "work_identity_evidence_is_not_class_matched"
+    ]
+  },
+  "requirement_refs": [
+    {
+      "namespace": "gsd",
+      "id": "R038",
+      "canonical": true,
+      "relation": "supporting_only_class_matched_false"
+    },
+    {
+      "namespace": "gsd",
+      "id": "R063",
+      "canonical": true,
+      "relation": "supporting_only_class_matched_false"
+    },
+    {
+      "namespace": "gsd",
+      "id": "R064",
+      "canonical": true,
+      "relation": "supporting_only_class_matched_false"
+    },
+    {
+      "namespace": "gsd",
+      "id": "R081",
+      "canonical": true,
+      "relation": "supporting_only_class_matched_false"
+    },
+    {
+      "namespace": "prd",
+      "id": "RQ-009",
+      "canonical": false,
+      "canonical_gsd_id": null,
+      "relation": "prd_namespace_only",
+      "note": "a PRD applicability obligation linked to ADR-0023; it is not a canonical GSD R### requirement and is not proof for any RC28 finding"
+    }
+  ],
+  "canonical_requirement_readings": {
+    "tool_name": "gsd_requirement_get",
+    "tool_available_in_unit": false,
+    "direct_db_read": false,
+    "read_via": "plan-supplied",
+    "note": "the execute-task unit surface does not present a canonical requirement reader, so the canonical classes are taken from the T02 plan contract; this record does not query the canonical store and does not assert canonical store contents, requirement status, ownership or validation",
+    "readings": [
+      {
+        "requirement_id": "R038",
+        "namespace": "gsd",
+        "canonical_class": "quality-attribute",
+        "canonical_class_source": "m210 S04 T02 plan contract",
+        "canonical_store_queried": false
+      },
+      {
+        "requirement_id": "R063",
+        "namespace": "gsd",
+        "canonical_class": "constraint",
+        "canonical_class_source": "m210 S04 T02 plan contract",
+        "canonical_store_queried": false
+      },
+      {
+        "requirement_id": "R064",
+        "namespace": "gsd",
+        "canonical_class": "operability",
+        "canonical_class_source": "m210 S04 T02 plan contract",
+        "canonical_store_queried": false
+      },
+      {
+        "requirement_id": "R081",
+        "namespace": "gsd",
+        "canonical_class": "constraint",
+        "canonical_class_source": "m210 S04 T02 plan contract",
+        "canonical_store_queried": false
+      }
+    ]
+  },
+  "review_case": {
+    "packet_id": "RC-2026-09-10-001",
+    "packet_path": "prd/architecture/review-cases/packets/RC-2026-09-10-001.json",
+    "packet_file_sha256": "sha256:b75c0c228b10811399e5bad1b0649b7d33591597d433fca13dadb425c76eea64",
+    "packet_authoritative": false,
+    "packet_authority_required": true,
+    "source_path": "doc/review/review-28-10-09-2026.md",
+    "source_content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1",
+    "packet_declared_content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1",
+    "packet_declared_content_sha256_raw": "baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1",
+    "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+    "reviewed_git_revision_format": "git40",
+    "embedded_event_count": 1,
+    "embedded_events": [
+      {
+        "event_id": "RC-2026-09-10-001:packet_registered",
+        "event_type": "packet_registered",
+        "actor_class": "tool",
+        "source_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c"
+      }
+    ],
+    "human_disposition_event_count": 0,
+    "events_directory_present": false,
+    "events_directory_path": "prd/architecture/review-cases/packets/RC-2026-09-10-001",
+    "findings_total": 19,
+    "findings_open": 19,
+    "actor_bound_path_available": false,
+    "actor_bound_scope": "record_human_disposition",
+    "actor_bound_limitation": "the review-case application accepts a caller-supplied actor_class and actor_id and the published CLI offers read-only validate/status/inventory only, so no human disposition may be submitted through this record and the packet stays open until a trustworthy actor-bound submission path exists",
+    "packet_findings_state": [
+      {
+        "finding_id": "RC28-F01",
+        "concern_class": "evidence",
+        "required_proof_class": "evidence",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F02",
+        "concern_class": "evidence",
+        "required_proof_class": "evidence",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F03",
+        "concern_class": "evidence",
+        "required_proof_class": "evidence",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F04",
+        "concern_class": "process",
+        "required_proof_class": "process",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F05",
+        "concern_class": "process",
+        "required_proof_class": "process",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F06",
+        "concern_class": "implementation",
+        "required_proof_class": "implementation",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F07",
+        "concern_class": "implementation",
+        "required_proof_class": "implementation",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F08",
+        "concern_class": "implementation",
+        "required_proof_class": "implementation",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F09",
+        "concern_class": "implementation",
+        "required_proof_class": "implementation",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F10",
+        "concern_class": "implementation",
+        "required_proof_class": "implementation",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F11",
+        "concern_class": "implementation",
+        "required_proof_class": "implementation",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F12",
+        "concern_class": "design",
+        "required_proof_class": "design",
+        "disposition_status": "open",
+        "kind": "gap"
+      },
+      {
+        "finding_id": "RC28-F13",
+        "concern_class": "design",
+        "required_proof_class": "design",
+        "disposition_status": "open",
+        "kind": "gap"
+      },
+      {
+        "finding_id": "RC28-F14",
+        "concern_class": "design",
+        "required_proof_class": "design",
+        "disposition_status": "open",
+        "kind": "gap"
+      },
+      {
+        "finding_id": "RC28-F15",
+        "concern_class": "evidence",
+        "required_proof_class": "evidence",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F16",
+        "concern_class": "evidence",
+        "required_proof_class": "evidence",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F17",
+        "concern_class": "evidence",
+        "required_proof_class": "evidence",
+        "disposition_status": "open",
+        "kind": "defect"
+      },
+      {
+        "finding_id": "RC28-F18",
+        "concern_class": "design",
+        "required_proof_class": "design",
+        "disposition_status": "open",
+        "kind": "gap"
+      },
+      {
+        "finding_id": "RC28-F19",
+        "concern_class": "docs",
+        "required_proof_class": "docs",
+        "disposition_status": "open",
+        "kind": "gap"
+      }
+    ],
+    "inventory_observation": {
+      "observed_via": "uv run python -m law_nexus_harness review-case inventory --packet-id RC-2026-09-10-001",
+      "observation_kind": "recorded_live_cli_observation",
+      "finding_count": 19,
+      "residual_counts": [
+        [
+          "awaiting_disposition",
+          19
+        ]
+      ],
+      "stage_counts": [
+        [
+          "S1_normalized",
+          19
+        ]
+      ],
+      "open_blockers": [],
+      "last_event": null,
+      "missing_for_next": [
+        "human disposition_recorded with rationale and source_revision"
+      ],
+      "next_admissible_events": [
+        "disposition_recorded",
+        "normalization_reviewed"
+      ],
+      "non_claims": [
+        "Tool-generated finding; not human disposition or legal acceptance."
+      ]
+    }
+  },
+  "review_case_rollup": {
+    "observed_via": "uv run python -m law_nexus_harness review-case validate",
+    "observation_kind": "recorded_live_cli_observation",
+    "ok": true,
+    "finding_count": 35,
+    "closed_count": 10,
+    "open_count": 21,
+    "blocked_count": 0,
+    "partial_count": 0,
+    "stale_count": 0,
+    "rollup_digits": [
+      35,
+      10,
+      21,
+      0,
+      0
+    ],
+    "cross_check": {
+      "packet_files": 4,
+      "packet_store_findings": 35,
+      "packet_store_rc28_open": 19,
+      "ledger_event_directories": 2
+    },
+    "non_claims": [
+      "the rollup is a recorded live CLI observation; only the packet-level parts are re-derived offline",
+      "the ledger FSM is not re-implemented here and no ledger status is inferred by this record"
+    ]
+  },
+  "disposition_model": {
+    "mode": "per_finding",
+    "grouping_allowed": true,
+    "blanket_confirmation": false,
+    "preselected_consent": false,
+    "recommendation_is_not_consent": true,
+    "read_back_required_after_each_answer": true,
+    "actor_bound_path_available": false,
+    "submission_channel_used": "none"
+  },
+  "rows": [
+    {
+      "finding_id": "RC28-F01",
+      "reviewer_severity": "critical",
+      "required_proof_class": "evidence",
+      "required_proof": "real coder-bound measurement and producer-to-promotion negative tests",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "evidence_absent_residual_named",
+      "evidence_paths": [
+        {
+          "path": "prd/annotation/m207-s03-eval-protocol.md",
+          "sha256": "sha256:e60029d01e9f20ecc84b157ed39e0f8339fc6931f16cc12db171017273457d84"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m207-s04-c4-operational-receipt.json",
+          "sha256": "sha256:423d30de06080fce1c3da255d1d03cc3f19548d29e4338c74d913f4771e9e935"
+        },
+        {
+          "path": "prd/annotation/m207-s02-coder-protocol.md",
+          "sha256": "sha256:763de0f998b772afd85373e438da0b1b6b2a6435d761e67f06177f4b0b1fbc32"
+        }
+      ],
+      "residual_scope": "the human coder-bound measurement is absent from M207's revised scope; only the frozen protocol and the fail-closed non-pass receipt exist",
+      "non_claims": [
+        "D519 removed the M207 obligation for that measurement; it is a scope deferral and is not evidence for RC28-F01",
+        "the producer-to-promotion negative tests are machine-checkable separately, and no human measurement is claimed to exist"
+      ],
+      "human_sufficiency": "sufficient for a deferred/explicit residual disposition citing D519; insufficient for an already_satisfied disposition",
+      "status_effect": "unchanged",
+      "deferral_reference": "D519",
+      "deferral_treated_as_proof": false
+    },
+    {
+      "finding_id": "RC28-F02",
+      "reviewer_severity": "high",
+      "required_proof_class": "evidence",
+      "required_proof": "seeded selection, validated metadata, provider and Work-family leakage checks",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": true,
+      "reverification": {
+        "verified_in": "M210-3afp79/S04/T02",
+        "method": "live_source_read",
+        "verdict": "confirmed",
+        "tokens": [
+          {
+            "path": "prd/annotation/m207-s03-eval-protocol.md",
+            "token": "METADATA_REDERIVED"
+          },
+          {
+            "path": "prd/annotation/m207-s03-eval-protocol.md",
+            "token": "WORK_FAMILY_DOMINANCE"
+          },
+          {
+            "path": "prd/annotation/m207-s03-eval-protocol.md",
+            "token": "not-measured"
+          }
+        ],
+        "observed_fields": [],
+        "observed": [
+          "the frozen contract refuses re-derivation of metadata from a path or a file name and keeps the frozen case metadata as-is",
+          "the holdout is family-granular and frozen by seed before measurement, with the Work-family cap and the 180-fragment seed unchanged",
+          "provider and Work-family strata are published rather than selected, and every stratum with zero units stays not-measured",
+          "the protocol computes no metric: no aspect and no stratum value exists until the two human passes and the adjudication exist"
+        ]
+      },
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "evidence_present_residual_named",
+      "evidence_paths": [
+        {
+          "path": "prd/annotation/m207-s03-eval-protocol.md",
+          "sha256": "sha256:e60029d01e9f20ecc84b157ed39e0f8339fc6931f16cc12db171017273457d84"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m207-s03-eval-manifest.json",
+          "sha256": "sha256:3a6cf44ffae97b3f7b865eba2463bda80eadfaaba169b82e9e6382988d948807"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m207-s01-pilot-cases.json",
+          "sha256": "sha256:9b0b6bc6bd8eadf9eb86886e45eb756ebade654e96ac3a84132ed9452bdeb9ad"
+        }
+      ],
+      "residual_scope": "the evaluation contract is frozen before measurement; no rate is published and the human reference is absent, so the required checks exist as a contract only",
+      "non_claims": [
+        "a frozen evaluation contract is not computed evidence and not a measured rate",
+        "no provider stratum, Work-family stratum or aspect value is published by this row"
+      ],
+      "human_sufficiency": "sufficient for a class-matched protocol disposition that names measurement as the residual; insufficient to claim measured strata",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F03",
+      "reviewer_severity": "high",
+      "required_proof_class": "evidence",
+      "required_proof": "true input/semantic digests, complete argv and actual operational outcome",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "evidence_present_residual_named",
+      "evidence_paths": [
+        {
+          "path": "prd/migration/rust-evidence/m207-s04-c4-operational-receipt.json",
+          "sha256": "sha256:423d30de06080fce1c3da255d1d03cc3f19548d29e4338c74d913f4771e9e935"
+        },
+        {
+          "path": "prd/annotation/m207-s04-c4-protocol.md",
+          "sha256": "sha256:11dd5e0bbd29ecd398469be95321fc854d3da323bed2b3b0042c1c6f595642fb"
+        }
+      ],
+      "residual_scope": "the receipt self-declares operational_acceptance=non-pass; the operational criterion is not met, so the actual operational outcome is negative evidence",
+      "non_claims": [
+        "receipt presence is not runtime freshness, successful admission, parser readiness or legal acceptance",
+        "the receipt is not gold and not a promotion"
+      ],
+      "human_sufficiency": "sufficient for a fail-closed non-pass disposition; insufficient for an already_satisfied disposition",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F04",
+      "reviewer_severity": "high",
+      "required_proof_class": "process",
+      "required_proof": "versioned acceptance and equivalent receipt reuse; no silent criterion substitution",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": true,
+      "reverification": {
+        "verified_in": "M210-3afp79/S04/T02",
+        "method": "live_source_read",
+        "verdict": "confirmed",
+        "tokens": [
+          {
+            "path": "prd/migration/rust-evidence/m204-s06-governor-sanctioned-outcome.json",
+            "token": "m204-s06-governor-sanctioned-outcome/v1"
+          },
+          {
+            "path": "prd/migration/rust-evidence/m204-s07-governor-repeat.json",
+            "token": "m204-s07-governor-repeat/v1"
+          }
+        ],
+        "observed_fields": [
+          {
+            "path": "prd/migration/rust-evidence/m204-s07-governor-repeat.json",
+            "pointer": "predecessor.path",
+            "equals": "prd/migration/rust-evidence/m204-s06-governor-sanctioned-outcome.json"
+          },
+          {
+            "path": "prd/migration/rust-evidence/m204-s07-governor-repeat.json",
+            "pointer": "predecessor.sha256",
+            "equals_file_sha256": "prd/migration/rust-evidence/m204-s06-governor-sanctioned-outcome.json"
+          }
+        ],
+        "observed": [
+          "the earlier outcome and its fresh repeat carry distinct versioned schema identifiers",
+          "the repeat binds its predecessor by repository-relative path and by the live digest of that predecessor file, so receipt reuse is explicit and predecessor-preserving",
+          "no criterion substitution is recorded: both records keep the same check identifier and the same scope"
+        ]
+      },
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "evidence_present_class_matched",
+      "evidence_paths": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-governor-sanctioned-outcome.json",
+          "sha256": "sha256:045af376b182aeb649497639f002adb5f875794063cb4ae8891f2273172e165e"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-governor-repeat.json",
+          "sha256": "sha256:da97019bc7ee197dfbcbb462b23541b8af44595904b7a6a010f6bbb34406465e"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-c4-operational-receipt.json",
+          "sha256": "sha256:04e41f896f2bded096061d7caef2ec4abdaaf37cebf88c387d1dd011943b797c"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s07-c4-operational-receipt.json",
+          "sha256": "sha256:f515e76bf757fb4e1143fc558b00ba7033ec383f586506085a9d2748ac5fbdab"
+        }
+      ],
+      "residual_scope": "none found in this pass for the versioned-acceptance and predecessor-chain part; C4 operational acceptance remains non-pass and is tracked by RC28-F03",
+      "non_claims": [
+        "the sanctioned integrity outcome is process evidence, not semantic acceptance and not C4 operational acceptance",
+        "a predecessor digest proves chain identity, not product correctness"
+      ],
+      "human_sufficiency": "sufficient for an acceptance-versioning disposition; C4 operational acceptance stays non-pass under RC28-F03",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F05",
+      "reviewer_severity": "high",
+      "required_proof_class": "process",
+      "required_proof": "identify four pending tasks, reproduce claim/dispatch defect, sanctioned idempotent recovery; upstream actions need separate confirmation",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": true,
+      "reverification": {
+        "verified_in": "M210-3afp79/S04/T02",
+        "method": "live_source_read",
+        "verdict": "confirmed",
+        "tokens": [
+          {
+            "path": "assessment/33-rc28-disposition-inventory.md",
+            "token": "open-gsd/gsd-pi#2412"
+          },
+          {
+            "path": "prd/migration/rust-evidence/m204-s01-t01-gsd-inventory.json",
+            "token": "pending_task_ids"
+          }
+        ],
+        "observed_fields": [
+          {
+            "path": "prd/migration/rust-evidence/m204-s01-gsd-upstream-debt.json",
+            "pointer": "status.upstream_issue",
+            "equals": "not_filed"
+          },
+          {
+            "path": "prd/migration/rust-evidence/m204-s01-t01-gsd-inventory.json",
+            "pointer": "task_counter.status",
+            "equals": "unknown"
+          },
+          {
+            "path": "prd/migration/rust-evidence/m204-s01-t01-gsd-inventory.json",
+            "pointer": "task_counter.pending_task_ids",
+            "equals": null
+          },
+          {
+            "path": "prd/migration/rust-evidence/m204-s01-t01-gsd-inventory.json",
+            "pointer": "task_counter.expected",
+            "equals": "2184/2188 with pending=4"
+          }
+        ],
+        "observed": [
+          "the claim-dispatch desync and the completed-no-advance wedge are reproduced and typed with journal evidence references",
+          "the sanctioned idempotent recovery is recorded by the governor sanctioned outcome and its fresh repeat",
+          "the four pending task identities were NOT resolved: the sanctioned projection exposes no task totals or pending identities and the record states status=unknown with pending_task_ids=null",
+          "the upstream debt note records upstream_issue=not_filed; the 2412 filing appears only as prose in the M209 disposition inventory, with no tracked filing artifact"
+        ]
+      },
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "evidence_present_residual_named",
+      "evidence_paths": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s01-t01-gsd-inventory.json",
+          "sha256": "sha256:fab30d23f1bbd4d857a42844e9cd4efcc134131c6a5ab53eb8a269da3ad5e9f5"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s01-gsd-failure-classes.json",
+          "sha256": "sha256:57bcfb3e1448f3861cb9f4374c00a199438da15f4b414fc74f5e138d679b78c4"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s01-gsd-upstream-debt.json",
+          "sha256": "sha256:88e77ae14462cadab085351e023e29ea4fa51eec31e5765ebbe2ab400f0b6f1f"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s06-governor-sanctioned-outcome.json",
+          "sha256": "sha256:045af376b182aeb649497639f002adb5f875794063cb4ae8891f2273172e165e"
+        },
+        {
+          "path": "scripts/m204_s01_t01_verify.py",
+          "sha256": "sha256:b25fa6fb493558c4f5297838795a5e7d5d989da21f22967705f6f4102e7c869c"
+        }
+      ],
+      "residual_scope": "pending_task_identity_unresolved (four pending task identities are not identified in the recorded inventory, and only the 2184/2188 pending=4 expectation is recorded); the upstream 2412 filing has no tracked filing artifact, only an inventory prose reference",
+      "non_claims": [
+        "the reproduction is not an engine repair and does not fix the upstream defects",
+        "this matrix publishes nothing upstream and claims no filing identifier beyond the inventory prose"
+      ],
+      "human_sufficiency": "sufficient for a partial disposition that names the unresolved identity and the untracked upstream filing as explicit residuals",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F06",
+      "reviewer_severity": "high",
+      "required_proof_class": "implementation",
+      "required_proof": "siblings/annexes, profile hierarchy and downstream owner assertions",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": false,
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "machine_verdict": "evidence_class_mismatch",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m206-s01-adoption-state.md",
+          "sha256": "sha256:1586c94c21e182f0e4f7cbf0cecb36eaac328473f0da85e9708a90f21fd6125e"
+        },
+        {
+          "path": "prd/architecture/m205-s01-pullenti-matrix.yaml",
+          "sha256": "sha256:559b6637139acdf81f8a09cd8683cf28e48f1dd4507e0b9aa6ac67905727a131"
+        }
+      ],
+      "residual_scope": "only M206 adoption-state documentation and the M205 design crosswalk exist; there is no implementation proof of sibling or annex closure",
+      "non_claims": [
+        "an adoption-state record and a design crosswalk are not implementation evidence",
+        "no lifecycle smoothing: this row cannot raise the requirement evidence table above class_matched=false"
+      ],
+      "human_sufficiency": "sufficient only for a residual disposition; the required implementation proof is absent",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F07",
+      "reviewer_severity": "high",
+      "required_proof_class": "implementation",
+      "required_proof": "authorized derivations, positive and negative ThisRef, no unrelated continuation graph",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": false,
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "machine_verdict": "evidence_class_mismatch",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m206-s03-adoption-state.md",
+          "sha256": "sha256:9e0e4ef1a931f799058f954643e9599fd69230bcfaf25097d16d4981c2602efd"
+        },
+        {
+          "path": "prd/architecture/m205-s03-context-fsm.yaml",
+          "sha256": "sha256:1d6fdf0ab295839e81aa301b8db89ada6d6be26d7b200f8604f60ccc0ac02d9d"
+        },
+        {
+          "path": "prd/architecture/m206-s07-runtime-admission.md",
+          "sha256": "sha256:75f5a031296d2afe8b808a3e1257a9a579e908157198c9a0be7ee81b70a8c4ab"
+        }
+      ],
+      "residual_scope": "M206/S03 itself states that F07, F08 and F12 remain open, and the M206/S07 runtime admission is scoped to that slice's remediation only",
+      "non_claims": [
+        "a scoped runtime admission is not implementation proof for this finding",
+        "no continuation graph is claimed to be corrected by this row"
+      ],
+      "human_sufficiency": "sufficient only for a residual disposition; the required implementation proof is absent",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F08",
+      "reviewer_severity": "high",
+      "required_proof_class": "implementation",
+      "required_proof": "authorized derivations, positive and negative ThisRef, no unrelated continuation graph",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": false,
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "machine_verdict": "evidence_class_mismatch",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m206-s03-adoption-state.md",
+          "sha256": "sha256:9e0e4ef1a931f799058f954643e9599fd69230bcfaf25097d16d4981c2602efd"
+        },
+        {
+          "path": "prd/architecture/m205-s03-context-fsm.yaml",
+          "sha256": "sha256:1d6fdf0ab295839e81aa301b8db89ada6d6be26d7b200f8604f60ccc0ac02d9d"
+        },
+        {
+          "path": "prd/architecture/m206-s05-runtime-admission.md",
+          "sha256": "sha256:ed7bac704a2184ff3f052f0065af99a76b2366c4f64e9f2892c6ba749f6b5751"
+        }
+      ],
+      "residual_scope": "M206/S03 states F08 remains open; the ThisRef evidence path is documented as a design obligation, not as a corrected implementation",
+      "non_claims": [
+        "a design obligation is not implementation evidence",
+        "constant abstention is not claimed to prove useful completeness or correct resolution"
+      ],
+      "human_sufficiency": "sufficient only for a residual disposition; the required implementation proof is absent",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F09",
+      "reviewer_severity": "high",
+      "required_proof_class": "implementation",
+      "required_proof": "pre-capture incomplete members, sentence boundaries, preserved origins and bounded arbitration",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": false,
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "machine_verdict": "evidence_class_mismatch",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m206-s02-adoption-state.md",
+          "sha256": "sha256:66555109130c7eac0ff463c99c55d9898b4946f3da261516a403bbd934722ff8"
+        },
+        {
+          "path": "prd/architecture/m205-s01-pullenti-matrix.yaml",
+          "sha256": "sha256:559b6637139acdf81f8a09cd8683cf28e48f1dd4507e0b9aa6ac67905727a131"
+        }
+      ],
+      "residual_scope": "only the M206/S02 adoption state and the M205 design crosswalk exist; no implementation proof of pre-capture members or bounded arbitration",
+      "non_claims": [
+        "the design crosswalk is prior-art inventory and never product runtime",
+        "no D388 gate is adopted by this row"
+      ],
+      "human_sufficiency": "sufficient only for a residual disposition; the required implementation proof is absent",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F10",
+      "reviewer_severity": "medium",
+      "required_proof_class": "implementation",
+      "required_proof": "normalization spans, morphology unavailable outcome, endpoint versus edition-index membership distinction",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": false,
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "machine_verdict": "evidence_class_mismatch",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m206-s01-adoption-state.md",
+          "sha256": "sha256:1586c94c21e182f0e4f7cbf0cecb36eaac328473f0da85e9708a90f21fd6125e"
+        },
+        {
+          "path": "prd/architecture/m206-s04-adoption-state.md",
+          "sha256": "sha256:d830d14c17268dc4005102ef4b683adad0b9775340a42c25a7e7ce7ca484db9d"
+        },
+        {
+          "path": "prd/architecture/m205-s01-pullenti-matrix.yaml",
+          "sha256": "sha256:559b6637139acdf81f8a09cd8683cf28e48f1dd4507e0b9aa6ac67905727a131"
+        }
+      ],
+      "residual_scope": "adoption-state records and a design crosswalk only; the normalization, morphology and membership distinctions are not proved by implementation evidence",
+      "non_claims": [
+        "no arithmetic range expansion and no vendor threshold copy is claimed",
+        "a design deferral is not implementation evidence"
+      ],
+      "human_sufficiency": "sufficient only for a residual disposition; the required implementation proof is absent",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F11",
+      "reviewer_severity": "high",
+      "required_proof_class": "implementation",
+      "required_proof": "token-bound cues, negation differences, participant anchors; not NormRule adoption",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": false,
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "machine_verdict": "evidence_class_mismatch",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m206-s04-adoption-state.md",
+          "sha256": "sha256:d830d14c17268dc4005102ef4b683adad0b9775340a42c25a7e7ce7ca484db9d"
+        },
+        {
+          "path": "prd/architecture/m205-s03-context-fsm.yaml",
+          "sha256": "sha256:1d6fdf0ab295839e81aa301b8db89ada6d6be26d7b200f8604f60ccc0ac02d9d"
+        }
+      ],
+      "residual_scope": "only an adoption-state record and a context FSM design document exist; no implementation proof of token-bound matching, negation or participant spans",
+      "non_claims": [
+        "cue recognition is not a NormRule and this row adopts no deferred legal IR",
+        "no semantic-cue fix is claimed"
+      ],
+      "human_sufficiency": "sufficient only for a residual disposition; the required implementation proof is absent",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F12",
+      "reviewer_severity": "high",
+      "required_proof_class": "design",
+      "required_proof": "alias declaration/use/scope, antecedent versus self and non-authoritative edition relation",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "evidence_present_residual_named",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m206-s03-adoption-state.md",
+          "sha256": "sha256:9e0e4ef1a931f799058f954643e9599fd69230bcfaf25097d16d4981c2602efd"
+        },
+        {
+          "path": "prd/architecture/m205-s03-context-fsm.yaml",
+          "sha256": "sha256:1d6fdf0ab295839e81aa301b8db89ada6d6be26d7b200f8604f60ccc0ac02d9d"
+        }
+      ],
+      "residual_scope": "M206/S03 states F12 remains open; the edition relation is preserved as a source-backed relation candidate rather than substituted for identity",
+      "non_claims": [
+        "the edition reference is not Expression identity, edition_date, CTV or force",
+        "an open adoption state is not a design closure"
+      ],
+      "human_sufficiency": "sufficient for a design-partial disposition that names the open adoption state as the residual",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F13",
+      "reviewer_severity": "high",
+      "required_proof_class": "design",
+      "required_proof": "adopted operation grammar, old/new operands, nested targets, admission and bounded causal replay",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "awaiting_owner_decision",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m205-s03-context-fsm.yaml",
+          "sha256": "sha256:1d6fdf0ab295839e81aa301b8db89ada6d6be26d7b200f8604f60ccc0ac02d9d"
+        },
+        {
+          "path": "prd/architecture/m208-s01-runtime-admission.md",
+          "sha256": "sha256:aad5f2800dfa7eaec61e79e364e80902af12b83617a22089bd576b3136e9b60e"
+        },
+        {
+          "path": "prd/architecture/m208-s03-admission-commencement.md",
+          "sha256": "sha256:677c3b7cbff3ecb3431fde75e6842bfb67ed4a9326a2f039cefc5d50a62982a8"
+        },
+        {
+          "path": "prd/architecture/m208-s04-admission-bounded-replay.md",
+          "sha256": "sha256:bace043550b95084abfb9afb31d738af44b64d5d1eb5c262ad3482f65949fa75"
+        },
+        {
+          "path": "prd/architecture/m209-s01-punkt-decision.md",
+          "sha256": "sha256:0b59f95a96d54cdcf62a08a026a082102fa46d61e55fa73244ae9f242602f2b0"
+        }
+      ],
+      "residual_scope": "no live adoption owner: the M205 context FSM records runtime_stop_active with the replay handed to M208, M208 recorded not-adopted three times with owner_admission_ref none and runtime_work not-started, and the operation registry stays proposed",
+      "non_claims": [
+        "deferred-explicit is an explicit owner defer, not a missing answer and not a hold",
+        "an agent may prepare the three lawful outcomes; only the owner chooses one and records the decision",
+        "an extracted operation is not an admitted MicroOperation, LegislativeEffect or InForce"
+      ],
+      "human_sufficiency": "sufficient for an owner decision among the three lawful outcomes; no agent may record it, and no agent may impersonate the owner",
+      "status_effect": "unchanged",
+      "owner_status": "deferred-explicit"
+    },
+    {
+      "finding_id": "RC28-F14",
+      "reviewer_severity": "medium",
+      "required_proof_class": "design",
+      "required_proof": "functional prior-art matrix; no license or runtime-parity claim",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": true,
+      "reverification": {
+        "verified_in": "M210-3afp79/S04/T02",
+        "method": "live_source_read",
+        "verdict": "confirmed",
+        "tokens": [
+          {
+            "path": "prd/architecture/m205-s01-pullenti-matrix.yaml",
+            "token": "not a license grant, runtime parity, or gold corpus"
+          },
+          {
+            "path": "prd/architecture/m207-unit-diagnosis.md",
+            "token": "Not adopted"
+          }
+        ],
+        "observed_fields": [],
+        "observed": [
+          "the crosswalk is a functional prior-art inventory with per-row vendor anchors, take-or-leave decisions and explicit non-claims",
+          "the crosswalk declares itself design-only and never product runtime, and it makes no license grant and no runtime-parity claim",
+          "the unit diagnosis lists vendor code, dictionaries, thresholds, SemanticService and agreement-with-Pullenti-as-gold as not adopted",
+          "any differential run stays optional and license-gated, and agreement with the vendor is not gold and not a second human coder"
+        ]
+      },
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "evidence_present_class_matched",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m205-s01-pullenti-matrix.yaml",
+          "sha256": "sha256:559b6637139acdf81f8a09cd8683cf28e48f1dd4507e0b9aa6ac67905727a131"
+        },
+        {
+          "path": "prd/architecture/m207-unit-diagnosis.md",
+          "sha256": "sha256:b7dd2df003a0899656ffddb980c6bfa5b7ab5ae92d3c53ada5cd38bd2278357e"
+        },
+        {
+          "path": "prd/architecture/m207-reassessment-2026-09-21.md",
+          "sha256": "sha256:c64a13f6e41a9bc3b6ef2559a085fbbeff652068c76fdab17c09ad6044da830e"
+        }
+      ],
+      "residual_scope": "several crosswalk rows keep human_adoption pending and the optional differential run stays license-gated; the M208 optional component is not adopted",
+      "non_claims": [
+        "the prior-art matrix is not a license grant and not runtime parity",
+        "agreement with the vendor is not gold and not a second human coder"
+      ],
+      "human_sufficiency": "sufficient for a design prior-art disposition; the pending human-adoption rows and the license-gated differential are named residuals",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F15",
+      "reviewer_severity": "high",
+      "required_proof_class": "evidence",
+      "required_proof": "real independent annotation and source-bound human acceptance; no automatic seed enlargement",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "evidence_absent_residual_named",
+      "evidence_paths": [
+        {
+          "path": "prd/annotation/m207-s01-codebook.md",
+          "sha256": "sha256:1a1bfe944207e69cb5fb507e94d680384dadecf7ac98ac29b1de4932d7cb76c6"
+        },
+        {
+          "path": "prd/annotation/m207-s02-coder-protocol.md",
+          "sha256": "sha256:763de0f998b772afd85373e438da0b1b6b2a6435d761e67f06177f4b0b1fbc32"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m207-s02-coder-kit-pass1.json",
+          "sha256": "sha256:e23b25d9ce45f72263d9630b47c096a7463b95dbcbfda9233c750e7bf39418c5"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m207-s02-coder-kit-pass2.json",
+          "sha256": "sha256:52be89f0f72f46c7f4503c7912508868f92e1e8501c848b2907c59330e192380"
+        }
+      ],
+      "residual_scope": "the human contour is absent and no rate is published; a codebook and a coder kit are neither labels nor gold, and the pilot cannot be enlarged automatically",
+      "non_claims": [
+        "D519 is a scope deferral and is not independent annotation",
+        "no automatic seed enlargement and no substitute for human acceptance"
+      ],
+      "human_sufficiency": "sufficient for a deferred/explicit residual disposition; insufficient for any already_satisfied disposition",
+      "status_effect": "unchanged",
+      "deferral_reference": "D519",
+      "deferral_treated_as_proof": false
+    },
+    {
+      "finding_id": "RC28-F16",
+      "reviewer_severity": "high",
+      "required_proof_class": "evidence",
+      "required_proof": "each R035 gate plus extractor/admission/regeneration; punkt decision before admission",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "gate_hold",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m209-s01-punkt-decision.md",
+          "sha256": "sha256:0b59f95a96d54cdcf62a08a026a082102fa46d61e55fa73244ae9f242602f2b0"
+        },
+        {
+          "path": "prd/architecture/m209-s01-r035-gate-register.json",
+          "sha256": "sha256:bbbf9f56864f4abd5e769b06ad9dc12ef0c6ee40798e0ca0992a5037bf60fd4d"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m209-s01-r035-gate-reconciliation.json",
+          "sha256": "sha256:b52502e2d4628652ee317b8d9bf1137c191d0ab419aaf0cd7b0cf63d1e779474"
+        }
+      ],
+      "residual_scope": "the gate register is delivered with named gates and per-gate quantifiers, but GATE-G015 is conflicted with zero promoted rows and punkt is not-adopted with owner_admission_ref none and zero punkt rows",
+      "non_claims": [
+        "contract counts (28/28, 21/21, 35/35) are not extraction proof and no count-only closure is available",
+        "no requirement is promoted from the gate register"
+      ],
+      "human_sufficiency": "sufficient for a held-gate disposition that records the conflicted gate and the not-adopted punkt decision; no promotion is available from counts",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F17",
+      "reviewer_severity": "high",
+      "required_proof_class": "evidence",
+      "required_proof": "operation x provision x commencement x transitions x edition deltas, scoped coverage, frozen M201 untouched",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "evidence_present_residual_named",
+      "evidence_paths": [
+        {
+          "path": "prd/migration/rust-evidence/m209-s03-r070-scope-ledger.json",
+          "sha256": "sha256:b640b2e114f8872972c11f2201b88d5248a04ba64491252bd42536831a34b4cc"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m209-s03-slice-battery.json",
+          "sha256": "sha256:711c049e6b5afba6ec6d35d0a0b88ce4a4f72103b184fecd6a70f40fcc9e17d2"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m209-s04-r070-scope-adjudication.json",
+          "sha256": "sha256:bb8214a14637d14690934d2c363d4b68657ad0fa500d23b6d2330d8057f5ff66"
+        },
+        {
+          "path": "prd/architecture/m208-s03-admission-commencement.md",
+          "sha256": "sha256:677c3b7cbff3ecb3431fde75e6842bfb67ed4a9326a2f039cefc5d50a62982a8"
+        },
+        {
+          "path": "prd/architecture/m208-s04-admission-bounded-replay.md",
+          "sha256": "sha256:bace043550b95084abfb9afb31d738af44b64d5d1eb5c262ad3482f65949fa75"
+        }
+      ],
+      "residual_scope": "M209/S03 delivered scoped coverage and M209/S04 adjudicates the scope, while the M208 components stay not-adopted and R070 remains HOLD",
+      "non_claims": [
+        "consolidated snapshots are oracles, not legislative causes",
+        "the frozen M201 pins are untouched and are not provenance for the consolidated editions"
+      ],
+      "human_sufficiency": "sufficient for a scoped-coverage disposition with M208's not-adopted history recorded as the historical admission attempt",
+      "status_effect": "unchanged"
+    },
+    {
+      "finding_id": "RC28-F18",
+      "reviewer_severity": "high",
+      "required_proof_class": "design",
+      "required_proof": "human-owned legal IR adoption before implementation and independent evaluation",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "evidence_present_residual_named",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m210-s04-admission-reconciliation.json",
+          "sha256": "sha256:c723b96cd938b0a7d31ac583eeb93a9557d07d65b8b5bba8dea256112a79fbdd"
+        },
+        {
+          "path": "prd/architecture/m210-s02-adoption-checkpoint-v2.md",
+          "sha256": "sha256:6556bab25ab1c046784087311947d354f6eeb4815de2f879f477006f20813902"
+        },
+        {
+          "path": "prd/architecture/m210-s02-answer-record-v2.json",
+          "sha256": "sha256:b45762e9cb0a67dc7b7eb01501a347200ae652be0381efa7db876ff4c3e4c8cd"
+        }
+      ],
+      "residual_scope": "the authenticated bounded adoption of variant C is established by the v2 checkpoint and the v2 answer record (subjective-UAT criterion 37181c25-88b0-4896-bffe-d10642970e6f); the independent evaluation and the ledger disposition are separate and still pending",
+      "non_claims": [
+        "adoption is not activation: the candidate layer is permitted but nothing is implemented",
+        "adoption is not submission authority: the actor-bound path stays unavailable for record_human_disposition",
+        "auto-close is forbidden; no agent may close this finding"
+      ],
+      "human_sufficiency": "sufficient for a bounded-adoption disposition; the independent evaluation and the ledger disposition remain open and no agent may record them",
+      "status_effect": "unchanged",
+      "owner_status": "bounded_adoption_established",
+      "auto_close": false
+    },
+    {
+      "finding_id": "RC28-F19",
+      "reviewer_severity": "medium",
+      "required_proof_class": "docs",
+      "required_proof": "class-matched docs/matrix consistency without lifecycle smoothing",
+      "required_proof_verbatim_source": "prd/architecture/review-cases/rc28-remediation-program.md",
+      "rereverified": false,
+      "reverification": null,
+      "class_match": true,
+      "mismatch_reason_code": null,
+      "machine_verdict": "evidence_present_residual_named",
+      "evidence_paths": [
+        {
+          "path": "prd/architecture/m209-s01-r035-gate-register.json",
+          "sha256": "sha256:bbbf9f56864f4abd5e769b06ad9dc12ef0c6ee40798e0ca0992a5037bf60fd4d"
+        },
+        {
+          "path": "prd/architecture/m205-s04-docs-reconciliation.yaml",
+          "sha256": "sha256:fd254f66fa899596989398a7210d460052e54ae3a687ec74f5ba306aca14de4f"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m204-s05-m073-residue-waiver.json",
+          "sha256": "sha256:f5be4f8bda567fd4363b76a6b89243a76327d071a9833e80b65e0fd83077827f"
+        },
+        {
+          "path": "prd/migration/rust-evidence/m209-s04-requirement-acceptance.json",
+          "sha256": "sha256:0a4bb47c929ad5c7efe4dd9478334b191898c25cea330efee4d790e49a67de93"
+        }
+      ],
+      "residual_scope": "this matrix supplies the class-matched docs/matrix check for the RC28 evidence and finds no lifecycle smoothing; the broader documentation synchronization stays with the owning M205/S04 handoff and the owning implementation slices",
+      "non_claims": [
+        "no requirement is promoted and the class-matched requirement id list stays empty",
+        "historical reviews and receipts are preserved; corrections append or explicitly supersede and never silently relabel M203 as readiness"
+      ],
+      "human_sufficiency": "sufficient for a docs-consistency disposition; no requirement or lifecycle promotion is available",
+      "status_effect": "unchanged"
+    }
+  ],
+  "requirement_evidence": [
+    {
+      "requirement_id": "R038",
+      "namespace": "gsd",
+      "canonical_class": "quality-attribute",
+      "canonical_class_source": "m210 S04 T02 plan contract",
+      "evidence_class": "source-bound-criterion-plus-c4-gsd-attempt",
+      "evidence_class_source": "prd/migration/rust-evidence/m204-s15-requirement-class.json",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "related_findings": [
+        "RC28-F01",
+        "RC28-F03"
+      ],
+      "class_match_basis": "C4 operational acceptance remains non-pass; the evidence supports the criterion and the attempted run only and does not prove an operational pass",
+      "limitations": [
+        "supports the criterion and the attempted run only; no operational pass"
+      ],
+      "source_paths": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s15-requirement-class.json",
+          "sha256": "sha256:440dc6eb4bafabe2501002483012d373dee5133ec705c9677ef8b49c2d7b0d4d"
+        }
+      ]
+    },
+    {
+      "requirement_id": "R063",
+      "namespace": "gsd",
+      "canonical_class": "constraint",
+      "canonical_class_source": "m210 S04 T02 plan contract",
+      "evidence_class": "process-provenance-without-product-change",
+      "evidence_class_source": "prd/migration/rust-evidence/m204-s15-requirement-class.json",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "related_findings": [
+        "RC28-F03",
+        "RC28-F05"
+      ],
+      "class_match_basis": "frozen process provenance is preserved; process provenance is not product composition proof",
+      "limitations": [
+        "process provenance only; not product composition proof"
+      ],
+      "source_paths": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s15-requirement-class.json",
+          "sha256": "sha256:440dc6eb4bafabe2501002483012d373dee5133ec705c9677ef8b49c2d7b0d4d"
+        }
+      ]
+    },
+    {
+      "requirement_id": "R064",
+      "namespace": "gsd",
+      "canonical_class": "operability",
+      "canonical_class_source": "m210 S04 T02 plan contract",
+      "evidence_class": "thin-harness-operability-retest",
+      "evidence_class_source": "prd/migration/rust-evidence/m204-s15-requirement-class.json",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "related_findings": [
+        "RC28-F03",
+        "RC28-F05"
+      ],
+      "class_match_basis": "harness operability is retested; no engine repair, runtime readiness or acceptance is claimed",
+      "limitations": [
+        "thin-harness operability only; no engine repair and no runtime readiness"
+      ],
+      "source_paths": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s15-requirement-class.json",
+          "sha256": "sha256:440dc6eb4bafabe2501002483012d373dee5133ec705c9677ef8b49c2d7b0d4d"
+        }
+      ]
+    },
+    {
+      "requirement_id": "R081",
+      "namespace": "gsd",
+      "canonical_class": "constraint",
+      "canonical_class_source": "m210 S04 T02 plan contract",
+      "evidence_class": "documentation-residue-no-new-work",
+      "evidence_class_source": "prd/migration/rust-evidence/m204-s15-requirement-class.json",
+      "class_matched": false,
+      "status_effect": "unchanged",
+      "related_findings": [
+        "RC28-F03",
+        "RC28-F04",
+        "RC28-F05"
+      ],
+      "class_match_basis": "documentation residue is classified only. R081 concerns Work identity, so it must not be counted as class-matched proof for RC28-F03, RC28-F04 or RC28-F05",
+      "limitations": [
+        "documentation residue only; R081 concerns Work identity and is not class-matched proof for F03/F04/F05"
+      ],
+      "source_paths": [
+        {
+          "path": "prd/migration/rust-evidence/m204-s15-requirement-class.json",
+          "sha256": "sha256:440dc6eb4bafabe2501002483012d373dee5133ec705c9677ef8b49c2d7b0d4d"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "finding_count": 19,
+    "rows_rereverified": 4,
+    "class_matched_rows": 13,
+    "class_mismatched_rows": 6,
+    "machine_verdict_counts": {
+      "evidence_absent_residual_named": 2,
+      "evidence_present_residual_named": 7,
+      "evidence_present_class_matched": 2,
+      "evidence_class_mismatch": 6,
+      "awaiting_owner_decision": 1,
+      "gate_hold": 1
+    },
+    "requirement_evidence_rows": 4,
+    "class_matched_requirement_ids": [],
+    "status_effect_values": [
+      "unchanged"
+    ],
+    "required_proof_class_values": [
+      "design",
+      "docs",
+      "evidence",
+      "implementation",
+      "process"
+    ],
+    "evidence_path_count": 61
+  },
+  "boundary": {
+    "review_case_events_written": false,
+    "record_human_disposition_called": false,
+    "actor_bound_path_available": false,
+    "requirements_promoted": [],
+    "requirement_status_mutated": false,
+    "runtime_touched": false,
+    "crates_touched": [],
+    "source_artifacts_rewritten": []
+  },
+  "non_claims": [
+    "This matrix is a machine-prepared evidence record for a human reviewer. It is not a Review Case disposition, not a legal conclusion, not a requirement closure and not a lifecycle promotion.",
+    "Every row carries status_effect=unchanged and every requirement row carries class_matched=false; no requirement, ADR, roadmap entry, finding status or milestone state is changed by this record.",
+    "No Review Case event is written, no actor-bound human disposition path is invoked, and no disposition is fabricated; the RC28 findings stay open until a human records a disposition through a sanctioned path.",
+    "The machine verdict is about the class compatibility and the residual scope of the available evidence, never about acceptance; a human decides the disposition.",
+    "The evidence paths are hashed live, but a live hash proves identity, not truth; the content is authoritative only in its own owning artifact.",
+    "The review-case rollup is a recorded live CLI observation; only its packet-level parts are re-derived offline, and the ledger FSM is not re-implemented here.",
+    "The bounded adoption of variant C recorded for RC28-F18 is adoption evidence; independent evaluation and the ledger disposition are separate, still pending, and auto-close is forbidden."
+  ]
+}

@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+"""Run the local pinned PDD CLI, preserving the caller's working directory."""
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(os.environ.get("AI_STACK_ROOT", Path(__file__).resolve().parents[2])).resolve()
+LOCAL = ROOT / ".ai/local"
+
+
+def common_dir(directory):
+    value = subprocess.check_output(
+        ["git", "-C", str(directory), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+        text=True,
+    ).strip()
+    return Path(value).resolve()
+
+
+try:
+    if common_dir(Path.cwd()) != common_dir(ROOT):
+        raise ValueError("run inside this repository or one of its Git worktrees")
+    node = LOCAL / "node/bin/node"
+    cli = LOCAL / "pdd/node_modules/pdd-toolkit/dist/cli.js"
+    if not node.is_file() or not cli.is_file():
+        raise ValueError("run `python3 scripts/ai/bootstrap tools` first")
+    env = os.environ.copy()
+    env["PATH"] = str(LOCAL / "node/bin") + os.pathsep + env.get("PATH", "")
+    env["npm_config_cache"] = str(LOCAL / "npm-cache")
+    env["npm_config_update_notifier"] = "false"
+    os.execve(node, [str(node), str(cli), *sys.argv[1:]], env)
+except (subprocess.CalledProcessError, OSError, ValueError) as error:
+    raise SystemExit("pdd launcher: " + str(error))

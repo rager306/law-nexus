@@ -5,10 +5,10 @@
 
 use ln_applicability::application::EvaluateApplicability;
 use ln_applicability::domain::{
-    compose_norm_rule_predicates, evaluate_condition, AbstentionKind, ApplicabilityDecision,
-    ApplicabilityRequest, CaseFactSet, CaseFactsRevision, Defeater, Exception, NormRule,
-    NormRuleCondition, NormRuleId, NormRuleRevision, PredicateOutcome, PredicateRegistryRevision,
-    PrerequisiteSnapshot, ProfileInputRevision, TemporalScope,
+    AbstentionKind, ApplicabilityDecision, ApplicabilityRequest, CaseFactSet, CaseFactsRevision,
+    Defeater, Exception, NormRule, NormRuleCondition, NormRuleId, NormRuleRevision,
+    PredicateOutcome, PredicateRegistryRevision, PrerequisiteSnapshot, ProfileInputRevision,
+    TemporalScope, compose_norm_rule_predicates, evaluate_condition,
 };
 
 fn complete_prereqs() -> PrerequisiteSnapshot {
@@ -125,7 +125,7 @@ fn defeater_forces_unsatisfied_when_triggered() {
 #[test]
 fn evaluate_with_norm_rule_and_facts_still_never_applicable() {
     let rule = base_rule(vec![
-        NormRuleCondition::try_new("cond:a", "fact_required").expect("a")
+        NormRuleCondition::try_new("cond:a", "fact_required").expect("a"),
     ]);
     let facts = CaseFactSet::try_from_pairs(&[("cond:a", true)]).expect("f");
     let evaluator = EvaluateApplicability::new();

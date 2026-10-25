@@ -1,9 +1,9 @@
 //! Scoped YAML bindings. Unmatched paths stay empty.
 
-use ln_kb_ontology::domain::{map_hierarchy_marker, HierarchyMapOutcome, HierarchyMarker};
+use ln_kb_ontology::domain::{HierarchyMapOutcome, HierarchyMarker, map_hierarchy_marker};
 use ln_kb_ontology::registry::{
-    bindings_matching_path, embedded_binding_count_for_path, load_hierarchy_map_for_path,
-    parse_hierarchy_registry, EMBEDDED_HIERARCHY_REGISTRY_YAML,
+    EMBEDDED_HIERARCHY_REGISTRY_YAML, bindings_matching_path, embedded_binding_count_for_path,
+    load_hierarchy_map_for_path, parse_hierarchy_registry,
 };
 
 #[test]
@@ -42,12 +42,16 @@ fn fz402_needle_binds_glava_and_statya() {
         &parsed,
         "federalnyi-zakon-ot-06-12-2011-n-402-fz-red-ot-15-12-2025.xml",
     );
-    assert!(matched
-        .iter()
-        .any(|row| row.level == "glava" && row.number == "1"));
-    assert!(matched
-        .iter()
-        .any(|row| row.level == "statya" && row.number == "25.1"));
+    assert!(
+        matched
+            .iter()
+            .any(|row| row.level == "glava" && row.number == "1")
+    );
+    assert!(
+        matched
+            .iter()
+            .any(|row| row.level == "statya" && row.number == "25.1")
+    );
     let map = load_hierarchy_map_for_path(
         "law-source/consultant/federalnyi-zakon-ot-06-12-2011-n-402-fz.xml",
     )
@@ -80,7 +84,7 @@ fn missing_fields_fail_closed() {
 #[test]
 fn yaml_binding_with_path_parses_and_resolves() {
     use ln_kb_ontology::domain::{
-        map_hierarchy_marker, HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker,
+        HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker, map_hierarchy_marker,
     };
     use ln_temporal::domain::ComponentConceptId;
     // D192: path is optional; a binding may carry the CC-path ladder.
@@ -121,7 +125,7 @@ bindings:
 #[test]
 fn yaml_without_path_is_flat_valid() {
     use ln_kb_ontology::domain::{
-        map_hierarchy_marker, HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker,
+        HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker, map_hierarchy_marker,
     };
     use ln_temporal::domain::ComponentConceptId;
     // D192: absent path keeps the flat key (default path = number).
@@ -283,20 +287,24 @@ fn real_editions_same_work_different_expressions() {
 fn unknown_act_number_in_filename_fails_closed() {
     use ln_kb_ontology::registry::load_expression_id_for_path;
     // act 999-fz is not in works: -> no authority -> None (fail-closed)
-    assert!(load_expression_id_for_path(
-        "consru_export/exports/npa/law_2013-04-05_999-fz/edition-0001_rev-2014-01-01_x.xml"
-    )
-    .is_none());
+    assert!(
+        load_expression_id_for_path(
+            "consru_export/exports/npa/law_2013-04-05_999-fz/edition-0001_rev-2014-01-01_x.xml"
+        )
+        .is_none()
+    );
 }
 
 #[test]
 fn enactment_date_mismatch_fails_closed() {
     use ln_kb_ontology::registry::load_expression_id_for_path;
     // works: says 44-fz was enacted 2013-04-05; filename says 2013-04-06
-    assert!(load_expression_id_for_path(
-        "consru_export/exports/npa/law_2013-04-06_44-fz/edition-0001_rev-2014-01-01_x.xml"
-    )
-    .is_none());
+    assert!(
+        load_expression_id_for_path(
+            "consru_export/exports/npa/law_2013-04-06_44-fz/edition-0001_rev-2014-01-01_x.xml"
+        )
+        .is_none()
+    );
 }
 
 #[test]
@@ -332,11 +340,7 @@ fn real_484_canon_path() -> Option<std::path::PathBuf> {
         .join("../..")
         .join(&dir)
         .join("consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_1a599b98.xml");
-    if root.exists() {
-        Some(root)
-    } else {
-        None
-    }
+    if root.exists() { Some(root) } else { None }
 }
 
 const EXPECTED_484_EXPRESSION_ID: &str = "expr:ru:federal:zakon:2024-12-26:484-fz:2024-12-26";
@@ -368,20 +372,24 @@ fn real_484_canon_mints_pinned_expression() {
 fn wrong_enactment_day_484_fails_closed() {
     use ln_kb_ontology::registry::load_expression_id_for_path;
     // works: says 484-fz was enacted 2024-12-26; filename claims 2024-12-27.
-    assert!(load_expression_id_for_path(
-        "consru_export/exports/npa/law_2024-12-27_484-fz_rev-unknown_x.xml"
-    )
-    .is_none());
+    assert!(
+        load_expression_id_for_path(
+            "consru_export/exports/npa/law_2024-12-27_484-fz_rev-unknown_x.xml"
+        )
+        .is_none()
+    );
 }
 
 #[test]
 fn unknown_act_number_flat_filename_fails_closed() {
     use ln_kb_ontology::registry::load_expression_id_for_path;
     // act 999-fz is not in works: -> None (fail-closed), flat filename form.
-    assert!(load_expression_id_for_path(
-        "consru_export/exports/npa/law_2024-12-26_999-fz_rev-unknown_x.xml"
-    )
-    .is_none());
+    assert!(
+        load_expression_id_for_path(
+            "consru_export/exports/npa/law_2024-12-26_999-fz_rev-unknown_x.xml"
+        )
+        .is_none()
+    );
 }
 
 #[test]

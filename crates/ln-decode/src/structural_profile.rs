@@ -298,10 +298,10 @@ impl StructuralProfile {
         if text.is_empty() {
             return false;
         }
-        if let Some(level) = level_from_ladder_token(&entry.token) {
-            if self.has_prefix_markers(level) {
-                return self.prefix_match(text, level);
-            }
+        if let Some(level) = level_from_ladder_token(&entry.token)
+            && self.has_prefix_markers(level)
+        {
+            return self.prefix_match(text, level);
         }
         Self::numbered_match(text, entry)
     }
@@ -691,7 +691,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn embedded_profile_loads_five_groups() {
+    fn embedded_profile_loads_seven_groups() {
         let profile = StructuralProfile::embedded().expect("yaml");
         let ids: Vec<&str> = profile
             .groups
@@ -704,8 +704,10 @@ mod tests {
                 "federal_law@v1",
                 "code",
                 "government_resolution",
+                "presidential_decree",
                 "departmental_order",
-                "court_practice"
+                "court_practice",
+                "non_normative"
             ]
         );
     }

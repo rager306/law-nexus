@@ -15,8 +15,8 @@ use ln_decode::adapters::{
     MaliciousSyntheticDecoder, WordMLStreamingDecoder,
 };
 use ln_decode::document_context::{
-    build_document_analysis_overlay, build_document_structure_index, explicit_anchor_lookup,
-    ContextStatus, DocumentVersionRef,
+    ContextStatus, DocumentVersionRef, build_document_analysis_overlay,
+    build_document_structure_index, explicit_anchor_lookup,
 };
 use ln_decode::domain::{
     BlockDecodeErrorKind, DecodeRequest, FamilyFormat, ParagraphStyle, ParsedBlock, PayloadRef,
@@ -34,7 +34,7 @@ use ln_testkit::{
     assert_decode_diagnostic_port_contract, assert_decoder_port_contract,
     assert_decoder_port_contract_with_fixture, assert_malicious_decoder_fails_honest_contract,
 };
-use zip::{write::SimpleFileOptions, CompressionMethod, ZipWriter};
+use zip::{CompressionMethod, ZipWriter, write::SimpleFileOptions};
 
 const OFFICE_NS: &str = "urn:oasis:names:tc:opendocument:xmlns:office:1.0";
 const TEXT_NS: &str = "urn:oasis:names:tc:opendocument:xmlns:text:1.0";

@@ -5,8 +5,8 @@
 use ln_decode::lawref::capture_lawrefs;
 use ln_decode::lexer::lex;
 use ln_decode::local_grammar::{
-    extract_act_list_frames, extract_structural_frames, DerivationSource, FrameDiagnostic,
-    FrameKind, FrameStatus, PROPOSED_MAX_FRAME_MEMBERS,
+    DerivationSource, FrameDiagnostic, FrameKind, FrameStatus, PROPOSED_MAX_FRAME_MEMBERS,
+    extract_act_list_frames, extract_structural_frames,
 };
 use ln_decode::morphology::find_legal_markers;
 
@@ -40,10 +40,12 @@ fn empty_batch_and_malformed_tails_are_panic_free() {
 fn refused_or_incomplete_captures_never_become_members() {
     let frames = extract_act("от 01.01.2020 N 1-ФЗ");
     assert_eq!(frames.len(), 1);
-    assert!(frames[0]
-        .members
-        .iter()
-        .all(|member| member.date.is_some() && member.doc_no.is_some()));
+    assert!(
+        frames[0]
+            .members
+            .iter()
+            .all(|member| member.date.is_some() && member.doc_no.is_some())
+    );
     assert_eq!(frames[0].frame_kind, FrameKind::ActRequisites);
 }
 
@@ -102,9 +104,11 @@ fn nested_markers_retain_competing_frames_and_do_not_authorize_inheritance() {
     let src = "статьями 7.29 части 2";
     let frames = extract(src);
     assert!(frames.len() >= 2);
-    assert!(frames
-        .iter()
-        .any(|frame| frame.diagnostic == Some(FrameDiagnostic::ConflictingFramesRetained)));
+    assert!(
+        frames
+            .iter()
+            .any(|frame| frame.diagnostic == Some(FrameDiagnostic::ConflictingFramesRetained))
+    );
     assert!(frames.iter().flat_map(|frame| &frame.values).all(|member| {
         member.derivation != DerivationSource::AuthorizedCurrentDocumentRequisites
     }));

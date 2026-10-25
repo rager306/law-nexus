@@ -1,0 +1,129 @@
+{
+  "schema": "m214-s01-source-mapping/v1",
+  "schema_version": 1,
+  "lifecycle": "[bounded]",
+  "milestone": "M214-es3jvw",
+  "slice": "S01",
+  "task": "T03",
+  "generated_utc": "2026-10-04T17:11:09Z",
+  "count_only": true,
+  "ascii_only": true,
+  "non_claims": [
+    "this receipt is [bounded] to the named approved fixtures and the single declared real input; it is not corpus coverage",
+    "the declared real input is one tracked bounded Consultant WordML fixture, not the restricted corpus (consru_export/exports/); no decoded legal text enters tracked evidence",
+    "counts and sha256 are integrity evidence, not coverage and not source authenticity",
+    "this is not a full analysis/context export, not a read-back verifier (S03) and not semantic gold",
+    "R1000 stays active and unclosed; this receipt never auto-closes it",
+    "frozen oracles and the M213 cleaned wire bytes are not modified"
+  ],
+  "source_binding": {
+    "contract_doc": {
+      "path": "prd/architecture/npa-analysis-jsonl-contract.md",
+      "sha256": "ddf9274e76a0e5b76a4a614fd34e5cbdb18e88bff711f8104bdd58da482a4124"
+    },
+    "seam": {
+      "path": "crates/ln-decode/src/analysis_source_mapping.rs",
+      "sha256": "7ef3864ea8bdae7d6370685cfa8de1b9a820f9ed214d3531d6e1bd6d9ce27ce4"
+    },
+    "integration_test": {
+      "path": "crates/ln-decode/tests/analysis_source_mapping_integration.rs",
+      "sha256": "afb8d140777740456853da5bddc55c585fcb420483a8d055af35b9310c649d7e"
+    },
+    "contract_test": {
+      "path": "crates/ln-decode/tests/analysis_source_mapping_contract.rs",
+      "sha256": "1d59e74e0b5a84bfc25039e3773779d41b891baf82e3626cd4a9cecbb2d32910"
+    },
+    "hostile_test": {
+      "path": "crates/ln-decode/tests/analysis_source_mapping_hostile.rs",
+      "sha256": "d75fbc9d0c01367ba4436641af8ab964ad76904fb9962c19990aa58696a7ac84"
+    },
+    "declared_real_input": {
+      "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+      "sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d",
+      "bytes": 193726
+    }
+  },
+  "approved_fixtures": [
+    {
+      "file": "mixed-wordml.xml",
+      "sha256": "d2fc1cd17f0697f575e94f09d83da5027d73afd37c700772eafa4c4a4fbc76db",
+      "bytes": 875,
+      "elements": 47,
+      "text_records": 15,
+      "fragments": 15,
+      "source_segments": 15,
+      "resolved_bytes": 69
+    },
+    {
+      "file": "controls.xml",
+      "sha256": "86440c8cf2f16b88f9da919c77f04e9a2487ed3a0032305dd195aaf48e40988f",
+      "bytes": 1047,
+      "elements": 33,
+      "text_records": 12,
+      "fragments": 12,
+      "source_segments": 12,
+      "resolved_bytes": 12
+    },
+    {
+      "file": "text-only.xml",
+      "sha256": "e13b8c7424100989028d95bd4c37bfadcd3970972329d93624c8da384507c55f",
+      "bytes": 509,
+      "elements": 5,
+      "text_records": 1,
+      "fragments": 1,
+      "source_segments": 1,
+      "resolved_bytes": 23
+    }
+  ],
+  "declared_real_input": {
+    "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+    "sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d",
+    "bytes": 193726,
+    "elements": 3167,
+    "text_records": 295,
+    "fragments": 295,
+    "source_segments": 295,
+    "resolved_bytes": 96161
+  },
+  "pipeline": "source_package::capture -> reader_gate::gate_reader -> reader_projection::build_projection -> analysis_source_mapping::SourceMapping",
+  "proof_classes": {
+    "identity": "parent identity and document version are taken from the captured manifest+footer; check_parent_citation and check_document_version succeed on the pipeline's own output",
+    "coordinates": "every projected source segment resolves via resolve_fragment_span to the exact substrate UTF-8 slice; start/end are preserved",
+    "block_mapping": "caller-side block index -> distinct fragment (D603); resolve_local_span returns the whole fragment for every pinned block",
+    "token_views": "a covering token of a real fixture fragment validates under the covering view; a cross-view substitution is refused",
+    "completion_independence": "cleaned-wire Hold and TextOnly completion bases do not change source identity or coordinates",
+    "no_corpus_transfer": "the envelope carries no inline decoded text; None is accepted and a supplied text channel is refused",
+    "bounded_real_input": "the declared real input is pinned by byte length and sha256; only counts and hashes are recorded"
+  },
+  "refusals_observed": [
+    "SourceIdentityMismatch: tampered source.sha256 and a claimed seal on an unsealed parent",
+    "DocumentVersionMismatch: a record revision differing from the envelope triple",
+    "CrossDocument: a fragment from the text-only fixture pinned into the mixed fixture envelope",
+    "UnsupportedMapping: an XML artifact coordinate kind",
+    "TemporalFieldForbidden: a temporal stop-sign field",
+    "CorpusTransferForbidden: an inline decoded text channel",
+    "TokenViewMismatch: a morphology outcome declaring the alphabetic view"
+  ],
+  "s02_handoff": {
+    "admitted_inputs": [
+      "crates/ln-decode/src/analysis_source_mapping.rs",
+      "crates/ln-decode/tests/analysis_source_mapping_contract.rs",
+      "crates/ln-decode/tests/analysis_source_mapping_hostile.rs",
+      "crates/ln-decode/tests/analysis_source_mapping_integration.rs",
+      "prd/architecture/npa-analysis-jsonl-contract.md",
+      "prd/migration/rust-evidence/m214-s01-source-mapping.json"
+    ],
+    "constraints": [
+      "S02 must not re-derive coordinates or token views; it materializes records on top of the seam",
+      "S02 must record the M214 requirement binding through the sanctioned requirements path before it begins (R1000 primary; R081/R069/R077/R063/R038/R071 supporting-only; nothing auto-closed)",
+      "S02 must not claim full analysis/context export or semantic gold and must not auto-close R1000"
+    ]
+  },
+  "re_test_set": [
+    "cargo test -p ln-decode --offline --test analysis_source_mapping_integration --test npa_document_context_contract --test npa_document_context_hostile_contract --test npa_link_pipeline_integration --test cleaned_projection_verify",
+    "cargo test -p ln-decode --offline --test analysis_source_mapping_contract --test analysis_source_mapping_hostile",
+    "cargo fmt --all --check",
+    "cargo clippy --workspace --all-targets --offline -- -D warnings",
+    "cargo check --workspace --offline"
+  ]
+}

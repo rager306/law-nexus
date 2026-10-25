@@ -1,6 +1,6 @@
 use ln_temporal::document_context::{AnalysisOverlay, BlockId, Frame, SourceBlock, TextSpan};
 use ln_temporal::semantic_scope::{
-    extract_semantic_claims, ClaimError, SemanticClaim, SemanticClaimKind,
+    ClaimError, SemanticClaim, SemanticClaimKind, extract_semantic_claims,
 };
 use std::collections::BTreeMap;
 
@@ -61,29 +61,39 @@ fn extractor_keeps_negative_polarity_and_source_anchors() {
     let result = extract_semantic_claims(&block, &overlay_for(block.id()), &refs, 32);
 
     assert!(!result.was_limited());
-    assert!(result
-        .claims()
-        .iter()
-        .any(|claim| claim.kind() == SemanticClaimKind::Polarity
-            && &block.text()[claim.span().start()..claim.span().end()] == "не вправе"));
-    assert!(result
-        .claims()
-        .iter()
-        .any(|claim| claim.kind() == SemanticClaimKind::Condition));
-    assert!(result
-        .claims()
-        .iter()
-        .any(|claim| claim.kind() == SemanticClaimKind::Exception));
-    assert!(result
-        .claims()
-        .iter()
-        .any(|claim| claim.kind() == SemanticClaimKind::TemporalQualifier));
-    assert!(result
-        .claims()
-        .iter()
-        .all(|claim| !claim.evidence().is_empty()
-            && claim.block() == block.id()
-            && claim.span().end() <= block.text().len()));
+    assert!(
+        result
+            .claims()
+            .iter()
+            .any(|claim| claim.kind() == SemanticClaimKind::Polarity
+                && &block.text()[claim.span().start()..claim.span().end()] == "не вправе")
+    );
+    assert!(
+        result
+            .claims()
+            .iter()
+            .any(|claim| claim.kind() == SemanticClaimKind::Condition)
+    );
+    assert!(
+        result
+            .claims()
+            .iter()
+            .any(|claim| claim.kind() == SemanticClaimKind::Exception)
+    );
+    assert!(
+        result
+            .claims()
+            .iter()
+            .any(|claim| claim.kind() == SemanticClaimKind::TemporalQualifier)
+    );
+    assert!(
+        result
+            .claims()
+            .iter()
+            .all(|claim| !claim.evidence().is_empty()
+                && claim.block() == block.id()
+                && claim.span().end() <= block.text().len())
+    );
 }
 
 #[test]
@@ -100,10 +110,12 @@ fn limit_is_typed_and_preserves_admitted_claims() {
     let limit = result.limit().unwrap();
     assert_eq!(limit.limit, 2);
     assert!(limit.attempted > limit.limit);
-    assert!(result
-        .claims()
-        .iter()
-        .all(|claim| !claim.evidence().is_empty()));
+    assert!(
+        result
+            .claims()
+            .iter()
+            .all(|claim| !claim.evidence().is_empty())
+    );
 }
 
 #[test]
@@ -117,8 +129,10 @@ fn extraction_is_deterministic() {
     let first = extract_semantic_claims(&block, &overlay, &[], 20);
     let second = extract_semantic_claims(&block, &overlay, &[], 20);
     assert_eq!(first, second);
-    assert!(first
-        .claims()
-        .windows(2)
-        .all(|claims| claims[0] <= claims[1]));
+    assert!(
+        first
+            .claims()
+            .windows(2)
+            .all(|claims| claims[0] <= claims[1])
+    );
 }

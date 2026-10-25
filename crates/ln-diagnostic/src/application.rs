@@ -1,5 +1,5 @@
 use crate::domain::{
-    DiagnosticEntry, DiagnosticOutcome, DiagnosticResult, DIAGNOSTIC_POLICY_VERSION,
+    DIAGNOSTIC_POLICY_VERSION, DiagnosticEntry, DiagnosticOutcome, DiagnosticResult,
 };
 use crate::ports::DiagnosticSinkPort;
 

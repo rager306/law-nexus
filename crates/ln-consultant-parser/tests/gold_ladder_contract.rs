@@ -6,6 +6,36 @@ fn repo_path(relative: &str) -> std::path::PathBuf {
         .join("../..")
         .join(relative)
 }
+
+/// The gitignored 44-FZ corpus is absent on CI and on any cold clone, so a
+/// corpus-dependent test must skip visibly instead of asserting against a
+/// missing input. Path resolution stays with the binaries' own resolver
+/// ([`ln_decode::npa_sweep::default_sweep_root`]).
+///
+/// The skip line goes to file descriptor 2 rather than through `eprintln!`:
+/// libtest captures the print macros of a *passing* test, so a plain
+/// `cargo test` would show nothing and the skip would read as a silent pass.
+fn require_corpus(test_name: &str) -> Option<std::path::PathBuf> {
+    let root = ln_decode::npa_sweep::default_sweep_root();
+    if root.is_dir() {
+        return Some(root);
+    }
+    // A runnable cold clone may skip; a job that CLAIMS corpus integration must
+    // not. LAW_NEXUS_REQUIRE_CORPUS=1 makes the absence a hard failure, so
+    // "corpus absent" can never be reported as "corpus green".
+    if ln_decode::npa_sweep::require_corpus_from_env() {
+        panic!(
+            "corpus is REQUIRED (LAW_NEXUS_REQUIRE_CORPUS=1) but {test_name} cannot find \"{}\"",
+            root.display()
+        );
+    }
+    use std::io::Write;
+    let _ = writeln!(
+        std::io::stderr(),
+        "SKIP(corpus-absent): {test_name} needs consru_export/consru_export/exports"
+    );
+    None
+}
 fn manifest(n: usize) -> corpus_manifest::CorpusManifest {
     corpus_manifest::load(&repo_path(&format!(
         "prd/migration/rust-evidence/m204-s02-c5-gold-manifest-{n}.json"
@@ -31,16 +61,18 @@ fn ladder_is_nested_provider_stratified_and_proposed() {
         assert_eq!(r.lifecycle, "[proposed]");
         assert!(!r.sealed);
         assert!(r.manifest_digest.is_none());
-        assert!(r
-            .entries
-            .iter()
-            .all(|e| matches!(e.admission, Admission::BoundedReviewed)));
+        assert!(
+            r.entries
+                .iter()
+                .all(|e| matches!(e.admission, Admission::BoundedReviewed))
+        );
         assert!(r.entries.iter().any(|e| e.provider == "consultant"));
         assert!(r.entries.iter().any(|e| e.provider == "garant"));
-        assert!(r
-            .entries
-            .iter()
-            .all(|e| !e.evidence_anchor.contains("raw") && !e.evidence_anchor.contains("text")));
+        assert!(
+            r.entries
+                .iter()
+                .all(|e| !e.evidence_anchor.contains("raw") && !e.evidence_anchor.contains("text"))
+        );
     }
     let keys = |r: &corpus_manifest::CorpusManifest| {
         r.entries
@@ -108,14 +140,18 @@ fn durable_receipts_have_three_rungs_and_fail_closed_pins() {
         assert!(line.contains("\"alpha\":null"));
     }
     assert!(!coding.contains("raw_text_value"));
-    assert!(coding
-        .lines()
-        .all(|line| line.contains("\"raw_text\":false")));
+    assert!(
+        coding
+            .lines()
+            .all(|line| line.contains("\"raw_text\":false"))
+    );
 }
 
 #[test]
 fn ladder_cli_check_detects_staleness() {
-    let root = repo_path("consru_export/consru_export/exports");
+    let Some(root) = require_corpus("ladder_cli_check_detects_staleness") else {
+        return;
+    };
     let garant = repo_path("law-source/garant");
     let out = repo_path("prd/migration/rust-evidence");
     let status = std::process::Command::new(env!("CARGO_BIN_EXE_npa-gold-ladder"))

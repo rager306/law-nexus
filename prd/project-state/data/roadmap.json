@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-09-23T16:05:00Z",
+  "generated_at": "2026-10-24T07:05:00Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -537,18 +537,90 @@
       "theme": "Registry corpus evidence and temporal coverage (named R035 gate quantifiers, candidate-backed registry, amendment provenance, corpus battery and independent acceptance)",
       "status": "complete",
       "boundary": "Replaced inventory counters with per-gate named quantifiers: seven R035 gates (GATE-G001..GATE-G007) with an explicit conflicted GATE-G015 and a separate punkt decision (`admission: not-adopted`, `owner_admission_ref: none`, zero punkt rows). S02 declared the 1901 denominator from one named tracked source and keyed candidate identity by the pair (catalog_token, number) rather than bare key_path, so the canonical registry regenerates byte-identical at 6d7952b716b60d3b with 166 admission rows (102 candidate-backed, 64 legacy, punkt 0). S03 built amendment provenance over act families: 120 amends edges (40 resolved / 80 named reason codes), 122 commencement slots and 118 editions with a chain digest matching the T01 pin. S04 carried the corpus-budgeted battery (36 mandatory checks, failed 0) and an acceptance ledger that promotes nothing (gates_promoted 0, legs_promoted 0, proof_packages_attached 0, requirement_records_mutated 0, authoritative false, debt_total 11, empty_debt_rows 0). Validated pass on the owner's authenticated human legal acceptance recorded at sha256:e52399a1, which closes the planned UAT class whose own plan text was 'Human legal acceptance for named gates and chain scope; HOLD if absent'. R035 and R070 remain active without promotion by design. M208-wrz6fg remains parked with a recorded reason in .gsd (deferred, deliberately not claimed complete); R038 carries a self-disclosed record-sync omission, and the S04 delegated-to-t02 carrier weakness plus six owner decisions stay visible debt. No parser, temporal, registry or ontology readiness claim."
+    },
+    {
+      "range": "M210-M210",
+      "theme": "Bounded normative-semantics adoption and pageindex skeleton (L1) with adoption/execution separation and RC28 hold",
+      "status": "complete",
+      "boundary": "Contract-level evidence only: adoption is not execution, activation stays applied=false, RC28 stays HOLD without human dispositions. No runtime, candidate emission, requirement promotion or legal correctness."
+    },
+    {
+      "range": "M211-M211",
+      "theme": "Source-anchored Rust NPA context assembly with proven boundaries (canonical anchors, strict typed parity, executable linked document, non-averaged differential report)",
+      "status": "complete",
+      "boundary": "Four terminal slices form one Rust pipeline: S01 canonical anchor producer with source-local half-open UTF-8 byte spans and FAIL-CLOSED fixtures; S02 strict typed parity 112/112; S03 executable linked pipeline; S04 TypeNotInherited/HeadFamilyCarry. The runner returns exit 0 with run_status=complete classification_rows=78 detection=112/112 refusal_documents=40, two runs byte-identical, and honesty keys authoritative=false/is_gold=false/not_human=true/not_s03_metrics=true preserved. Frozen surfaces were untouched (npa-lawref, typed and anchor parity fixtures, both prd/architecture YAML pins) and the M207/M208 human gates were not declared passed. Supporting-only per D614: R064/R070/R071/R077 are covered as bounded evidence for M211 and none was promoted; no requirement status changed."
+    },
+    {
+      "range": "M212-M212",
+      "theme": "Accepted source_package substrate and verifiable serde-free reader projection (closed vocabularies, sha256 seal and reseal, independent tamper detection, frozen diverse fixtures)",
+      "status": "complete",
+      "boundary": "S01 accepted the existing XML to JSONL to verify substrate through pinned portable acceptance evidence plus an independent XML oracle (control harness, not product code); S02 fixed the first bounded reader-view contract with closed vocabularies and a coordinate base; S03 built the serde-free reader projection with a canonical JSON writer, sha256 content seal/reseal and a separate reader_verifier that recomputes expected structure from the substrate and ignores the content seal, so a re-sealed semantic tamper is still caught; S04 froze twelve audited synthetic diverse fixtures with root-relative SHA256SUMS and a provenance/license/non-transfer manifest (D635: real consru_export rows are not transferred). The evidence ceiling is the reader_wordml_profile/v1 provider profile plus fixtures; R1000 stays active and Consultant != Garant; no requirement status changed."
+    },
+    {
+      "range": "M213-M213",
+      "theme": "R1000 closure remainder: cleaned structural JSONL projection with export, read-back, navigation and Hold/TextOnly",
+      "status": "complete",
+      "boundary": "Four slices over the frozen substrate deliver the serde-free cleaned structural JSONL projection: S01 tracked contract prd/architecture/cleaned-projection-contract.md plus the LF-JSONL envelope law-nexus/cleaned-projection/v1 with a canonical completion classifier; S02 typed read-back, named exporter and independent verification; S03 serde-free navigation index with bounded footnote resolution and a fail-closed CyclicViewGraph; S04 Hold/TextOnly semantics through a closed producer-declared classifier (Complete iff SupportedWordml and WholeProjection) with no decoded-text loss. Verification on revision sha256:d30d5399 records 34 contract, 3 integration (plus 1 ignored in the out-of-band declared-slice sweep), 11 operational and 1076 full-regression tests with 0 failed. Metrics are integrity, not coverage (D600/D601); one fixture exceeds the 512 MiB serialized-package cap and is recorded as a closed PackageTooLarge outcome rather than a silent skip. R1000 stays active (milestone closure is not requirement closure) with the D638 owner-record follow-up tracked separately; frozen surfaces untouched and no requirement promoted."
+    },
+    {
+      "range": "M214-M214",
+      "theme": "Integrated Rust NPA analysis path: source-bound mapping, document-scoped analysis JSONL, contextual family with independent verification, and bounded corpus acceptance with fail-closed artifact publication",
+      "status": "complete",
+      "boundary": "Four slices build one executable Rust path from XML to document-scoped NPA/context JSONL: S01 fixes the source-to-analysis mapping contract (pinned source identity, half-open UTF-8 coordinates, distinct token views, closed MappingRefusalKind) with an integration battery on approved fixtures and one bounded real 435-FZ; S02 materialises document-level typed/linked/classified records with resolved or closed-refused source refs plus an LF-JSONL envelope with non-cyclic seals and validate-before-write limits; S03 adds an opt-in context family over unchanged index/overlay/worklist with read-back of all seven families and an independent verifier that re-derives records from the pinned parent and catches a resealed substitution of source refs, relations, fragment hashes or context status, while an empty context stays byte-identical to S02; S04 runs a pinned provider/work-family stratified sample (N=400, seed=20308) through export/read/verify: verdict=pass, 400/400 verified_ok, structural_failures=0, refusals=0, tamper 12/12, limit_events_total=0, within budget, with a structural-only semantic section (promotion=false, semantic_reference_status=absent, coverage_claim=null). Remediation round 0 returned needs-attention solely on SC4/Operational because the S04 binaries lacked an output-path safety contract; round 1 closed it in code with a shared fail-closed publication module (create_new, refusal of a symlinked parent and of a symlinked or non-regular target, --force only as atomic replacement, refusal of --out aliasing --sample and of colliding outputs) covered by eight negative cases, and the milestone was re-validated pass at revision sha256:ddb108a1. R1000 stays active/unclosed (corpus-wide acceptance and display-cleaning remain open), R038/R063 keep their own owners, no requirement was promoted, M208-wrz6fg stays parked and M215-M220 do not start."
+    },
+    {
+      "range": "M221-M221",
+      "theme": "Rust NPA-analysis foundation hardening and honest semantic acceptance (pinned parent identity, closed refusals, three separated verdicts)",
+      "status": "complete",
+      "boundary": "Five slices deliver the R1001 surface on top of the frozen R1000 substrate and close the M221 validation loop: S01 hostile red-green rejects four resealed identity substitutions through a closed manifest_identity_mismatch with a positive control; S02 rejects boundary-crossing spans through a closed derived_separator (never Bound); S03 shows empty_context_is_byte_identical_to_s02 plus a bounded ThisDocumentReferenceOutcome; S04 publishes the tracked m221-s04-acceptance.json receipt carrying three independent verdicts (transport_integrity=pass / analysis_completion=incomplete / semantic_acceptance=not_attempted) plus a ProviderCoverageSection; S05 adds drift-guards. Validation round 2 returned verdict=pass with 3/3 reviewers. Bounded product evidence only: no Python parity, no JSON-LD migration, no R1000 closure and no requirement promotion."
+    },
+    {
+      "range": "M222-M222",
+      "theme": "Strict XML/JSONL contract and NPA model connectivity across the cleaned and analysis surfaces",
+      "status": "complete",
+      "boundary": "Four slices harden the closed-contract admission of the cleaned and analysis JSONL surfaces against Review-29 findings R29-F01..F07. S01 adds seal-independent admission of closed contract fields and strict JSON grammar in cleaned_wire::inspect_cleaned_wire (MAX_JSON_DEPTH=64, closed WireErrorKind::ContractFieldInvalid). S02 makes the analysis verifier mode-aware (six admitted only under a fail-closed context_stream_is_trivially_empty re-derivation of the pinned parent) and adds real-pipeline coordinate proofs. S03 enforces exactly-once text attribution in the writer for every completion, not only Complete, and adds the closed additive policies.display_scope=source_content_retained_no_suppression key. S04 enforces the declared max_line_bytes/max_records limits at read time and lands the cross-surface consumer admission battery plus the R29-F01..F07 disposition. Validation round 2 returned verdict=pass with 3/3 reviewers at source revision sha256:719b6ce3. Bounded evidence only: R1000 stays active/unclosed and owned by M213 (M222 supporting-only), R1001 stays frozen, no promotion, no corpus-wide acceptance and no display-cleaning claim."
+    },
+    {
+      "range": "M216-M216",
+      "theme": "Доказательная цепочка retrieval над очищенной проекцией (M216)",
+      "status": "complete",
+      "boundary": "Bounded retrieval evidence over the cleaned projection; not corpus semantic acceptance."
+    },
+    {
+      "range": "M223-M223",
+      "theme": "Сохранённый XML→JSONL источник, потребители (navigation/tokenizer/graph projection) и полный корпусный прогон",
+      "status": "complete",
+      "boundary": "Full pinned corpus run: 43783 accepted + 2 documented pinned-threshold residuals = 43785 terminal_with_documentation, 0 refused; integrity/accounting evidence, not semantic acceptance; R1000 stays active."
+    },
+    {
+      "range": "M224-M224",
+      "theme": "URI-якорь, corpus pageindex и темпоральность нормативного акта над JSONL",
+      "status": "complete",
+      "boundary": "Bounded corpus layers over the m223 cleaned source: byte-exact Consultant URI anchors with an identity-envelope wire and full-corpus consumer ledger, read-only PageIndexCatalogPort (SQLite), closed bank-to-normativity document groups, ladder-bound hierarchy-lift census, the full 118-edition 44-FZ edition timeline (drift=0, single documented non-monotonic 0036->0037 residual) with per-edition AST presence and text CTV, and the S07 FRBR bridge as a compatibility projection only: one Work (44-FZ) and 118 dated Expressions joined by byte-exact URI anchor and relative_path. Non-claims held: ELI URNs stay a compatibility layer, cc: ComponentConcept canon untouched, no JSON-LD G1 layer, no corpus-wide Work mapping (36872 single-edition source_ids out of scope), registry_expression_id_divergence=46 published, R1000 stays active (M213-owned), R035 stays bounded below promotion. Re-verified 2026-10-14: frbr-bridge --check ok, edition-timeline driver --check ok (drift=0)."
     }
   ],
+  "sanctioned_execution_chain": {
+    "declared_by": "D687",
+    "rationale": "The remediation milestones M221 (seq 221) and M222 (seq 222) were completed while the owner-declared delivery chain M215 to M220 was still parked, so the numeric frontier (latest completed seq) sits above the next deliverable. D687 fixes the execution order as M222 closeout, then M215, M216, M217, M218, M219, M220, with M208 as a separate parked closeout. This explicit, auditable declaration widens the monotone next-wave rule for exactly this ordered chain: a single active milestone below the numeric frontier is sanctioned while it is the next unconsumed member listed here.",
+    "order": [
+      "M215-w9jsgn",
+      "M216-8dps6e",
+      "M217-kbike0",
+      "M218-xnkwf0",
+      "M219-2erzz3",
+      "M220-djlrxl"
+    ]
+  },
   "current_milestone": {
-    "id": "M209-2yg6ix",
-    "status": "complete",
-    "title": "Корпусные доказательства реестра и temporal coverage",
-    "goal": "Named per-gate quantifiers for the R035 gates plus a candidate-backed registry whose identity is keyed by the pair (catalog_token, number), amendment provenance over act families, and a corpus-budgeted battery closed by independent acceptance. R035 and R070 stay active without promotion; the acceptance ledger promotes nothing and keeps debt_total 11 and empty_debt_rows 0 visible. M208-wrz6fg stays parked and R038 keeps a disclosed record-sync gap. No parser, temporal, registry or ontology readiness."
+    "id": "M225-qrwdfv",
+    "status": "active",
+    "title": "Reference knowledge layer in Rust: ADR-0031 port with byte parity to the Python reference",
+    "goal": "Порт исполненного Python-эталона (ADR-0031, D778) в ln-consultant-parser с критерием byte-parity против закоммиченных артефактов m217-reference-*: Rust-порт воспроизводит все четыре артефакта байт-в-байт на корпусе 44-ФЗ (118 редакций) и на расширенном fixture-корпусе, и обе реализации соблюдают контракт exit-кодов D6. В GSD у M225 запланировано 0 задач (S01-S03). Не утверждает R1000/R035/R070, не промоутит ADR-0030/0031."
   },
   "recommended_next": {
-    "title": "Execute M203 S01 Review disposition and control baseline",
-    "why": "Establish the authority map, machine-readable layered FSM, corpus/metric/ledger schemas and governor enforcement before adding new parser semantics.",
-    "constraint": "Do not promote Review 27, full-corpus diagnostics, fixture hierarchy evidence or one-edition provenance into product readiness; refine every sketch before execution."
+    "title": "Планирование задач M225/S01-S03 в GSD (либо authorized waiver для out-of-band кода)",
+    "why": "Rust-порт эталонного слоя уже проходит byte-parity и fail-closed контракт exit-кодов, но в GSD у M225 ноль задач: ROADMAP предусматривает закрытие слайсов через Attempts при /gsd auto. Из 226 вех 220 завершены, 5 припаркованы (M208-wrz6fg, M217-kbike0, M218-xnkwf0, M219-2erzz3, M220-djlrxl), одна ожидает: M225-qrwdfv.",
+    "constraint": "Не запускать горизонт автоматически. Unpark припаркованных вех требует перепроверки их входных доказательств; S02 (pageindex-лестница) не имеет ни кода модуля, ни артефакта."
   },
   "downstream_blocked": [
     {
@@ -791,6 +863,20 @@
       "id": "roadmap-sync-20260905-m203-active",
       "lifecycle": "proposed",
       "text": "GSD sync: M200-8s4kwq, M201-w8ljqx and M202-9qf3ta completed with bounded/diagnostic ceilings preserved; M203-cx1j7t is active with S01/S02 concrete and S03-S09 sketch-gated. Review Case RC-2026-09-05-001 is registered authoritative:false against Review 27. R035 and R070 remain active. Projection synchronization is not parser readiness or lifecycle promotion."
-    }
+    },
+    {
+      "id": "roadmap-sync-20261004-m213-complete-m214-horizon",
+      "lifecycle": "proposed",
+      "text": "GSD sync (2026-10-04): M211-hkknug, M212-c25p2o and M213-t6p7d0 are complete with validation pass records, so completed_milestone_groups gains M211-M211, M212-M212 and M213-M213 and current_milestone moves M210 -> M213. recommended_next moves off the stale M203 pointer onto the active next wave M214-es3jvw, and the long-horizon queue is recorded as M214..M220 (temporal typing, embedding supply chain, retrieval evidence chain, graph-vector materialization, typed KnowQL plus generated-Cypher safety, access-control boundaries, ODT evidence boundaries). R1000 stays active; M208-wrz6fg stays parked and is deliberately absent from the completed groups."
+    },
+    {
+      "id": "roadmap-sync-20261005-m214-complete-horizon-held",
+      "lifecycle": "proposed",
+      "text": "GSD sync (2026-10-05): M214-es3jvw completed 2026-10-05T02:03:44Z and was validated pass at remediation round 1 (revision sha256:ddb108a1b4e3ed54d56048f60c982ddfe1df10ba3cfd725c8c4094586fc3cc8f), so completed_milestone_groups gains M214-M214 and current_milestone moves M213 -> M214. recommended_next no longer names an execution step: with M214 closed the engine reports active=0, pending=0 and seven parked milestones, and it explicitly refuses to start one without an operator unpark. Honest residuals recorded: R1000 active/unclosed (corpus-wide acceptance and display-cleaning still open), R038/R063/R064/R071 active with their own owners, semantic adjudication deliberately absent (structural-only), no corpus-wide acceptance claim, M208-wrz6fg still parked, and a pre-existing unrelated ln-consultant-parser test failure in amendment_provenance recorded as open repository debt rather than an M214 regression."
+    },
+    "ADR-0031 reference layer (2026-10-16): the Rust port (crates/ln-consultant-parser/src/reference_layer.rs + bin reference_layer) reproduces all four committed artifacts byte for byte on the 118-edition 44-ФЗ corpus (`--check` exit 0) and on a labelled synthetic fixture corpus; reference_layer_parity.rs is the oracle battery.",
+    "ADR-0031 corpus scope measured 2026-10-16: of 36 989 catalog editions / 36 458 documents only 401 documents have more than one edition row, and exactly one (44-ФЗ, 118 editions) carries `edition_number` plus distinguishable revision days. The other 400 pair export snapshots whose names both say `rev-unknown` and whose catalog dates are equal — no honest edition order and no in-force day, so the digest timeline is a per-act contract exercised by one act, not a corpus-wide layer.",
+    "ADR-0031 input contract (2026-10-16): both implementations now return exit 3 for unreadable inputs (empty corpus incl. the loose-file exports/npa layout, missing dir, missing or non-sqlite catalog, 0-byte edition, malformed/unclosed XML, undeclared entity, WordML 2006, non-numeric edition name, duplicate edition numbers). The Rust port previously panicked on five of these and the Python reference tracebacked (exit 1). The scanner is defined over the WordML 2003 namespace; other namespaces are refused rather than silently re-parsed.",
+    "ADR-0031 schema (2026-10-16): timeline.counts.editions was pinned to `const: 118`, which made the Draft-2020-12 subset validate only the 44-ФЗ artifact set; it is now `minimum: 1` so the schema is corpus-agnostic."
   ]
 }

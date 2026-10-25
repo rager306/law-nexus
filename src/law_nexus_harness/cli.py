@@ -72,6 +72,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     governor.add_argument("--only", help="Run one check group (for example: adr or semantic).")
     governor.add_argument("--check", help="Run one exact check ID.")
+    governor.add_argument(
+        "--jobs",
+        type=int,
+        default=1,
+        help=(
+            "Run checks across N threads sharing one read-only context "
+            "(default: 1, sequential). Threads pay off only on a free-threaded "
+            "interpreter; on a GIL build jobs>1 falls back to sequential."
+        ),
+    )
     governor.add_argument("--explain", help="Explain one check contract without running it.")
     governor.add_argument(
         "--list-checks",
@@ -348,7 +358,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "governor":
         try:
             if args.list_checks:
-                if args.only or args.check or args.explain or args.fail_on_warn:
+                if args.only or args.check or args.explain or args.fail_on_warn or args.jobs != 1:
                     raise GovernorSelectionError(
                         "conflicting-selectors",
                         "--list-checks cannot be combined with execution or explanation selectors",
@@ -373,7 +383,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 )
                 return 0
             if args.explain:
-                if args.only or args.check or args.fail_on_warn:
+                if args.only or args.check or args.fail_on_warn or args.jobs != 1:
                     raise GovernorSelectionError(
                         "conflicting-selectors",
                         "--explain cannot be combined with execution selectors",
@@ -389,7 +399,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     + "\n"
                 )
                 return 0
-            report = run_governor(args.root, only=args.only, check=args.check)
+            report = run_governor(args.root, only=args.only, check=args.check, jobs=args.jobs)
         except GovernorSelectionError as error:
             sys.stdout.write(
                 json.dumps(

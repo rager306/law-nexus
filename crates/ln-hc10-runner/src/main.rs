@@ -5,7 +5,7 @@ use ln_work::adapters::{FixedDomainEvidence, HostileMutatingEvidence};
 use ln_work::application::TransitionWorkState;
 use ln_work::domain::{
     CheckpointId, DomainSnapshotId, LegalMappingAttempt, PublicationSnapshotId, TransitionOutcome,
-    TransitionRequest, WorkEvent, WorkState, WorkUnitId, WORK_POLICY_VERSION,
+    TransitionRequest, WORK_POLICY_VERSION, WorkEvent, WorkState, WorkUnitId,
 };
 
 struct ScenarioResult {

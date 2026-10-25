@@ -8,7 +8,7 @@ use ln_decode::{
         SourceFormatId,
     },
 };
-use zip::{write::SimpleFileOptions, CompressionMethod, ZipWriter};
+use zip::{CompressionMethod, ZipWriter, write::SimpleFileOptions};
 
 const OFFICE_NS: &str = "urn:oasis:names:tc:opendocument:xmlns:office:1.0";
 const TEXT_NS: &str = "urn:oasis:names:tc:opendocument:xmlns:text:1.0";

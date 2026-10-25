@@ -1,0 +1,66 @@
+{
+  "design_document": {
+    "path": "prd/architecture/intermediate-source-reading-order-contract.md",
+    "sections": [
+      "Reading order versus record order",
+      "Composite coordinates",
+      "S03 reconciliation",
+      "<!-- frozen-contract-inventory:begin -->",
+      "<!-- frozen-contract-inventory:end -->"
+    ],
+    "sha256": "0c0b7a6d739b9f976dd666370649e1739418b284c0a514ac726dc0d2ec850602"
+  },
+  "frozen_contracts": {
+    "all_match": true,
+    "contracts": [
+      {
+        "actual_sha256": "2ddfe7da95e3adc0c341965f709001e2cdd67ccca3b22b7970ee06ad1dc0d9f6",
+        "match": true,
+        "path": "prd/architecture/source-jsonl-contract.md",
+        "pinned_sha256": "2ddfe7da95e3adc0c341965f709001e2cdd67ccca3b22b7970ee06ad1dc0d9f6"
+      },
+      {
+        "actual_sha256": "80a846fffedace7d78ef0b80faf14085eb05037a4aa7baca92de415f1b7d1b7d",
+        "match": true,
+        "path": "prd/architecture/reader-view-contract.md",
+        "pinned_sha256": "80a846fffedace7d78ef0b80faf14085eb05037a4aa7baca92de415f1b7d1b7d"
+      },
+      {
+        "actual_sha256": "95d0f127f8b1cf72dc2dcaec97271c408ca0543cb8487f7839af57553c6eec3e",
+        "match": true,
+        "path": "prd/architecture/reader-projection-contract.md",
+        "pinned_sha256": "95d0f127f8b1cf72dc2dcaec97271c408ca0543cb8487f7839af57553c6eec3e"
+      },
+      {
+        "actual_sha256": "7d167e434c4640b539406ddd5de39286d30b1e2efeb43bfdaa603b76b0313c4e",
+        "match": true,
+        "path": "prd/architecture/cleaned-projection-contract.md",
+        "pinned_sha256": "7d167e434c4640b539406ddd5de39286d30b1e2efeb43bfdaa603b76b0313c4e"
+      },
+      {
+        "actual_sha256": "a3f51100679613a7f76c84a7282b50a5e31dc43abc4f652e221fd745136f00cb",
+        "match": true,
+        "path": "prd/architecture/npa-analysis-jsonl-contract.md",
+        "pinned_sha256": "a3f51100679613a7f76c84a7282b50a5e31dc43abc4f652e221fd745136f00cb"
+      }
+    ]
+  },
+  "non_claims": [
+    "Reading order and composite coordinates are bounded coordinate surfaces; R1000 stays active/unclosed.",
+    "Reconciling with the S03 baseline is an integrity/counts claim, not a semantic, authenticity or legal-completeness claim.",
+    "This battery reads tracked repository files only; it re-parses no XML and opens no corpus.",
+    "The evidence artifact carries only paths, counters and hashes; no raw decoded text."
+  ],
+  "s03_baseline": {
+    "path": "prd/migration/rust-evidence/m223-s03-baseline-run.json",
+    "sha256": "9a71eb0649f784a84bc87d072921c32576e782de165e4247b850ee4174fc2935"
+  },
+  "s03_baseline_reconciled": {
+    "accepted": 43785,
+    "entries": 43785,
+    "incomplete": 0,
+    "r1000_status": "active/unclosed",
+    "refused": 0
+  },
+  "schema": "m223-s04-reading-order-battery/v1"
+}

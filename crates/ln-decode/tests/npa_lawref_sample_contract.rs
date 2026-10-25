@@ -894,7 +894,7 @@ fn token_kind_enum_body(lexer_src: &str) -> &str {
 use ln_decode::{
     adapters::ConsultantWordMlBlockDecoder,
     domain::{DecodeRequest, FamilyFormat, PayloadRef},
-    lexer::{lex, TokenKind},
+    lexer::{TokenKind, lex},
     ports::BlockDecoderPort,
 };
 
@@ -1140,7 +1140,9 @@ fn harvest_npa_lawref_gold_sample() {
                 taken += 1;
             }
         }
-        eprintln!("cluster ({family}, {doc_type}): quota {quota}, filled {taken} (stride {stride}, capped {limit})");
+        eprintln!(
+            "cluster ({family}, {doc_type}): quota {quota}, filled {taken} (stride {stride}, capped {limit})"
+        );
         assert!(
             taken >= quota,
             "D367 stratum ({family}, {doc_type}) underfilled: {taken} < {quota} — STOP per plan, escalate, do not silently shrink quotas"
@@ -1338,9 +1340,11 @@ fn rule_seed_quoted_enum_and_fullword_are_token_honest() {
     );
     assert!(spans[0].slots.marker_chain.is_empty());
     assert_eq!(spans[0].slots.hier_nums, ["15"]);
-    assert!(!lex("статьи 15")
-        .iter()
-        .any(|token| token.kind == TokenKind::Abbrev));
+    assert!(
+        !lex("статьи 15")
+            .iter()
+            .any(|token| token.kind == TokenKind::Abbrev)
+    );
 }
 
 #[test]

@@ -1,6 +1,6 @@
 use ln_conformance::adapters::{HostileVerdictInflator, InMemoryConformanceOracle};
 use ln_conformance::application::EvaluateConformance;
-use ln_conformance::domain::{CaseVerdict, CONFORMANCE_POLICY_VERSION};
+use ln_conformance::domain::{CONFORMANCE_POLICY_VERSION, CaseVerdict};
 
 #[test]
 fn all_pass_yields_overall_pass() {

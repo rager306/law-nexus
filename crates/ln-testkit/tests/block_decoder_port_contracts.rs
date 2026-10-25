@@ -1,9 +1,9 @@
 use std::io::{Cursor, Write};
 
-use ln_decode::adapters::garant_odt::GarantOdtBlockDecoder;
 use ln_decode::adapters::ConsultantWordMlBlockDecoder;
+use ln_decode::adapters::garant_odt::GarantOdtBlockDecoder;
 use ln_testkit::assert_block_decoder_port_contract;
-use zip::{write::SimpleFileOptions, CompressionMethod, ZipWriter};
+use zip::{CompressionMethod, ZipWriter, write::SimpleFileOptions};
 
 const OFFICE_NS: &str = "urn:oasis:names:tc:opendocument:xmlns:office:1.0";
 const TEXT_NS: &str = "urn:oasis:names:tc:opendocument:xmlns:text:1.0";

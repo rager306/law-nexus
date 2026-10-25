@@ -2,8 +2,8 @@ use ln_temporal::{
     adapters::InMemoryClockEvidence,
     application::ResolveFiveClockState,
     domain::{
-        ClockKind, RequestId, ResolutionOutcome, ResolutionRequest, SubstituteKind,
-        D118_POLICY_VERSION,
+        ClockKind, D118_POLICY_VERSION, RequestId, ResolutionOutcome, ResolutionRequest,
+        SubstituteKind,
     },
 };
 
@@ -51,16 +51,20 @@ fn each_missing_governing_clock_rejects_all_substitutions() {
             "all attempted substitutes must be rejected for {}",
             governing.as_str()
         );
-        assert!(result
-            .trace
-            .rejected_substitutes
-            .iter()
-            .any(|s| s == "wall_clock"));
-        assert!(result
-            .trace
-            .rejected_substitutes
-            .iter()
-            .any(|s| s == "edition_order"));
+        assert!(
+            result
+                .trace
+                .rejected_substitutes
+                .iter()
+                .any(|s| s == "wall_clock")
+        );
+        assert!(
+            result
+                .trace
+                .rejected_substitutes
+                .iter()
+                .any(|s| s == "edition_order")
+        );
     }
 }
 

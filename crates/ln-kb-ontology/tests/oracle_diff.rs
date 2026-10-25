@@ -2,7 +2,7 @@
 //! drift = missing (expected but not in AST) + phantom (in AST but not expected).
 
 use ln_kb_ontology::domain::{
-    admit_membership_proposals, commit_admitted_to_log, oracle_diff, MembershipProposal,
+    MembershipProposal, admit_membership_proposals, commit_admitted_to_log, oracle_diff,
 };
 use ln_temporal::domain::{AmendingActId, ComponentConceptId, VersionedMembershipLog};
 

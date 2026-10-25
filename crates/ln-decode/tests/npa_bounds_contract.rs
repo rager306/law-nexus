@@ -26,13 +26,13 @@ use ln_decode::domain::{DecodeRequest, FamilyFormat};
 use ln_decode::lawref::capture_lawrefs;
 use ln_decode::lexer::{self, TokenKind};
 use ln_decode::npa_bounds::{
+    ALIAS_SURFACE_WORD, BoundsAcc, BoundsCli, BoundsRunMeta, DEFERRED_PROXY_SUBMETRICS, MetricStat,
+    PATTERN_LABELS, SpanRelation, TOP_K_SCAFFOLD_CAP, UNAVAILABLE_METRICS,
     block_opens_list_surface, block_opens_with_date_docno, count_date_docno_pairs,
     count_word_surfaces, normalized_pattern_label, run_bounds_scan, span_relation,
-    tracked_profile_hash, validate_bounds_jsonl, BoundsAcc, BoundsCli, BoundsRunMeta, MetricStat,
-    SpanRelation, ALIAS_SURFACE_WORD, DEFERRED_PROXY_SUBMETRICS, PATTERN_LABELS,
-    TOP_K_SCAFFOLD_CAP, UNAVAILABLE_METRICS,
+    tracked_profile_hash, validate_bounds_jsonl,
 };
-use ln_decode::npa_sweep::{payload_ref_for_path, walk_and_observe, EXIT_OK, EXIT_ROOT_MISSING};
+use ln_decode::npa_sweep::{EXIT_OK, EXIT_ROOT_MISSING, payload_ref_for_path, walk_and_observe};
 use ln_decode::ports::BlockDecoderPort;
 
 const ABSENT: &str = "/npa-bounds-t03-absent-root";

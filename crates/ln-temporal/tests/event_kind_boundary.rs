@@ -2,8 +2,8 @@
 //! (RC11-F07 / TSG-002 / ADR-0017 non-claims).
 
 use ln_temporal::domain::{
-    classify_legislative_event_kind, reject_text_change_as_normative_effect, LegislativeEventKind,
-    LegislativeEventKindClass,
+    LegislativeEventKind, LegislativeEventKindClass, classify_legislative_event_kind,
+    reject_text_change_as_normative_effect,
 };
 
 #[test]

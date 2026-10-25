@@ -30,7 +30,7 @@ use std::path::PathBuf;
 use ln_decode::{
     adapters::ConsultantWordMlBlockDecoder,
     domain::{DecodeRequest, FamilyFormat, HierarchyLevel, ParsedBlock, PayloadRef},
-    hierarchy::{extract_hierarchy_candidates, HierarchyCandidate, HierarchyExtractDiagnostic},
+    hierarchy::{HierarchyCandidate, HierarchyExtractDiagnostic, extract_hierarchy_candidates},
     ports::BlockDecoderPort,
 };
 
@@ -201,11 +201,7 @@ fn edition_path() -> Option<PathBuf> {
         .join(dir)
         .join("consru_export/exports/npa/law_2013-04-05_44-fz")
         .join("edition-0118_rev-2025-12-28_from-2026-07-01_6d1ba238.xml");
-    if p.exists() {
-        Some(p)
-    } else {
-        None
-    }
+    if p.exists() { Some(p) } else { None }
 }
 
 #[test]

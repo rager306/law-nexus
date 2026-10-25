@@ -21,7 +21,7 @@ mod npa_support;
 
 use std::fs;
 
-use npa_support::{repo_root, Json};
+use npa_support::{Json, repo_root};
 
 const CLOSEOUT_REL: &str = "prd/migration/rust-evidence/m200-s04-contract-reconciliation.json";
 const SCAN_REL: &str = "prd/migration/rust-evidence/m200-s02-npa-bounds-scan.jsonl";

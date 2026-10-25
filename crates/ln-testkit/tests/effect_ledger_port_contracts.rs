@@ -13,8 +13,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use ln_replay::adapters::{
-    EffectLedgerError, HostileDuplicateEffectLedger, InMemoryEffectLedger, JsonlEffectLedger,
-    EFFECT_LEDGER_PATH_ENV,
+    EFFECT_LEDGER_PATH_ENV, EffectLedgerError, HostileDuplicateEffectLedger, InMemoryEffectLedger,
+    JsonlEffectLedger,
 };
 use ln_replay::domain::{CheckpointDigest, EffectId, OperationId};
 use ln_replay::ports::EffectLedgerPort;
@@ -118,12 +118,16 @@ fn durable_append_survives_process_reopen() {
     {
         let mut ledger = JsonlEffectLedger::open(temp.path()).expect("open fresh ledger");
         assert_eq!(ledger.applied_count(), 0);
-        assert!(ledger
-            .try_apply_checked(&op1, &ef1, &d1)
-            .expect("first append"));
-        assert!(ledger
-            .try_apply_checked(&op2, &ef2, &d2)
-            .expect("second append"));
+        assert!(
+            ledger
+                .try_apply_checked(&op1, &ef1, &d1)
+                .expect("first append")
+        );
+        assert!(
+            ledger
+                .try_apply_checked(&op2, &ef2, &d2)
+                .expect("second append")
+        );
         assert_eq!(ledger.applied_count(), 2);
     } // drop simulates process exit
 
@@ -147,9 +151,11 @@ fn durable_append_survives_process_reopen() {
     );
 
     // Fresh identity still applies and is persisted for the next process.
-    assert!(reopened
-        .try_apply_checked(&op3, &ef3, &d3)
-        .expect("third append"));
+    assert!(
+        reopened
+            .try_apply_checked(&op3, &ef3, &d3)
+            .expect("third append")
+    );
     assert_eq!(reopened.applied_count(), 3);
     drop(reopened);
 
@@ -157,38 +163,132 @@ fn durable_append_survives_process_reopen() {
     assert_eq!(final_ledger.applied_count(), 3);
 }
 
+// Subprocess probe protocol. The probe entry point is `#[ignore]`d so it is
+// never part of a normal suite; `ledger_env_fail_closed` re-execs the test
+// binary with these variables set and a filter selecting only the probe.
+//
+// Rust 2024 no longer treats in-process environment mutation as safe because
+// it can race other threads. Here the parent process environment is never
+// mutated: every case runs in an isolated child process whose environment is
+// set through `Command::env` / `Command::env_remove`, so parallel tests cannot
+// observe a torn `EFFECT_LEDGER_PATH`.
+const ENV_PROBE_CASE: &str = "LN_EFFECT_LEDGER_ENV_PROBE_CASE";
+const ENV_PROBE_EXPECTED_PATH: &str = "LN_EFFECT_LEDGER_ENV_PROBE_EXPECTED_PATH";
+
+/// Isolated-environment entry point driven by [`ledger_env_fail_closed`].
+///
+/// Prints `PROBE_RESULT=...` (and `PROBE_PATH=...` for the valid case) so the
+/// parent can assert the classification, then panics on any contract violation
+/// so the parent sees a non-zero exit status.
+#[test]
+#[ignore = "subprocess helper for ledger_env_fail_closed; run through that test"]
+fn env_probe_subprocess_entry() {
+    let Ok(case) = std::env::var(ENV_PROBE_CASE) else {
+        // Not a driven probe (e.g. `cargo test -- --ignored`): stay inert.
+        return;
+    };
+    match case.as_str() {
+        "unset" | "empty" | "whitespace" => {
+            // Unset, empty, and whitespace-only are all fail-closed with no
+            // default ledger path.
+            assert!(
+                matches!(
+                    JsonlEffectLedger::from_env(),
+                    Err(EffectLedgerError::LedgerPathUnset)
+                ),
+                "probe case {case}: from_env must fail closed with LedgerPathUnset"
+            );
+            println!("PROBE_RESULT=LedgerPathUnset");
+        }
+        "valid" => {
+            let expected = std::env::var_os(ENV_PROBE_EXPECTED_PATH)
+                .expect("valid probe requires the expected path variable");
+            let opened = JsonlEffectLedger::from_env().expect("valid env path opens");
+            assert_eq!(opened.path(), Path::new(&expected));
+            println!("PROBE_RESULT=Ok");
+            println!("PROBE_PATH={}", opened.path().display());
+        }
+        other => panic!("unknown probe case: {other}"),
+    }
+}
+
+/// Re-exec the test binary in an isolated environment and run only
+/// [`env_probe_subprocess_entry`]. `path_value` is the `EFFECT_LEDGER_PATH`
+/// value to install (`None` removes the variable); `expected_path` is passed
+/// through only for the valid case.
+fn run_env_probe(
+    case: &str,
+    path_value: Option<&Path>,
+    expected_path: Option<&Path>,
+) -> std::process::Output {
+    let exe = std::env::current_exe().expect("current test executable");
+    let mut command = std::process::Command::new(exe);
+    command
+        .arg("env_probe_subprocess_entry")
+        .arg("--exact")
+        .arg("--ignored")
+        // `--nocapture` is required: libtest otherwise swallows the probe's
+        // stdout and the parent cannot read the classification line.
+        .arg("--nocapture")
+        .env(ENV_PROBE_CASE, case)
+        .env_remove(EFFECT_LEDGER_PATH_ENV)
+        .env_remove(ENV_PROBE_EXPECTED_PATH);
+    if let Some(value) = path_value {
+        command.env(EFFECT_LEDGER_PATH_ENV, value);
+    }
+    if let Some(expected) = expected_path {
+        command.env(ENV_PROBE_EXPECTED_PATH, expected);
+    }
+    command.output().expect("spawn isolated env probe")
+}
+
 #[test]
 fn ledger_env_fail_closed() {
-    // One test function owns the env var so parallel tests never race it.
-    std::env::remove_var(EFFECT_LEDGER_PATH_ENV);
+    // Every case is probed in an isolated subprocess; the parent process
+    // environment is never touched, so this test cannot race parallel tests.
+    let probe = |case: &str, path_value: Option<&Path>, expected: Option<&Path>| {
+        let output = run_env_probe(case, path_value, expected);
+        assert!(
+            output.status.success(),
+            "probe case {case} exited {:?}: {}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8_lossy(&output.stdout).into_owned()
+    };
 
     // Unset: fail closed, no default path.
-    assert!(matches!(
-        JsonlEffectLedger::from_env(),
-        Err(EffectLedgerError::LedgerPathUnset)
-    ));
+    let unset = probe("unset", None, None);
+    assert!(
+        unset.contains("PROBE_RESULT=LedgerPathUnset"),
+        "unset probe output: {unset}"
+    );
 
     // Empty is treated exactly as unset.
-    std::env::set_var(EFFECT_LEDGER_PATH_ENV, "");
-    assert!(matches!(
-        JsonlEffectLedger::from_env(),
-        Err(EffectLedgerError::LedgerPathUnset)
-    ));
+    let empty = probe("empty", Some(Path::new("")), None);
+    assert!(
+        empty.contains("PROBE_RESULT=LedgerPathUnset"),
+        "empty probe output: {empty}"
+    );
 
     // Whitespace-only is treated exactly as unset.
-    std::env::set_var(EFFECT_LEDGER_PATH_ENV, "   ");
-    assert!(matches!(
-        JsonlEffectLedger::from_env(),
-        Err(EffectLedgerError::LedgerPathUnset)
-    ));
+    let whitespace = probe("whitespace", Some(Path::new("   ")), None);
+    assert!(
+        whitespace.contains("PROBE_RESULT=LedgerPathUnset"),
+        "whitespace probe output: {whitespace}"
+    );
 
     // A real path opens (creating the empty ledger file).
     let temp = TempLedgerFile::new("env-valid");
-    std::env::set_var(EFFECT_LEDGER_PATH_ENV, temp.path());
-    let opened = JsonlEffectLedger::from_env().expect("valid env path opens");
-    assert_eq!(opened.path(), temp.path());
-
-    std::env::remove_var(EFFECT_LEDGER_PATH_ENV);
+    let valid = probe("valid", Some(temp.path()), Some(temp.path()));
+    assert!(
+        valid.contains("PROBE_RESULT=Ok"),
+        "valid probe output: {valid}"
+    );
+    assert!(
+        valid.contains(&format!("PROBE_PATH={}", temp.path().display())),
+        "valid probe must report the resolved path, got: {valid}"
+    );
 }
 
 #[test]

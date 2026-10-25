@@ -1,8 +1,8 @@
 //! Catalog port tests: Result lookup, coverage, InMemory shared contract.
 
 use ln_consultant_parser::catalog::{
-    contract, coverage_summary, resolve_consids, CatalogError, CatalogPort, CatalogRecord,
-    InMemoryCatalog,
+    CatalogError, CatalogPort, CatalogRecord, InMemoryCatalog, contract, coverage_summary,
+    resolve_consids,
 };
 
 #[test]
@@ -25,10 +25,11 @@ fn in_memory_catalog_lookup() {
 #[test]
 fn unknown_consid_returns_none() {
     let cat = InMemoryCatalog::new();
-    assert!(cat
-        .lookup("unknown")
-        .expect("genuine miss is Ok(None)")
-        .is_none());
+    assert!(
+        cat.lookup("unknown")
+            .expect("genuine miss is Ok(None)")
+            .is_none()
+    );
 }
 
 #[test]

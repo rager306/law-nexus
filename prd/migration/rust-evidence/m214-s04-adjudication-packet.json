@@ -1,0 +1,3219 @@
+{
+  "schema": "law-nexus/npa-analysis-adjudication-packet/v1",
+  "schema_version": 1,
+  "lifecycle": "[bounded]",
+  "milestone": "M214-es3jvw",
+  "slice": "S04",
+  "count_only": true,
+  "ascii_only": true,
+  "sample_manifest_sha256": "sha256:1123396e3071aeb2908d36e31bca2f18e7f1874949094f936fefafc1df136cd0",
+  "promotion": false,
+  "semantic_reference_status": "absent",
+  "adjudication_status": "not_attempted",
+  "items": [
+    {
+      "entry_index": 0,
+      "relative_path": "fas/decision_2026-05-07_005-06-105-599-2026_rev-unknown_6c437ad4.xml",
+      "sha256": "sha256:1b292e89bef594242e7cdc80f06f2a2766834b29104f2ee96271e0670a43ddfb",
+      "document_type": "fas-unspecified",
+      "work_family": "decision",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 1,
+      "relative_path": "courts/rasvr/000242906-edition-a245c25832967e357d098525.xml",
+      "sha256": "sha256:d00b5e6c0d95c183e1acfa1d0179c490277f41b4a0960944b7ebeff3295de56d",
+      "document_type": "courts-unspecified",
+      "work_family": "rasvr/000242906",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 2,
+      "relative_path": "fas/prescription_2025-10-30_sp-105750-25_rev-unknown_836c4b67.xml",
+      "sha256": "sha256:9b86af438592bb6f1ea50adb47366780214a9992e42b6c9251ba40a27d103633",
+      "document_type": "fas-unspecified",
+      "work_family": "prescription",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 3,
+      "relative_path": "xml/law/434833/edition-5c84343570ea3501ad9e1e61.xml",
+      "sha256": "sha256:520dfbb0dacd9d6335d708dca6196f9b34288bbcf0a60170f59db13709eb012f",
+      "document_type": "xml-unspecified",
+      "work_family": "434833",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 4,
+      "relative_path": "courts/raps003/000102549-edition-8b09123eedd8787b34f1f9a3.xml",
+      "sha256": "sha256:6d4a06d2245632ea0ab07b7b9ae3ee966dc67cd694815679b0e2e0fcae589ce4",
+      "document_type": "courts-unspecified",
+      "work_family": "raps003/000102549",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 5,
+      "relative_path": "courts/raps005/000130121-edition-397b521a90a821ce4c3b0d11.xml",
+      "sha256": "sha256:3228b74b76d96416e45136ecbce6ebd1c68c357ad05040ebf4c409370edfb040",
+      "document_type": "courts-unspecified",
+      "work_family": "raps005/000130121",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 6,
+      "relative_path": "courts/ams/000581624-edition-a9d78b99751fb70eb1b8aecf.xml",
+      "sha256": "sha256:84da4136c9a7509990d29f4caac3f0408b6a53914e693fed7e3551a1d54c1fc8",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000581624",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 7,
+      "relative_path": "courts/apv/000245526-edition-cd518ac28bf110ecdf02355e.xml",
+      "sha256": "sha256:20675497648e9d1f1c37a36fd18f245f17a5c03c5440705e076dd2429a84cd84",
+      "document_type": "courts-unspecified",
+      "work_family": "apv/000245526",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 8,
+      "relative_path": "fas/fas_2026-06-11_28-06-105-2134-2026_rev-unknown_af554bf7.xml",
+      "sha256": "sha256:4dd2180a266a790b4177fa1faf53ede3c5cbf6b57a19bc3a86d040d894eafe09",
+      "document_type": "fas-unspecified",
+      "work_family": "fas",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 9,
+      "relative_path": "courts/marb/003059196-edition-c717e4fdce4a49ad26c2d244.xml",
+      "sha256": "sha256:2ef9d666b852c754f398756eeb9134381c91fb85516d171271c32e171b9d5ac8",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003059196",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 10,
+      "relative_path": "npa/law_2019-12-27_469-fz_rev-2021-12-30_adaf3867.xml",
+      "sha256": "sha256:a082d92318d46e850f696e023834678b168b3b20ca42d0bae071e3682f1f86fa",
+      "document_type": "law",
+      "work_family": "law_2019-12-27_469-fz",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 11,
+      "relative_path": "xml/law/342721/edition-bb45371045bafe35e0c09f09.xml",
+      "sha256": "sha256:019a890de2174fca5359d7c6b00b0d755171e197c3c66ad7d62a7bf82e16997f",
+      "document_type": "xml-unspecified",
+      "work_family": "342721",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 12,
+      "relative_path": "courts/raps015/000298590-edition-13e5b64a5958a8bf1f92bb9c.xml",
+      "sha256": "sha256:58d8a8f9d62a1a6f2489f064e5258012b59b21fe8eea0090052c0a210e28b67d",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000298590",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 13,
+      "relative_path": "courts/raps007/000240781-edition-0611f9595542f221229f0e34.xml",
+      "sha256": "sha256:076cdb8157183fc92dbf9d8774dd21eb96098e7056646b61c62c8b1983edce18",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000240781",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 14,
+      "relative_path": "courts/raps007/000237353-edition-df2d4c3f516ff27862d765ba.xml",
+      "sha256": "sha256:54260e06f0a7a854fa17f073dc8741a961aa49c9881076f520e23aca1f320d22",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000237353",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 15,
+      "relative_path": "xml/law/417339/edition-91a54daf5a957e362a0163f3.xml",
+      "sha256": "sha256:0641559e6f5a44d848027ab7b7a7f7af659465489cfed5f813f85301f8bb6c61",
+      "document_type": "xml-unspecified",
+      "work_family": "417339",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 16,
+      "relative_path": "fas/determination_2026-03-18_054-04-7-30-4-572-2026_rev-unknown_86f6cea7.xml",
+      "sha256": "sha256:040ebb7cbe314a98b5abe45107498231326175711648226951e476b309dcfaac",
+      "document_type": "fas-unspecified",
+      "work_family": "determination",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 17,
+      "relative_path": "courts/raps015/000296851-edition-80a36d8e3a0caced8ada5918.xml",
+      "sha256": "sha256:53830ff633e185ddda640c00deffbde0974605b5312f5b4c1df79c1f70452224",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000296851",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 18,
+      "relative_path": "xml/law/188485/edition-9112983a6cdd41c41e203b58.xml",
+      "sha256": "sha256:8c9a256fc41fed68dea26f53b143b894582398e6dfebede79cdf2c4b646591b2",
+      "document_type": "xml-unspecified",
+      "work_family": "188485",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 19,
+      "relative_path": "courts/raps007/000239543-edition-b895dc08d83dec732d32e831.xml",
+      "sha256": "sha256:63757f4627e42274e5e1c2bb6430cbb19ffbcabfc616a2dedf7ad2a2b109876e",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000239543",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 20,
+      "relative_path": "xml/law/350766/edition-588d9cbab2aff38f97f8e42c.xml",
+      "sha256": "sha256:09c71df959da55c857d470178c70ceea0e363d9ef011a5197f975d3da9b70507",
+      "document_type": "xml-unspecified",
+      "work_family": "350766",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 21,
+      "relative_path": "npa/law_2016-04-05_104-fz_rev-2024-12-28_a57709bc.xml",
+      "sha256": "sha256:6782085942457009d287b379cb53323230a80c9834345160e89ae30d8c525144",
+      "document_type": "law",
+      "work_family": "law_2016-04-05_104-fz",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 22,
+      "relative_path": "xml/law/217441/edition-6aed3599dea4984a36da92ec.xml",
+      "sha256": "sha256:b91f90ec80c9aa16bf13c9733e7cbc9c7df55b9f21a9cbd5b8401dae3903403a",
+      "document_type": "xml-unspecified",
+      "work_family": "217441",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 23,
+      "relative_path": "xml/law/512765/edition-812a538f38e2a8c83c0a135d.xml",
+      "sha256": "sha256:5b35148f44c3c04c752f54abe6a9847ad6cd42c236a9181baf9d9019a6177aa8",
+      "document_type": "xml-unspecified",
+      "work_family": "512765",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 24,
+      "relative_path": "courts/ask/000217937-edition-08f5ad1c3da117d0d9007f21.xml",
+      "sha256": "sha256:6599dca90383cef4949c16ebe10bcd62e36d424cf028792f17f02d9893f2f23a",
+      "document_type": "courts-unspecified",
+      "work_family": "ask/000217937",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 25,
+      "relative_path": "xml/law/221193/edition-583292bb9d5904627d93d4c7.xml",
+      "sha256": "sha256:8571177333ada33836cf509f7ee1efecf7517bb145cd08951bc2e716a7a460de",
+      "document_type": "xml-unspecified",
+      "work_family": "221193",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 26,
+      "relative_path": "courts/raps015/000296631-edition-f7a2ec516361859cc273cd11.xml",
+      "sha256": "sha256:124e5b80d88024f92527602bc5a5a085b21be4390c0250bc40786f128947e10f",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000296631",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 27,
+      "relative_path": "courts/raps016/000098001-edition-bd8b47e88c740b509077ec89.xml",
+      "sha256": "sha256:a4241d0586f7f23ea391953439faec3420c9f0b9c02684abb5ae029cc518ab1a",
+      "document_type": "courts-unspecified",
+      "work_family": "raps016/000098001",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 28,
+      "relative_path": "courts/asz/000321550-edition-206816acd12c397dcafca74d.xml",
+      "sha256": "sha256:caf1c504c259f228199281ab6354aeb89f59976e6c50a06b3d0d8b3204754966",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000321550",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 29,
+      "relative_path": "xml/law/314366/edition-152edfcd23de7bb1a73ff4f7.xml",
+      "sha256": "sha256:1ead2db172473d70d62d0320c8781c0ec0832aa9189f70512755c8068b9105e8",
+      "document_type": "xml-unspecified",
+      "work_family": "314366",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 30,
+      "relative_path": "xml/law/317364/edition-baa6ea2b4095652f96264875.xml",
+      "sha256": "sha256:50b5ad5ba880b8d9604ed839a24b35b30b931450e8725d3e2c76d4f556ee44b5",
+      "document_type": "xml-unspecified",
+      "work_family": "317364",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 31,
+      "relative_path": "npa/order_2024-05-16_79_rev-unknown_ea57280d.xml",
+      "sha256": "sha256:057c5c1dca20b393951cffc5dbf820da8e335807d69d546de2249e09220c4c64",
+      "document_type": "order",
+      "work_family": "order_2024-05-16_79",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 32,
+      "relative_path": "courts/raps015/000297717-edition-48afd65a6af9475dffca01f9.xml",
+      "sha256": "sha256:626506e0bb66ae887077fde7c60fe99bb7f681ddac0806517c5dc1d1f144793c",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000297717",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 33,
+      "relative_path": "xml/law/350906/edition-c7fed3a15c819cd09fc88b68.xml",
+      "sha256": "sha256:01ddc18003e2788d87e14c9a96d214b044e40d1e8e44f8c03abfe5c789fbb3ef",
+      "document_type": "xml-unspecified",
+      "work_family": "350906",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 34,
+      "relative_path": "courts/raps015/000300486-edition-517eb1313414d6e006659f49.xml",
+      "sha256": "sha256:5ffb8b7ed18152fc766b76d51048e3bea5b40ab5af8576329c483f5fc9c2cfcf",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000300486",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 35,
+      "relative_path": "fas/resolution_2026-04-29_016-04-7-30-4-549-2026_rev-unknown_6ea97ec5.xml",
+      "sha256": "sha256:f7c25c14df42e441dd7ef99a8f12c41dbdf54c2619cffc0451654ce966b62acf",
+      "document_type": "fas-unspecified",
+      "work_family": "resolution",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 36,
+      "relative_path": "xml/law/200954/edition-a40d83797ca3bc93f26f7a8e.xml",
+      "sha256": "sha256:e3257e4582e0d4dc625bde4e1ea4505aede7b5132f81ddab18a07f90ef9b4432",
+      "document_type": "xml-unspecified",
+      "work_family": "200954",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 37,
+      "relative_path": "courts/raps019/000157638-edition-ca3a085db80297e66b52de7e.xml",
+      "sha256": "sha256:fc0e7ea94b291f883847880974b575aa7800b11679f6d053ef4703b49fe38a2b",
+      "document_type": "courts-unspecified",
+      "work_family": "raps019/000157638",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 38,
+      "relative_path": "xml/law/320399/edition-0a96095f591be1e2da0e7701.xml",
+      "sha256": "sha256:98d5461d4efd918fa4d832e8d9745162cf8116e803778609d0bee19528d63266",
+      "document_type": "xml-unspecified",
+      "work_family": "320399",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 39,
+      "relative_path": "courts/raps013/000492688-edition-61fa84cf7e3469fb9f50f0aa.xml",
+      "sha256": "sha256:7c8eb3131c9f4a67261e650c8b6167f1b279dcf3691641362b0d34797fb2ea99",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000492688",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 40,
+      "relative_path": "courts/rasvr/000242144-edition-1ac37338e973284f1aae1223.xml",
+      "sha256": "sha256:4004c4081b4a77dad2401c4a64b4d85a8acc1caaf394802aadc7a794296598e4",
+      "document_type": "courts-unspecified",
+      "work_family": "rasvr/000242144",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 41,
+      "relative_path": "courts/ask/000219297-edition-2b5043b4ed90ab8f698ca594.xml",
+      "sha256": "sha256:657124820c7f700fd5e82a254f0e7bc3df5fabbb2af9a8f1344e54e863105bda",
+      "document_type": "courts-unspecified",
+      "work_family": "ask/000219297",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 42,
+      "relative_path": "xml/law/502902/edition-11498e60841647902b8e4c86.xml",
+      "sha256": "sha256:932afcaecc16ccb110ff512c41dac93deffdf4d5dae8ccff6dd2b5dc93c1cc6c",
+      "document_type": "xml-unspecified",
+      "work_family": "502902",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 43,
+      "relative_path": "xml/law/287038/edition-4b3bdf48d4d01278bfbdb878.xml",
+      "sha256": "sha256:010eaa69eb2826291f3154dae75021bbba271f3f13e6552a51f87df7ea76515a",
+      "document_type": "xml-unspecified",
+      "work_family": "287038",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 44,
+      "relative_path": "npa/order_2020-02-27_124_rev-2026-05-29_1aa48db5.xml",
+      "sha256": "sha256:7a7d09abdf822ad55dd135646094c7a678b8434b9d21dfd52ab4231d390a2e28",
+      "document_type": "order",
+      "work_family": "order_2020-02-27_124",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 45,
+      "relative_path": "courts/azs/000221515-edition-6e6c139b7e265cba940cf9fc.xml",
+      "sha256": "sha256:86062826e7e2893df4b58ca1f3a9ae41324084f28e6c89a785292199bd683ef3",
+      "document_type": "courts-unspecified",
+      "work_family": "azs/000221515",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 46,
+      "relative_path": "courts/marb/003132219-edition-ab00bbf54a2bd0ff1191cdc4.xml",
+      "sha256": "sha256:2f47577e2633acf0e12683b90e80b974817957d86a653f9f6d8dc61dcbf63a7b",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003132219",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 47,
+      "relative_path": "courts/raps007/000238220-edition-9f299bf1bb6d2cc7031e5305.xml",
+      "sha256": "sha256:b77e3bbc8b403ae6ee76982d442abc602380e788ac0e9b33228d800da31e90a1",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000238220",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 48,
+      "relative_path": "courts/raps001/000156493-edition-02b1ead8b182fecbcd102cdc.xml",
+      "sha256": "sha256:202ebdd902e6e906af0ae876c27e63b4cf9b329a9c61d6c483d0d9d96a832fe7",
+      "document_type": "courts-unspecified",
+      "work_family": "raps001/000156493",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 49,
+      "relative_path": "courts/raps013/000494926-edition-0630df57f1b6ea05c3f4f676.xml",
+      "sha256": "sha256:9ea564f2f088fd2c48835d8a0211e1b0b41632ab3b8c82f9642399894fb2bbc3",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000494926",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 50,
+      "relative_path": "courts/asz/000324094-edition-f670b09d71ec9269c702ddeb.xml",
+      "sha256": "sha256:9b7b0e4716ce9e073f9ec08e047e31372f6a1971a9b868f4dfe320c4aba51717",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000324094",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 51,
+      "relative_path": "courts/raps018/000236588-edition-3ab5bef0a5a0ae0f22fbf22a.xml",
+      "sha256": "sha256:6d09c1b18ee22cc6b20d69c75786df05644c097623683cee669ae20951745eac",
+      "document_type": "courts-unspecified",
+      "work_family": "raps018/000236588",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 52,
+      "relative_path": "courts/raps016/000096925-edition-7debbda3333092c1108a2631.xml",
+      "sha256": "sha256:52e853b86efe0454c4cb8c2ca177a22cc0db2e12e74e2be582dda40a4b9c339d",
+      "document_type": "courts-unspecified",
+      "work_family": "raps016/000096925",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 53,
+      "relative_path": "courts/raps005/000131789-edition-0441380dfa9e9bcd6f2134c1.xml",
+      "sha256": "sha256:20ca0bf291e9acbfe441688a3b0210afe1a7f7ce01f823e32b7c6b2029bf5339",
+      "document_type": "courts-unspecified",
+      "work_family": "raps005/000131789",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 54,
+      "relative_path": "xml/law/132325/edition-e6e3e34e0c6c3fe1947052d1.xml",
+      "sha256": "sha256:0f395bc6fef6b3dfcd0b5fb29416fef49746af04169a64e5ad0caf86f642141a",
+      "document_type": "xml-unspecified",
+      "work_family": "132325",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 55,
+      "relative_path": "xml/law/153471/edition-5e2df1f2202362c8d3ab7ed2.xml",
+      "sha256": "sha256:b4fe78d8e0037a62ecf427abe2a137c0864ec57c18970d336f9e13e2a3ada918",
+      "document_type": "xml-unspecified",
+      "work_family": "153471",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 56,
+      "relative_path": "courts/raps020/000114388-edition-a8d73a478c6c89f4f0ba71da.xml",
+      "sha256": "sha256:961abf7b769261ee716df8819f63d731f512d0ecc05a0c0e73e5f4fe53c952aa",
+      "document_type": "courts-unspecified",
+      "work_family": "raps020/000114388",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 57,
+      "relative_path": "xml/law/416028/edition-699447c9321fb7495b707ea9.xml",
+      "sha256": "sha256:5d9140f55902ac905036d8a577532a6cccc249e479b4b81586b4a4dd84e42e78",
+      "document_type": "xml-unspecified",
+      "work_family": "416028",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 58,
+      "relative_path": "courts/marb/003054035-edition-670d40b32c30e0e70f520c5f.xml",
+      "sha256": "sha256:edafc41eb3be7252fcec45ba9e88f8eedc525bc13bdcc7b993f8d02174ef12fa",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003054035",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 59,
+      "relative_path": "xml/law/468564/edition-2f3d9a00d27fdf931dae7c31.xml",
+      "sha256": "sha256:5e1898617bcac9d016f0ff8118b68bcd34093d49f94aa676312555e79f7df7cb",
+      "document_type": "xml-unspecified",
+      "work_family": "468564",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 60,
+      "relative_path": "courts/raps004/000127579-edition-eb396deafb6bfa6306c1ad6f.xml",
+      "sha256": "sha256:2ff19aebc31978018eaa64fd3d2863e6659dc74e61f0dfa98017c7079263c80c",
+      "document_type": "courts-unspecified",
+      "work_family": "raps004/000127579",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 61,
+      "relative_path": "npa/law_2016-06-23_221-fz_rev-2017-12-31_6d66539f.xml",
+      "sha256": "sha256:3f760ba65a47a0c7892879e399ec9d8e42294d31e5d3657380e3ead09ccf059d",
+      "document_type": "law",
+      "work_family": "law_2016-06-23_221-fz",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 62,
+      "relative_path": "xml/law/508810/edition-8772c56012de13975f88c59d.xml",
+      "sha256": "sha256:68a7e06ec3ce177fd8e29da35beb3661be0cc7d5672fe7eb2123ce6979b15767",
+      "document_type": "xml-unspecified",
+      "work_family": "508810",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 63,
+      "relative_path": "xml/law/200697/edition-9f3e8d7c4c230632ad8edb71.xml",
+      "sha256": "sha256:687dad0f2d07daeb89ae165a449d3a1dd1c17d37eabd8a4caf95da6eae14f255",
+      "document_type": "xml-unspecified",
+      "work_family": "200697",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 64,
+      "relative_path": "xml/law/97749/edition-43ab978c347f40d0faad53ee.xml",
+      "sha256": "sha256:f819f1ee77b9bbffdf03e7255f42543ba3d5f5fd664217f7b754c687c42950b2",
+      "document_type": "xml-unspecified",
+      "work_family": "97749",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 65,
+      "relative_path": "courts/acn/000166524-edition-dd7d465006734fe523e0df4a.xml",
+      "sha256": "sha256:006ab3d36148292244872e938684a4bfe3ed13d2f0de8b528ef32e525580a4f2",
+      "document_type": "courts-unspecified",
+      "work_family": "acn/000166524",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 66,
+      "relative_path": "xml/law/424040/edition-1400d28b8d948b17906863e5.xml",
+      "sha256": "sha256:735255c7af7435756d751e4b394100fa23ab8014712e80914c791e5d96812c62",
+      "document_type": "xml-unspecified",
+      "work_family": "424040",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 67,
+      "relative_path": "xml/law/123256/edition-2fdbedfaeb22309d28220ad2.xml",
+      "sha256": "sha256:1929dbec74da04a778aac13ddf1f9f60f537ea44d4c838ccee2212df52b33782",
+      "document_type": "xml-unspecified",
+      "work_family": "123256",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 68,
+      "relative_path": "courts/raps003/000102258-edition-0a118211b63f537af03e0057.xml",
+      "sha256": "sha256:77d3e8ce7d8d1d046a55292cc0cab139b4f5b36433ab7c3319639050f8961e8c",
+      "document_type": "courts-unspecified",
+      "work_family": "raps003/000102258",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 69,
+      "relative_path": "courts/ask/000220684-edition-fdc3a33a717b6c977eef7148.xml",
+      "sha256": "sha256:c53a2da93f5820aeb06b601e0651c0fec4c604dd17b346ea81ff687bf324a922",
+      "document_type": "courts-unspecified",
+      "work_family": "ask/000220684",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 70,
+      "relative_path": "npa/law_2020-12-30_494-fz_rev-unknown_f33382c7.xml",
+      "sha256": "sha256:d0eab58fa8db42f8bfc9bd0667bc73fe1efca8491cbcf32f18de553e06bd8244",
+      "document_type": "law",
+      "work_family": "law_2020-12-30_494-fz",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 71,
+      "relative_path": "courts/raps003/000102680-edition-2bdb65c2770c4d8c4eb29ba4.xml",
+      "sha256": "sha256:10ba54077e2d4802438485a3ed0044158ac7cd006e73f2944eba8f202cad37ab",
+      "document_type": "courts-unspecified",
+      "work_family": "raps003/000102680",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 72,
+      "relative_path": "xml/law/452300/edition-212649779eb0b5b998d5e10c.xml",
+      "sha256": "sha256:12303bf1e183ce9cc9d70c956938be5731ba32797ffd514cb6b2f5fe066e35df",
+      "document_type": "xml-unspecified",
+      "work_family": "452300",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 73,
+      "relative_path": "xml/law/121765/edition-95ec93c1b7bdedca22447950.xml",
+      "sha256": "sha256:d7324e76f1d6b3e683bf4b67f22085f01b01ca115335762572ed8c82766f35c8",
+      "document_type": "xml-unspecified",
+      "work_family": "121765",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 74,
+      "relative_path": "courts/avv/000132152-edition-ee93e166d552a999d2480b12.xml",
+      "sha256": "sha256:5219ee5f7aa42e6b2c50d1e4da65a7c6ca32a4e2a4aaa1d7cbc421bc146dee50",
+      "document_type": "courts-unspecified",
+      "work_family": "avv/000132152",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 75,
+      "relative_path": "xml/law/444269/edition-d32ad5329922b961ac98a197.xml",
+      "sha256": "sha256:b0ae54bbea4d8bddb6fda6eeab55c57676eaafeba1a906ebae6a7b0fe0642030",
+      "document_type": "xml-unspecified",
+      "work_family": "444269",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 76,
+      "relative_path": "courts/raps020/000113324-edition-e6284f0b0cc347095affb11d.xml",
+      "sha256": "sha256:7ded8979b2d4bc416133ed993b297baf71a4defccd6b6ed1afbec141f46b602e",
+      "document_type": "courts-unspecified",
+      "work_family": "raps020/000113324",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 77,
+      "relative_path": "xml/law/300837/edition-232be15a09a2f1fafbfd6f05.xml",
+      "sha256": "sha256:3565aca8c4b52143c1b6d486b8ed1a9253d5c476a4f364f45afc9563f108a5ab",
+      "document_type": "xml-unspecified",
+      "work_family": "300837",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 78,
+      "relative_path": "courts/raps003/000101726-edition-0cdc0d437a18e7abb074dfee.xml",
+      "sha256": "sha256:f629ff7bc9fce277cf601ca960a62b8e32302eac85fb5c1ac3dd34336b58b16d",
+      "document_type": "courts-unspecified",
+      "work_family": "raps003/000101726",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 79,
+      "relative_path": "xml/law/536899/edition-c02b218cf29f93b79c4d487d.xml",
+      "sha256": "sha256:d9ebd2c160b0c791c5bc3a3079450d6dc729ad44bdd673d4c4271286f1cc68ef",
+      "document_type": "xml-unspecified",
+      "work_family": "536899",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 80,
+      "relative_path": "courts/raps001/000155356-edition-e3b6b529b67c6252c6aa3916.xml",
+      "sha256": "sha256:0e2d15a304a7a7648515dc90c56b6af1344d01ca74d1e674d840227b61b41911",
+      "document_type": "courts-unspecified",
+      "work_family": "raps001/000155356",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 81,
+      "relative_path": "courts/raps007/000241079-edition-28b1741ee61befbf2cceb6f3.xml",
+      "sha256": "sha256:352adde44920f2e54dda5aae15d2691c0194fc43f4f89f0fac46dcc03085991b",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000241079",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 82,
+      "relative_path": "xml/law/375383/edition-178a030e8ef97bb656fb83c0.xml",
+      "sha256": "sha256:2e15c5e00687617109c293df4c129622e765ca4515c47d8e395428d709ecb217",
+      "document_type": "xml-unspecified",
+      "work_family": "375383",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 83,
+      "relative_path": "xml/law/407520/edition-3bf5c7054629647ba8cc0278.xml",
+      "sha256": "sha256:81201ae8915e963888a580b9bd3825ba3af4a042adcb703a992dd5c3ef4c2507",
+      "document_type": "xml-unspecified",
+      "work_family": "407520",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 84,
+      "relative_path": "xml/law/424037/edition-5650609fb3428c52be24ee67.xml",
+      "sha256": "sha256:9459ad25a93299551ee807beb3ea34d81a7ea47dc1c9404d2c21cb235ae94218",
+      "document_type": "xml-unspecified",
+      "work_family": "424037",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 85,
+      "relative_path": "xml/law/449852/edition-1aec6277428906ad8e3b93fd.xml",
+      "sha256": "sha256:d7fe09439ac9843d59588b0d7655ca3315251fa149e418bbfbb52fb7f7a5054d",
+      "document_type": "xml-unspecified",
+      "work_family": "449852",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 86,
+      "relative_path": "courts/raps017/000346741-edition-fce4e7680ac3cfe7b6dda888.xml",
+      "sha256": "sha256:9a1d3ad8178edc5653bcd77e8a55311e78cdc00df50ba6ca9a5cc6f5df7cc586",
+      "document_type": "courts-unspecified",
+      "work_family": "raps017/000346741",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 87,
+      "relative_path": "xml/law/338812/edition-0660f797b2081821cf2f1cc9.xml",
+      "sha256": "sha256:deaeacbb93ee83c94fe3ec4fd0d286628000f3e83c1dad3b5dd76a8b01e19b02",
+      "document_type": "xml-unspecified",
+      "work_family": "338812",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 88,
+      "relative_path": "courts/raps007/000237310-edition-a8874d9c8621cf168447dfdc.xml",
+      "sha256": "sha256:61588f294f2f3368f384df8e50a80f7c0931c94f79cd9af1274aff5185a2a80c",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000237310",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 89,
+      "relative_path": "courts/raps004/000127601-edition-215713d3fa090139b534c7e7.xml",
+      "sha256": "sha256:9ffd3923759e1ebcb6cf8df89c9b8158fa6e486187c91202d748ba62b784646d",
+      "document_type": "courts-unspecified",
+      "work_family": "raps004/000127601",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 90,
+      "relative_path": "xml/law/140098/edition-472865a8f88c3fe10bdaa07d.xml",
+      "sha256": "sha256:acefe832255613fe9a7e0e43c3164dca781a44f81401f400f25d156c915c90f5",
+      "document_type": "xml-unspecified",
+      "work_family": "140098",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 91,
+      "relative_path": "courts/raps001/000155478-edition-9644158cfc5ddc7f983386ab.xml",
+      "sha256": "sha256:02aace9ba6d08743d76e40c409390d1bc1aefcb83d014c5c13d7e22632b1d0d4",
+      "document_type": "courts-unspecified",
+      "work_family": "raps001/000155478",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 92,
+      "relative_path": "xml/law/221836/edition-abcd5c3377d59874aadd06a9.xml",
+      "sha256": "sha256:e26ff9e42c4f59cfb56958d0fabd70d0d22f4a7e82f174a781f2134586d5f0f9",
+      "document_type": "xml-unspecified",
+      "work_family": "221836",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 93,
+      "relative_path": "xml/law/334550/edition-76798a29e57340cbc1d2ed64.xml",
+      "sha256": "sha256:cbc38e4cec1e56f59de86bed1a78e2be757616dc28c5fca006a4e365e1401f40",
+      "document_type": "xml-unspecified",
+      "work_family": "334550",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 94,
+      "relative_path": "xml/law/482544/edition-05660d13c98decb29ecd8eb1.xml",
+      "sha256": "sha256:e9b6e711a33763478a3817730b846e8f0732cf38f58142ed18f5d5483430da4d",
+      "document_type": "xml-unspecified",
+      "work_family": "482544",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 95,
+      "relative_path": "courts/raps004/000128369-edition-f9c6a399713c6cafd767758b.xml",
+      "sha256": "sha256:e0150cc4f1457d177b2ca55af68cfcceb7883b6592b50b9eea00153b27787064",
+      "document_type": "courts-unspecified",
+      "work_family": "raps004/000128369",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 96,
+      "relative_path": "npa/law_2018-07-29_272-fz_rev-unknown_05e20fd7.xml",
+      "sha256": "sha256:5958ce37c7c731acf7792e7d02c4582d231da7de30ec3051adb549bcc60b564a",
+      "document_type": "law",
+      "work_family": "law_2018-07-29_272-fz",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 97,
+      "relative_path": "courts/asz/000325716-edition-cc96cc072ab9c2e9b0f0d310.xml",
+      "sha256": "sha256:f472ddc51ca02e055741c9c75fd84eddb6bf4e4bd5c730645f74628849fb7ff2",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000325716",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 98,
+      "relative_path": "courts/raps004/000127076-edition-7314859597e3e618742fc8ca.xml",
+      "sha256": "sha256:6a2e9fc3ce06f9023a5745e7f0a3ee475bfedfa82367ad82d80aa5eb96224a2f",
+      "document_type": "courts-unspecified",
+      "work_family": "raps004/000127076",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 99,
+      "relative_path": "xml/law/194605/edition-3f82928c4a9d371dfe098490.xml",
+      "sha256": "sha256:ca7e1f88e70ccb4ce316d28854a32c4e4bb9f47aa87e6e1f02c517d7c65b8057",
+      "document_type": "xml-unspecified",
+      "work_family": "194605",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 100,
+      "relative_path": "courts/raps018/000235115-edition-044fbf548b3e5a4e9f0816c7.xml",
+      "sha256": "sha256:638cf4a67f17c9492285034484142fb65a19abee648f618c32a5303126a6a167",
+      "document_type": "courts-unspecified",
+      "work_family": "raps018/000235115",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 101,
+      "relative_path": "courts/raps013/000497916-edition-6def9551f57f91d365608804.xml",
+      "sha256": "sha256:106fa1a1b6a17cabfd6d42f1bac905fc2f976eb7c02a7740875d06cd2cc9a334",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000497916",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 102,
+      "relative_path": "courts/marb/003132229-edition-733711bced3ca1ba6f749658.xml",
+      "sha256": "sha256:ece777b41526792b65b6e95c1971e33534dfd2b74265752b154477520a17ffcd",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003132229",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 103,
+      "relative_path": "courts/asz/000323374-edition-6786862c0046ff5b95515936.xml",
+      "sha256": "sha256:f8c8104f73f773c2f9ebfa507c11f6455322acbb38651252c4135d29bd582bf8",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000323374",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 104,
+      "relative_path": "npa/resolution_2015-03-17_238_rev-2025-05-22_e329fba8.xml",
+      "sha256": "sha256:9d495aa2c10638c15445b26d82040a7bf2b774fa8d85d989255fb06bf9d9ad07",
+      "document_type": "resolution",
+      "work_family": "resolution_2015-03-17_238",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 105,
+      "relative_path": "xml/law/333678/edition-d9ab79100c97e8e005ec4fe0.xml",
+      "sha256": "sha256:9526b72d055092a2cb4031c1d7bea3bdb54c8aef0b657d8760edb83e01e6cf2b",
+      "document_type": "xml-unspecified",
+      "work_family": "333678",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 106,
+      "relative_path": "courts/raps015/000299490-edition-0d6fec3faf085c7914a01024.xml",
+      "sha256": "sha256:187e041329667fd2a6379c58e2099184379d4cba158b6f0bbf577806fbc1a294",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000299490",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 107,
+      "relative_path": "courts/raps001/000156976-edition-0dd80c77b30828683b775937.xml",
+      "sha256": "sha256:1242233827d341bdfe7701520149472b45ead05d444cb6965adf09edf4737528",
+      "document_type": "courts-unspecified",
+      "work_family": "raps001/000156976",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 108,
+      "relative_path": "courts/asz/000320731-edition-c89e7323ec5020cbb7cf7ba7.xml",
+      "sha256": "sha256:0d5ae1673e12af3a0852e41678d3ebae9aae3da681ffcc719c66d7410f2b7c2f",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000320731",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 109,
+      "relative_path": "courts/raps020/000113828-edition-ccf96779a8dbcfbbca01e8f9.xml",
+      "sha256": "sha256:83ef385d81ae17ab610cee42b780bdba157d0ddad6ff983c2179a043657ba46e",
+      "document_type": "courts-unspecified",
+      "work_family": "raps020/000113828",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 110,
+      "relative_path": "courts/raps008/000187753-edition-4c68f38618a56952574dccb3.xml",
+      "sha256": "sha256:9159aba212e7a48f891e14a0783d010fbecbb68cb55905f13ced69c0c0af5650",
+      "document_type": "courts-unspecified",
+      "work_family": "raps008/000187753",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 111,
+      "relative_path": "courts/raps005/000131115-edition-8b5ad98be3043efd30ab8fc5.xml",
+      "sha256": "sha256:ffd83a4b4d424ffd72eac6e029ed90fd89ec771679ff26bd1acbc38944288826",
+      "document_type": "courts-unspecified",
+      "work_family": "raps005/000131115",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 112,
+      "relative_path": "xml/law/78659/edition-eb5a4bdf2c9098fd974a4c42.xml",
+      "sha256": "sha256:477e1a965d9e78cb914234787f304865bc3ebde45e2a13b6e60edaa928200d85",
+      "document_type": "xml-unspecified",
+      "work_family": "78659",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 113,
+      "relative_path": "courts/raps016/000097985-edition-9634fec7e6c34a3465339fbb.xml",
+      "sha256": "sha256:c82ab1b4220a0153f16d2a3c2a770ea2fd87cf7a37e1c233f5f37472c04031f9",
+      "document_type": "courts-unspecified",
+      "work_family": "raps016/000097985",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 114,
+      "relative_path": "xml/law/357899/edition-1bcab8492aa951085fdc857f.xml",
+      "sha256": "sha256:d775633f10239a7950af13aca4a3c6e8fb9c1d25c9aaebb367c8e0d3a55ef0de",
+      "document_type": "xml-unspecified",
+      "work_family": "357899",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 115,
+      "relative_path": "xml/law/389145/edition-47e6f0fd9718630a9c090dac.xml",
+      "sha256": "sha256:eb472181dfa33ed11467fca0edd8bdcfee34f5d66772317f6799dce50ab0bb77",
+      "document_type": "xml-unspecified",
+      "work_family": "389145",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 116,
+      "relative_path": "courts/aur/000278740-edition-3fd153bd9834abc96997bc2c.xml",
+      "sha256": "sha256:6e457818a00587d7be5aa742c3450f7bab7140e5f3f709efd5bd6bb18ee484b6",
+      "document_type": "courts-unspecified",
+      "work_family": "aur/000278740",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 117,
+      "relative_path": "courts/raps001/000155450-edition-3e267f45e14579e1fabc7d44.xml",
+      "sha256": "sha256:ee5b627f0097a13ba7bcb3c853b836e14e489bc965953080699cb546421dc7e7",
+      "document_type": "courts-unspecified",
+      "work_family": "raps001/000155450",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 118,
+      "relative_path": "xml/law/160064/edition-cf26de124cf6dc8114628ab0.xml",
+      "sha256": "sha256:19250a3b1dc0f1e81013ea978412c06e16a38934d6aded9f5861d1097010683d",
+      "document_type": "xml-unspecified",
+      "work_family": "160064",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 119,
+      "relative_path": "npa/order_2021-12-07_921_rev-unknown_401f4f63.xml",
+      "sha256": "sha256:1f7c50603108fec32b71fc2e2d02473295c76fac44f7313737d0d2b8a3874b79",
+      "document_type": "order",
+      "work_family": "order_2021-12-07_921",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 120,
+      "relative_path": "courts/raps007/000241829-edition-2cf818e8de21429d599c1d75.xml",
+      "sha256": "sha256:41907ac32c27629f95106396ac6e3a61e5b6f698332e9c3bc32e2931ba9f8644",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000241829",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 121,
+      "relative_path": "xml/law/534792/edition-2868a260187944b40e8153e0.xml",
+      "sha256": "sha256:3b5f9aac4682f9ea0ec5588dfa45983f09f74b0bdae933afcccd02b254e95830",
+      "document_type": "xml-unspecified",
+      "work_family": "534792",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 122,
+      "relative_path": "courts/raps013/000501058-edition-29634fbfb84b866cfac31136.xml",
+      "sha256": "sha256:4adca9d2afc7bfb29eaadf84fe78cbf1b00b51bfaaab2d3f123a600b217dc8be",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000501058",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 123,
+      "relative_path": "xml/law/168207/edition-2f2fbf220c0ec5e39cf1436f.xml",
+      "sha256": "sha256:2baa3a77b0fa12b1fbc202d970886b6676c8c17183d672ae2b56fecb11870e21",
+      "document_type": "xml-unspecified",
+      "work_family": "168207",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 124,
+      "relative_path": "courts/marb/003072763-edition-69a484e5674ed31c56189fc0.xml",
+      "sha256": "sha256:2fc08b04f1cc4c6286bfac6edbdfe61eda30117f66d5818c8548432baf796cdf",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003072763",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 125,
+      "relative_path": "courts/ams/000579066-edition-99cfd895243300624443e7bf.xml",
+      "sha256": "sha256:4f498f53ed17cf87e310c9b9879da1579f48589cf668b55de0dfd313b02c3fbb",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000579066",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 126,
+      "relative_path": "courts/raps001/000156850-edition-7e341847e4294c869508344b.xml",
+      "sha256": "sha256:9e095a8f9277c076d56bbdfd5920d9ceb0cfe1642d8e7ba7daf716ad4d3380f6",
+      "document_type": "courts-unspecified",
+      "work_family": "raps001/000156850",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 127,
+      "relative_path": "xml/law/415567/edition-3fbcbc135b61e488d93ef9f9.xml",
+      "sha256": "sha256:3c6305e10c808ae8a7f42e1ed4375c700bc7f84c2cc8a34faff72a274436b6c8",
+      "document_type": "xml-unspecified",
+      "work_family": "415567",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 128,
+      "relative_path": "xml/law/176156/edition-161c929d99c420a1b60067be.xml",
+      "sha256": "sha256:38cd605cbec4c04fc8e52d5c624f1ac031490bbe4298e9d09a85cb93799f388e",
+      "document_type": "xml-unspecified",
+      "work_family": "176156",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 129,
+      "relative_path": "courts/ams/000583152-edition-d4f462f5e9b744b07a3af296.xml",
+      "sha256": "sha256:af9901e1303657c1dfe7cdd4938792bede9bbf68d1120c8b21728945a847fea8",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000583152",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 130,
+      "relative_path": "courts/raps014/000153094-edition-330834278c72f43e2d1393e7.xml",
+      "sha256": "sha256:8552279c07319ee363b9d38e3d8ceb553014a50d0cbe265ffd37c1dca802ba24",
+      "document_type": "courts-unspecified",
+      "work_family": "raps014/000153094",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 131,
+      "relative_path": "xml/law/199985/edition-7ece9960542c142047fbcfee.xml",
+      "sha256": "sha256:c6ed91b6513f8688268d5f84de466fe97173dbc16a9d4005d924a292691452bc",
+      "document_type": "xml-unspecified",
+      "work_family": "199985",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 132,
+      "relative_path": "courts/azs/000221907-edition-72685e3eca3537a06470f350.xml",
+      "sha256": "sha256:7b4c2a5ca0a607d32899b839fbcf5657110072eaa8957aa526ce34cb7167dab3",
+      "document_type": "courts-unspecified",
+      "work_family": "azs/000221907",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 133,
+      "relative_path": "courts/raps005/000132033-edition-46f3cc24a03cb41c6c8ac934.xml",
+      "sha256": "sha256:9e1dfd596b07368aa05ce18a2481d086930df438f840690d292b94c9275a0a11",
+      "document_type": "courts-unspecified",
+      "work_family": "raps005/000132033",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 134,
+      "relative_path": "courts/raps014/000152146-edition-3cea44accd0fe8fdf214bb87.xml",
+      "sha256": "sha256:38549c352dc033a871810371aa4f161cb49317dde89efbeddfd5e2b70750f60a",
+      "document_type": "courts-unspecified",
+      "work_family": "raps014/000152146",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 135,
+      "relative_path": "courts/asz/000323629-edition-56699e21642d0e3914efc053.xml",
+      "sha256": "sha256:db1c97c215b16ed5c6393492b6c718c887e371003c68bbcae4dd52f51b737e24",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000323629",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 136,
+      "relative_path": "xml/law/221535/edition-21d0f4d098afab508a98e7c5.xml",
+      "sha256": "sha256:a5c9780685968b21cf693266b9e9661dc5a82bc2ef202e9540ff5849488ae5b9",
+      "document_type": "xml-unspecified",
+      "work_family": "221535",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 137,
+      "relative_path": "npa/law_2016-07-03_321-fz_rev-unknown_e8237842.xml",
+      "sha256": "sha256:f8e6f6b68a4ef509477d98ab8fd1d8f8d9327035a65877516d7e7353a5267968",
+      "document_type": "law",
+      "work_family": "law_2016-07-03_321-fz",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 138,
+      "relative_path": "xml/law/216069/edition-05a17a31c723a24ddcce77fc.xml",
+      "sha256": "sha256:91bef4445c47b7dec0420b1f88e38d689a6a54d6312915d9b581b822f7920127",
+      "document_type": "xml-unspecified",
+      "work_family": "216069",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 139,
+      "relative_path": "xml/law/324174/edition-70fd1e787b9d843e495ff81e.xml",
+      "sha256": "sha256:a54183dcff437f6665635ac75a8ea4ac2bb7fd11cd94657073a12645c9fb529e",
+      "document_type": "xml-unspecified",
+      "work_family": "324174",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 140,
+      "relative_path": "courts/marb/003123635-edition-c51a6785b8751cd11a792691.xml",
+      "sha256": "sha256:02e544a2352fa0ff5403de47f4644095a94cf5ed6c61c8120e5e4790e26b9612",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003123635",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 141,
+      "relative_path": "xml/law/441402/edition-26cff992861c848ed821aba5.xml",
+      "sha256": "sha256:89baa53e65e03f23973d0c87f9258a02c2df12c3db4da9b4294665d8b9a1b410",
+      "document_type": "xml-unspecified",
+      "work_family": "441402",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 142,
+      "relative_path": "courts/raps015/000295363-edition-27afb840a4591be15009e3de.xml",
+      "sha256": "sha256:e407ef9574dcaa8e7640fca5fd18234a02cebefb872d732b9f22d485ccc855eb",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000295363",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 143,
+      "relative_path": "xml/law/207339/edition-16d694ac918600310ba008d2.xml",
+      "sha256": "sha256:39ae6b0da635fc394038555ae1b03342af6eedd033cb13ccfd9459e7b282fe78",
+      "document_type": "xml-unspecified",
+      "work_family": "207339",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 144,
+      "relative_path": "xml/law/521515/edition-b308d0da1356b0b1ce874728.xml",
+      "sha256": "sha256:eb6488b346409a967d505f8ef23af4a088a6fde5c1c2c22340fde8d63302f546",
+      "document_type": "xml-unspecified",
+      "work_family": "521515",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 145,
+      "relative_path": "xml/law/325645/edition-8890fc30991e451dc64c4144.xml",
+      "sha256": "sha256:0a4248b2a1d25b71759c9feedc0f1be380d5c69c0eb3e8fb15d999f5081810c2",
+      "document_type": "xml-unspecified",
+      "work_family": "325645",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 146,
+      "relative_path": "courts/acn/000167548-edition-7f831693618322c3e0873cfa.xml",
+      "sha256": "sha256:c70e0a4119a8f2dfbb678d541b4df6e37dede93b24d3726292790065ce99f628",
+      "document_type": "courts-unspecified",
+      "work_family": "acn/000167548",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 147,
+      "relative_path": "xml/law/503958/edition-22e7e997bc10415697e24308.xml",
+      "sha256": "sha256:32960b07a64cfe590879dec479a9704de255f9f8a5f11f81cffa22ca03ee3ae7",
+      "document_type": "xml-unspecified",
+      "work_family": "503958",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 148,
+      "relative_path": "courts/acn/000168172-edition-21ba245b22639997d6a4f927.xml",
+      "sha256": "sha256:f0c178c160563e769def78188492e3017d081005f6db9363c408642825607085",
+      "document_type": "courts-unspecified",
+      "work_family": "acn/000168172",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 149,
+      "relative_path": "xml/law/88283/edition-8775bc4cb7f90adb1adb8a0a.xml",
+      "sha256": "sha256:d7b9df54129ad352b923fcf3619675ccced8939f26c7a26f400d6622ba700c01",
+      "document_type": "xml-unspecified",
+      "work_family": "88283",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 150,
+      "relative_path": "xml/law/221325/edition-5a73a2736bc17b67a99ecd27.xml",
+      "sha256": "sha256:0d80ce3742a678d9d84f1ca39371e85251372ede8533276e954fe38f2c2e793a",
+      "document_type": "xml-unspecified",
+      "work_family": "221325",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 151,
+      "relative_path": "xml/law/419622/edition-55d706ba21ab6b6e166aed58.xml",
+      "sha256": "sha256:8801c53f5f52f625da9bc8ffbd885f2f4b76d3ae46bdaceec27f5ef3c857499b",
+      "document_type": "xml-unspecified",
+      "work_family": "419622",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 152,
+      "relative_path": "xml/law/53048/edition-4878f5b5a63fdb5731679553.xml",
+      "sha256": "sha256:2bf4ca831ce0aad31a714137d96fe4cf59ac70872d02b46f49585f413bdb2eb5",
+      "document_type": "xml-unspecified",
+      "work_family": "53048",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 153,
+      "relative_path": "courts/raps019/000159802-edition-0944fdadfa2b5f8ccef89048.xml",
+      "sha256": "sha256:c5650aad9d0c0b82d58eace7daf7897daa320c1ccf49fe8f0bb5fe35b0c39d70",
+      "document_type": "courts-unspecified",
+      "work_family": "raps019/000159802",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 154,
+      "relative_path": "courts/raps001/000155680-edition-4718ce78087ebe885202f14b.xml",
+      "sha256": "sha256:7955477767a4e6ce04bf07261b58f40ce236ed283d61a830599ba5444674b0b2",
+      "document_type": "courts-unspecified",
+      "work_family": "raps001/000155680",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 155,
+      "relative_path": "courts/raps017/000348962-edition-0c5373f046401d639a6ffce6.xml",
+      "sha256": "sha256:1ab7a597b22ea85181cad4dfaf8a139b31ff94cbb3324cff9fcb66fbd58a5709",
+      "document_type": "courts-unspecified",
+      "work_family": "raps017/000348962",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 156,
+      "relative_path": "xml/law/451682/edition-2b3213fe032406b904629b40.xml",
+      "sha256": "sha256:f3892132ff43a87c6bf63affac3e439279876a682443226750f8837ea37a5243",
+      "document_type": "xml-unspecified",
+      "work_family": "451682",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 157,
+      "relative_path": "courts/raps013/000492993-edition-19c508b3e8604b0ce83b53bc.xml",
+      "sha256": "sha256:69e3aca0a2fd88df45ceee8e97c13566c913fac838f6e0760e2ed62de98454a1",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000492993",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 158,
+      "relative_path": "courts/sip/000154663-edition-f6e83e4ae8bf297a6a143e15.xml",
+      "sha256": "sha256:cb671971412ef707bc6298725d8fa3436d9a79adea6c9e93ef1b3f2ac74ac5dd",
+      "document_type": "courts-unspecified",
+      "work_family": "sip/000154663",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 159,
+      "relative_path": "courts/raps007/000239687-edition-1b66015b6f8be4d3a8d59dbb.xml",
+      "sha256": "sha256:a16995377191a3e8c43dc71a1d0c0944cea797a960d6e84bed97916b02587435",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000239687",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 160,
+      "relative_path": "courts/raps003/000102300-edition-5508f748852ef395ff2c3caf.xml",
+      "sha256": "sha256:e862d10a54ec34c691e704e507f2b4e4b0efc9643552d5713c9d6ad5ff11e33f",
+      "document_type": "courts-unspecified",
+      "work_family": "raps003/000102300",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 161,
+      "relative_path": "xml/law/209540/edition-58fa335d77192f1f31570534.xml",
+      "sha256": "sha256:fd82a286bf455ace57b68a40cfa03316840e23fc9a9f6ddfb4a973a85e12e8f0",
+      "document_type": "xml-unspecified",
+      "work_family": "209540",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 162,
+      "relative_path": "courts/raps019/000157765-edition-6640102175209da186862b03.xml",
+      "sha256": "sha256:729c20a32ee34f147e4553e7a0a024b4892d3beba91495a397d3e97220f45dca",
+      "document_type": "courts-unspecified",
+      "work_family": "raps019/000157765",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 163,
+      "relative_path": "courts/asz/000321354-edition-e41e4b064d11a7b3a5a0a1f4.xml",
+      "sha256": "sha256:9843d569c8050218a9d496c07ef0bc18d095626d1b4ac97385b51f5763e2f5c1",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000321354",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 164,
+      "relative_path": "courts/raps016/000097691-edition-6af77774e52896515b5fe2b8.xml",
+      "sha256": "sha256:0c56d12482e35bd8531f9e7cd4f72ea620c84166d56340bc9ba36ecd223d7a1e",
+      "document_type": "courts-unspecified",
+      "work_family": "raps016/000097691",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 165,
+      "relative_path": "courts/raps018/000236232-edition-b6fcaa4d6bf644495afc19cd.xml",
+      "sha256": "sha256:b1a81593738ce938a4aad7bd292021ac633c05afa1bdbb62650ab50f02ded9d0",
+      "document_type": "courts-unspecified",
+      "work_family": "raps018/000236232",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 166,
+      "relative_path": "xml/law/194513/edition-b6da25970954f12af9cb16a0.xml",
+      "sha256": "sha256:282baa38873884a4584b0635af7d34cc1ec4bf9649b02ff24cc36f2cece283b3",
+      "document_type": "xml-unspecified",
+      "work_family": "194513",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 167,
+      "relative_path": "courts/raps005/000130822-edition-53eaeaee8a53a8472f364b94.xml",
+      "sha256": "sha256:9893310f9782803ba904a6d83d8179f9c2b1adc617499a10e3324344617545c5",
+      "document_type": "courts-unspecified",
+      "work_family": "raps005/000130822",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 168,
+      "relative_path": "xml/law/523966/edition-1c808dd8562ec3fdc1cb82a2.xml",
+      "sha256": "sha256:c5730380ca343dc17be69547f3c040fe4f00f08dacb27bd1476dd376c0b11e03",
+      "document_type": "xml-unspecified",
+      "work_family": "523966",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 169,
+      "relative_path": "courts/ams/000585790-edition-f641c2f24e9993b18c37b0b2.xml",
+      "sha256": "sha256:77501df96f1abf5b29165a269f1fa78af234764ba98f1a7397cb026fbf3b0709",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000585790",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 170,
+      "relative_path": "npa/law_2013-12-28_396-fz_rev-2025-03-20_5195aa84.xml",
+      "sha256": "sha256:a5c0d8ba883b4ce307a583cd85b59be939de591ba0bf935bdbaa32b2c42c6fbf",
+      "document_type": "law",
+      "work_family": "law_2013-12-28_396-fz",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 171,
+      "relative_path": "npa/resolution_2010-08-18_636_rev-2023-05-31_faf2f16f.xml",
+      "sha256": "sha256:717e893948e902c88f2d189396af3c81fccd910c2938c0853e9b8fed32d7d948",
+      "document_type": "resolution",
+      "work_family": "resolution_2010-08-18_636",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 172,
+      "relative_path": "xml/law/424054/edition-4900d5b48a9c9472a4cf31f0.xml",
+      "sha256": "sha256:951212a8d2ec6c81e123939299b442f3c0ed3257e6484425b3f7c2ee479f6fa4",
+      "document_type": "xml-unspecified",
+      "work_family": "424054",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 173,
+      "relative_path": "courts/asz/000321307-edition-9d0cfaac2ec6df95da15c2a4.xml",
+      "sha256": "sha256:3fa6f57b8787a0d4757575d2b10eed12793a054d7926df0e30894a415051ab59",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000321307",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 174,
+      "relative_path": "xml/law/446153/edition-296b534caba2e7e7a94f654e.xml",
+      "sha256": "sha256:aba2fe5a1520bb812a87afdfbdd8cfc929c29b224e9779ae4b2075236c2e373a",
+      "document_type": "xml-unspecified",
+      "work_family": "446153",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 175,
+      "relative_path": "courts/raps012/000183755-edition-6b3d1dc4fbb3715f3cc89ba8.xml",
+      "sha256": "sha256:746dc5b49c2c9aad6e699cff6888c6a34ee68f86ca27c4a18553a638e3a6d3a9",
+      "document_type": "courts-unspecified",
+      "work_family": "raps012/000183755",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 176,
+      "relative_path": "xml/law/336273/edition-5b1e9d0f0b2a880d4f2a92a0.xml",
+      "sha256": "sha256:eb5aae173fac837119dd49953e0cbcdc3e4da1c9861073bc9ca91f6be01ef200",
+      "document_type": "xml-unspecified",
+      "work_family": "336273",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 177,
+      "relative_path": "courts/raps014/000153267-edition-1927645b27cb9d5a5198a318.xml",
+      "sha256": "sha256:a146488c8d4bacd031d23eccc9ed820f94d33aa559229ab583e233ee8a400bea",
+      "document_type": "courts-unspecified",
+      "work_family": "raps014/000153267",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 178,
+      "relative_path": "courts/avs/000136234-edition-c057b5335dce9b587ed98d6a.xml",
+      "sha256": "sha256:3edf9b492a41e909fc37fd7bb9f5f67d71b6e7aaa421d02299d176117ac83f07",
+      "document_type": "courts-unspecified",
+      "work_family": "avs/000136234",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 179,
+      "relative_path": "courts/raps013/000493786-edition-a82aeff19e7a1d966c78b198.xml",
+      "sha256": "sha256:eaaf6652fddc24eac3f7c8dec8e10c55fde61b654deffed332a3756304c9a356",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000493786",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 180,
+      "relative_path": "xml/law/529068/edition-6766a84ad9924a329d85742f.xml",
+      "sha256": "sha256:4730de83d0899aa62df4593d8ff451c4d357a3f54e58d3d07b6b84e9c32b07f7",
+      "document_type": "xml-unspecified",
+      "work_family": "529068",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 181,
+      "relative_path": "xml/law/209869/edition-6486ea2d4e56dabc940fa600.xml",
+      "sha256": "sha256:cf9ddc018a1a5a548ae57b3c91bd8ec998696fd68b52c9a33015cf4aefa6b4bc",
+      "document_type": "xml-unspecified",
+      "work_family": "209869",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 182,
+      "relative_path": "xml/law/323886/edition-365b3b7028c99f701b246a99.xml",
+      "sha256": "sha256:d6c68c2e62e9dfc83e72135915a93c0b8b3b7b84737d48754a446f1e975276aa",
+      "document_type": "xml-unspecified",
+      "work_family": "323886",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 183,
+      "relative_path": "xml/law/514998/edition-2921e1fd5829780f65459706.xml",
+      "sha256": "sha256:9178c7b9f92bbd15cc0f9bb15ab8dbe639cfd60d13e907d7a20510da99aadf6f",
+      "document_type": "xml-unspecified",
+      "work_family": "514998",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 184,
+      "relative_path": "xml/law/185262/edition-6ffea5e4387165263e132954.xml",
+      "sha256": "sha256:540c35c3334fe178e2d11909b17705b5561f323a28498b2de1ce42f91ba9f235",
+      "document_type": "xml-unspecified",
+      "work_family": "185262",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 185,
+      "relative_path": "xml/law/510469/edition-15705841b47fb12a42891a43.xml",
+      "sha256": "sha256:eb249d0d8233e3ada2166fffa04901c06aab070982093e42844f55e544d03ffe",
+      "document_type": "xml-unspecified",
+      "work_family": "510469",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 186,
+      "relative_path": "npa/order_2018-04-25_p-0166_rev-unknown_9c593afb.xml",
+      "sha256": "sha256:decb9038a83327070764c1d9a2cb96fd97cdc56a09d73d803d2f0cfe76a993de",
+      "document_type": "order",
+      "work_family": "order_2018-04-25_p-0166",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 187,
+      "relative_path": "courts/raps005/000131207-edition-ac5cab62c2afec13ebec78cc.xml",
+      "sha256": "sha256:dad21e3398ae62b52c9793228715a5620e2b7f2a702395ae3151378d7a7f763a",
+      "document_type": "courts-unspecified",
+      "work_family": "raps005/000131207",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 188,
+      "relative_path": "xml/law/145385/edition-2a6416ea7a7195cb6658d1bb.xml",
+      "sha256": "sha256:04bc97f28a47a05c97c57a91c47ab92ba63c8af0bc387d46b560b95c259a95b4",
+      "document_type": "xml-unspecified",
+      "work_family": "145385",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 189,
+      "relative_path": "xml/law/346019/edition-5d40b532e6d810c370f3a1ab.xml",
+      "sha256": "sha256:145cd49a19bbf01451befb248bc454ffdf62143c9b563d414c43cd257ec90b55",
+      "document_type": "xml-unspecified",
+      "work_family": "346019",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 190,
+      "relative_path": "xml/law/181946/edition-1babc886d9e698059a0f9452.xml",
+      "sha256": "sha256:504de1e22b0d54ad35b768d8dfb14584d5cdf6524cf74d4f56fa24937f12d6a9",
+      "document_type": "xml-unspecified",
+      "work_family": "181946",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 191,
+      "relative_path": "courts/raps015/000296176-edition-bd76c502a5adefdae901e557.xml",
+      "sha256": "sha256:675293844a78d46e1389b3a9e71d8b7cb6001e06af09317f3ca03e57129f64cf",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000296176",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 192,
+      "relative_path": "npa/resolution_2018-05-10_564_rev-2024-07-04_00e07458.xml",
+      "sha256": "sha256:52ee84859f028629654d24951f6835ad616fd7956648f8b97dd9a75d953a1be6",
+      "document_type": "resolution",
+      "work_family": "resolution_2018-05-10_564",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 193,
+      "relative_path": "courts/apv/000245595-edition-94998399ee8b46efa4910168.xml",
+      "sha256": "sha256:9b7d4c09f24c321f2459a96a507ac371a1154dd12354d61620749be383577a67",
+      "document_type": "courts-unspecified",
+      "work_family": "apv/000245595",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 194,
+      "relative_path": "courts/raps014/000152767-edition-d3248a70f872cc4cb8416ff5.xml",
+      "sha256": "sha256:46267cccd8321f4b3d9e42dad9716c369db79b58f51d8f7ff45841e432d20ebc",
+      "document_type": "courts-unspecified",
+      "work_family": "raps014/000152767",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 195,
+      "relative_path": "courts/ask/000219719-edition-d8d9f048b7f85ca302f900b4.xml",
+      "sha256": "sha256:96c8c6f5dc3b40e66ca943bf6bd05ebbe3d76c5c6576ba58c890873fea4c1a38",
+      "document_type": "courts-unspecified",
+      "work_family": "ask/000219719",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 196,
+      "relative_path": "xml/law/411587/edition-ccc8df9fbd954a4375c537cb.xml",
+      "sha256": "sha256:06f649c8d13c4b65c2aa512247827f35711740f855509ef5e41d5d1a4bc5dbe1",
+      "document_type": "xml-unspecified",
+      "work_family": "411587",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 197,
+      "relative_path": "courts/asz/000324921-edition-7b32b6de205f0e40f7a31120.xml",
+      "sha256": "sha256:390e9460115e47329366707275f1ad7384829ac6b5fef8b4b41336999b28c85f",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000324921",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 198,
+      "relative_path": "courts/raps003/000101770-edition-b35ee191b647f3839249a975.xml",
+      "sha256": "sha256:177490dbf2ed318bf8c0cc7a7176baffa5d8cce7aa347177e2270bfa95699263",
+      "document_type": "courts-unspecified",
+      "work_family": "raps003/000101770",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 199,
+      "relative_path": "courts/raps013/000495617-edition-5611b2b8cd848f3a7c488929.xml",
+      "sha256": "sha256:c94ccec4414bc33f191686f25f90dff871f60f3ba41858493588af3e6ec412b2",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000495617",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 200,
+      "relative_path": "courts/raps011/000262567-edition-0274416807d4d651250078d7.xml",
+      "sha256": "sha256:3e0016bdede052015aabf8a0caf84ea0290523aceb8d17619207c841c9f3799c",
+      "document_type": "courts-unspecified",
+      "work_family": "raps011/000262567",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 201,
+      "relative_path": "xml/law/333932/edition-23f6bb251bb943825eb5a84c.xml",
+      "sha256": "sha256:8aadacca583791e98d18fd3d0679689d8c04612569879a31709ee071b90711e7",
+      "document_type": "xml-unspecified",
+      "work_family": "333932",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 202,
+      "relative_path": "courts/aur/000279300-edition-a9053d2c2578711446aac60a.xml",
+      "sha256": "sha256:6eaa92da00a3cc370f8bb441baf00bd6d7454f8f14f53041cfc5ffeb8ac94955",
+      "document_type": "courts-unspecified",
+      "work_family": "aur/000279300",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 203,
+      "relative_path": "xml/law/514989/edition-5cf6a9550826b2f8b8af9f2b.xml",
+      "sha256": "sha256:b3b85eb1a887d6bd4ce7bfa58e9ea9bbdeb35b235e84cbc076ea5e02ee82d395",
+      "document_type": "xml-unspecified",
+      "work_family": "514989",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 204,
+      "relative_path": "xml/law/334663/edition-fb114c800bae3c44445693e0.xml",
+      "sha256": "sha256:6de33f5357778e6cab655270e2e7be8a621f897b9fa84c3a6462446c6c54f7fb",
+      "document_type": "xml-unspecified",
+      "work_family": "334663",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 205,
+      "relative_path": "xml/law/58305/edition-f445f6ebb7043613eb49d168.xml",
+      "sha256": "sha256:b21f635993c155dbdb307e2227f1118d6c25840f148fbabaf16edb1e7e0a024c",
+      "document_type": "xml-unspecified",
+      "work_family": "58305",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 206,
+      "relative_path": "xml/law/54577/edition-8cf2d2501dbb84bcd9aeb947.xml",
+      "sha256": "sha256:964162c1becbd14906e2e3419d71fb319de8b3f7e10f25233885d6e185c90287",
+      "document_type": "xml-unspecified",
+      "work_family": "54577",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 207,
+      "relative_path": "npa/order_2015-06-29_98n_rev-unknown_8ecbfc36.xml",
+      "sha256": "sha256:768511cb90a9cd5eee323745c446a7b5e52aa3a421ea7e9f81b851fbfd1ef7cf",
+      "document_type": "order",
+      "work_family": "order_2015-06-29_98n",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 208,
+      "relative_path": "courts/raps008/000184846-edition-6ec773df600254b828afd73c.xml",
+      "sha256": "sha256:97cade7c2ebb7ea0fcaeb5f57ba63715fdf5c69bc4f59e34f1d1d56cb2342eb1",
+      "document_type": "courts-unspecified",
+      "work_family": "raps008/000184846",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 209,
+      "relative_path": "npa/law_2017-07-26_211-fz_rev-unknown_0261ceec.xml",
+      "sha256": "sha256:3384c0b87d910c06e41b865752f1696cf5634636795fa24febd7c69a018928da",
+      "document_type": "law",
+      "work_family": "law_2017-07-26_211-fz",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 210,
+      "relative_path": "xml/law/365448/edition-5ef612c258f0f8060b1a8612.xml",
+      "sha256": "sha256:53be228062f683cb9aa83eb25dc115408d5b519b767ad5fe26752f3d1ec72761",
+      "document_type": "xml-unspecified",
+      "work_family": "365448",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 211,
+      "relative_path": "courts/raps013/000494794-edition-23eae4ccdee63785f64ff2de.xml",
+      "sha256": "sha256:d9cb9e7d8c312d97fd1979aabb413e94c80dbeab306fd6f14bdbf329b209177b",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000494794",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 212,
+      "relative_path": "courts/apv/000244366-edition-2caa286ef44d7a66f56a4028.xml",
+      "sha256": "sha256:5c307c8461c563ac678e5d5bead43ea7c43d591f0b62a5cf073f130ea2ce8f8c",
+      "document_type": "courts-unspecified",
+      "work_family": "apv/000244366",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 213,
+      "relative_path": "xml/law/455904/edition-1929d9e842ad68a0f4edaa97.xml",
+      "sha256": "sha256:3cfc3710d31932f570389efa2dfeb0f610aabf5f587c99e741699c72c27c78b7",
+      "document_type": "xml-unspecified",
+      "work_family": "455904",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 214,
+      "relative_path": "npa/order_2015-12-29_1-27-npa_rev-2017-12-22_b60b6f5e.xml",
+      "sha256": "sha256:9db0f6a04f864dcd525d32c9be4a577d23fb16a8b85836a8d1b9f1564a14c3a5",
+      "document_type": "order",
+      "work_family": "order_2015-12-29_1-27-npa",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 215,
+      "relative_path": "npa/law_2013-04-05_44-fz/edition-0061_rev-2019-12-27_from-2020-01-01_47f5f921.xml",
+      "sha256": "sha256:4e50b0964200d3179e05d6ab821bbfc841cdad7a0d199aa584191a9f0fe6e5f7",
+      "document_type": "law",
+      "work_family": "law_2013-04-05_44-fz",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 216,
+      "relative_path": "courts/avv/000131531-edition-4fec50a19549da8af09d2b69.xml",
+      "sha256": "sha256:90370bb90c890950c3d7285b98150faa51d3d68a11eafd867f773c953932bb06",
+      "document_type": "courts-unspecified",
+      "work_family": "avv/000131531",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 217,
+      "relative_path": "xml/law/336721/edition-47a0d563f380449b6250b532.xml",
+      "sha256": "sha256:f6b556874c7706006fe8a445515eaa3c4f2c4e42030ff9f8b8fa15e4a9e1653d",
+      "document_type": "xml-unspecified",
+      "work_family": "336721",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 218,
+      "relative_path": "courts/asz/000323475-edition-6af09c19decf8d029335519e.xml",
+      "sha256": "sha256:7a2b302075bef6bc4a1c1395afe64e7cb253d8c14e98022e12b46dc7bcb9edff",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000323475",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 219,
+      "relative_path": "xml/law/430571/edition-eb7e448ca5ea8d6c7a4e0757.xml",
+      "sha256": "sha256:c24dbab8a505091c6682afb1666f2fd56cd930c852ed2a04c203e0af501e3474",
+      "document_type": "xml-unspecified",
+      "work_family": "430571",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 220,
+      "relative_path": "courts/raps013/000500695-edition-3788fb45dbc19543d3b30461.xml",
+      "sha256": "sha256:e88fe162912038789cfb681c6a0829463bc7a3ea1c88e06e00a9461b137b8c01",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000500695",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 221,
+      "relative_path": "xml/law/329092/edition-89fc1690ce0d2f901bbc50aa.xml",
+      "sha256": "sha256:f686dbd3dbe4c3b5265b4f1a296db8eb81adc46e60062555724c819f5d40d16c",
+      "document_type": "xml-unspecified",
+      "work_family": "329092",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 222,
+      "relative_path": "courts/asz/000320881-edition-7dd4ee8a260b4677b50f3455.xml",
+      "sha256": "sha256:f82a3215271f7546f1438b1ddb07766a1a4df37663ffa6104c5c146e1f6de54f",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000320881",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 223,
+      "relative_path": "courts/raps017/000348462-edition-971571f94564e79be629ced5.xml",
+      "sha256": "sha256:7aa9c012db38c36518489e5935bd3a3caf54835a065f8b3cee71754f25fa2004",
+      "document_type": "courts-unspecified",
+      "work_family": "raps017/000348462",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 224,
+      "relative_path": "courts/avs/000136511-edition-f17a7ae8e576c3f1258ab23c.xml",
+      "sha256": "sha256:ad6fda9cf81111a0deb4e355021c1ff3380d4e4676d58bd527469b54d5ed7299",
+      "document_type": "courts-unspecified",
+      "work_family": "avs/000136511",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 225,
+      "relative_path": "courts/avs/000136043-edition-05a3f79dfce36259521d0a14.xml",
+      "sha256": "sha256:c113f84ad34432c14787723d2ea9bbc2b2af6045b5a2c7d12ab8b1df788ca155",
+      "document_type": "courts-unspecified",
+      "work_family": "avs/000136043",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 226,
+      "relative_path": "xml/law/90993/edition-217c2512d1bd88e00beb06a4.xml",
+      "sha256": "sha256:5803a36d198bcd986ea217266d06b2f6fb61b741ef1acafdccb099a6002ffabf",
+      "document_type": "xml-unspecified",
+      "work_family": "90993",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 227,
+      "relative_path": "xml/law/197987/edition-a964bd502095a717dc0d87d8.xml",
+      "sha256": "sha256:63491e70eb396fa47b999a18082125efba96bf89f0dcee0751dd5ac0e0230509",
+      "document_type": "xml-unspecified",
+      "work_family": "197987",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 228,
+      "relative_path": "courts/raps007/000237344-edition-340acad59ce4fe97468ce929.xml",
+      "sha256": "sha256:a4196cd8eb7a3700762ec6142905ccc6fcf4e64b63a66070c22bf0c0f0dd82b9",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000237344",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 229,
+      "relative_path": "courts/raps002/000151442-edition-0322fa43e498b7436fc23fb4.xml",
+      "sha256": "sha256:4653318bf2bf0a24433b72d7ff16af880eff90c016629d11eceb2ac44b76a901",
+      "document_type": "courts-unspecified",
+      "work_family": "raps002/000151442",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 230,
+      "relative_path": "xml/law/491720/edition-d49cd4a7aaae56a02e7b4826.xml",
+      "sha256": "sha256:cd6c79f209aaf4878cfe64060a79f242a6f8f443b66d095603708236bf90cbad",
+      "document_type": "xml-unspecified",
+      "work_family": "491720",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 231,
+      "relative_path": "xml/law/521537/edition-78017c13edae053b9c0429ce.xml",
+      "sha256": "sha256:8c2460607f3b7477945ff3b92c9aa4320954229a22a3cc8a11f0e2032a5563ef",
+      "document_type": "xml-unspecified",
+      "work_family": "521537",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 232,
+      "relative_path": "courts/raps019/000160058-edition-f65dd4df0f6f12a80e0fa6bf.xml",
+      "sha256": "sha256:230371da211badd5a532f0490c9296dea945a43aaed069ace3332e11a166ee88",
+      "document_type": "courts-unspecified",
+      "work_family": "raps019/000160058",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 233,
+      "relative_path": "xml/law/320193/edition-c0c0d2182075d4646cf5ed5f.xml",
+      "sha256": "sha256:5754d582e6a1350ae3b4cea328ae3451577fded4fb84eda22628a996cb3dd695",
+      "document_type": "xml-unspecified",
+      "work_family": "320193",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 234,
+      "relative_path": "xml/law/220908/edition-2a5a1876771fdbacd45872ac.xml",
+      "sha256": "sha256:8467d732388be3f323e52b897da1ce4ce990cde9f840f03222de69d6307a4d63",
+      "document_type": "xml-unspecified",
+      "work_family": "220908",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 235,
+      "relative_path": "npa/law_2015-03-08_48-fz_rev-2017-12-31_41e78882.xml",
+      "sha256": "sha256:ab003abc62202704788b279576fc317f0d702b9ee46ad63bc95b8eb1ab457df9",
+      "document_type": "law",
+      "work_family": "law_2015-03-08_48-fz",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 236,
+      "relative_path": "courts/raps017/000347461-edition-d95b88ab605309b1164d76bb.xml",
+      "sha256": "sha256:b8b4ae51b965adc3f5f258a2d9cbecba3aae921737d910761a9ef60979188f9c",
+      "document_type": "courts-unspecified",
+      "work_family": "raps017/000347461",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 237,
+      "relative_path": "npa/order_2025-03-07_459_rev-unknown_0d7fc00f.xml",
+      "sha256": "sha256:e06835207c838dbc2e8f30bab27e80a25926138a861d3bcdf4607a5aa1811c03",
+      "document_type": "order",
+      "work_family": "order_2025-03-07_459",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 238,
+      "relative_path": "courts/avv/000132292-edition-ed8d1c1eb39683d82b1d566e.xml",
+      "sha256": "sha256:5e73ba892858631db613aff953927af44218fbc6e064461b93caa25373f350b3",
+      "document_type": "courts-unspecified",
+      "work_family": "avv/000132292",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 239,
+      "relative_path": "courts/raps002/000150868-edition-ebfd2e6db7cab51d4a6edad7.xml",
+      "sha256": "sha256:d4b623422c63d5ea9bf031988eb515e988e69831bd7fe34676c154da635eb265",
+      "document_type": "courts-unspecified",
+      "work_family": "raps002/000150868",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 240,
+      "relative_path": "courts/raps015/000298592-edition-b804124126a9ec62152dd39c.xml",
+      "sha256": "sha256:08376e256b823dd7e188b390ebc390962a08ed20e491066ba0734faced9d2e30",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000298592",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 241,
+      "relative_path": "npa/resolution_2026-04-27_476_rev-unknown_18c2b4b7.xml",
+      "sha256": "sha256:33dfaeea180f73610458eb267cdfa655b66361b3bae336611cc054728a8073b7",
+      "document_type": "resolution",
+      "work_family": "resolution_2026-04-27_476",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 242,
+      "relative_path": "courts/avs/000136610-edition-86413ef589f72740c98811cf.xml",
+      "sha256": "sha256:72a1afa79c89dd805e5de7d8e4196d31b0a415d94673e76cd7479b05a22e4485",
+      "document_type": "courts-unspecified",
+      "work_family": "avs/000136610",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 243,
+      "relative_path": "xml/law/191415/edition-8b8f53fe00f2d758569c2079.xml",
+      "sha256": "sha256:c2f1d33f6fd115e9992d3e656b8830d65671c65ad0f54baa38833369fc53d3b5",
+      "document_type": "xml-unspecified",
+      "work_family": "191415",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 244,
+      "relative_path": "courts/marb/003046354-edition-531162c1c6d5fe01a7329e2f.xml",
+      "sha256": "sha256:f23ccc84833664b385242703f51c494a3baa7f27076f51510ddeade88f42d813",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003046354",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 245,
+      "relative_path": "courts/ams/000586048-edition-793ee66f6a58bb14cba10bd1.xml",
+      "sha256": "sha256:5b39432a1b56866cebe097a11d9d93f33e9e3f8e8f7d1eb1ad95500b41ad82ff",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000586048",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 246,
+      "relative_path": "courts/marb/003051070-edition-a8434467bae8097b4ab37fdc.xml",
+      "sha256": "sha256:0e2ec88c76f1db933ce0c30d650ae5321a8a82daf3c8a262e92f5d6907afdf73",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003051070",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 247,
+      "relative_path": "courts/asz/000321767-edition-ff205a6e62bd0906e9850d78.xml",
+      "sha256": "sha256:eefc42fe10e8846e76d3a563cf7eda7845cc26243a51f165f7b12f0567f71c64",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000321767",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 248,
+      "relative_path": "xml/law/329831/edition-24207b3753eeeb361d0437ba.xml",
+      "sha256": "sha256:54c0d12e9cd1e77be5f73a5fe1711a4970d1acaa8a691d0afddae2ebcd6f50fe",
+      "document_type": "xml-unspecified",
+      "work_family": "329831",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 249,
+      "relative_path": "courts/ams/000584043-edition-7d09775dbac7bdb68ded5e5b.xml",
+      "sha256": "sha256:97d7462b43b17811787437af7e0733b5df83a59ffafd42ff3500b08af83e4d55",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000584043",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 250,
+      "relative_path": "xml/law/501396/edition-b9ba1c67482915f7a067ac83.xml",
+      "sha256": "sha256:7f88c56f7cf27b4b327fc3496b13477f479c512b4ec6680f1ccaef7f8b6c891c",
+      "document_type": "xml-unspecified",
+      "work_family": "501396",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 251,
+      "relative_path": "courts/raps005/000131824-edition-7f53528ba5566f8fc70150d7.xml",
+      "sha256": "sha256:ff742aef42b917eb1112d0b93e4e060e78462b9e4692fc29c28290c0a58d7d69",
+      "document_type": "courts-unspecified",
+      "work_family": "raps005/000131824",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 252,
+      "relative_path": "xml/law/531082/edition-34994cab75c203d97c341ffb.xml",
+      "sha256": "sha256:61f013233740ee3525cab0c5191d41f5f48edcee83f1a7a285ba12a6d987d68a",
+      "document_type": "xml-unspecified",
+      "work_family": "531082",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 253,
+      "relative_path": "xml/law/392105/edition-85c94fad5f34171c7f259ecb.xml",
+      "sha256": "sha256:46757e73362d3881f9bb531c7c0e805f2851099523ae4ebe65afc62f348911a2",
+      "document_type": "xml-unspecified",
+      "work_family": "392105",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 254,
+      "relative_path": "courts/ams/000577844-edition-37ccea5a0dda670a6e43e234.xml",
+      "sha256": "sha256:f11bb679c7c62f858405514b6c9a367d0783b2fd485210e3d63865bf52c1b867",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000577844",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 255,
+      "relative_path": "xml/law/173164/edition-025607b107b3e281d9d144d9.xml",
+      "sha256": "sha256:45c997801aed3160b8eeea8639104eb66eb3b28e5325170f9e381948bf1d72a7",
+      "document_type": "xml-unspecified",
+      "work_family": "173164",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 256,
+      "relative_path": "courts/raps002/000149698-edition-369ae6caf41993e0beeef1d6.xml",
+      "sha256": "sha256:1daf4deb40310a874704322024a2dc5758fcfc89ceb875c6660925b8611f8ec5",
+      "document_type": "courts-unspecified",
+      "work_family": "raps002/000149698",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 257,
+      "relative_path": "courts/raps001/000156427-edition-11ef2d776feb7f8bfd6bd301.xml",
+      "sha256": "sha256:ad94b8ddb601fce62ce8da50666429914ca1ebf6bf2a68889536c7b26b4163ba",
+      "document_type": "courts-unspecified",
+      "work_family": "raps001/000156427",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 258,
+      "relative_path": "courts/raps017/000348174-edition-24ed1b7d10db0caca19bae13.xml",
+      "sha256": "sha256:4b07996fccf5a567a6fba309516c6797ab6713b38edc697a34aeddcea9a78a8a",
+      "document_type": "courts-unspecified",
+      "work_family": "raps017/000348174",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 259,
+      "relative_path": "courts/azs/000221612-edition-a32bc3f45681f8c9e1e887bc.xml",
+      "sha256": "sha256:9a9f858c2d2d31c1ecf0140e1ea29ef7f246cfcb9655a59688b8b26f8897b15c",
+      "document_type": "courts-unspecified",
+      "work_family": "azs/000221612",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 260,
+      "relative_path": "xml/law/492638/edition-4dbcc06548a53ae297a073f9.xml",
+      "sha256": "sha256:8aa690e855d7fc61bad99b74063b1883c1e12484d157bce81319a59eb527dc5f",
+      "document_type": "xml-unspecified",
+      "work_family": "492638",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 261,
+      "relative_path": "courts/raps016/000098758-edition-168873b2a0753101ed2a7db3.xml",
+      "sha256": "sha256:0ca88acfebdc2796bcc5eaa35e99ebea6629a87fcd322519c5411bd464f01d5c",
+      "document_type": "courts-unspecified",
+      "work_family": "raps016/000098758",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 262,
+      "relative_path": "courts/raps003/000102228-edition-6973edf78fb196a2b9d69007.xml",
+      "sha256": "sha256:569634c8f6b2c1989ad361df3a8df3e7481db00ef7e187c29f4c20f197c1e36f",
+      "document_type": "courts-unspecified",
+      "work_family": "raps003/000102228",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 263,
+      "relative_path": "xml/law/291664/edition-4d05743095200e2da0b341cb.xml",
+      "sha256": "sha256:0c5c20d88fc6936ece9bec44261c6c0c6a902970951f60b7644dc7bc1ddc15a8",
+      "document_type": "xml-unspecified",
+      "work_family": "291664",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 264,
+      "relative_path": "courts/raps013/000494290-edition-04733eecb02862ffdeb4a0fd.xml",
+      "sha256": "sha256:303c98c792c7f7912a81c8ccc2ceaed5f467bb68156e1ddd687e95f78710f098",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000494290",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 265,
+      "relative_path": "xml/law/387610/edition-3f391cc85727fb90308348e3.xml",
+      "sha256": "sha256:e0e8dd1fed420b43b3579d306ca3e0750ce4e365fc561cb61f2d786e863c96ef",
+      "document_type": "xml-unspecified",
+      "work_family": "387610",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 266,
+      "relative_path": "xml/law/200920/edition-3ed7d3cbab25b63aa281efa1.xml",
+      "sha256": "sha256:5f00bc131cf83337770039e1bd806b1a136116238170ac78baa9686716a37920",
+      "document_type": "xml-unspecified",
+      "work_family": "200920",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 267,
+      "relative_path": "courts/raps004/000126851-edition-28ee0b9338ce4f6303d1e029.xml",
+      "sha256": "sha256:209f126188199d8c35c145f6fecf79d495a703ad0eda6e81995375a26dda9448",
+      "document_type": "courts-unspecified",
+      "work_family": "raps004/000126851",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 268,
+      "relative_path": "courts/aur/000280795-edition-3aac5300df654da5e2c559a0.xml",
+      "sha256": "sha256:b368813ec45844948ba883673001c2eb415958ffbc0ffe2668ef55f27b4be924",
+      "document_type": "courts-unspecified",
+      "work_family": "aur/000280795",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 269,
+      "relative_path": "courts/raps016/000097079-edition-94b6e8a5fb4d7526b4ad0730.xml",
+      "sha256": "sha256:fef02763d0f62e7911b8156245384c6f868ab56792444a2b1c5de12acb540da1",
+      "document_type": "courts-unspecified",
+      "work_family": "raps016/000097079",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 270,
+      "relative_path": "courts/ask/000217154-edition-0dd0a7d5a4b6a9423bc7e0cc.xml",
+      "sha256": "sha256:7bbeea685a3e631eafa29af832522238c23d2063e78a8eecc610dce398ba2bda",
+      "document_type": "courts-unspecified",
+      "work_family": "ask/000217154",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 271,
+      "relative_path": "courts/raps017/000349408-edition-c7fca36967ffdb03428d9b05.xml",
+      "sha256": "sha256:21f39a256b8f1ed914d399d2ef6f1f36e0f6ed324c104b09923cbd4c9686dd44",
+      "document_type": "courts-unspecified",
+      "work_family": "raps017/000349408",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 272,
+      "relative_path": "courts/marb/003110841-edition-3bbf059e0ecc99b65b338c7b.xml",
+      "sha256": "sha256:8c8ccbdfcbf54dfee16b982a31ba471b944aea23a2743f234d3b542d602de536",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003110841",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 273,
+      "relative_path": "xml/law/465796/edition-621876cf89e421d3c8d07980.xml",
+      "sha256": "sha256:d22ae80eece7205ae30c0c115a0fc3696ed4dc79204c8e9e47da78a69c43f31b",
+      "document_type": "xml-unspecified",
+      "work_family": "465796",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 274,
+      "relative_path": "xml/law/311268/edition-54b9e7763387a92ce47cb78a.xml",
+      "sha256": "sha256:38db274e23bd020b0ff3bca36f4c4663bb3d0f6a93675b26400e603d404395c1",
+      "document_type": "xml-unspecified",
+      "work_family": "311268",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 275,
+      "relative_path": "courts/asz/000321849-edition-51cb9f90a49dd230da551186.xml",
+      "sha256": "sha256:638fa51d0bc87d6dffddf70604f14527ef4349f4cee9ec547c38b9c0f86cfe72",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000321849",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 276,
+      "relative_path": "xml/law/451788/edition-0b8495ba92484ce4c52039b7.xml",
+      "sha256": "sha256:ce6e243b77cc13c3aee0e98d00e0a8e678ffa622117f8fcbde036aba291d573d",
+      "document_type": "xml-unspecified",
+      "work_family": "451788",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 277,
+      "relative_path": "courts/acn/000166637-edition-3dfce1752972b5182ac88723.xml",
+      "sha256": "sha256:8725502093ecd1d6402ee17a2fede77f2018ddb3d0c661462217a7a50fa69716",
+      "document_type": "courts-unspecified",
+      "work_family": "acn/000166637",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 278,
+      "relative_path": "xml/law/496826/edition-b13fe89324d3241905ce7073.xml",
+      "sha256": "sha256:b27d9c60ef84fb5855d1cc06095e566bc2d26f6332a2959de530cf8dfaa0f15a",
+      "document_type": "xml-unspecified",
+      "work_family": "496826",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 279,
+      "relative_path": "xml/law/359580/edition-aa6ab0a72b5e9e876c833a92.xml",
+      "sha256": "sha256:8850ad5e7b9f9b5b2cef8a48e7bd920d95bf09c797e29cd8265257d8a8de904c",
+      "document_type": "xml-unspecified",
+      "work_family": "359580",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 280,
+      "relative_path": "xml/law/165479/edition-2c67db7f46a1c454fb73fca2.xml",
+      "sha256": "sha256:610b612051fedbd6fbb975b405f379594108ea938f8a4ff996bd4140c6e9cbfc",
+      "document_type": "xml-unspecified",
+      "work_family": "165479",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 281,
+      "relative_path": "xml/law/384708/edition-2483087dd660ab4c7f7910f0.xml",
+      "sha256": "sha256:1c02815e9ffbd0d38693a3f68c2784b30e551bba8d4efc94a10025865b3d2aa5",
+      "document_type": "xml-unspecified",
+      "work_family": "384708",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 282,
+      "relative_path": "courts/marb/003101221-edition-0af0efc9e21444189748bc01.xml",
+      "sha256": "sha256:8faddf6889521c359a0742c1fe703b07fa26709455b13371f978b100d05a067e",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003101221",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 283,
+      "relative_path": "courts/raps019/000158503-edition-88a4c5747944f6e4cd1919b1.xml",
+      "sha256": "sha256:c233f71926fbe1c371c1490423a5bac78d7496cdacf031a2184c9c737f3081fc",
+      "document_type": "courts-unspecified",
+      "work_family": "raps019/000158503",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 284,
+      "relative_path": "courts/adv/000142992-edition-56afa1678116b19812544afc.xml",
+      "sha256": "sha256:d83a482576cb400356bf872adbb6a118c1f34dda269a2caa1274d28f10c82810",
+      "document_type": "courts-unspecified",
+      "work_family": "adv/000142992",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 285,
+      "relative_path": "courts/marb/003096133-edition-c0104ddcffe994e3748d2cc0.xml",
+      "sha256": "sha256:2dd2bc38ddef295dbfc5d3651fe894fd41594de0bce4a8c441b9ecb119fb1d27",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003096133",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 286,
+      "relative_path": "courts/raps014/000152071-edition-108f4004d727be800349d35e.xml",
+      "sha256": "sha256:a05ee32a0a7937ec52b06ea85c5f9af584db3d21c9a3b04d16e819ce652b7d46",
+      "document_type": "courts-unspecified",
+      "work_family": "raps014/000152071",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 287,
+      "relative_path": "courts/raps001/000155667-edition-dc6cd5f6d0b3079fe05d9252.xml",
+      "sha256": "sha256:653a44c8f88d168fd38af49e70bc12c889331b77a3d67c4bc6d2d6ae70705a91",
+      "document_type": "courts-unspecified",
+      "work_family": "raps001/000155667",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 288,
+      "relative_path": "xml/law/131901/edition-c12b0aa82213479b26ca8ed9.xml",
+      "sha256": "sha256:f7e8575dd32fa1d6b63f0e11ddf3a4a06a72e1700750ce551087aa0e941abf3e",
+      "document_type": "xml-unspecified",
+      "work_family": "131901",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 289,
+      "relative_path": "courts/ask/000217684-edition-da565479ebf31e0e48d11e89.xml",
+      "sha256": "sha256:a7125fca54bae44834fd6ed5c9c887997371bb1f531d57547b0ccd4f984728f5",
+      "document_type": "courts-unspecified",
+      "work_family": "ask/000217684",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 290,
+      "relative_path": "courts/ams/000584522-edition-4dab71f02ddf31d3f0d75f37.xml",
+      "sha256": "sha256:0af1a00d543e2aec06285c1ceb6b93c21c8457fbd15964418757ed858f6ae8d3",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000584522",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 291,
+      "relative_path": "xml/law/281111/edition-bc3abbae43a2ad1a0ae265e7.xml",
+      "sha256": "sha256:145872d788e0a7338b157468025eee2550b6717e13d2982181677d5380eb5de9",
+      "document_type": "xml-unspecified",
+      "work_family": "281111",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 292,
+      "relative_path": "courts/marb/003080869-edition-604765ce3334de30f745df60.xml",
+      "sha256": "sha256:e546eee2ae31cb5efce62b7ca1320106827978110f0a5c1119b6485a8701a4f5",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003080869",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 293,
+      "relative_path": "xml/law/368044/edition-d6c6ce914b469273255377ad.xml",
+      "sha256": "sha256:7b867b169fd09895da8ea480dcea56e82c35a3af1a8df277d57fb96cfb6780dd",
+      "document_type": "xml-unspecified",
+      "work_family": "368044",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 294,
+      "relative_path": "courts/raps007/000240394-edition-30e31704d59c0ac65994936a.xml",
+      "sha256": "sha256:d22a3d070bd2cb5c58b3e45daa0b370510331358e34cf17fba6856529f6191df",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000240394",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 295,
+      "relative_path": "courts/raps007/000239392-edition-58469b35fef394a92ec226d9.xml",
+      "sha256": "sha256:ab61ae91bb48119f8b09f88e4e0efda92946a6292b24dbb5fa6fce029945e976",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000239392",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 296,
+      "relative_path": "courts/raps001/000157529-edition-15def756f86d0c32237c617e.xml",
+      "sha256": "sha256:d9e686f42784798d95c326cb4ce23467cd3a67ef862c60054d072ae21d98472a",
+      "document_type": "courts-unspecified",
+      "work_family": "raps001/000157529",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 297,
+      "relative_path": "courts/raps015/000299436-edition-74e825882f7fc77cd793e6fa.xml",
+      "sha256": "sha256:c59a91c4d81f04e98e62c7c9bdabb355b8ff47d8671c8bac0b9c38b15b168d78",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000299436",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 298,
+      "relative_path": "xml/law/447534/edition-2719310f396a490dc058f166.xml",
+      "sha256": "sha256:861eda1262ad2d335ebb5dda7c9702d656feb4e2b6a74aa558b77f890bae4d67",
+      "document_type": "xml-unspecified",
+      "work_family": "447534",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 299,
+      "relative_path": "npa/order_2018-09-28_1336_rev-unknown_4ea4cbca.xml",
+      "sha256": "sha256:46f805846f7fb8ca3fb16dc48b05e955cbd9a5dba2765c4a51d47d654af0d12e",
+      "document_type": "order",
+      "work_family": "order_2018-09-28_1336",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 300,
+      "relative_path": "xml/law/73129/edition-a98ce28c99b8a720a393ae04.xml",
+      "sha256": "sha256:f5450abdbb8a2fe857547acfccfbac597bbcf2fa07c25c3b3739f1b417b31471",
+      "document_type": "xml-unspecified",
+      "work_family": "73129",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 301,
+      "relative_path": "xml/law/368133/edition-799e9d00987fa7e7ea67c55d.xml",
+      "sha256": "sha256:e6772b093d2c5ee41fe4d68891197e50036452a0f59a173130087b599aeec8f2",
+      "document_type": "xml-unspecified",
+      "work_family": "368133",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 302,
+      "relative_path": "courts/raps019/000160019-edition-b9387d3070542cad70fbd508.xml",
+      "sha256": "sha256:e401c801655e950dfdd71d229bcd8d5efa834878890070aa12e8bf7b7772355b",
+      "document_type": "courts-unspecified",
+      "work_family": "raps019/000160019",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 303,
+      "relative_path": "courts/marb/003122882-edition-84b6002808882eeb5099fdd4.xml",
+      "sha256": "sha256:b26d620921e1884e39b0419565b91cff6df60d951da324fecf5aac41fb75a7ed",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003122882",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 304,
+      "relative_path": "xml/law/191961/edition-a53d211b43a6706e484a1042.xml",
+      "sha256": "sha256:4ef3d0712e6efb87e029d312dc114dc05c99637723fb6a4c1cf2cb18d4eab605",
+      "document_type": "xml-unspecified",
+      "work_family": "191961",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 305,
+      "relative_path": "xml/law/456820/edition-a930c6a9692f647c244fa119.xml",
+      "sha256": "sha256:7157590162ff15551f6f6d2a36a2e58114ec3231d12a3738e5706dff92b085e5",
+      "document_type": "xml-unspecified",
+      "work_family": "456820",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 306,
+      "relative_path": "xml/law/343801/edition-11744f28ccf04d35c2bd0543.xml",
+      "sha256": "sha256:5c05bbbc1107d22a3028482b5f740a42540cc2d4a89c61c6d4e76c02091083ef",
+      "document_type": "xml-unspecified",
+      "work_family": "343801",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 307,
+      "relative_path": "xml/law/89567/edition-4c76bbe5510c66edef22ae17.xml",
+      "sha256": "sha256:4e832cca4bf0f0b00f66d9d773ab35e41867188aca0c1a57afd725dc4fb88dca",
+      "document_type": "xml-unspecified",
+      "work_family": "89567",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 308,
+      "relative_path": "xml/law/448939/edition-30b768bd95ac900809b0c7d2.xml",
+      "sha256": "sha256:41aa46f251242873a52d430f18b05c157d440c19840fc85c4018f86eed8df2c2",
+      "document_type": "xml-unspecified",
+      "work_family": "448939",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 309,
+      "relative_path": "courts/ams/000582017-edition-1768dd45041ed1d8f79035c5.xml",
+      "sha256": "sha256:fb4330d7fbfb234112545ef98b5b30b6b7afa9afca3a51f1e80167a9281afad6",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000582017",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 310,
+      "relative_path": "courts/raps004/000128332-edition-2b52897dac59750edd5e4756.xml",
+      "sha256": "sha256:19ac5b172721f461cf9de6fb9d72fb80e8f07e44bc26e03552622e51918a1e98",
+      "document_type": "courts-unspecified",
+      "work_family": "raps004/000128332",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 311,
+      "relative_path": "npa/resolution_2018-05-30_626_rev-2021-12-20_4525cfdf.xml",
+      "sha256": "sha256:55ea7b32e4e8003621e5174d19c7e3244d21cadbc4ee749dca9d07a510b5f732",
+      "document_type": "resolution",
+      "work_family": "resolution_2018-05-30_626",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 312,
+      "relative_path": "courts/raps001/000158082-edition-c5063bc5749b3c18abbaf31b.xml",
+      "sha256": "sha256:6e2591ddaab4f5b13b2477e3fa71ae5a38f373714c33152b7b2a9a2fac7cdcd0",
+      "document_type": "courts-unspecified",
+      "work_family": "raps001/000158082",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 313,
+      "relative_path": "xml/law/215938/edition-407970d74ecd24e0c033ce46.xml",
+      "sha256": "sha256:85bef2442e8f7692c045ba79bc7884fd56f672532b4521e1e9931de04eb4674d",
+      "document_type": "xml-unspecified",
+      "work_family": "215938",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 314,
+      "relative_path": "xml/law/296075/edition-792b6a4a397964e536a3edf0.xml",
+      "sha256": "sha256:7b22fadb1a0d53c7f087248f6f36707313cf0bca405e65482b125f5f663a0512",
+      "document_type": "xml-unspecified",
+      "work_family": "296075",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 315,
+      "relative_path": "xml/law/314115/edition-6611615296c9f4bd87779cb8.xml",
+      "sha256": "sha256:09bc6844f84c317b3d70156fe8b20e99182c258d1e5fdd1ae84478e533a383bc",
+      "document_type": "xml-unspecified",
+      "work_family": "314115",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 316,
+      "relative_path": "courts/raps007/000240052-edition-94507c00da50fc2a32a7070f.xml",
+      "sha256": "sha256:5a5cb0872c2acafff7cc495c790c740d6e6e7ea31d592a202799d9ad76cc361c",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000240052",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 317,
+      "relative_path": "xml/law/309272/edition-6d9489e6d547d2d7a24f7cce.xml",
+      "sha256": "sha256:5a360fd3b30bec1780db16abb25ebad7259267c5d04b5db9175d4fc7dc40debb",
+      "document_type": "xml-unspecified",
+      "work_family": "309272",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 318,
+      "relative_path": "courts/raps014/000151455-edition-fd938a2d4bc95700afbf8d26.xml",
+      "sha256": "sha256:78e35d891df675d4bc392af0965706b84decfa114a7624835557092f369bd596",
+      "document_type": "courts-unspecified",
+      "work_family": "raps014/000151455",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 319,
+      "relative_path": "xml/law/465635/edition-411de07b5d30568f0349efa4.xml",
+      "sha256": "sha256:d0b018115ea9cf9a6fbc764e04f8a168b74c42d2e0fd62b8085efee781a43aea",
+      "document_type": "xml-unspecified",
+      "work_family": "465635",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 320,
+      "relative_path": "xml/law/478661/edition-0d42c778879e9f2aff8b040b.xml",
+      "sha256": "sha256:b136412b089b2667aa41dffd3a1ffc9e08ea3ba636c250e3c334131f469847ea",
+      "document_type": "xml-unspecified",
+      "work_family": "478661",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 321,
+      "relative_path": "courts/raps004/000127176-edition-ff85db9ed3bc3ab15991d05d.xml",
+      "sha256": "sha256:310c9fea7c6c67548f54025e2533f898ebb9185b92fa39c3fd69cda3bc2f0310",
+      "document_type": "courts-unspecified",
+      "work_family": "raps004/000127176",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 322,
+      "relative_path": "courts/ams/000587721-edition-4e494d66f1f394f1b8c33b5e.xml",
+      "sha256": "sha256:3832475a706f1930e8a154454921c688aba56a2dcf6b75df9e22f8c225d7e7a5",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000587721",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 323,
+      "relative_path": "courts/marb/003057171-edition-8e13d242a1a699a9cd682f74.xml",
+      "sha256": "sha256:36cc84bb40b7916807c420f8e176084f9f22fee89efd8391653671c16fc6bc89",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003057171",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 324,
+      "relative_path": "xml/law/156007/edition-9df86e3d66a79da65f89f482.xml",
+      "sha256": "sha256:6106c844dc7fe5c7d32131408b2bea42158059b21566e3d26e2c0fd10023b52d",
+      "document_type": "xml-unspecified",
+      "work_family": "156007",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 325,
+      "relative_path": "courts/raps013/000491886-edition-c3505635663568666b153b0d.xml",
+      "sha256": "sha256:a3ab73677907246a30f637fa503f464cc272501c95a8c950c871f462c8a86980",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000491886",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 326,
+      "relative_path": "xml/law/329925/edition-1ebe92bb2396d27d1dbcaa15.xml",
+      "sha256": "sha256:ebf84c557ecffa9c76a7e8d612276fdab202ef4847f53ffd9b4faeb58b6995c3",
+      "document_type": "xml-unspecified",
+      "work_family": "329925",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 327,
+      "relative_path": "courts/raps002/000150608-edition-d2059022ac57d412baac34e8.xml",
+      "sha256": "sha256:cc11123ee2392a681938595e66bc85476b3a09d0fe77097a56d72b954b029fe2",
+      "document_type": "courts-unspecified",
+      "work_family": "raps002/000150608",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 328,
+      "relative_path": "courts/raps002/000150986-edition-16406b8361a2f88a566df0c1.xml",
+      "sha256": "sha256:a5eb566f7985c44fc66dd2ac150c0ed9a01665f94c2d8122914cb064052e703c",
+      "document_type": "courts-unspecified",
+      "work_family": "raps002/000150986",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 329,
+      "relative_path": "courts/raps004/000126993-edition-c0add02fb71cc3462c227c5f.xml",
+      "sha256": "sha256:cb28ea2a8e8044f3552b1d951d54403ec9be38d992f0cd8ab1f4040c153e2b2f",
+      "document_type": "courts-unspecified",
+      "work_family": "raps004/000126993",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 330,
+      "relative_path": "npa/order_2014-05-29_106_rev-2017-04-03_a3a903ac.xml",
+      "sha256": "sha256:bc5daa3b93dfd42855a20755d043e64be6b3b8d2da14ced0a457b94756cc2117",
+      "document_type": "order",
+      "work_family": "order_2014-05-29_106",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 331,
+      "relative_path": "xml/law/175870/edition-1abb5699ebdabbd661d2e5df.xml",
+      "sha256": "sha256:188ad4aad8236086e5b2f6f1a92792b5975f197ca795370fd3a7b75a5edac212",
+      "document_type": "xml-unspecified",
+      "work_family": "175870",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 332,
+      "relative_path": "courts/raps007/000241585-edition-0ce7f74a33521cf3d0b1a3c7.xml",
+      "sha256": "sha256:dc6903283f833ec82a8ea0642b60fbfd4e421e6d3a8c377b5be171ae47f4a9b3",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000241585",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 333,
+      "relative_path": "courts/marb/003043877-edition-3c7bc4e78f9ec2527554ef26.xml",
+      "sha256": "sha256:10baf65eff8501d02f66dd8983bf16be06e9862e1021d80733a703fa2dc34a62",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003043877",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 334,
+      "relative_path": "xml/law/153970/edition-acd70195855375340155f8b0.xml",
+      "sha256": "sha256:c5be325a47cb81a09b04abb6a35d62e5f12ea6a27a8a4ba3aff043749f92bf1b",
+      "document_type": "xml-unspecified",
+      "work_family": "153970",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 335,
+      "relative_path": "courts/marb/003066025-edition-764551d58436b1c2f87bee42.xml",
+      "sha256": "sha256:9b146318222447398a5afae96f1d73f0d6ed1fad4342290b93b29193c3907ef5",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003066025",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 336,
+      "relative_path": "courts/raps006/000107763-edition-049d2bf04032ad72952131e8.xml",
+      "sha256": "sha256:9aff0aa266f42f85652f564758b4ca2f392218df54026a6dd0402175f129f108",
+      "document_type": "courts-unspecified",
+      "work_family": "raps006/000107763",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 337,
+      "relative_path": "xml/law/179861/edition-1fa35d49ebaae9990c907e2f.xml",
+      "sha256": "sha256:4760278bc0302703fac9c6d41e9c9da3166449986d64f1c3c3c7ad4779588ab4",
+      "document_type": "xml-unspecified",
+      "work_family": "179861",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 338,
+      "relative_path": "courts/marb/003115959-edition-131e2bc7bf27f959d28ad5c3.xml",
+      "sha256": "sha256:29758c26b9cce99f6df1185040c7f201663208f184aaaea41a9cb1f6b020a252",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003115959",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 339,
+      "relative_path": "courts/raps008/000185322-edition-4f1d85c9a1f759c331f7b1e8.xml",
+      "sha256": "sha256:0e7d8ff0f697b6effa5bd684ec56935b09e5c2fc5e779683b2db63006f0d4c43",
+      "document_type": "courts-unspecified",
+      "work_family": "raps008/000185322",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 340,
+      "relative_path": "courts/raps013/000492482-edition-f4a23b1857a64bf8af78da3c.xml",
+      "sha256": "sha256:80203a6ab078c41bb131fcde4b9cec2d92c2c256c250baaf8a1582aa698cf0ad",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000492482",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 341,
+      "relative_path": "xml/law/312904/edition-bb62627a332cbdfa9b040e33.xml",
+      "sha256": "sha256:05fc994abe5e737ca5b9edcfde28af38383f1143a64ddd032e0a538ca5cc041d",
+      "document_type": "xml-unspecified",
+      "work_family": "312904",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 342,
+      "relative_path": "xml/law/383879/edition-46d3af440749bc94044c5e1c.xml",
+      "sha256": "sha256:b6de379f7e7a028a55205d893f041f3611f39e3486b913d9a34171c377d24496",
+      "document_type": "xml-unspecified",
+      "work_family": "383879",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 343,
+      "relative_path": "xml/law/443359/edition-4c9dedabe3b03ece0b933f25.xml",
+      "sha256": "sha256:fbacefe83e2b6f4f0ee30ada5811f615a6aecb8636290508e1c13f835a616815",
+      "document_type": "xml-unspecified",
+      "work_family": "443359",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 344,
+      "relative_path": "courts/asz/000323467-edition-7ee88c18d38304ca8e18419d.xml",
+      "sha256": "sha256:60fa1f900ca27cc4f699e8800a5a34dcb24e91176659f05c956f325d3aff67dd",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000323467",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 345,
+      "relative_path": "courts/raps008/000185495-edition-366f3d8c1ad52ceff799c591.xml",
+      "sha256": "sha256:b6849d1e5359c71b081a7bd975aa20f5e37ea250da7e43a502dc756c9be30521",
+      "document_type": "courts-unspecified",
+      "work_family": "raps008/000185495",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 346,
+      "relative_path": "courts/ask/000220216-edition-4d3736fd42b789058ff58133.xml",
+      "sha256": "sha256:d9fb6dd56711e8814333f693ac9af360c13deeff287de9bb4675f2d187eaf3e2",
+      "document_type": "courts-unspecified",
+      "work_family": "ask/000220216",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 347,
+      "relative_path": "xml/law/293560/edition-0ca7c61027f4ecad6c395f03.xml",
+      "sha256": "sha256:702c71e0ae587d6c9c9a629273490d19856f20a00133afe8403d6af00924bd5c",
+      "document_type": "xml-unspecified",
+      "work_family": "293560",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 348,
+      "relative_path": "xml/law/433226/edition-1275404d9745b422a6f723f7.xml",
+      "sha256": "sha256:96961b23a0940e911d59c2f06c9514f680f5b81185ef392397bb61a0f2b878ed",
+      "document_type": "xml-unspecified",
+      "work_family": "433226",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 349,
+      "relative_path": "courts/raps015/000294862-edition-c344951eb441aee3315cb478.xml",
+      "sha256": "sha256:850c044ca42e7643e4b6d42979dfc41d0bd8e9defab0a95281b8fca08df5e094",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000294862",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 350,
+      "relative_path": "xml/law/527577/edition-27f96dcbf70021388ee4fbcd.xml",
+      "sha256": "sha256:385d8e9b0e24e2df6057cc43f6ba8321d314ada7764ba149a829579ea3fd689a",
+      "document_type": "xml-unspecified",
+      "work_family": "527577",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 351,
+      "relative_path": "xml/law/330417/edition-99e163d76b1d2eb926a23ccf.xml",
+      "sha256": "sha256:76a990829d06546314807a5fcce944df43a36b2f6651678c64ef10ab6c52642c",
+      "document_type": "xml-unspecified",
+      "work_family": "330417",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 352,
+      "relative_path": "courts/raps012/000183446-edition-07008f251341bcebedd95ae4.xml",
+      "sha256": "sha256:9da3f2db8890e2c27c4222319dfe7e83e6f32d4d373c6fda8a60e5c119182003",
+      "document_type": "courts-unspecified",
+      "work_family": "raps012/000183446",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 353,
+      "relative_path": "xml/law/341772/edition-d1f40e4712722d1a12da12c5.xml",
+      "sha256": "sha256:9d533bf3bc863042868d494843e5eb7da6a002483eaf90cb75884c328c4b4daf",
+      "document_type": "xml-unspecified",
+      "work_family": "341772",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 354,
+      "relative_path": "xml/law/475042/edition-4f954e0f97a7a96d75947524.xml",
+      "sha256": "sha256:794833f843975795ec73ec50b7d5269d3c4a8d54a3725f3de52540ac3e3d82fd",
+      "document_type": "xml-unspecified",
+      "work_family": "475042",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 355,
+      "relative_path": "courts/raps005/000130711-edition-5bb0f6208d2f8a0949f67e15.xml",
+      "sha256": "sha256:a6440f99307fa2f3539e4545cc88738e4ae7f81d834aee50f3913a6a559ffdb5",
+      "document_type": "courts-unspecified",
+      "work_family": "raps005/000130711",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 356,
+      "relative_path": "courts/raps015/000296621-edition-c1603f1edbef5e62f9350b6f.xml",
+      "sha256": "sha256:5b0068004316f305f51c5516fab6c315403b4c4e8830534d37ed52cc82157ae1",
+      "document_type": "courts-unspecified",
+      "work_family": "raps015/000296621",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 357,
+      "relative_path": "xml/law/471087/edition-0d479659d0c52a1a9c2d7894.xml",
+      "sha256": "sha256:0a36d2182869414aa9f6b11329564e637940da4e757182928e1f2e5bb8e707e6",
+      "document_type": "xml-unspecified",
+      "work_family": "471087",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 358,
+      "relative_path": "xml/law/291817/edition-c1f366bcbaebe335dbbad010.xml",
+      "sha256": "sha256:b253edeb1a0dff0c044696da86e4d4a2bd80baa056811437e2dc5f3c8bcb87d6",
+      "document_type": "xml-unspecified",
+      "work_family": "291817",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 359,
+      "relative_path": "xml/law/73910/edition-415a09ca502146a99bc73848.xml",
+      "sha256": "sha256:f11c7df8b85cb1836b5f17b1775b25985a59226b3db98c66e7a537d952f38f7e",
+      "document_type": "xml-unspecified",
+      "work_family": "73910",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 360,
+      "relative_path": "courts/marb/003057665-edition-d6ca627fba60ed9c815c6815.xml",
+      "sha256": "sha256:e85a4a9789b1205d1aa007dbc165bc2d3fd20e1f85bc09e699227730a5632724",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003057665",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 361,
+      "relative_path": "xml/law/447050/edition-790e59776ed7d9a3c73594ce.xml",
+      "sha256": "sha256:da35dccb36d43d2447105e062e42687c42a2d316f98840f42c3a5502dc6be118",
+      "document_type": "xml-unspecified",
+      "work_family": "447050",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 362,
+      "relative_path": "courts/raps002/000151334-edition-e4ee8700cc7c2223fe3798f2.xml",
+      "sha256": "sha256:643ff3b5a0f322569683da83ffbab204af77ff85c05aaf20c5036fd9680ce10b",
+      "document_type": "courts-unspecified",
+      "work_family": "raps002/000151334",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 363,
+      "relative_path": "courts/raps013/000492291-edition-a8ed5406ba20861d7f394a06.xml",
+      "sha256": "sha256:48add2d4287a8009d79ade2f2aa9ce9a44f4857d5ffb2ac8b0828227fdba3c1c",
+      "document_type": "courts-unspecified",
+      "work_family": "raps013/000492291",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 364,
+      "relative_path": "courts/raps006/000106723-edition-696d9e75b6dd4d6f24ef38a3.xml",
+      "sha256": "sha256:1bff24efa8ea52b4f020f233c9e6ce58df623e872139f6f266462224057ca6ca",
+      "document_type": "courts-unspecified",
+      "work_family": "raps006/000106723",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 365,
+      "relative_path": "xml/law/452962/edition-407560eb14898416655a935d.xml",
+      "sha256": "sha256:a51f93bdde46680f76e34f4249cf76e0e5ee3b572b83b6536ab7feef3b54f0dd",
+      "document_type": "xml-unspecified",
+      "work_family": "452962",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 366,
+      "relative_path": "courts/marb/003084313-edition-7bdd054acf02f35724a13444.xml",
+      "sha256": "sha256:f7c8e23e136c9949ffbe5c703b14b85176aea504432e4db8ab8ba1329fff71b6",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003084313",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 367,
+      "relative_path": "courts/asz/000322566-edition-f87c795e464ea4b3151dae1e.xml",
+      "sha256": "sha256:aad3e3e49904519fc3cee05bb6a18acbeeb2f7ea6d9c97f8275a037a585354be",
+      "document_type": "courts-unspecified",
+      "work_family": "asz/000322566",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 368,
+      "relative_path": "courts/raps005/000132062-edition-982349a549e7d9daf18e4823.xml",
+      "sha256": "sha256:c34392b0c19811d1fb54d8acbb6e2415c7931a3ebc039e8b8bc89fe03b45b214",
+      "document_type": "courts-unspecified",
+      "work_family": "raps005/000132062",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 369,
+      "relative_path": "xml/law/209762/edition-b70c7ddf63dd7b8b7a482a44.xml",
+      "sha256": "sha256:5d0b8b675252b58bbf56eecb0e71b3b917532bf5f0cc34af7e1559dfd133b711",
+      "document_type": "xml-unspecified",
+      "work_family": "209762",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 370,
+      "relative_path": "courts/ams/000576333-edition-0e3e5be7f316eda13ab10831.xml",
+      "sha256": "sha256:234516f96bdc5b0155887311642c23db1791ee45eb5096229c91b8b5492be47c",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000576333",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 371,
+      "relative_path": "courts/raps011/000257991-edition-b07d85be9a71eae146e55449.xml",
+      "sha256": "sha256:a95c838fbd52c57233a491a059e8aab8341695bcbe66c7b34bfe3102f89af3d3",
+      "document_type": "courts-unspecified",
+      "work_family": "raps011/000257991",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 372,
+      "relative_path": "xml/law/372670/edition-10fbf88e59ef7876e2ac8b7d.xml",
+      "sha256": "sha256:51e2ed858f5817176cb8a465283cd87ff7c6bc49968889979a01d32d1e352eec",
+      "document_type": "xml-unspecified",
+      "work_family": "372670",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 373,
+      "relative_path": "courts/raps007/000238369-edition-1cdf73ba689bef8c45a0fdaf.xml",
+      "sha256": "sha256:4304bff45b6758a9931acfb579614a28361d3e1169053b5c7a3fba006170c91b",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000238369",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 374,
+      "relative_path": "xml/law/523812/edition-b4394584de028f4553dd0814.xml",
+      "sha256": "sha256:e0c70cf51a6fbc8416be96d134cbec3cf0b706a3462a4d634dfcb66d6c65bb23",
+      "document_type": "xml-unspecified",
+      "work_family": "523812",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 375,
+      "relative_path": "xml/law/58679/edition-21df7108799076d7d5674594.xml",
+      "sha256": "sha256:538a1fae04cbcfec796b3d2d22f432e0842f2776d8c4ac4c12f2ebe1702ee73c",
+      "document_type": "xml-unspecified",
+      "work_family": "58679",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 376,
+      "relative_path": "xml/law/301696/edition-6d30edd1e60e1c6d807fea5e.xml",
+      "sha256": "sha256:7899da9eb1d1c00a2dbc29e5e0efbf49cc40b616542d172a76fd81f2c0972cdd",
+      "document_type": "xml-unspecified",
+      "work_family": "301696",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 377,
+      "relative_path": "xml/law/189823/edition-8d257bd7ad3d205d044953ae.xml",
+      "sha256": "sha256:f9e6f1721437a61c73591a5ae9f7e24e14361ce895a1f435729574e5ba4bac8e",
+      "document_type": "xml-unspecified",
+      "work_family": "189823",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 378,
+      "relative_path": "xml/law/520110/edition-4aa828a4892e9a36ecbf22eb.xml",
+      "sha256": "sha256:1095318a68fe38523bb631ff403db12ba9236ed422b8ebb0144ffdef1debd5f0",
+      "document_type": "xml-unspecified",
+      "work_family": "520110",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 379,
+      "relative_path": "xml/law/453266/edition-918a9322858ec24003bbdc09.xml",
+      "sha256": "sha256:1ea723f376b61ddaecda639cb47ad3b24727c9b3842aba39279c3246208ef8b6",
+      "document_type": "xml-unspecified",
+      "work_family": "453266",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 380,
+      "relative_path": "courts/avv/000132038-edition-0d0c739d9ec5d98cfb1adde6.xml",
+      "sha256": "sha256:d717cc6035f99610fc11a1a154e9bccf7c604724d661565f4ef4a1e10d6cb3f5",
+      "document_type": "courts-unspecified",
+      "work_family": "avv/000132038",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 381,
+      "relative_path": "courts/raps004/000127810-edition-6c4c3f5e3b6a6ba6ee1567da.xml",
+      "sha256": "sha256:06f8f3c16529933cc5a63c5244b8104671c661663d5c3d07d90f42ad6fe545f8",
+      "document_type": "courts-unspecified",
+      "work_family": "raps004/000127810",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 382,
+      "relative_path": "courts/raps007/000242200-edition-c0bc9ec3d2d798b8d5a6525b.xml",
+      "sha256": "sha256:8f4383b9e896a2854813a7540c75732c1f39de4dbc99c117f3a4fa55e987ee44",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000242200",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 383,
+      "relative_path": "courts/raps002/000151103-edition-a885f77059415630dd1f0764.xml",
+      "sha256": "sha256:60da4b4e954a4debb6d72b808c1a74cc089c2985e810f63aa41cecf835586fab",
+      "document_type": "courts-unspecified",
+      "work_family": "raps002/000151103",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 384,
+      "relative_path": "xml/law/200747/edition-78ac4d57fdd6599b48fc4e15.xml",
+      "sha256": "sha256:41243df6a069da34fd18344863894c7ccbadc8dcd5ee0f063269e5bb29827390",
+      "document_type": "xml-unspecified",
+      "work_family": "200747",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 385,
+      "relative_path": "courts/raps003/000102045-edition-a3c4254bc97a21997ec28a16.xml",
+      "sha256": "sha256:ab2fc03278da5f6addc89f9c1fd59322c4e238709f56195ffc4ccf572d2f4040",
+      "document_type": "courts-unspecified",
+      "work_family": "raps003/000102045",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 386,
+      "relative_path": "courts/marb/003045176-edition-5351b64b00046dc3c2a29b71.xml",
+      "sha256": "sha256:486ef483d5f08513e474a69ccca79331c841d8a0d68bda3da951e512c2777756",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003045176",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 387,
+      "relative_path": "xml/law/284109/edition-91f892a2e18540c439acf2f6.xml",
+      "sha256": "sha256:4e718d1677fd884190fc5369900e2214fdbb514ee30116535ef01f5b102cf7e0",
+      "document_type": "xml-unspecified",
+      "work_family": "284109",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 388,
+      "relative_path": "xml/law/197415/edition-3a6c8d82a77d89d185c7a90f.xml",
+      "sha256": "sha256:6ccdc904bbe4082929724cd1b6177e173d23f16238be5d74de5e383dc2b62d73",
+      "document_type": "xml-unspecified",
+      "work_family": "197415",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 389,
+      "relative_path": "courts/ams/000575118-edition-1a6af95f900d7e5c3df862c4.xml",
+      "sha256": "sha256:2f5e4c58082c2842520700e10d505dfecbe122ded50392ae39615c825f1b5583",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000575118",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 390,
+      "relative_path": "xml/law/220806/edition-77a509868e1417c08c1cfe14.xml",
+      "sha256": "sha256:bc370a4cc8ebb0b1b1430410d27cd8ad39dc601e79b0f3a768ec7b4d082313d4",
+      "document_type": "xml-unspecified",
+      "work_family": "220806",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 391,
+      "relative_path": "courts/ams/000587775-edition-f5d851ff4c27c40b4ed0833e.xml",
+      "sha256": "sha256:4b16d50bed58ce6c3f35a91769f56698c03a3491e92783455aee60ef959e959c",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000587775",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 392,
+      "relative_path": "xml/law/286780/edition-7a0ec671e5c511f2bd19dc75.xml",
+      "sha256": "sha256:e4888b50e93d44e434f084907a9aeebcd4faef0f0582d4593ae2bcee037a45bb",
+      "document_type": "xml-unspecified",
+      "work_family": "286780",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 393,
+      "relative_path": "courts/marb/003047010-edition-de33fdfa7b731810b3d2fcda.xml",
+      "sha256": "sha256:1ccf89a4b61d1363e5dbdb513224eb9456188c46390e2b118b408b8e21bcef81",
+      "document_type": "courts-unspecified",
+      "work_family": "marb/003047010",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 394,
+      "relative_path": "courts/azs/000219719-edition-91f985174b8ed142fd4295ac.xml",
+      "sha256": "sha256:16dad2c96bb894685d23aecdec19a0540460e6ddef043e03be8eb4f0b0ec2905",
+      "document_type": "courts-unspecified",
+      "work_family": "azs/000219719",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 395,
+      "relative_path": "courts/raps018/000238722-edition-18b65116c166e5fa2008b8be.xml",
+      "sha256": "sha256:0525dfd0a9ba8b40110e798b37499c859c24c13f823c805f8a99b2edcbe85831",
+      "document_type": "courts-unspecified",
+      "work_family": "raps018/000238722",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 396,
+      "relative_path": "xml/law/202411/edition-dd8342af7943cdb8c56b4091.xml",
+      "sha256": "sha256:08b3bd542c5988a59af30121fa158aa4adc399d4c361c0a2d816099e4c9e9c05",
+      "document_type": "xml-unspecified",
+      "work_family": "202411",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 397,
+      "relative_path": "xml/law/436393/edition-3bb2bd722ccba6d269c94237.xml",
+      "sha256": "sha256:c0d43907029a5949a2ab363afe2251a173c125def78c2167946f39cfb062b034",
+      "document_type": "xml-unspecified",
+      "work_family": "436393",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 398,
+      "relative_path": "courts/ams/000586610-edition-5bb1ebf0f1c4140479f3419c.xml",
+      "sha256": "sha256:5b3a13de03b608f12da566787ba95786a4bcc3da7c284b959edb1550e4233269",
+      "document_type": "courts-unspecified",
+      "work_family": "ams/000586610",
+      "adjudication_status": "not_attempted"
+    },
+    {
+      "entry_index": 399,
+      "relative_path": "courts/raps007/000239333-edition-9ac6899baa38e45a16046d6f.xml",
+      "sha256": "sha256:1033ba94267a03f971ae81afb02c17e80f66af481d746992aa1e3b94b7d66342",
+      "document_type": "courts-unspecified",
+      "work_family": "raps007/000239333",
+      "adjudication_status": "not_attempted"
+    }
+  ],
+  "non_claims": [
+    "text-free, count/hash-only index; no decoded corpus text",
+    "structural-only; no C5 promotion"
+  ]
+}

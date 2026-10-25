@@ -27,6 +27,14 @@ def test_corpus_contract_has_closed_strata_and_authority_boundary() -> None:
     assert data["authoritative"] is False
     assert data["source_authority"] == {
         "full_corpus_root": "consru_export/consru_export/exports",
+        # Добавлено 2026-09-11 в контракте (разделение источников
+        # по провайдеру: Consultant — полный корпус выгрузки, Garant — свой формат).
+        # Замороженное утверждение теста оставалось старым и было красным
+        # с 2026-09-11 до 2026-09-27 — согласовано с текущим контрактом.
+        "provider_source_roots": {
+            "consultant": "consru_export/consru_export/exports",
+            "garant": "law-source/garant",
+        },
         "allowed_file_glob": "**/*.xml",
         "forbidden_corpus_roots": ["law-source/consultant", "law-source/garant"],
         "raw_text_persistence": "forbidden",

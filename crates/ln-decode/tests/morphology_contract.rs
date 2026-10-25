@@ -1,4 +1,4 @@
-use ln_decode::morphology::{find_legal_markers, LegalMarkerKind};
+use ln_decode::morphology::{LegalMarkerKind, find_legal_markers};
 
 fn matched_text(text: &str, start: usize, end: usize) -> &str {
     &text[start..end]
@@ -49,9 +49,11 @@ fn recognizes_prohibition_forms_case_insensitively() {
     let matches = find_legal_markers(text);
 
     assert_eq!(matches.len(), 2);
-    assert!(matches
-        .iter()
-        .all(|item| item.kind() == LegalMarkerKind::Zapret));
+    assert!(
+        matches
+            .iter()
+            .all(|item| item.kind() == LegalMarkerKind::Zapret)
+    );
 }
 
 #[test]

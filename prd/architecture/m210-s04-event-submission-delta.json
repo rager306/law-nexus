@@ -1,0 +1,158 @@
+{
+  "schema": "law-nexus/m210-s04-event-submission-delta/v1",
+  "schema_version": 1,
+  "kind": "m210-s04-event-submission-delta",
+  "milestone": "M210-3afp79",
+  "slice": "S04",
+  "task": "T04",
+  "lifecycle": ["proposed"],
+  "authoritative": false,
+  "ascii_only": true,
+  "status_effect": "unchanged",
+  "packet_id": "RC-2026-09-10-001",
+  "bound_to_session_contract": {
+    "path": "prd/architecture/m210-s04-review-session-contract.json",
+    "schema": "law-nexus/m210-s04-review-session-contract/v1",
+    "sha256": "sha256:af54c135379fecaccf4a1b7e950b174bb8a68301265d0c566ed4c515c198a932"
+  },
+  "gate": {
+    "applied": false,
+    "operation": "record_human_disposition",
+    "scope": "per_finding_disposition_submission",
+    "actor_bound_path_available": false,
+    "submit_command_implemented": false,
+    "events_written": 0,
+    "activation_requires": {
+      "actor_bound_path": true,
+      "per_finding_readback": true,
+      "fingerprints": true,
+      "confirmed_only": true,
+      "ledger_verified_same_event": true,
+      "host_authority_binding": true
+    },
+    "variants": [
+      {
+        "id": "subjective_uat_reuse",
+        "activated": false,
+        "reason": "the S02 subjective-UAT acceptance of variant C is not authority for record_human_disposition"
+      },
+      {
+        "id": "caller_asserted_human",
+        "activated": false,
+        "reason": "a caller-supplied actor_class and actor_id are validated but not authenticated"
+      },
+      {
+        "id": "agent_self_submission",
+        "activated": false,
+        "reason": "an agent may not submit a per-finding human disposition"
+      },
+      {
+        "id": "ledger_without_readback",
+        "activated": false,
+        "reason": "a ledger append without a per-choice read-back of the same event is not a valid disposition"
+      },
+      {
+        "id": "shell_string_invocation",
+        "activated": false,
+        "reason": "submission commands are argv-only; a shell string is forbidden"
+      }
+    ]
+  },
+  "command_policy": {
+    "argv_only": true,
+    "shell_string_forbidden": true,
+    "executable_path_token": "uv",
+    "executable_path_owner": "host",
+    "caller_supplied_executable_forbidden": true,
+    "executed_commands": 0,
+    "note": "No submission command exists. The commands below are a future argv-only specification with available=false and executed=false. The executable path token is host-controlled and a caller-supplied executable or event id is forbidden."
+  },
+  "commands": [
+    {
+      "id": "review_case_record_human_disposition",
+      "scope": "record_human_disposition",
+      "available": false,
+      "executed": false,
+      "argv_only": true,
+      "shell_string": false,
+      "executable_path_token": "uv",
+      "executable_path_owner": "host",
+      "argv": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "law_nexus_harness",
+        "review-case",
+        "record-human-disposition",
+        "--packet-id",
+        "RC-2026-09-10-001",
+        "--finding-id",
+        "{finding_id}",
+        "--disposition",
+        "{choice}",
+        "--actor-ref",
+        "{actor_ref}",
+        "--acceptance-ref",
+        "{acceptance_ref}",
+        "--authority-epoch",
+        "{authority_epoch}"
+      ],
+      "note": "Future specification only. The published CLI exposes read-only validate/status/inventory and no record-human-disposition subcommand, so this argv is not runnable and is not run. The event id is host-derived from the canonical identity inputs and is never a caller argv token."
+    }
+  ],
+  "boundary": {
+    "review_case_events_written": false,
+    "record_human_disposition_called": false,
+    "submit_command_implemented": false,
+    "submit_command_invoked": false,
+    "dispositions_recorded": 0,
+    "options_selected": 0,
+    "requirements_promoted": [],
+    "requirement_status_mutated": false,
+    "runtime_touched": false,
+    "crates_touched": [],
+    "source_artifacts_rewritten": []
+  },
+  "non_claims": [
+    "This delta is a design specification. It activates no submission variant and applies no gate.",
+    "The listed command is not implemented and not run; it documents the argv-only shape a future path would need.",
+    "The gate stays applied=false and the actor-bound path stays unavailable, so no event can be submitted from this unit.",
+    "The S02 variant C acceptance does not open this gate and is not disposition authority.",
+    "The future event identity is host-derived from the canonical inputs; a caller-supplied event id is forbidden and the executable path token is host-controlled, not caller-substituted.",
+    "No requirement is promoted, no ledger is written and no runtime identity layer is created."
+  ],
+  "fail_closed_codes": [
+    "blanket_confirmation_forbidden",
+    "preselect_forbidden",
+    "agent_confirmation_forbidden",
+    "recommendation_as_consent",
+    "unconfirmed_answer_recorded",
+    "readback_missing",
+    "event_id_missing",
+    "event_id_mismatch",
+    "event_identity_version_not_pinned",
+    "event_identity_inputs_not_canonical",
+    "event_identity_not_host_derived",
+    "caller_supplied_event_id_forbidden",
+    "host_controlled_path_substituted",
+    "drift_invalidates_proposal",
+    "revision_namespace_confused",
+    "revision_unbound",
+    "submission_without_actor_bound_path",
+    "actor_bound_scope_confused",
+    "self_asserted_identity",
+    "authority_binding_missing",
+    "forbidden_actor_source",
+    "agent_may_not_submit",
+    "choice_not_allowed",
+    "shell_string_command",
+    "argv_not_array",
+    "command_spec_not_closed",
+    "contract_hash_mismatch",
+    "session_state_inconsistent",
+    "review_case_event_written",
+    "non_ascii_artifact",
+    "raw_text_leak"
+  ]
+}

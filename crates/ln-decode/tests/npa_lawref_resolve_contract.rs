@@ -21,13 +21,12 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use ln_decode::lawref_resolve::{resolve_lawrefs, CanonicalAnchor, ResolutionTable};
+use ln_decode::lawref_resolve::{CanonicalAnchor, ResolutionTable, resolve_lawrefs};
 use ln_decode::prefix_catalog::EMBEDDED_ONTOLOGY_YAML;
 
 /// The exact embedded `marker_to_eid` canon line (kept in sync with
 /// `prd/architecture/kb-ontology.yaml`).
-const MARKER_TO_EID_LINE: &str =
-    "    marker_to_eid: {st: art, stst: art, ch: par, p: pnt, pp: pnt, podp: sub, abz: aln, gl: chp, razd: sec}\n";
+const MARKER_TO_EID_LINE: &str = "    marker_to_eid: {st: art, stst: art, ch: par, p: pnt, pp: pnt, podp: sub, abz: aln, gl: chp, razd: sec}\n";
 
 /// (a) Green: the embedded table parses with the closed canon.
 fn embedded_resolution() -> ResolutionTable {
@@ -341,7 +340,19 @@ fn freeze_no_parsing_deps_and_no_lawref_tokenkind() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let cargo_toml = fs::read_to_string(manifest_dir.join("Cargo.toml"))
         .expect("read crates/ln-decode/Cargo.toml");
-    for dependency in ["serde", "clap", "walkdir"] {
+    // D602 permits serde in source_package; the historical modules stay frozen.
+    for module in ["lexer.rs", "lawref.rs", "lawref_resolve.rs"] {
+        let source = fs::read_to_string(manifest_dir.join("src").join(module))
+            .expect("read frozen lexer or LawRef module");
+        assert!(
+            !source
+                .lines()
+                .filter(|line| !line.trim_start().starts_with("//"))
+                .any(|line| line.contains("serde")),
+            "{module} must retain its D328 no-serde boundary"
+        );
+    }
+    for dependency in ["clap", "walkdir"] {
         assert!(
             !cargo_toml.contains(dependency),
             "ln-decode must not gain a '{dependency}' dependency (hand-rolled readers, D328 idiom)"
@@ -1180,7 +1191,7 @@ fn json_value_end(text: &str, start: usize) -> Result<usize, String> {
                 if in_string {
                     match byte {
                         b'\\' => {
-                            return Err("dump strings must not carry escape sequences".to_owned())
+                            return Err("dump strings must not carry escape sequences".to_owned());
                         }
                         b'"' => in_string = false,
                         _ => {}
@@ -1609,7 +1620,9 @@ fn render_resolution_dump_json() -> String {
             let spans = members
                 .iter()
                 .map(|(fragment_id, start, end)| {
-                    format!("{{\"fragment_id\": \"{fragment_id}\", \"start\": {start}, \"end\": {end}}}")
+                    format!(
+                        "{{\"fragment_id\": \"{fragment_id}\", \"start\": {start}, \"end\": {end}}}"
+                    )
                 })
                 .collect::<Vec<_>>()
                 .join(", ");
@@ -1789,7 +1802,8 @@ fn resolution_freeze_pins_hold() {
     );
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let cargo_toml = fs::read_to_string(manifest_dir.join("Cargo.toml")).expect("read Cargo.toml");
-    for dependency in ["serde", "clap", "walkdir"] {
+    // D602 scopes the serde exception to the new source_package capability.
+    for dependency in ["clap", "walkdir"] {
         assert!(
             !cargo_toml.contains(dependency),
             "ln-decode must not gain a '{dependency}' dependency (hand-rolled dump readers, D328)"

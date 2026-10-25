@@ -14,8 +14,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use ln_decode::lawref::{capture_lawrefs, LawRef, LawRefPrecedence, LawRefSlots};
-use ln_decode::lexer::{lex, TokenKind};
+use ln_decode::lawref::{LawRef, LawRefPrecedence, LawRefSlots, capture_lawrefs};
+use ln_decode::lexer::{TokenKind, lex};
 use ln_decode::prefix_catalog::EMBEDDED_ONTOLOGY_YAML;
 
 // ---------------------------------------------------------------------------
@@ -352,14 +352,16 @@ fn lawref_user_text_slices_source_and_span_fails_closed() {
     )
     .expect("non-empty span must construct");
     assert_eq!(law_ref.user_text(src), "ст. 15");
-    assert!(LawRef::try_new(
-        6,
-        6,
-        "abbrev-hier-chain".to_owned(),
-        String::new(),
-        LawRefSlotsForTest::default()
-    )
-    .is_err());
+    assert!(
+        LawRef::try_new(
+            6,
+            6,
+            "abbrev-hier-chain".to_owned(),
+            String::new(),
+            LawRefSlotsForTest::default()
+        )
+        .is_err()
+    );
 }
 
 type LawRefSlotsForTest = ln_decode::lawref::LawRefSlots;
@@ -854,7 +856,19 @@ fn freeze_no_parsing_deps_and_no_lawref_tokenkind() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let cargo_toml = fs::read_to_string(manifest_dir.join("Cargo.toml"))
         .expect("read crates/ln-decode/Cargo.toml");
-    for dependency in ["serde", "clap", "walkdir"] {
+    // D602 permits serde for source_package, not the frozen lexer/LawRef path.
+    for module in ["lexer.rs", "lawref.rs", "lawref_resolve.rs"] {
+        let source = fs::read_to_string(manifest_dir.join("src").join(module))
+            .expect("read frozen lexer or LawRef module");
+        assert!(
+            !source
+                .lines()
+                .filter(|line| !line.trim_start().starts_with("//"))
+                .any(|line| line.contains("serde")),
+            "{module} must retain its D328 no-serde boundary"
+        );
+    }
+    for dependency in ["clap", "walkdir"] {
         assert!(
             !cargo_toml.contains(dependency),
             "ln-decode must not gain a '{dependency}' dependency (D328: hand-rolled JSON)"
@@ -966,7 +980,7 @@ fn dump_entries(dump_text: &str) -> Result<Vec<(String, String)>, String> {
                         '\\' => {
                             return Err(format!(
                                 "string value for '{key}' must not carry escape sequences"
-                            ))
+                            ));
                         }
                         other => value.push(other),
                     }
@@ -1009,7 +1023,7 @@ fn dump_entries(dump_text: &str) -> Result<Vec<(String, String)>, String> {
             _ => {
                 return Err(format!(
                     "dump key '{key}' carries an unsupported value form (string, number, list)"
-                ))
+                ));
             }
         }
     }

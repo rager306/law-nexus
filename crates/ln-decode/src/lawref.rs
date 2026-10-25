@@ -16,7 +16,7 @@
 //! name keys and headings only, never captured source text.
 
 use crate::capture_bounds::{
-    arbitrate_pair, on_candidate_limit, CandidateLimitOutcome, PairDiagnostic, PairOutcome,
+    CandidateLimitOutcome, PairDiagnostic, PairOutcome, arbitrate_pair, on_candidate_limit,
 };
 use crate::domain::{ParserDomainError, TextSpan};
 use crate::lexer::{NpaToken, TokenKind};

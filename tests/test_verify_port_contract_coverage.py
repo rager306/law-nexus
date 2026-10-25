@@ -42,6 +42,8 @@ def test_declared_covered_set_is_crate_qualified() -> None:
         "ln-accelerate::InMemoryAccelerationLedger",
         "ln-conformance::InMemoryConformanceOracle",
         "ln-consultant-parser::InMemoryCatalog",
+        "ln-consultant-parser::InMemoryCatalogAnchor",
+        "ln-consultant-parser::InMemoryPageIndexCatalog",
         "ln-dispose::InMemoryDispositionStore",
         "ln-dispose::InMemoryPromotionGate",
         "ln-relation::InMemoryClosedRegistry",
@@ -84,13 +86,15 @@ def test_repository_report_lists_covered_and_uncovered() -> None:
         "ln-accelerate::InMemoryAccelerationLedger",
         "ln-conformance::InMemoryConformanceOracle",
         "ln-consultant-parser::InMemoryCatalog",
+        "ln-consultant-parser::InMemoryCatalogAnchor",
+        "ln-consultant-parser::InMemoryPageIndexCatalog",
         "ln-dispose::InMemoryDispositionStore",
         "ln-dispose::InMemoryPromotionGate",
         "ln-relation::InMemoryClosedRegistry",
         "ln-replay::InMemoryCheckpointStore",
         "ln-replay::InMemoryEffectLedger",
     }
-    assert payload["covered_count"] == 23
+    assert payload["covered_count"] == 25
     assert payload["uncovered_count"] == 0
     assert payload["status"] == "ok"
     uncovered = {item["identity"] for item in payload["uncovered"]}
@@ -122,11 +126,11 @@ def test_same_named_adapters_in_different_crates_are_distinct() -> None:
         "ln-observe::InMemoryDiagnosticSink",
     }
     assert diagnostic_sinks <= identities
-    assert payload["discovered_count"] == 23
+    assert payload["discovered_count"] == 25
     assert payload["uncovered_count"] == 0
     covered_ids = {item["identity"] for item in payload["covered"]}
     assert diagnostic_sinks <= covered_ids
-    assert len(covered_ids) == 23
+    assert len(covered_ids) == 25
     assert "ln-relation::InMemoryClosedRegistry" in covered_ids
     assert "ln-replay::InMemoryCheckpointStore" in covered_ids
     assert "ln-replay::InMemoryEffectLedger" in covered_ids

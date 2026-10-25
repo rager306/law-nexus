@@ -1,5 +1,5 @@
 use crate::domain::{ParagraphStyle, ParsedBlock, TextSpan};
-use crate::tokenizer::{tokenize, AlphabeticToken};
+use crate::tokenizer::{AlphabeticToken, tokenize};
 
 /// Bounded lexical temporal phrase classes. They do not assign a legal clock.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

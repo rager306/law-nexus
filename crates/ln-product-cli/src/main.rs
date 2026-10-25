@@ -5,13 +5,13 @@ use std::time::Instant;
 
 use ln_decode::{
     adapters::{
-        garant_odt::GarantOdtBlockDecoder, garant_odt_package::read_odt_content_xml,
-        ConsultantWordMlBlockDecoder,
+        ConsultantWordMlBlockDecoder, garant_odt::GarantOdtBlockDecoder,
+        garant_odt_package::read_odt_content_xml,
     },
     article_body::collect_article_texts,
     deontic::extract_deontic_lexemes,
     domain::{
-        fingerprint_bytes, DecodeRequest, FamilyFormat, HierarchyNode, ParagraphStyle, PayloadRef,
+        DecodeRequest, FamilyFormat, HierarchyNode, ParagraphStyle, PayloadRef, fingerprint_bytes,
     },
     hierarchy::extract_hierarchy,
     ports::BlockDecoderPort,
@@ -21,25 +21,25 @@ use ln_decode::{
     unknown_forms::census_unknown_forms,
 };
 use ln_kb_ontology::domain::{
-    admit_membership_proposals, assemble_with_oracle_diff, build_text_log_from_articles,
-    commit_admitted_to_log, diff_marker_sets, drafts_from_marker_diff, edition_ast_at,
-    map_hierarchy_marker, marker_from_decode_token, propose_membership_from_markers, resolve_ctv,
     AmendmentDraftOp, ComponentInExpressionEvent, ComponentInExpressionLog, CtvResolution,
     ExpressionId, HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker,
-    WriteSetError,
+    WriteSetError, admit_membership_proposals, assemble_with_oracle_diff,
+    build_text_log_from_articles, commit_admitted_to_log, diff_marker_sets,
+    drafts_from_marker_diff, edition_ast_at, map_hierarchy_marker, marker_from_decode_token,
+    propose_membership_from_markers, resolve_ctv,
 };
 use ln_kb_ontology::registry::{
     load_edition_day_for_path, load_expression_id_for_path, load_hierarchy_map_for_path,
 };
-use ln_query::knowql::{execute, KnowQLOp, KnowQLResult, ValidatedOp};
+use ln_query::knowql::{KnowQLOp, KnowQLResult, ValidatedOp, execute};
 use ln_storage::{
-    adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore},
     EmbeddingPort, EmbeddingRequest, EmbeddingResponse, GraphNode, GraphStorePort, StorageError,
     VectorRecord, VectorStorePort,
+    adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore},
 };
 use ln_temporal::domain::{
-    fold_membership_at, AmendingActId, ComponentConceptId, MembershipChangeKind,
-    VersionedMembershipEvent, VersionedMembershipLog,
+    AmendingActId, ComponentConceptId, MembershipChangeKind, VersionedMembershipEvent,
+    VersionedMembershipLog, fold_membership_at,
 };
 
 const BINARY: &str = "law-nexus-inspect";
@@ -387,21 +387,34 @@ fn inspect(path: &str) {
     // the effect day falls back to the filename document date only in the
     // CTV branch and only for punkt groups. Registry-bound law/code groups
     // keep the existing membership hierarchy_map and registry day unchanged.
-    let ctv_resolved = (|| -> usize {
+    // Returns `(resolved, gate)`: the resolved count plus the named CTV gate
+    // reason the count was admitted or blocked. `gate` is additive
+    // observability ("non_normative" / "no_granularity" / "" allowed).
+    let (ctv_resolved, ctv_gate) = (|| -> (usize, &'static str) {
         // Mint level from the YAML catalog granularity (R086); fail-closed:
         // a bound group with no declared granularity yields zero resolved.
         let bound_group = match &detection {
             Ok(GroupDetection::Bound { group, .. }) => group,
-            _ => return 0usize,
+            _ => return (0usize, ""),
         };
-        let mint_level = match ln_kb_ontology::catalog::OntologyCatalog::embedded() {
-            Ok(catalog) => catalog
-                .document_group(bound_group)
-                .and_then(|profile| profile.granularity.clone()),
-            Err(_) => None,
+        // Explicit non-normative CTV barrier (ADR-0030 D2, ADR-0020): practice
+        // banks (court_practice / non_normative) are text-only, not AST-bearing
+        // acts, so text-CTV must never mint against them even if a future
+        // catalog edit were to declare a granularity. The barrier is evaluated
+        // before the granularity probe so the reason is observable and named
+        // rather than a silent side effect of an empty ladder.
+        let catalog = match ln_kb_ontology::catalog::OntologyCatalog::embedded() {
+            Ok(catalog) => catalog,
+            Err(_) => return (0usize, "no_granularity"),
         };
-        let Some(mint_level) = mint_level else {
-            return 0usize;
+        let Some(profile) = catalog.document_group(bound_group) else {
+            return (0usize, "no_granularity");
+        };
+        if profile.is_non_normative() {
+            return (0usize, "non_normative");
+        }
+        let Some(mint_level) = profile.granularity.clone() else {
+            return (0usize, "no_granularity");
         };
         let is_punkt_group = mint_level == "punkt";
         // Effect day: registry first; punkt groups fall back to the filename
@@ -414,7 +427,7 @@ fn inspect(path: &str) {
             }
         });
         let Some(effect_day) = effect_day else {
-            return 0usize;
+            return (0usize, "");
         };
         let units: Vec<ln_decode::article_body::ArticleText> = embedded_profile
             .as_ref()
@@ -466,7 +479,7 @@ fn inspect(path: &str) {
                 resolved += 1;
             }
         }
-        resolved
+        (resolved, "")
     })();
 
     // Consultant parser pipeline: hyperlinks → classify → edges → observations
@@ -513,7 +526,8 @@ fn inspect(path: &str) {
          \"oracle_phantom\":{oracle_phantom},\
          \"assembly_status\":\"{assembly_status}\",\
          \"ctv_resolved\":{ctv_resolved},\
-         \"document_group\":\"{document_group_esc}\",\
+         \"ctv_gate\":\"{ctv_gate}\",\
+         \"document_group\":\"{document_group_esc}\",
          \"detection_factor\":\"{detection_factor_esc}\",\
          \"detection_unknown\":{detection_unknown},\
          \"detection_unknown_reason\":\"{detection_unknown_reason_esc}\",\
@@ -661,15 +675,15 @@ fn replay(seed_path: &str, target_path: &str) {
         let block_count = blocks.len();
         let mut markers = Vec::new();
         for block in &blocks {
-            if let Some(node) = extract_hierarchy(block) {
-                if let Ok(m) = marker_from_decode_token(
+            if let Some(node) = extract_hierarchy(block)
+                && let Ok(m) = marker_from_decode_token(
                     None,
                     node.level().as_str(),
                     node.number(),
                     node.title(),
-                ) {
-                    markers.push(m);
-                }
+                )
+            {
+                markers.push(m);
             }
         }
         Ok((markers, block_count))
@@ -749,12 +763,11 @@ fn replay(seed_path: &str, target_path: &str) {
         if m.level() != "statya" {
             continue;
         }
-        if let Ok(cc) = ComponentConceptId::parse(&format!("cc:44-fz:statya-{}", m.number())) {
-            if let Ok(binding) =
+        if let Ok(cc) = ComponentConceptId::parse(&format!("cc:44-fz:statya-{}", m.number()))
+            && let Ok(binding) =
                 ln_kb_ontology::domain::HierarchyBinding::try_new(None, m.level(), m.number(), cc)
-            {
-                let _ = map.register(binding);
-            }
+        {
+            let _ = map.register(binding);
         }
     }
 
@@ -899,15 +912,15 @@ fn replay(seed_path: &str, target_path: &str) {
             if m.level() != "statya" {
                 continue;
             }
-            if let Ok(cc) = ComponentConceptId::parse(&format!("cc:44-fz:statya-{}", m.number())) {
-                if let Ok(binding) = ln_kb_ontology::domain::HierarchyBinding::try_new(
+            if let Ok(cc) = ComponentConceptId::parse(&format!("cc:44-fz:statya-{}", m.number()))
+                && let Ok(binding) = ln_kb_ontology::domain::HierarchyBinding::try_new(
                     None,
                     m.level(),
                     m.number(),
                     cc,
-                ) {
-                    let _ = map.register(binding);
-                }
+                )
+            {
+                let _ = map.register(binding);
             }
         }
         let propose = propose_membership_from_markers(&map, &target_markers).ok()?;
@@ -1189,10 +1202,10 @@ fn subordinate_work_id(path: &str) -> String {
         .split(|c: char| !c.is_ascii_digit())
         .filter(|part| !part.is_empty())
         .collect();
-    if let Some(first) = digits.first() {
-        if first.len() <= 4 {
-            return format!("pp-{first}");
-        }
+    if let Some(first) = digits.first()
+        && first.len() <= 4
+    {
+        return format!("pp-{first}");
     }
     "subordinate".to_owned()
 }
@@ -1452,10 +1465,12 @@ mod tests {
         )
         .expect("alias");
         assert_eq!(outcome, HierarchyMapOutcome::Unknown);
-        assert!(outcome
-            .non_claims()
-            .iter()
-            .any(|claim| claim.contains("Unknown") || claim.contains("ComponentConcept")));
+        assert!(
+            outcome
+                .non_claims()
+                .iter()
+                .any(|claim| claim.contains("Unknown") || claim.contains("ComponentConcept"))
+        );
     }
 
     // --- M171 S03 T02: bounded subordinate-act fixture helpers ---

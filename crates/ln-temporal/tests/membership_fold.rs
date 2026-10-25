@@ -4,8 +4,8 @@
 //! not a stored document tree and not CTV text.
 
 use ln_temporal::domain::{
-    fold_membership_at, AmendingActId, ComponentConceptId, MembershipChangeKind,
-    VersionedMembershipEvent, VersionedMembershipLog,
+    AmendingActId, ComponentConceptId, MembershipChangeKind, VersionedMembershipEvent,
+    VersionedMembershipLog, fold_membership_at,
 };
 
 fn cc(id: &str) -> ComponentConceptId {
@@ -27,10 +27,11 @@ fn empty_log_folds_to_empty_projection() {
     assert!(ast.roots().is_empty());
     assert!(ast.is_projection());
     assert_eq!(ast.as_of_day(), 10);
-    assert!(ast
-        .non_claims()
-        .iter()
-        .any(|c| c.contains("projection") || c.contains("not canon")));
+    assert!(
+        ast.non_claims()
+            .iter()
+            .any(|c| c.contains("projection") || c.contains("not canon"))
+    );
 }
 
 #[test]
@@ -134,13 +135,15 @@ fn fold_does_not_claim_ctv_text_or_force() {
     log.append(ev(MembershipChangeKind::Attach, "cc:ch-3", "cc:art-93", 1))
         .expect("a");
     let ast = fold_membership_at(&log, 1).expect("fold");
-    assert!(ast
-        .non_claims()
-        .iter()
-        .any(|c| c.contains("CTV") || c.contains("text")));
-    assert!(ast
-        .non_claims()
-        .iter()
-        .any(|c| c.contains("Force") || c.contains("InForce")));
+    assert!(
+        ast.non_claims()
+            .iter()
+            .any(|c| c.contains("CTV") || c.contains("text"))
+    );
+    assert!(
+        ast.non_claims()
+            .iter()
+            .any(|c| c.contains("Force") || c.contains("InForce"))
+    );
     assert!(ast.is_projection());
 }

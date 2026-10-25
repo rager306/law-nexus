@@ -38,7 +38,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use ln_consultant_parser::amendment_provenance::{
-    parse_provenance_args, run_provenance, AmendmentProvenanceError,
+    AmendmentProvenanceError, parse_provenance_args, run_provenance,
 };
 
 fn main() -> ExitCode {

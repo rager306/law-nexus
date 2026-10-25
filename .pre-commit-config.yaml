@@ -22,14 +22,15 @@ repos:
         entry: uv run ruff check
         language: system
         types: [python]
-        exclude: ^python_archive/
+        # .gsd-path/ launchers are pinned installer-generated native contracts.
+        exclude: ^python_archive/|^\.gsd-path/
 
       - id: ruff-format-python
         name: ruff format --check staged Python files
         entry: uv run ruff format --check
         language: system
         types: [python]
-        exclude: ^python_archive/
+        exclude: ^python_archive/|^\.gsd-path/
 
       - id: cargo-fmt-rust
         name: Rust workspace formatting

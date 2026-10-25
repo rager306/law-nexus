@@ -5,10 +5,9 @@ use quick_xml::events::Event;
 use quick_xml::reader::NsReader;
 
 use crate::domain::{
-    fingerprint_bytes, AnchorId, BlockDecodeError, BlockDecodeErrorKind, CandidateId,
-    DecodeCategory, DecodePhase, DecodeRequest, DecoderEmission, EvidenceAnchor,
-    ParagraphStyle as DomainParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation,
-    SourceSpan, SourceStreamId,
+    AnchorId, BlockDecodeError, BlockDecodeErrorKind, CandidateId, DecodeCategory, DecodePhase,
+    DecodeRequest, DecoderEmission, EvidenceAnchor, ParagraphStyle as DomainParagraphStyle,
+    ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId, fingerprint_bytes,
 };
 use crate::ports::{BlockDecoderPort, DecoderPort};
 
@@ -159,44 +158,43 @@ impl BlockDecoderPort for ConsultantWordMlBlockDecoder {
                         in_bindata = false;
                     } else if local_name_match(local.as_ref(), "t") {
                         in_text = false;
-                    } else if local_name_match(local.as_ref(), "p") {
-                        if let Some(start) = paragraph_start.take() {
-                            let end = usize::try_from(reader.buffer_position()).map_err(|_| {
+                    } else if local_name_match(local.as_ref(), "p")
+                        && let Some(start) = paragraph_start.take()
+                    {
+                        let end = usize::try_from(reader.buffer_position()).map_err(|_| {
+                            BlockDecodeError::new(
+                                DecodePhase::Validate,
+                                BlockDecodeErrorKind::InvalidBlock,
+                                Some(start),
+                            )
+                        })?;
+                        if !text.trim().is_empty() {
+                            let source_span = SourceSpan::try_new(start, end).map_err(|_| {
                                 BlockDecodeError::new(
                                     DecodePhase::Validate,
                                     BlockDecodeErrorKind::InvalidBlock,
                                     Some(start),
                                 )
                             })?;
-                            if !text.trim().is_empty() {
-                                let source_span =
-                                    SourceSpan::try_new(start, end).map_err(|_| {
-                                        BlockDecodeError::new(
-                                            DecodePhase::Validate,
-                                            BlockDecodeErrorKind::InvalidBlock,
-                                            Some(start),
-                                        )
-                                    })?;
-                                let style = map_paragraph_style(provider_style_id.as_deref());
-                                let block = ParsedBlock::try_new(
-                                    text.clone(),
-                                    provider_style_id.take(),
-                                    style,
-                                    SourceLocation::new(source_stream.clone(), source_span),
-                                    SourceFormatId::ConsultantWordMl,
+                            let style = map_paragraph_style(provider_style_id.as_deref());
+                            let block = ParsedBlock::try_new(
+                                text.clone(),
+                                provider_style_id.take(),
+                                style,
+                                SourceLocation::new(source_stream.clone(), source_span),
+                                SourceFormatId::ConsultantWordMl,
+                            )
+                            .map_err(|_| {
+                                BlockDecodeError::new(
+                                    DecodePhase::Validate,
+                                    BlockDecodeErrorKind::InvalidBlock,
+                                    Some(start),
                                 )
-                                .map_err(|_| {
-                                    BlockDecodeError::new(
-                                        DecodePhase::Validate,
-                                        BlockDecodeErrorKind::InvalidBlock,
-                                        Some(start),
-                                    )
-                                })?;
-                                blocks.push(block);
-                            }
-                            text.clear();
-                            provider_style_id = None;
+                            })?;
+                            blocks.push(block);
                         }
+                        text.clear();
+                        provider_style_id = None;
                     }
                 }
                 Event::Eof if open_elements == 0 => return Ok(blocks),

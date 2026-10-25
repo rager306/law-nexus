@@ -31,7 +31,9 @@ Orthogonal to L0–L5 packaging, residual continuity uses three lifecycles:
 | **L_capability** | TSG + owning ADR + ADR-0015 proof | capability row actually satisfied |
 
 Operator contract: [`continuity-contract.md`](continuity-contract.md).
-GSD bridge / dual-truth: [`gsd-review-bridge.md`](gsd-review-bridge.md).
+Delivery bridge / dual-truth: [`path-review-bridge.md`](path-review-bridge.md)
+(successor; `delivery:path:<id>`) — [`gsd-review-bridge.md`](gsd-review-bridge.md)
+is its historical predecessor and keeps the recorded `delivery:gsd:<MID>` events.
 L_capability promotion board: [`../capability-promotion-board.md`](../capability-promotion-board.md).
 
 Closure ceilings: `spine` | `bounded_runtime` | `evidence` | `accepted`.
@@ -236,6 +238,24 @@ These **non-claims** are mandatory reading for any packet consumer:
 - product_open: *(none)*
 
 KB ontology draft (O1): `../kb-ontology-requirements.md` — not production schema.
+
+## RC28 residual board (after 2026-10-14 disposition wave)
+
+Wave approved by rager306 (GSD parent session 2026-10-14); append-only ledger
+via sanctioned `record_human_disposition` / `record_execution_link_command` /
+`record_verification_event`; mapping per `rc28-remediation-program.md`.
+
+- closed: F01–F12, F14, F15, F18, F19 (16) — B2 evidence: completed
+  M204-w2ktfw / M205-p7xc54 / M206-jnbhlz / M207-b2i96m / M210-3afp79
+  (Attempts + validation batteries); `passed_bounded` with explicit ceilings
+  in non_claims (N2 Layer-2 HOLD; C4 duration floor; not runtime capability)
+- deferred_parked: F13 (owner M208-wrz6fg parked), F16 (R035 HOLD,
+  `m203-s09-r035-r070-debt.json`), F17 (R070 active; M224 S06 structural
+  timeline non-claim)
+- product_open: *(none)* — open_count 19 → 0
+- non-claims: wave does not validate R035/R070, does not unpark M208,
+  does not promote ADR-0030 or any requirement; closures cite completed
+  delivery evidence only
 
 ## Review 4 L0 (not yet a packet)
 

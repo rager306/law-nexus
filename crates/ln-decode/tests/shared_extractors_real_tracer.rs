@@ -1,14 +1,14 @@
 use std::{fs, path::PathBuf};
 
 use ln_decode::{
-    adapters::{garant_odt::GarantOdtBlockDecoder, ConsultantWordMlBlockDecoder},
-    deontic::{extract_deontic_lexemes, DeonticLexemeKind},
+    adapters::{ConsultantWordMlBlockDecoder, garant_odt::GarantOdtBlockDecoder},
+    deontic::{DeonticLexemeKind, extract_deontic_lexemes},
     domain::{
-        fingerprint_bytes, DecodeRequest, FamilyFormat, ParagraphStyle, ParsedBlock, PayloadRef,
+        DecodeRequest, FamilyFormat, ParagraphStyle, ParsedBlock, PayloadRef, fingerprint_bytes,
     },
     ports::BlockDecoderPort,
-    references::{extract_reference_mentions, ReferenceMentionKind},
-    temporal::{extract_temporal_phrases, TemporalPhraseKind},
+    references::{ReferenceMentionKind, extract_reference_mentions},
+    temporal::{TemporalPhraseKind, extract_temporal_phrases},
 };
 
 const CONSULTANT_FIXTURE: &str = "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml";

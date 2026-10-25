@@ -2,8 +2,8 @@
 //! (RC11-F09 / TSG-004 / ADR-0018).
 
 use ln_temporal::domain::{
-    classify_normative_dimension, reject_force_as_applicability, reject_version_relation_as_force,
-    NormativeDimension, NormativeDimensionClass,
+    NormativeDimension, NormativeDimensionClass, classify_normative_dimension,
+    reject_force_as_applicability, reject_version_relation_as_force,
 };
 
 #[test]
@@ -54,10 +54,12 @@ fn force_cannot_decide_applicability() {
 fn version_relation_cannot_imply_force() {
     let boundary = reject_version_relation_as_force();
     assert_eq!(boundary.dimension, NormativeDimension::VersionRelation);
-    assert!(boundary
-        .non_claims
-        .iter()
-        .any(|c| c.contains("does not imply ForceStatus") || c.contains("text presence")),);
+    assert!(
+        boundary
+            .non_claims
+            .iter()
+            .any(|c| c.contains("does not imply ForceStatus") || c.contains("text presence")),
+    );
 }
 
 #[test]

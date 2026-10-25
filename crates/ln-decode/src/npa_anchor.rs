@@ -23,11 +23,105 @@ pub fn resolve_export_dir(env: Option<&str>) -> String {
     }
 }
 
-/// Якорь реквизитов: нормализованная дата + номер как написан.
+/// Локальная координата вхождения: полуоткрытый диапазон UTF-8 байт
+/// `[start, end)` внутри абзаца `block` входного среза.
+///
+/// Это тот же shape, что требует M207 hybrid-records contract для anchor:
+/// `{fragment_id, start, end}` (fragment_id здесь = индекс блока; маппинг
+/// блок → fragment_id делает вызывающий слой). Не ADR-0017 `TextAnchor`,
+/// не `EvidenceSpan`. Без serde (D602: serde только для `source_package`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct LocalSpan {
+    pub block: usize,
+    pub start: usize,
+    pub end: usize,
+}
+
+/// Ошибка контракта координат (source-local UTF-8 byte bounds).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SpanError {
+    /// `start >= end` — диапазон не полуоткрытый/пустой.
+    EmptyOrInverted,
+    /// `end` за пределами байтовой длины источника.
+    OutOfBounds,
+    /// `start`/`end` не на границе UTF-8 code point.
+    NotCharBoundary,
+}
+
+/// Проверяет, что спан — корректный полуоткрытый UTF-8 byte-диапазон
+/// источника `para` (`0 <= start < end <= byte_len`, границы — code point).
+/// Ровно эти правила отклоняет M207-валидатор как `INVALID_BOUNDS`.
+pub fn check_span(para: &str, span: LocalSpan) -> Result<(), SpanError> {
+    if span.start >= span.end {
+        return Err(SpanError::EmptyOrInverted);
+    }
+    if span.end > para.len() {
+        return Err(SpanError::OutOfBounds);
+    }
+    if !para.is_char_boundary(span.start) || !para.is_char_boundary(span.end) {
+        return Err(SpanError::NotCharBoundary);
+    }
+    Ok(())
+}
+
+/// Причина отклонения якоря guard'ом (слепок прототипа).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RejectReason {
+    /// Внутри зоны `INBOUND` (+80 символов от «(вх.»).
+    Inbound,
+    /// Внутри спана «Зарегистрировано в Минюсте России …».
+    Minjust,
+    /// OT_DUMA в пределах 8 символов от принятого OT_DATE.
+    DateOverlap,
+}
+
+/// Диагностика потока якорей: обязательные отказы не проглатываются.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AnchorDiagnostic {
+    /// Спан не является корректным UTF-8 byte-диапазоном источника.
+    InvalidSpan {
+        block: usize,
+        start: usize,
+        end: usize,
+        byte_len: usize,
+    },
+    /// Якорь отвергнут guard'ом.
+    RejectedAnchor {
+        block: usize,
+        start: usize,
+        end: usize,
+        reason: RejectReason,
+    },
+    /// Тот же ключ `(date, number)` встретился в другом byte-span.
+    /// Occurrences не сливаются по identity (M207 `AMBIGUOUS_DUPLICATE`).
+    DuplicateOccurrence {
+        date: String,
+        number: String,
+        first: LocalSpan,
+        next: LocalSpan,
+    },
+}
+
+/// Якорь реквизитов: нормализованная дата + номер как написан + локальная
+/// UTF-8 byte-координата вхождения.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Anchor {
     pub date: String,
     pub number: String,
+    pub span: LocalSpan,
+}
+
+/// Префиксные байтовые смещения для char-индексов `s`: `offs[i]` — байт,
+/// с которого начинается i-й char; `offs[len]` — байтовая длина.
+fn char_byte_offsets(s: &str) -> Vec<usize> {
+    let mut offs: Vec<usize> = Vec::with_capacity(s.chars().count() + 1);
+    let mut b = 0usize;
+    for c in s.chars() {
+        offs.push(b);
+        b += c.len_utf8();
+    }
+    offs.push(b);
+    offs
 }
 
 /// Месяцы русского правописания (родительный падеж) -> номер месяца.
@@ -150,43 +244,43 @@ fn scan_ot_date(text: &[char]) -> Vec<OtDateHit> {
         // литерал «от»
         if text[i] == 'о' && text[i + 1] == 'т' {
             let after = skip_ws(text, i + 2);
-            if after > i + 2 {
-                if let Some((dend, date)) = read_dot_date(text, after) {
-                    let j = skip_ws(text, dend);
-                    let mut number: Option<(usize, String)> = None;
-                    if starts_with_lit(text, j, "б/н") {
-                        number = Some((j + 3, "б/н".to_string()));
-                    } else if j < n && (text[j] == 'N' || text[j] == 'n' || text[j] == '№') {
-                        let k = skip_ws(text, j + 1);
-                        if let Some((nend, num)) = read_number(text, k) {
-                            number = Some((nend, num));
-                        }
+            if after > i + 2
+                && let Some((dend, date)) = read_dot_date(text, after)
+            {
+                let j = skip_ws(text, dend);
+                let mut number: Option<(usize, String)> = None;
+                if starts_with_lit(text, j, "б/н") {
+                    number = Some((j + 3, "б/н".to_string()));
+                } else if j < n && (text[j] == 'N' || text[j] == 'n' || text[j] == '№') {
+                    let k = skip_ws(text, j + 1);
+                    if let Some((nend, num)) = read_number(text, k) {
+                        number = Some((nend, num));
                     }
-                    if let Some((nend, num)) = number {
-                        // lookbehind: не «вх. » / «вх » непосредственно перед «от»
-                        let lb_ok = {
-                            let a = skip_ws_back(text, i);
-                            !(a >= 1
-                                && text[a - 1] == '.'
-                                && a >= 3
-                                && text[a - 3] == 'в'
-                                && text[a - 2] == 'х')
-                                && !(a >= 2
-                                    && text[a - 2] == 'в'
-                                    && text[a - 1] == 'х'
-                                    && a < n
-                                    && (text[a] == ' ' || text[a] == '\u{a0}'))
-                        };
-                        if lb_ok {
-                            hits.push(OtDateHit {
-                                start: i,
-                                end: nend,
-                                date,
-                                number: num,
-                            });
-                            i = nend;
-                            continue;
-                        }
+                }
+                if let Some((nend, num)) = number {
+                    // lookbehind: не «вх. » / «вх » непосредственно перед «от»
+                    let lb_ok = {
+                        let a = skip_ws_back(text, i);
+                        !(a >= 1
+                            && text[a - 1] == '.'
+                            && a >= 3
+                            && text[a - 3] == 'в'
+                            && text[a - 2] == 'х')
+                            && !(a >= 2
+                                && text[a - 2] == 'в'
+                                && text[a - 1] == 'х'
+                                && a < n
+                                && (text[a] == ' ' || text[a] == '\u{a0}'))
+                    };
+                    if lb_ok {
+                        hits.push(OtDateHit {
+                            start: i,
+                            end: nend,
+                            date,
+                            number: num,
+                        });
+                        i = nend;
+                        continue;
                     }
                 }
             }
@@ -206,6 +300,7 @@ fn skip_ws_back(text: &[char], i: usize) -> usize {
 
 struct DumaHit {
     start: usize,
+    end: usize,
     date: String,
     number: String,
 }
@@ -264,6 +359,7 @@ fn scan_ot_duma(text: &[char]) -> Vec<DumaHit> {
                                                 if let Some((nend, num)) = read_number(text, k) {
                                                     hits.push(DumaHit {
                                                         start: i,
+                                                        end: nend,
                                                         date: format!(
                                                             "{:02}.{:02}.{}",
                                                             text[d0..d1]
@@ -324,7 +420,10 @@ fn scan_inbound(text: &[char]) -> Vec<InboundZone> {
                     }
                 } else {
                     // форма 2: N NUM от DD.MM.YYYY
-                    if text[k] == 'N' || text[k] == 'n' {
+                    // `k = skip_ws(text, j + 3)` may equal `n` when the text ends
+                    // right after `вх.` + whitespace; guard the index (an unguarded
+                    // `text[k]` panicked with `len == index`).
+                    if k < n && (text[k] == 'N' || text[k] == 'n') {
                         let a = skip_ws(text, k + 1);
                         if let Some((nend, _)) = read_number(text, a) {
                             let b = skip_ws(text, nend);
@@ -486,12 +585,12 @@ pub fn decode_consultant_text(s: &str) -> String {
                 }
                 if e < chars.len() && chars[e] == ';' && e > dstart {
                     let digits: String = chars[dstart..e].iter().collect();
-                    if let Ok(cp) = u32::from_str_radix(&digits, if hex { 16 } else { 10 }) {
-                        if let Some(ch) = char::from_u32(cp) {
-                            decoded.push(ch);
-                            i = e + 1;
-                            continue;
-                        }
+                    if let Ok(cp) = u32::from_str_radix(&digits, if hex { 16 } else { 10 })
+                        && let Some(ch) = char::from_u32(cp)
+                    {
+                        decoded.push(ch);
+                        i = e + 1;
+                        continue;
                     }
                 }
             }
@@ -578,51 +677,138 @@ pub fn extract_paragraphs(xml: &str) -> Vec<String> {
     paras
 }
 
-/// Скан якорей по абзацам: OT_DATE + OT_DUMA, guard'ы INBOUND/MINJUST,
-/// дедуп + сортировка (множество (дата, номер)).
-pub fn scan_anchors(paras: &[String]) -> Vec<Anchor> {
-    let mut set: std::collections::BTreeSet<Anchor> = std::collections::BTreeSet::new();
-    for para in paras {
+/// Принимает якорь: проверяет спан контракта, фиксирует дубликат-occurrence,
+/// кладёт occurrence в поток (occurrences не сливаются по `(date, number)`).
+fn accept_anchor(
+    para: &str,
+    anchors: &mut Vec<Anchor>,
+    diagnostics: &mut Vec<AnchorDiagnostic>,
+    seen: &mut std::collections::BTreeMap<(String, String), LocalSpan>,
+    date: String,
+    number: String,
+    span: LocalSpan,
+) {
+    if check_span(para, span).is_err() {
+        diagnostics.push(AnchorDiagnostic::InvalidSpan {
+            block: span.block,
+            start: span.start,
+            end: span.end,
+            byte_len: para.len(),
+        });
+        return;
+    }
+    if let Some(first) = seen.get(&(date.clone(), number.clone())).copied() {
+        if first != span {
+            diagnostics.push(AnchorDiagnostic::DuplicateOccurrence {
+                date: date.clone(),
+                number: number.clone(),
+                first,
+                next: span,
+            });
+        }
+    } else {
+        seen.insert((date.clone(), number.clone()), span);
+    }
+    anchors.push(Anchor { date, number, span });
+}
+
+/// Единый поток якорей: OT_DATE + OT_DUMA, guard'ы INBOUND/MINJUST/date-overlap,
+/// локальные UTF-8 byte spans и диагностики отказов/дубликатов.
+///
+/// Occurrences сохраняются: повтор реквизита в другом span — отдельная запись
+/// плюс `DuplicateOccurrence` (identity по `(date, number)` не сливается).
+pub fn scan_anchors_diagnosed(paras: &[String]) -> (Vec<Anchor>, Vec<AnchorDiagnostic>) {
+    let mut anchors: Vec<Anchor> = Vec::new();
+    let mut diagnostics: Vec<AnchorDiagnostic> = Vec::new();
+    let mut seen: std::collections::BTreeMap<(String, String), LocalSpan> =
+        std::collections::BTreeMap::new();
+
+    for (block, para) in paras.iter().enumerate() {
         let chars: Vec<char> = para.chars().collect();
+        let offs = char_byte_offsets(para);
         let inbound = scan_inbound(&chars);
         let minjust = scan_minjust(&chars);
         let ot_dates = scan_ot_date(&chars);
+
         for h in &ot_dates {
+            let span = LocalSpan {
+                block,
+                start: offs[h.start],
+                end: offs[h.end],
+            };
             if inbound
                 .iter()
                 .any(|z| z.start <= h.start && h.start < z.start + 80)
             {
+                diagnostics.push(AnchorDiagnostic::RejectedAnchor {
+                    block,
+                    start: span.start,
+                    end: span.end,
+                    reason: RejectReason::Inbound,
+                });
                 continue;
             }
-            set.insert(Anchor {
-                date: h.date.clone(),
-                number: h.number.clone(),
-            });
+            accept_anchor(
+                para,
+                &mut anchors,
+                &mut diagnostics,
+                &mut seen,
+                h.date.clone(),
+                h.number.clone(),
+                span,
+            );
         }
+
         for h in scan_ot_duma(&chars) {
-            if inbound
+            let span = LocalSpan {
+                block,
+                start: offs[h.start],
+                end: offs[h.end],
+            };
+            let reason = if inbound
                 .iter()
                 .any(|z| z.start <= h.start && h.start < z.start + 80)
             {
-                continue;
-            }
-            if minjust
+                Some(RejectReason::Inbound)
+            } else if minjust
                 .iter()
                 .any(|s| s.start <= h.start && h.start < s.end)
             {
-                continue;
-            }
-            if ot_dates
+                Some(RejectReason::Minjust)
+            } else if ot_dates
                 .iter()
                 .any(|o| (o.start as i64 - h.start as i64).abs() < 8)
             {
-                continue;
+                Some(RejectReason::DateOverlap)
+            } else {
+                None
+            };
+            match reason {
+                Some(reason) => diagnostics.push(AnchorDiagnostic::RejectedAnchor {
+                    block,
+                    start: span.start,
+                    end: span.end,
+                    reason,
+                }),
+                None => accept_anchor(
+                    para,
+                    &mut anchors,
+                    &mut diagnostics,
+                    &mut seen,
+                    h.date.clone(),
+                    h.number.clone(),
+                    span,
+                ),
             }
-            set.insert(Anchor {
-                date: h.date.clone(),
-                number: h.number.clone(),
-            });
         }
     }
-    set.into_iter().collect()
+
+    anchors.sort_by_key(|a| (a.span.block, a.span.start));
+    (anchors, diagnostics)
+}
+
+/// Скан якорей по абзацам: OT_DATE + OT_DUMA, guard'ы INBOUND/MINJUST,
+/// локальные UTF-8 byte spans (occurrences, sorted by source position).
+pub fn scan_anchors(paras: &[String]) -> Vec<Anchor> {
+    scan_anchors_diagnosed(paras).0
 }

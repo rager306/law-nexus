@@ -1,6 +1,6 @@
 use ln_storage::{
-    adapters::tei::{EmbeddingTransport, TeiEmbeddingAdapter, TransportError},
     EmbeddingPort, EmbeddingRequest, StorageError,
+    adapters::tei::{EmbeddingTransport, TeiEmbeddingAdapter, TransportError},
 };
 
 struct StubTransport {
@@ -77,25 +77,58 @@ fn adapter_rejects_non_finite_response() {
 }
 
 #[test]
-fn adapter_maps_transport_unavailable_to_internal() {
+fn adapter_maps_transport_unavailable_to_transport_unavailable() {
     let transport = StubTransport {
         vector: Err(TransportError::Unavailable),
     };
     let adapter = TeiEmbeddingAdapter::try_new(transport, "tei-bge-m3", 1024).unwrap();
     assert!(matches!(
         adapter.embed(&request("tei-bge-m3", 1024)),
-        Err(StorageError::Internal(_))
+        Err(StorageError::TransportUnavailable)
     ));
 }
 
 #[test]
-fn adapter_maps_transport_bad_response_to_internal() {
+fn adapter_maps_transport_timeout_to_transport_timeout() {
+    let transport = StubTransport {
+        vector: Err(TransportError::Timeout),
+    };
+    let adapter = TeiEmbeddingAdapter::try_new(transport, "tei-bge-m3", 1024).unwrap();
+    assert!(matches!(
+        adapter.embed(&request("tei-bge-m3", 1024)),
+        Err(StorageError::TransportTimeout)
+    ));
+}
+
+#[test]
+fn adapter_maps_transport_bad_response_to_transport_bad_response() {
     let transport = StubTransport {
         vector: Err(TransportError::BadResponse("HTTP 500".to_owned())),
     };
     let adapter = TeiEmbeddingAdapter::try_new(transport, "tei-bge-m3", 1024).unwrap();
-    let err = adapter.embed(&request("tei-bge-m3", 1024));
-    assert!(matches!(err, Err(StorageError::Internal(msg)) if msg.contains("HTTP 500")));
+    assert!(matches!(
+        adapter.embed(&request("tei-bge-m3", 1024)),
+        Err(StorageError::TransportBadResponse)
+    ));
+}
+
+#[test]
+fn adapter_fail_closed_drops_server_detail_and_response() {
+    // A transport failure must never fabricate a vector or leak the raw
+    // server message across the adapter boundary.
+    let transport = StubTransport {
+        vector: Err(TransportError::BadResponse(
+            "HTTP 500 secret legal payload".to_owned(),
+        )),
+    };
+    let adapter = TeiEmbeddingAdapter::try_new(transport, "tei-bge-m3", 1024).unwrap();
+    let outcome = adapter.embed(&request("tei-bge-m3", 1024));
+    assert!(outcome.is_err(), "transport failure must be fail-closed");
+    let error = outcome.err().unwrap();
+    assert_eq!(error, StorageError::TransportBadResponse);
+    let rendered = error.to_string();
+    assert!(!rendered.contains("secret legal payload"));
+    assert!(!rendered.contains("HTTP 500"));
 }
 
 #[test]

@@ -105,15 +105,15 @@ pub fn process_editions_directory(dir: &std::path::Path) -> Vec<EditionSummary> 
     files.sort();
     for path in files {
         let filename = path.file_name().unwrap().to_string_lossy().into_owned();
-        if let Some((num, rev)) = parse_edition_filename(&filename) {
-            if let Ok(xml) = std::fs::read(&path) {
-                results.push(process_edition_for_path(
-                    &xml,
-                    num,
-                    &rev,
-                    &path.to_string_lossy(),
-                ));
-            }
+        if let Some((num, rev)) = parse_edition_filename(&filename)
+            && let Ok(xml) = std::fs::read(&path)
+        {
+            results.push(process_edition_for_path(
+                &xml,
+                num,
+                &rev,
+                &path.to_string_lossy(),
+            ));
         }
     }
     results

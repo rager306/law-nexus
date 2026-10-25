@@ -1,0 +1,141 @@
+{
+  "binding": {
+    "binary_path": "/root/law-nexus/target/release/consumer-run",
+    "binary_sha256": "sha256:fa114a200fd436ad61a1c03fea44920f0a7920976a8c1286ae69e756532a06e3",
+    "code_revision": "sha256:89c1e5cd04479fd93857ff651bb3d6dbcaf283a88f8b78d57345f4b0f1409b6d",
+    "rules_digest": "sha256:972539f0898c6a9bd45c89439d4891b261dfac9e839cf757a933aa8700163e04"
+  },
+  "counts_byte_identical": true,
+  "entries": [
+    {
+      "counts_digest": "sha256:5dc5bca1343baaea355ba140151a69116a47e099c73627fa3f4057f840ea0ac1",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "courts/arb/000879098-edition-4522ae7071582e468413eb84.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:0e7480bcdd559e345584f9272f4389b90bf591b34512654826d168ff4365e7ea",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "courts/arb/000891883-edition-905c4249198fd3bf39e3d06e.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:e8f7eb5303a6ed423a95079539940a2e10826b4c7611c19956c383b1c5485014",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "courts/asz/000322887-edition-cf871189ebf3677d5cdccb05.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:039d723901e4a6214e229693fc2320430d73f7b17bb0e0bc90cdcf7607114bf3",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "courts/marb/003041062-edition-9dfffa2185f1b9e6b62c0ec6.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:d6d26d50f45eaf5b8f74e83c9693de2630315a0b5591ad8ad7ec640d7a1586fe",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "fas/decision_2025-02-25_ak-16311-25_rev-unknown_0b435006.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:abf7e63020fbd5781ffce3fba308aa45e73c7433b4ab77c8deb4bf754a9ce09b",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "fas/decision_2025-04-15_ak-34964-25_rev-unknown_1e0230ac.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:dd9e6434730a5eb54c521c548bc8110d10a54ecabbbee2167d28dbd6ee013010",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "fas/decision_2025-04-21_gm-37534-25_rev-unknown_5ddced0f.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:b3e9ede64ffd71e2475d26d66c31c028909de15162c2c4b000165ac6bd2f38b8",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "fas/decision_2025-07-07_av-62938-25_rev-unknown_da31f947.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:8779fdb0510c84e557c148a63fdec2f3e82d6173ef650a63a8162404684e10e9",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "npa/law_2017-03-28_36-fz_rev-unknown_edce42a3.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:40289109f2c1efbcc5c5b390e6a6e19a9579b692ece7e9220eb95f8cdb61679a",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "npa/law_2017-03-28_45-fz_rev-unknown_e00203d1.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:bb3df5498e2cbcc68feea52af81ef174d420306af4809514398acfd23a0f014d",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "npa/law_2018-08-03_311-fz_rev-unknown_14cf736d.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:895ec98da283a39eb4eeb49d0b7a4d7deeb0b9fb5b32863f17bda1d16724e6b0",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "npa/law_2018-12-27_512-fz_rev-unknown_0df6069a.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:24c84acbed21ad251c498304950b7f167b06ebecf5f87fd21d80b525a0f5b0dd",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "xml/law/156084/edition-9f2c360eed7a5de3dbc97341.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:2aeff2327903193868b7cd6b2a31b5528a2d69656de3a93fca1dcc85fd9ca264",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "xml/law/178657/edition-9087cbbfbcfa6998370a563e.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:09fbe5c6a72ba87598ded0945f30f0bee86a8583938d4f9366d3b9127a4c0f0a",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "xml/law/283101/edition-04f5352f974350d6d525321b.xml",
+      "second_outcome": "accepted"
+    },
+    {
+      "counts_digest": "sha256:5218f9dbc41dba709636e85cbc5e89171202a69070b35bd0486e697085f0abf2",
+      "counts_identical": true,
+      "first_outcome": "accepted",
+      "relative_path": "xml/law/509715/edition-682ce99454753945535d4981.xml",
+      "second_outcome": "accepted"
+    }
+  ],
+  "non_claims": [
+    "Not an R1000 closure artifact and not a semantic or legal interpretation; R1000 stays active/unclosed.",
+    "The counts document is a counts-only read of the materialized JSONL layers; it is NOT an independent substrate verification and NOT an authenticity claim.",
+    "A partial run is never reported as full (partial_is_not_full=true).",
+    "No raw decoded text reaches receipts, the report, diagnostics or stdout; every persisted string is a path, a hash, a count or a closed token.",
+    "The S03 baseline is an acceptance/integrity baseline, not a semantic oracle; S07 reconciles counts only.",
+    "The proof subset is a deterministic sample of the pinned manifest; its receipt bindings are snapshot-bound and shift with any tracked-file change.",
+    "The SIGTERM interruption is enforced by a real signal to the harness process; the harness signal handler unwinds the live-poll loop, which SIGKILLs and reaps the in-flight consumer child, so an interrupted attempt never orphans a consumer.",
+    "Whether the pinned corpus emits any typed consumer refusal is a result of the run, reported by the ledger's refused_by_class, and is never asserted in advance."
+  ],
+  "note": "the consumer imports the same materialized JSONL layers twice; the repeat import is an idempotent no-op and the counts are byte-identical",
+  "ok": true,
+  "r1000_status": "active/unclosed",
+  "schema": "m223-s07-repeat-import-proof/v1",
+  "subset": {
+    "digest": "sha256:ed89e7a69ca2c45fb30d40820a5081a144d9bbcec1d5f37bb5c0dc5d844728d4",
+    "size": 16
+  }
+}

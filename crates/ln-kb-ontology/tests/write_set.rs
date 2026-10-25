@@ -2,13 +2,13 @@
 
 use ln_identity::domain::mint_work;
 use ln_kb_ontology::domain::{
-    project_expression, project_force_event, project_join, project_membership,
-    project_structural_ast, project_work, reject_forbidden_kind, WriteSet, WriteSetError,
+    WriteSet, WriteSetError, project_expression, project_force_event, project_join,
+    project_membership, project_structural_ast, project_work, reject_forbidden_kind,
 };
 use ln_temporal::domain::{
-    fold_membership_at, join_force_with_membership, AmendingActId, ComponentConceptId,
-    ForceStatusEvent, ForceStatusTimeline, MembershipChangeKind, MembershipEdge, MembershipGraph,
-    NormativeState, VersionedMembershipEvent, VersionedMembershipLog,
+    AmendingActId, ComponentConceptId, ForceStatusEvent, ForceStatusTimeline, MembershipChangeKind,
+    MembershipEdge, MembershipGraph, NormativeState, VersionedMembershipEvent,
+    VersionedMembershipLog, fold_membership_at, join_force_with_membership,
 };
 
 fn cc(id: &str) -> ComponentConceptId {
@@ -26,10 +26,11 @@ fn project_work_emits_work_node_not_force() {
     assert!(set.nodes.iter().any(|n| n.kind == "Work"));
     assert!(!set.nodes.iter().any(|n| n.kind == "ForceStatusEvent"));
     assert!(!set.claims_applicability);
-    assert!(set
-        .non_claims
-        .iter()
-        .any(|c| c.contains("not") || c.contains("I/O")));
+    assert!(
+        set.non_claims
+            .iter()
+            .any(|c| c.contains("not") || c.contains("I/O"))
+    );
 }
 
 #[test]
@@ -96,10 +97,11 @@ fn write_set_never_claims_store_io() {
     let work = mint_work("federal", "2013-04-05", "44-fz").expect("work");
     let set = project_work(&work).expect("project");
     assert!(!set.performs_io);
-    assert!(set
-        .non_claims
-        .iter()
-        .any(|c| c.contains("I/O") || c.contains("RuVector") || c.contains("store")));
+    assert!(
+        set.non_claims
+            .iter()
+            .any(|c| c.contains("I/O") || c.contains("RuVector") || c.contains("store"))
+    );
 }
 
 #[test]

@@ -1,4 +1,4 @@
-use crate::domain::{CaseResult, CaseVerdict, ConformanceResult, CONFORMANCE_POLICY_VERSION};
+use crate::domain::{CONFORMANCE_POLICY_VERSION, CaseResult, CaseVerdict, ConformanceResult};
 use crate::ports::ConformanceOraclePort;
 
 pub struct EvaluateConformance<O> {

@@ -1,0 +1,1198 @@
+{
+  "schema": "law-nexus/m210-s04-rc28-review-cards/v1",
+  "schema_version": 1,
+  "kind": "m210-s04-rc28-review-cards",
+  "milestone": "M210-3afp79",
+  "slice": "S04",
+  "task": "T03",
+  "lifecycle": [
+    "proposed"
+  ],
+  "authoritative": false,
+  "ascii_only": true,
+  "status_effect": "unchanged",
+  "review_case": {
+    "packet_id": "RC-2026-09-10-001",
+    "packet_path": "prd/architecture/review-cases/packets/RC-2026-09-10-001.json",
+    "packet_file_sha256": "sha256:b75c0c228b10811399e5bad1b0649b7d33591597d433fca13dadb425c76eea64",
+    "packet_authoritative": false,
+    "packet_authority_required": true,
+    "source_path": "doc/review/review-28-10-09-2026.md",
+    "source_content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1",
+    "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+    "findings_total": 19,
+    "findings_open": 19,
+    "human_disposition_event_count": 0,
+    "events_directory_present": false,
+    "actor_bound_path_available": false,
+    "actor_bound_scope": "record_human_disposition"
+  },
+  "matrix_binding": {
+    "path": "prd/architecture/m210-s04-finding-evidence-matrix.json",
+    "sha256": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+    "schema": "law-nexus/m210-s04-finding-evidence-matrix/v1",
+    "finding_count": 19
+  },
+  "tested_source_revision_model": {
+    "kind": "m210-s04-finding-evidence-matrix content sha256",
+    "path": "prd/architecture/m210-s04-finding-evidence-matrix.json",
+    "sha256": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+    "note": "the cards are derived from the T02 evidence matrix; the live matrix digest is the tested source revision on every card, so matrix drift changes every card revision and fails --check"
+  },
+  "vocabularies": {
+    "proof_class": [
+      "evidence",
+      "process",
+      "implementation",
+      "design",
+      "docs"
+    ],
+    "evidence_class": [
+      "evidence",
+      "process",
+      "implementation",
+      "design",
+      "docs"
+    ],
+    "check_outcome": [
+      "evidence_present_class_matched",
+      "evidence_present_residual_named",
+      "evidence_absent_residual_named",
+      "evidence_class_mismatch",
+      "awaiting_owner_decision",
+      "gate_hold"
+    ],
+    "proposed_disposition": [
+      "open",
+      "needs_discussion",
+      "needs_research",
+      "accepted_as_gap",
+      "accepted_as_requirement_candidate",
+      "accepted_as_decision_candidate",
+      "accepted_as_process_defect",
+      "already_satisfied",
+      "rejected",
+      "deferred",
+      "duplicate",
+      "superseded",
+      "not_applicable"
+    ],
+    "alternatives": [
+      "change",
+      "defer",
+      "stop_session"
+    ]
+  },
+  "recommendation_model": {
+    "advisory": true,
+    "is_consent": false,
+    "preselected": false,
+    "blanket_confirmation_forbidden": true,
+    "read_back_required_after_each_answer": true,
+    "drift_cancels_proposal": true,
+    "submission_channel_used": "none",
+    "actor_bound_path_available": false
+  },
+  "session_rules": [
+    "Every finding is answered individually. Grouping reduces reading only and never turns one blanket confirmation into 19 decisions.",
+    "A recommendation is advisory and is not consent; the recommendation field keeps advisory=true and is_consent=false.",
+    "After each answer, read back the finding id, the chosen outcome, the tested revision and the rationale.",
+    "Drift of a source, an evidence digest or a packet fingerprint between display and submission cancels the proposal and requires a new review.",
+    "Only findings explicitly confirmed are persisted, and only through an actor-bound submission path.",
+    "The session writes no Review Case event and selects no option on the human's behalf."
+  ],
+  "grouping": [
+    {
+      "group_id": "g-evidence",
+      "concern_class": "evidence",
+      "label_ru": "evidence",
+      "finding_ids": [
+        "RC28-F01",
+        "RC28-F02",
+        "RC28-F03",
+        "RC28-F15",
+        "RC28-F16",
+        "RC28-F17"
+      ],
+      "count": 6
+    },
+    {
+      "group_id": "g-process",
+      "concern_class": "process",
+      "label_ru": "process",
+      "finding_ids": [
+        "RC28-F04",
+        "RC28-F05"
+      ],
+      "count": 2
+    },
+    {
+      "group_id": "g-implementation",
+      "concern_class": "implementation",
+      "label_ru": "implementation",
+      "finding_ids": [
+        "RC28-F06",
+        "RC28-F07",
+        "RC28-F08",
+        "RC28-F09",
+        "RC28-F10",
+        "RC28-F11"
+      ],
+      "count": 6
+    },
+    {
+      "group_id": "g-design",
+      "concern_class": "design",
+      "label_ru": "design",
+      "finding_ids": [
+        "RC28-F12",
+        "RC28-F13",
+        "RC28-F14",
+        "RC28-F18"
+      ],
+      "count": 4
+    },
+    {
+      "group_id": "g-docs",
+      "concern_class": "docs",
+      "label_ru": "docs",
+      "finding_ids": [
+        "RC28-F19"
+      ],
+      "count": 1
+    }
+  ],
+  "cards": [
+    {
+      "finding_id": "RC28-F01",
+      "summary": "C5 admission and measurements are not derived from coding",
+      "concern_class": "evidence",
+      "group": "g-evidence",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "evidence",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "evidence",
+      "check_outcome": "evidence_absent_residual_named",
+      "mismatch_reason_code": null,
+      "residual_scope": "the human coder-bound measurement is absent from M207's revised scope; only the frozen protocol and the fail-closed non-pass receipt exist",
+      "non_claims": [
+        "D519 removed the M207 obligation for that measurement; it is a scope deferral and is not evidence for RC28-F01",
+        "the producer-to-promotion negative tests are machine-checkable separately, and no human measurement is claimed to exist"
+      ],
+      "proposed_disposition": "deferred",
+      "proposed_disposition_basis": "D519 is a scope deferral, not evidence: the coder-bound measurement is absent and only the frozen protocol and the non-pass receipt exist",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F01: C5 admission and measurements are not derived from coding. Which disposition should the owner record? Advisory recommendation: deferred. Alternatives: change, defer, stop_session.",
+      "deferral_reference": "D519",
+      "deferral_treated_as_proof": false
+    },
+    {
+      "finding_id": "RC28-F02",
+      "summary": "Sampling and metadata do not implement stated strata",
+      "concern_class": "evidence",
+      "group": "g-evidence",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "evidence",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "evidence",
+      "check_outcome": "evidence_present_residual_named",
+      "mismatch_reason_code": null,
+      "residual_scope": "the evaluation contract is frozen before measurement; no rate is published and the human reference is absent, so the required checks exist as a contract only",
+      "non_claims": [
+        "a frozen evaluation contract is not computed evidence and not a measured rate",
+        "no provider stratum, Work-family stratum or aspect value is published by this row"
+      ],
+      "proposed_disposition": "deferred",
+      "proposed_disposition_basis": "the frozen protocol is class-matched but no measured strata exist; the measurement is the named residual",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F02: Sampling and metadata do not implement stated strata. Which disposition should the owner record? Advisory recommendation: deferred. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F03",
+      "summary": "C4 identity and comparability are insufficient",
+      "concern_class": "evidence",
+      "group": "g-evidence",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "evidence",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "evidence",
+      "check_outcome": "evidence_present_residual_named",
+      "mismatch_reason_code": null,
+      "residual_scope": "the receipt self-declares operational_acceptance=non-pass; the operational criterion is not met, so the actual operational outcome is negative evidence",
+      "non_claims": [
+        "receipt presence is not runtime freshness, successful admission, parser readiness or legal acceptance",
+        "the receipt is not gold and not a promotion"
+      ],
+      "proposed_disposition": "accepted_as_gap",
+      "proposed_disposition_basis": "the C4 receipt self-declares operational_acceptance non-pass; the operational criterion is not met",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F03: C4 identity and comparability are insufficient. Which disposition should the owner record? Advisory recommendation: accepted_as_gap. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F04",
+      "summary": "UAT acceptance changed across attempts",
+      "concern_class": "process",
+      "group": "g-process",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "process",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "process",
+      "check_outcome": "evidence_present_class_matched",
+      "mismatch_reason_code": null,
+      "residual_scope": "none found in this pass for the versioned-acceptance and predecessor-chain part; C4 operational acceptance remains non-pass and is tracked by RC28-F03",
+      "non_claims": [
+        "the sanctioned integrity outcome is process evidence, not semantic acceptance and not C4 operational acceptance",
+        "a predecessor digest proves chain identity, not product correctness"
+      ],
+      "proposed_disposition": "already_satisfied",
+      "proposed_disposition_basis": "the sanctioned outcome and its fresh repeat are class-matched and re-verified with a predecessor digest chain",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F04: UAT acceptance changed across attempts. Which disposition should the owner record? Advisory recommendation: already_satisfied. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F05",
+      "summary": "GSD coordination failures are independent of parser semantics",
+      "concern_class": "process",
+      "group": "g-process",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "process",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "process",
+      "check_outcome": "evidence_present_residual_named",
+      "mismatch_reason_code": null,
+      "residual_scope": "pending_task_identity_unresolved (four pending task identities are not identified in the recorded inventory, and only the 2184/2188 pending=4 expectation is recorded); the upstream 2412 filing has no tracked filing artifact, only an inventory prose reference",
+      "non_claims": [
+        "the reproduction is not an engine repair and does not fix the upstream defects",
+        "this matrix publishes nothing upstream and claims no filing identifier beyond the inventory prose"
+      ],
+      "proposed_disposition": "accepted_as_process_defect",
+      "proposed_disposition_basis": "the claim dispatch defect is reproduced and lawfully recovered, but four pending task identities stay unresolved",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F05: GSD coordination failures are independent of parser semantics. Which disposition should the owner record? Advisory recommendation: accepted_as_process_defect. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F06",
+      "summary": "Document containers are pushed without sibling closure",
+      "concern_class": "implementation",
+      "group": "g-implementation",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "implementation",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "docs",
+      "check_outcome": "evidence_class_mismatch",
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "residual_scope": "only M206 adoption-state documentation and the M205 design crosswalk exist; there is no implementation proof of sibling or annex closure",
+      "non_claims": [
+        "an adoption-state record and a design crosswalk are not implementation evidence",
+        "no lifecycle smoothing: this row cannot raise the requirement evidence table above class_matched=false"
+      ],
+      "proposed_disposition": "accepted_as_gap",
+      "proposed_disposition_basis": "adoption-state documents are not implementation proof; the container sibling closure gap remains",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F06: Document containers are pushed without sibling closure. Which disposition should the owner record? Advisory recommendation: accepted_as_gap. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F07",
+      "summary": "Continuation eligibility is global and compares local offsets",
+      "concern_class": "implementation",
+      "group": "g-implementation",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "implementation",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "docs",
+      "check_outcome": "evidence_class_mismatch",
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "residual_scope": "M206/S03 itself states that F07, F08 and F12 remain open, and the M206/S07 runtime admission is scoped to that slice's remediation only",
+      "non_claims": [
+        "a scoped runtime admission is not implementation proof for this finding",
+        "no continuation graph is claimed to be corrected by this row"
+      ],
+      "proposed_disposition": "accepted_as_gap",
+      "proposed_disposition_basis": "adoption-state documents are not implementation proof; the continuation eligibility gap remains",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F07: Continuation eligibility is global and compares local offsets. Which disposition should the owner record? Advisory recommendation: accepted_as_gap. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F08",
+      "summary": "ThisRef evidence is lost and context ownership is duplicated",
+      "concern_class": "implementation",
+      "group": "g-implementation",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "implementation",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "docs",
+      "check_outcome": "evidence_class_mismatch",
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "residual_scope": "M206/S03 states F08 remains open; the ThisRef evidence path is documented as a design obligation, not as a corrected implementation",
+      "non_claims": [
+        "a design obligation is not implementation evidence",
+        "constant abstention is not claimed to prove useful completeness or correct resolution"
+      ],
+      "proposed_disposition": "accepted_as_gap",
+      "proposed_disposition_basis": "adoption-state documents are not implementation proof; the ThisRef ownership gap remains",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F08: ThisRef evidence is lost and context ownership is duplicated. Which disposition should the owner record? Advisory recommendation: accepted_as_gap. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F09",
+      "summary": "Local grammar cannot depend only on already captured members",
+      "concern_class": "implementation",
+      "group": "g-implementation",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "implementation",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "docs",
+      "check_outcome": "evidence_class_mismatch",
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "residual_scope": "only the M206/S02 adoption state and the M205 design crosswalk exist; no implementation proof of pre-capture members or bounded arbitration",
+      "non_claims": [
+        "the design crosswalk is prior-art inventory and never product runtime",
+        "no D388 gate is adopted by this row"
+      ],
+      "proposed_disposition": "accepted_as_gap",
+      "proposed_disposition_basis": "adoption-state documents are not implementation proof; the already captured member dependency gap remains",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F09: Local grammar cannot depend only on already captured members. Which disposition should the owner record? Advisory recommendation: accepted_as_gap. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F10",
+      "summary": "Token and range variants diverge across stages",
+      "concern_class": "implementation",
+      "group": "g-implementation",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "implementation",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "docs",
+      "check_outcome": "evidence_class_mismatch",
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "residual_scope": "adoption-state records and a design crosswalk only; the normalization, morphology and membership distinctions are not proved by implementation evidence",
+      "non_claims": [
+        "no arithmetic range expansion and no vendor threshold copy is claimed",
+        "a design deferral is not implementation evidence"
+      ],
+      "proposed_disposition": "accepted_as_gap",
+      "proposed_disposition_basis": "adoption-state documents are not implementation proof; the token and range variant divergence remains",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F10: Token and range variants diverge across stages. Which disposition should the owner record? Advisory recommendation: accepted_as_gap. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F11",
+      "summary": "Semantic cues are substrings and Actor can cover a whole block",
+      "concern_class": "implementation",
+      "group": "g-implementation",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "implementation",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "docs",
+      "check_outcome": "evidence_class_mismatch",
+      "mismatch_reason_code": "adoption_docs_are_not_implementation_proof",
+      "residual_scope": "only an adoption-state record and a context FSM design document exist; no implementation proof of token-bound matching, negation or participant spans",
+      "non_claims": [
+        "cue recognition is not a NormRule and this row adopts no deferred legal IR",
+        "no semantic-cue fix is claimed"
+      ],
+      "proposed_disposition": "accepted_as_gap",
+      "proposed_disposition_basis": "adoption-state documents are not implementation proof; the substring cue and whole-block Actor gap remains",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F11: Semantic cues are substrings and Actor can cover a whole block. Which disposition should the owner record? Advisory recommendation: accepted_as_gap. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F12",
+      "summary": "Self, antecedent, alias and edition reference are different constructions",
+      "concern_class": "design",
+      "group": "g-design",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "design",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "design",
+      "check_outcome": "evidence_present_residual_named",
+      "mismatch_reason_code": null,
+      "residual_scope": "M206/S03 states F12 remains open; the edition relation is preserved as a source-backed relation candidate rather than substituted for identity",
+      "non_claims": [
+        "the edition reference is not Expression identity, edition_date, CTV or force",
+        "an open adoption state is not a design closure"
+      ],
+      "proposed_disposition": "accepted_as_gap",
+      "proposed_disposition_basis": "the self, antecedent, alias and edition reference distinction remains a design gap with a named residual",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F12: Self, antecedent, alias and edition reference are different constructions. Which disposition should the owner record? Advisory recommendation: accepted_as_gap. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F13",
+      "summary": "Amendment syntax is the missing bridge to the temporal compiler",
+      "concern_class": "design",
+      "group": "g-design",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "design",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "design",
+      "check_outcome": "awaiting_owner_decision",
+      "mismatch_reason_code": null,
+      "residual_scope": "no live adoption owner: the M205 context FSM records runtime_stop_active with the replay handed to M208, M208 recorded not-adopted three times with owner_admission_ref none and runtime_work not-started, and the operation registry stays proposed",
+      "non_claims": [
+        "deferred-explicit is an explicit owner defer, not a missing answer and not a hold",
+        "an agent may prepare the three lawful outcomes; only the owner chooses one and records the decision",
+        "an extracted operation is not an admitted MicroOperation, LegislativeEffect or InForce"
+      ],
+      "proposed_disposition": "deferred",
+      "proposed_disposition_basis": "explicit owner defer: no live adoption owner exists and M208 recorded not-adopted three times",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F13: Amendment syntax is the missing bridge to the temporal compiler. Which disposition should the owner record? Advisory recommendation: deferred. Alternatives: change, defer, stop_session.",
+      "owner_status": "deferred-explicit"
+    },
+    {
+      "finding_id": "RC28-F14",
+      "summary": "Pullenti general semantics is not a normative authority",
+      "concern_class": "design",
+      "group": "g-design",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "design",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "design",
+      "check_outcome": "evidence_present_class_matched",
+      "mismatch_reason_code": null,
+      "residual_scope": "several crosswalk rows keep human_adoption pending and the optional differential run stays license-gated; the M208 optional component is not adopted",
+      "non_claims": [
+        "the prior-art matrix is not a license grant and not runtime parity",
+        "agreement with the vendor is not gold and not a second human coder"
+      ],
+      "proposed_disposition": "already_satisfied",
+      "proposed_disposition_basis": "the functional prior-art matrix is class-matched and re-verified with design-only non-claims",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F14: Pullenti general semantics is not a normative authority. Which disposition should the owner record? Advisory recommendation: already_satisfied. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F15",
+      "summary": "Human gold and metaprompt boundaries must be executable",
+      "concern_class": "evidence",
+      "group": "g-evidence",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "evidence",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "evidence",
+      "check_outcome": "evidence_absent_residual_named",
+      "mismatch_reason_code": null,
+      "residual_scope": "the human contour is absent and no rate is published; a codebook and a coder kit are neither labels nor gold, and the pilot cannot be enlarged automatically",
+      "non_claims": [
+        "D519 is a scope deferral and is not independent annotation",
+        "no automatic seed enlargement and no substitute for human acceptance"
+      ],
+      "proposed_disposition": "deferred",
+      "proposed_disposition_basis": "D519 is a scope deferral, not evidence: the independent annotation and the source-bound human acceptance are absent",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F15: Human gold and metaprompt boundaries must be executable. Which disposition should the owner record? Advisory recommendation: deferred. Alternatives: change, defer, stop_session.",
+      "deferral_reference": "D519",
+      "deferral_treated_as_proof": false
+    },
+    {
+      "finding_id": "RC28-F16",
+      "summary": "R035 requires named integration proof, not document counts",
+      "concern_class": "evidence",
+      "group": "g-evidence",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "evidence",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "evidence",
+      "check_outcome": "gate_hold",
+      "mismatch_reason_code": null,
+      "residual_scope": "the gate register is delivered with named gates and per-gate quantifiers, but GATE-G015 is conflicted with zero promoted rows and punkt is not-adopted with owner_admission_ref none and zero punkt rows",
+      "non_claims": [
+        "contract counts (28/28, 21/21, 35/35) are not extraction proof and no count-only closure is available",
+        "no requirement is promoted from the gate register"
+      ],
+      "proposed_disposition": "deferred",
+      "proposed_disposition_basis": "the gate register is delivered but GATE-G015 is conflicted and nothing is promoted, so the gate stays held",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F16: R035 requires named integration proof, not document counts. Which disposition should the owner record? Advisory recommendation: deferred. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F17",
+      "summary": "R070 requires causal, scoped temporal proof",
+      "concern_class": "evidence",
+      "group": "g-evidence",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "evidence",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "evidence",
+      "check_outcome": "evidence_present_residual_named",
+      "mismatch_reason_code": null,
+      "residual_scope": "M209/S03 delivered scoped coverage and M209/S04 adjudicates the scope, while the M208 components stay not-adopted and R070 remains HOLD",
+      "non_claims": [
+        "consolidated snapshots are oracles, not legislative causes",
+        "the frozen M201 pins are untouched and are not provenance for the consolidated editions"
+      ],
+      "proposed_disposition": "accepted_as_gap",
+      "proposed_disposition_basis": "scoped coverage is delivered while the M208 components stay not-adopted as the historical admission attempt",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F17: R070 requires causal, scoped temporal proof. Which disposition should the owner record? Advisory recommendation: accepted_as_gap. Alternatives: change, defer, stop_session."
+    },
+    {
+      "finding_id": "RC28-F18",
+      "summary": "Normative semantics needs separate adoption, not four-slot completion",
+      "concern_class": "design",
+      "group": "g-design",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "design",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "design",
+      "check_outcome": "evidence_present_residual_named",
+      "mismatch_reason_code": null,
+      "residual_scope": "the authenticated bounded adoption of variant C is established by the v2 checkpoint and the v2 answer record (subjective-UAT criterion 37181c25-88b0-4896-bffe-d10642970e6f); the independent evaluation and the ledger disposition are separate and still pending",
+      "non_claims": [
+        "adoption is not activation: the candidate layer is permitted but nothing is implemented",
+        "adoption is not submission authority: the actor-bound path stays unavailable for record_human_disposition",
+        "auto-close is forbidden; no agent may close this finding"
+      ],
+      "proposed_disposition": "deferred",
+      "proposed_disposition_basis": "bounded adoption evidence for variant C is present; the independent evaluation and the ledger disposition are separate and pending, and auto-close is forbidden",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F18: Normative semantics needs separate adoption, not four-slot completion. Which disposition should the owner record? Advisory recommendation: deferred. Alternatives: change, defer, stop_session.",
+      "owner_status": "bounded_adoption_established",
+      "adoption_evidence_status": "bounded_adoption_evidence_present",
+      "auto_close": false,
+      "criterion_id": "37181c25-88b0-4896-bffe-d10642970e6f",
+      "adoption_refs": [
+        {
+          "path": "prd/architecture/m210-s02-adoption-checkpoint-v2.md",
+          "kind": "v2_checkpoint",
+          "sha256": "sha256:6556bab25ab1c046784087311947d354f6eeb4815de2f879f477006f20813902"
+        },
+        {
+          "path": "prd/architecture/m210-s02-answer-record-v2.json",
+          "kind": "v2_answer_record",
+          "sha256": "sha256:b45762e9cb0a67dc7b7eb01501a347200ae652be0381efa7db876ff4c3e4c8cd"
+        }
+      ],
+      "independent_evaluation_status": "pending",
+      "ledger_disposition_status": "pending"
+    },
+    {
+      "finding_id": "RC28-F19",
+      "summary": "Documentation and verification contracts need synchronized correction",
+      "concern_class": "docs",
+      "group": "g-docs",
+      "source": {
+        "packet_id": "RC-2026-09-10-001",
+        "source_path": "doc/review/review-28-10-09-2026.md",
+        "reviewed_git_revision": "6f1a27537a659f291e0147e0fbd8be6ca199261c",
+        "content_sha256": "sha256:baad2d036a629be39fa049c7aab7d1383ffc77524db38e7ce2767252533b15a1"
+      },
+      "proof_class": "docs",
+      "tested_source_revision": "sha256:fc1928e246dd3e95afc37750524eda752a9dd023f8a3be175ec964208e08b0c5",
+      "evidence_class": "docs",
+      "check_outcome": "evidence_present_residual_named",
+      "mismatch_reason_code": null,
+      "residual_scope": "this matrix supplies the class-matched docs/matrix check for the RC28 evidence and finds no lifecycle smoothing; the broader documentation synchronization stays with the owning M205/S04 handoff and the owning implementation slices",
+      "non_claims": [
+        "no requirement is promoted and the class-matched requirement id list stays empty",
+        "historical reviews and receipts are preserved; corrections append or explicitly supersede and never silently relabel M203 as readiness"
+      ],
+      "proposed_disposition": "accepted_as_gap",
+      "proposed_disposition_basis": "the docs and matrix synchronization is class-matched here, but the broader correction stays with the owning handoff",
+      "alternatives": [
+        {
+          "id": "change",
+          "label": "Change",
+          "description": "record a change or repair disposition for this finding"
+        },
+        {
+          "id": "defer",
+          "label": "Defer",
+          "description": "record an explicit deferral that names the residual scope"
+        },
+        {
+          "id": "stop_session",
+          "label": "Stop session",
+          "description": "stop the review session without recording any disposition"
+        }
+      ],
+      "recommendation": {
+        "advisory": true,
+        "is_consent": false
+      },
+      "preselected": false,
+      "selected": false,
+      "human_answer": null,
+      "session_question": "RC28-F19: Documentation and verification contracts need synchronized correction. Which disposition should the owner record? Advisory recommendation: accepted_as_gap. Alternatives: change, defer, stop_session."
+    }
+  ],
+  "summary": {
+    "card_count": 19,
+    "group_count": 5,
+    "findings_per_group": {
+      "g-evidence": 6,
+      "g-process": 2,
+      "g-implementation": 6,
+      "g-design": 4,
+      "g-docs": 1
+    },
+    "proposed_disposition_counts": {
+      "deferred": 6,
+      "accepted_as_gap": 10,
+      "already_satisfied": 2,
+      "accepted_as_process_defect": 1
+    },
+    "check_outcome_counts": {
+      "evidence_absent_residual_named": 2,
+      "evidence_present_residual_named": 7,
+      "evidence_present_class_matched": 2,
+      "evidence_class_mismatch": 6,
+      "awaiting_owner_decision": 1,
+      "gate_hold": 1
+    },
+    "evidence_class_values": [
+      "design",
+      "docs",
+      "evidence",
+      "process"
+    ],
+    "alternatives_minimum": [
+      "change",
+      "defer",
+      "stop_session"
+    ],
+    "advisory_recommendation_count": 19,
+    "preselected_count": 0,
+    "selected_count": 0,
+    "human_answer_count": 0,
+    "status_effect_values": [
+      "unchanged"
+    ]
+  },
+  "presentation": {
+    "path": "prd/architecture/m210-s04-rc28-review-presentation.md",
+    "group_count": 5,
+    "finding_references_per_finding": 1,
+    "sections": [
+      "What this is",
+      "Groups",
+      "Session rules",
+      "Non-claims"
+    ],
+    "language": "ru"
+  },
+  "boundary": {
+    "review_case_events_written": false,
+    "record_human_disposition_called": false,
+    "dispositions_recorded": 0,
+    "options_selected": 0,
+    "requirements_promoted": [],
+    "requirement_status_mutated": false,
+    "runtime_touched": false,
+    "crates_touched": [],
+    "source_artifacts_rewritten": []
+  },
+  "non_claims": [
+    "These cards are a machine-prepared presentation for a human reviewer. They are not a Review Case disposition, not a legal conclusion, not a requirement closure and not a lifecycle promotion.",
+    "No Review Case event is written, no actor-bound human disposition path is invoked, no option is selected and no disposition is recorded; the RC28 findings stay open until a human records a disposition through a sanctioned path.",
+    "A recommendation is advisory and is not consent. Nothing is preselected: every card keeps preselected=false, selected=false and human_answer=null.",
+    "The packet, the reviewed revision and the review-document digest are shown on every card, but a live digest proves identity, not truth; the review document is authoritative only in its own artifact.",
+    "The bounded adoption of variant C recorded for RC28-F18 is adoption evidence. The independent evaluation and the ledger disposition are separate, still pending, and auto-close is forbidden.",
+    "D519 removed an M207 obligation; it is an explicit deferral and is never evidence for RC28-F01 or RC28-F15.",
+    "A RC28 HOLD remains until valid human dispositions exist; the adoption of variant C does not close any finding automatically."
+  ]
+}

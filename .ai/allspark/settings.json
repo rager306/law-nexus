@@ -1,0 +1,56 @@
+{
+  "updateChannel": "stable",
+  "rlmMaxDepth": 0,
+  "harnessRefinements": false,
+  "autoRefine": {
+    "enabled": false,
+    "compact": false
+  },
+  "factory": {
+    "enabled": false
+  },
+  "agentTraces": {
+    "enabled": false
+  },
+  "telemetry": {
+    "enabled": false
+  },
+  "compaction": {
+    "enabled": true,
+    "thresholdPercent": 80
+  },
+  "enableSkillCommands": true,
+  "lsp": {
+    "enabled": true
+  },
+  "graph": {
+    "enabled": false,
+    "auto": "off"
+  },
+  "editHybrid": {
+    "enabled": true,
+    "defaultMode": "replace"
+  },
+  "jev": {
+    "enabled": "off",
+    "autoThinking": "off",
+    "graphRerank": "off",
+    "toolArbiter": "off"
+  },
+  "debugLog": {
+    "enabled": false,
+    "level": "info",
+    "maxFiles": 5,
+    "maxBytes": 5242880
+  },
+  "mcpServers": {
+    "deepwiki": {
+      "type": "http",
+      "url": "https://mcp.deepwiki.com/mcp",
+      "enabled": true
+    }
+  },
+  "defaultProvider": "zai",
+  "defaultModel": "glm-5.3-flash",
+  "defaultThinkingLevel": "high"
+}

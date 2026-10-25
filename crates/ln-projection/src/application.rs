@@ -1,6 +1,6 @@
 use crate::domain::{
-    CeilingMetadata, CompletenessLabel, CurrencyLabel, ExecutorReport, NodeId, RebuildOutcome,
-    RebuildRequest, RebuildResult, RebuildTrace, PROJECTION_POLICY_VERSION,
+    CeilingMetadata, CompletenessLabel, CurrencyLabel, ExecutorReport, NodeId,
+    PROJECTION_POLICY_VERSION, RebuildOutcome, RebuildRequest, RebuildResult, RebuildTrace,
 };
 use crate::ports::RebuildExecutorPort;
 

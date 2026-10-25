@@ -442,6 +442,7 @@ document_groups:
     - "parsed_as Work→DocumentGroupRef binding is a system_observation heuristic, never legal authority (R8-10)"
     - "the document_groups vocabulary stays in the YAML catalog; only the binding (group + catalog version) transfers to the graph"
     - "court practice (court_practice) is text-only: practice text is not an AST (ADR-0020)"
+    - "non-normative class is a structural coverage heuristic, not a legal normativity claim"
   structural_roles:
     - container
     - unit
@@ -481,6 +482,16 @@ document_groups:
         - {token: razdel, role: container}
         - {token: glava, role: container}
         - {token: statya, role: unit}
+        # Замер 2026-09-27 (КоАП, document_2001-12-30_195-fz): статей 1121, но в тексте
+        # ещё 3165 частей `1.`, 910 пунктов `1)` и 15 подпунктов `а)`. При усечённой
+        # лестнице [razdel, glava, statya] они уходили в границы и терялись — то есть
+        # 4090 структурных узлов одного кодекса не попадали в скелет. Кодекс — это ФЗ
+        # плюс razdel, а не ФЗ без частей, поэтому subunit-уровни объявляются так же,
+        # как в federal_law@v1. Отличие code от federal_law@v1 остаётся одно: razdel
+        # (R8-08 — в федеральном законе маркер «Раздел» остаётся fail-closed границей).
+        - {token: chast, role: subunit, suffix: ".", number_style: digit, compound: true}
+        - {token: punkt, role: subunit, recursive: true, max_depth: 2, suffix: ")", number_style: digit, compound: true}
+        - {token: podpunkt, role: subunit, suffix: ")", number_style: letter_cyrillic, compound: false}
     - id: government_resolution
       granularity: punkt
       text_boundary: [unit, container]
@@ -496,7 +507,29 @@ document_groups:
         # rank conflicts). Lower rank than the explicit latin needles so a real
         # postanovlenie-pravitelstva path still wins on the more specific token.
         - {field: path, needle: pp_, rank: 15}
+        # Corpus form (замер 2026-09-27): exports/npa/directive_<date>_<num>-r_rev-*.xml.
+        # Ни один прежний needle не срабатывал (нет `rasporyazhenie-pravitelstva` в пути,
+        # шапка — «ПРАВИТЕЛЬСТВО РОССИЙСКОЙ ФЕДЕРАЦИИ», слово РАСПОРЯЖЕНИЕ ниже первых
+        # абзацев), поэтому 71 файл распоряжений оставался profile-none. Замер структуры:
+        # 498 пунктов `1.`, 197 подпунктов `а)`, 73 `N)`, 54 приложения.
+        - {field: path, needle: directive_, rank: 12}
         - {field: kind, needle: resolution, rank: 20}
+      ladder:
+        - {token: punkt, role: unit, recursive: true, max_depth: 3, suffix: ".", number_style: digit}
+        - {token: podpunkt, role: subunit, suffix: ")", number_style: letter_cyrillic}
+        - {token: prilozhenie, role: container, surface: "Приложение"}
+    # Замер 2026-09-27: exports/npa/decree_*.xml — шапка «УКАЗ», маркеры `1.` (29),
+    # `а)` (42), Приложение (1). Глав и статей нет: указ нормируется пунктами.
+    # Профиль нужен отдельный, потому что у federal_law@v1 unit = statya, а у указа
+    # unit = punkt; при этом суффикс пункта — точка (как у постановления), а не скобка
+    # (как у приказа). Ни один прежний path needle указы не покрывал.
+    - id: presidential_decree
+      granularity: punkt
+      text_boundary: [unit, container]
+      needles:
+        - {field: path, needle: decree_, rank: 10}
+        - {field: path, needle: ukaz, rank: 20}
+        - {field: kind, needle: decree, rank: 20}
       ladder:
         - {token: punkt, role: unit, recursive: true, max_depth: 3, suffix: ".", number_style: digit}
         - {token: podpunkt, role: subunit, suffix: ")", number_style: letter_cyrillic}
@@ -507,9 +540,31 @@ document_groups:
       needles:
         - {field: path, needle: prikaz-, rank: 10}
         - {field: path, needle: prikaz, rank: 20}
+        # Corpus form (замер M224/S05 census 2026-10-13): exports/npa/order_<date>_<num>_rev-*.xml
+        # — 352 записи манифеста S02, шапка «Приказ» (проверено на 6 файлах). Прежние
+        # path needle'ы ждали `prikaz-`/`prikaz`, поэтому весь корпус приказов оставался
+        # profile-none и попадал в S04 by_group.Unknown=7288 (census T04: сэмпл-документ
+        # npa/order_2018-07-30_1600 давал detection unknown:no_metadata). Ранг 20 — тот же
+        # класс специфичности, что `prikaz`. Скобочный probe (suffix `)`) этим needle НЕ
+        # ослабляется: приказы с точечной нумерацией `1.` остаются fail-closed
+        # Unknown{probe_conflict} (пробел канона ниже — отдельное решение, не молчаливая
+        # правка).
+        - {field: path, needle: npa/order_, rank: 20}
         - {field: kind, needle: order, rank: 20}
         - {field: type, needle: order, rank: 20}
       ladder:
+        # Суффикс `)` сохранён сознательно: он отличает приказ от постановления
+        # (government_resolution — `.`), и это различие зафиксировано контрактными
+        # тестами ln-decode (`departmental_order_paren_punkt_binds`,
+        # `departmental_order_wrong_numbering_style_is_conflict`,
+        # `probe_counts_compound_and_flat_punkt_for_order`).
+        #
+        # ПРОБЕЛ КАНОНА (замер 2026-09-27, 22 приказ-edition в exports/xml/law/):
+        # пунктов с точкой `1.` — 871, со скобкой `1)` — 9, т.е. корпус в основном
+        # использует точечную нумерацию, а канон объявляет скобочную. Смена суффикса
+        # инвертирует различие постановление/приказ и ломает 4 контрактных теста,
+        # поэтому требует отдельного решения (принять две формы / разделить по пути
+        # корпуса), а не молчаливой правки канона.
         - {token: punkt, role: unit, recursive: true, max_depth: 4, suffix: ")", number_style: digit}
         - {token: podpunkt, role: subunit, suffix: ")", number_style: letter_cyrillic}
         - {token: primechanie, role: subunit-text, surface: "Примечание"}
@@ -520,11 +575,41 @@ document_groups:
         - {field: path, needle: reshenie-fas, rank: 10}
         - {field: path, needle: opredelenie-, rank: 10}
         - {field: path, needle: postanovlenie-plenuma, rank: 10}
+        # Corpus forms (замер 2026-09-27): exports/courts/court_*, exports/courts/resolution_*,
+        # exports/fas/decision_*, exports/fas/prescription_*, exports/xml/pas/<key>/edition-*.
+        # Без них весь корпус практики (5 667 courts + 30 399 fas) оставался profile-none:
+        # имена файлов транслитерированы латиницей, а прежние needles ждали `reshenie-fas`.
+        # Порядок важен — court_practice должен выигрывать у government_resolution на
+        # постановлениях судов: их шапка («Именем Российской Федерации», «КОНСТИТУЦИОННЫЙ
+        # СУД») маршрутизируется в text-only ДО того, как сработает слово ПОСТАНОВЛЕНИЕ.
+        - {field: path, needle: courts/court_, rank: 12}
+        - {field: path, needle: courts/resolution_, rank: 12}
+        - {field: path, needle: fas/decision_, rank: 12}
+        - {field: path, needle: fas/prescription_, rank: 12}
+        - {field: path, needle: xml/pas/, rank: 15}
         - {field: kind, needle: fas, rank: 20}
         - {field: kind, needle: court, rank: 20}
         - {field: kind, needle: decision, rank: 25}
         - {field: kind, needle: prescription, rank: 25}
         - {field: kind, needle: determination, rank: 25}
+      ladder: []
+    # ADR-0030 D2: document_groups is the *structural* axis; which export bank a
+    # path belongs to (courts/fas practice vs npa/xml law) is the separate
+    # principal axis owned by `ln_kb_ontology::bank_normativity` (D667).
+    # `non_normative` is the explicit structural class for practice text banks
+    # whose file names carry no *specific* court_practice needle: the bank-wide
+    # needles `courts/` and `fas/` bind `courts/acn/*` and
+    # `fas/determination_*`, which the narrower court_practice needles (rank
+    # 10-15) missed. Practice text is not an AST (ADR-0020): text_only, no
+    # ladder, no granularity, no CTV machinery.
+    # Rank 40 is deliberately coarser than the specific court_practice needles
+    # (rank 10-15), so `fas/decision_*` / `courts/court_*` keep binding
+    # court_practice and no same-rank Conflict is produced.
+    - id: non_normative
+      text_only: true
+      needles:
+        - {field: path, needle: courts/, rank: 40}
+        - {field: path, needle: fas/, rank: 40}
       ladder: []
 
 # Separate from fsm (readiness). Governor compares contract.fsm_state to

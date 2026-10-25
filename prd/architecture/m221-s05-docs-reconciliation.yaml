@@ -1,0 +1,40 @@
+# M221/S05 design-only documentation reconciliation pin.
+# Reconciles four cold authority surfaces with the bounded M211 Rust runtime.
+# No runtime change, no lifecycle promotion, no requirement closure.
+# Form accepted in m205-s04-docs-reconciliation.yaml; decision D680.
+schema: law-nexus/m221-s05-docs-reconciliation/v1
+lifecycle: [proposed]
+authoritative: false
+owner_adr: '0029'
+consumes:
+  - law-nexus/npa-analysis-corpus-acceptance/v2
+human_adoption: pending
+runtime_stop_active: true
+related_decisions: [D680, D638, D656, D679]
+finding: {id: F06, class: MEDIUM, disposition: closed-bounded-under-S05}
+non_claims:
+  - not a lifecycle promotion; ADR-0029 stays [proposed] and the runtime stays bounded
+  - not a runtime or engine fix; no Rust or product code changes in this slice
+  - not a release of M208 or M215-M220; those milestones remain parked
+  - not a requirement closure; R1000 stays active and unclosed
+  - not corpus-wide or semantic acceptance; semantic_acceptance is not_attempted
+  - not a hash pin of any surface edited by this slice
+surfaces:
+  architecture: {path: prd/ARCHITECTURE.md, edit: in-place}
+  adr: {path: doc/adr/0029-requisites-anchored-member-assembly-fsm.md, edit: in-place}
+  adr_readme: {path: doc/adr/README.md, edit: in-place}
+  root_readme: {path: README.md, edit: in-place}
+  cross_matrix: {path: doc/adr-architecture-cross-matrix.md, edit: append}
+  assessment: {path: assessment/34-rust-npa-foundation-readiness-audit.md, edit: in-place}
+tensions:
+  - {id: T-M207-PROTOTYPE-ONLY-VS-M211-RUNTIME-LANDED, owning_source: ADR-0029 Status, anchor: prd/ARCHITECTURE.md line 66, scope: 'stale no-Rust-engine-code claim versus bounded M211 reference-capture runtime actually landed', proof: 'M207 Python prototype plus M211 bounded Rust crates and npa-integration-runner', non_claims: 'no promotion above [proposed]/bounded and no downstream readiness', pending_adoption: true}
+  - {id: T-PROMPT-FSM-RESIDUE, owning_source: ADR-0029 Status, anchor: prd/ARCHITECTURE.md ADR-0029 row, scope: 'the normative prompt-FSM resolution path is documentation-only and not the runtime executed by the bounded engine', proof: 'runtime executes reference capture, not the prompt FSM resolution', non_claims: 'no prompt-FSM implementation and no resolution-path closure', pending_adoption: true}
+  - {id: T-CORPUS-WIDE-SEMANTIC-GAP, owning_source: m221-s04-acceptance.json, anchor: verdict_recap, scope: 'transport integrity is proven while analysis completion is incomplete and semantic acceptance unclaimed', proof: 'verdict_recap transport_integrity=pass, analysis_completion=incomplete, semantic_acceptance=not_attempted', non_claims: 'no corpus-wide or semantic acceptance and no legal-semantic oracle', pending_adoption: true}
+planned_artifacts:
+  - {path: prd/migration/rust-evidence/m221-s05-readiness-battery.json, kind: battery, state: planned}
+  - {path: prd/migration/rust-evidence/m221-s05-horizon-reassessment.md, kind: reassessment, state: planned}
+  - {path: doc/adr-architecture-cross-matrix.md, kind: cross_matrix_companion, state: planned}
+source_bindings:
+  - {path: prd/architecture/npa-analysis-jsonl-contract.md, sha256: c8b5afdd5b864e660b7cdd10e4e542d2cf97341960e3ff83cba5073b1a8209d4, kind: contract}
+  - {path: prd/migration/rust-evidence/m221-s04-acceptance.json, sha256: c4188d1af4b754939af5df5b948fa875d42d3b752fc3eed2c48668a68f4c95c9, kind: receipt}
+  - {path: prd/migration/rust-evidence/m214-s04-corpus-acceptance.json, sha256: cacad4472a1144bbbbc7f88eeeecc91cbf8f1ab86fad93f198ba2f60b794c65c, kind: frozen}

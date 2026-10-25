@@ -26,9 +26,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use ln_consultant_parser::amendment_provenance::{
-    collect_edition_delta, render_edition_delta, run_provenance, validate_edition_delta,
-    EditionDeltaRow, ProvenanceAction, ProvenanceCli, ProvenanceMode,
-    EDITION_DELTA_FAIL_CLOSED_CODES, EDITION_DELTA_SCHEMA, EDITION_DELTA_TOP_N,
+    EDITION_DELTA_FAIL_CLOSED_CODES, EDITION_DELTA_SCHEMA, EDITION_DELTA_TOP_N, EditionDeltaRow,
+    ProvenanceAction, ProvenanceCli, ProvenanceMode, collect_edition_delta, render_edition_delta,
+    run_provenance, validate_edition_delta,
 };
 
 const CONSULTANT_EXPORT_DIR_ENV: &str = "CONSULTANT_EXPORT_DIR";
@@ -324,9 +324,11 @@ fn the_declared_fail_closed_codes_are_bounded() {
 #[test]
 fn the_suite_binds_the_named_chain_and_path_drift_contract() {
     assert!(Path::new(ARTIFACT_RELATIVE).is_relative());
-    assert!(!Path::new(ARTIFACT_RELATIVE)
-        .components()
-        .any(|component| matches!(component, std::path::Component::ParentDir)));
+    assert!(
+        !Path::new(ARTIFACT_RELATIVE)
+            .components()
+            .any(|component| matches!(component, std::path::Component::ParentDir))
+    );
     assert!(T01_ARTIFACT_RELATIVE.starts_with("prd/migration/rust-evidence/"));
     assert_eq!(EXPECTED_EDITIONS, 118);
 }

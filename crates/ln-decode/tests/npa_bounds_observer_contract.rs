@@ -16,8 +16,8 @@ use std::path::{Path, PathBuf};
 use ln_decode::adapters::ConsultantWordMlBlockDecoder;
 use ln_decode::domain::{DecodeRequest, FamilyFormat, ParsedBlock};
 use ln_decode::npa_sweep::{
-    self, payload_ref_for_path, run_sweep_observed, walk_and_observe, walk_xml_files, FileTerminal,
-    SweepCli, SweepObserver, EXIT_OK, EXIT_ROOT_MISSING,
+    self, EXIT_OK, EXIT_ROOT_MISSING, FileTerminal, SweepCli, SweepObserver, payload_ref_for_path,
+    run_sweep_observed, walk_and_observe, walk_xml_files,
 };
 use ln_decode::ports::BlockDecoderPort;
 

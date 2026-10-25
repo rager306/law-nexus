@@ -1,0 +1,178 @@
+{
+  "schema": "m223-s07-acceptance-battery/v1",
+  "version": 1,
+  "non_claims": [
+    "not_r1000_closure",
+    "not_semantic_or_legal_interpretation",
+    "not_normalization",
+    "not_authenticity_evidence",
+    "not_physical_pagination",
+    "not_an_unparking_of_parked_downstream",
+    "additive_only_over_five_frozen_wire_contracts",
+    "consumer_outputs_are_counts_paths_hashes_only_no_decoded_text",
+    "a_partial_corpus_run_is_never_reported_as_full"
+  ],
+  "contract_path": "prd/architecture/intermediate-source-consumer-acceptance-contract.md",
+  "contract_sha256": "sha256:72ec8f7e010046e9d0130a3e552a1c191e8d978b3629bd88bcc5812dad12a75a",
+  "frozen_contracts": [
+    {
+      "path": "prd/architecture/source-jsonl-contract.md",
+      "sha256": "sha256:2ddfe7da95e3adc0c341965f709001e2cdd67ccca3b22b7970ee06ad1dc0d9f6",
+      "matches_inventory": true
+    },
+    {
+      "path": "prd/architecture/reader-view-contract.md",
+      "sha256": "sha256:80a846fffedace7d78ef0b80faf14085eb05037a4aa7baca92de415f1b7d1b7d",
+      "matches_inventory": true
+    },
+    {
+      "path": "prd/architecture/reader-projection-contract.md",
+      "sha256": "sha256:95d0f127f8b1cf72dc2dcaec97271c408ca0543cb8487f7839af57553c6eec3e",
+      "matches_inventory": true
+    },
+    {
+      "path": "prd/architecture/cleaned-projection-contract.md",
+      "sha256": "sha256:7d167e434c4640b539406ddd5de39286d30b1e2efeb43bfdaa603b76b0313c4e",
+      "matches_inventory": true
+    },
+    {
+      "path": "prd/architecture/npa-analysis-jsonl-contract.md",
+      "sha256": "sha256:a3f51100679613a7f76c84a7282b50a5e31dc43abc4f652e221fd745136f00cb",
+      "matches_inventory": true
+    }
+  ],
+  "frozen_contracts_match_inventory": true,
+  "frozen_section2_files": [
+    {
+      "path": "crates/ln-decode/src/reader_projection.rs",
+      "sha256": "sha256:0d4e9f40d8d85da1b55496cc0f843aa7b837e1ffcdae1b40b9dfd51e0f997246",
+      "matches_pin": true
+    },
+    {
+      "path": "crates/ln-decode/src/reader_verifier.rs",
+      "sha256": "sha256:3b9f3b267f57892216038fd19ff692d051c3868aa41140b59a9fe04314498c5f",
+      "matches_pin": true
+    },
+    {
+      "path": "crates/ln-decode/src/npa_analysis_wire.rs",
+      "sha256": "sha256:80cbe03e5425cd4981242043dd9a822f9546994b2309e83a66d8b38f03663f88",
+      "matches_pin": true
+    },
+    {
+      "path": "crates/ln-decode/tests/reader_tail_semantics.rs",
+      "sha256": "sha256:eba6187abcd813dfd9b71010d489fd645a2ae5a9bb2f8f2bcb29e3bd5f423c2c",
+      "matches_pin": true
+    },
+    {
+      "path": "crates/ln-decode/tests/npa_analysis_strict_admission.rs",
+      "sha256": "sha256:6be0a721be429ea2f447aec80426e44f2a9b741416e693a7ce3797513c768e43",
+      "matches_pin": true
+    },
+    {
+      "path": "crates/ln-decode/tests/m222_f07_audit.rs",
+      "sha256": "sha256:019136892dfa5acbe4ec028e42eb8ec552c2c48fb0fe0c1f74cdbbebd006be64",
+      "matches_pin": true
+    }
+  ],
+  "frozen_architecture_jsonl": [
+    {
+      "path": "prd/architecture/architecture_items.jsonl",
+      "sha256": "sha256:3ef86ce1e2c8969d4f919b3cae31621acf0fb3d6d49334bbc05d89ab9c85d966",
+      "matches_pin": true
+    },
+    {
+      "path": "prd/architecture/architecture_edges.jsonl",
+      "sha256": "sha256:ce53dc0e1e4d2851aac538827ced9a9e007e4af3ce54d2b98b780b7739616818",
+      "matches_pin": true
+    }
+  ],
+  "immutability_pins_match": true,
+  "consumer_model": {
+    "provenance_forms": [
+      "source_fragment",
+      "derived_control",
+      "composite_range"
+    ],
+    "derived_kinds": [
+      "tab",
+      "line_break",
+      "page_break"
+    ],
+    "graph_identity": [
+      "SourceIdentity",
+      "DocumentVersionRef",
+      "composite_source_identity_xor_document_version_ref"
+    ],
+    "graph_nodes": [
+      "member",
+      "fragment",
+      "classification"
+    ],
+    "graph_edges": [
+      "relation"
+    ],
+    "graph_refusals": [
+      "cross_document",
+      "source_identity_mismatch",
+      "document_version_mismatch",
+      "unknown_fragment"
+    ]
+  },
+  "consumer_model_block_total": true,
+  "consumer_model_matches_source": true,
+  "reader_tokenizer_source_path": "crates/ln-decode/src/reader_tokenizer.rs",
+  "npa_graph_projection_source_path": "crates/ln-decode/src/npa_graph_projection.rs",
+  "s03_baseline_path": "prd/migration/rust-evidence/m223-s03-baseline-run.json",
+  "s03_baseline_reconciled": {
+    "entries": 43785,
+    "accepted": 43785,
+    "refused": 0,
+    "incomplete": 0,
+    "r1000_status": "active/unclosed"
+  },
+  "census_path": "prd/migration/rust-evidence/m223-s07-corpus-run.json",
+  "census_schema": "m223-s07-corpus-run/v1",
+  "census_status": "incomplete",
+  "census_partial_is_not_full": true,
+  "census_counts": {
+    "entries": 43785,
+    "terminal": 43783,
+    "accepted": 43783,
+    "refused": 0,
+    "incomplete": 2,
+    "remaining": 2,
+    "documented_residual": 2,
+    "undocumented_remaining": 0,
+    "terminal_with_documentation": 43785
+  },
+  "census_accounting_ok": true,
+  "census_s03_reconciled": true,
+  "census_redaction_ok": true,
+  "declared_acceptance_boundary": "terminal-with-documentation",
+  "acceptance_boundary_block": {
+    "boundary": "terminal-with-documentation",
+    "published_terminal": "43783",
+    "published_remaining": "2",
+    "published_documented_residual": "2",
+    "published_undocumented_remaining": "0",
+    "published_terminal_with_documentation": "43785",
+    "published_partial_is_not_full": "true",
+    "full_corpus_terminal_required": "43785"
+  },
+  "acceptance_boundary_consistent": true,
+  "receipts_path": "prd/migration/rust-evidence/m223-s07-corpus-receipts.jsonl",
+  "receipts_schema": "m223-s07-consumer-receipt/v1",
+  "receipts_lines": 43787,
+  "receipts_terminal_paths": 43783,
+  "receipts_redaction_ok": true,
+  "resume_proof_path": "prd/migration/rust-evidence/m223-s07-resume-proof.json",
+  "resume_proof_schema": "m223-s07-resume-proof/v1",
+  "resume_proof_ok": true,
+  "resume_proof_redaction_ok": true,
+  "repeat_import_proof_path": "prd/migration/rust-evidence/m223-s07-repeat-import-proof.json",
+  "repeat_import_proof_schema": "m223-s07-repeat-import-proof/v1",
+  "repeat_import_proof_ok": true,
+  "repeat_import_counts_byte_identical": true,
+  "repeat_import_proof_redaction_ok": true,
+  "redaction": "counts_paths_hashes_and_non_claims_only_no_decoded_text"
+}

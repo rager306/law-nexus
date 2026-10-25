@@ -1,6 +1,6 @@
 use crate::domain::{
-    AdmissionDecision, AdmissionReason, AdmissionRequest, AdmissionResult, AdmissionTrace,
-    BoundObservationKind, CapacityState, ForbiddenInference, ADMISSION_POLICY_VERSION,
+    ADMISSION_POLICY_VERSION, AdmissionDecision, AdmissionReason, AdmissionRequest,
+    AdmissionResult, AdmissionTrace, BoundObservationKind, CapacityState, ForbiddenInference,
     RETRY_AMPLIFICATION_THRESHOLD,
 };
 use crate::ports::BoundObservationPort;

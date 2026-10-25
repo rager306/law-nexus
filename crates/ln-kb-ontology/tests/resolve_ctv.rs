@@ -2,7 +2,7 @@
 //! This is the main capability gap vs de Martim v5 (KBO-R046).
 //! Text is synthetic in tests; no raw legal text is persisted.
 
-use ln_kb_ontology::domain::{resolve_ctv, CtvResolution, TextVersionEvent, TextVersionLog};
+use ln_kb_ontology::domain::{CtvResolution, TextVersionEvent, TextVersionLog, resolve_ctv};
 use ln_temporal::domain::ComponentConceptId;
 
 fn cc(id: &str) -> ComponentConceptId {

@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+
+import pytest
 
 from law_nexus_harness.cli import main
 from law_nexus_harness.governor import (
@@ -40,6 +43,7 @@ from law_nexus_harness.governor import (
     check_hostile_negative_suite_coverage,
     check_hostile_proof_chain,
     check_journal_retry_loops,
+    check_law_source_fixture_guard,
     check_model_crystal_anchors,
     check_npa_control_artifacts,
     check_npa_fsm_completeness,
@@ -57,6 +61,7 @@ from law_nexus_harness.governor import (
     check_verify_test_coverage_drift,
     run_governor,
 )
+from law_nexus_harness.workflow_state import LEGACY_SURFACE_CHECKS
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -455,6 +460,153 @@ def test_tracked_roadmap_is_required_without_local_gsd_state(tmp_path: Path) -> 
     assert findings[0].severity == "error"
 
 
+def _write_cutover_marker(root: Path, *, cutover: bool) -> None:
+    path = root / "prd" / "project-state" / "workflow-backend.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps({"schema": 1, "backend": "gsd-path", "cutover": cutover}),
+        encoding="utf-8",
+    )
+
+
+def _write_legacy_registry(root: Path) -> None:
+    legacy = root / ".gsd"
+    legacy.mkdir(parents=True, exist_ok=True)
+    (legacy / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Last Completed Milestone:** M117-a06sez: HC 05\n"
+        "**Phase:** complete\n\n"
+        "## Milestone Registry\n"
+        "- ✅ **M116-l1avxb:** HC 04\n"
+        "- ✅ **M117-a06sez:** HC 05\n",
+        encoding="utf-8",
+    )
+
+
+def _write_roadmap(root: Path) -> None:
+    roadmap_dir = root / "prd" / "project-state" / "data"
+    roadmap_dir.mkdir(parents=True)
+    (roadmap_dir / "roadmap.json").write_text(
+        json.dumps(
+            {
+                "completed_milestone_groups": [{"range": "M116-M117", "status": "complete"}],
+                "current_milestone": {"id": "M117-a06sez", "status": "complete"},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def test_roadmap_freshness_absent_registry_after_cutover_blocks(tmp_path: Path) -> None:
+    """An absent comparison source cannot pass: freshness was never checked."""
+    _write_roadmap(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=True)
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "roadmap-freshness-unverifiable"
+    assert finding.status == "fail"
+    assert finding.severity == "error"
+    assert finding.rule_id == "roadmap-freshness.unverifiable"
+    assert "cannot be verified" in finding.message
+    assert "legacy_surface=absent" in finding.observed
+    assert "cutover=true" in finding.observed
+
+
+def test_roadmap_freshness_absent_registry_before_cutover_is_not_applicable(
+    tmp_path: Path,
+) -> None:
+    _write_roadmap(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert finding.rule_id == "roadmap-freshness.not-applicable"
+    assert "legacy_surface=absent" in finding.observed
+    assert "policy=not-applicable" in finding.observed
+    assert "comparison=not-performed" in finding.observed
+    assert "tracks" not in finding.message
+
+
+def test_roadmap_freshness_frozen_registry_is_historical_only(tmp_path: Path) -> None:
+    """A frozen registry warns as history and never errors as current state."""
+    _write_roadmap(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=True)
+    _write_legacy_registry(tmp_path)
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert finding.rule_id == "roadmap-freshness.historical-only"
+    assert "legacy_surface=frozen-historical" in finding.observed
+    assert "current" not in finding.observed
+
+
+def test_roadmap_freshness_unreadable_registry_blocks(tmp_path: Path) -> None:
+    """A surface that exists but cannot be read is not an absence to pass over."""
+    _write_roadmap(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+    os.symlink(tmp_path / "nowhere-gsd", tmp_path / ".gsd")
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "roadmap-freshness-unverifiable"
+    assert finding.status == "fail"
+    assert finding.severity == "error"
+    assert "registry=unreadable" in finding.observed
+
+
+def test_every_legacy_surface_check_is_a_registered_governor_check() -> None:
+    registered = {spec.check_id for spec in GOVERNOR_CHECK_SPECS}
+    missing = sorted(set(LEGACY_SURFACE_CHECKS) - registered)
+
+    assert missing == []
+
+
+def test_live_surface_findings_name_the_surface_they_compared_against(
+    tmp_path: Path,
+) -> None:
+    """A pre-cutover read is the live source, and says so on every finding.
+
+    Without the token a reader cannot tell a comparison made against the live
+    registry from one made against a frozen snapshot or against the Path state.
+    """
+    _write_roadmap(tmp_path)
+    _write_legacy_registry(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    assert len(findings) == 3
+    for finding in findings:
+        assert finding.status == "pass"
+        assert finding.severity == "ok"
+        assert "legacy_surface=operational-not-cut-over" in finding.observed
+        assert "policy=applies" in finding.observed
+
+
+def test_live_surface_never_emits_a_historical_or_not_applicable_rule(tmp_path: Path) -> None:
+    _write_roadmap(tmp_path)
+    _write_legacy_registry(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+
+    findings = check_roadmap_freshness(tmp_path)
+
+    rules = {finding.rule_id for finding in findings if finding.rule_id}
+    assert not any(rule.endswith((".historical-only", ".not-applicable")) for rule in rules)
+
+
 def test_open_next_wave_milestone_is_not_residual_debt(tmp_path: Path) -> None:
     state = tmp_path / ".gsd"
     state.mkdir()
@@ -583,6 +735,67 @@ def test_gsd_review_dual_truth_pass_when_bridge_absent(tmp_path: Path) -> None:
     findings = check_gsd_review_dual_truth(tmp_path)
     assert findings[0].status == "pass"
     assert findings[0].severity == "ok"
+
+
+def _write_dual_truth_bridge(root: Path) -> None:
+    bridge = root / "prd" / "architecture" / "review-cases"
+    bridge.mkdir(parents=True)
+    (bridge / "gsd-review-bridge.md").write_text(
+        "# bridge\n\n```text\nclass: DT-lag\ndelivery_unit=gsd:M167-odlgt8\n```\n",
+        encoding="utf-8",
+    )
+
+
+def test_gsd_review_dual_truth_absent_registry_makes_no_match_claim(tmp_path: Path) -> None:
+    """Without a registry the lag stays a declaration, not a satisfied check."""
+    from law_nexus_harness.governor import check_gsd_review_dual_truth
+
+    _write_dual_truth_bridge(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+
+    findings = check_gsd_review_dual_truth(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert finding.rule_id == "gsd-review-dual-truth.not-applicable"
+    assert "legacy_surface=absent" in finding.observed
+    assert "match=not-performed" in finding.observed
+    assert "dt_lag_declared=[167]" in finding.observed
+
+
+def test_gsd_review_dual_truth_frozen_registry_is_historical_only(tmp_path: Path) -> None:
+    from law_nexus_harness.governor import check_gsd_review_dual_truth
+
+    _write_dual_truth_bridge(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=True)
+    _write_legacy_registry(tmp_path)
+
+    findings = check_gsd_review_dual_truth(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert finding.rule_id == "gsd-review-dual-truth.historical-only"
+    assert "legacy_surface=frozen-historical" in finding.observed
+
+
+def test_gsd_review_dual_truth_unreadable_registry_is_not_assessable(tmp_path: Path) -> None:
+    from law_nexus_harness.governor import check_gsd_review_dual_truth
+
+    _write_dual_truth_bridge(tmp_path)
+    _write_cutover_marker(tmp_path, cutover=False)
+    os.symlink(tmp_path / "nowhere-gsd", tmp_path / ".gsd")
+
+    findings = check_gsd_review_dual_truth(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "registry=unreadable" in finding.observed
 
 
 def test_capability_promotion_board_warns_when_tsg_missing(tmp_path: Path) -> None:
@@ -1529,8 +1742,15 @@ def test_requirement_contradictions_pass_when_local_projection_is_unavailable(
 ) -> None:
     finding = check_active_requirement_contradictions(tmp_path)[0]
 
+    # The claim is not asserted, and now says so through the legacy-surface
+    # policy instead of a bare "unavailable-local-projection" pass. Same
+    # verdict (pass/ok - an absent surface has nothing to inherit), but the
+    # observed string names the surface and the policy so a reader can tell
+    # "nothing to check" from "checked and clean".
     assert finding.status == "pass"
-    assert "unavailable-local-projection" in finding.observed
+    assert finding.severity == "ok"
+    assert "policy=not-applicable" in finding.observed
+    assert "requirements=not-scanned" in finding.observed
 
 
 def test_requirement_contradictions_fail_closed_on_malformed_local_projection(
@@ -1737,6 +1957,10 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
         # projection entries), not a repo regression.
         "journal-retry-loops",
         "compat-marker-hygiene",
+        # Workflow transition (2026-10-23): GSD-Pi is frozen and Path native
+        # state is intentionally absent until the bootstrap PR merges; the
+        # typed adapter reports the honest bootstrap not-cut-over warn.
+        "workflow-state-surface",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
@@ -1762,10 +1986,11 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
     by_id = {item.check_id: item for item in report.findings}
     assert "live-adapter-readiness" in by_id
     finding = by_id["live-adapter-readiness"]
-    # Repository-evidence ceiling: TEI stub transport only, RuVector proposed.
+    # Repository-evidence ceiling: std-only HTTP surface present but unproven,
+    # RuVector proposed.
     assert finding.status == "pass"
     assert finding.severity == "ok"
-    assert "tei=stub_transport_only" in finding.observed
+    assert "tei=http_surface_present_unproven" in finding.observed
     assert "ruvector=proposed" in finding.observed
     assert "overclaim_count=0" in finding.observed
     assert report.error_count == 0
@@ -1782,6 +2007,10 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
         # projection entries), not a repo regression.
         "journal-retry-loops",
         "compat-marker-hygiene",
+        # Workflow transition (2026-10-23): GSD-Pi is frozen and Path native
+        # state is intentionally absent until the bootstrap PR merges; the
+        # typed adapter reports the honest bootstrap not-cut-over warn.
+        "workflow-state-surface",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
@@ -4592,9 +4821,42 @@ def test_journal_retry_loops_skips_broken_json_line(tmp_path: Path) -> None:
     assert "skipped_lines_total=1" in findings[0].observed
 
 
+def test_journal_retry_loops_absent_legacy_surface_is_not_applicable(tmp_path: Path) -> None:
+    # The whole legacy surface is gone, so nothing here is a signal about the
+    # flow: an absence of the surface is not a pass, it is a claim this check
+    # may not make.
+    findings = check_journal_retry_loops(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "legacy_surface=absent" in findings[0].observed
+    assert "policy=not-applicable" in findings[0].observed
+
+
+def test_journal_retry_loops_frozen_surface_is_historical_only(tmp_path: Path) -> None:
+    """Frozen journal traffic is history; it may not be read as current flow."""
+    base = datetime(2026, 8, 30, 12, 0, 0, tzinfo=UTC)
+    _write_journal_file(
+        tmp_path,
+        [_journal_event(base.isoformat(), "unit-start", {"unitId": "M1/S1/T1"})],
+    )
+    _write_cutover_marker(tmp_path, cutover=True)
+
+    findings = check_journal_retry_loops(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert finding.rule_id == "journal-retry-loops.historical-only"
+    assert "legacy_surface=frozen-historical" in finding.observed
+    assert "journal=not-scanned" in finding.observed
+
+
 def test_journal_retry_loops_missing_journal_dir_is_not_assessable(
     tmp_path: Path,
 ) -> None:
+    (tmp_path / ".gsd").mkdir()
     findings = check_journal_retry_loops(tmp_path)
     assert len(findings) == 1
     assert findings[0].status == "fail"
@@ -4756,7 +5018,35 @@ def test_compat_marker_hygiene_survives_invalid_json(tmp_path: Path) -> None:
     assert findings[0].severity == "warn"
 
 
+def test_compat_marker_hygiene_absent_legacy_surface_is_not_applicable(
+    tmp_path: Path,
+) -> None:
+    findings = check_compat_marker_hygiene(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "legacy_surface=absent" in findings[0].observed
+    assert "policy=not-applicable" in findings[0].observed
+
+
+def test_compat_marker_hygiene_frozen_surface_is_historical_only(tmp_path: Path) -> None:
+    (tmp_path / ".gsd").mkdir()
+    (tmp_path / ".gsd" / ".compat.json").write_text(_compat_marker_json({}), encoding="utf-8")
+    _write_cutover_marker(tmp_path, cutover=True)
+
+    findings = check_compat_marker_hygiene(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert finding.rule_id == "compat-marker-hygiene.historical-only"
+    assert "legacy_surface=frozen-historical" in finding.observed
+    assert "marker=not-audited" in finding.observed
+
+
 def test_compat_marker_hygiene_missing_marker_is_not_assessable(tmp_path: Path) -> None:
+    (tmp_path / ".gsd").mkdir()
     findings = check_compat_marker_hygiene(tmp_path)
     assert len(findings) == 1
     assert findings[0].status == "fail"
@@ -4838,7 +5128,27 @@ def _group_governor_findings_by_check_id(
     return grouped
 
 
+def _skip_without_pi_journal(test_name: str) -> None:
+    """A real skip for checks whose sole input is the frozen Pi snapshot.
+
+    Not print+return: a passing test captures its own output, so that form
+    counted as passed and was invisible in CI. pytest.skip is reported in the
+    summary and visible under `-rs`.
+    """
+    pytest.skip(f"no-pi-journal: {test_name} needs .gsd/journal/ (frozen Pi snapshot)")
+
+
 def test_live_governor_reports_journal_retry_loops() -> None:
+    """Live counters need the frozen Pi journal, which a clean clone does not have.
+
+    journal-retry-loops is a historical-replay check (bucket B in the legacy
+    triage): its inputs are Pi engine mechanics with no Path analogue. On a
+    checkout without .gsd/journal/ the check now reports "journal=not-scanned"
+    through the legacy-surface policy, which is the honest answer there - so the
+    counter assertions only mean something when the journal exists.
+    """
+    if not (ROOT / ".gsd" / "journal").is_dir():
+        _skip_without_pi_journal("test_live_governor_reports_journal_retry_loops")
     report = run_governor(ROOT)
     grouped = _group_governor_findings_by_check_id(report)
     assert "journal-retry-loops" in grouped
@@ -4869,6 +5179,15 @@ def test_live_governor_reports_journal_retry_loops() -> None:
 
 
 def test_live_governor_reports_compat_marker_hygiene() -> None:
+    """compat-marker-hygiene audits a Pi projection marker that Path never writes.
+
+    Bucket C in the legacy triage: the pinned Path runtime has no projection
+    marker at all, so on a checkout without .gsd/.compat.json the check reports
+    "marker=not-audited" through the legacy-surface policy. The hygiene counters
+    only exist when the marker exists.
+    """
+    if not (ROOT / ".gsd" / ".compat.json").is_file():
+        _skip_without_pi_journal("test_live_governor_reports_compat_marker_hygiene")
     report = run_governor(ROOT)
     grouped = _group_governor_findings_by_check_id(report)
     assert "compat-marker-hygiene" in grouped
@@ -4888,6 +5207,69 @@ def test_live_governor_reports_compat_marker_hygiene() -> None:
     assert "empty_entities=" in finding.observed
     assert report.error_count == 0
     assert report.status == "ok"
+
+
+def test_law_source_fixture_guard_passes_with_marker_and_untracked(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr("law_nexus_harness.governor._git_tracked_paths", lambda root, path: [])
+    (tmp_path / ".gitignore").write_text("law-source/consultant/.deprecated/\n", encoding="utf-8")
+    consultant = tmp_path / "law-source" / "consultant"
+    consultant.mkdir(parents=True)
+    (consultant / "README.md").write_text(
+        "# law-source/consultant — НАБОР ФИКСТУР, НЕ КОРПУС\n"
+        "Полный корпус — consru_export/consru_export/exports/ (43 785 XML).\n",
+        encoding="utf-8",
+    )
+    findings = check_law_source_fixture_guard(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+
+
+def test_law_source_fixture_guard_flags_missing_marker(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("law_nexus_harness.governor._git_tracked_paths", lambda root, path: [])
+    (tmp_path / ".gitignore").write_text("law-source/consultant/.deprecated/\n", encoding="utf-8")
+    findings = check_law_source_fixture_guard(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "README-marker-missing" in findings[0].observed
+
+
+def test_law_source_fixture_guard_flags_incomplete_marker(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("law_nexus_harness.governor._git_tracked_paths", lambda root, path: [])
+    (tmp_path / ".gitignore").write_text("law-source/consultant/.deprecated/\n", encoding="utf-8")
+    consultant = tmp_path / "law-source" / "consultant"
+    consultant.mkdir(parents=True)
+    (consultant / "README.md").write_text("# fixtures\n", encoding="utf-8")
+    findings = check_law_source_fixture_guard(tmp_path)
+    assert findings[0].status == "fail"
+    assert "README-marker-incomplete" in findings[0].observed
+
+
+def test_law_source_fixture_guard_flags_tracked_deprecated(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "law_nexus_harness.governor._git_tracked_paths",
+        lambda root, path: ["law-source/consultant/.deprecated/44-FZ-2026.xml"],
+    )
+    (tmp_path / ".gitignore").write_text("law-source/consultant/.deprecated/\n", encoding="utf-8")
+    consultant = tmp_path / "law-source" / "consultant"
+    consultant.mkdir(parents=True)
+    (consultant / "README.md").write_text(
+        "# law-source/consultant — НАБОР ФИКСТУР, НЕ КОРПУС\n"
+        "Полный корпус — consru_export/consru_export/exports/ (43 785 XML).\n",
+        encoding="utf-8",
+    )
+    findings = check_law_source_fixture_guard(tmp_path)
+    assert findings[0].status == "fail"
+    assert "deprecated-still-tracked" in findings[0].observed
+
+
+def test_law_source_fixture_guard_spec_is_deterministic_warn() -> None:
+    spec = next(s for s in GOVERNOR_CHECK_SPECS if s.check_id == "law-source-fixture-guard")
+    assert spec.kind == "deterministic"
+    assert spec.default_severity == "warn"
 
 
 def test_parked_next_wave_with_recorded_reason_is_sanctioned_deferral(tmp_path: Path) -> None:
@@ -4962,3 +5344,273 @@ def test_parked_next_wave_without_reason_remains_hard_debt(tmp_path: Path) -> No
     by_id = {item.check_id: item for item in findings}
     assert by_id["gsd-no-open-registry-debt"].status == "fail"
     assert by_id["gsd-no-open-registry-debt"].severity == "error"
+
+
+class TestGovernorContextAndParallelRun:
+    """The shared read-only context and the ``jobs`` fan-out (repo-local temp work).
+
+    These pin the two properties the refactor exists for: an expensive
+    inventory runs at most once per run, and a parallel run is byte-identical
+    to the sequential one. The second is the only reason ``jobs`` is allowed
+    to exist at all, so it is asserted on the serialized report, not on counts.
+    """
+
+    def test_memo_computes_once_per_context(self) -> None:
+        from law_nexus_harness.governor import GovernorContext
+
+        calls: list[str] = []
+        ctx = GovernorContext(root=Path("."))
+
+        def compute() -> str:
+            calls.append("call")
+            return "value"
+
+        assert ctx.memo("key", compute) == "value"
+        assert ctx.memo("key", compute) == "value"
+        assert calls == ["call"]
+
+    def test_memo_keys_are_distinct(self) -> None:
+        from law_nexus_harness.governor import GovernorContext
+
+        ctx = GovernorContext(root=Path("."))
+        assert ctx.memo("a", lambda: 1) == 1
+        assert ctx.memo("b", lambda: 2) == 2
+
+    def test_sequential_run_covers_every_registered_check(self, tmp_path: Path) -> None:
+        from law_nexus_harness.governor import run_governor
+
+        report = run_governor(tmp_path, jobs=1)
+        payload = report.to_dict()
+
+        assert payload["schema_version"] == GOVERNOR_SCHEMA_VERSION
+        assert payload["root"] == str(tmp_path.resolve())
+        # One finding per registry entry. Three checks rename themselves when
+        # their primary input is absent (roadmap-json-present,
+        # hostile-probes-dir, gsd-state-present); that rename is the documented
+        # missing-input verdict, so the count is the invariant to pin, not the
+        # spelling of every id.
+        assert len(payload["findings"]) == len(GOVERNOR_CHECK_SPECS)
+        assert payload["pass_count"] + payload["warn_count"] + payload["error_count"] == len(
+            payload["findings"]
+        )
+
+    def test_parallel_run_is_byte_identical_to_sequential(self, tmp_path: Path) -> None:
+        from law_nexus_harness.governor import run_governor
+
+        sequential = run_governor(tmp_path, jobs=1).to_json()
+        parallel = run_governor(tmp_path, jobs=8).to_json()
+
+        assert parallel == sequential
+
+    def test_parallel_run_keeps_registry_order(self, tmp_path: Path) -> None:
+        from law_nexus_harness.governor import run_governor
+
+        # Each spec's findings must stay contiguous and the groups must follow
+        # registry order: that is what makes a parallel report reproducible.
+        specs = [spec.check_id for spec in GOVERNOR_CHECK_SPECS]
+        seen: list[str] = []
+        for finding in run_governor(tmp_path, jobs=4).findings:
+            if not seen or seen[-1] != finding.check_id:
+                seen.append(finding.check_id)
+
+        # Drop repeats that belong to a different spec (a runner may report a
+        # secondary id); the first occurrence of each id must still be ordered.
+        first_occurrence = list(dict.fromkeys(seen))
+        indexes = [specs.index(check) for check in first_occurrence if check in specs]
+        assert indexes == sorted(indexes), first_occurrence
+
+    def test_a_single_selected_check_never_opens_a_thread_pool(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        from law_nexus_harness import governor
+
+        def explode(*args, **kwargs):
+            raise AssertionError("a one-check run must not spawn workers")
+
+        monkeypatch.setattr("concurrent.futures.ThreadPoolExecutor", explode)
+        report = governor.run_governor(tmp_path, check="workflow-state-surface", jobs=8)
+        assert [item.check_id for item in report.findings] == ["workflow-state-surface"]
+
+
+class TestEvidenceIsATupleThroughout:
+    """Pin the typed contract that basedpyright was reporting as 46 errors.
+
+    ``GovernorFinding.evidence`` is ``tuple[GovernorEvidence, ...]``. Forty-six
+    call sites passed a ``list``; the runtime never complained because nothing
+    depended on the type, so the defect only ever surfaced as static noise that
+    pushed the CI gate red for two months. These tests make the shape a runtime
+    fact instead of a report.
+    """
+
+    def test_every_finding_carries_a_tuple_of_evidence(self) -> None:
+        for spec in GOVERNOR_CHECK_SPECS:
+            findings = spec.runner(Path("."))
+            for finding in findings:
+                assert isinstance(finding, GovernorFinding)
+                assert isinstance(finding.evidence, tuple), (
+                    f"{spec.check_id} returned {type(finding.evidence).__name__}; "
+                    "GovernorFinding.evidence is declared tuple[GovernorEvidence, ...]"
+                )
+                assert all(isinstance(item, GovernorEvidence) for item in finding.evidence)
+
+    def test_a_live_report_keeps_evidence_a_tuple_and_serializes_it(self) -> None:
+        from law_nexus_harness.governor import run_governor
+
+        report = run_governor(Path("."))
+        # to_dict uses asdict, which preserves a tuple; JSON renders it as an
+        # array. Both properties are the contract, so both are asserted.
+        for finding in report.to_dict()["findings"]:
+            assert isinstance(finding["evidence"], tuple)
+            for item in finding["evidence"]:
+                assert set(item) == {"path", "line"}
+
+        import json
+
+        rendered = json.loads(report.to_json())
+        for finding in rendered["findings"]:
+            assert isinstance(finding["evidence"], list)
+
+
+class TestScopedCheckRunnerIsDeclaredNotPatched:
+    """The scoped dispatch hook is data on the spec, not an attribute on a function.
+
+    It used to be `check_archive_path_policy.run_scoped = ...` plus a
+    `getattr(spec.runner, "run_scoped", None)` lookup, which no static checker
+    could see (ty reported `unresolved-attribute`). It is now a declared
+    `CheckSpec` field. These tests keep it that way: the field is what dispatch
+    reads, and the monkey-patch surface is gone.
+    """
+
+    def test_every_spec_exposes_run_scoped_as_a_field(self) -> None:
+        for spec in GOVERNOR_CHECK_SPECS:
+            assert hasattr(spec, "run_scoped"), (
+                f"{spec.check_id} has no declared run_scoped field; dispatch would "
+                "fall back to an attribute lookup the type checkers cannot see"
+            )
+            assert spec.run_scoped is None or callable(spec.run_scoped)
+
+    def test_the_scoped_hook_is_no_longer_attached_to_the_runner(self) -> None:
+        from law_nexus_harness.governor import check_archive_path_policy
+
+        # The old shape set this attribute at import time. Its reappearance means
+        # the dispatch surface regressed to a monkey-patch.
+        assert not hasattr(check_archive_path_policy, "run_scoped"), (
+            "check_archive_path_policy.run_scoped is back; declare it on the CheckSpec instead"
+        )
+
+    def test_exactly_the_declaring_checks_carry_a_scoped_variant(self) -> None:
+        declaring = {spec.check_id for spec in GOVERNOR_CHECK_SPECS if spec.run_scoped}
+        # archive-path-policy is the one check that needs the shared inventory;
+        # the assertion is exact so a new scoped check is a deliberate edit.
+        assert declaring == {"archive-path-policy"}
+
+    def test_a_scoped_run_matches_the_plain_run_for_the_declaring_check(self) -> None:
+        """Both dispatch shapes must produce the same verdict on a real tree.
+
+        Run against the repository itself, not tmp_path: the check needs a git
+        work tree, and on a non-repo it correctly reports a tool error - which
+        would compare equal for the wrong reason.
+        """
+        from law_nexus_harness.governor import GovernorContext, _run_spec_scoped
+
+        spec = next(s for s in GOVERNOR_CHECK_SPECS if s.check_id == "archive-path-policy")
+        assert spec.run_scoped is not None
+        scoped = _run_spec_scoped(spec, GovernorContext(root=ROOT))
+        plain = spec.runner(ROOT)
+        assert [item.check_id for item in scoped] == [item.check_id for item in plain]
+        assert [item.status for item in scoped] == [item.status for item in plain]
+        assert [item.severity for item in scoped] == [item.severity for item in plain]
+
+
+class TestRoadmapFreshnessAgainstNativePath:
+    """The Path successor: the live native milestone is the authority.
+
+    Before this, roadmap freshness could only compare against the frozen Pi
+    registry, so whether an archive happened to exist on the machine decided the
+    verdict's strictness. These tests pin that an operational native state wins
+    and that the comparison is by identity, not by parsing an M### order out of
+    a string.
+    """
+
+    @staticmethod
+    def _repo(tmp_path: Path, native_milestone: str | None) -> Path:
+        import shutil
+
+        for rel in ("prd/project-state", "prd/architecture"):
+            source = ROOT / rel
+            if source.exists():
+                shutil.copytree(source, tmp_path / rel)
+        (tmp_path / "prd/project-state/workflow-backend.json").write_text(
+            json.dumps({"schema": 1, "backend": "gsd-path", "cutover": True}),
+            encoding="utf-8",
+        )
+        return tmp_path
+
+    def test_matching_native_milestone_passes(self, tmp_path: Path, monkeypatch) -> None:
+        from dataclasses import replace
+
+        from law_nexus_harness import workflow_state as ws
+
+        self._repo(tmp_path, "M225-qrwdfv")
+        real = ws.read_workflow_state
+
+        def operational(root):
+            return replace(
+                real(root),
+                kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
+                native_milestone="M225-qrwdfv",
+                native_phase="build",
+            )
+
+        monkeypatch.setattr("law_nexus_harness.governor.read_workflow_state", operational)
+        findings = check_roadmap_freshness(tmp_path)
+        by_id = {item.check_id: item for item in findings}
+
+        assert by_id["roadmap-current-tracks-path"].status == "pass"
+        assert by_id["roadmap-current-tracks-path"].severity == "ok"
+        assert "comparison=path" in by_id["roadmap-current-tracks-path"].observed
+
+    def test_diverging_native_milestone_blocks(self, tmp_path: Path, monkeypatch) -> None:
+        from dataclasses import replace
+
+        from law_nexus_harness import workflow_state as ws
+
+        self._repo(tmp_path, "M999-other")
+        real = ws.read_workflow_state
+
+        def operational(root):
+            return replace(
+                real(root),
+                kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
+                native_milestone="M999-other",
+                native_phase="build",
+            )
+
+        monkeypatch.setattr("law_nexus_harness.governor.read_workflow_state", operational)
+        by_id = {item.check_id: item for item in check_roadmap_freshness(tmp_path)}
+
+        assert by_id["roadmap-current-tracks-path"].status == "fail"
+        assert by_id["roadmap-current-tracks-path"].severity == "error"
+
+    def test_operational_without_a_milestone_blocks(self, tmp_path: Path, monkeypatch) -> None:
+        from dataclasses import replace
+
+        from law_nexus_harness import workflow_state as ws
+
+        self._repo(tmp_path, None)
+        real = ws.read_workflow_state
+
+        def operational(root):
+            return replace(
+                real(root),
+                kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
+                native_milestone=None,
+                native_phase="research",
+            )
+
+        monkeypatch.setattr("law_nexus_harness.governor.read_workflow_state", operational)
+        by_id = {item.check_id: item for item in check_roadmap_freshness(tmp_path)}
+
+        assert by_id["roadmap-freshness-unverifiable"].status == "fail"
+        assert by_id["roadmap-freshness-unverifiable"].severity == "error"
+        assert "native_milestone=absent" in by_id["roadmap-freshness-unverifiable"].observed

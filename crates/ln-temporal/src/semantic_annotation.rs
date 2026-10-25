@@ -394,5 +394,12 @@ pub fn render_json(record: &AnnotationRecord) -> String {
         })
         .collect::<Vec<_>>()
         .join(",");
-    format!("{{\"schema_version\":{},\"document_version\":{},\"coder_id\":{},\"claims\":[{}],\"candidate_slot_verdicts\":[{}]}}", json_string(&record.schema_version), json_string(&record.document_version), json_string(&record.coder_id), claim_json, verdict_json)
+    format!(
+        "{{\"schema_version\":{},\"document_version\":{},\"coder_id\":{},\"claims\":[{}],\"candidate_slot_verdicts\":[{}]}}",
+        json_string(&record.schema_version),
+        json_string(&record.document_version),
+        json_string(&record.coder_id),
+        claim_json,
+        verdict_json
+    )
 }

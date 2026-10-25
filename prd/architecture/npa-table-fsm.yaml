@@ -1,0 +1,238 @@
+# NPA table structure FSM — design-only contract.
+# This file is not a parser, resolver, runtime promotion gate, or legal-effect model.
+# Форма следует образцу prd/architecture/m205-s03-context-fsm.yaml и ADR-0029.
+schema: law-nexus/npa-table-fsm/v1
+lifecycle: [proposed]
+authoritative: false
+owner_adr: '0028'
+related_adrs: ['0013', '0017', '0029']
+related_decisions: [D585, D586, D587]
+related_constraints: [RC28-F06, RC28-F10]
+human_adoption: pending
+runtime_stop_active: true
+consumes:
+  - prd/architecture/npa-document-context.yaml
+  - prd/architecture/m205-s03-context-fsm.yaml
+  - prd/architecture/kb-ontology.yaml
+
+non_claims:
+  - design evidence only; no runtime promotion, resolver, or legal-effect model
+  - таблица описывается как носитель структуры, а не как юридический вывод
+  - извлечённые строки — Proposed-кандидаты, не нормы и не binding
+  - counts (сколько таблиц/строк/осей) не являются доказательством полноты (INV-22)
+  - «приложение», «ставка», «норма», «требование» здесь — структурные метки, не правовая квалификация
+  - соответствие dst↔закладка вне области этого контракта (см. D586)
+  - фиксированные пороги (например «>=2 непустых ячеек») — параметры, а не истина
+
+# ---------------------------------------------------------------------------
+# FSM структуры таблицы. Живёт внутри фазы P2_local_analysis (m205-s03).
+# ---------------------------------------------------------------------------
+table_structure_fsm:
+  id: npa-table.table_structure
+  initial: TableDetected
+  states:
+    - TableDetected          # найден элемент таблицы, разбор ещё не начат
+    - HeaderScanning         # идёт сбор строк шапки
+    - HeaderLeveled          # шапка собрана, уровни выделены
+    - AxisDetecting          # ищем ось (уровень с многими короткими значениями)
+    - ColumnNumbersRead      # прочитана строка номеров колонок
+    - ColumnRolesResolved    # роли и цепочки колонок вычислены
+    - RowScanning            # сканирование тела
+    - RowOpen                # открыта логическая строка (ключевая колонка заполнена)
+    - RowContinued           # продолжение: ровно одна непустая ячейка -> склейка
+    - SubRowOpen             # продолжение: >=2 непустых ячеек -> параллельная под-строка
+    - SectionOpened          # строка на всю ширину -> группа
+    - RevisionNoted          # строка на всю ширину, но редакционная пометка
+    - NestedDetected         # внутри ячейки найдена вложенная таблица
+    - Resolving              # разрешение гипотез в конце таблицы
+    - TableContent           # терминал: содержательная таблица
+    - TableLayout            # терминал: вёрстка/реквизиты, не содержание
+    - TableJunk              # терминал: мусор с именованной причиной
+    - TableHold              # терминал: fail-closed, структура не распознана
+  transitions:
+    - {from: TableDetected, event: rows_present, to: HeaderScanning}
+    - {from: TableDetected, event: no_rows, to: TableJunk}
+    - {from: HeaderScanning, event: header_row_collected, to: HeaderScanning}
+    - {from: HeaderScanning, event: header_closed, to: HeaderLeveled}
+    - {from: HeaderLeveled, event: multi_value_level_found, to: AxisDetecting}
+    - {from: HeaderLeveled, event: no_axis, to: ColumnNumbersRead}
+    - {from: AxisDetecting, event: axis_confirmed, to: ColumnNumbersRead}
+    - {from: AxisDetecting, event: axis_ambiguous, to: TableHold}
+    - {from: ColumnNumbersRead, event: numbering_monotonic, to: ColumnRolesResolved}
+    - {from: ColumnNumbersRead, event: numbering_broken, to: TableHold}
+    - {from: ColumnRolesResolved, event: roles_resolved, to: RowScanning}
+    - {from: ColumnRolesResolved, event: role_chain_incomplete, to: TableHold}
+    - {from: RowScanning, event: key_column_filled, to: RowOpen}
+    - {from: RowScanning, event: full_width_row_normal, to: SectionOpened}
+    - {from: RowScanning, event: full_width_row_revision, to: RevisionNoted}
+    - {from: RowScanning, event: rows_exhausted, to: Resolving}
+    - {from: RowOpen, event: next_row_key_filled, to: RowOpen}
+    - {from: RowOpen, event: continuation_single_cell, to: RowContinued}
+    - {from: RowOpen, event: continuation_multi_cell, to: SubRowOpen}
+    # Симметрично full_width_row_normal: строка-примечание об изменении может идти
+    # сразу за ключевой строкой (замер 2026-09-27: 1 случай в выборке npa).
+    - {from: RowOpen, event: full_width_row_revision, to: RevisionNoted}
+    - {from: RowOpen, event: full_width_row_normal, to: SectionOpened}
+    - {from: RowOpen, event: rows_exhausted, to: Resolving}
+    - {from: RowContinued, event: continuation_single_cell, to: RowContinued}
+    - {from: RowContinued, event: continuation_multi_cell, to: SubRowOpen}
+    - {from: RowContinued, event: next_row_key_filled, to: RowOpen}
+    - {from: SubRowOpen, event: continuation_multi_cell, to: SubRowOpen}
+    - {from: SubRowOpen, event: continuation_single_cell, to: RowContinued}
+    # Пробел контракта (замер 2026-09-27): у RowContinued/SubRowOpen не было пути назад
+    # в RowScanning, хотя блок продолжения обязан закрыться перед строкой-секцией
+    # (full_width_row_*) или в конце таблицы. Из-за этого раннер эмитил необъявленные
+    # пары SubRowOpen --full_width_row_normal--> (34 раза) и SubRowOpen --rows_exhausted-->.
+    - {from: [RowContinued, SubRowOpen], event: continuation_closed, to: RowScanning}
+    - {from: SubRowOpen, event: next_row_key_filled, to: RowOpen}
+    - {from: SectionOpened, event: rows_continue, to: RowScanning}
+    - {from: RevisionNoted, event: rows_continue, to: RowScanning}
+    - {from: [RowOpen, RowContinued, SubRowOpen], event: nested_table_found, to: NestedDetected}
+    - {from: NestedDetected, event: nested_registered, to: RowScanning}
+    - {from: Resolving, event: content_recognized, to: TableContent}
+    - {from: Resolving, event: layout_recognized, to: TableLayout}
+    - {from: Resolving, event: junk_reason_named, to: TableJunk}
+    - {from: Resolving, event: structure_unresolved, to: TableHold}
+    - {from: [HeaderScanning, HeaderLeveled, AxisDetecting, ColumnNumbersRead, ColumnRolesResolved, RowScanning, RowOpen, RowContinued, SubRowOpen], event: policy_or_threshold_drift, to: TableHold}
+  terminal: [TableContent, TableLayout, TableJunk, TableHold]
+  resolved_requires:
+    - header_levels_non_empty
+    - column_count_stable
+    - key_column_identified
+    - every_logical_row_has_key_or_explicit_owner
+    - no_cell_text_concatenated_across_distinct_semantic_cells
+
+  immutability_invariants:
+    - source_cells_are_immutable
+    - table_results_are_derived_not_authoritative
+    - span_covers_column_not_index        # заголовок приписывается колонке по НАКРЫТИЮ span, не по индексу ячейки
+    - glue_only_when_single_cell           # склейка разрешена только при ровно одной непустой ячейке
+    - multi_cell_continuation_is_subrow    # >=2 непустых ячеек -> отдельная под-строка, конкатенация запрещена
+    - subrow_requires_open_parent          # под-строка без открытой родительской строки = TableHold
+    - section_row_spans_all_columns        # группа опознаётся только по накрытию всей ширины
+    - revision_note_is_not_group           # редакционная пометка уходит в слой L3, не в группу
+    - role_derived_from_chain_not_leaf     # роль колонки берётся из всей цепочки заголовков
+    - axis_value_is_not_a_header           # последний многозначный уровень = ось, не заголовок
+    - junk_requires_named_reason           # каждый junk обязан несть junk_reason
+    - unknown_structure_is_hold_not_guess  # нераспознанная структура -> TableHold, не догадка
+    - no_text_flattening                   # таблица никогда не сплющивается в прозу
+    - nested_table_is_child_not_row        # вложенная таблица — дочерний узел, не строка
+
+  # -------------------------------------------------------------------------
+  # МЕТА: правила как данные (ADR-0029 lexicon-as-data). Правки — здесь, не в коде.
+  # -------------------------------------------------------------------------
+  lexicon:
+    column_roles:
+      # порядок важен: первое совпадение по цепочке.
+      # Паттерны в кавычках: регексы содержат ':' и '?' и ломают flow-mapping без кавычек.
+      patterns:
+      - {role: row_number, pattern: "^(n\\s*n?\\s*п/п|№|n\\s*п/п|п/п)$"}
+      - {role: code_okpd, pattern: "окпд"}
+      - {role: code_okei, pattern: "океи"}
+      - {role: unit, pattern: "единиц|измерени"}
+      - {role: value_by_category, pattern: "значение характеристик"}
+      - {role: requirement, pattern: "требован|характеристик|показател|параметр"}
+      - {role: value, pattern: "^значени|норма|ставк|тариф|доз|кратност"}
+      - {role: name, pattern: "наименован|вид товар|продукц|позици|предмет"}
+      - {role: category, pattern: "категор|должност|группа"}
+      - {role: period, pattern: "срок|дата|период|год"}
+      - {role: quantity, pattern: "количество|объем|объём|мощност"}
+      - {role: code_other, pattern: "код"}
+      fallback_role: null
+    row_classes:
+      - class: column_numbers
+        rule: values_are_consecutive_integers_from_one
+        min_values: 3
+      - class: section
+        rule: single_cell_spanning_all_columns
+        min_span: all
+      - class: revision_note
+        rule: section_cell_matches_revision_prefix
+        pattern: "^\\(?(п\\.|в ред|введен|введена|утратил|утратила|изложен)"
+      - class: data
+        rule: otherwise
+    continuation_rules:
+      - {filled_cells: 0, action: skip}
+      - {filled_cells: 1, action: glue_into_same_column}
+      - {filled_cells: '>=2', action: subrow_separate}
+    junk_reasons:
+      - empty
+      - single-cell
+      - provider-header
+      - tiny
+      - base64-blob
+      - no_rows
+      - role_chain_incomplete
+      - numbering_broken
+      - subrow_without_parent
+    thresholds_as_parameters:
+      min_content_chars: 30
+      axis_min_values: 3
+      axis_value_max_chars: 60
+      column_numbers_min_values: 3
+      # Замер 2026-09-27 (npa, 198 таблиц): вёрстка определяется числом заполненных
+      # ячеек в строке, а НЕ классификацией заголовка. У служебных блоков выгрузки
+      # («Документ предоставлен КонсультантПлюс», «Список изменяющих документов»)
+      # сканер собирает одну ПУСТУЮ строку-заголовок, поэтому проверка «нет заголовка»
+      # не срабатывает. Инвариант: вёрстка — вертикальная стопка строк, где ни в одной
+      # строке нет >= layout_max_filled_per_row заполненных ячеек.
+      layout_max_filled_per_row: 1
+
+  # -------------------------------------------------------------------------
+  # Инвариантный аудит как корпусный гейт (форма ADR-0029 §9).
+  # -------------------------------------------------------------------------
+  invariant_audit_rules:
+    - id: A1_count_reconciles
+      rule: header_rows + column_numbers_rows + key_rows + glued_continuations + stacked_subrows + section_rows + revision_notes == physical_rows
+      note: проверено на живом примере (153 = 4 шапки + 1 номера + 25 ключевых + 2 склейки + 117 под-строк + 1 группа + 3 пометки)
+    - id: A2_no_keyless_logical_row
+      rule: каждая логическая строка имеет непустой ключ или явного владельца (под-строка родителя)
+    - id: A3_axis_complete
+      rule: если ось найдена, каждая строка данных несёт axis_values непусто
+    - id: A4_span_monotonic
+      rule: накрытие шапки монотонно сужается сверху вниз (широкий заголовок -> узкий)
+    - id: A5_no_flattened_content
+      rule: ни одно поле результата не содержит конкатенацию ячеек разных семантических колонок
+    - id: A6_junk_named
+      rule: у каждого TableJunk есть junk_reason из closed-словаря
+    - id: A7_context_bound
+      rule: каждая TableContent несёт context_ref на структурный узел скелета
+    # --- правила, вскрытые замером 2026-09-27 ---
+    - id: A8_layout_is_vertical_stack
+      rule: >
+        вёрстка (TableLayout) распознаётся по числу заполненных ячеек в строке
+        (layout_max_filled_per_row), а не по отсутствию заголовка: у служебных блоков
+        выгрузки сканер собирает пустую строку-заголовок. До этой правки 69 из 72
+        таблиц выборки npa уходили в TableHold как «колонка без роли», хотя являются
+        вёрсткой (одностолбцовые блоки шапки/подвала, однострочные уведомления).
+    - id: A9_role_chain_incomplete_holds
+      rule: >
+        колонка без покрывающей ячейки заголовка не получает роль (fallback_role: null —
+        не угадывать) и таблица уходит в TableHold по объявленному переходу
+        ColumnRolesResolved --role_chain_incomplete--> TableHold. Остаток после A8: 3 из
+        198 таблиц npa (ncols=5 phys=845, ncols=5 phys=93, ncols=9 phys=14) — настоящие
+        таблицы данных без строки заголовка; для них Hold честен.
+    - id: A10_no_undeclared_rule_names
+      rule: >
+        раннер не вводит правил аудита, отсутствующих в этом контракте: прежнее
+        'A7b: колонка без заголовка' было выдуманным именем, не меняло терминал и
+        маскировало fail-closed переход (тот же класс, что S9/S12 у скелета).
+
+# ---------------------------------------------------------------------------
+# Опциональная стадия промпта для fail-closed остатка (ADR-0029 §10).
+# ---------------------------------------------------------------------------
+prompt_residue_stage:
+  enabled: false            # feature flag; по умолчанию выключено
+  trigger_state: TableHold
+  prompt_composition:
+    - ровно один отсутствующий слот на промпт (например, роль колонки или уровень оси)
+    - контекст: шапка таблицы и до 3 строк данных
+    - allowed_labels: closed-словарь из lexicon (column_roles/junk_reasons)
+  acceptance:
+    - метка принимается только после invariant_audit_rules A1..A7
+    - принятая метка несёт provenance: llm
+    - отказ возвращает состояние в TableHold
+  forbidden:
+    - свободная экстракция текста
+    - генерация новых меток вне closed-словаря
+    - переход FSM продукта от ответа промпта

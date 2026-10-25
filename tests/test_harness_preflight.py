@@ -52,6 +52,16 @@ def write_gsd_state(root: Path) -> None:
     )
 
 
+def write_workflow_bootstrap_marker(root: Path) -> None:
+    """Write the tracked GSD Path cutover marker in bootstrap mode."""
+    marker = root / "prd" / "project-state" / "workflow-backend.json"
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(
+        json.dumps({"schema": 1, "backend": "gsd-path", "cutover": False}) + "\n",
+        encoding="utf-8",
+    )
+
+
 def write_gitnexus_meta(root: Path, last_commit: str = "abc123") -> None:
     gitnexus = root / ".gitnexus"
     gitnexus.mkdir()
@@ -94,6 +104,9 @@ def governor_failure(*check_ids: str) -> GovernorReport:
 
 
 def run_test_preflight(root: Path, *, runner=passing_runner, governor_runner=passing_governor):
+    """Default to a bootstrap-mode cutover marker; tests may pre-write their own."""
+    if not (root / "prd" / "project-state" / "workflow-backend.json").exists():
+        write_workflow_bootstrap_marker(root)
     return run_preflight(root, runner=runner, governor_runner=governor_runner)
 
 
@@ -110,7 +123,7 @@ EXPECTED_CHECK_IDS = [
     "crate-dependency-allowlist",
     "port-contract-coverage",
     "gitnexus-index-freshness",
-    "gsd-state-surface",
+    "workflow-state-surface",
     "docs-freshness-surface",
     "trajectory-governor",
 ]
@@ -192,9 +205,16 @@ def test_preflight_report_schema_and_formatter_profile_pass(tmp_path: Path) -> N
     assert payload["status"] == "ok"
     assert payload["root"] == str(tmp_path.resolve())
     assert [item["check_id"] for item in payload["checks"]] == EXPECTED_CHECK_IDS
-    assert payload["pass_count"] == 8
-    assert payload["warn_count"] == 0
+    # workflow-state-surface is the one non-passing check on a bare fixture:
+    # bootstrap marker present, no .project -> BOOTSTRAP_NOT_CUT_OVER warn.
+    assert payload["pass_count"] == 7
+    assert payload["warn_count"] == 1
     assert payload["error_count"] == 0
+    workflow_finding = {item["check_id"]: item for item in payload["checks"]}[
+        "workflow-state-surface"
+    ]
+    assert workflow_finding["status"] == "warn"
+    assert "not-cut-over" in workflow_finding["observed"]
 
 
 def test_cli_preflight_command_emits_stable_json(capsys) -> None:
@@ -308,7 +328,9 @@ def test_stale_gitnexus_metadata_is_warn_with_reindex_remediation(tmp_path: Path
     payload = report.to_dict()
 
     assert payload["status"] == "ok"
-    assert payload["warn_count"] == 1
+    # one warn from the stale gitnexus metadata + one from the workflow-state
+    # bootstrap not-cut-over surface on a bare fixture.
+    assert payload["warn_count"] == 2
     by_id = {item["check_id"]: item for item in payload["checks"]}
     assert by_id["gitnexus-index-freshness"]["status"] == "warn"
     assert (
@@ -340,56 +362,60 @@ def test_dirty_worktree_marks_gitnexus_freshness_warning(tmp_path: Path) -> None
     assert "working tree has uncommitted changes" in by_id["gitnexus-index-freshness"]["observed"]
 
 
-def test_completed_gsd_state_without_active_milestone_passes(tmp_path: Path) -> None:
+def test_workflow_state_surface_bootstrap_warns_without_silent_pass(tmp_path: Path) -> None:
+    """Bootstrap mode surfaces an explicit not-cut-over warn, never a PASS."""
     write_gitnexus_meta(tmp_path)
     write_docs(tmp_path)
-    gsd = tmp_path / ".gsd"
-    gsd.mkdir()
-    (gsd / "STATE.md").write_text(
-        "# GSD State\n\n"
-        "**Last Completed Milestone:** M130-bzeiq1: Governor debt closure\n"
-        "**Active Slice:** None\n"
-        "**Phase:** complete\n",
-        encoding="utf-8",
-    )
 
     payload = run_test_preflight(tmp_path, runner=coverage_clean_runner).to_dict()
-    finding = {item["check_id"]: item for item in payload["checks"]}["gsd-state-surface"]
-
-    assert finding["status"] == "pass"
-    assert "completed terminal state" in finding["observed"]
-
-
-def test_executing_gsd_state_without_active_milestone_warns(tmp_path: Path) -> None:
-    write_gitnexus_meta(tmp_path)
-    write_docs(tmp_path)
-    gsd = tmp_path / ".gsd"
-    gsd.mkdir()
-    (gsd / "STATE.md").write_text(
-        "# GSD State\n\n"
-        "**Last Completed Milestone:** M130-bzeiq1: Governor debt closure\n"
-        "**Active Slice:** S01\n"
-        "**Phase:** executing\n",
-        encoding="utf-8",
-    )
-
-    payload = run_test_preflight(tmp_path, runner=coverage_clean_runner).to_dict()
-    finding = {item["check_id"]: item for item in payload["checks"]}["gsd-state-surface"]
+    finding = {item["check_id"]: item for item in payload["checks"]}["workflow-state-surface"]
 
     assert finding["status"] == "warn"
-    assert "Active Milestone" in finding["observed"]
+    assert "not-cut-over" in finding["observed"]
+    assert "legacy_gsd_snapshot=absent" in finding["observed"]
 
 
-def test_missing_gsd_state_surface_is_warn_not_db_access(tmp_path: Path) -> None:
+def test_workflow_state_surface_operational_missing_project_fails(tmp_path: Path) -> None:
+    """Operational mode with no .project is a blocking failure, not a warn."""
     write_gitnexus_meta(tmp_path)
     write_docs(tmp_path)
+    marker = tmp_path / "prd" / "project-state" / "workflow-backend.json"
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(
+        json.dumps({"schema": 1, "backend": "gsd-path", "cutover": True}) + "\n",
+        encoding="utf-8",
+    )
 
     payload = run_test_preflight(tmp_path, runner=coverage_clean_runner).to_dict()
-    by_id = {item["check_id"]: item for item in payload["checks"]}
+    finding = {item["check_id"]: item for item in payload["checks"]}["workflow-state-surface"]
 
-    assert by_id["gsd-state-surface"]["status"] == "warn"
-    assert by_id["gsd-state-surface"]["command"] == ["read", ".gsd/STATE.md"]
-    assert "GSD tools" in by_id["gsd-state-surface"]["remediation"]
+    assert finding["status"] == "fail"
+    assert finding["severity"] == "error"
+    assert "missing-state" in finding["observed"]
+
+
+def test_workflow_state_surface_reports_legacy_gsd_presence(tmp_path: Path) -> None:
+    """The frozen legacy .gsd surface stays visible in bootstrap diagnostics."""
+    write_gitnexus_meta(tmp_path)
+    write_docs(tmp_path)
+    gsd = tmp_path / ".gsd"
+    gsd.mkdir()
+    (gsd / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Active Milestone:** M225-qrwdfv\n"
+        "**Active Slice:** None\n"
+        "**Phase:** blocked\n",
+        encoding="utf-8",
+    )
+
+    payload = run_test_preflight(tmp_path, runner=coverage_clean_runner).to_dict()
+    finding = {item["check_id"]: item for item in payload["checks"]}["workflow-state-surface"]
+
+    assert finding["status"] == "warn"
+    assert finding["command"] == ["internal", "workflow-state-adapter"]
+    assert "legacy_gsd_snapshot=present" in finding["observed"]
+    # The legacy snapshot is evidence only; it never becomes a PASS.
+    assert finding["status"] != "pass"
 
 
 def test_docs_freshness_uses_only_tracked_portable_authority_surfaces(

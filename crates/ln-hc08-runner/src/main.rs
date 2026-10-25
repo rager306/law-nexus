@@ -4,8 +4,8 @@ use std::process::ExitCode;
 use ln_relation::adapters::InMemoryClosedRegistry;
 use ln_relation::application::ValidateRelation;
 use ln_relation::domain::{
-    EndpointId, EvidenceRef, FamilyId, PredicateId, RelationOutcome, RelationProposal,
-    C13_GATE_VERSION, DEFAULT_REGISTRY_VERSION,
+    C13_GATE_VERSION, DEFAULT_REGISTRY_VERSION, EndpointId, EvidenceRef, FamilyId, PredicateId,
+    RelationOutcome, RelationProposal,
 };
 
 struct ScenarioResult {

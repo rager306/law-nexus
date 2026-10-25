@@ -3,18 +3,18 @@
 //! against the pre-remediation runtime and pass after the minimal fix.
 
 use ln_decode::capture_bounds::{
-    arbitrate_pair, span_relation, PairDiagnostic, PairOutcome, SpanRelation,
+    PairDiagnostic, PairOutcome, SpanRelation, arbitrate_pair, span_relation,
 };
 use ln_decode::current_requisites::{
     CurrentDocumentRequisites, RequisitesClaim, RequisitesExtractionStatus, RequisitesField,
     RequisitesSourceKind, SourceAnchor, ThisRefGrammarEvidence,
 };
 use ln_decode::document_context::{
-    build_document_analysis_overlay, build_document_structure_index, detect_this_ref_grammar,
-    open_series_head, BlockId, ContainerRole, ContextBudgets, ContextClaimStatus,
-    ContextDiagnostic, ContextEnvironment, ContextRequest, ContextStatus, ContextWorklist,
-    ContextualEdge, ContextualEdgeKind, DocumentAnalysisOverlay, DocumentStructureIndex,
-    DocumentVersionRef, FrameRef, StructureEdgeStatus,
+    BlockId, ContainerRole, ContextBudgets, ContextClaimStatus, ContextDiagnostic,
+    ContextEnvironment, ContextRequest, ContextStatus, ContextWorklist, ContextualEdge,
+    ContextualEdgeKind, DocumentAnalysisOverlay, DocumentStructureIndex, DocumentVersionRef,
+    FrameRef, StructureEdgeStatus, build_document_analysis_overlay, build_document_structure_index,
+    detect_this_ref_grammar, open_series_head,
 };
 use ln_decode::domain::{
     ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
@@ -22,7 +22,7 @@ use ln_decode::domain::{
 };
 use ln_decode::lawref::capture_lawrefs;
 use ln_decode::lexer::lex;
-use ln_decode::local_grammar::{extract_act_list_frames, extract_structural_frames, FrameStatus};
+use ln_decode::local_grammar::{FrameStatus, extract_act_list_frames, extract_structural_frames};
 use ln_decode::morphology::find_legal_markers;
 use ln_decode::sentence::split_legal_sentences;
 
@@ -519,9 +519,11 @@ fn rc28_f08_cited_act_negative_and_missing_sidecar_stay_refused() {
         result.candidate_claims.is_empty(),
         "F08-cited-act-negative: no self-reference may be fabricated"
     );
-    assert!(result
-        .diagnostics
-        .contains(&ContextDiagnostic::InheritedFieldConflict));
+    assert!(
+        result
+            .diagnostics
+            .contains(&ContextDiagnostic::InheritedFieldConflict)
+    );
 
     let admitted_request = this_ref_request(ThisRefGrammarEvidence::new([RequisitesField::Type]));
     let no_sidecar = ContextEnvironment {
@@ -533,9 +535,11 @@ fn rc28_f08_cited_act_negative_and_missing_sidecar_stay_refused() {
         ContextWorklist::new(ContextBudgets::default()).run(no_sidecar, &[admitted_request]);
     let result = report.results.values().next().unwrap();
     assert_eq!(result.status, ContextStatus::Unavailable);
-    assert!(result
-        .diagnostics
-        .contains(&ContextDiagnostic::MissingCurrentRequisites));
+    assert!(
+        result
+            .diagnostics
+            .contains(&ContextDiagnostic::MissingCurrentRequisites)
+    );
     assert!(result.candidate_claims.is_empty());
 }
 
@@ -562,17 +566,20 @@ fn rc28_f08_self_missing_or_conflicting_sidecar_fails_closed() {
     let conflicting = CurrentDocumentRequisites::try_new("doc-v1".into(), claims).unwrap();
     let date_only = CurrentDocumentRequisites::try_new(
         "doc-v1".into(),
-        vec![RequisitesClaim::try_new(
-            "date-only".into(),
-            "doc-v1".into(),
-            RequisitesField::Date,
-            "2026-01-01".into(),
-            RequisitesSourceKind::DocumentHead,
-            SourceAnchor::try_new(TextSpan::try_new(0, 1).unwrap(), "date-anchor".into()).unwrap(),
-            "profile-v1".into(),
-            RequisitesExtractionStatus::Observed,
-        )
-        .unwrap()],
+        vec![
+            RequisitesClaim::try_new(
+                "date-only".into(),
+                "doc-v1".into(),
+                RequisitesField::Date,
+                "2026-01-01".into(),
+                RequisitesSourceKind::DocumentHead,
+                SourceAnchor::try_new(TextSpan::try_new(0, 1).unwrap(), "date-anchor".into())
+                    .unwrap(),
+                "profile-v1".into(),
+                RequisitesExtractionStatus::Observed,
+            )
+            .unwrap(),
+        ],
     )
     .unwrap();
 

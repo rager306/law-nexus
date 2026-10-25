@@ -1,9 +1,9 @@
 //! Application use case: evaluate case applicability fail-closed (ADR-0023).
 
 use crate::domain::{
-    compose_norm_rule_predicates, default_non_claims, first_prerequisite_abstention,
     AbstentionKind, ApplicabilityDecision, ApplicabilityRequest, ApplicabilityResult, CaseFactSet,
-    ExplainableTrace, NormRule, PredicateOutcome, PredicateStep, PROTOCOL_VERSION,
+    ExplainableTrace, NormRule, PROTOCOL_VERSION, PredicateOutcome, PredicateStep,
+    compose_norm_rule_predicates, default_non_claims, first_prerequisite_abstention,
 };
 
 /// Pure evaluator. No I/O. Never returns Applicable/NotApplicable in v0.

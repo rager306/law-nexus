@@ -13,7 +13,8 @@ use crate::lawref::LawRef;
 use crate::local_grammar::{
     CoordinatingFrame, DerivationSource, FrameKind, FrameStatus, StructuralDesignationFrame,
 };
-use crate::morphology::{find_legal_markers, LegalMarkerKind};
+use crate::morphology::{LegalMarkerKind, find_legal_markers};
+use crate::npa_continuation::ContinuationEligibility;
 use crate::structural_profile::StructuralProfile;
 
 const MAX_ID_LEN: usize = 64;
@@ -1212,15 +1213,20 @@ impl ActFrameRecord {
     /// * owner and boundary are compatible (same nearest structural scope);
     /// * both sides retain a real source-local derivation span.
     fn eligible_continuation_head_for(&self, tail: &Self) -> bool {
-        self.status == FrameStatus::Proposed
-            && tail.status != FrameStatus::Rejected
-            && self.frame_ref != tail.frame_ref
-            && self.block_id != tail.block_id
-            && self.admits_act_type
-            && self.order < tail.order
-            && self.scope_id == tail.scope_id
-            && self.retains_local_derivation()
-            && tail.retains_local_derivation()
+        // Thin adapter over the shared RC28-F07 predicate (D612): the private
+        // field vocabulary of this overlay is mapped onto the public clauses,
+        // so no second, weaker copy of the rule exists.
+        crate::npa_continuation::eligible_continuation_head_for(&ContinuationEligibility {
+            head_status_proposed: self.status == FrameStatus::Proposed,
+            tail_status_not_rejected: tail.status != FrameStatus::Rejected,
+            distinct_frames: self.frame_ref != tail.frame_ref,
+            distinct_blocks: self.block_id != tail.block_id,
+            head_admits_act_type: self.admits_act_type,
+            head_order_before_tail: self.order < tail.order,
+            same_scope: self.scope_id == tail.scope_id,
+            head_retains_derivation: self.retains_local_derivation(),
+            tail_retains_derivation: tail.retains_local_derivation(),
+        })
     }
 
     fn retains_local_derivation(&self) -> bool {
@@ -1406,21 +1412,21 @@ pub fn detect_declared_aliases(text: &str, scope: ContainerId) -> Vec<DeclaredAl
             };
             let end = value_start + end_rel;
             let wording = text[value_start..end].trim();
-            if !wording.is_empty() {
-                if let (Ok(anchor), Ok(alias_id), Ok(mention)) = (
+            if !wording.is_empty()
+                && let (Ok(anchor), Ok(alias_id), Ok(mention)) = (
                     TextSpan::try_new(start, end + 1),
                     AliasId::parse(&format!("alias-{start}")),
                     MentionRef::parse(&format!("alias-target-{start}")),
-                ) {
-                    out.push(DeclaredAliasNode {
-                        alias_id,
-                        wording: wording.to_owned(),
-                        target_mention_ref: mention,
-                        declaration_anchor: anchor,
-                        scope_container_id: scope.clone(),
-                        status: StructureEdgeStatus::Accepted,
-                    });
-                }
+                )
+            {
+                out.push(DeclaredAliasNode {
+                    alias_id,
+                    wording: wording.to_owned(),
+                    target_mention_ref: mention,
+                    declaration_anchor: anchor,
+                    scope_container_id: scope.clone(),
+                    status: StructureEdgeStatus::Accepted,
+                });
             }
             from = end + 1;
         }
@@ -1448,10 +1454,10 @@ pub fn detect_this_ref_grammar(text: &str) -> Vec<TextSpan> {
     let mut spans = Vec::new();
     for (start, _) in text.char_indices() {
         for surface in SURFACES {
-            if let Some(end) = match_this_ref_surface(text, start, surface) {
-                if let Ok(span) = TextSpan::try_new(start, end) {
-                    spans.push(span);
-                }
+            if let Some(end) = match_this_ref_surface(text, start, surface)
+                && let Ok(span) = TextSpan::try_new(start, end)
+            {
+                spans.push(span);
             }
         }
     }

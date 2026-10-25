@@ -13,7 +13,7 @@ use ln_decode::{
     structural_profile::{GroupProfile, StructuralProfile},
 };
 use ln_kb_ontology::domain::{
-    build_text_log_from_articles, changed_article_texts, resolve_ctv, CtvResolution,
+    CtvResolution, build_text_log_from_articles, changed_article_texts, resolve_ctv,
 };
 use ln_kb_ontology::registry::{
     load_edition_day_for_path, load_expression_id_for_path, load_hierarchy_map_for_path,
@@ -150,10 +150,9 @@ fn text_changed_between_editions_resolves_differently() {
             .iter()
             .find(|t| t.number() == s.number())
             .filter(|t| !t.text().trim().is_empty() && !s.text().trim().is_empty())
+            && s.text() != t.text()
         {
-            if s.text() != t.text() {
-                changed.push(s.number());
-            }
+            changed.push(s.number());
         }
     }
     eprintln!("articles with changed text 0001->0002: {}", changed.len());

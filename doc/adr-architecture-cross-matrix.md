@@ -242,3 +242,25 @@ and FSM list merging is forbidden. P9 is `not-s04-after-this` /
 `deferred-to-later`, F19 is supporting-only with the packet open, NormRule and
 force remain deferred, and IR remains an M210 boundary. These statements do
 not promote lifecycle or close requirements/findings.
+
+## M221/S05 design-only reconciliation companion [proposed]
+
+The F06 stale "no Rust engine code" claim is reconciled against the *bounded*
+M211 Rust reference-capture runtime by the non-authoritative design-only pin
+`prd/architecture/m221-s05-docs-reconciliation.yaml`
+(`m221-s05-docs-reconciliation/v1`, `[proposed]`, `authoritative: false`,
+`human_adoption: pending`). The pin binds only frozen/contract/receipt
+artifacts (`prd/architecture/npa-analysis-jsonl-contract.md`,
+`prd/migration/rust-evidence/m221-s04-acceptance.json`,
+`prd/migration/rust-evidence/m214-s04-corpus-acceptance.json`) and declares the
+surface edits separately instead of hashing an edited surface.
+
+Reconciled surfaces: the ADR-0029 Status section, the `prd/ARCHITECTURE.md`
+ADR-0029 row, the `doc/adr/README.md` ADR-0029 index row, the `README.md`
+design-only lineage, and this companion. The bounded runtime landed under M211
+(`npa_anchor`/`npa_typed`/`npa_link`/`npa_classify`/`npa_continuation`,
+`npa-integration-runner`); prompt-FSM residue and corpus-wide/semantic
+acceptance remain unclaimed, so no lifecycle is promoted. R1000 stays active
+and unclosed (D638/D656/D679), M208 and M215-M220 stay parked, and this
+companion closes no requirement. The existing 0004-0024 inventory above is not
+rewritten.

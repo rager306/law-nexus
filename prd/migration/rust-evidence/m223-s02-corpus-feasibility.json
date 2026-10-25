@@ -1,0 +1,406 @@
+{
+  "schema": "m223-s02-corpus-feasibility/v1",
+  "version": 2,
+  "inputs": {
+    "manifest": {
+      "path": "prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl",
+      "sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c",
+      "inventory_digest": "sha256:aa7e14e31059c906f291423a2e8151f8bf0f857e9fd7370545d7e3b5800766dd",
+      "counts": {
+        "entries": 43785,
+        "total_bytes": 3789431364,
+        "max_bytes": 29372660
+      },
+      "pins": {
+        "count": 43785,
+        "total_bytes": 3789431364,
+        "max_bytes": 29372660,
+        "match": true,
+        "drift": []
+      }
+    },
+    "probe": {
+      "path": "prd/migration/rust-evidence/m223-s02-clean-path-probe.json",
+      "sha256": "sha256:ad6082ca174f057a8485848ab95d2c453cc492eb7a60e5f77638e918fad0195b",
+      "schema": "m223-s02-clean-path-probe/v1",
+      "run_status": "complete",
+      "seed": 22302,
+      "sample_count": 300,
+      "manifest_sha256": "sha256:565ec492b42d6b2f2a652cb32e8423eba56c7f376596c35239991db2d72e429c",
+      "inventory_digest": "sha256:aa7e14e31059c906f291423a2e8151f8bf0f857e9fd7370545d7e3b5800766dd"
+    }
+  },
+  "projections": {
+    "manifest_counts": {
+      "entries": 43785,
+      "total_bytes": 3789431364,
+      "max_bytes": 29372660
+    },
+    "manifest_pins": {
+      "count": 43785,
+      "total_bytes": 3789431364,
+      "max_bytes": 29372660,
+      "match": true,
+      "drift": []
+    },
+    "total_files": 43785,
+    "total_bytes": 3789431364,
+    "sample": {
+      "seed": 22302,
+      "count": 300,
+      "accepted": 300,
+      "tail_files": 50,
+      "tail_measured": 50,
+      "tail_missing": []
+    },
+    "wall_s": {
+      "method": "export and read-back projected separately as [exactly measured largest-tail sum + decile-stratified body (mean measured per decile times body file count)], then summed and multiplied by the stated reconciliation overhead and uncertainty margins",
+      "export": {
+        "units": "files",
+        "tail_measured": 491.509223,
+        "body_projected": 4382.150514,
+        "total": 4873.659737,
+        "per_decile": [
+          {
+            "decile": 0,
+            "body_units": 4379.0,
+            "body_files": 4379,
+            "sampled": 25,
+            "mean": 0.029953,
+            "projected": 131.163486,
+            "fallback": {}
+          },
+          {
+            "decile": 1,
+            "body_units": 4378.0,
+            "body_files": 4378,
+            "sampled": 25,
+            "mean": 0.033415,
+            "projected": 146.292271,
+            "fallback": {}
+          },
+          {
+            "decile": 2,
+            "body_units": 4379.0,
+            "body_files": 4379,
+            "sampled": 25,
+            "mean": 0.046031,
+            "projected": 201.571501,
+            "fallback": {}
+          },
+          {
+            "decile": 3,
+            "body_units": 4378.0,
+            "body_files": 4378,
+            "sampled": 25,
+            "mean": 0.050347,
+            "projected": 220.419341,
+            "fallback": {}
+          },
+          {
+            "decile": 4,
+            "body_units": 4379.0,
+            "body_files": 4379,
+            "sampled": 25,
+            "mean": 0.049612,
+            "projected": 217.251649,
+            "fallback": {}
+          },
+          {
+            "decile": 5,
+            "body_units": 4378.0,
+            "body_files": 4378,
+            "sampled": 25,
+            "mean": 0.062901,
+            "projected": 275.381103,
+            "fallback": {}
+          },
+          {
+            "decile": 6,
+            "body_units": 4379.0,
+            "body_files": 4379,
+            "sampled": 25,
+            "mean": 0.075328,
+            "projected": 329.860436,
+            "fallback": {}
+          },
+          {
+            "decile": 7,
+            "body_units": 4378.0,
+            "body_files": 4378,
+            "sampled": 25,
+            "mean": 0.093972,
+            "projected": 411.409766,
+            "fallback": {}
+          },
+          {
+            "decile": 8,
+            "body_units": 4379.0,
+            "body_files": 4379,
+            "sampled": 25,
+            "mean": 0.100855,
+            "projected": 441.644045,
+            "fallback": {}
+          },
+          {
+            "decile": 9,
+            "body_units": 4328.0,
+            "body_files": 4328,
+            "sampled": 25,
+            "mean": 0.463761,
+            "projected": 2007.156916,
+            "fallback": {}
+          }
+        ]
+      },
+      "readback": {
+        "units": "files",
+        "tail_measured": 85.871431,
+        "body_projected": 1705.449855,
+        "total": 1791.321286,
+        "per_decile": [
+          {
+            "decile": 0,
+            "body_units": 4379.0,
+            "body_files": 4379,
+            "sampled": 25,
+            "mean": 0.025184,
+            "projected": 110.278809,
+            "fallback": {}
+          },
+          {
+            "decile": 1,
+            "body_units": 4378.0,
+            "body_files": 4378,
+            "sampled": 25,
+            "mean": 0.025208,
+            "projected": 110.359573,
+            "fallback": {}
+          },
+          {
+            "decile": 2,
+            "body_units": 4379.0,
+            "body_files": 4379,
+            "sampled": 25,
+            "mean": 0.026706,
+            "projected": 116.943472,
+            "fallback": {}
+          },
+          {
+            "decile": 3,
+            "body_units": 4378.0,
+            "body_files": 4378,
+            "sampled": 25,
+            "mean": 0.028236,
+            "projected": 123.616858,
+            "fallback": {}
+          },
+          {
+            "decile": 4,
+            "body_units": 4379.0,
+            "body_files": 4379,
+            "sampled": 25,
+            "mean": 0.027624,
+            "projected": 120.96427,
+            "fallback": {}
+          },
+          {
+            "decile": 5,
+            "body_units": 4378.0,
+            "body_files": 4378,
+            "sampled": 25,
+            "mean": 0.033988,
+            "projected": 148.799989,
+            "fallback": {}
+          },
+          {
+            "decile": 6,
+            "body_units": 4379.0,
+            "body_files": 4379,
+            "sampled": 25,
+            "mean": 0.041889,
+            "projected": 183.43053,
+            "fallback": {}
+          },
+          {
+            "decile": 7,
+            "body_units": 4378.0,
+            "body_files": 4378,
+            "sampled": 25,
+            "mean": 0.052182,
+            "projected": 228.452446,
+            "fallback": {}
+          },
+          {
+            "decile": 8,
+            "body_units": 4379.0,
+            "body_files": 4379,
+            "sampled": 25,
+            "mean": 0.051846,
+            "projected": 227.034159,
+            "fallback": {}
+          },
+          {
+            "decile": 9,
+            "body_units": 4328.0,
+            "body_files": 4328,
+            "sampled": 25,
+            "mean": 0.077535,
+            "projected": 335.569749,
+            "fallback": {}
+          }
+        ]
+      },
+      "combined_s": 6664.981023,
+      "reconciliation_overhead_fraction": 0.25,
+      "reconciliation_overhead_s": 1666.245256,
+      "subtotal_s": 8331.226279,
+      "uncertainty_fraction": 0.25,
+      "uncertainty_s": 2082.80657,
+      "projected_total_s": 10414.032848,
+      "projected_total_h": 2.892787,
+      "stop_threshold_s": 14400
+    },
+    "cleaned_layer_bytes": {
+      "method": "decile-stratified body projection (mean measured output/input ratio per decile times body bytes) plus the exactly measured largest-tail sum; cross-checked with aggregate ratio times total bytes; the conservative projection is the larger",
+      "tail_measured_bytes": 3198817803,
+      "body_projected_bytes": 29913550260,
+      "total_bytes": 33112368063,
+      "aggregate_ratio": 8.567144,
+      "aggregate_ratio_bytes": 32464603763,
+      "conservative_bytes": 33112368063,
+      "ratio": {
+        "count": 300,
+        "min": 1.3473536064731872,
+        "median": 9.964960667062837,
+        "p95": 15.949761615277799,
+        "max": 21.896170723410876
+      },
+      "worst_case_bytes": 82974036090
+    },
+    "peak_rss_kb": {
+      "method": "measured peak RSS over the sample; the largest tail is fully measured. This is a sample tail, not a corpus upper bound",
+      "count": 300,
+      "min": 31992.0,
+      "median": 32008.0,
+      "p95": 690594.6000000004,
+      "max": 3151884.0,
+      "stop_threshold_kb": 6291456
+    },
+    "output_bytes": {
+      "count": 300,
+      "min": 59650.0,
+      "median": 526332.5,
+      "p95": 53076502.300000474,
+      "max": 437019831.0
+    },
+    "disk": {
+      "free_bytes": 15864389632,
+      "total_bytes": 258906374144,
+      "conservative_layer_bytes": 33112368063,
+      "persist_safety_bytes": 6622473612,
+      "persist_required_bytes": 39734841675,
+      "headroom_bytes": -17247978431,
+      "single_artifact_measured_max_bytes": 437019831,
+      "single_artifact_stop_threshold_bytes": 2147483648,
+      "min_free_disk_safety_bytes": 1073741824
+    }
+  },
+  "decision": {
+    "verdict": "full-stream-discard",
+    "vocabulary": [
+      "full-persist",
+      "full-stream-discard",
+      "bounded-partial",
+      "requires-disk-expansion"
+    ],
+    "decided_from": {
+      "projected_total_wall_s": 10414.032848,
+      "projected_export_wall_s": 4873.659737,
+      "projected_readback_wall_s": 1791.321286,
+      "projected_layer_bytes": 33112368063,
+      "measured_peak_rss_kb": 3151884.0,
+      "free_disk_bytes": 15864389632,
+      "persist_required_bytes": 39734841675,
+      "single_artifact_measured_max_bytes": 437019831
+    },
+    "stop_thresholds": {
+      "kind": "stop_threshold",
+      "enforcement": "polled while the run is live; a crossing stops the run (SIGKILL)",
+      "not_an_upper_bound": true,
+      "overshoot_note": "observed consumption may overshoot a stop threshold by up to one poll interval; the run is stopped, not capped in advance",
+      "wall_s": 14400,
+      "peak_rss_kb": 6291456,
+      "single_artifact_bytes": 2147483648
+    },
+    "preflight_requirements": [
+      {
+        "check": "free_disk_bytes >= single_artifact_stop_threshold_bytes + safety",
+        "threshold_bytes": 3221225472
+      },
+      {
+        "check": "available_memory_bytes >= peak_rss_stop_threshold_kb * 1024",
+        "threshold_bytes": 6442450944
+      },
+      {
+        "check": "projected_total_wall_s < wall_stop_threshold_s",
+        "threshold_s": 14400
+      },
+      {
+        "check": "conservative_layer_bytes < free_disk_bytes (required only for full-persist)",
+        "threshold_bytes": 33112368063
+      }
+    ],
+    "authorization": {
+      "kind": "conditional_attempt_authorization",
+      "scope": "one attempt at a full pass over every manifest entry (§8.1); entries are processed until done or until a stop threshold halts the attempt",
+      "granted_when": "all preflight_requirements pass at attempt start",
+      "on_stop": "a stop threshold halts the attempt; a halted or interrupted attempt is not a success, and a partial pass is never reported as full (§8.1). Resume re-checks the preflight, skips entries with current receipts, and re-attempts the rest",
+      "partial_is_not_full": true
+    },
+    "resume_semantics": {
+      "bound_to": [
+        "input: per-file source.sha256 + bytes (inventory manifest)",
+        "code: source revision of the reader/admission pipeline actually executed",
+        "rules: decoder/cleaner profile and contract version"
+      ],
+      "resume_requires": "all three hash families match the recorded receipts (§8.6)",
+      "partial_run_label": "not full; corpus statistics report accepted / refused / incomplete separately"
+    },
+    "condition_that_changes_decision": {
+      "to": "full-persist",
+      "requires_free_disk_bytes": 39734841675,
+      "statement": "If free disk at run time is >= 39734841675 B (conservative projected layer 33112368063 B + safety/headroom 6622473612 B), the run may persist the full cleaned layer and the decision changes to full-persist"
+    },
+    "rationale": "the projected total wall (export + read-back + stated overhead) and the sampled RSS tail fit inside the stop thresholds and one artifact fits on disk, but the projected cleaned layer plus headroom exceeds free disk; the run must stream and discard each artifact, persisting per-file receipts only",
+    "rejected": [
+      {
+        "verdict": "bounded-partial",
+        "why": "rejected: §8.1 requires every manifest entry to reach a terminal outcome; a partial sweep is silent descoping, not a feasibility verdict"
+      }
+    ]
+  },
+  "blind_spots": [
+    "per-document nesting depth",
+    "per-document table count/density"
+  ],
+  "evidence_pointers": [
+    "prd/migration/rust-evidence/m223-s02-corpus-manifest.jsonl",
+    "prd/migration/rust-evidence/m223-s02-clean-path-probe.json",
+    "prd/architecture/intermediate-source-acceptance-contract.md"
+  ],
+  "r1000_status": "active/unclosed",
+  "non_claims": [
+    "Not a corpus run: projections are conditional extrapolations from a bounded stratified sample (300 files), not measured full-corpus facts.",
+    "Not semantic acceptance: resource feasibility only; integrity is not semantics.",
+    "R1000 stays active/unclosed: this decision closes no requirement and no M223 slice closes R1000.",
+    "Stop thresholds are polled enforcement points, not hard caps; observed consumption may overshoot by up to one poll interval, so the thresholds are not upper bounds of actual consumption.",
+    "The sampled peak RSS is a tail of the sample, not a corpus upper bound.",
+    "The reconciliation/uncertainty margins are stated fractions, not measured costs.",
+    "The decision authorises a conditional attempt, not a guaranteed fit: the preflight must confirm actual free disk and available memory before the attempt starts.",
+    "A halted or partial pass is not full coverage; partial results are never reported as full (§8.1).",
+    "Per-document nesting depth and table count/density are not measured (no product surface without a new XML parse); density and size stand in for them.",
+    "Disk, wall and RSS projections are point-in-time: a changed corpus, binary, machine or free disk changes the verdict.",
+    "No raw decoded text in evidence: paths, counts and hashes only."
+  ]
+}

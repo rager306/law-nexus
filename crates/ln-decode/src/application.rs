@@ -1,6 +1,6 @@
 use crate::domain::{
-    fingerprint_bytes, BlockDecodeError, DecodeCategory, DecodeRequest, DecodeResult, DiagnosticId,
-    ParsedBlock, SafeDiagnostic, StructuralCandidate,
+    BlockDecodeError, DecodeCategory, DecodeRequest, DecodeResult, DiagnosticId, ParsedBlock,
+    SafeDiagnostic, StructuralCandidate, fingerprint_bytes,
 };
 use crate::ports::{BlockDecoderPort, DecoderPort, DiagnosticPort};
 

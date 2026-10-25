@@ -31,9 +31,9 @@
 
 use ln_temporal::calendar::legal_act_effect_day_to_ordinal;
 use ln_temporal::domain::{
-    checkout_projection_at, fold_three_canon_at, AmendmentFacetKind, C1Candidate, CanonRecordId,
-    CheckoutProjection, ComponentConceptId, EditionOracle, EvidenceClass, NormativeState,
-    ProvisionCheckout, ThreeCanonEventLog, ThreeCanonLogError, ThreeCanonRecord,
+    AmendmentFacetKind, C1Candidate, CanonRecordId, CheckoutProjection, ComponentConceptId,
+    EditionOracle, EvidenceClass, NormativeState, ProvisionCheckout, ThreeCanonEventLog,
+    ThreeCanonLogError, ThreeCanonRecord, checkout_projection_at, fold_three_canon_at,
 };
 
 // One stable Work (R081): every component concept lives in this namespace.
@@ -353,9 +353,11 @@ fn law3_statya_93_carries_record_id_and_amending_act_provenance() {
     assert_eq!(provenance, LAW3_ACT);
 
     let statya_5 = provision(&at_2022, STATYA_5);
-    assert!(amendment_records(statya_5.events())
-        .iter()
-        .any(|(id, _)| id == "rec:ed0-5c"));
+    assert!(
+        amendment_records(statya_5.events())
+            .iter()
+            .any(|(id, _)| id == "rec:ed0-5c")
+    );
 }
 
 // ── T03 honesty negatives: a green demo cannot hide D304 or oracle leakage ──

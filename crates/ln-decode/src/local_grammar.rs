@@ -191,6 +191,11 @@ impl OwnerPathStep {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CoordinatingFrame {
     pub frame_kind: FrameKind,
+    /// Source-block document order this frame was extracted from. A frame
+    /// extracted from a single fragment (`extract_act_list_frames`) uses `0`;
+    /// the typed path fills the real `LocalSpan.block` index so cross-block
+    /// linking never compares fragment-local offsets (S03 / RC28-F07).
+    pub block: usize,
     pub local_anchor: TextSpan,
     pub head_roles: Vec<String>,
     pub members: Vec<FrameMember>,
@@ -406,12 +411,147 @@ pub fn extract_act_list_frames(
             let end = candidates.last()?.span().end();
             Some(CoordinatingFrame {
                 frame_kind: FrameKind::ActRequisites,
+                block: 0,
                 local_anchor: TextSpan::try_new(start, end).ok()?,
                 head_roles: type_alternatives,
                 members,
                 separators: Vec::new(),
                 continuation: candidates.len() > 1,
                 alternatives: Vec::new(),
+                bounds: FrameBounds {
+                    max_members: PROPOSED_MAX_FRAME_MEMBERS,
+                    max_expanded_candidates: PROPOSED_MAX_EXPANDED_CANDIDATES,
+                },
+                status,
+                diagnostic,
+            })
+        })
+        .collect()
+}
+
+/// Extract local act-requisite frames directly from the canonical typed
+/// stream (`npa_typed::scan_typed_diagnosed`) instead of re-deriving captures
+/// from raw text.
+///
+/// The frame is strictly intra-block: typed members are grouped by their
+/// `LocalSpan.block`, so a TYPE written in block 0 can never be inherited by
+/// an anchor in block 1 (S03 boundary / RC28-F07). Within a block the first
+/// member is `ExplicitMember`; later members reuse the series head and are
+/// recorded as `SameSeriesHead`. Competing TYPE hypotheses
+/// (`TypedMember.alternatives`) are retained as `alternatives` `FrameMember`s
+/// and folded into `head_roles`; the frame never silently selects one reading
+/// (RC28-F09 / MEM1394). `TypedMember` values are read only and never mutated.
+///
+/// Existing `extract_act_list_frames(src, &batch)` keeps its own behaviour; this
+/// is an additive typed-path surface.
+pub fn extract_act_list_frames_from_typed(paras: &[String]) -> Vec<CoordinatingFrame> {
+    let (typed, _diagnostics) = crate::npa_typed::scan_typed_diagnosed(paras);
+
+    // Group by block, preserving source order inside each block. `scan_typed`
+    // already sorts by `(block, start)`; a `BTreeMap` keeps blocks ascending so
+    // frames are emitted in block order.
+    let mut by_block: std::collections::BTreeMap<usize, Vec<&crate::npa_typed::TypedMember>> =
+        std::collections::BTreeMap::new();
+    for member in &typed {
+        by_block.entry(member.span.block).or_default().push(member);
+    }
+
+    by_block
+        .into_iter()
+        .filter_map(|(block, members)| {
+            let para = paras.get(block)?;
+            let mut frame_members = Vec::with_capacity(members.len());
+            let mut alternatives: Vec<FrameMember> = Vec::new();
+            let mut head_roles: Vec<String> = Vec::new();
+            let mut any_unresolved = false;
+            let mut anchor_start = usize::MAX;
+            let mut anchor_end = 0usize;
+
+            for (index, member) in members.iter().enumerate() {
+                let anchor = TextSpan::try_new(member.span.start, member.span.end).ok()?;
+                any_unresolved |= member.unresolved;
+                anchor_start = anchor_start.min(member.span.start);
+                anchor_end = anchor_end.max(member.span.end);
+
+                if !member.type_name.is_empty() {
+                    head_roles.push(member.type_name.clone());
+                }
+
+                // Competing readings survive as explicit candidates: neither
+                // proximity nor source order is allowed to silently discard a
+                // surviving TYPE hypothesis.
+                for hypothesis in &member.alternatives {
+                    head_roles.push(hypothesis.canon.clone());
+                    let evidence =
+                        TextSpan::try_new(hypothesis.evidence.start, hypothesis.evidence.end)
+                            .ok()?;
+                    alternatives.push(FrameMember::new(
+                        hypothesis.canon.clone(),
+                        evidence,
+                        DerivationSource::ExplicitMember,
+                        vec![evidence],
+                        EnumerationState::Candidate,
+                    ));
+                }
+
+                let derivation = if index == 0 {
+                    DerivationSource::ExplicitMember
+                } else {
+                    DerivationSource::SameSeriesHead
+                };
+                let evidence = member
+                    .type_evidence
+                    .and_then(|span| TextSpan::try_new(span.start, span.end).ok())
+                    .map(|span| vec![span])
+                    .unwrap_or_else(|| vec![anchor]);
+                let mut frame_member = FrameMember::new(
+                    member.number.clone(),
+                    anchor,
+                    derivation,
+                    evidence,
+                    EnumerationState::Candidate,
+                );
+                frame_member.date = Some(member.date.clone());
+                frame_member.date_span =
+                    find_subspan(para, member.span.start, member.span.end, &member.date);
+                frame_member.doc_no = Some(member.number.clone());
+                frame_member.doc_no_span =
+                    find_subspan(para, member.span.start, member.span.end, &member.number);
+
+                // `local_anchor` covers the written series head as well, so the
+                // frame never points away from the evidence it reuses.
+                if let Some(span) = member.type_evidence {
+                    anchor_start = anchor_start.min(span.start);
+                    anchor_end = anchor_end.max(span.end);
+                }
+                frame_members.push(frame_member);
+            }
+
+            head_roles.sort();
+            head_roles.dedup();
+            let ambiguous = head_roles.len() > 1 || !alternatives.is_empty();
+            let local_anchor = TextSpan::try_new(anchor_start, anchor_end).ok()?;
+            let status = if any_unresolved || ambiguous {
+                FrameStatus::Ambiguous
+            } else {
+                FrameStatus::Proposed
+            };
+            let diagnostic = if any_unresolved {
+                Some(FrameDiagnostic::TypeUnresolved)
+            } else if ambiguous {
+                Some(FrameDiagnostic::ConflictingFramesRetained)
+            } else {
+                None
+            };
+            Some(CoordinatingFrame {
+                frame_kind: FrameKind::ActRequisites,
+                block,
+                local_anchor,
+                head_roles,
+                continuation: frame_members.len() > 1,
+                members: frame_members,
+                separators: Vec::new(),
+                alternatives,
                 bounds: FrameBounds {
                     max_members: PROPOSED_MAX_FRAME_MEMBERS,
                     max_expanded_candidates: PROPOSED_MAX_EXPANDED_CANDIDATES,
@@ -853,6 +993,7 @@ impl CoordinatingFrame {
     ) -> Self {
         Self {
             frame_kind,
+            block: 0,
             local_anchor,
             head_roles,
             members,

@@ -1,8 +1,8 @@
 use ln_citation::adapters::InMemoryCitationSource;
 use ln_citation::application::ResolveCitation;
 use ln_citation::domain::{
-    CitationId, CitationOutcome, CitationRequest, SourceAuthority, SourceRef,
-    CITATION_POLICY_VERSION,
+    CITATION_POLICY_VERSION, CitationId, CitationOutcome, CitationRequest, SourceAuthority,
+    SourceRef,
 };
 
 fn req(source: &str, authority: SourceAuthority) -> CitationRequest {

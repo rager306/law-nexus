@@ -7,8 +7,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
 use ln_consultant_parser::{
-    classify_all_scored_for_path, collect_observations, derive_edges, extract_hyperlinks,
-    ClassifiedLink, DerivedEdge, Observation, RawLink,
+    ClassifiedLink, DerivedEdge, Observation, RawLink, classify_all_scored_for_path,
+    collect_observations, derive_edges, extract_hyperlinks,
 };
 use ln_decode::{
     adapters::ConsultantWordMlBlockDecoder,

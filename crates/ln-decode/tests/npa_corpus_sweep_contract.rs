@@ -22,8 +22,8 @@ use ln_decode::domain::{
 };
 use ln_decode::lexer::{self, TokenKind};
 use ln_decode::npa_sweep::{
-    self, parse_args, run_sweep, run_sweep_observed, walk_xml_files, FileTerminal, SweepAcc,
-    SweepCli, SweepObserver, EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING,
+    self, EXIT_OK, EXIT_OUT_UNWRITABLE, EXIT_ROOT_MISSING, FileTerminal, SweepAcc, SweepCli,
+    SweepObserver, parse_args, run_sweep, run_sweep_observed, walk_xml_files,
 };
 use ln_decode::ports::BlockDecoderPort;
 
@@ -516,6 +516,20 @@ fn t02_export_dir_empty_as_unset() {
         npa_sweep::resolve_export_dir(Some("/data/consultant-export")),
         "/data/consultant-export"
     );
+}
+
+/// A job that CLAIMS corpus integration must fail when the corpus is absent,
+/// not skip. The predicate is pure so this stays a unit test with no env writes.
+#[test]
+fn t02_corpus_requirement_is_empty_as_unset() {
+    assert!(!npa_sweep::corpus_is_required(None));
+    assert!(!npa_sweep::corpus_is_required(Some("")));
+    assert!(!npa_sweep::corpus_is_required(Some("   ")));
+    // An explicit 0 reads as "not required", so a caller can switch it off
+    // without unsetting the variable.
+    assert!(!npa_sweep::corpus_is_required(Some("0")));
+    assert!(npa_sweep::corpus_is_required(Some("1")));
+    assert!(npa_sweep::corpus_is_required(Some("true")));
 }
 
 /// T02: `--limit 0` over an existing root is a valid empty walk (exit 0,

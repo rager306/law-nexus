@@ -6,6 +6,20 @@
 >
 > Initial front synchronization was frozen in EA-05 at `94d58ea`. EA-10 D150 remains revision-bound `accepted-with-findings` for packet `120d44b`; post-D150 repository-control remediation is recorded separately in `assessment/13-current-head-gap-audit.md` and `assessment/14-post-remediation-gap-disposition.md` and does not extend D150. Roadmap completion is not product readiness.
 
+## Workflow transition (2026-10-23)
+
+The delivery workflow is migrating from GSD-Pi to GSD Path
+(Allspark + GSD Path + PDD Kit; runbook: `docs/agent-stack/MIGRATION.md`).
+Until native Path state exists and the bootstrap PR is accepted on the
+default branch, this projection keeps describing the **frozen legacy
+GSD-Pi milestone ledger** (M-IDs) exactly as recorded at freeze. Legacy
+IDs are not renamed and no readiness is raised by the migration itself.
+Active obligations and non-transferable human gates are inventoried in
+`docs/agent-stack/history/LEGACY_CROSSWALK.md`. After native Path
+initialization, the projection is rebuilt with explicit legacy references
+per MIGRATION.md §4.2 (roadmap freshness follows the typed adapter in
+`src/law_nexus_harness/workflow_state.py`, not emoji markers).
+
 ## Active Direction Contract
 
 ```text
@@ -20,6 +34,12 @@ falkordb=historical-only
 
 ## Current position
 
+- **Architecture policy (2026-10-14):** D777 admits RDF/JSON-LD tooling in product
+  runtime paths under standard admission gates; the former anti-runtime clause
+  was prose mis-citing R066. R066 keeps the historical-only git-lex/ACP
+  toolchain archive-only — the path is closed, data structures are not;
+  R052/R053 (RDF outputs are not source truth or acceptance evidence) stand.
+  Relevant to the parked M217 storage decision.
 - **Latest completed product milestone:** M173, inspect PP_60 class-matched
   punkt proof `[bounded]` — structural evidence only, no S4/TSG-017 raise,
   ADR-0017 stays `[proposed]`. (M165 crystallized the O1–O7 `[proposed]`
@@ -27,8 +47,62 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M210-3afp79 is the active milestone; M209-2yg6ix
-  is the latest completed milestone in GSD registry (M204/M205/M206 completed
+- **Local GSD workflow marker:** M225-qrwdfv is the active milestone (phase
+  blocked: validation returned needs-attention); M224-554vju (URI anchor,
+  corpus pageindex and edition temporality over JSONL) is the latest completed
+  milestone in the GSD registry, closing the M210-M224 NPA/Rust reference-layer
+  band (M210 admission checkpoint; M211-M216 Rust contour; M217-M220 paused
+  queue; M221-M224 XML/edition/anchor closure). M208-wrz6fg stays parked with
+  a recorded reason and is deliberately **not** claimed complete. Requirements
+  status: 15 active / 45 validated / 9 deferred / 6 out of scope.
+- **Local GSD workflow marker (superseded 2026-10-16):** M225-qrwdfv was **queued** — the
+  reference knowledge layer (ADR-0031) as a Rust port with byte parity to the
+  executed Python reference. The port reproduces all four committed artifacts
+  byte for byte on the 118-edition 44-ФЗ corpus (`reference-layer --check` exit 0)
+  and on a labelled synthetic fixture corpus, and both implementations now honour
+  the D6 exit-code contract (exit 3 for unreadable input; the port previously
+  panicked and the reference tracebacked). Scope measured the same day: of
+  36 989 catalog editions only 401 documents have more than one edition row, and
+  exactly one — 44-ФЗ — carries `edition_number` and distinguishable revision
+  days, so the digest timeline is a per-act contract exercised by one act and not
+  a corpus-wide layer; D4 (requisite deep links) and D5 (pageindex ladder) remain
+  unexecuted. 0 tasks are planned in GSD for S01–S03; no milestone is active:
+  M208-wrz6fg and M217–M220 stay parked and the engine refuses to start one
+  without an operator unpark.
+- **Local GSD workflow marker (superseded 2026-10-16):** M224-554vju is **complete**
+  (2026-10-14): corpus URI anchors, read-only pageindex catalog, closed document
+  groups, hierarchy-lift census, the full 118-edition 44-ФЗ timeline and the
+  bounded FRBR-ELI bridge. Goals re-verified the same day: `frbr-bridge --check`
+  ok (expressions=118, divergence=46), edition-timeline driver `--check` ok
+  (drift=0, ctv_resolved=13768), 192/194 battery tests green — the 2 failures
+  were this projection's own lag, fixed in this sync. No milestone is active:
+  M208-wrz6fg and M217–M220 stay parked; the engine refuses to start one without
+  an operator unpark.
+- **Local GSD workflow marker (superseded 2026-10-14):** M214-es3jvw is **complete** (2026-10-05, validated
+  `pass` at remediation round 1) and no milestone is active: the engine reports
+  `active=0`, `pending=0` and seven parked milestones, and it refuses to start one
+  without an operator unpark. M214 delivered the integrated Rust NPA path —
+  source-bound mapping, document-scoped analysis JSONL, a contextual family with
+  independent verification, and bounded corpus acceptance (N=400, 400/400 verified,
+  tamper 12/12) — after remediation closed an output-path safety gap in the S04
+  binaries. D651 supersedes D650's execution
+  priority; these are local workflow decisions, not architecture authority.
+  M215-M220 are held for reassessment and must remain parked until their input
+  contracts are proven and continuation is explicitly released. The former
+  temporal plan is preserved in M214 RESEARCH for reconciliation with parked
+  M208. Neither milestone completion nor structural JSONL integrity proves
+  semantic correctness or corpus coverage. M213-t6p7d0 is the
+  latest completed milestone in GSD registry (completed 2026-10-03, validated pass
+  at revision `sha256:d30d5399` after the out-of-band declared-slice sweep supplied
+  the missing evidence; it delivers the serde-free cleaned structural JSONL
+  projection with read-back, navigation and Hold/TextOnly, and leaves R1000
+  active). Prior: M211-hkknug was the active milestone; M210-3afp79
+  is the latest completed milestone in GSD registry (completed 2026-09-26, validated
+  pass in contract scope D584 after the owner re-accepted the bounded-adoption
+  subjective UAT and the explicit F13 defer at the final revision; the milestone
+  proves contract-level adoption, not runtime or requirement validation). Prior:
+  M209-2yg6ix
+  was the latest completed milestone in GSD registry (M204/M205/M206 completed
   2026-09-14..15; M207-b2i96m completed 2026-09-22, validated pass after its
   success criterion was reassessed so that Rust-series consumption is owned by
   the declared M211 S01/S02 boundary; M209-2yg6ix completed 2026-09-23, validated
@@ -169,6 +243,9 @@ falkordb=historical-only
 | M168-M168 | Consultant parser remediation wave (Устранение долга текущей волны Consultant parser) | Honest ADR/ARCHITECTURE/protocol evidence ceilings; tracked e2e contract (hyperlink → classification → edges → observations); document-profile scoring composition; bounded morph signals; YAML sibling-section isolation; read-only SQLite CatalogPort adapter (rusqlite bundled, SQLITE_OPEN_READ_ONLY). Not G2/G3 corpus acceptance, not ConflictResolver, not RuVector, not product readiness. |
 | M169-M170 | Parser corpus grounding and full-text CTV on the real corpus | M169 grounded parser corpus needles (44-FZ temporal AST on real corpus); M170 resolved full article text CTV on real corpus. Corpus-grounding process evidence only; no parser completeness, legal correctness or product readiness claim. |
 | M200-M202 | NPA bounds, edition provenance and hierarchy registry source mapping | M200 full-corpus diagnostic/bounded measurement, M201 one-of-118 provenance, M202 fixture-sized 3/6 hierarchy admission; arbitration/ceiling remain unwired, R070/R035 remain active, no parser/temporal/ontology readiness. |
+| M203-M213 | Controlled NPA parsing program, evidence-honesty recovery, grammar-context and binding design, independent annotation, parked change-grammar wave (M208), registry corpus evidence, bounded normative-semantics adoption, Rust NPA context assembly, reader projection and cleaned JSONL projection | Contract, design and bounded evidence only: M203 defines the P0-P9 program with sketch-gated slices; M204 restored evidence honesty (S23 waived, nothing fabricated); M205/M206 are design-only grammar-context and binding contours; M207 froze independent annotation with the human contour honestly absent; M208-wrz6fg stays parked and is deliberately not claimed complete; M209 grounds R035 gate quantifiers, registry rows, amendment provenance and the corpus battery; M210 separates bounded adoption from execution (activation applied=false, RC28 HOLD); M211 ships the source-anchored Rust NPA pipeline with strict typed parity and untouched frozen surfaces; M212 accepts the source_package substrate and adds the serde-free reader projection with independent resealed-tamper detection; M213 closes the declared-slice cleaned structural JSONL projection with read-back, navigation and Hold/TextOnly. No parser, temporal, retrieval, registry or ontology readiness; no requirement promotion. |
+| M214-M214 | Integrated Rust NPA analysis path: source-bound mapping, document-scoped analysis JSONL, contextual family with independent verification, bounded corpus acceptance and fail-closed artifact publication | One executable Rust path from XML to document-scoped NPA/context JSONL, bounded and honestly labelled: S01 mapping contract (pinned source identity, half-open UTF-8 coordinates, distinct token views, closed refusals) with an integration battery on approved fixtures and one bounded real 435-FZ; S02 document-level typed/linked/classified records with an LF-JSONL envelope, non-cyclic seals and validate-before-write limits; S03 opt-in context family with read-back of all seven families and an independent verifier that re-derives records from the pinned parent and catches a resealed substitution (empty context stays byte-identical to S02); S04 pinned provider/work-family stratified sample (N=400, seed=20308): verdict=pass, 400/400 verified, structural_failures=0, refusals=0, tamper 12/12, limit_events=0; remediation round 0 flagged only SC4/Operational (no output-path safety in the S04 binaries), round 1 fixed it in code with a shared fail-closed publication module and eight negative cases and re-validated `pass`. Non-claims held: R1000 stays active/unclosed (corpus-wide acceptance and display-cleaning open), R038/R063 active with their own owners, semantic adjudication deliberately absent (promotion=false, semantic_reference_status=absent, coverage_claim=null), no corpus-wide acceptance, M208 parked, M215-M220 not started. |
+| M215-M224 | Embedding-supply chain and bounded retrieval over the cleaned projection; hardened Rust NPA foundation and honest semantic acceptance; strict XML/JSONL contract; preserved XML→JSONL intermediate source with full corpus acceptance; corpus URI anchors, pageindex, document groups, hierarchy-lift census and the 118-edition 44-ФЗ temporal timeline with a bounded FRBR-ELI bridge | Integrity and provenance evidence only: M215-M216 bounded vector-supply and retrieval metrics over the cleaned projection (no citation-safe answers, no live corpus QA); M221 Rust-foundation hardening; M222 strict closed-contract admission with Review-29 dispositions; M223 full pinned corpus run 43785 terminal_with_documentation (43783 accepted + 2 documented pinned-threshold residuals); M224 byte-exact Consultant URI anchors with identity envelope, read-only PageIndexCatalogPort (SQLite), closed bank-to-normativity document groups, ladder-bound hierarchy-lift census, the full 118-edition timeline (drift=0, one documented non-monotonic 0036→0037 residual) with per-edition AST presence and text CTV, and the FRBR bridge as a compatibility projection only (one Work 44-ФЗ, 118 dated Expressions, registry_expression_id_divergence=46 published). Non-claims held: ELI URNs stay a compatibility layer, cc: ComponentConcept canon untouched, no JSON-LD G1 layer, no corpus-wide Work mapping, R1000 stays active (M213-owned), R035 stays bounded below promotion, no semantic acceptance; M217-M220 and M208-wrz6fg stay parked. |
 | D0-EA04 | Documentation contract and semantic/ADR assessment package | Product/RQ ready for assessment; temporal crosswalk accepted as proposed; ADR-0023 ownership decided `[proposed]`; not EA-09/EA-10 acceptance. |
 | M174-M174 | Волна 1: техдолг и процессные разрывы после Review 14 (wave-1 debt closure) | Process/debt closure only: heal_missing fail-closed provenance (R9-08), presence channel edition_ast_at in CLI inspect/replay, tracked-doc honesty sync after D216; no lifecycle promotion, no product readiness. |
 | M175-M175 | P0 канонизация модели Reviews 10-14 после G0 (D216) (docs/ADR canonization) | Docs/ADR canonization only: G0 ADR amendments (D216) verified across adr-0013/0016/0017/0018/0019 + temporal-legal-model glossary, model-crystal re-grounded v2, kb-ontology.yaml G0 vocabulary pinned by YAML-as-data tests; no Rust domain types minted, no lifecycle promotion, not product readiness. |

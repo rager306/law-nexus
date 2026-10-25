@@ -3,12 +3,12 @@ use ln_decode::{
         ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
     },
     unknown_forms::{
-        apply_patch_candidates, apply_structural_patch_candidates, census_structural_near_misses,
-        census_unknown_forms, collect_unknown_forms_from_text, rank_structural_near_misses,
-        rank_unknown_forms, render_ranked_census_report, render_structural_census_report,
-        render_structural_patch_candidates, render_yaml_patch_candidates, PatchParseError,
-        StructuralNearMiss, StructuralNearMissCensus, StructuralNearMissKind,
-        StructuralPatchParseError, UnknownFormCensus, UnknownFormKind,
+        PatchParseError, StructuralNearMiss, StructuralNearMissCensus, StructuralNearMissKind,
+        StructuralPatchParseError, UnknownFormCensus, UnknownFormKind, apply_patch_candidates,
+        apply_structural_patch_candidates, census_structural_near_misses, census_unknown_forms,
+        collect_unknown_forms_from_text, rank_structural_near_misses, rank_unknown_forms,
+        render_ranked_census_report, render_structural_census_report,
+        render_structural_patch_candidates, render_yaml_patch_candidates,
     },
 };
 
@@ -427,9 +427,11 @@ fn structural_rank_sorts_by_count_then_token_and_aggregates_max_depth() {
     assert_eq!(punkt.kind(), StructuralNearMissKind::DepthOverflow);
     // proposed cap = max observed depth across the aggregated events
     assert_eq!(punkt.max_depth(), Some(5));
-    assert!(ranked
-        .iter()
-        .all(|r| r.fingerprint().starts_with("fnv1a64:")));
+    assert!(
+        ranked
+            .iter()
+            .all(|r| r.fingerprint().starts_with("fnv1a64:"))
+    );
 }
 
 #[test]
@@ -526,8 +528,7 @@ fn structural_patch_excludes_only_approved_classes() {
         StructuralNearMiss::depth_overflow("government_resolution", "punkt", 4, 2),
         StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
     ];
-    let yaml =
-        "- {kind: DepthOverflow, group: government_resolution, token: punkt, max_depth: 4, count: 1}\n";
+    let yaml = "- {kind: DepthOverflow, group: government_resolution, token: punkt, max_depth: 4, count: 1}\n";
     let applied = apply_structural_patch_candidates(yaml).expect("patch applies");
     assert_eq!(applied.len(), 1);
     let ranked = rank_structural_near_misses(&events);
@@ -608,8 +609,7 @@ fn structural_apply_rejects_invalid_count_and_max_depth() {
         "{err}"
     );
 
-    let yaml =
-        "- {kind: DepthOverflow, group: government_resolution, token: punkt, max_depth: deep, count: 1}\n";
+    let yaml = "- {kind: DepthOverflow, group: government_resolution, token: punkt, max_depth: deep, count: 1}\n";
     let err = apply_structural_patch_candidates(yaml).unwrap_err();
     assert!(
         matches!(&err, StructuralPatchParseError::InvalidMaxDepth { .. }),

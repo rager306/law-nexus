@@ -1,0 +1,150 @@
+{
+  "adjudication_packet_sha256": "sha256:062574e041c679a6099aff872c0af244f79c69078d796f4164002499d0b1b500",
+  "ascii_only": true,
+  "corpus_snapshot_sha256": "sha256:82727f6c594183ef7596463a4f5804b1d8935545b69ce778ba25977ba19f97bd",
+  "count_only": true,
+  "declared_thresholds": {
+    "draw_seed": 20308,
+    "max_limit_events": 0,
+    "min_verified_ratio_ppm": 990000,
+    "resource_budget_peak_bytes": 4294967296,
+    "resource_budget_total_ms": 3600000,
+    "sample_size": 400,
+    "tamper_probe_entries": 12
+  },
+  "entries_jsonl_lines": 400,
+  "entries_jsonl_sha256": "sha256:60a31a5b4a8b74b7d0e6e46645924cb8280f6b0ab6f572256259c082150112b2",
+  "milestone": "M214-es3jvw",
+  "non_claims": [
+    "count/hash only; no decoded corpus text",
+    "bounded provider/work-family stratified sample; not a corpus-coverage claim",
+    "the corpus sweep is not a semantic oracle; the semantic section is structural-only",
+    "no C5 promotion; R1000 stays active/unclosed; M208-wrz6fg stays parked",
+    "integrity evidence is not source authenticity and not legal effect"
+  ],
+  "observed": {
+    "analysis_refused": 0,
+    "decode_refused": 0,
+    "entries_total": 400,
+    "gate_refused": 0,
+    "limit_events_total": 0,
+    "limit_line_bytes": 0,
+    "limit_records": 0,
+    "manifest_pin_mismatch": 0,
+    "peak_memory_bytes": 820547584,
+    "read_back_refused": 0,
+    "structural_failures": 0,
+    "tamper_probe_detected": 12,
+    "tamper_probe_entries": 12,
+    "tamper_probe_false_negative": 0,
+    "total_wall_ms": 1154150,
+    "verified_ok": 400,
+    "verify_refused": 0,
+    "within_budget": true,
+    "within_threshold": true
+  },
+  "re_test_set": [
+    "cargo test -p ln-decode --offline --test analysis_source_mapping_contract",
+    "cargo test -p ln-decode --offline --test analysis_source_mapping_hostile",
+    "cargo test -p ln-decode --offline --test analysis_source_mapping_integration",
+    "cargo test -p ln-decode --offline --test npa_document_context_contract",
+    "cargo test -p ln-decode --offline --test npa_document_context_hostile_contract",
+    "cargo test -p ln-decode --offline --test npa_link_pipeline_integration",
+    "cargo test -p ln-decode --offline --test cleaned_projection_verify",
+    "cargo test -p ln-decode --offline --test npa_analysis_records_contract",
+    "cargo test -p ln-decode --offline --test npa_analysis_records_link_classify",
+    "cargo test -p ln-decode --offline --test npa_analysis_wire_contract",
+    "cargo test -p ln-decode --offline --test npa_analysis_wire_hostile",
+    "cargo test -p ln-decode --offline --test npa_analysis_export_integration",
+    "cargo test -p ln-decode --offline --test npa_analysis_context_contract",
+    "cargo test -p ln-decode --offline --test npa_analysis_wire_context",
+    "cargo test -p ln-decode --offline --test npa_analysis_verify_contract",
+    "cargo test -p ln-decode --offline --test npa_analysis_verify_hostile",
+    "cargo test -p ln-consultant-parser --offline --test npa_corpus_acceptance_contract",
+    "cargo test -p ln-consultant-parser --offline --test npa_corpus_acceptance_sample_contract",
+    "cargo test -p ln-consultant-parser --offline --test npa_corpus_acceptance_run_contract",
+    "cargo test -p ln-consultant-parser --offline --test npa_corpus_acceptance_report_contract",
+    "cargo fmt --all --check",
+    "cargo clippy --workspace --all-targets --offline -- -D warnings",
+    "cargo check --workspace --offline"
+  ],
+  "report_sha256": "sha256:cacad4472a1144bbbbc7f88eeeecc91cbf8f1ab86fad93f198ba2f60b794c65c",
+  "run_command": "target/release/npa-corpus-acceptance --sample prd/migration/rust-evidence/m214-s04-corpus-sample.json --out prd/migration/rust-evidence/m214-s04-corpus-acceptance.json --packet prd/migration/rust-evidence/m214-s04-adjudication-packet.json --entries prd/migration/rust-evidence/m214-s04-corpus-acceptance.jsonl",
+  "run_exit_code": 0,
+  "rustc_version": "rustc 1.99.0 (b940084d7 2026-09-28)",
+  "sample_manifest_sha256": "sha256:1123396e3071aeb2908d36e31bca2f18e7f1874949094f936fefafc1df136cd0",
+  "sample_size": 400,
+  "schema": "law-nexus/m214-s04-acceptance-battery/v1",
+  "section_counters": {
+    "corpus_breadth": {
+      "coverage_claim": null,
+      "document_type_counts": {
+        "courts-unspecified": 209,
+        "fas-unspecified": 5,
+        "law": 10,
+        "order": 9,
+        "resolution": 5,
+        "xml-unspecified": 162
+      },
+      "not_year_type_stratified": true,
+      "provider_counts": {
+        "consultant_export": 400
+      },
+      "sample_size": 400,
+      "work_family_count": 400
+    },
+    "horizon": {
+      "display_cleaning_status": "remaining (D638)",
+      "m208_status": "parked",
+      "next_horizon_status": "M215-M220 parked",
+      "r1000_status": "active"
+    },
+    "limits": {
+      "limit_events": {},
+      "limit_events_total": 0,
+      "within_threshold": true
+    },
+    "resources": {
+      "max_wall_ms": 494570,
+      "mean_wall_ms": 2885,
+      "peak_memory_available": true,
+      "peak_memory_bytes": 820547584,
+      "total_wall_ms": 1154150,
+      "within_budget": true
+    },
+    "semantic_adjudication": {
+      "adjudicated_entries": 0,
+      "adjudication_packet_sha256": "sha256:062574e041c679a6099aff872c0af244f79c69078d796f4164002499d0b1b500",
+      "adjudication_status": "not_attempted",
+      "non_claims": [
+        "structural-only: no semantic reference corpus exists at this horizon",
+        "no C5 promotion; no accuracy and no breadth claim"
+      ],
+      "packet_schema": "law-nexus/npa-analysis-adjudication-packet/v1",
+      "promotion": false,
+      "semantic_reference_status": "absent"
+    },
+    "structural_integrity": {
+      "analysis_refused": 0,
+      "decode_refused": 0,
+      "entries_total": 400,
+      "gate_refused": 0,
+      "limit_line_bytes": 0,
+      "limit_records": 0,
+      "manifest_pin_mismatch": 0,
+      "pass": true,
+      "read_back_refused": 0,
+      "structural_failures": 0,
+      "tamper_probe_detected": 12,
+      "tamper_probe_entries": 12,
+      "tamper_probe_false_negative": 0,
+      "verified_ok": 400,
+      "verify_codes": {},
+      "verify_refused": 0
+    }
+  },
+  "slice": "S04",
+  "task": "T04",
+  "verdict": "pass",
+  "verdict_basis": "all 400 entries verified; no limits; within budget; no promotion"
+}

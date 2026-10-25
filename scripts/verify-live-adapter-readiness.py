@@ -3,13 +3,30 @@
 
 Classifies TEI and RuVector product-adapter readiness from repository evidence:
 
-- TEI: `TeiEmbeddingAdapter` + injectable `EmbeddingTransport` without HTTP client
-  dependencies is `stub_transport_only` (not live TEI validation).
+- TEI: `TeiEmbeddingAdapter` + injectable `EmbeddingTransport` backed by a
+  std-only `HttpEmbeddingTransport` (`TcpStream`) is
+  `http_surface_present_unproven`: an HTTP surface exists but no live endpoint
+  was contacted or validated (not live TEI validation). A transport injection
+  point without any HTTP surface remains `stub_transport_only`.
 - RuVector: ADR-0014 lifecycle `[proposed]` without workspace redb/ruvector product
   dependencies is `proposed` (not product runtime readiness).
 
+The `supply_chain` section adds bounded Rust-scope evidence for R012: it scans
+only `crates/*/src/**/*.rs` for managed-provider markers
+(gigachat/openai/anthropic/cohere/vertexai/bedrock). `api_key` is deliberately
+not a marker because it legitimately appears in ln-diagnostic redaction code and
+ln-hc19-runner. The scan is evidence, not enforcement: `r012_scope_level` is true
+(R012 enforcement stays scope-level; the settings source is a free string), and a
+hit is reported but never fails the report. Markers are matched as whole tokens
+so the substring `cohere` inside `coherent` is not a false positive.
+
 Default mode is report-only (exit 0). Use `--strict` to fail when overclaim
 markers are found. This script never performs live HTTP or external service calls.
+
+Two non-claims are recorded explicitly: the live TEI transport is cleartext HTTP
+without TLS (not for untrusted networks), and `canonical_string()` provenance
+rendering is deterministic but not injective (unescaped fields), so the byte pin
+it enables is not tamper-resistant.
 
 Lifecycle: `[bounded]` process inventory only. Does not validate live TEI/RuVector
 adapters or product readiness.
@@ -26,8 +43,26 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_VERSION = "law-nexus/live-adapter-readiness/v1"
 
-HTTP_CLIENT_MARKERS = ("reqwest", "ureq", "hyper::", "Client::new")
+HTTP_CLIENT_MARKERS = (
+    "reqwest",
+    "ureq",
+    "hyper::",
+    "Client::new",
+    # std-only HTTP surface (no third-party client dependency):
+    "TcpStream",
+    "std::net",
+)
 PRODUCT_DEP_MARKERS = ("ruvector", "redb", "reqwest", "ureq")
+# Bounded Rust-scope R012 evidence markers. `api_key` is deliberately excluded:
+# it legitimately appears in ln-diagnostic redaction code and ln-hc19-runner.
+MANAGED_PROVIDER_MARKERS = (
+    "gigachat",
+    "openai",
+    "anthropic",
+    "cohere",
+    "vertexai",
+    "bedrock",
+)
 OVERCLAIM_RES = (
     re.compile(r"\blive\s+TEI\b.*\b(validated|ready|production)\b", re.I),
     re.compile(r"\bTEI\b.*\b(validated|production-ready)\b", re.I),
@@ -55,6 +90,38 @@ def _scan_cargo_deps(root: Path) -> list[str]:
         text = _read(path)
         for marker in PRODUCT_DEP_MARKERS:
             if re.search(rf"\b{re.escape(marker)}\b", text, re.I):
+                hits.append(f"{path.relative_to(root)}:{marker}")
+    return hits
+
+
+def _scan_managed_providers(root: Path) -> list[str]:
+    """Scan only `crates/*/src/**/*.rs` for managed-provider marker tokens.
+
+    Returns `path:marker` hits. Test sources and `target/` are excluded. Markers
+    are matched as whole tokens (non-alphanumeric boundaries) so that English
+    words like `coherent` (which contains the substring `cohere`) are not
+    misreported; snake_case identifiers such as `openai_client` still hit.
+    """
+    hits: list[str] = []
+    crates = root / "crates"
+    if not crates.is_dir():
+        return hits
+    patterns = [
+        (
+            marker,
+            re.compile(
+                rf"(?<![A-Za-z0-9]){re.escape(marker)}(?![A-Za-z0-9])",
+                re.I,
+            ),
+        )
+        for marker in MANAGED_PROVIDER_MARKERS
+    ]
+    for path in sorted(crates.glob("*/src/**/*.rs")):
+        if "tests" in path.parts or "target" in path.parts:
+            continue
+        text = _read(path)
+        for marker, pattern in patterns:
+            if pattern.search(text):
                 hits.append(f"{path.relative_to(root)}:{marker}")
     return hits
 
@@ -172,6 +239,7 @@ def build_report(root: Path = ROOT) -> dict[str, Any]:
     tei = _tei_surface(root)
     ruvector = _ruvector_surface(root)
     overclaims = _scan_overclaims(root)
+    managed_provider_hits = _scan_managed_providers(root)
     status = "ok" if not overclaims else "debt"
     return {
         "schema_version": SCHEMA_VERSION,
@@ -179,13 +247,35 @@ def build_report(root: Path = ROOT) -> dict[str, Any]:
         "status": status,
         "tei": tei,
         "ruvector": ruvector,
+        "supply_chain": {
+            "managed_provider_hits": managed_provider_hits,
+            "status": (
+                "no_managed_provider_reference"
+                if not managed_provider_hits
+                else "managed_provider_reference_found"
+            ),
+            "scope": "crates/*/src",
+            # R012 enforcement stays scope-level: the settings source is a free
+            # string and managed exclusion is not structurally enforced here.
+            "r012_scope_level": True,
+        },
         "overclaim_count": len(overclaims),
         "overclaims": overclaims,
         "non_claims": [
             "Does not perform live HTTP or external TEI/RuVector calls.",
             "stub_transport_only is not live TEI validation.",
+            "An HTTP surface is present but no live endpoint was contacted or validated.",
             "proposed RuVector is not product runtime readiness.",
             "Does not claim product readiness, legal correctness, or citation completeness.",
+            (
+                "The live TEI transport is cleartext HTTP without TLS and is not "
+                "for untrusted networks."
+            ),
+            (
+                "canonical_string() provenance rendering is deterministic but not "
+                "injective (unescaped fields), so the byte pin is not "
+                "tamper-resistant."
+            ),
         ],
     }
 

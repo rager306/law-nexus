@@ -459,14 +459,12 @@ pub fn assemble_identifying_act_with_limit(
             return ActAssemblyOutcome::Incomplete {
                 missing: vec![FieldKind::Type],
                 retained: claims,
-            }
+            };
         }
     };
     let mut missing = Vec::new();
-    for field in [FieldKind::Number] {
-        if selected(&claims, field).is_none() {
-            missing.push(field);
-        }
+    if selected(&claims, FieldKind::Number).is_none() {
+        missing.push(FieldKind::Number);
     }
     if matches!(
         act_type,

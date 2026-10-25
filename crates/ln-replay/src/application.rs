@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::domain::{
-    CheckpointDigest, EffectId, OperationId, ReplayOutcome, ReplayRequest, ReplayResult,
-    ReplayTrace, REPLAY_POLICY_VERSION,
+    CheckpointDigest, EffectId, OperationId, REPLAY_POLICY_VERSION, ReplayOutcome, ReplayRequest,
+    ReplayResult, ReplayTrace,
 };
 use crate::ports::{CheckpointPort, EffectLedgerPort};
 

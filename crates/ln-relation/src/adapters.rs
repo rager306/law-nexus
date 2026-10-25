@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::domain::{
-    EndpointId, FamilyId, PredicateId, RegisteredPredicate, RegistryVersion, RelationFact,
-    DEFAULT_REGISTRY_VERSION,
+    DEFAULT_REGISTRY_VERSION, EndpointId, FamilyId, PredicateId, RegisteredPredicate,
+    RegistryVersion, RelationFact,
 };
 use crate::ports::RelationRegistryPort;
 

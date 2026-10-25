@@ -1,7 +1,7 @@
 //! Cross-act edge port: typed edges between ASTs of different normative acts.
 //! Validates kind against YAML cross_act_edge_kinds vocabulary.
 
-use ln_kb_ontology::domain::{try_cross_act_edge, CrossActEdgeError};
+use ln_kb_ontology::domain::{CrossActEdgeError, try_cross_act_edge};
 use ln_temporal::domain::ComponentConceptId;
 
 /// G0 vocabulary (D216): refers_to superset + reference binding vocabulary
