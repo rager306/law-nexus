@@ -219,23 +219,55 @@ Exit codes:
   it does not manage credentials, HOME isolation, or the fork HOME — that is
   the launcher/bootstrap layer (INSTALL.md, ALLSPARK_NOTES.md).
 
-## 9. Acceptance status (WORKFLOW.md §3) — NOT yet satisfied
+## 9. Acceptance status (WORKFLOW.md §3) — PARTIALLY satisfied
 
-The integration task is only stub-tested. Every row below still requires the
-real-model pilot; none may be marked satisfied by this component alone.
+Three rows were proven by a real-model pilot on 2026-10-25 (see §9.1). The
+others still require work the pilot did not exercise, and none may be claimed
+from this component alone.
 
 | Check (WORKFLOW.md §3) | Required result | Status |
 |---|---|---|
-| Skill discovery | Internal scripts/references reachable from primary and task worktree | **Not satisfied** — pending real-model pilot |
-| Cwd | Worker really sees the assigned worktree; primary files do not become its working tree | **Not satisfied** — stub tests only prove the adapter passes the assigned cwd to the child |
+| Skill discovery | Internal scripts/references reachable from primary and task worktree | **Satisfied** — a real worker resolved its pinned skills and answered from the primary checkout (§9.1) |
+| Cwd | Worker really sees the assigned worktree; primary files do not become its working tree | **Satisfied** — a worker dispatched into `tmp/wt-rolectx` reported that absolute path, not the primary one (§9.1) |
 | Fork HOME | Both runtime caches resolve one digest; Git identity/hooks/signing and worktree root agree | **Not satisfied** — outside adapter scope (doctor/bootstrap) |
-| Role isolation | Two independent briefs get different fresh contexts | **Not satisfied** — stub-tested at process level only; real Allspark context freshness unproven |
-| Planner/Research | Real outputs pass native gates; no emulated status | **Not satisfied** — no real-model run yet |
-| Error/timeout | A wrong result never becomes success; the child is accounted for and stopped | **Not satisfied** — classification/kill/reap are stub-tested; real failure modes unproven |
+| Role isolation | Two independent briefs get different fresh contexts | **Satisfied** — two roles in one plan ran as separate fresh processes with different cwds and produced different, correct answers (§9.1) |
+| Planner/Research | Real outputs pass native gates; no emulated status | **Not satisfied** — no real planner/research role run; the pilot was an inspect-shaped probe, not a gated plan |
+| Error/timeout | A wrong result never becomes success; the child is accounted for and stopped | **Partially satisfied** — two real failures were classified `failed` with the child's own stderr captured (`no model selected`, `model unavailable`); SIGTERM/timeout paths remain stub-tested |
 | Question | A blocking question and the real answer go through the intended Path channel | **Not satisfied** — the adapter only classifies questions; the answer path stays with native helpers |
 | Build→Review | A separate reviewer checks the landed scope per contract | **Not satisfied** — no real wave review dispatched |
 | Resume | After the owner process ends, a new session picks the correct native route | **Not satisfied** — outside adapter scope |
 | Approval | Neither API nor wrapper produces owner approval automatically | **Not satisfied as acceptance evidence** — enforced by design (no approval outcome exists), stub-tested only |
+
+### 9.1 Real-model pilot (2026-10-25)
+
+Model: `zai/glm-5.3-flash`, thinking `high`, through the repository launcher
+(`scripts/ai/allspark --role worker -p`), i.e. the production path — not
+`--child-command`.
+
+| Run | Plan | Result |
+|---|---|---|
+| single role | one inspect role, cwd `/root/law-nexus` | `outcome=ready`, exit 0, 12.9 s; stdout `law-nexus` + `RESULT: T001 ready` |
+| two roles | `ctx_primary` (primary) + `ctx_worktree` (`tmp/wt-rolectx`) | both `ready`, exit 0; the second role reported `/root/law-nexus/tmp/wt-rolectx` |
+
+The second row is the one that matters: the two children were separate fresh
+processes, each answered about **its own** cwd, and the worktree child did not
+see the primary tree. That is the Cwd and Role-isolation claim, measured.
+
+Two real failures were also exercised end to end, because a classification that
+has only ever seen success proves nothing. Both were classified `failed` with
+exit 1 and the child's own stderr preserved in the artifact:
+
+- `AI stack: select a provider/model in the owner UI first` — the profile had no
+  default model;
+- `Configured default model "…" is unavailable` — the profile had a model name
+  but no provider catalog cache.
+
+Neither became a false `ready`. The diagnostics in `stderr_tail` were enough to
+fix both causes, which is the property that makes a dispatch record useful.
+
+**What this pilot does NOT prove:** the Planner/Research gate, a wave review, the
+question→answer round trip, or resume. Those stay open above and must be shown
+by the first real Path phase, not by a probe.
 
 ## 10. Testing
 

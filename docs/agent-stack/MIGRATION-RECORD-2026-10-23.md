@@ -137,6 +137,32 @@ overlay (`AGENTS.md`, `CLAUDE.md`, `.mcp.json`, hooks, skills). Manifest:
   round` resolves the plan without spawning. Not-workflow-ready is the
   expected honest outcome here — it is not hidden behind any PASS.
 
+## Model selection receipt (2026-10-25)
+
+Owner gate 3 was blocking every headless dispatch: the private profile carried
+no default model, so `scripts/ai/allspark --role worker -p` refused with
+`select a provider/model in the owner UI first (/login, /model)`.
+
+Resolved through the tracked settings path, not by inventing a new one:
+
+- `defaultProvider: zai`, `defaultModel: glm-5.3-flash`,
+  `defaultThinkingLevel: high` in the private profile
+  (`.ai/local/allspark-home/.prime/agent/settings.json`, gitignored);
+- the z.ai credential in that profile was **stale**: `/models` answered 200
+  (so the key parsed) while every completion answered
+  `429 code 1113 Insufficient balance`. That reads as an exhausted plan and is
+  not one — a second z.ai key on the same host answers 200. Replacing the key
+  made `glm-5.3`, `glm-4.7` and `glm-5.3-flash` all answer.
+- the fresh profile also lacked the provider model catalog
+  (`models/provider-model-catalog.v1.json`), so a correctly named default was
+  still reported `unavailable`. Copying the catalog from the working profile
+  fixed it.
+
+Lesson recorded rather than hidden: `429 / insufficient balance` from a coding
+endpoint is not proof that the account is empty. Check `/models` for key
+validity, then check a **second** credential on the same host before concluding
+anything about the plan.
+
 ## Owner gates required to proceed
 
 | # | Gate | Exact command / action |
