@@ -256,6 +256,45 @@ The branch does not add a red check. It removes one and leaves two that `main`
 already has. Merging is therefore neutral-to-positive for the default branch's
 CI state, and unblocking the remaining two is a decision, not a chore.
 
+## Pi-hasher consumers: measured, and deliberately not migrated (2026-10-25)
+
+The C7 criterion says active harness paths must not need the Pi engine. A review
+asked to retire the live hasher import from the M223 runners. Measured before
+changing anything, the answer is: not yet, and the reason is a data mismatch, not
+effort.
+
+**What the hasher is.** `scripts/m204_s08_source_revision.mjs` imports
+`verification-source-integrity.js` from the GSD engine at runtime
+(`GSD_HOME` or `~/.gsd`). Fifteen files reference it; **none** runs in CI.
+
+**Why migrating now would be wrong.** The two kinds are not interchangeable:
+
+| Source | Shape | Meaning |
+|---|---|---|
+| engine hasher (current) | `sha256:<64 hex>` | aggregate *engine* milestone-verification revision |
+| `verify-source-snapshot-v2.py` (replacement) | bare 64-hex `aggregate` | aggregate *file digest* of the tracked tree |
+
+The committed receipts pin the first kind. `m223-s03-baseline-receipts.jsonl`
+row 0 carries `"code_revision": "sha256:9d9a250271c6ff23820ed7bde004bcc72…"`.
+Swapping the source would silently change what those receipts mean — the exact
+class of evidence rewriting the migration forbids. It is the same trap the review
+flagged for `tested_source_revision`: that field expects an aggregate GSD
+snapshot hash, not a Git SHA, and a simple substitution is not a valid receipt.
+
+**What a correct successor needs** (none of it is a find/replace):
+
+1. a versioned receipt kind that declares which aggregate it records, so a v2
+   digest can never be read as an engine revision;
+2. the recorded artifacts regenerated under that new kind, with the old ones
+   kept byte-identical as history;
+3. the frozen per-milestone producers (M204/M207/M210-era scripts) left on the
+   old hasher forever — their output is already committed evidence.
+
+**Where this leaves C7.** The dependency is real but not active in any check: it
+sits in offline, per-milestone evidence producers. The honest statement for the
+cutover criterion is therefore "no active CI or gate path needs the Pi engine",
+which is true today, not "the hasher is gone", which is not.
+
 ## M207 CI waiver (2026-10-25) — report-only, with the portable parts still gated
 
 The `Milestone offline contract chains` job was the last red one. Two distinct
