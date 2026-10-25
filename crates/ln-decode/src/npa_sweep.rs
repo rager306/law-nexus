@@ -859,6 +859,25 @@ pub fn resolve_export_dir(env_value: Option<&str>) -> String {
     }
 }
 
+/// Whether the corpus is REQUIRED rather than optional (same empty-as-unset
+/// semantics).
+///
+/// A corpus test may skip when the gitignored corpus is simply not on this
+/// machine - that is what makes a cold clone runnable. But a job that CLAIMS to
+/// exercise corpus integration must fail instead of quietly skipping, otherwise
+/// "the corpus is absent" and "the corpus is green" look identical. Setting
+/// `LAW_NEXUS_REQUIRE_CORPUS=1` turns every skip into a hard failure.
+#[must_use]
+pub fn corpus_is_required(env_value: Option<&str>) -> bool {
+    matches!(env_value, Some(value) if !value.trim().is_empty() && value.trim() != "0")
+}
+
+/// `true` when the process declares the corpus mandatory.
+#[must_use]
+pub fn require_corpus_from_env() -> bool {
+    corpus_is_required(std::env::var("LAW_NEXUS_REQUIRE_CORPUS").ok().as_deref())
+}
+
 /// Default sweep universe for the binary: `<repo>/<export-dir>/consru_export/
 /// exports` (nested MEM1319 layout), resolved from the compile-time crate
 /// dir — the same `CARGO_MANIFEST_DIR/../..` join the tracked corpus tests

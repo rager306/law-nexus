@@ -20,6 +20,15 @@ fn require_corpus(test_name: &str) -> Option<std::path::PathBuf> {
     if root.is_dir() {
         return Some(root);
     }
+    // A runnable cold clone may skip; a job that CLAIMS corpus integration must
+    // not. LAW_NEXUS_REQUIRE_CORPUS=1 makes the absence a hard failure, so
+    // "corpus absent" can never be reported as "corpus green".
+    if ln_decode::npa_sweep::require_corpus_from_env() {
+        panic!(
+            "corpus is REQUIRED (LAW_NEXUS_REQUIRE_CORPUS=1) but {test_name} cannot find \"{}\"",
+            root.display()
+        );
+    }
     use std::io::Write;
     let _ = writeln!(
         std::io::stderr(),

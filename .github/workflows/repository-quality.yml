@@ -207,6 +207,47 @@ jobs:
               sys.exit("governor reported tool errors: a check could not read its inputs")
           PY
 
+  corpus-integration:
+    # The portable Rust job skips corpus-dependent tests when the gitignored
+    # corpus is absent, which is what makes a cold clone runnable. This job is
+    # the opposite claim: LAW_NEXUS_REQUIRE_CORPUS=1 turns every such skip into a
+    # hard failure, so "corpus absent" can never be reported as "corpus green".
+    #
+    # It only runs where the corpus actually exists. A self-hosted runner with
+    # the corpus mounted sets LAW_NEXUS_CORPUS_AVAILABLE=1; on GitHub-hosted
+    # runners it skips as a whole job instead of pretending to prove anything.
+    name: Corpus integration (strict, only where the corpus is present)
+    runs-on: ubuntu-latest
+    if: vars.LAW_NEXUS_CORPUS_AVAILABLE == '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.0
+
+      - name: Create repo-local temp tree
+        run: mkdir -p "${{ github.workspace }}/tmp/scripts" "${{ github.workspace }}/tmp/pytest"
+
+      - name: Install Rust toolchain (pinned by rust-toolchain.toml)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.99.0
+          components: rustfmt, clippy
+
+      - name: Fetch locked Rust dependencies
+        run: cargo fetch --locked
+
+      - name: Corpus-dependent contract tests must actually run
+        env:
+          LAW_NEXUS_REQUIRE_CORPUS: "1"
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target
+        run: |
+          cargo test -p ln-consultant-parser --offline \
+            --test gold_ladder_contract --test temporal_provenance_vertical
+
+      - name: Record that the corpus was really exercised
+        run: |
+          echo "Corpus integration ran with LAW_NEXUS_REQUIRE_CORPUS=1."
+          echo "A missing or mis-set CONSULTANT_EXPORT_DIR would have FAILED, not skipped."
+
   offline-contract-verifiers:
     name: Milestone offline contract chains (M207/S03, M207/S04, M208/S04)
     runs-on: ubuntu-latest

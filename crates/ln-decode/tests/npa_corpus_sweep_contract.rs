@@ -518,6 +518,20 @@ fn t02_export_dir_empty_as_unset() {
     );
 }
 
+/// A job that CLAIMS corpus integration must fail when the corpus is absent,
+/// not skip. The predicate is pure so this stays a unit test with no env writes.
+#[test]
+fn t02_corpus_requirement_is_empty_as_unset() {
+    assert!(!npa_sweep::corpus_is_required(None));
+    assert!(!npa_sweep::corpus_is_required(Some("")));
+    assert!(!npa_sweep::corpus_is_required(Some("   ")));
+    // An explicit 0 reads as "not required", so a caller can switch it off
+    // without unsetting the variable.
+    assert!(!npa_sweep::corpus_is_required(Some("0")));
+    assert!(npa_sweep::corpus_is_required(Some("1")));
+    assert!(npa_sweep::corpus_is_required(Some("true")));
+}
+
 /// T02: `--limit 0` over an existing root is a valid empty walk (exit 0,
 /// header + zeros, `files_seen` 0); an explicit missing `--root` is a
 /// definite non-zero exit outside skip-mode.
