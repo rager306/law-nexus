@@ -47,7 +47,15 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker (current 2026-10-16):** M225-qrwdfv is **queued** — the
+- **Local GSD workflow marker:** M225-qrwdfv is the active milestone (phase
+  blocked: validation returned needs-attention); M224-554vju (URI anchor,
+  corpus pageindex and edition temporality over JSONL) is the latest completed
+  milestone in the GSD registry, closing the M210-M224 NPA/Rust reference-layer
+  band (M210 admission checkpoint; M211-M216 Rust contour; M217-M220 paused
+  queue; M221-M224 XML/edition/anchor closure). M208-wrz6fg stays parked with
+  a recorded reason and is deliberately **not** claimed complete. Requirements
+  status: 15 active / 45 validated / 9 deferred / 6 out of scope.
+- **Local GSD workflow marker (superseded 2026-10-16):** M225-qrwdfv was **queued** — the
   reference knowledge layer (ADR-0031) as a Rust port with byte parity to the
   executed Python reference. The port reproduces all four committed artifacts
   byte for byte on the 118-edition 44-ФЗ corpus (`reference-layer --check` exit 0)

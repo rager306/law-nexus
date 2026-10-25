@@ -5035,3 +5035,89 @@ def test_parked_next_wave_without_reason_remains_hard_debt(tmp_path: Path) -> No
     by_id = {item.check_id: item for item in findings}
     assert by_id["gsd-no-open-registry-debt"].status == "fail"
     assert by_id["gsd-no-open-registry-debt"].severity == "error"
+
+
+class TestGovernorContextAndParallelRun:
+    """The shared read-only context and the ``jobs`` fan-out (repo-local temp work).
+
+    These pin the two properties the refactor exists for: an expensive
+    inventory runs at most once per run, and a parallel run is byte-identical
+    to the sequential one. The second is the only reason ``jobs`` is allowed
+    to exist at all, so it is asserted on the serialized report, not on counts.
+    """
+
+    def test_memo_computes_once_per_context(self) -> None:
+        from law_nexus_harness.governor import GovernorContext
+
+        calls: list[str] = []
+        ctx = GovernorContext(root=Path("."))
+
+        def compute() -> str:
+            calls.append("call")
+            return "value"
+
+        assert ctx.memo("key", compute) == "value"
+        assert ctx.memo("key", compute) == "value"
+        assert calls == ["call"]
+
+    def test_memo_keys_are_distinct(self) -> None:
+        from law_nexus_harness.governor import GovernorContext
+
+        ctx = GovernorContext(root=Path("."))
+        assert ctx.memo("a", lambda: 1) == 1
+        assert ctx.memo("b", lambda: 2) == 2
+
+    def test_sequential_run_covers_every_registered_check(self, tmp_path: Path) -> None:
+        from law_nexus_harness.governor import run_governor
+
+        report = run_governor(tmp_path, jobs=1)
+        payload = report.to_dict()
+
+        assert payload["schema_version"] == GOVERNOR_SCHEMA_VERSION
+        assert payload["root"] == str(tmp_path.resolve())
+        # One finding per registry entry. Three checks rename themselves when
+        # their primary input is absent (roadmap-json-present,
+        # hostile-probes-dir, gsd-state-present); that rename is the documented
+        # missing-input verdict, so the count is the invariant to pin, not the
+        # spelling of every id.
+        assert len(payload["findings"]) == len(GOVERNOR_CHECK_SPECS)
+        assert payload["pass_count"] + payload["warn_count"] + payload["error_count"] == len(
+            payload["findings"]
+        )
+
+    def test_parallel_run_is_byte_identical_to_sequential(self, tmp_path: Path) -> None:
+        from law_nexus_harness.governor import run_governor
+
+        sequential = run_governor(tmp_path, jobs=1).to_json()
+        parallel = run_governor(tmp_path, jobs=8).to_json()
+
+        assert parallel == sequential
+
+    def test_parallel_run_keeps_registry_order(self, tmp_path: Path) -> None:
+        from law_nexus_harness.governor import run_governor
+
+        # Each spec's findings must stay contiguous and the groups must follow
+        # registry order: that is what makes a parallel report reproducible.
+        specs = [spec.check_id for spec in GOVERNOR_CHECK_SPECS]
+        seen: list[str] = []
+        for finding in run_governor(tmp_path, jobs=4).findings:
+            if not seen or seen[-1] != finding.check_id:
+                seen.append(finding.check_id)
+
+        # Drop repeats that belong to a different spec (a runner may report a
+        # secondary id); the first occurrence of each id must still be ordered.
+        first_occurrence = list(dict.fromkeys(seen))
+        indexes = [specs.index(check) for check in first_occurrence if check in specs]
+        assert indexes == sorted(indexes), first_occurrence
+
+    def test_a_single_selected_check_never_opens_a_thread_pool(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        from law_nexus_harness import governor
+
+        def explode(*args, **kwargs):
+            raise AssertionError("a one-check run must not spawn workers")
+
+        monkeypatch.setattr("concurrent.futures.ThreadPoolExecutor", explode)
+        report = governor.run_governor(tmp_path, check="workflow-state-surface", jobs=8)
+        assert [item.check_id for item in report.findings] == ["workflow-state-surface"]

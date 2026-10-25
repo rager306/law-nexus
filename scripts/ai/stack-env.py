@@ -167,6 +167,41 @@ def absolute_setting(value: str, label: str) -> str:
     return str(path.resolve())
 
 
+def _existing_toolchain_home(label: str, preferred: str) -> str:
+    """Resolve a Rust home directory that actually carries a toolchain.
+
+    An isolated fork HOME is a fresh profile whose ``.cargo``/``.rustup``
+    directories may exist but hold no toolchain, and a session started from a
+    nonstandard HOME inherits the same gap. Pointing a child at such a shell
+    breaks every cargo/rustup call ("no default toolchain"), so fall back to
+    a home that really has one (toolchains dir with entries, or a cargo
+    binary). Explicit env values that already carry a toolchain always win;
+    otherwise the computed path is kept so the failure stays explicit.
+    """
+
+    def _carries_toolchain(home: str) -> bool:
+        root = Path(home)
+        if not root.is_dir():
+            return False
+        if label == "RUSTUP_HOME":
+            chains = root / "toolchains"
+            settings = root / "settings.toml"
+            return chains.is_dir() and any(chains.iterdir()) and settings.is_file()
+        return (root / "bin" / "cargo").is_file()
+
+    candidates = [preferred]
+    fallback = "/root/.rustup" if label == "RUSTUP_HOME" else "/root/.cargo"
+    if fallback != preferred:
+        candidates.append(fallback)
+    home_cargo = str(Path.home() / ".cargo")
+    home_rustup = home_cargo.replace(".cargo", ".rustup")
+    candidates.append(home_rustup if label == "RUSTUP_HOME" else home_cargo)
+    for candidate in dict.fromkeys(candidates):
+        if _carries_toolchain(candidate):
+            return candidate
+    return preferred
+
+
 def build_env(root: Path, env: dict | None = None, *, isolated: bool = True) -> dict:
     """Return a subprocess environment; only isolated=True changes its HOME.
 
@@ -192,9 +227,13 @@ def build_env(root: Path, env: dict | None = None, *, isolated: bool = True) -> 
     # a potentially long checkout path, or share the fork's default socket.
     socket_id = hashlib.sha256(os.fsencode(root)).hexdigest()[:16]
     socket = Path("/tmp") / f"allspark-{os.getuid()}-{socket_id}.sock"
-    cargo = absolute_setting(result.get("CARGO_HOME") or str(host_home / ".cargo"), "CARGO_HOME")
-    rustup = absolute_setting(
-        result.get("RUSTUP_HOME") or str(host_home / ".rustup"), "RUSTUP_HOME"
+    cargo = _existing_toolchain_home(
+        "CARGO_HOME",
+        absolute_setting(result.get("CARGO_HOME") or str(host_home / ".cargo"), "CARGO_HOME"),
+    )
+    rustup = _existing_toolchain_home(
+        "RUSTUP_HOME",
+        absolute_setting(result.get("RUSTUP_HOME") or str(host_home / ".rustup"), "RUSTUP_HOME"),
     )
     path_entries = [str(local / "node/bin"), str(local / "tools/bin"), str(Path(cargo) / "bin")]
     path_entries.extend(result.get("PATH", "").split(os.pathsep))

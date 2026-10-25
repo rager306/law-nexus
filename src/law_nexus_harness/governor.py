@@ -18,8 +18,8 @@ import os
 import re
 import subprocess
 import sys
-from collections.abc import Callable
-from dataclasses import asdict, dataclass, replace
+from collections.abc import Callable, Mapping
+from dataclasses import asdict, dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal, cast
@@ -181,6 +181,118 @@ class GovernorReport:
             json.dumps(self.to_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
             + "\n"
         )
+
+
+@dataclass
+class GovernorContext:
+    """Shared, read-only per-run surfaces for governor checks.
+
+    Every check is a pure reader of the repository tree, so expensive
+    inventory operations (git listings, corpus walks, parsed state files) are
+    computed at most once per ``run_governor`` call and shared between
+    checks. The context is created fresh for each run (including each worker
+    thread batch) and never escapes the run: checks must treat every
+    attribute as immutable snapshot data and must not write through it.
+    """
+
+    root: Path
+    _cache: dict[str, Any] = field(default_factory=dict, repr=False)
+
+    def memo(self, key: str, compute: Callable[[], Any]) -> Any:
+        """Return the cached value for ``key``, computing it once per run."""
+        if key not in self._cache:
+            self._cache[key] = compute()
+        return self._cache[key]
+
+    def tracked_files(self) -> frozenset[str]:
+        """All git-tracked repo-relative paths (single ``git ls-files``)."""
+        return self.memo("tracked_files", lambda: _context_tracked_files(self.root))
+
+    def gitignore_map(self, paths: tuple[str, ...]) -> Mapping[str, bool]:
+        """Batch ``git check-ignore`` verdicts for ``paths`` (single git call)."""
+        return self.memo(("gitignore_map", paths), lambda: _context_gitignore_map(self.root, paths))
+
+    def gsd_state_text(self) -> str | None:
+        """Raw ``.gsd/STATE.md`` text, or None when the legacy surface is absent."""
+        return self.memo("gsd_state_text", lambda: _context_gsd_state_text(self.root))
+
+
+def _context_git(args: list[str], root: Path, what: str) -> str:
+    """Run one read-only git inventory command; fail closed with context."""
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root), *args],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError(f"git {what} inventory unavailable") from error
+    if completed.returncode != 0:
+        raise RuntimeError(f"git {what} inventory failed")
+    return completed.stdout
+
+
+def _context_tracked_files(root: Path) -> frozenset[str]:
+    """All tracked repo-relative paths via a single ``git ls-files -z``."""
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-z"],
+            check=False,
+            capture_output=True,
+            timeout=60,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError("git tracked-file inventory unavailable") from error
+    if completed.returncode != 0:
+        raise RuntimeError("git tracked-file inventory failed")
+    return frozenset(
+        item for item in completed.stdout.decode("utf-8", "replace").split("\0") if item.strip()
+    )
+
+
+def _context_gitignore_map(root: Path, paths: tuple[str, ...]) -> Mapping[str, bool]:
+    """Batch ``git check-ignore -q --no-index`` verdicts in one git call.
+
+    ``git check-ignore`` exits 0 when at least one path is ignored, so
+    per-path verdicts come from ``--verbose`` output instead of the exit code.
+    A nonzero exit with no verbose output means nothing is ignored.
+    """
+    if not paths:
+        return {}
+    # ``git check-ignore`` matches directory patterns (``probes/``) only
+    # against slash-terminated candidates when ``--no-index`` is used without
+    # a work tree context, so vault entries are probed in directory form.
+    # Reported keys stay the caller-supplied paths.
+    probes = [path if path.endswith("/") else f"{path}/" for path in paths]
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root), "check-ignore", "-v", "--no-index", "--stdin"],
+            input="\n".join(probes),
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError("git check-ignore inventory unavailable") from error
+    if completed.returncode not in (0, 1):
+        raise RuntimeError("git check-ignore inventory failed")
+    covered_probe: set[str] = set()
+    for line in completed.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 2 and parts[-1].strip():
+            covered_probe.add(parts[-1].strip())
+    return {path: probe in covered_probe for path, probe in zip(paths, probes)}
+
+
+def _context_gsd_state_text(root: Path) -> str | None:
+    """Read the frozen legacy ``.gsd/STATE.md`` once per run, if present."""
+    state_path = root / ".gsd" / "STATE.md"
+    if not state_path.is_file():
+        return None
+    return state_path.read_text(encoding="utf-8", errors="replace")
 
 
 def _line_containing(text: str, needle: str) -> int | None:
@@ -4402,14 +4514,21 @@ _ADR_ID_RE = re.compile(r"\bADR-(?P<id>\d{4})\b", re.IGNORECASE)
 def _gitignore_covers(gitignore_text: str, path: str) -> bool:
     """Return True if a simple gitignore entry covers ``path``.
 
-    Accepts exact path, trailing-slash directory form, or a leading-slash form.
-    Does not implement full gitignore semantics — sufficient for vault policy.
+    Accepts exact path, with- and without-trailing-slash directory forms, and
+    the same forms with a leading slash. A bare ``probes`` entry also covers
+    the ``probes/`` directory (real git semantics). Does not implement full
+    gitignore semantics — sufficient for vault policy.
     """
+    stripped = path.rstrip("/")
     candidates = {
         path,
+        stripped,
         f"{path}/",
+        f"{stripped}/",
         f"/{path}",
+        f"/{stripped}",
         f"/{path}/",
+        f"/{stripped}/",
     }
     for raw in gitignore_text.splitlines():
         line = raw.strip()
@@ -4437,8 +4556,45 @@ def _git_tracked_paths(root: Path, path: str) -> list[str]:
     return [line for line in completed.stdout.splitlines() if line.strip()]
 
 
+def _tracked_symlinks_into_vaults(root: Path, tracked: frozenset[str]) -> list[str]:
+    """Find tracked symlinks whose resolved target is inside a historical vault.
+
+    Only git-tracked paths are inspected: untracked working-tree noise can
+    never become an active-tree alias through version control, and a full
+    ``os.walk`` of the checkout (including multi-GB corpus trees) costs ~11s
+    per governor run for the same verdict. ``.gsd`` itself is a tracked-ignored
+    symlink into a project dir, never into a vault, so it cannot hit.
+    """
+
+    root = root.resolve()
+    vaults = tuple((root / path).resolve() for path in _HISTORICAL_VAULT_PATHS)
+    hits: list[str] = []
+
+    def is_vault_path(path: Path) -> bool:
+        return any(path == vault or vault in path.parents for vault in vaults)
+
+    for rel in sorted(tracked):
+        candidate = root / rel
+        if not candidate.is_symlink():
+            continue
+        target = candidate.resolve(strict=False)
+        if not is_vault_path(target):
+            continue
+        try:
+            target_label = target.relative_to(root).as_posix()
+        except ValueError:
+            target_label = "external-vault-target"
+        hits.append(f"{rel}->{target_label}")
+
+    return hits
+
+
 def _active_symlinks_into_vaults(root: Path) -> list[str]:
-    """Find active-tree symlinks whose resolved target is inside a historical vault."""
+    """Legacy full-tree scan; kept for the unscoped ``check=`` entry point.
+
+    Scoped runs through :class:`GovernorContext` use
+    :func:`_tracked_symlinks_into_vaults` instead (same verdict, ~100x faster).
+    """
 
     root = root.resolve()
     vaults = tuple((root / path).resolve() for path in _HISTORICAL_VAULT_PATHS)
@@ -4488,18 +4644,62 @@ def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
     do not re-enter active index/governor surfaces. Trees may remain on disk.
     Lifecycle [bounded]; process anti-drift, not product readiness.
     """
-    check_id = "archive-path-policy"
-    remediation = (
-        "Add vault paths to .gitignore (.lex/, python_archive/, Old_project/), "
-        "then `git rm -r --cached <path>` to untrack while keeping on-disk history. "
-        "Do not delete vaults without an explicit archive decision."
-    )
 
     gitignore_path = root / ".gitignore"
     gitignore_text = (
         gitignore_path.read_text(encoding="utf-8", errors="replace")
         if gitignore_path.is_file()
         else ""
+    )
+
+    return _archive_policy_findings(root, gitignore_text, ignored=None, tracked=None)
+
+
+def _archive_path_policy_scoped(ctx: GovernorContext) -> list[GovernorFinding]:
+    """Context-backed ``archive-path-policy`` variant for parallel runs.
+
+    Same verdict as :func:`check_archive_path_policy`; inventory comes from
+    the shared context (one ``git ls-files`` + one batched ``check-ignore``)
+    instead of a full-tree ``os.walk`` plus per-vault git calls.
+    """
+    root = ctx.root
+    gitignore_path = root / ".gitignore"
+    gitignore_text = (
+        gitignore_path.read_text(encoding="utf-8", errors="replace")
+        if gitignore_path.is_file()
+        else ""
+    )
+    return _archive_policy_findings(
+        root,
+        gitignore_text,
+        ignored=ctx.gitignore_map(_HISTORICAL_VAULT_PATHS),
+        tracked=ctx.tracked_files(),
+    )
+
+
+check_archive_path_policy.run_scoped = _archive_path_policy_scoped  # type: ignore[attr-defined]
+
+
+def _archive_policy_findings(
+    root: Path,
+    gitignore_text: str,
+    *,
+    ignored: Mapping[str, bool] | None,
+    tracked: frozenset[str] | None,
+) -> list[GovernorFinding]:
+    """Shared verdict builder for ``archive-path-policy``.
+
+    Unscoped runs (``check=archive-path-policy`` and the legacy helper path)
+    pass ``ignored=None``/``tracked=None`` and fall back to the per-vault
+    git calls plus the full-tree symlink scan. Scoped runs through
+    :class:`GovernorContext` supply one batched ``git check-ignore`` map and
+    the single ``git ls-files`` snapshot instead — same verdict, no tree walk.
+    """
+    check_id = "archive-path-policy"
+    remediation = (
+        "Add vault paths to .gitignore (.lex/, python_archive/, Old_project/), "
+        "then `git rm -r --cached <path>` to untrack while keeping on-disk history. "
+        "Do not delete vaults without an explicit archive decision."
     )
 
     missing_ignore: list[str] = []
@@ -4510,18 +4710,35 @@ def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
         if (root / path).exists() or (root / path).is_symlink()
     ]
     known_aliases = set(active_aliases)
-    active_aliases.extend(
-        item
-        for item in _active_symlinks_into_vaults(root)
-        if item.split("->", 1)[0] not in known_aliases
-    )
+    if tracked is None:
+        active_aliases.extend(
+            item
+            for item in _active_symlinks_into_vaults(root)
+            if item.split("->", 1)[0] not in known_aliases
+        )
+    else:
+        active_aliases.extend(
+            item
+            for item in _tracked_symlinks_into_vaults(root, tracked)
+            if item.split("->", 1)[0] not in known_aliases
+        )
     active_aliases = sorted(set(active_aliases))
     for vault in _HISTORICAL_VAULT_PATHS:
-        if not _gitignore_covers(gitignore_text, vault):
+        covered = (
+            ignored[vault]
+            if ignored is not None and vault in ignored
+            else _gitignore_covers(gitignore_text, vault)
+        )
+        if not covered:
             missing_ignore.append(vault)
-        tracked = _git_tracked_paths(root, vault)
-        if tracked:
-            still_tracked.append(f"{vault}:{len(tracked)}")
+        if tracked is None:
+            tracked_paths = _git_tracked_paths(root, vault)
+        else:
+            tracked_paths = sorted(
+                path for path in tracked if path == vault or path.startswith(vault + "/")
+            )
+        if tracked_paths:
+            still_tracked.append(f"{vault}:{len(tracked_paths)}")
 
     if missing_ignore or still_tracked or active_aliases:
         return [
@@ -8205,33 +8422,85 @@ def format_governor_report_text(report: GovernorReport) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _run_spec_scoped(spec: CheckSpec, ctx: GovernorContext) -> list[GovernorFinding]:
+    """Run one check through the shared context; scoped variants win.
+
+    Checks that declare a ``run_scoped(ctx)`` hook run against the shared
+    :class:`GovernorContext` (memoized inventory, no duplicate git/tree
+    walks). All other checks keep their exact ``runner(root)`` behavior.
+    Tool-error wrapping matches :func:`run_governor`.
+    """
+    runner = getattr(spec.runner, "run_scoped", None)
+    try:
+        if runner is not None:
+            items = runner(ctx)
+        else:
+            items = spec.runner(ctx.root)
+        return [_enrich_finding(item, spec) for item in items]
+    except Exception as error:  # noqa: BLE001 - bounded tool-error report
+        return [
+            GovernorFinding(
+                check_id=spec.check_id,
+                status="fail",
+                severity="error",
+                message="governor check could not read or parse its required inputs",
+                observed=f"tool_error={type(error).__name__}",
+                remediation="Repair the required repository inputs or tool environment and rerun.",
+                rule_id="tool-error",
+                expected="The check runner reads and parses every required input.",
+                evidence=tuple(GovernorEvidence(path=path) for path in spec.authority_inputs),
+            )
+        ]
+
+
+def _gil_enabled() -> bool:
+    """True when the running interpreter holds the GIL.
+
+    ``sys._is_gil_enabled`` exists only on 3.13+; older interpreters always
+    hold the GIL, so absence means enabled.
+    """
+    probe = getattr(sys, "_is_gil_enabled", None)
+    if probe is None:
+        return True
+    try:
+        return bool(probe())
+    except Exception:  # noqa: BLE001 - a failed probe must not break the run
+        return True
+
+
 def run_governor(
     root: Path | None = None,
     *,
     only: str | None = None,
     check: str | None = None,
+    jobs: int = 1,
 ) -> GovernorReport:
-    """Run selected governor checks and return a machine-readable report."""
+    """Run selected governor checks and return a machine-readable report.
+
+    ``jobs`` parallelizes checks across threads sharing one
+    :class:`GovernorContext`. Threads pay off only on a free-threaded
+    interpreter (GIL disabled): on a GIL build thread fan-out serializes on
+    the interpreter lock and only adds overhead, so ``jobs > 1`` there
+    falls back to the sequential run instead of pretending to parallelize.
+    Finding order always follows registry order, so reports stay
+    deterministic and byte-identical between sequential and parallel runs.
+    """
 
     resolved = (root or Path.cwd()).resolve()
+    specs = _selected_specs(only, check)
+    ctx = GovernorContext(root=resolved)
     findings: list[GovernorFinding] = []
-    for spec in _selected_specs(only, check):
-        try:
-            findings.extend(_enrich_finding(item, spec) for item in spec.runner(resolved))
-        except Exception as error:  # noqa: BLE001 - bounded tool-error report
-            findings.append(
-                GovernorFinding(
-                    check_id=spec.check_id,
-                    status="fail",
-                    severity="error",
-                    message="governor check could not read or parse its required inputs",
-                    observed=f"tool_error={type(error).__name__}",
-                    remediation="Repair the required repository inputs or tool environment and rerun.",
-                    rule_id="tool-error",
-                    expected="The check runner reads and parses every required input.",
-                    evidence=tuple(GovernorEvidence(path=path) for path in spec.authority_inputs),
-                )
-            )
+    if jobs == 1 or len(specs) <= 1 or _gil_enabled():
+        for spec in specs:
+            findings.extend(_run_spec_scoped(spec, ctx))
+    else:
+        from concurrent.futures import ThreadPoolExecutor
+
+        workers = len(specs) if jobs <= 0 else min(jobs, len(specs))
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            ordered = list(pool.map(lambda spec: _run_spec_scoped(spec, ctx), specs))
+        for batch in ordered:
+            findings.extend(batch)
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")
     pass_count = sum(1 for item in findings if item.status == "pass")

@@ -226,11 +226,22 @@ def compute_snapshot(repo_root: Path, excluded: frozenset[str]) -> Snapshot:
 
 
 def resolve_repo_root(requested: Path) -> Path:
-    """Resolve the git work tree root for the requested ``--repo`` directory."""
+    """Resolve the git work tree root for the requested ``--repo`` directory.
+
+    The requested path must be the work tree root itself: a plain directory
+    nested inside a repository is not an addressable snapshot scope, because
+    ``git ls-files`` always enumerates the whole work tree. Accepting a nested
+    path would silently snapshot a different population than the caller named.
+    """
     top = run_git(requested, ["rev-parse", "--show-toplevel"]).decode("utf-8", "replace").strip()
     if not top:
         raise SnapshotError(f"git did not report a work tree root for {requested}")
-    return Path(top).resolve()
+    resolved = Path(top).resolve()
+    if requested.resolve() != resolved:
+        raise SnapshotError(
+            f"--repo must be the git work tree root ({resolved}), not a nested path ({requested})"
+        )
+    return resolved
 
 
 def repo_relative_exclusion(repo_root: Path, target: Path | None) -> frozenset[str]:

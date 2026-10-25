@@ -18,6 +18,12 @@ concurrency:
   group: repository-quality-${{ github.ref }}
   cancel-in-progress: true
 
+# All runs stay inside the checkout: TMPDIR points shell/Python/Rust temp
+# files at the gitignored tmp/ tree instead of the machine-wide /tmp.
+# The directory is created explicitly: fresh clones have no tmp/ tree.
+env:
+  TMPDIR: ${{ github.workspace }}/tmp/scripts
+
 jobs:
   python-harness-quality:
     name: Python harness and repository architecture checks
@@ -25,6 +31,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.0
+
+      - name: Create repo-local temp tree
+        run: mkdir -p "${{ github.workspace }}/tmp/scripts" "${{ github.workspace }}/tmp/pytest"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.2.0
@@ -66,6 +75,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7.0.0
 
+      - name: Create repo-local temp tree
+        run: mkdir -p "${{ github.workspace }}/tmp/scripts" "${{ github.workspace }}/tmp/pytest"
+
       - name: Install Rust toolchain (pinned by rust-toolchain.toml)
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -101,6 +113,9 @@ jobs:
 
       - name: Rust tests
         run: cargo test --workspace --offline
+        env:
+          TMPDIR: ${{ github.workspace }}/tmp/scripts
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target
 
       - name: Process-only harness tests
         run: >-
@@ -146,6 +161,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.0
+
+      - name: Create repo-local temp tree
+        run: mkdir -p "${{ github.workspace }}/tmp/scripts" "${{ github.workspace }}/tmp/pytest"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.2.0

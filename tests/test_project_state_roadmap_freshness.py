@@ -24,6 +24,8 @@ from pathlib import Path
 
 import pytest
 
+from law_nexus_harness.workflow_state import WorkflowStateKind, read_workflow_state
+
 ROOT = Path(__file__).resolve().parents[1]
 STATE_PATH = ROOT / ".gsd/STATE.md"
 ROADMAP_JSON_PATH = ROOT / "prd/project-state/data/roadmap.json"
@@ -77,9 +79,33 @@ def _active_milestone_seq(state_text: str) -> int | None:
     return None
 
 
-def _load_state() -> str:
-    assert STATE_PATH.exists(), f"GSD state not found at {STATE_PATH}"
-    return STATE_PATH.read_text(encoding="utf-8")
+def _load_state() -> str | None:
+    """Return the milestone-registry text, or None when no operational state exists.
+
+    MIGRATION.md §4.2 requires this guard to follow the typed adapter
+    (`workflow_state.read_workflow_state`) instead of assuming a GSD-Pi tree on
+    disk. The adapter classifies the surface; only a *historical legacy* or a
+    *native Path* surface can carry milestone rows, and a missing state is a
+    first-class outcome rather than an assertion failure. Tests that need rows
+    skip on None; the anti-drift assertions run whenever rows exist.
+    """
+    report = read_workflow_state(ROOT)
+    if report.kind is WorkflowStateKind.HISTORICAL_LEGACY:
+        # The frozen snapshot is still the only milestone ledger until native
+        # Path state exists; read it directly rather than inventing rows.
+        if STATE_PATH.exists():
+            return STATE_PATH.read_text(encoding="utf-8")
+        return None
+    if report.kind is WorkflowStateKind.BOOTSTRAP_NOT_CUT_OVER:
+        # Bootstrap mode: the legacy projection is explicitly still described
+        # by .gsd (docs/agent-stack/MIGRATION.md), so the ledger is readable but
+        # the test must not treat it as operational Path state.
+        if STATE_PATH.exists():
+            return STATE_PATH.read_text(encoding="utf-8")
+        return None
+    # Operational native Path state has its own freshness owner; this guard
+    # covers the legacy projection only.
+    return None
 
 
 def _load_roadmap() -> dict:
@@ -90,6 +116,8 @@ def _load_roadmap() -> dict:
 def test_state_md_has_a_parseable_milestone_registry() -> None:
     """Guard the guard: STATE.md must expose a registry we can parse."""
     state = _load_state()
+    if state is None:
+        pytest.skip("no workflow state surface on this checkout (bootstrap without .gsd)")
     rows = _registry_milestones(state)
     assert rows, "no milestone rows parsed from .gsd/STATE.md registry — parser broken?"
     seqs = [seq for seq, _, _ in rows]
@@ -99,6 +127,8 @@ def test_state_md_has_a_parseable_milestone_registry() -> None:
 def test_roadmap_current_milestone_exists_in_gsd_state() -> None:
     """The roadmap's current_milestone must name a real milestone in GSD state."""
     state = _load_state()
+    if state is None:
+        pytest.skip("no workflow state surface on this checkout (bootstrap without .gsd)")
     roadmap = _load_roadmap()
     registry_seqs = {seq for seq, _, _ in _registry_milestones(state)}
 
@@ -131,6 +161,8 @@ def test_roadmap_current_milestone_tracks_latest_gsd_milestone() -> None:
     but-active milestone that the roadmap deliberately foregrounds) == active seq.
     """
     state = _load_state()
+    if state is None:
+        pytest.skip("no workflow state surface on this checkout (bootstrap without .gsd)")
     roadmap = _load_roadmap()
     rows = _registry_milestones(state)
     completed_seqs = [seq for seq, marker, _ in rows if marker == "✅"]
@@ -159,6 +191,8 @@ def test_roadmap_current_milestone_status_matches_gsd_state() -> None:
     marker (🔄/🟡/⏸) -> active. The roadmap's claimed status must agree.
     """
     state = _load_state()
+    if state is None:
+        pytest.skip("no workflow state surface on this checkout (bootstrap without .gsd)")
     roadmap = _load_roadmap()
     rows = _registry_milestones(state)
     by_seq = {seq: marker for seq, marker, _ in rows}
@@ -187,6 +221,8 @@ def test_roadmap_completed_groups_cover_through_latest_milestone() -> None:
     milestone sequence.
     """
     state = _load_state()
+    if state is None:
+        pytest.skip("no workflow state surface on this checkout (bootstrap without .gsd)")
     roadmap = _load_roadmap()
     rows = _registry_milestones(state)
 
@@ -215,6 +251,8 @@ if __name__ == "__main__":
     # COMPLETED milestone, OR the active milestone (an active-but-incomplete
     # milestone is tolerated).
     state = _load_state()
+    if state is None:
+        pytest.skip("no workflow state surface on this checkout (bootstrap without .gsd)")
     roadmap = _load_roadmap()
     rows = _registry_milestones(state)
     completed_seqs = [seq for seq, marker, _ in rows if marker == "✅"]
