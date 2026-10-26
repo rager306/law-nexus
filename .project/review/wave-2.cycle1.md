@@ -18,7 +18,7 @@
      SC3/SC4/SC5 owned by this wave. -->
 
 Wave verdict: pass
-Cycle: 2
+Cycle: 1
 Depth: full
 Tasks reviewed: 4
 

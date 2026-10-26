@@ -34,7 +34,7 @@
      criterion text whitespace-collapsed, verdict `pass`. -->
 
 Wave verdict: pass
-Cycle: 2
+Cycle: 1
 Depth: full
 Tasks reviewed: 3
 
