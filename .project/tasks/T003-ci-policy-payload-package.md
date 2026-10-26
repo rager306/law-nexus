@@ -3,11 +3,11 @@ id: T003
 title: Land the CI policy and payload type-check package
 wave: 1
 deps: []
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+status: done
+agent: build_T003
+base: 52f11611d09f6a16c2015d9b651e9ed9c79e6e65
+worktree: null
+task_branch: null
 files:
   - .github/workflows/repository-quality.yml
   - src/law_nexus_harness/workflow_state.py
@@ -72,3 +72,10 @@ Heavy: no
   workflow schema-gate ok
   ```
 - 2026-10-26 — orchestrator: first finish attempt blocked — the verify sidecar was prepared at base 0c502255 whose .gitignore predates the /build/, /archive/ anchoring that T002 landed (99abed61); the preflight reads the sidecar's ignore rules. Contract unchanged and valid; clean retry at the current head per the recovery rule; the r1 work diff is preserved verbatim at /root/law-nexus-pre-milestone-fix/t003-r1-work.patch.
+- 2026-10-26 — implemented (r2, base 52f11611d09f6a16c2015d9b651e9ed9c79e6e65): r1 work restored verbatim from /root/law-nexus-pre-milestone-fix/t003-r1-work.patch. `git apply --check` of the full patch fails on the task-file hunk only — it carries the stale r1 frontmatter (base 0c502255, status/agent/worktree of the r1 dispatch) and the r1 Log entries already present in this file; frontmatter is orchestrator-owned and correctly re-anchored at 52f11611 — so the patch was applied with `--include` restricted to the three product files, which applied cleanly. Preflight at this base: all named paths exist (workflow, adapter, both test files, scripts/m207_s04_schemas.py); the T002 `/build/` + `/archive/` anchoring is present in `.gitignore`; SC9 present in INTENT. Restored diff reviewed against all four ACs: (1) M207 S04 step runs `uv run --frozen python scripts/m207_s04_schemas.py check` with exit code asserted (PIPESTATUS) and output visible (tee), advisory allowlist keeps exactly CORPUS_COUNT_DRIFT and S03_RATE_IMPORTED (+ the FAIL M207_S04_SCHEMAS_GATE summary line) and fails on any unaccounted line, empty failure output, or missing known finding; no `|| true`, no new `continue-on-error`; battery preamble names the two advisory signatures; (2) corpus-integration comment states the hosted-label/gitignored-corpus-absent/stays-skipped setup with `runs-on` and `if` as unchanged context lines; (3) `_identity_field` takes `where` and raises typed `_NativeStatusError` for present non-string values at all four sites validated before the state→route fallback, missing/null/empty still absent; (4) frozen-token and migration-record report-only steps untouched. Tests: `test_wrong_typed_identity_field_fails_closed` (8 rejection cases) and `test_identity_fields_accept_null_and_missing_across_all_four_sites` (3 acceptance payloads). Verify: `uv run --frozen pytest tests/test_harness_workflow_state.py -q && uv run --frozen python -c "import yaml,sys; ... assert '|| true' not in runs ...; print('workflow schema-gate ok')"` → `40 passed in 1.60s` + `workflow schema-gate ok`, exit 0; `uv run --frozen pytest tests/test_repository_quality_gate.py -q` (contract: must keep passing unmodified) → `5 passed in 0.30s`, exit 0. Changed paths (this round): .github/workflows/repository-quality.yml, src/law_nexus_harness/workflow_state.py, tests/test_harness_workflow_state.py.
+- 2026-10-26 — orchestrator Verify (isolate gsd-path-task/T003): pass, exit 0; output tail:
+  ```
+  ........................................                                 [100%]
+  40 passed in 0.57s
+  workflow schema-gate ok
+  ```
