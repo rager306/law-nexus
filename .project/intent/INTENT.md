@@ -72,10 +72,15 @@ history, CI runs).
 7. SC7 — The session is closed with a handoff and a fresh session resumes
    from disk alone; the proof is the new session's recorded verification
    output.
-8. SC8 — `gsd-path/M001` is published to origin; CI on the pushed head is
-   green within the documented policy (M207 advisory, corpus job
-   skipped/documented); a written cutover readiness assessment exists;
-   `cutover` remains `false`.
+8. SC8 — a written cutover readiness assessment exists recording the
+   milestone's per-criterion evidence, the CI policy honesty (M207 advisory,
+   corpus job skipped — green CI never proves corpus scenarios ran), the
+   settled corpus-delivery direction (runner-only, pinned zstd snapshot
+   shape, on-runner layout contract), and the CI/publication evidence status;
+   the bound branch publishes through ship integration only (the repository's
+   pre-push guard is the enforcing contract and CI runs on the integrated
+   main surface), so publication and CI evidence are recorded as pending-ship,
+   not produced inside this milestone; `cutover` remains `false`.
 9. SC9 — Small package landed: the m207 schema check no longer runs under an
    unconditional `|| true`; the corpus job config matches its comment (or the
    comment states the actual setup); `workflow_state.py` rejects a present
@@ -222,3 +227,11 @@ history, CI runs).
   — owner delegated the QA/E1–E10 edge rulings and the prohibition rulings to
   this session; the recommended option was adopted in every case and recorded
   in the tables above.
+- 2026-10-26: «(a)» — owner ruling from the build-recovery correction (T009
+  NEEDS-ORCHESTRATOR): publication+CI are ship-phase-gated — the repository's
+  pre-push guard refuses moving `gsd-path/M001` to origin before its ship
+  commit, and repository-quality CI triggers main-push/pull_request only.
+  SC8 re-scoped: T009 writes the cutover readiness assessment now with
+  publication and CI recorded as pending-ship (they execute at ship
+  integration — the CI acceptance surface is the integrated main per the
+  documented M207 policy); `cutover` remains `false`.

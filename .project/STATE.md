@@ -2,10 +2,10 @@
 pipeline: gsd-path/v2
 project: law-nexus
 milestone: 001-native-workflow-acceptance
-phase: build
+phase: plan
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
-status: blocked
+status: done
 branch: gsd-path/M001
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
@@ -38,3 +38,12 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-26 — plan — plan approved
 - 2026-10-26 — build — build started
 - 2026-10-26 — build — build blocked: T009 NEEDS-ORCHESTRATOR — publication collides with the pre-push guard and CI trigger design; owner ruling required on SC8
+- 2026-10-26 — define — build intent corrections requested
+- 2026-10-26 — define — build recovery: {"base": "7e994d3b42560d25d4413604a9cb19a6bd2e3d64", "branch": "gsd-path/M001", "kind": "define", "source": "build"}
+- 2026-10-26 — define — intent corrected from build recovery (owner ruling a: SC8 publication/CI pending-ship)
+- 2026-10-26 — research — research started (recovery re-gate; settled evidence unchanged)
+- 2026-10-26 — research — research re-gated: manifest complete, evidence unchanged
+- 2026-10-26 — decide — decision synthesis started (recovery re-gate)
+- 2026-10-26 — decide — decision synthesis re-gated: no open user items
+- 2026-10-26 — plan — planning started
+- 2026-10-26 — plan — plan approved
