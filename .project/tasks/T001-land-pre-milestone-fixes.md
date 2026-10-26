@@ -41,7 +41,7 @@ Five verified fixes sit uncommitted in the primary worktree because the guard bl
 
 ## Acceptance criteria
 
-1. The three canonical patches apply cleanly to the task base with `git apply --check`, and the landed diff for the five fixed files equals their union with no other product change.
+1. The three canonical patches apply cleanly to the task base with `git apply --check`, and the landed diff for the five fixed files equals their union plus the repository's `ruff format` normalization (the pre-commit hook enforces it; formatting changes only whitespace/line-shapes, never semantics — recorded by the r1 attempt). No other product change.
 2. `uv run --frozen pytest tests/test_harness_governor.py tests/test_phase_dispatch_adapter.py` — SC1's exact command — reports 0 failures as part of the Verify run below.
 3. E1 is pinned by tests/test_path_isolation_recovery.py: an interrupted task landing recovers only through the pipeline isolation helper's recover command; the helper refuses a detached HEAD and reports an honest verdict for an interrupted or unlanded task, never a fabricated success; manual git repair stays vetoed.
 4. The landing commit touches only declared paths. Sequencing note (orchestrator, 2026-10-26): the two-line `.gitignore` anchoring already landed with T002 (99abed61), so this task's landing touches the remaining declared paths; `.gitignore` stays a declared (expected-unchanged) path and must not be modified again.
@@ -56,6 +56,7 @@ Heavy: no
 
 ## Log
 
+- 2026-10-26 — orchestrator: first landing attempt rejected by the pre-commit ruff-format hook on src/law_nexus_harness/governor.py and tests/test_path_isolation_recovery.py (the canonical patches predate formatter normalization); AC1 amended to include the formatter normalization — semantics unchanged. Clean retry with the r1 work preserved at /root/law-nexus-pre-milestone-fix/t001-r1-work.patch.
 - 2026-10-26 — orchestrator: AC4 reworded — the .gitignore anchoring landed with T002 (99abed61) before this task's redispatch; .gitignore remains declared-but-unchanged for this landing.
 - 2026-10-26 — created by planner
 - 2026-10-26 — NEEDS-ORCHESTRATOR: Verify cannot reach 0 failures at base 1f435a32 — the live governor's roadmap-current-tracks-path fails there (roadmap.json still names M225-qrwdfv while STATE.md says 001-native-workflow-acceptance/build), failing 12 pre-existing test_live_governor_* assertions outside this task's files; marker-sync must land before this task's Verify evidence is taken.
@@ -72,3 +73,49 @@ Heavy: no
   detached HEAD refused fail-closed, unlanded task → `none`, interrupted task →
   `resume` at its base, every verdict held to the helper's own vocabulary and
   never a landed verdict without a landing commit.
+
+- 2026-10-26 — build_T001 (redispatch at base 52f11611): re-applied the three
+  canonical patches cleanly with `git apply --check` then `git apply`; the
+  five-file diff is byte-identical to the patch union (verified per file).
+  Restored the predecessor's E1 draft verbatim into
+  tests/test_path_isolation_recovery.py after checking every assumption it
+  makes against the live helper at the launcher-resolved runtime
+  (6f95a31e…): `recover --repo` CLI with `.project/tasks` default resolved
+  against primary, JSON report `{verdict, tasks}`, docstring verdict set
+  {recovered, resume, reconcile, block, none}, `LANDED_VERDICTS =
+  {recovered, attested}`, detached-HEAD refusal via `require_attached`
+  ("HEAD is detached", exit 1), `none` reason "pending task has no retained
+  isolate", and `resume` with `base`/`task_branch` for a retained branch at
+  its base. No correction was needed.
+- 2026-10-26 — build_T001 deviation from "diff = patch union + E1 file":
+  updated two literals in
+  TestRoadmapFreshnessAgainstNativePath::test_matching_native_milestone_passes
+  (tests/test_harness_governor.py, a declared file): `_repo(tmp_path,
+  "M225-qrwdfv")` and `native_milestone="M225-qrwdfv"` →
+  `001-native-workflow-acceptance`. Cause: the test copies the live repo's
+  `prd/project-state` into its synthetic repo, and T002's marker-sync
+  (99abed61) changed `prd/project-state/data/roadmap.json` to name
+  `001-native-workflow-acceptance`; the governor's identity comparison
+  (current_id == native_milestone) could no longer pass with the stale
+  literal — the exact test passed at the predecessor base 1f435a32 only
+  because the data still named M225-qrwdfv. The two-literal update restores
+  the test's documented contract (tracked roadmap data and native state name
+  the same milestone) without weakening any assertion; both literals occur
+  nowhere else in the file. Flagged for the orchestrator's landing review
+  because the Approach pins the landed diff to the patch union plus the E1
+  file.
+- 2026-10-26 — build_T001 Verify: `uv run --frozen pytest
+  tests/test_harness_governor.py tests/test_phase_dispatch_adapter.py
+  tests/test_path_isolation_recovery.py -q` → exit 0, 276 passed, 2 skipped
+  (pre-existing skips), 0 failed. `.gitignore` untouched (declared,
+  expected-unchanged). No git staging/commit/stash performed; landing is the
+  orchestrator's.
+- 2026-10-26 — orchestrator Verify (isolate gsd-path-task/T001): pass, exit 0; output tail:
+  ```
+  ........................................................................ [ 25%]
+  ........................................................................ [ 51%]
+  ........................................................................ [ 77%]
+  .......ss.....................................................           [100%]
+  276 passed, 2 skipped in 88.61s (0:01:28)
+  ```
+
