@@ -5,7 +5,7 @@ milestone: 001-native-workflow-acceptance
 phase: build
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
-status: active
+status: blocked
 branch: gsd-path/M001
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
@@ -37,3 +37,4 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-26 — plan — planning started
 - 2026-10-26 — plan — plan approved
 - 2026-10-26 — build — build started
+- 2026-10-26 — build — build blocked: T009 NEEDS-ORCHESTRATOR — publication collides with the pre-push guard and CI trigger design; owner ruling required on SC8

@@ -3,11 +3,11 @@ id: T009
 title: Publish the milestone branch and write the cutover readiness assessment
 wave: 3
 deps: [T007, T008]
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
+status: pending    
 agent: null         # orchestrator-owned: set at dispatch
 base: null          # orchestrator-owned: clean layer SHA for isolated Verify
 worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+task_branch: null
 files:
   - docs/agent-stack/CUTOVER-READINESS-M001.md
   - tests/test_m001_cutover_readiness.py
@@ -52,4 +52,7 @@ Heavy: no
 
 ## Log
 
+- 2026-10-26 — build_T009 (coder): BLOCKED at the first Approach step, before any write to the declared files. `git push origin gsd-path/M001` from the primary worktree was rejected by the repository's own pre-push guard (.git/hooks/pre-push → .gsd-path/git_guard.py): "7ccc5262017b moves gsd-path/M001 off its ship commit; unshipped milestone work reaches a remote only as its ship commit (STATE shipped/done) through archive_milestone.py integrate". Guard source verified: refs/heads/gsd-path/M001 matches BOUND_BRANCH (^gsd-path/M\d{3,}$), so the ref may move to the remote only at its strict ship commit (ship_commit_at = STATE shipped/done + ship subject) — the build-phase push required by T009's Approach and AC1 is structurally impossible without bypassing the guard (vetoed). No refs/gsd-path/authorizations/* refs exist, the authorized-publication path explicitly excludes the bound branch, and this repo is the coordinator (no member marker). Secondary defect in the same step: repository-quality CI triggers only on push to main and pull_request events (.github/workflows/repository-quality.yml confirmed; GitHub API: 38 runs, all main-push or PR), and no PR from gsd-path/M001 exists — so even a successful push would produce no run on the pushed head; opening a PR needs credentials and is outside the declared files. Worktree kept; no declared path touched.
+- NEEDS-ORCHESTRATOR: How should SC8's publication step be satisfied given the repository's own pre-push guard forbids moving gsd-path/M001 to origin before its ship commit (STATE shipped/done via archive_milestone.py integrate at the ship phase) and the CI workflow cannot fire on the branch (main-push/PR triggers only)? — readings: (a) publication + CI confirmation are ship-phase-gated: T009 writes the assessment now with publication/CI recorded as pending-ship and the orchestrator re-scopes AC1/SC8; (b) the owner records a sanctioned authorization and SC8 re-targets to a non-bound published ref (does not literally satisfy "gsd-path/M001 is published to origin"); (c) the orchestrator publishes through the sanctioned ship/integrate path out-of-band and returns the recorded push + CI evidence for T009 to cite.
 - 2026-10-26 — created by planner
+- 2026-10-26 — owner ruling (verbatim: «(a)»): publication+CI are ship-phase-gated — T009 writes the cutover readiness assessment now with publication and CI recorded as pending-ship (the bound branch publishes through ship integration; the CI acceptance surface is the integrated main per the documented M207 policy); AC1/SC8 re-scoped accordingly. Build entered build/blocked; intent corrections follow the build-recovery contract.
