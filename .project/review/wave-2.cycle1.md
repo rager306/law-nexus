@@ -1,4 +1,4 @@
-# Review — wave 2, cycle 2
+# Review — wave 2, cycle 1
 
 <!-- Review sidecar checkout HEAD (recorded per brief, confirmed via `git rev-parse`):
      cc57376b948b6b11e9906acdb893f5f4e7f9048d — the recorded review base. Method:

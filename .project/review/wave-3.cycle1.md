@@ -1,4 +1,4 @@
-# Review — wave 3, cycle 2
+# Review — wave 3, cycle 1
 
 <!-- Independent wave review, cycle 2 (full depth). Review sidecar checkout HEAD
      (review base): cc57376b948b6b11e9906acdb893f5f4e7f9048d. Cycle 1

@@ -1,4 +1,4 @@
-# Review — wave 1, cycle 2
+# Review — wave 1, cycle 1
 
 <!-- Independent wave review, cycle 2. Cycle 1 passed substantively; this
      re-review re-emits the artifact because the staged cycle-1 copy failed
