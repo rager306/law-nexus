@@ -3,11 +3,11 @@ id: T010
 title: Reword the corpus-glob-guard claim in law-source/consultant/README.md
 wave: 2
 deps: []            # task ids whose output or landed effect this task needs
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+status: done
+agent: build_T010
+base: 61effa6efe68df1efff2c71f4bd39c4b701e434c
+worktree: null
+task_branch: null
 files:
   - law-source/consultant/README.md
   - .project/research/DOCS-AUDIT.md
@@ -54,3 +54,24 @@ Heavy: no
 ## Log
 
 - 2026-10-26 — created by planner
+- 2026-10-26 — build_T010: reworded the rule-4 claim at
+  law-source/consultant/README.md:34-35. The never-built
+  `law-source-corpus-glob-guard` name is gone; the claim now names
+  `law-source-fixture-guard` and states it covers only the fixture-vault
+  README marker plus the `.deprecated/` gitignore state, with corpus
+  globbing remaining a review-time defect under rule 4 itself. Marker
+  substrings (`НЕ КОРПУС`, `consru_export`, `43 785`) untouched; no other
+  README line changed. Preflight confirmed
+  `check_law_source_fixture_guard` at src/law_nexus_harness/governor.py:5095
+  (check id `law-source-fixture-guard` at :5106) covers exactly the README
+  marker + `.deprecated/` state, no corpus-glob detection, as the task
+  context states. DOCS-AUDIT row 16 Planned already reads `T010` at base
+  (recorded pre-dispatch by the orchestrator), so no audit edit was made;
+  the landing diff covers law-source/consultant/README.md plus this Log.
+  Verify (from worktree root):
+  `! grep -q 'law-source-corpus-glob-guard' law-source/consultant/README.md && grep -q 'law-source-fixture-guard' law-source/consultant/README.md && grep -q 'НЕ КОРПУС' law-source/consultant/README.md && grep -qE '^\| 16 \|.*\| T010 \|' .project/research/DOCS-AUDIT.md`
+  → exit 0, no output. A first invocation of the same chain without `cd`
+  ran in the primary root and exited 1 there (it read the unedited primary
+  tree); discarded — the worktree run above is the evidence.
+- 2026-10-26 — orchestrator Verify (isolate gsd-path-task/T010): pass, exit 0
+- 2026-10-26 — orchestrator Verify (isolate gsd-path-task/T010): pass, exit 0
