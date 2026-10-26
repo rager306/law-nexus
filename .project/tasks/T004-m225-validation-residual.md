@@ -3,11 +3,11 @@ id: T004
 title: Close the M225 validation residual with an honest re-run
 wave: 2
 deps: []
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+status: done
+agent: build_T004
+base: 61effa6efe68df1efff2c71f4bd39c4b701e434c
+worktree: null
+task_branch: null
 files:
   - prd/migration/rust-evidence/m225-validation-battery-2026-10-18.json
   - prd/migration/rust-evidence/m225-validation-rerun-m001.json
@@ -56,3 +56,17 @@ Heavy: no
 ## Log
 
 - 2026-10-26 — created by planner
+- 2026-10-26 — build_T004: closed the SC3 residual natively at base HEAD 61effa6efe68df1efff2c71f4bd39c4b701e434c (branch gsd-path-task/T004). Captured `git rev-parse HEAD` before validating; re-ran the hermetic validation surface natively at that exact HEAD: `cargo test -p ln-consultant-parser --offline --no-fail-fast` (exit 0; 66 blocks / 412 passed / 0 failed / 2 corpus-absent SKIP lines; reference-layer surface 8 blocks / 30 passed, same partition as the 2026-10-18 run), `cargo fmt --all -- --check` (0), `cargo check -p ln-consultant-parser --offline` (0), `cargo check --workspace --offline` (0), `cargo clippy --workspace --all-targets --offline -- -D warnings` (0, zero warnings), `cargo metadata --no-deps --format-version 1 --offline` (0, 47 packages), `uv run --frozen python scripts/verify-adr-conformance.py` (0, ok / 0 findings), the 7 reference-layer suites under `M225_S01_REPO_ROOT=/nonexistent-lns03` (exit 0; exactly 13 SKIP lines = the battery's hermetic baseline; all green), `cargo test ... --test reference_layer_fail_closed` (7/0), bin build + `--test reference_layer_s02_pageindex_cli` (3/0), and the m217 pytest battery `uv run --frozen pytest -q scripts/test_m217_*.py` (exit 1: 37 passed / 1 corpus-gate skip / 1 documented corpus-bound test `test_check_mode_rederivation_is_byte_identical` fail-closed at exit 3 without the corpus — the reference script's contract-correct behavior; recorded under skipped-corpus-absent, not as a pass). Battery edited at text level in exactly three regions (git diff verified): tested_source_revision → the 40-hex HEAD; tested_source_revision_role → E3 40-hex-HEAD semantics; environment gains `native_rerun_m001` {runner, git_state}. The 15 historical check entries, their outputs, and the timestamps are byte-identical. New m225-validation-rerun-m001.json (schema law-nexus/milestone-validation-rerun/v1): 15/15 battery check ids dispositioned — 9 re-run-passed-hermetic / 4 skipped-corpus-absent / 2 not-rerun-environment-gated (governor, preflight: branch-locked fail-closed; the orchestrator's bound-branch wave-gate run is the supporting evidence) — verdict `measurement_class: hermetic-observability-corpus-absent` with the N1 disclaimers in the statement. New tests/test_m225_validation_residual.py pins the 40-hex pin + placeholder absence, role semantics, same-revision across battery/record, full check-id coverage with fixed-set dispositions, and the measurement class. No file under crates/ changed (git status: zero crates/ entries); landing diff = the three declared paths.
+- 2026-10-26 — Verify: `uv run --frozen pytest tests/test_m225_validation_residual.py -q` → `5 passed in 0.59s`, exit 0, run at HEAD 61effa6efe68df1efff2c71f4bd39c4b701e434c on gsd-path-task/T004.
+- 2026-10-26 — orchestrator Verify (isolate gsd-path-task/T004): pass, exit 0; output tail:
+  ```
+  .....                                                                    [100%]
+  5 passed in 0.23s
+  ```
+- 2026-10-26 — build_T004 r2: `uv run --frozen ruff format tests/test_m225_validation_residual.py` normalized the new test file (1 file reformatted, formatting only, no semantic change); `ruff format --check` now clean (pre-commit hook blocker resolved); no other file touched.
+- 2026-10-26 — Verify (r2): `uv run --frozen pytest tests/test_m225_validation_residual.py -q` → `5 passed in 0.29s`, exit 0, run at HEAD 61effa6efe68df1efff2c71f4bd39c4b701e434c on gsd-path-task/T004.
+- 2026-10-26 — orchestrator Verify (isolate gsd-path-task/T004): pass, exit 0; output tail:
+  ```
+  .....                                                                    [100%]
+  5 passed in 0.24s
+  ```
