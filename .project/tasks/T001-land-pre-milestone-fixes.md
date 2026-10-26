@@ -3,10 +3,10 @@ id: T001
 title: Land the five pre-milestone fixes on gsd-path/M001
 wave: 1
 deps: []
-status: pending    
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
+status: done
+agent: build_T001
+base: d00219bd17802618fe446a80c712446c3528447c
+worktree: null
 task_branch: null
 files:
   - Cargo.toml
@@ -170,3 +170,48 @@ Heavy: no
   Installed 32 packages in 315ms
   ```
 - 2026-10-26 — orchestrator: finish attempt 2 blocked in the authoritative Verify — the serial verify sidecar runs on a `gsd-path-verify/*` branch where the governor's fail-closed branch ownership fires (documented environment sensitivity; worktree probe confirmed), and the live-governor tests assert error_count==0. The identical Verify passes in the primary (gsd-path/M001) and in `gsd-path-task/*` isolates (278 passed / 0 failed, r2). Clean retry as a parallel isolate so the authoritative Verify runs where the governor is operational; the verified r2 work diff is preserved verbatim at /root/law-nexus-pre-milestone-fix/t001-r2-work.patch.
+- 2026-10-26 — build_T001 (r3 redispatch at base d00219bd): restored the
+  verified r2 work. `git apply --check` then `git apply` of
+  t001-r2-work.patch filtered to the five declared files (Cargo.toml;
+  governor.py; phase-dispatch.py; test_harness_governor.py;
+  test_phase_dispatch_adapter.py) applied cleanly at this base, and a
+  `git apply --reverse --check` proves the landed diff equals the patch
+  hunks byte-for-byte. Brief-map deviation, resolved by the brief's own
+  fallback: the r2 patch contains no tests/test_path_isolation_recovery.py
+  new-file hunk (its diff headers list exactly the five files plus the task
+  file, whose hunks were excluded by the include filter), so the E1 file was
+  restored verbatim from /root/law-nexus-pre-milestone-fix/e1-draft/. The
+  formatter check was not a no-op for that file (the e1-draft copy predates
+  r2's formatting run, which survives only in the primary's tree that this
+  isolate must not touch); per the brief's instruction the formatting was
+  kept — line-joins only, no semantics; all five declared Python files plus
+  the new file are now `ruff format --check` clean. Verify: `uv run --frozen
+  pytest tests/test_harness_governor.py tests/test_phase_dispatch_adapter.py
+  tests/test_path_isolation_recovery.py -q` → exit 0, 276 passed, 2 skipped,
+  0 failed, 95.84s. Delta vs r2's 278 passed / 0 skipped: the two
+  runtime-conditional no-pi-journal skips
+  (test_live_governor_reports_journal_retry_loops,
+  test_live_governor_reports_compat_marker_hygiene) gated on .gsd/journal/,
+  which is gitignored and absent in this isolate (r2's root happened to
+  carry the frozen snapshot); collected test set identical, and the SC1
+  contract is 0 failures. .gitignore untouched (declared,
+  expected-unchanged per AC4). No git staging/commit/stash performed;
+  landing is the orchestrator's.
+- 2026-10-26 — orchestrator: r3 coder applied the preserved work (tracked five verified byte-identical to the r2 diff; E1 test present with a 6-line coder adaptation of the preserved draft) but exited before its background Verify returned and without a Log entry; the orchestrator proceeds to the authoritative finish, whose Verify in the gsd-path-task isolate is the binding evidence.
+
+- 2026-10-26 — orchestrator Verify (isolate gsd-path-task/T001): pass, exit 0; output tail:
+  ```
+  ........................................................................ [ 25%]
+  ........................................................................ [ 51%]
+  ........................................................................ [ 77%]
+  .......ss.....................................................           [100%]
+  276 passed, 2 skipped in 91.30s (0:01:31)
+  ```
+- 2026-10-26 — orchestrator Verify (isolate gsd-path-task/T001): pass, exit 0; output tail:
+  ```
+  ........................................................................ [ 25%]
+  ........................................................................ [ 51%]
+  ........................................................................ [ 77%]
+  .......ss.....................................................           [100%]
+  276 passed, 2 skipped in 87.05s (0:01:27)
+  ```

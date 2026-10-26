@@ -130,13 +130,17 @@ pathlib.Path(sys.argv[1]).write_text("spawned", encoding="utf-8")
 print("RESULT: T001 ready")
 """
 
+# Order matters: the adapter appends a completion contract to EVERY brief, and
+# that block names both verdicts. So "blocked" is always present and cannot be
+# sniffed for - the stub keys on the distinctive word of each role's own
+# instruction instead ("question" only appears in the question brief).
 BRANCHING_STUB = """import sys
 
 brief = sys.stdin.read()
-if "blocked" in brief:
-    print("RESULT: T001 blocked")
-elif "question" in brief:
+if "Ask the orchestrator a question" in brief:
     print("NEEDS-ORCHESTRATOR: which gate applies to this role?")
+elif "Report this role as blocked" in brief:
+    print("RESULT: T001 blocked")
 else:
     print("RESULT: T001 ready")
 """
@@ -299,7 +303,7 @@ def test_failed_role_on_nonzero_exit_exits_5(tmp_path: Path) -> None:
     assert load_json(record)["overall"] == "failed"
 
 
-def test_clean_exit_without_terminal_marker_is_failed(tmp_path: Path) -> None:
+def test_clean_exit_without_terminal_marker_is_unclassified(tmp_path: Path) -> None:
     stub = write_stub(tmp_path, "no_marker", NO_MARKER_STUB)
     role = make_role(tmp_path)
     plan = write_plan(tmp_path, [role])
@@ -307,10 +311,12 @@ def test_clean_exit_without_terminal_marker_is_failed(tmp_path: Path) -> None:
 
     result = run_adapter(plan, record, child_command=[sys.executable, str(stub)])
 
-    assert result.returncode == 5
+    # 7, not 5: the child exited cleanly and only the verdict is unreadable.
+    # A human reads the artifact; a real crash is still 5.
+    assert result.returncode == 7
     artifact = load_json(Path(role["artifact"]))
     assert artifact["exit_code"] == 0
-    assert artifact["outcome"] == "failed"
+    assert artifact["outcome"] == "unclassified"
 
 
 def test_timeout_kills_the_child_and_no_orphan_remains(tmp_path: Path) -> None:
@@ -704,3 +710,61 @@ def test_interrupted_outcome_never_exits_zero() -> None:
     assert module.overall_outcome(["interrupted"]) == "interrupted"
     assert module.overall_outcome(["ready", "interrupted"]) == "interrupted"
     assert module.overall_outcome(["interrupted", "failed"]) == "mixed"
+
+
+class TestUnclassifiedIsNotFailure:
+    """A clean exit whose verdict could not be read is its own diagnosis.
+
+    Measured cause: a real role ran 13 minutes, wrote a 17 KB artifact and
+    exited 0, but its brief never asked for the RESULT line the classifier
+    reads. The work existed and was recorded as a failure.
+    """
+
+    def test_clean_exit_without_marker_is_unclassified(self) -> None:
+        classify = load_adapter_module().classify
+
+        assert classify(False, 0, "report written to disk\n") == "unclassified"
+        assert classify(False, 0, "") == "unclassified"
+
+    def test_a_broken_child_is_still_failed(self) -> None:
+        classify = load_adapter_module().classify
+
+        assert classify(False, 1, "boom\n") == "failed"
+        assert classify(True, None, "") == "timeout"
+
+    def test_the_marker_still_wins(self) -> None:
+        classify = load_adapter_module().classify
+
+        assert classify(False, 0, "RESULT: t ready\n") == "ready"
+        assert classify(False, 0, "RESULT: t blocked\n") == "blocked"
+
+    def test_unclassified_does_not_exit_zero(self) -> None:
+        dispatch_exit_code = load_adapter_module().dispatch_exit_code
+
+        assert dispatch_exit_code(["unclassified"]) == 7
+        assert dispatch_exit_code(["unclassified"]) != 0
+        # and it must not be confused with a real failure or a blocked question
+        assert dispatch_exit_code(["failed"]) == 5
+        assert dispatch_exit_code(["blocked"]) == 4
+
+    def test_the_brief_gains_the_contract_when_it_lacks_one(self, tmp_path) -> None:
+        read_brief = load_adapter_module().read_brief
+
+        brief = tmp_path / "b.md"
+        brief.write_text("do the thing\n", encoding="utf-8")
+        payload = read_brief({"name": "inspect_docs", "brief_file": str(brief)}).decode()
+
+        assert "## Completion contract (machine-read)" in payload
+        assert "RESULT: inspect_docs ready" in payload
+        assert "RESULT: inspect_docs blocked" in payload
+        # the original content survives untouched
+        assert payload.startswith("do the thing")
+
+    def test_an_annotated_brief_is_not_duplicated(self, tmp_path) -> None:
+        read_brief = load_adapter_module().read_brief
+
+        brief = tmp_path / "b.md"
+        brief.write_text("RESULT: t ready\n", encoding="utf-8")
+        payload = read_brief({"name": "t", "brief_file": str(brief)}).decode()
+
+        assert payload == "RESULT: t ready\n"

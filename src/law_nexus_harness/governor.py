@@ -60,6 +60,8 @@ _LAST_COMPLETED_RE = re.compile(
     r"^\*\*Last Completed Milestone:\*\*\s*M(?P<seq>\d+)(?:-(?P<rand>[a-z0-9]+))?",
     re.IGNORECASE,
 )
+_PRE_MILESTONE_PHASES: frozenset[str] = frozenset({"inspect", "define"})
+
 _MSEQ_RE = re.compile(r"^M(\d+)(?:-[a-z0-9]+)?$")
 _RANGE_RE = re.compile(r"M(\d+)\s*[-–]\s*M(\d+)")
 _HC_PROOF_RE = re.compile(r"^hc(\d{2})-.*-runtime\.json$")
@@ -882,8 +884,31 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
     native = read_workflow_state(root)
     if native.kind is WorkflowStateKind.OPERATIONAL_VALID:
         if native.native_milestone is None:
-            # Operational but no milestone (real case: before the first one).
-            # The claim cannot be compared, and that must not read as fresh.
+            # A milestone does not exist yet in the pre-define phases: the STATE
+            # template says `milestone: null  # set by define`, and inspect runs
+            # BEFORE define. Blocking there would fail every freshly bound
+            # project for a reason nobody can fix yet, so the claim is simply not
+            # asserted - and says so - instead of passing or blocking.
+            if native.native_phase in _PRE_MILESTONE_PHASES:
+                return [
+                    GovernorFinding(
+                        check_id="roadmap-freshness",
+                        status="pass",
+                        severity="ok",
+                        message=(
+                            "tracked roadmap freshness is not asserted: the native Path "
+                            f"state is in {native.native_phase}, before any milestone exists"
+                        ),
+                        observed=(
+                            f"native_state={native.kind.value}; "
+                            f"native_phase={native.native_phase}; "
+                            "native_milestone=absent; comparison=not-applicable"
+                        ),
+                        remediation="none",
+                        rule_id="roadmap-freshness.pre-milestone",
+                        evidence=(GovernorEvidence(path="prd/project-state/data/roadmap.json"),),
+                    )
+                ]
             return [
                 GovernorFinding(
                     check_id="roadmap-freshness-unverifiable",
@@ -894,8 +919,9 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                         "state is operational but reports no milestone"
                     ),
                     observed=(
-                        f"native_state={native.kind.value}; native_milestone=absent; "
-                        "comparison=unverifiable"
+                        f"native_state={native.kind.value}; "
+                        f"native_phase={native.native_phase}; "
+                        "native_milestone=absent; comparison=unverifiable"
                     ),
                     remediation=(
                         "Record the current milestone in the native Path state, or state "

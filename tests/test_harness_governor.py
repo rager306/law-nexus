@@ -5551,14 +5551,14 @@ class TestRoadmapFreshnessAgainstNativePath:
 
         from law_nexus_harness import workflow_state as ws
 
-        self._repo(tmp_path, "M225-qrwdfv")
+        self._repo(tmp_path, "001-native-workflow-acceptance")
         real = ws.read_workflow_state
 
         def operational(root):
             return replace(
                 real(root),
                 kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
-                native_milestone="M225-qrwdfv",
+                native_milestone="001-native-workflow-acceptance",
                 native_phase="build",
             )
 
@@ -5592,6 +5592,37 @@ class TestRoadmapFreshnessAgainstNativePath:
         assert by_id["roadmap-current-tracks-path"].status == "fail"
         assert by_id["roadmap-current-tracks-path"].severity == "error"
 
+    def test_pre_milestone_phase_is_not_asserted_and_not_blocking(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """inspect/define legitimately have no milestone: STATE sets it by define.
+
+        Blocking here would fail every freshly bound project for a reason nobody
+        can fix yet, so the claim is not asserted - and says so - instead.
+        """
+        from dataclasses import replace
+
+        from law_nexus_harness import workflow_state as ws
+
+        self._repo(tmp_path, None)
+        real = ws.read_workflow_state
+
+        def operational(root):
+            return replace(
+                real(root),
+                kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
+                native_milestone=None,
+                native_phase="inspect",
+            )
+
+        monkeypatch.setattr("law_nexus_harness.governor.read_workflow_state", operational)
+        by_id = {item.check_id: item for item in check_roadmap_freshness(tmp_path)}
+
+        assert by_id["roadmap-freshness"].status == "pass"
+        assert by_id["roadmap-freshness"].severity == "ok"
+        assert by_id["roadmap-freshness"].rule_id == "roadmap-freshness.pre-milestone"
+        assert "comparison=not-applicable" in by_id["roadmap-freshness"].observed
+
     def test_operational_without_a_milestone_blocks(self, tmp_path: Path, monkeypatch) -> None:
         from dataclasses import replace
 
@@ -5605,7 +5636,7 @@ class TestRoadmapFreshnessAgainstNativePath:
                 real(root),
                 kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
                 native_milestone=None,
-                native_phase="research",
+                native_phase="build",
             )
 
         monkeypatch.setattr("law_nexus_harness.governor.read_workflow_state", operational)
