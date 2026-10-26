@@ -3,11 +3,11 @@ id: T008
 title: Prove session resume from disk alone
 wave: 3
 deps: [T007]
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+status: in-progress
+agent: build_T008
+base: be2ee713a376ffa9552c0b059cb21832a4f304be
+worktree: /root/law-nexus
+task_branch: null
 files:
   - .project/M001-RESUME-PROOF.md
 ---
@@ -50,3 +50,5 @@ Heavy: no
 ## Log
 
 - 2026-10-26 — created by planner
+- 2026-10-26 — build_T008 (fresh session, no chat history): resumed from .project/HANDOFF-M001-resume.md (commit 7791ca6c) on branch gsd-path/M001 @ be2ee713. Ran the 4 resume verification commands in order: `python3 scripts/ai/path-run.py status` exit 0 (branch gsd-path/M001, milestone 001-native-workflow-acceptance); `uv run --frozen python -m law_nexus_harness.governor` exit 0, error_count=0, 75 checks pass; `uv run --frozen pytest tests/test_project_state_roadmap_freshness.py -q` exit 0 (1 passed, 5 skipped); `test -z "$(git ls-files a.txt b.txt c.txt)"` exit 0 (empty). Recorded .project/M001-RESUME-PROOF.md; task Verify command passes (exit 0).
+- 2026-10-26 — orchestrator Verify (sidecar gsd-path-verify/task-t008-verify): pass, exit 0
