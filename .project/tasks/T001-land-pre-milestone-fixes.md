@@ -3,11 +3,11 @@ id: T001
 title: Land the five pre-milestone fixes on gsd-path/M001
 wave: 1
 deps: []
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+status: in-progress
+agent: build_T001
+base: c16e11feb180a2b2e359c07a2c395f7a04ac6deb
+worktree: /root/law-nexus
+task_branch: null
 files:
   - Cargo.toml
   - src/law_nexus_harness/governor.py
@@ -118,4 +118,55 @@ Heavy: no
   .......ss.....................................................           [100%]
   276 passed, 2 skipped in 88.61s (0:01:28)
   ```
+- 2026-10-26 — build_T001 (r2 redispatch at base c16e11fe): the working tree
+  was clean (r1 work rolled back after the hook rejection), so rebuilt from
+  the preserved evidence. Applied the three canonical patches cleanly with
+  `git apply --check` then `git apply` (dev-profile-strip → Cargo.toml;
+  pre-milestone-phase → governor.py + test_harness_governor.py;
+  unclassified-and-brief-contract → phase-dispatch.py +
+  test_phase_dispatch_adapter.py) — AC1's clean-apply clause re-proven at
+  this base. Re-applied the r1 two-literal update in
+  TestRoadmapFreshnessAgainstNativePath::test_matching_native_milestone_passes
+  (M225-qrwdfv → 001-native-workflow-acceptance) by extracting the same hunk
+  verbatim from t001-r1-work.patch and applying it with `git apply` — still
+  required because T002's marker landing is in this base and the test copies
+  the live roadmap.json. Restored tests/test_path_isolation_recovery.py
+  verbatim from /root/law-nexus-pre-milestone-fix/e1-draft/. Ran
+  `uv run --frozen ruff format` on src/law_nexus_harness/governor.py and
+  tests/test_path_isolation_recovery.py (AC1 formatter normalization; a
+  `ruff format --check` over all five declared Python files found exactly
+  those two not format-clean). Verify: `uv run --frozen pytest
+  tests/test_harness_governor.py tests/test_phase_dispatch_adapter.py
+  tests/test_path_isolation_recovery.py -q` → exit 0, 278 passed, 0 skipped,
+  0 failed. Delta vs r1's 276 passed, 2 skipped: the collected test set is
+  identical (no test changes between 52f11611 and c16e11fe); r1's two
+  pre-existing skips are the runtime-conditional no-pi-journal skips
+  (pytest.skip gated on .gsd/journal/, 93 entries present at this root), so
+  both ran and passed here instead of skipping. .gitignore untouched
+  (declared, expected-unchanged). No git staging/commit/stash performed;
+  landing is the orchestrator's.
 
+- 2026-10-26 — orchestrator Verify (sidecar gsd-path-verify/task-t001-verify): fail, exit 1; output tail:
+  ```
+  tests/test_harness_governor.py:2888: AssertionError
+  =========================== short test summary info ============================
+  FAILED tests/test_harness_governor.py::test_live_governor_includes_port_contract_coverage_finding
+  FAILED tests/test_harness_governor.py::test_live_governor_passes_hostile_negative_suite_coverage
+  FAILED tests/test_harness_governor.py::test_live_governor_passes_multi_adapter_port_coverage
+  FAILED tests/test_harness_governor.py::test_live_governor_passes_live_adapter_readiness
+  FAILED tests/test_harness_governor.py::test_live_governor_passes_ci_quality_gate_drift
+  FAILED tests/test_harness_governor.py::test_live_governor_passes_verify_test_coverage_drift
+  FAILED tests/test_harness_governor.py::test_live_governor_passes_semantic_stub_in_product_code
+  FAILED tests/test_harness_governor.py::test_live_governor_passes_semantic_name_collision
+  FAILED tests/test_harness_governor.py::test_live_governor_passes_companion_manifest
+  FAILED tests/test_harness_governor.py::test_live_governor_passes_golden_corpus_catalog
+  FAILED tests/test_harness_governor.py::test_live_governor_reports_historical_test_debt_visibility
+  FAILED tests/test_harness_governor.py::test_live_governor_includes_adr_and_archive_checks
+  12 failed, 264 passed, 2 skipped in 89.98s (0:01:29)
+  Using CPython 3.13.12 interpreter at: /root/.local/bin/python3.13
+  Creating virtual environment at: .venv
+     Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t001-verify
+        Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t001-verify
+  Installed 32 packages in 315ms
+  ```
+- 2026-10-26 — orchestrator: finish attempt 2 blocked in the authoritative Verify — the serial verify sidecar runs on a `gsd-path-verify/*` branch where the governor's fail-closed branch ownership fires (documented environment sensitivity; worktree probe confirmed), and the live-governor tests assert error_count==0. The identical Verify passes in the primary (gsd-path/M001) and in `gsd-path-task/*` isolates (278 passed / 0 failed, r2). Clean retry as a parallel isolate so the authoritative Verify runs where the governor is operational; the verified r2 work diff is preserved verbatim at /root/law-nexus-pre-milestone-fix/t001-r2-work.patch.
