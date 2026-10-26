@@ -12,6 +12,7 @@ files:
   - prd/project-state/roadmap.md
   - prd/project-state/data/roadmap.json
   - tests/test_project_state_roadmap_freshness.py
+  - .gitignore
 ---
 
 # T002 — Sync the workflow marker to the Path milestone
@@ -52,4 +53,11 @@ Heavy: no
 
 ## Log
 
-- 2026-10-26 — created by planner
+- 2026-10-26 — plan-defect repair (orchestrator, per build-native step 2 and the finish preflight receipt): `files` gains `.gitignore` — this landing also anchors the legacy product rules `build/` → `/build/` and `archive/` → `/archive/` (exactly two lines, no other ignore changes), because unanchored rules swallow `.project/build/` and `.project/archive/` which GSD Path state must track; the landing must precede T001 whose Verify depends on this marker. Acceptance criterion added: the landing commit includes exactly that two-line `.gitignore` anchoring.
+
+- 2026-10-26 — build_T002 implemented: roadmap.md now names 001-native-workflow-acceptance in the live workflow-marker bullet (only that bullet changed — N4; superseded bullets and all other lines untouched); roadmap.json current_milestone synced to id 001-native-workflow-acceptance / status active with a Path-milestone title and goal (no completed group, sanctioned chain, or recorded hash changed); tests/test_project_state_roadmap_freshness.py gains test_native_marker_names_the_operational_milestone asserting exact three-way slug identity (.project/STATE.md milestone ↔ roadmap.json current_milestone.id ↔ roadmap.md live marker bullet; skip only when the checkout has no .project/STATE.md milestone — negative checks confirmed fail-closed on id mismatch, missing slug, prefix/suffix variant, and duplicate live bullets). Verify `uv run --frozen pytest tests/test_project_state_roadmap_freshness.py -q` → exit 0, 1 passed, 5 skipped (legacy registry tests keep their skip under operational native state). SC2 evidence: `uv run --frozen python -m law_nexus_harness.governor` in this authorized task worktree (native state operational-valid, milestone 001-native-workflow-acceptance, phase build, STATE.branch gsd-path/M001) → status ok, 0 errors, 0 warns, 72 passes; roadmap-current-tracks-path passes by identity (comparison=path); workflow-state-surface reports operational mode — no pre-milestone/bootstrap exception in play. Baseline before the change: same full run reported exactly one error, roadmap-current-tracks-path (roadmap_current=M225-qrwdfv).
+- 2026-10-26 — orchestrator Verify (isolate gsd-path-task/T002): pass, exit 0; output tail:
+  ```
+  sssss.                                                                   [100%]
+  1 passed, 5 skipped in 4.26s
+  ```
