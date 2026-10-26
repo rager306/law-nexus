@@ -3,10 +3,10 @@ id: T007
 title: Delete the junk files through the full native cycle
 wave: 3
 deps: []
-status: in-progress
+status: done
 agent: build_T007
-base: 7791ca6c125005a2d03c1a46b8ffdb8eb9814028
-worktree: /root/law-nexus
+base: 64916a44c4c739235f996345d312dc4fbc3d619e
+worktree: null
 task_branch: null
 files:
   - a.txt
@@ -57,6 +57,7 @@ Heavy: no
 
 - 2026-10-26 — created by planner
 - 2026-10-26 — build_T007 (coder, worker session 01a177f4-38f0-7654-b320-293a746d9f24, serial round, primary worktree /root/law-nexus, base 7791ca6c125005a2d03c1a46b8ffdb8eb9814028): deleted `a.txt`, `b.txt`, `c.txt` via `git rm` — the removal is staged by design, because acceptance criterion 1 requires deletion from the index and the task Verify checks `git ls-files`; the dispatch instruction names `git rm` explicitly, so the generic coder no-staging rule yields to it. No other product path touched. Native-cycle evidence recorded around this task (SC6): dispatch receipt `build_T007` (`.project/research/dispatch-record-build-T007-2026-10-26.json`, role coder, scope 001-native-workflow-acceptance); worker = this session; the orchestrator's authoritative Verify rerun runs in the isolated wave-3 task-verify sidecar — a different evidence path from this worker report (E6); native validators = governor + preflight recorded on bound branch `gsd-path/M001`, Verify ledger line kept by the orchestrator; independent review = wave-3 independent reviewer with its evidence path or model family named in the wave review — this worker does not self-accept (N7). Wrote `.project/HANDOFF-M001-resume.md` per the Interface contract: sections `Session context` (branch `gsd-path/M001`, milestone `001-native-workflow-acceptance`, handoff commit SHA `7791ca6c125005a2d03c1a46b8ffdb8eb9814028` = the commit this task ran on), `State on disk`, `Resume verification commands` (the four exact commands), `Recording path` (`.project/M001-RESUME-PROOF.md`, not written by this task). Verify: `test -z "$(git ls-files a.txt b.txt c.txt)" && test ! -e a.txt && test ! -e b.txt && test ! -e c.txt` → pass, exit 0. RESULT: T007 ready
+- 2026-10-26 — orchestrator Verify (sidecar gsd-path-verify/task-t007-verify): pass, exit 0
 - 2026-10-26 — orchestrator Verify (sidecar gsd-path-verify/task-t007-verify): pass, exit 0
 - 2026-10-26 — orchestrator Verify (sidecar gsd-path-verify/task-t007-verify): pass, exit 0
 - 2026-10-26 — orchestrator Verify (sidecar gsd-path-verify/task-t007-verify): pass, exit 0
