@@ -15,6 +15,7 @@ files:
   - tests/test_harness_governor.py
   - tests/test_phase_dispatch_adapter.py
   - tests/test_path_isolation_recovery.py
+  - .gitignore
 ---
 
 # T001 — Land the five pre-milestone fixes on gsd-path/M001
@@ -43,7 +44,7 @@ Five verified fixes sit uncommitted in the primary worktree because the guard bl
 1. The three canonical patches apply cleanly to the task base with `git apply --check`, and the landed diff for the five fixed files equals their union with no other product change.
 2. `uv run --frozen pytest tests/test_harness_governor.py tests/test_phase_dispatch_adapter.py` — SC1's exact command — reports 0 failures as part of the Verify run below.
 3. E1 is pinned by tests/test_path_isolation_recovery.py: an interrupted task landing recovers only through the pipeline isolation helper's recover command; the helper refuses a detached HEAD and reports an honest verdict for an interrupted or unlanded task, never a fabricated success; manual git repair stays vetoed.
-4. The landing commit touches exactly the six declared paths and nothing else.
+4. The landing commit touches exactly the seven declared paths and nothing else. The `.gitignore` change is exactly the two-line anchoring of the legacy product rules `build/` → `/build/` and `archive/` → `/archive/` (finish preflight requires `.project/build/` and the future `.project/archive/` to be trackable); no other ignore rule changes.
 
 ## Verify
 
@@ -56,3 +57,17 @@ Heavy: no
 ## Log
 
 - 2026-10-26 — created by planner
+- 2026-10-26 — NEEDS-ORCHESTRATOR: Verify cannot reach 0 failures at base 1f435a32 — the live governor's roadmap-current-tracks-path fails there (roadmap.json still names M225-qrwdfv while STATE.md says 001-native-workflow-acceptance/build), failing 12 pre-existing test_live_governor_* assertions outside this task's files; marker-sync must land before this task's Verify evidence is taken.
+- 2026-10-26 — Orchestrator answer: yes — T002 (marker sync) lands first and this task's Verify evidence is taken at a base containing that landing — cited: PLAN.md Wave 1 “risk burn-down” (SYNTHESIS wave-1 blocker 3: the fail-closed governor gates every later native claim), INTENT.md SC2 and Edge coverage E2 (missing/mismatched marker is a blocking error).
+- 2026-10-26 — plan-defect repair (orchestrator, per build-native step 2 and the finish preflight receipt): `files` gains `.gitignore`; AC4 reworded to seven paths with the exact two-line anchoring `/build/`, `/archive/` (legacy unanchored product rules swallow `.project/build/` and `.project/archive/`, which GSD Path state must track). Task returned to pending for redispatch at a base containing T002's landing.
+- 2026-10-26 — build_T001 implementation: applied the three canonical patches
+  cleanly with `git apply --check` then `git apply` (dev-profile-strip →
+  Cargo.toml; pre-milestone-phase → src/law_nexus_harness/governor.py +
+  tests/test_harness_governor.py; unclassified-and-brief-contract →
+  scripts/ai/phase-dispatch.py + tests/test_phase_dispatch_adapter.py); the
+  five-file diff is exactly the union of the patches, no re-derivation. Wrote
+  tests/test_path_isolation_recovery.py pinning E1: helper resolved through the
+  tracked launcher (`python3 -B .gsd-path/status_runtime.py --runtime-path`),
+  detached HEAD refused fail-closed, unlanded task → `none`, interrupted task →
+  `resume` at its base, every verdict held to the helper's own vocabulary and
+  never a landed verdict without a landing commit.
