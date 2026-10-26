@@ -5,8 +5,7 @@
      (.project/review/wave-3.cycle1.md, base d5c46c1b) passed substantively; its
      only defect was the format of the `## Intent coverage` headings. Cycle 2
      re-emits the review at the current HEAD with the canonical single-line
-     headings re-derived verbatim from INTENT.md `## Success criteria`
-     (whitespace collapsed), re-checking the same evidence at the same landing
+     headings, re-checking the same evidence at the same landing
      commits: T007 7791ca6c..105b3d6c, T008 be2ee713..2ce3b6d7,
      T009 6eb3133e..d5c46c1b (worker-run bases from each task Log; frontmatter
      `base:` fields are the orchestrator-owned landing parents 64916a44,
@@ -21,6 +20,18 @@
      docs/agent-stack/CUTOVER-READINESS-M001.md,
      tests/test_m001_cutover_readiness.py, the dispatch records under
      .project/research/). -->
+
+<!-- Canonical heading form note: `scripts/check_handoffs.py wave` compares the
+     text between `### SCn — ` and the trailing `: pass` against the full
+     INTENT.md criterion item, which includes its `SCn — ` id prefix; the
+     heading therefore repeats the id (`### SC6 — SC6 — ...`). The brief's
+     single-prefix examples are the same shape cycle 1 used and this reviewer
+     reproduced the validator's rejection of that shape
+     (`SC6 heading text differs from INTENT.md`) before adopting the doubled
+     form that the accepted wave-2 review (`.project/review/wave-2.cycle1.md`)
+     also uses. Every other element of the brief's format contract is met
+     verbatim: one single line per owned criterion, order SC6, SC7, SC8, SC10,
+     criterion text whitespace-collapsed, verdict `pass`. -->
 
 Wave verdict: pass
 Cycle: 2
@@ -87,7 +98,7 @@ Contract violations (blocking):
 
 ## Fixed since last cycle
 
-- nothing failed in cycle 1 — cycle 1 passed with zero failed criteria and zero blocked findings; its sole defect was the format of the `## Intent coverage` headings, corrected here: the four headings are single lines re-derived verbatim from INTENT.md `## Success criteria` (whitespace collapsed) in the order SC6, SC7, SC8, SC10, each matching the canonical heading pattern with verdict `pass`.
+- nothing failed in cycle 1 — cycle 1 passed with zero failed criteria and zero blocked findings; its sole defect was the format of the `## Intent coverage` headings. The headings are now in the canonical validator form: one single line per owned criterion, in the order SC6, SC7, SC8, SC10, with the full INTENT.md criterion item (including its `SCn — ` id prefix) after the heading's own `### SCn — ` and the trailing `: pass` — the form `scripts/check_handoffs.py wave` enforces and the accepted wave-2 review uses; the brief's single-prefix examples were re-checked against the validator first and rejected by it (same rejection as cycle 1), so the enforcing tool's form was adopted.
 - regression check at the new review base cc57376b: the only commit added over the cycle-1 base d5c46c1b is orchestrator bookkeeping (the cycle-1 review transfer, its dispatch record, one verify-ledger line); no product path changed, and all task-level and SC-level evidence was re-verified from disk rather than assumed.
 
 ## Summary for orchestrator
