@@ -1,8 +1,8 @@
 ---
 pipeline: gsd-path/v2
 project: law-nexus
-milestone: null     # set by define; names the archive directory at ship
-phase: inspect
+milestone: 001-native-workflow-acceptance
+phase: plan
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
 status: done
@@ -28,3 +28,11 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-25 — inspect — project initialized
 - 2026-10-25 — inspect — router bound initial milestone
 - 2026-10-26 — inspect — inspection artifacts passed
+- 2026-10-26 — define — definition started
+- 2026-10-26 — define — milestone intent approved
+- 2026-10-26 — research — research started
+- 2026-10-26 — research — research done: manifest .project/research/RESEARCH.md; dispatched stack; skipped domain,pitfalls,similar; 1 question
+- 2026-10-26 — decide — decision synthesis started
+- 2026-10-26 — decide — decision synthesis validated: .project/research/SYNTHESIS.md; 3 decisions, 4 user rulings recorded, no open user items
+- 2026-10-26 — plan — planning started
+- 2026-10-26 — plan — plan approved
