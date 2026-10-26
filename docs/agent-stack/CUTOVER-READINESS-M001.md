@@ -24,7 +24,7 @@ The wave reviews read the recorded orchestrator Verify outputs plus the isolated
 | SC4 | met | T005 landing `ab0286e4`; 28-file minimal PDD; stubs modeled as stubs |
 | SC5 | met | T006 landing `55ec0072`; GitNexus re-index; receipt-hash-pinned AGENTS.md block |
 | SC6 | met on the recorded cycle; wave-3 review verdict pending | T007 landing `105b3d6c`; dispatch receipt, worker, validators, isolated verify sidecar |
-| SC7 | met | T008 landing `2ce3b6d7`; `.project/M001-RESUME-PROOF.md` — 4 commands, all exit 0 |
+| SC7 | met | T008 landing `2ce3b6d7`; `.project/build/M001-RESUME-PROOF.md` — 4 commands, all exit 0 |
 | SC8 | delivered by this document | publication/CI pending-ship (section below) |
 | SC9 | met | T003 landing `2e1e3c58`; blocking schema gate with a narrow documented advisory allowlist |
 | SC10 | met | T007 landing `105b3d6c`; junk files absent (re-verified at this base) |
@@ -123,11 +123,11 @@ The wave reviews read the recorded orchestrator Verify outputs plus the isolated
 ## SC7 — session close/resume: met
 
 - Landing commit `2ce3b6d7` (T008): a fresh session with no chat history resumed from
-  `.project/HANDOFF-M001-resume.md` (handoff commit `7791ca6c125005a2d03c1a46b8ffdb8eb9814028`).
+  `.project/build/HANDOFF-M001-resume.md` (handoff commit `7791ca6c125005a2d03c1a46b8ffdb8eb9814028`).
   The proof is disk-only (N8): the new session's own recorded verification output, not chat
   history. STATE.md remains the single journaled source and resume is read-only validation, so a
   repeated resume is harmless (E7, dismissed).
-- Proof `.project/M001-RESUME-PROOF.md`, four commands, all exit 0: `python3 scripts/ai/path-run.py
+- Proof `.project/build/M001-RESUME-PROOF.md`, four commands, all exit 0: `python3 scripts/ai/path-run.py
   status` (branch `gsd-path/M001`, milestone `001-native-workflow-acceptance`);
   `uv run --frozen python -m law_nexus_harness.governor` (`error_count: 0`, 75 checks pass);
   `uv run --frozen pytest tests/test_project_state_roadmap_freshness.py -q` (1 passed, 5 skipped);

@@ -1,7 +1,7 @@
 # Intent — law-nexus
 
 <!-- Written by $gsd-path-define (standard mode, brownfield + supplied-spec).
-     Supplied spec: /root/law-nexus/.project/supplied-spec-2026-10-26.md
+     Supplied spec: /root/law-nexus/.project/research/supplied-spec-2026-10-26.md
      Every downstream agent reads this first. Constraints and vetoes here
      override everything downstream. -->
 
@@ -20,7 +20,7 @@ Surfaces: terminal (native Path CLI: path-run.py status, governor, pytest, git),
 The GSD Path bootstrap is merged (main@54a495cd) but the native delivery
 workflow has zero practical proof: no milestone has ever been defined,
 validated, reviewed and resumed through it, and cutover (C7) stays off until
-that proof exists (supplied spec: `.project/supplied-spec-2026-10-26.md`).
+that proof exists (supplied spec: `.project/research/supplied-spec-2026-10-26.md`, relocated by the owner-ruled pre-ship relocation).
 Milestone M001 turns the standing pre-milestone fixes into landed tasks, binds
 the milestone to the roadmap marker, closes the M225 validation residual
 natively, creates the minimal PDD model, and runs one limited task through the
@@ -235,3 +235,10 @@ history, CI runs).
   publication and CI recorded as pending-ship (they execute at ship
   integration — the CI acceptance surface is the integrated main per the
   documented M207 policy); `cutover` remains `false`.
+- 2026-10-26: «(a)» (second application, ship phase) — owner sanctioned one
+  pre-ship relocation commit: the five tracked top-level `.project` artifacts
+  (two session handoffs, the supplied spec, the T007 handoff, the T008 resume
+  proof) moved into the allowlisted `research/` and `build/` directories
+  (content byte-identical; landing proofs re-verified proven-landed in a probe
+  worktree); current-location citations updated in this Summary, PLAN.md's
+  Surface contract, and CUTOVER-READINESS-M001.md.

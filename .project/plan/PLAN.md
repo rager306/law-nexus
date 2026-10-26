@@ -47,12 +47,12 @@ Review depth: full
 
 Criteria: SC7
 Entry: a terminal in the primary worktree on the bound branch gsd-path/M001; the commands python3 scripts/ai/path-run.py status, uv run --frozen python -m law_nexus_harness.governor, uv run --frozen pytest, and git log / git status.
-States: missing state — status fails closed and says so instead of reporting a silent green; running — status prints the phase and route for milestone 001-native-workflow-acceptance on gsd-path/M001; error — the governor exits non-zero and names the failing check (away from the bound branch the documented fail-closed branch-ownership error is expected behavior, not a defect); success — the governor reports 0 errors on the bound branch, the marker pytest passes, and the fresh resume session's recorded verification output is on disk at .project/M001-RESUME-PROOF.md.
+States: missing state — status fails closed and says so instead of reporting a silent green; running — status prints the phase and route for milestone 001-native-workflow-acceptance on gsd-path/M001; error — the governor exits non-zero and names the failing check (away from the bound branch the documented fail-closed branch-ownership error is expected behavior, not a defect); success — the governor reports 0 errors on the bound branch, the marker pytest passes, and the fresh resume session's recorded verification output is on disk at .project/build/M001-RESUME-PROOF.md (relocated by the owner-ruled pre-ship relocation commit).
 Walkthrough:
 1. Open a fresh terminal session with only the repository on disk (no conversation context), run python3 scripts/ai/path-run.py status, and confirm it reports branch gsd-path/M001 and milestone 001-native-workflow-acceptance.
 2. Run uv run --frozen python -m law_nexus_harness.governor and confirm it exits 0 with 0 errors.
 3. Run uv run --frozen pytest tests/test_project_state_roadmap_freshness.py -q and confirm the native marker test passes.
-4. Open .project/M001-RESUME-PROOF.md and confirm it records exactly these commands with their real outputs, produced by the fresh resume session (SC7, N8).
+4. Open .project/build/M001-RESUME-PROOF.md and confirm it records exactly these commands with their real outputs, produced by the fresh resume session (SC7, N8).
 
 ### GitHub (gsd-path/M001 branch, commit history, CI runs) — T009
 

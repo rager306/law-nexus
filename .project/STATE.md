@@ -49,3 +49,5 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-26 — plan — plan approved
 - 2026-10-26 — build — build started
 - 2026-10-26 — ship — build done; final review pending
+- 2026-10-26 — ship — ship blocked: lean gate refuses 5 tracked top-level .project artifacts (2 handoffs, supplied spec, T007/T008 landed resume pair); relocation proven safe in a probe worktree but its commit has no sanctioned slot at ship/active; owner ruling required
+- 2026-10-26 — ship — ship unblocked: owner ruled (a) — one sanctioned pre-ship relocation commit (5 top-level artifacts into allowlisted dirs), then prepare-final at the new head
