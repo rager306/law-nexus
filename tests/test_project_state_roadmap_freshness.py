@@ -245,6 +245,65 @@ def test_roadmap_completed_groups_cover_through_latest_milestone() -> None:
     )
 
 
+# Matches the live workflow-marker bullet in the roadmap front and captures
+# the milestone slug that immediately follows the label. The superseded
+# historical bullet carries extra text inside its bold label ("... marker
+# (superseded 2026-10-16):**"), so requiring ":**" directly after "marker"
+# selects only the live bullet; duplicates of the live bullet stay visible so
+# the exact-one assertion below can fail closed on them.
+_MARKER_BULLET_RE = re.compile(
+    r"^- \*\*Local GSD workflow marker:\*\*\s*(?P<slug>\S+)", re.MULTILINE
+)
+
+# Native milestone line in the tracked .project/STATE.md frontmatter.
+_NATIVE_MILESTONE_RE = re.compile(r"^milestone:\s*(?P<slug>\S+)\s*$", re.MULTILINE)
+
+ROADMAP_MD_PATH = ROOT / "prd/project-state/roadmap.md"
+NATIVE_STATE_PATH = ROOT / ".project/STATE.md"
+
+
+def test_native_marker_names_the_operational_milestone() -> None:
+    """Three-way identity: STATE.md milestone = roadmap.json id = roadmap.md bullet.
+
+    Under operational native Path state the roadmap freshness is owned by the
+    native milestone (MIGRATION.md §4.2): the tracked marker must name the
+    live native milestone slug exactly. A mismatched id, a missing marker
+    bullet, a prefix/suffix variant, or a duplicated live marker bullet is a
+    fail-closed drift signal (E2). Skips only when this checkout carries no
+    native STATE.md milestone at all.
+    """
+    if not NATIVE_STATE_PATH.exists():
+        pytest.skip("no .project/STATE.md on this checkout (native state absent)")
+    state_text = NATIVE_STATE_PATH.read_text(encoding="utf-8")
+    native_match = _NATIVE_MILESTONE_RE.search(state_text)
+    if native_match is None:
+        pytest.skip(".project/STATE.md carries no milestone (native state absent)")
+    native_slug = native_match.group("slug")
+
+    roadmap = _load_roadmap()
+    current = roadmap["current_milestone"]
+    assert current["id"] == native_slug, (
+        f"roadmap.json current_milestone.id {current['id']!r} != native STATE.md "
+        f"milestone {native_slug!r} — refresh prd/project-state/data/roadmap.json."
+    )
+    assert current["status"] == "active", (
+        "roadmap.json current_milestone.status must be 'active' while the "
+        "native milestone is the operational one"
+    )
+
+    roadmap_md = ROADMAP_MD_PATH.read_text(encoding="utf-8")
+    marker_slugs = _MARKER_BULLET_RE.findall(roadmap_md)
+    assert len(marker_slugs) == 1, (
+        "expected exactly one live 'Local GSD workflow marker:' bullet in "
+        f"prd/project-state/roadmap.md, found {len(marker_slugs)}"
+    )
+    assert marker_slugs[0] == native_slug, (
+        f"roadmap.md marker bullet names {marker_slugs[0]!r} != native STATE.md "
+        f"milestone {native_slug!r} — exact slug identity required (E2); a "
+        f"prefix/suffix variant or reworded slug is a blocking mismatch."
+    )
+
+
 if __name__ == "__main__":
     # Manual run: print a freshness summary instead of raising. "fresh" uses
     # the same semantics as the test: roadmap current should equal the latest

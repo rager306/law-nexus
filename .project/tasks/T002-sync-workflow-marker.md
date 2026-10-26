@@ -3,11 +3,11 @@ id: T002
 title: Sync the workflow marker to the Path milestone
 wave: 1
 deps: []
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+status: done
+agent: build_T002
+base: 0c502255a94c188f29ef48019403ab7cd6308192
+worktree: null
+task_branch: null
 files:
   - prd/project-state/roadmap.md
   - prd/project-state/data/roadmap.json
@@ -60,4 +60,10 @@ Heavy: no
   ```
   sssss.                                                                   [100%]
   1 passed, 5 skipped in 4.26s
+  ```
+- 2026-10-26 — build_T002 r1 (base 0c502255a94c188f29ef48019403ab7cd6308192; r0 product edits were reset with the earlier base, so the sync was re-applied here): roadmap.md live marker bullet again names 001-native-workflow-acceptance (only that bullet changed — N4; superseded bullet and all other lines untouched); roadmap.json current_milestone synced to id 001-native-workflow-acceptance / status active with the Path-milestone title and goal (no completed group, sanctioned chain, or recorded hash changed); tests/test_project_state_roadmap_freshness.py gains test_native_marker_names_the_operational_milestone asserting exact three-way slug identity (.project/STATE.md milestone ↔ roadmap.json current_milestone.id ↔ roadmap.md live marker bullet; skip only when the checkout has no .project/STATE.md milestone). NEW in r1 per the plan-defect repair: .gitignore anchors exactly two legacy product rules, `build/` → `/build/` and `archive/` → `/archive/` — byte-minimal two-line diff, no other ignore rule touched; `git check-ignore` proves `.project/build/…` and `.project/archive/…` are no longer swallowed (trackable — the r0 landing-preflight blocker) while root `build/`/`archive/` stay ignored via the anchored rules, and the anchoring surfaces no new untracked path (the only on-disk build/archive-named tree is tracked `prd/archive/`). Negative checks run through the task's own uv env against temp copies (no repository file mutated): pristine passes; id mismatch, missing live bullet, prefix variant (X001-…), suffix variant (…-x), and duplicate live bullets each fail the test (fail-closed); absent native STATE.md → skip. Verify `uv run --frozen pytest tests/test_project_state_roadmap_freshness.py -q` → exit 0, 1 passed, 5 skipped (legacy registry tests keep their skip under operational native state). SC2 evidence: `uv run --frozen python -m law_nexus_harness.governor` in this authorized task worktree (native state operational-valid, milestone 001-native-workflow-acceptance, phase build, STATE.branch gsd-path/M001) → exit 0, status ok, 0 errors, 71 passes, 1 advisory warn: document-freshness-triggers trigger archive-policy-change — the r1 .gitignore anchoring itself matches that catalog entry (sources include .gitignore), whose companion surfaces (src/law_nexus_harness/governor.py, tests/test_harness_governor.py, assessment/07-adr-archive-governor-audit.md) are T001's files, so the advisory clears when T001 lands; SC2's 0-errors bar holds. roadmap-current-tracks-path passes by identity (comparison=path, roadmap_current=001-native-workflow-acceptance); workflow-state-surface reports operational native mode (backend=gsd-path, legacy_gsd=absent) — no pre-milestone/bootstrap exception in play. Delta vs the r0 recorded governor run (72 passes, 0 warns): the single advisory warn is introduced by the r1 anchoring itself.
+- 2026-10-26 — orchestrator Verify (isolate gsd-path-task/T002): pass, exit 0; output tail:
+  ```
+  sssss.                                                                   [100%]
+  1 passed, 5 skipped in 3.72s
   ```

@@ -612,10 +612,10 @@
     ]
   },
   "current_milestone": {
-    "id": "M225-qrwdfv",
+    "id": "001-native-workflow-acceptance",
     "status": "active",
-    "title": "Reference knowledge layer in Rust: ADR-0031 port with byte parity to the Python reference",
-    "goal": "Порт исполненного Python-эталона (ADR-0031, D778) в ln-consultant-parser с критерием byte-parity против закоммиченных артефактов m217-reference-*: Rust-порт воспроизводит все четыре артефакта байт-в-байт на корпусе 44-ФЗ (118 редакций) и на расширенном fixture-корпусе, и обе реализации соблюдают контракт exit-кодов D6. В GSD у M225 запланировано 0 задач (S01-S03). Не утверждает R1000/R035/R070, не промоутит ADR-0030/0031."
+    "title": "Native delivery-workflow acceptance on gsd-path/M001",
+    "goal": "Prove the GSD Path native delivery workflow end to end on gsd-path/M001: land the standing pre-milestone fixes, bind this roadmap marker to the native milestone, close the M225 validation residual natively, map the minimal PDD model, run one limited task through the full native cycle with independent review, prove session close/resume from disk, and publish gsd-path/M001 with a written cutover readiness assessment. Cutover itself stays false; the frozen Pi ledger rows (M208-M225) remain historical record."
   },
   "recommended_next": {
     "title": "Планирование задач M225/S01-S03 в GSD (либо authorized waiver для out-of-band кода)",
