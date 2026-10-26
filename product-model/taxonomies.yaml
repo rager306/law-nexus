@@ -1,0 +1,10 @@
+scenarioKinds:
+  - id: primary
+    name: Primary path
+    description: The standard successful run of the capability.
+  - id: validation
+    name: Validation
+    description: Invalid input or a refused invocation, reported typed and atomic.
+  - id: edge
+    name: Edge
+    description: An explicitly reported empty, unavailable, or fail-closed outcome.

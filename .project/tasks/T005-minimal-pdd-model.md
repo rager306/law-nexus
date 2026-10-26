@@ -3,11 +3,11 @@ id: T005
 title: Create the minimal PDD product model
 wave: 2
 deps: []
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+status: done
+agent: build_T005
+base: 61effa6efe68df1efff2c71f4bd39c4b701e434c
+worktree: null
+task_branch: null
 files:
   - product-model
   - tests/test_product_model.py
@@ -55,3 +55,12 @@ Heavy: no
 ## Log
 
 - 2026-10-26 — created by planner
+- 2026-10-26 — build_T005 (coder): implemented. Created `product-model/` (29 files): layout core README.md, .gitignore (build/, cache/), config.yaml (schema 11, sdd.paths: prd/), taxonomies.yaml (primary/validation/edge), product.md (id law-nexus, limitations as product facts), coverage.md (covered: ln-product-cli, ln-storage; exclusions: hc01–hc20 runner binaries as evidence tooling, src/ + scripts/ as control plane; unmapped: ln-decode/ln-consultant-parser/ln-kb-ontology/ln-query/ln-temporal behavior beyond CLI reports; limitation: registry-backed paths not executable here); interfaces/terminal (type cli, actor operator, 4 entryPoints, screens document-report + replay-report); entities operator (acts) and document (Path, Byte size, Content fingerprint, Source family); capabilities check-health, inspect-document, replay-edition, resolve-subordinates with 9 scenarios (primary/validation/edge incl. typed-failure, unsupported-family, explicit-zero, missing-arguments, no-date fail-closed); business rules runs-keep-nothing-between-runs, reports-carry-explicit-non-claims, failures-are-typed-and-atomic, retrieval-is-deterministic-non-semantic. Established behavior only per E4/N5: StubEmbedding named as the fail-closed stub (product.md limitation, inspect-document capability + scenario step, retrieval-rule Rationale), stores recorded in-memory, no RuVector/TEI/persistence/corpus claims anywhere under capabilities/. Granularity calls (no author available): punkt units omitted (not operator-addressable, printed as counts), runner belt excluded per Approach, actor named `operator`.
+  - Lint (bundled pinned runner `pdd-map/scripts/run-pdd-kit.mjs`, pinned pdd-toolkit 0.37.1 from .pdd-kit-install.json): `lint --json` → `{"ok": true, "errors": [], "warnings": ["capabilities/replay-edition/capability.md: Capability id \"replay-edition\" reads as a noun phrase; a behavioral id starts with a verb"], counts: interfaces 1, screens 2, entities 2, capabilities 4, capabilityScenarios 9, businessRules 4}`. Warning assessed, kept: `replay` is the product's own command word and the id is verb-noun; the linter's fixed verb vocabulary lacks `replay`. Cross-checked with the host-pinned CLI (`/root/law-nexus/.ai/local/pdd/.../cli.js`, also 0.37.1) run against this worktree: ok: true, errors: [], same single warning. Note: the `scripts/ai/pdd` wrapper itself cannot run inside this isolated worktree (no `.ai/local/` runtime here); the pinned CLI it execs was run with cwd preserved.
+  - Verify: `uv run --frozen pytest tests/test_product_model.py -q` → `4 passed in 0.27s` (real run). Negative-path checks: with product-model/ absent the layout test raises "product-model/ must exist in the tracked tree"; with StubEmbedding mentions stripped the stub test raises "the model must name StubEmbedding". Extra (not part of Verify): `uv run --frozen ruff check tests/test_product_model.py` and `ruff format --check` both clean.
+  - Changed paths: `product-model/` (all files above), `tests/test_product_model.py`. No other path touched; no git commands that mutate state.
+- 2026-10-26 — orchestrator Verify (isolate gsd-path-task/T005): pass, exit 0; output tail:
+  ```
+  ....                                                                     [100%]
+  4 passed in 0.30s
+  ```
