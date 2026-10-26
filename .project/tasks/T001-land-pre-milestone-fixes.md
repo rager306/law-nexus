@@ -3,10 +3,10 @@ id: T001
 title: Land the five pre-milestone fixes on gsd-path/M001
 wave: 1
 deps: []
-status: in-progress
-agent: build_T001
-base: c16e11feb180a2b2e359c07a2c395f7a04ac6deb
-worktree: /root/law-nexus
+status: pending    
+agent: null         # orchestrator-owned: set at dispatch
+base: null          # orchestrator-owned: clean layer SHA for isolated Verify
+worktree: null      # orchestrator-owned: isolated task worktree while active
 task_branch: null
 files:
   - Cargo.toml
