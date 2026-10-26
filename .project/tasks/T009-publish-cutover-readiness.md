@@ -3,10 +3,10 @@ id: T009
 title: Write the cutover readiness assessment with publication and CI pending-ship
 wave: 3
 deps: [T007, T008]
-status: pending    
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
+status: done
+agent: build_T009
+base: 6eb3133e0302317afdf49d7133110d219f15fe07
+worktree: null
 task_branch: null
 files:
   - docs/agent-stack/CUTOVER-READINESS-M001.md
@@ -57,3 +57,14 @@ Heavy: no
 - 2026-10-26 — created by planner
 - 2026-10-26 — owner ruling (verbatim: «(a)»): publication+CI are ship-phase-gated — T009 writes the cutover readiness assessment now with publication and CI recorded as pending-ship (the bound branch publishes through ship integration; the CI acceptance surface is the integrated main per the documented M207 policy); AC1/SC8 re-scoped accordingly. Build entered build/blocked; intent corrections follow the build-recovery contract.
 - 2026-10-26 — plan repair (planner, build-recovery base 7e994d3b): contract rewritten to the corrected SC8 (owner ruling (a), recorded above and in INTENT.md ## Corrections). Removed the push step and the CI watch entirely — the repository's pre-push guard is the enforcing contract; publication and CI evidence execute at ship integration and are recorded as pending-ship. The deliverable keeps the assessment shape (per-SC verdicts SC1–SC10 with E1/E3/E5/E8/E9 cited, N4/N7 addressed, N1 CI-policy honesty, runner-only corpus-delivery direction with pinned-snapshot shape and on-runner layout contract, cutover-false conclusion) and ends with the law-nexus/cutover-readiness/v1 block whose ci_runs entries record status "pending-ship" (final null, reruns 0, advisory_documented true); tests/test_m001_cutover_readiness.py pins that shape (cutover false; every row pending-ship; corpus_honesty true). files, wave, deps, Interface contract, Intent coverage, and the Verify command are unchanged. PLAN.md left byte-identical; no other task file touched.
+- 2026-10-26 — build_T009 (coder, r2, corrected contract, primary worktree, base 6eb3133e): wrote `docs/agent-stack/CUTOVER-READINESS-M001.md` — per-SC readiness verdicts SC1–SC10, each citing its recorded evidence (the nine landing commits 99abed61/2e1e3c58/9cb5107a/64a7d88f/e776fc5c/ab0286e4/55ec0072/105b3d6c/2ce3b6d7, wave-1 and wave-2 review verdicts, task Logs, .project/M001-RESUME-PROOF.md, INTENT ## Corrections); held-out edges E1/E3/E5/E8/E9 cited inside their verdicts; judgments N4 and N7 addressed explicitly (marker-only roadmap diff per wave-1 review; independence via the isolated verify sidecar as the E6 different evidence path, no same-model agreement counted); N1 CI-policy honesty section (M207 batteries report-only, corpus-integration job skipped and documented, green CI never proves corpus scenarios ran); publication and CI recorded as pending-ship with the pre-push guard quoted as the enforcing contract and the integrated-main M207 acceptance surface; the settled runner-only corpus-delivery direction recorded (explicit restricted self-hosted runner label, never ubuntu-latest; single pinned zstd tarball ~0.30 GiB with recorded sha256, artifacts never the channel; on-runner layout contract `consru_export/consru_export/exports/` or `CONSULTANT_EXPORT_DIR`, hard-fail under `LAW_NEXUS_REQUIRE_CORPUS=1`); explicit cutover-false conclusion (N2); ends with exactly one `law-nexus/cutover-readiness/v1` fenced block (cutover false; ci_runs entry status "pending-ship", final null, reruns 0, advisory_documented true, surface integrated main; corpus_honesty true). No push, no CI watch (AC1). Wrote `tests/test_m001_cutover_readiness.py` (ruff-formatted) pinning: document exists, exactly one machine block parses, cutover false, every ci_runs entry pending-ship with final null/reruns 0/advisory_documented true, corpus_honesty true, and citations SC1–SC10 + E1/E3/E5/E8/E9/N4/N7 present (gutted citations fail). Disclosures: SC6's independent-review verdict (wave-3 review) is recorded in the assessment as pending at assessment time — T007's dispatch/worker/validator/isolated-verify evidence is on disk, the wave-3 reviewer verdict lands after this task; read-only freshness re-checks at base 6eb3133e are cited in place (marker pytest `1 passed, 5 skipped`; junk `git ls-files` empty). Verify: `uv run --frozen pytest tests/test_m001_cutover_readiness.py -q` → pass, exit 0, 5 passed. Changed paths: docs/agent-stack/CUTOVER-READINESS-M001.md (new), tests/test_m001_cutover_readiness.py (new), this Log. RESULT: T009 ready
+- 2026-10-26 — orchestrator Verify (sidecar gsd-path-verify/task-t009-verify): pass, exit 0; output tail:
+  ```
+  .....                                                                    [100%]
+  5 passed in 1.41s
+  Using CPython 3.13.12 interpreter at: /root/.local/bin/python3.13
+  Creating virtual environment at: .venv
+     Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t009-verify
+        Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t009-verify
+  Installed 32 packages in 1.49s
+  ```
