@@ -3,11 +3,11 @@ id: T011
 title: Make the governor and preflight suites branch-environment-aware
 wave: 4
 deps: [T001]        # task ids whose output or landed effect this task needs — T001 landed the tests/test_harness_governor.py content this task edits
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+status: done
+agent: build_T011
+base: e85cf2b49dc3686e72789ba97fc34dec892c1103
+worktree: null
+task_branch: null
 files:              # every file this task may touch — dispatch checks overlap
   - tests/test_harness_governor.py
   - tests/test_harness_preflight.py
@@ -59,3 +59,28 @@ Heavy: no
      readings: <candidates>` for contract ambiguity), orchestrator answers,
      review verdicts, fixes. -->
 - 2026-10-27 — created by plan_patch
+- 2026-10-27 — orchestrator: the r1 coder applied the dual-context implementation to both declared modules but exited
+  before its in-flight Verify returned and without a Log entry; the orchestrator proceeds to the authoritative finish —
+  its Verify runs in the gsd-path-verify sidecar (the non-operational context the new pins target) and is the binding evidence.
+
+- 2026-10-27 — orchestrator Verify (sidecar gsd-path-verify/task-t011-verify): pass, exit 0; output tail:
+  ```
+  ........................................................................ [ 26%]
+  ........................................................................ [ 53%]
+  ........................................................................ [ 80%]
+  .......ss..........................................                      [100%]
+  265 passed, 2 skipped in 112.07s (0:01:52)
+  Using CPython 3.13.12 interpreter at: /root/.local/bin/python3.13
+  Creating virtual environment at: .venv
+     Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t011-verify
+        Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t011-verify
+  Installed 32 packages in 349ms
+  ```
+- 2026-10-27 — orchestrator regression Verify of T001 (sidecar gsd-path-verify/task-t011-verify): pass, exit 0; output tail:
+  ```
+  ........................................................................ [ 25%]
+  ........................................................................ [ 51%]
+  ........................................................................ [ 77%]
+  .......ss.....................................................           [100%]
+  276 passed, 2 skipped in 144.11s (0:02:24)
+  ```
