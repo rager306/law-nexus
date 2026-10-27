@@ -12,13 +12,14 @@ files:
   - .ai/vendor/gsd-path-1.6.2.tgz
   - .github/workflows/repository-quality.yml
   - tests/test_ci_runtime_restore.py
+  - scripts/install.py
 ---
 
 # T001 — Vendor the pinned runtime and make CI restore it honestly with shipped-main governor proof and failure diagnostics
 
 ## Context
 
-CI run 40446077586 on main@4e0cd4db: the migration job's real governor step exits 1 `runtime-unavailable` — the pinned runtime 1.6.2@6f95a31e is machine-local (`~/.gsd-path/runtimes/<digest>/`), CI never restores it, and the step redirects stdout into `governor.json`, which is never published, so the only visible signal is a bare non-zero exit. The runtime source exists in the repository checkout only under gitignored `.ai/local/vendor/gsd-path/`; verified 2026-10-27, that extracted copy computes exactly the pinned digest `6f95a31e4b8a434672421a604bdce71e5179409eb19496097219cd6cdb5d9f6f`, so the tracked vendored archive must be created by this task. The restore route is proven (rehearsed 2026-10-27): the installer is pure-stdlib `scripts/install.py` (no npm needed), exits 0 printing `runtime: restore 1.6.2 (6f95a31e…) (dry run)` on a matching source, and aborts with `error: source does not match declared runtime 1.6.2 (6f95a31e…); use its matching package` on a doctored source — the recorded digest pair of E1. PR-triggered runs check out a detached merge ref where the documented fail-closed branch ownership fires; the INTENT acceptance surface is the push-to-main run, so a red PR run with published diagnostics is documented honest behavior, not a defect to suppress (N3).
+CI run 40446077586 on main@4e0cd4db: the migration job's real governor step exits 1 `runtime-unavailable` — the pinned runtime 1.6.2@6f95a31e is machine-local (`~/.gsd-path/runtimes/<digest>/`), CI never restores it, and the step redirects stdout into `governor.json`, which is never published, so the only visible signal is a bare non-zero exit. The runtime source exists in the repository checkout only under gitignored `.ai/local/vendor/gsd-path/` (verified 2026-10-27: package metadata `.ai-install.json` names path 1.6.2). This task vendors it and ships the installer: the pure-stdlib `scripts/install.py` (no npm needed) is CREATED by this task — planned contract, rehearsal-validated 2026-10-27 by the planner against the local store: on a matching source it exits 0 printing `runtime: restore 1.6.2 (6f95a31e…) (dry run)`, on a doctored source it aborts with `error: source does not match declared runtime 1.6.2 (6f95a31e…); use its matching package` — that digest pair is E1's held-out test. PR-triggered runs check out a detached merge ref where the documented fail-closed branch ownership fires; the INTENT acceptance surface is the push-to-main run, so a red PR run with published diagnostics is documented honest behavior, not a defect to suppress (N3).
 
 ## Approach
 
@@ -78,3 +79,6 @@ Heavy: no
      readings: <candidates>` for contract ambiguity), orchestrator answers,
      review verdicts, fixes. -->
 - 2026-10-27 — created by planner
+- 2026-10-27 — plan-defect repair (orchestrator, per the approve lint): the Context referenced `scripts/install.py`
+  as an existing rehearsed artifact; reframed as a task deliverable (created by this task, listed in `files`),
+  with the rehearsal preserved as the validated approach description. Flagged by approve's brief path check.
