@@ -3,10 +3,10 @@ id: T005
 title: Run the M002 acceptance walkthrough as a fresh session and record the proof on disk
 wave: 2
 deps: [T001, T004]
-status: in-progress
+status: done
 agent: build_T005
-base: 878518aa17725616996d7bd39ca9db2a457ab5b3
-worktree: /root/law-nexus
+base: 4eb6d93128cbbaeb95c9221b94655eb18e501c68
+worktree: null
 task_branch: null
 files:
   - .project/build/M002-ACCEPTANCE-PROOF.md
@@ -67,4 +67,5 @@ Heavy: no
      review verdicts, fixes. -->
 - 2026-10-27 — created by planner
 - 2026-10-27 — build_T005 (fresh session, disk-only): ran the documented bootstrap exactly per Contract D in `docs/agent-stack/POST-SHIP-STATE-2026-10-27.md`. Vendored archive `.ai/vendor/gsd-path-1.6.2.tgz` extracted to a throwaway `/tmp/gsd-restore-T005-gJUhCS` (tar exit 0; future-timestamp stderr warnings only); `install.py --runtime-restore` exit 0 printing the pinned pair `1.6.2 (6f95a31e…)` — already-valid store reused untouched (E2). Verification: `path-run.py status` exit 0 naming branch `gsd-path/M002`, milestone `post-ship-hardening`, `origin_main` = integration `4e0cd4db` over ship `886a36a8` (ancestry + archive confirmed read-only); `law_nexus_harness.governor` exit 0 (`ok`, 75/75 pass, 0 errors/warnings; `roadmap_current=post-ship-hardening; comparison=path`); `pytest tests/test_project_state_roadmap_freshness.py -q` exit 0 (2 passed, 5 skipped). Diagnostics familiarity recorded read-only from `.github/workflows/repository-quality.yml` (`governor-diagnostics` artifact on failure; shipped-main `workflow-state-surface` assertion — not applicable on `gsd-path/M002`). Nothing blocked; no bootstrap ambiguity. Proof recorded at `.project/build/M002-ACCEPTANCE-PROOF.md` (task Verify grep passes); temp extraction dir removed; no other files touched.
+- 2026-10-27 — orchestrator Verify (sidecar gsd-path-verify/task-t005-verify): pass, exit 0
 - 2026-10-27 — orchestrator Verify (sidecar gsd-path-verify/task-t005-verify): pass, exit 0
