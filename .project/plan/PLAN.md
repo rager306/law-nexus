@@ -69,6 +69,7 @@ Walkthrough:
 | Criterion | Task | Acceptance |
 |-----------|------|------------|
 | SC1 | T001 | AC2 |
+| SC1 | T011 | AC3 |
 | SC2 | T002 | AC1 |
 | SC3 | T004 | AC1 |
 | SC4 | T005 | AC2 |
@@ -98,3 +99,9 @@ Walkthrough:
 - SC10 placement: SYNTHESIS "For the planner" lists SC10 in its wave-1 shorthand and also names the junk-file deletion "the natural carrier" of the SC6 + SC7 walking skeleton in the final wave. The planner owns the exact split: the deletion is T007, the wave-3 cycle carrier, because its whole value is the recorded native cycle around it (SC6), not the deletion itself; wave 1 carries the three real blockers instead.
 - Pre-dispatch neutralization for T001: the five fixed files sit uncommitted in the primary worktree (the guard blocks product-file commits outside build) and task isolation requires a clean primary. Before the first dispatch the orchestrator confirms the five files' diffs are exactly the canonical patches preserved outside the repository (the 2026-10-26 handoff recorded all three patch signatures), records that confirmation, then restores the five files to HEAD so the base is clean; T001 re-applies the patches inside its isolated task. If the diffs do not match the canonical patches, that is the tree-vs-patch drift SYNTHESIS warns about: stop and ask the owner.
 - Branch-locked governor: task Verify commands never invoke the live governor, because a verify sidecar sits on a different branch by design and the governor fails closed there. Bound-branch governor claims (SC2's 0 errors, SC7's resume proof) are recorded runs on gsd-path/M001 in the primary worktree, cited from the task Log and the resume proof.
+
+## Wave 4 — verify-sidecar test environment contract
+
+Goal: Close P001 (PATCH-FINDINGS.md): Project Verify is blocked at the reviewed commit f3c55d6d — 14 failures, live-governor ×12 + preflight ×2 — an environment-contract mismatch, not a product defect: the verify sidecar runs on a gsd-path-verify/* branch where the documented fail-closed branch ownership fires, while the live-governor and preflight tests assert error_count == 0 (the identical suites are green on the bound branch). Owner ruling (a) makes tests/test_harness_governor.py and tests/test_harness_preflight.py branch-environment-aware: on gsd-path/M001 the full assertions stay unchanged; on a non-operational branch the tests pin the documented fail-closed contract itself (the workflow-state-surface blocking error, honest error-count semantics) instead of error_count == 0 — no assertion weakened where the governor is operational, no suppression, no unconditional skip (N3). One Verify command covers both sides: the worker's isolate run on a governor-operational branch exercises the full-assertion path, and the orchestrator's gsd-path-verify/* verify sidecar at finish exercises the pinned-contract path — the ship gate's Project Verify passes for honest reasons in both environments without touching the fail-closed behavior it documents.
+
+Review depth: full

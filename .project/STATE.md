@@ -2,7 +2,7 @@
 pipeline: gsd-path/v2
 project: law-nexus
 milestone: 001-native-workflow-acceptance
-phase: ship
+phase: build
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
 status: active
@@ -51,3 +51,7 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-26 — ship — build done; final review pending
 - 2026-10-26 — ship — ship blocked: lean gate refuses 5 tracked top-level .project artifacts (2 handoffs, supplied spec, T007/T008 landed resume pair); relocation proven safe in a probe worktree but its commit has no sanctioned slot at ship/active; owner ruling required
 - 2026-10-26 — ship — ship unblocked: owner ruled (a) — one sanctioned pre-ship relocation commit (5 top-level artifacts into allowlisted dirs), then prepare-final at the new head
+- 2026-10-26 — ship — ship blocked: project Verify gap blocked — 14 live-governor/preflight assertions fail in the gsd-path-verify sidecar (fail-closed branch ownership; environment contract, not a product defect); owner policy ruling required
+- 2026-10-27 — plan — patch plan reopened
+- 2026-10-27 — plan — patch plan approved
+- 2026-10-27 — build — build started
