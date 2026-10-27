@@ -591,6 +591,82 @@ def test_operational_report_tolerates_absent_identity_fields(tmp_path: Path) -> 
         assert report.native_phase == phase, payload
 
 
+def test_wrong_typed_identity_field_fails_closed(tmp_path: Path) -> None:
+    """E9: a present identity field of the wrong type is rejected, in state and route.
+
+    Missing and null stay absent; any present non-string value is a broken
+    payload and must fail closed instead of silently posing as absent. The
+    route sites are checked even when their state twin is a valid string.
+    """
+    write_cutover_marker(tmp_path, cutover=True)
+    write_project_state(tmp_path)
+    write_runtime_declaration(tmp_path)
+
+    cases: list[tuple[str, str, Any]] = [
+        ("state", "milestone", 7),
+        ("state", "milestone", True),
+        ("state", "phase", 3.13),
+        ("state", "phase", ["build"]),
+        ("route", "milestone", 7),
+        ("route", "milestone", {"slug": "001-probe"}),
+        ("route", "phase", ["build"]),
+        ("route", "phase", 1),
+    ]
+    for container, field, bad_value in cases:
+        payload = copy.deepcopy(NATIVE_STATUS_VALID)
+        payload[container][field] = bad_value
+        report = read_workflow_state(
+            tmp_path,
+            runtime_resolver=resolved_runtime_resolver(),
+            native_status_runner=native_status(payload),
+        )
+        assert report.kind is WorkflowStateKind.INVALID_SCHEMA, (container, field, bad_value)
+        assert workflow_readiness(report) == "blocked", (container, field, bad_value)
+        assert f"{container}.{field}" in report.detail, (container, field, bad_value)
+        assert "must be a string when present" in report.detail, (container, field, bad_value)
+
+
+def test_identity_fields_accept_null_and_missing_across_all_four_sites(tmp_path: Path) -> None:
+    """E9 acceptance side: null and missing stay absent at every identity site.
+
+    A null ``route`` value is a fallback that reads as absent, and a null
+    ``state`` value is absent even when the other half carries a valid string.
+    """
+    write_cutover_marker(tmp_path, cutover=True)
+    write_project_state(tmp_path)
+    write_runtime_declaration(tmp_path)
+
+    all_null = copy.deepcopy(NATIVE_STATUS_VALID)
+    all_null["state"]["milestone"] = None
+    all_null["state"]["phase"] = "build"
+    all_null["route"]["milestone"] = None
+    all_null["route"]["phase"] = None
+
+    missing_state_phase = copy.deepcopy(all_null)
+    del missing_state_phase["state"]["phase"]
+
+    missing_everything = copy.deepcopy(missing_state_phase)
+    del missing_everything["state"]["milestone"]
+    del missing_everything["route"]["milestone"]
+    del missing_everything["route"]["phase"]
+
+    cases: list[tuple[dict[str, Any], str | None, str | None]] = [
+        (all_null, None, "build"),
+        (missing_state_phase, None, None),
+        (missing_everything, None, None),
+    ]
+    for payload, milestone, phase in cases:
+        report = read_workflow_state(
+            tmp_path,
+            runtime_resolver=resolved_runtime_resolver(),
+            native_status_runner=native_status(payload),
+        )
+        assert report.kind is WorkflowStateKind.OPERATIONAL_VALID, payload
+        assert workflow_readiness(report) == "operational", payload
+        assert report.native_milestone == milestone, payload
+        assert report.native_phase == phase, payload
+
+
 def test_non_operational_reports_carry_no_native_identity(tmp_path: Path) -> None:
     """Only OPERATIONAL_VALID names a current milestone and phase.
 

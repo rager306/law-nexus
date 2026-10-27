@@ -1,0 +1,117 @@
+{
+ "status": "complete",
+ "steps": [
+  {
+   "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/root/.allspark-home/.gsd-path/runtimes/6f95a31e4b8a434672421a604bdce71e5179409eb19496097219cd6cdb5d9f6f/discussion_records.py",
+    "pending",
+    "--repo",
+    "/root/law-nexus"
+   ],
+   "exit_code": 0,
+   "result": {
+    "pending": []
+   },
+   "script": "discussion_records.py",
+   "stderr": "",
+   "stdout": "{\"pending\": []}\n"
+  },
+  {
+   "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/root/.allspark-home/.gsd-path/runtimes/6f95a31e4b8a434672421a604bdce71e5179409eb19496097219cd6cdb5d9f6f/check_handoffs.py",
+    "plan",
+    "--repo",
+    "/root/law-nexus",
+    "--project-dir",
+    ".project"
+   ],
+   "exit_code": 0,
+   "result": {
+    "criteria": [
+     "SC1",
+     "SC10",
+     "SC2",
+     "SC3",
+     "SC4",
+     "SC5",
+     "SC6",
+     "SC7",
+     "SC8",
+     "SC9"
+    ],
+    "held_out": {
+     "E1": "T001",
+     "E3": "T004",
+     "E5": "T006",
+     "E8": "T009",
+     "E9": "T003"
+    },
+    "phase": "plan",
+    "rows": 10,
+    "surfaces": {
+     "GitHub (gsd-path/M001 branch, commit history, CI runs)": "T009",
+     "terminal (native Path CLI: path-run.py status, governor, pytest, git)": "T008"
+    },
+    "tasks": 10,
+    "waves": [
+     1,
+     2,
+     3
+    ]
+   },
+   "script": "check_handoffs.py",
+   "stderr": "",
+   "stdout": "{\"criteria\": [\"SC1\", \"SC10\", \"SC2\", \"SC3\", \"SC4\", \"SC5\", \"SC6\", \"SC7\", \"SC8\", \"SC9\"], \"held_out\": {\"E1\": \"T001\", \"E3\": \"T004\", \"E5\": \"T006\", \"E8\": \"T009\", \"E9\": \"T003\"}, \"phase\": \"plan\", \"rows\": 10, \"surfaces\": {\"GitHub (gsd-path/M001 branch, commit history, CI runs)\": \"T009\", \"terminal (native Path CLI: path-run.py status, governor, pytest, git)\": \"T008\"}, \"tasks\": 10, \"waves\": [1, 2, 3]}\n"
+  },
+  {
+   "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/root/.allspark-home/.gsd-path/runtimes/6f95a31e4b8a434672421a604bdce71e5179409eb19496097219cd6cdb5d9f6f/check_task_briefs.py",
+    "--repo",
+    "/root/law-nexus",
+    "--base",
+    "1b9341887941f880a974ef217afbfee24f734f83",
+    "--tasks-dir",
+    ".project/tasks",
+    "--project-dir",
+    ".project"
+   ],
+   "exit_code": 0,
+   "result": {
+    "base": "1b9341887941f880a974ef217afbfee24f734f83",
+    "checked": 54,
+    "tasks": 10
+   },
+   "script": "check_task_briefs.py",
+   "stderr": "",
+   "stdout": "{\"base\": \"1b9341887941f880a974ef217afbfee24f734f83\", \"checked\": 54, \"tasks\": 10}\n"
+  },
+  {
+   "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/root/.allspark-home/.gsd-path/runtimes/6f95a31e4b8a434672421a604bdce71e5179409eb19496097219cd6cdb5d9f6f/review_panel.py",
+    "validate-plan",
+    "--plan",
+    "/root/law-nexus/.project/plan/PLAN.md",
+    "--intent",
+    "/root/law-nexus/.project/intent/INTENT.md"
+   ],
+   "exit_code": 0,
+   "result": {
+    "families": [],
+    "mode": "off",
+    "source": "plan"
+   },
+   "script": "review_panel.py",
+   "stderr": "",
+   "stdout": "{\n  \"families\": [],\n  \"mode\": \"off\",\n  \"source\": \"plan\"\n}\n"
+  }
+ ],
+ "note": "plan gate evidence retained per plan phase step 3; final run after revision round 1 (T010 added)"
+}

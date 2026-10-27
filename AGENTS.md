@@ -339,10 +339,9 @@ node .gitnexus/run.cjs analyze --force --name law-nexus
 The auto-block below omits `repo` — still pass it.
 
 <!-- gitnexus:start -->
-
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **law-nexus** (23577 symbols, 50919 relationships, 568 execution flows).
+This project is indexed by GitNexus as **law-nexus** (43047 symbols, 102234 relationships, 584 execution flows).
 
 > Index stale? Run `node .gitnexus/run.cjs analyze --index-only` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? Bootstrap with `npx`, `bunx`, or `pnpm dlx` — e.g. `bunx gitnexus@latest analyze` (npm 11 npx crash; #1939).
 

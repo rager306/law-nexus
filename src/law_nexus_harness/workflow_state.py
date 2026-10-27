@@ -555,11 +555,23 @@ class _NativeStatusError(Exception):
         self.detail = detail
 
 
-def _identity_field(container: Mapping[str, Any], field: str) -> str | None:
-    """Read one workflow-identity field, tolerating an absent or null value."""
+def _identity_field(container: Mapping[str, Any], field: str, where: str) -> str | None:
+    """Read one workflow-identity field, tolerating an absent or null value.
+
+    A present non-string value is adapter-rejected (E9): such a payload is not
+    the pinned helper's shape, and reading it as absent would let a broken
+    payload pose as a proven one. An empty string stays "absent" as before.
+    """
 
     value = container.get(field)
-    return value if isinstance(value, str) and value else None
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise _NativeStatusError(
+            f"native status payload {where}.{field} must be a string when present, "
+            f"got {type(value).__name__}"
+        )
+    return value or None
 
 
 @dataclass(frozen=True)
@@ -568,7 +580,8 @@ class _NativeStatusVerdict:
 
     ``milestone`` and ``phase`` name WHICH milestone and phase the helper just
     validated. They are identity, not proof: a payload that omits them still
-    produces a verdict, with the missing half left None.
+    produces a verdict, with the missing half left None. A field present with
+    a non-string value is rejected upstream and never read as None.
     """
 
     action: str
@@ -597,6 +610,8 @@ def _native_status_verdict(
     refused rather than guessed at. ``state.milestone`` and ``state.phase`` are
     carried through as identity when present; a payload that omits either still
     yields a verdict, because identity is what the helper proved, not the proof.
+    A field present with a non-string value is refused instead (fail-closed);
+    the same rule covers the ``route`` identity fields.
     """
 
     try:
@@ -623,6 +638,12 @@ def _native_status_verdict(
     if action not in _NATIVE_ROUTE_ACTIONS_OPERATIONAL | _NATIVE_ROUTE_ACTIONS_RECOVERY:
         raise _NativeStatusError(f"native status route action is unknown: {action!r}")
     reason = route.get("reason")
+    # All four identity sites are validated before any fallback reads them, so
+    # a wrong-typed value in `route` cannot hide behind a valid `state` twin.
+    state_milestone = _identity_field(state, "milestone", "state")
+    state_phase = _identity_field(state, "phase", "state")
+    route_milestone = _identity_field(route, "milestone", "route")
+    route_phase = _identity_field(route, "phase", "route")
     return _NativeStatusVerdict(
         action=action,
         reason=reason if isinstance(reason, str) and reason else "<missing>",
@@ -630,8 +651,8 @@ def _native_status_verdict(
         # `state` is the parsed STATE.md and is authoritative when it carries
         # the field; `route` repeats the phase for routed actions and is only a
         # fallback.
-        milestone=_identity_field(state, "milestone") or _identity_field(route, "milestone"),
-        phase=_identity_field(state, "phase") or _identity_field(route, "phase"),
+        milestone=state_milestone or route_milestone,
+        phase=state_phase or route_phase,
     )
 
 

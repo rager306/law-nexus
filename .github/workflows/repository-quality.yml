@@ -213,9 +213,14 @@ jobs:
     # the opposite claim: LAW_NEXUS_REQUIRE_CORPUS=1 turns every such skip into a
     # hard failure, so "corpus absent" can never be reported as "corpus green".
     #
-    # It only runs where the corpus actually exists. A self-hosted runner with
-    # the corpus mounted sets LAW_NEXUS_CORPUS_AVAILABLE=1; on GitHub-hosted
-    # runners it skips as a whole job instead of pretending to prove anything.
+    # Actual setup: the job targets the GitHub-hosted ubuntu-latest label, where
+    # the gitignored corpus is absent, so it stays skipped unless the repository
+    # variable LAW_NEXUS_CORPUS_AVAILABLE is set to 1 — and setting it for a
+    # hosted runner would fail the strict environment hard instead of proving
+    # anything. Nothing in this workflow sets a LAW_NEXUS_CORPUS_AVAILABLE value.
+    # Any future strict target is a restricted self-hosted runner label (corpus
+    # exposure ruling 2026-10-26: runner-only); until such a runner exists, the
+    # strict corpus claim stays documented as impossible, not green.
     name: Corpus integration (strict, only where the corpus is present)
     runs-on: ubuntu-latest
     if: vars.LAW_NEXUS_CORPUS_AVAILABLE == '1'
@@ -289,7 +294,9 @@ jobs:
       #
       # The portable parts of these batteries are NOT lost: schema validation,
       # ruff, adr-conformance and the fragment-count pin all still run below and
-      # their exit codes are asserted. Only the corpus-bound verdict is advisory.
+      # their exit codes are asserted. Only the corpus-bound verdict is advisory,
+      # and the schema check keeps exactly two documented advisory signatures
+      # (CORPUS_COUNT_DRIFT, S03_RATE_IMPORTED); any other finding fails the job.
       #
       # Separately, the frozen token scan (S03_RATE_IMPORTED / PROMPT_ISOLATION_
       # VIOLATION) reports a conflict between two frozen proof contracts: the
@@ -307,8 +314,33 @@ jobs:
 
       - name: M207 S04 portable parts must still pass
         run: |
-          # These do not need the corpus, the pinned logs or an offline crate.
-          uv run python scripts/m207_s04_schemas.py check >/dev/null 2>&1 || true
+          # The schema check is a blocking gate: its exit code is asserted and
+          # its output stays visible. Exactly two known documented conflicts
+          # stay advisory (the E9 boundary: the gitignored corpus and the
+          # frozen-token D466/D487 record):
+          #   FAIL CORPUS_COUNT_DRIFT: ...  the gitignored corpus is absent
+          #   FAIL S03_RATE_IMPORTED: ...   frozen-token conflict (D466/D487)
+          # Any other finding, or a failure whose output is not fully accounted
+          # for by those two signatures, fails this step. No shell-truth
+          # fallback and no new suppression is introduced here.
+          set -e
+          schema_log="$TMPDIR/m207-s04-schema-check.log"
+          set +e
+          uv run --frozen python scripts/m207_s04_schemas.py check 2>&1 | tee "$schema_log"
+          schema_code=${PIPESTATUS[0]}
+          set -e
+          if [ "$schema_code" -ne 0 ]; then
+            known='^(FAIL (CORPUS_COUNT_DRIFT|S03_RATE_IMPORTED): |FAIL M207_S04_SCHEMAS_GATE: )'
+            if [ ! -s "$schema_log" ] \
+              || ! grep -Eq '^FAIL (CORPUS_COUNT_DRIFT|S03_RATE_IMPORTED): ' "$schema_log" \
+              || grep -Ev "$known" "$schema_log" | grep -q .; then
+              echo "m207 schema check: exit $schema_code is not fully accounted for by the known advisory signatures CORPUS_COUNT_DRIFT / S03_RATE_IMPORTED" >&2
+              exit 1
+            fi
+            echo "m207 schema check: exit $schema_code carries only the two known documented conflicts; advisory" >&2
+          fi
+          # The rest of the portable parts do not need the corpus, the pinned
+          # logs or an offline crate.
           uv run ruff format --check scripts/m207_s04_schemas.py scripts/m207_s04_c4_run.py scripts/m207_s04_pilot.py scripts/test_m207_s04_pilot.py
           uv run ruff check scripts/m207_s04_schemas.py scripts/m207_s04_c4_run.py scripts/m207_s04_pilot.py scripts/test_m207_s04_pilot.py
           uv run python scripts/verify-adr-conformance.py

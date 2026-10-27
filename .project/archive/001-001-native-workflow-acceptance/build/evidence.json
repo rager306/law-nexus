@@ -1,0 +1,272 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "d00219bd17802618fe446a80c712446c3528447c",
+            "commit": "9cb5107af9182862b3e7f82578fe039b5da5a350",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T001: Land the five pre-milestone fixes on gsd-path/M001"
+      },
+      "landed_commit": "9cb5107af9182862b3e7f82578fe039b5da5a350",
+      "reasons": [],
+      "task": {
+        "base": "d00219bd17802618fe446a80c712446c3528447c",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-land-pre-milestone-fixes.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "0c502255a94c188f29ef48019403ab7cd6308192",
+            "commit": "99abed611afa2c4257085779730530d0729ddd3e",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T002: Sync the workflow marker to the Path milestone"
+      },
+      "landed_commit": "99abed611afa2c4257085779730530d0729ddd3e",
+      "reasons": [],
+      "task": {
+        "base": "0c502255a94c188f29ef48019403ab7cd6308192",
+        "id": "T002",
+        "status": "done",
+        "task_file": ".project/tasks/T002-sync-workflow-marker.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "52f11611d09f6a16c2015d9b651e9ed9c79e6e65",
+            "commit": "2e1e3c58ad3dfda11b0723000bdf3c7777f77d41",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T003: Land the CI policy and payload type-check package"
+      },
+      "landed_commit": "2e1e3c58ad3dfda11b0723000bdf3c7777f77d41",
+      "reasons": [],
+      "task": {
+        "base": "52f11611d09f6a16c2015d9b651e9ed9c79e6e65",
+        "id": "T003",
+        "status": "done",
+        "task_file": ".project/tasks/T003-ci-policy-payload-package.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "61effa6efe68df1efff2c71f4bd39c4b701e434c",
+            "commit": "e776fc5c0b41ab7295194627f80d2f8705d6c11d",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T004: Close the M225 validation residual with an honest re-run"
+      },
+      "landed_commit": "e776fc5c0b41ab7295194627f80d2f8705d6c11d",
+      "reasons": [],
+      "task": {
+        "base": "61effa6efe68df1efff2c71f4bd39c4b701e434c",
+        "id": "T004",
+        "status": "done",
+        "task_file": ".project/tasks/T004-m225-validation-residual.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "61effa6efe68df1efff2c71f4bd39c4b701e434c",
+            "commit": "ab0286e4c4094d089fb30bdf4ed2fdec80f4cfce",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T005: Create the minimal PDD product model"
+      },
+      "landed_commit": "ab0286e4c4094d089fb30bdf4ed2fdec80f4cfce",
+      "reasons": [],
+      "task": {
+        "base": "61effa6efe68df1efff2c71f4bd39c4b701e434c",
+        "id": "T005",
+        "status": "done",
+        "task_file": ".project/tasks/T005-minimal-pdd-model.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "2a0ead24e812aba07b6e0e72897ae54eed35106e",
+            "commit": "55ec0072fef24a6bb504552a63ca7e1df4bf4bbc",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T006: Re-index GitNexus and regenerate the AGENTS.md tool block"
+      },
+      "landed_commit": "55ec0072fef24a6bb504552a63ca7e1df4bf4bbc",
+      "reasons": [],
+      "task": {
+        "base": "2a0ead24e812aba07b6e0e72897ae54eed35106e",
+        "id": "T006",
+        "status": "done",
+        "task_file": ".project/tasks/T006-gitnexus-reindex.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "64916a44c4c739235f996345d312dc4fbc3d619e",
+            "commit": "105b3d6c1f46631a2ae2e6eb9e51e8b6f76fbd36",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T007: Delete the junk files through the full native cycle"
+      },
+      "landed_commit": "105b3d6c1f46631a2ae2e6eb9e51e8b6f76fbd36",
+      "reasons": [],
+      "task": {
+        "base": "64916a44c4c739235f996345d312dc4fbc3d619e",
+        "id": "T007",
+        "status": "done",
+        "task_file": ".project/tasks/T007-native-cycle-junk-deletion.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "334caa661395e73035dc23dbee294de725e4e59a",
+            "commit": "2ce3b6d762c4dd918e59d089b5d6bed49396ff02",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T008: Prove session resume from disk alone"
+      },
+      "landed_commit": "2ce3b6d762c4dd918e59d089b5d6bed49396ff02",
+      "reasons": [],
+      "task": {
+        "base": "334caa661395e73035dc23dbee294de725e4e59a",
+        "id": "T008",
+        "status": "done",
+        "task_file": ".project/tasks/T008-resume-proof.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "6eb3133e0302317afdf49d7133110d219f15fe07",
+            "commit": "d5c46c1bc83ed2c7790767d2a7d8f2585bf547f6",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T009: Write the cutover readiness assessment with publication and CI pending-ship"
+      },
+      "landed_commit": "d5c46c1bc83ed2c7790767d2a7d8f2585bf547f6",
+      "reasons": [],
+      "task": {
+        "base": "6eb3133e0302317afdf49d7133110d219f15fe07",
+        "id": "T009",
+        "status": "done",
+        "task_file": ".project/tasks/T009-publish-cutover-readiness.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "61effa6efe68df1efff2c71f4bd39c4b701e434c",
+            "commit": "64a7d88f935ad9f67a17aa6bca7085cd33d25508",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T010: Reword the corpus-glob-guard claim in law-source/consultant/README.md"
+      },
+      "landed_commit": "64a7d88f935ad9f67a17aa6bca7085cd33d25508",
+      "reasons": [],
+      "task": {
+        "base": "61effa6efe68df1efff2c71f4bd39c4b701e434c",
+        "id": "T010",
+        "status": "done",
+        "task_file": ".project/tasks/T010-reword-corpus-glob-guard-claim.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "e85cf2b49dc3686e72789ba97fc34dec892c1103",
+            "commit": "069c2ba80a22e9971ce045affd6382c60c3ee37b",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T011: Make the governor and preflight suites branch-environment-aware"
+      },
+      "landed_commit": "069c2ba80a22e9971ce045affd6382c60c3ee37b",
+      "reasons": [],
+      "task": {
+        "base": "e85cf2b49dc3686e72789ba97fc34dec892c1103",
+        "id": "T011",
+        "status": "done",
+        "task_file": ".project/tasks/T011-branch-aware-governor-tests.md"
+      }
+    }
+  ]
+}

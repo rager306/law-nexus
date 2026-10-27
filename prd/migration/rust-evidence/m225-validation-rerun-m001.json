@@ -1,0 +1,145 @@
+{
+  "schema_version": "law-nexus/milestone-validation-rerun/v1",
+  "milestone": "001-native-workflow-acceptance",
+  "task": "T004",
+  "generated_at": "2026-10-26T10:21:43Z",
+  "battery": {
+    "path": "prd/migration/rust-evidence/m225-validation-battery-2026-10-18.json",
+    "schema_version": "law-nexus/milestone-validation-battery/v1",
+    "milestone": "M225-qrwdfv",
+    "historical_run": {
+      "generated_at": "2026-10-18T09:45:55Z",
+      "head": "e4f6c81aa2e76c7385906a57e497761c1050f55f",
+      "corpus_present": true
+    }
+  },
+  "tested_source_revision": "61effa6efe68df1efff2c71f4bd39c4b701e434c",
+  "tested_source_revision_role": "Full 40-hex git SHA of the exact HEAD this re-validation ran at (INTENT E3); identical to the battery's tested_source_revision.",
+  "environment": {
+    "runner": "GSD Path build task T004, isolated linked worktree, branch gsd-path-task/T004 (base 61effa6efe68df1efff2c71f4bd39c4b701e434c)",
+    "corpus_present": false,
+    "python": "uv run --frozen (CPython 3.13.12, lockfile-frozen venv)",
+    "cargo": "cargo 1.99.0 / rustc 1.99.0 / clippy 0.1.99, --offline",
+    "git_state": "HEAD 61effa6efe68df1efff2c71f4bd39c4b701e434c at run time; worktree carried no product-surface changes when the runs executed; the task's own record files (battery pin close-out, this record, tests/test_m225_validation_residual.py) were written afterwards and are not inputs to the validated surface",
+    "corpus_note": "consru_export/ (44-FZ corpus and catalog) is absent from the isolated environment by design; every corpus-bound check is recorded skipped-corpus-absent, not passed."
+  },
+  "check_dispositions": [
+    {
+      "check_id": "contract-reference-layer-suites-full-battery",
+      "disposition": "re-run-passed-hermetic",
+      "rerun_command": "cargo test -p ln-consultant-parser --offline --no-fail-fast",
+      "exit_code": 0,
+      "observation": "66 test-result blocks, 412 passed, 0 failed, 0 ignored. The reference-layer Contract surface executed fully on committed fixtures: 8 blocks / 30 passed / 0 failed (digests_prefix 1, fail_closed 7, parity 5, s02_amend 1, s02_pageindex 8, s02_pageindex_cli 3, s02_refs 5) - the same partition the 2026-10-18 corpus-present run recorded. 2 corpus-absent SKIP lines elsewhere in the crate battery (gold-ladder CLI staleness gate, temporal provenance vertical) are visible degradation observability, not silence.",
+      "note": "Hermetic by fixture design: the suites' corpus gates are themselves tested (corpus_gate_reports_an_absent_root_as_unavailable passed)."
+    },
+    {
+      "check_id": "contract-reference-layer-fail-closed-paths",
+      "disposition": "re-run-passed-hermetic",
+      "rerun_command": "cargo test -p ln-consultant-parser --offline --test reference_layer_fail_closed",
+      "exit_code": 0,
+      "observation": "7 passed, 0 failed; the fail-closed exit-code matrix (2/3/5/6) ran over committed fixtures."
+    },
+    {
+      "check_id": "contract-bin-cli-subprocess",
+      "disposition": "re-run-passed-hermetic",
+      "rerun_command": "cargo build -p ln-consultant-parser --offline --bin reference_layer; cargo test -p ln-consultant-parser --offline --test reference_layer_s02_pageindex_cli",
+      "exit_code": 0,
+      "observation": "reference_layer binary built fresh; CLI subprocess suite 3 passed, 0 failed (six byte-identical artifacts over the fixture corpus, unknown argv exits 2, corpus without edition 50 stays exit 0 under --check)."
+    },
+    {
+      "check_id": "integration-triple-byte-parity-full-corpus",
+      "disposition": "skipped-corpus-absent",
+      "note": "Requires the full 44-FZ corpus (consru_export/consru_export/exports/npa/law_2013-04-05_44-fz) and its sqlite catalog; both are absent from the isolated environment by design. Corpus-bound byte-parity evidence remains the 2026-10-18 corpus-present run recorded in the battery."
+    },
+    {
+      "check_id": "integration-cross-run-determinism",
+      "disposition": "skipped-corpus-absent",
+      "note": "Same corpus dependency as the triple-byte-parity check; skipped for the same reason. Determinism evidence remains the 2026-10-18 corpus-present run."
+    },
+    {
+      "check_id": "integration-python-pytest-battery",
+      "disposition": "skipped-corpus-absent",
+      "rerun_command": "uv run --frozen pytest -q scripts/test_m217_reference_parity.py scripts/test_m217_reference_jsonld.py scripts/test_m217_reference_s02_amend.py scripts/test_m217_reference_s02_references.py scripts/test_m217_reference_s02_pageindex.py",
+      "exit_code": 1,
+      "observation": "37 passed, 1 skipped, 1 failed in 7.42s. The failing test is test_check_mode_rederivation_is_byte_identical (scripts/test_m217_reference_jsonld.py), documented in its module docstring as re-deriving the full timeline from the pinned corpus; with the corpus absent the reference script fails closed with exit 3 (unreadable inputs) - the script's contract-correct behavior, which the test asserts only with the corpus present. The skip is the parity suite's own corpus gate (test_committed_44fz_artifacts_still_accepted_by_both).",
+      "note": "Recorded at the check's corpus-bound grain: the check cannot pass without the corpus. Its hermetic majority (37 tests over committed fixtures, including the six-artifact ed-50 differential barrier) ran and passed; corpus-bound parity evidence remains the 2026-10-18 corpus-present run. This disposition is a skip, not a pass, and the failure above is the fail-closed contract working, not a product regression."
+    },
+    {
+      "check_id": "operational-bins-convention",
+      "disposition": "re-run-passed-hermetic",
+      "rerun_command": "cargo metadata --no-deps --format-version 1 --offline",
+      "exit_code": 0,
+      "observation": "47 workspace packages resolved offline."
+    },
+    {
+      "check_id": "operational-hermetic-skip-observability",
+      "disposition": "re-run-passed-hermetic",
+      "rerun_command": "M225_S01_REPO_ROOT=/nonexistent-lns03 cargo test -p ln-consultant-parser --offline --test reference_layer_digests_prefix --test reference_layer_fail_closed --test reference_layer_parity --test reference_layer_s02_amend --test reference_layer_s02_pageindex --test reference_layer_s02_pageindex_cli --test reference_layer_s02_refs -- --nocapture",
+      "exit_code": 0,
+      "observation": "Exactly 13 SKIP lines (the battery's own hermetic baseline skip count), all seven reference-layer suites green; the forced-nonexistent-root gate printed the visible skip banner."
+    },
+    {
+      "check_id": "operational-governor",
+      "disposition": "not-rerun-environment-gated",
+      "note": "The governor is branch-locked and fails closed away from the bound branch (gsd-path/M001); an isolated task worktree on gsd-path-task/T004 cannot run it, by design. Per the task Approach, the orchestrator's bound-branch governor run at the wave gate is the supporting evidence."
+    },
+    {
+      "check_id": "operational-preflight",
+      "disposition": "not-rerun-environment-gated",
+      "note": "Same environment gate as the governor check: branch-locked, fail-closed away from the bound branch; the orchestrator's bound-branch run at the wave gate is the supporting evidence."
+    },
+    {
+      "check_id": "operational-cargo-fmt",
+      "disposition": "re-run-passed-hermetic",
+      "rerun_command": "cargo fmt --all -- --check",
+      "exit_code": 0,
+      "observation": "No formatting diffs."
+    },
+    {
+      "check_id": "operational-cargo-check",
+      "disposition": "re-run-passed-hermetic",
+      "rerun_command": "cargo check --workspace --offline",
+      "exit_code": 0,
+      "observation": "Workspace-wide cargo check finished clean.",
+      "note": "The task Approach additionally mandated the package-scoped surface `cargo check -p ln-consultant-parser --offline`: also exit 0."
+    },
+    {
+      "check_id": "operational-cargo-clippy",
+      "disposition": "re-run-passed-hermetic",
+      "rerun_command": "cargo clippy --workspace --all-targets --offline -- -D warnings",
+      "exit_code": 0,
+      "observation": "Zero warnings across the workspace at -D warnings."
+    },
+    {
+      "check_id": "operational-adr-conformance",
+      "disposition": "re-run-passed-hermetic",
+      "rerun_command": "uv run --frozen python scripts/verify-adr-conformance.py",
+      "exit_code": 0,
+      "observation": "status ok; 29 files scanned, 0 findings, 0 untagged claims, 0 missing ADR refs.",
+      "note": "The battery ran `uv run python ...`; the M001 constraint mandates the frozen-lockfile form, which is what the rerun executed."
+    },
+    {
+      "check_id": "uat-slice-demo-bin-check-full-corpus",
+      "disposition": "skipped-corpus-absent",
+      "note": "`reference_layer --check` over the real corpus paths; corpus and catalog absent, and the reference script's fail-closed behavior without them (exit 3, unreadable inputs) was observed via the pytest battery run. Evidence remains the 2026-10-18 corpus-present run."
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "re_run_passed_hermetic": 9,
+    "skipped_corpus_absent": 4,
+    "not_rerun_environment_gated": 2
+  },
+  "verdict": {
+    "status": "hermetic-pass-parity-unproven",
+    "measurement_class": "hermetic-observability-corpus-absent",
+    "statement": "This re-run is hermetic observability, not a byte-parity PASS (INTENT N1): the 44-FZ corpus is absent from the isolated task environment, corpus-bound checks are recorded skipped-corpus-absent, and green results here do not prove corpus scenarios ran. Corpus-bound parity evidence remains the 2026-10-18 corpus-present run recorded in m225-validation-battery-2026-10-18.json, pinned at its own revision (HEAD e4f6c81aa2e76c7385906a57e497761c1050f55f). The SC3 residual itself is closed: the battery now carries a full 40-hex tested_source_revision bound to the exact HEAD of this re-validation (INTENT E3), every battery check id has an explicit disposition from the fixed set, and this verdict states its measurement class. No file under crates/ changed in this task: the S02 reference-layer code is untouched.",
+    "residual": "closed - tested_source_revision filled with the exact re-validation HEAD; role text restated to the 40-hex-HEAD semantics; per-check dispositions recorded here"
+  },
+  "non_claims": [
+    "No corpus scenario ran in this re-run; skipped-corpus-absent dispositions record absence, not deferred passes.",
+    "Green hermetic results do not strengthen the 2026-10-18 byte-parity claims; they show only that the fixture-based hermetic surface still holds at this HEAD.",
+    "The governor and preflight checks were not re-run here (environment-gated, branch-locked); their supporting evidence is the orchestrator's bound-branch run at the wave gate.",
+    "This record does not re-implement or re-measure S02: no file under crates/ was modified by T004, and the landing diff covers exactly the three declared record paths."
+  ]
+}

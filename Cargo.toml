@@ -9,11 +9,36 @@ resolver = "3"
 # - incremental = false for deps is a no-op under kache (it strips the
 #   incremental dir anyway) but states intent.
 [profile.dev]
-debug = "line-tables-only"   # backtraces keep file:line; no full DWARF
+# Measured in THIS workspace: target/debug/incremental held 1.7 GB for 513
+# workspace-member test targets, more than deps/ (1.2 GB), and it is cargo's
+# directory, not the compiler cache's. Every integration target keeps its own
+# incremental state and the repo has many. Off for the workspace profile; a
+# single-crate loop opts back in with CARGO_INCREMENTAL=1 (measured cost of
+# leaving it off: 2.4 s to rebuild ln-status).
+incremental = false
+# The size comes from stripping the symbol table, not from `debug`. Measured on
+# one test binary, four combinations: strip=debuginfo is 1.2 MB at either debug
+# level, unstripped is 7.0 MB at either level - so `debug` moves the size by
+# nothing. Dropping `line-tables-only` additionally costs backtrace file:line
+# for 200 bytes, which is a bad trade, so the level stays.
+debug = "line-tables-only"
+# Panic messages and `panicked at file:line` survive (they are string literals);
+# backtrace frames do not. Recover them for one run with
+# CARGO_PROFILE_DEV_STRIP=false, which is enough because the level above is
+# kept - or build the `debugging` profile below, which is a distinct fingerprint
+# so it does not thrash the dev artifacts.
+strip = "debuginfo"
 
 [profile.dev.package."*"]
 debug = false
 incremental = false
+
+# `cargo test --profile debugging` for triage that needs backtrace frames.
+# Declared rather than pushed through CARGO_PROFILE_* env vars so the two
+# variants keep separate fingerprints and do not rebuild each other.
+[profile.debugging]
+inherits = "dev"
+strip = false
 
 [profile.release]
 lto = "thin"

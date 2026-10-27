@@ -47,7 +47,7 @@ tests/test_local_retrieval_runtime_check_cli.py
 tests/test_source_structuring_protocol.py
 
 # Historical noise vault (skills/scripts/tests). Entire tree ignored.
-archive/
+/archive/
 
 # Removed isolated storage probe packages (do not re-add)
 probes/
@@ -84,7 +84,7 @@ litho.docs/
 # Dependencies and build outputs
 node_modules/
 dist/
-build/
+/build/
 .next/
 coverage/
 

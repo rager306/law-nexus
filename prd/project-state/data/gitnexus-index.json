@@ -1,0 +1,12 @@
+{
+  "schema": "law-nexus/gitnexus-index-receipt/v1",
+  "command": "node .gitnexus/run.cjs analyze --force --name law-nexus",
+  "indexed_head": "2a0ead24e812aba07b6e0e72897ae54eed35106e",
+  "counts": {
+    "symbols": 43047,
+    "relationships": 102234,
+    "execution_flows": 584
+  },
+  "generated_at": "2026-10-26T10:53:09.705Z",
+  "agents_block_sha256": "896a95033fdd8b45e8f67f465132cb2b22bd632ddd5d676622c4d5bfa01a328f"
+}

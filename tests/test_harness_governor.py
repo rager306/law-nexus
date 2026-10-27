@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import subprocess
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
@@ -64,6 +65,53 @@ from law_nexus_harness.governor import (
 from law_nexus_harness.workflow_state import LEGACY_SURFACE_CHECKS
 
 ROOT = Path(__file__).resolve().parents[1]
+
+# The live-surface assertions below are branch-environment-aware: the bound
+# branch is the one checkout where the governor is operational, so the full
+# assertions run only there; every other checkout (verify sidecars, detached
+# heads, foreign branches) pins the fail-closed contract instead — away from
+# the bound branch the branch lock firing IS the contract, not a defect.
+# Exactly one predicate decides: the bound branch or not.
+BOUND_BRANCH = "gsd-path/M001"
+
+
+def _current_branch(root: Path) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--abbrev-ref", "HEAD"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout.strip()
+
+
+def _on_bound_branch(root: Path = ROOT) -> bool:
+    """True only on the bound branch, where the governor is operational."""
+    return _current_branch(root) == BOUND_BRANCH
+
+
+def _assert_fail_closed_branch_contract(report: GovernorReport) -> None:
+    """Away from the bound branch, pin the fail-closed contract itself.
+
+    The workflow-state-surface check must report the blocking error honestly
+    (severity error, rule workflow-state-surface.blocking), the report must be
+    a failure, and the error count must be the real number of recorded error
+    findings — never 0 and never a guessed constant.
+    """
+    surface = [item for item in report.findings if item.check_id == "workflow-state-surface"]
+    assert len(surface) == 1
+    blocking = surface[0]
+    assert blocking.status == "fail"
+    assert blocking.severity == "error"
+    assert blocking.rule_id == "workflow-state-surface.blocking"
+    assert blocking.observed.startswith("kind=")
+    assert blocking.remediation
+    assert report.status == "failure"
+    error_findings = [
+        item for item in report.findings if item.status == "fail" and item.severity == "error"
+    ]
+    assert report.error_count == len(error_findings)
+    assert report.error_count >= 1
 
 
 def test_governor_report_schema_and_live_repo_pass() -> None:
@@ -1928,6 +1976,9 @@ def test_port_contract_coverage_missing_crates_tree_is_debt_warn(tmp_path: Path)
 def test_live_governor_includes_port_contract_coverage_finding() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "port-contract-coverage" in by_id
     assert by_id["port-contract-coverage"].status == "pass"
     assert report.error_count == 0
@@ -1937,6 +1988,9 @@ def test_live_governor_includes_port_contract_coverage_finding() -> None:
 def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "hostile-negative-suite-coverage" in by_id
     finding = by_id["hostile-negative-suite-coverage"]
     # Residual hostiles closed: all discovered hostiles have shared-negative mentions.
@@ -1972,6 +2026,9 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
 def test_live_governor_passes_multi_adapter_port_coverage() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "multi-adapter-port-coverage" in by_id
     finding = by_id["multi-adapter-port-coverage"]
     # After WordML shared suite, residual real multi-adapter gaps are closed.
@@ -1984,6 +2041,9 @@ def test_live_governor_passes_multi_adapter_port_coverage() -> None:
 def test_live_governor_passes_live_adapter_readiness() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "live-adapter-readiness" in by_id
     finding = by_id["live-adapter-readiness"]
     # Repository-evidence ceiling: std-only HTTP surface present but unproven,
@@ -2022,6 +2082,9 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
 def test_live_governor_passes_ci_quality_gate_drift() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "ci-quality-gate-drift" in by_id
     finding = by_id["ci-quality-gate-drift"]
     assert finding.status == "pass"
@@ -2036,6 +2099,9 @@ def test_live_governor_passes_ci_quality_gate_drift() -> None:
 def test_live_governor_passes_verify_test_coverage_drift() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "verify-test-coverage-drift" in by_id
     finding = by_id["verify-test-coverage-drift"]
     assert finding.status == "pass"
@@ -2164,6 +2230,9 @@ def test_stale_open_milestone_behind_last_completed_is_debt(tmp_path: Path) -> N
 def test_live_governor_passes_semantic_stub_in_product_code() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "semantic-stub-in-product-code" in by_id
     finding = by_id["semantic-stub-in-product-code"]
     assert finding.status == "pass"
@@ -2232,6 +2301,9 @@ def test_semantic_stub_in_product_code_ignores_tests_and_testkit(tmp_path: Path)
 def test_live_governor_passes_semantic_name_collision() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "semantic-name-collision" in by_id
     finding = by_id["semantic-name-collision"]
     # Live EvidenceAnchor YAML entity vs ln-decode::EvidenceAnchor is a
@@ -2528,6 +2600,9 @@ def test_companion_manifest_check_spec_is_docs_deterministic_warn() -> None:
 def test_live_governor_passes_companion_manifest() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "companion-manifest" in by_id
     finding = by_id["companion-manifest"]
     # Review-26 11.5 process net: all eight crystal-mentioned companions carry
@@ -2719,6 +2794,9 @@ def test_golden_corpus_catalog_check_spec_is_docs_deterministic_warn() -> None:
 def test_live_governor_passes_golden_corpus_catalog() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "golden-corpus-catalog" in by_id
     finding = by_id["golden-corpus-catalog"]
     # Review-26 section 10 canon: forty design-only cases, closed G0-G3 tiers,
@@ -2740,6 +2818,9 @@ def test_live_governor_passes_golden_corpus_catalog() -> None:
 def test_live_governor_reports_historical_test_debt_visibility() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "historical-test-debt-visibility" in by_id
     finding = by_id["historical-test-debt-visibility"]
     # Advisory inventory: status may be 'fail' (debt present, warn) but the
@@ -2869,6 +2950,9 @@ def test_live_npa_promotion_control_is_registered_with_debt_inputs() -> None:
 def test_live_governor_includes_adr_and_archive_checks() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
+    if not _on_bound_branch():
+        _assert_fail_closed_branch_contract(report)
+        return
     assert "adr-truth-oracle-sync" in by_id
     assert "adr-index-completeness" in by_id
     assert "adr-doc-matrix-coverage" in by_id
@@ -5551,14 +5635,14 @@ class TestRoadmapFreshnessAgainstNativePath:
 
         from law_nexus_harness import workflow_state as ws
 
-        self._repo(tmp_path, "M225-qrwdfv")
+        self._repo(tmp_path, "001-native-workflow-acceptance")
         real = ws.read_workflow_state
 
         def operational(root):
             return replace(
                 real(root),
                 kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
-                native_milestone="M225-qrwdfv",
+                native_milestone="001-native-workflow-acceptance",
                 native_phase="build",
             )
 
@@ -5592,6 +5676,37 @@ class TestRoadmapFreshnessAgainstNativePath:
         assert by_id["roadmap-current-tracks-path"].status == "fail"
         assert by_id["roadmap-current-tracks-path"].severity == "error"
 
+    def test_pre_milestone_phase_is_not_asserted_and_not_blocking(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """inspect/define legitimately have no milestone: STATE sets it by define.
+
+        Blocking here would fail every freshly bound project for a reason nobody
+        can fix yet, so the claim is not asserted - and says so - instead.
+        """
+        from dataclasses import replace
+
+        from law_nexus_harness import workflow_state as ws
+
+        self._repo(tmp_path, None)
+        real = ws.read_workflow_state
+
+        def operational(root):
+            return replace(
+                real(root),
+                kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
+                native_milestone=None,
+                native_phase="inspect",
+            )
+
+        monkeypatch.setattr("law_nexus_harness.governor.read_workflow_state", operational)
+        by_id = {item.check_id: item for item in check_roadmap_freshness(tmp_path)}
+
+        assert by_id["roadmap-freshness"].status == "pass"
+        assert by_id["roadmap-freshness"].severity == "ok"
+        assert by_id["roadmap-freshness"].rule_id == "roadmap-freshness.pre-milestone"
+        assert "comparison=not-applicable" in by_id["roadmap-freshness"].observed
+
     def test_operational_without_a_milestone_blocks(self, tmp_path: Path, monkeypatch) -> None:
         from dataclasses import replace
 
@@ -5605,7 +5720,7 @@ class TestRoadmapFreshnessAgainstNativePath:
                 real(root),
                 kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
                 native_milestone=None,
-                native_phase="research",
+                native_phase="build",
             )
 
         monkeypatch.setattr("law_nexus_harness.governor.read_workflow_state", operational)

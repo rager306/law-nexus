@@ -2,15 +2,19 @@
   "schema_version": "law-nexus/milestone-validation-battery/v1",
   "milestone": "M225-qrwdfv",
   "generated_at": "2026-10-18T09:45:55Z",
-  "tested_source_revision": "pending-fill-by-validate-unit",
-  "tested_source_revision_role": "Placeholder pending the validate-milestone unit: to be replaced by the GSD verification-source aggregate snapshot (verification-source-integrity.js, sha256:...) captured on a clean tree. This battery file is the durable carrier produced in execute-task S03/T06 before validation (MEM1158/D786: bytes on disk BEFORE gsd_validate_milestone), because the aggregate testedSourceRevision is the sha256 over tracked-file CONTENT at validation time; committing these same bytes afterwards is hash-stable, while any NEW tracked file after validation would make the record 'not current' and block complete-milestone. Because this file is itself a new tracked artifact, it must exist on disk before the validate unit runs - it is deliberately part of the snapshot. No sha256 was computed here and no git SHA was substituted. Live gates ran on git HEAD e4f6c81aa2e76c7385906a57e497761c1050f55f (T01-T05 landed as separate commits). The task-final GitNexus reindex (T07) writes only under the git-excluded .gitnexus/ (see .git/info/exclude; git ls-files .gitnexus is empty), so it adds no tracked file and does not shift the aggregate revision.",
+  "tested_source_revision": "61effa6efe68df1efff2c71f4bd39c4b701e434c",
+  "tested_source_revision_role": "Full 40-hex git SHA of the exact HEAD the native re-validation ran at (INTENT E3): a validation run whose tree state does not match this pin is invalid, and any mismatch invalidates the battery. The historical 2026-10-18 corpus-present run below executed at HEAD e4f6c81aa2e76c7385906a57e497761c1050f55f before this pin existed. M001 task T004 closed the residual by re-running the hermetic validation surface natively at this exact HEAD in an isolated worktree and recording per-check dispositions and the honest measurement class in prd/migration/rust-evidence/m225-validation-rerun-m001.json (see environment.native_rerun_m001). The 15 historical check entries, their outputs, and the timestamps stay byte-identical as recorded evidence.",
   "working_directory": "/root/law-nexus",
   "environment": {
     "runner": "pi interactive parent session (execute-task S03/T06, M225-qrwdfv)",
     "python": "uv-managed CPython (uv run)",
     "cargo": "offline workspace",
     "git_state": "HEAD e4f6c81aa2e76c7385906a57e497761c1050f55f; T01-T05 landed as separate commits (Cargo.toml explicit [[bin]], verification/evidence artifacts); clean tree before this task; this battery JSON is the only new tracked file created by T06 and is committed by the harness after the task; not pushed",
-    "gitnexus": "repo law-nexus; index lastCommit fee4290a0e82080ccd2a206164f29225563d9c2c differs from HEAD e4f6c81aa2e76c7385906a57e497761c1050f55f, so preflight reports gitnexus-index-freshness warn (non-blocking, error_count=0); cleared by the T07 reindex. .gitnexus/ is excluded from git, therefore the reindex does not change the tracked-file set and cannot shift the validation revision."
+    "gitnexus": "repo law-nexus; index lastCommit fee4290a0e82080ccd2a206164f29225563d9c2c differs from HEAD e4f6c81aa2e76c7385906a57e497761c1050f55f, so preflight reports gitnexus-index-freshness warn (non-blocking, error_count=0); cleared by the T07 reindex. .gitnexus/ is excluded from git, therefore the reindex does not change the tracked-file set and cannot shift the validation revision.",
+    "native_rerun_m001": {
+      "runner": "GSD Path build task T004 (milestone 001-native-workflow-acceptance), isolated linked worktree, branch gsd-path-task/T004",
+      "git_state": "HEAD 61effa6efe68df1efff2c71f4bd39c4b701e434c at run time; corpus absent by design; per-check dispositions and the verdict measurement class in prd/migration/rust-evidence/m225-validation-rerun-m001.json; the historical values in this environment block describe the 2026-10-18 run and are unchanged"
+    }
   },
   "non_claims": [
     "R1000 / R035 / R070 are explicit non-claims and their statuses are unchanged; ADR-0030 and ADR-0031 stay [proposed] and are not promoted (the promotion decision, including D778, belongs to milestone validation, not this slice).",
