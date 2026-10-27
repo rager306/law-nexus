@@ -3,11 +3,11 @@ id: T002
 title: Classify the shipped-integrated main state as an honest non-blocking workflow state
 wave: 1
 deps: []
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+status: in-progress
+agent: build_T002
+base: cc9457c71619cc62eae2bd4275d0e8367101965f
+worktree: /root/law-nexus
+task_branch: null
 files:
   - src/law_nexus_harness/workflow_state.py
   - src/law_nexus_harness/governor.py
@@ -67,3 +67,63 @@ Heavy: no
      readings: <candidates>` for contract ambiguity), orchestrator answers,
      review verdicts, fixes. -->
 - 2026-10-27 — created by planner
+- 2026-10-27 — build_T002 implemented Contract A. workflow_state.py: added
+  `WorkflowStateKind.SHIPPED_INTEGRATED` ("shipped-integrated");
+  `_native_status_verdict` now validates `state.status`, `state.archive`, and
+  `completion` (object when present; string `completion.status`) eagerly beside
+  the four identity sites; `read_workflow_state` classifies `block` +
+  `completion.status==verified` + `state.phase==shipped` + `state.status==done`
+  as SHIPPED_INTEGRATED (non-blocking, remediation "none", observed naming
+  shipped/done and the payload `state.archive`); every other non-operational
+  route stays CONFLICTING_OWNERSHIP; absent/null `completion` is not shipped
+  proof; `workflow_readiness(SHIPPED_INTEGRATED)` = "operational".
+  governor.py `check_workflow_state_surface`: pass/ok finding with rule_id
+  `workflow-state-surface.shipped`, observed starts `kind=shipped-integrated;`
+  and carries the archive path. preflight.py `_workflow_state_surface_check`:
+  pass with `state=shipped-integrated` + archive path.
+  tests/test_harness_workflow_state.py: 8 new Contract A tests
+  (classification, per-condition predicate flips, no current identity on the
+  shipped report, wrong-typed `completion`/`state.status`/`state.archive` fail
+  closed, absent/null completion, governor + preflight pins through a faked
+  shim+helper stack) and the `NATIVE_STATUS_SHIPPED_MAIN` fixture built from
+  the recorded M001 proof (ship 886a36a8f9ed77ad315f4b16fee0cdbc68bf4d02,
+  landing 4e0cd4dba087b3a0dfaacb4cc6a443f1bc5d495f, tag
+  milestone/001-001-native-workflow-acceptance). Updated
+  `test_state_unverified_kind_maps_to_blocked_readiness` — a readiness-mapping
+  test outside acceptance 4's protected trio (conflicting-ownership,
+  runtime-unavailable, identity-typing) — because the operational set now
+  holds both kinds; leaving it unchanged would contradict the same criterion's
+  "the suite is green". No protected test was modified.
+- 2026-10-27 — Verify `uv run --frozen pytest
+  tests/test_harness_workflow_state.py -q` → 48 passed (branch gsd-path/M002
+  @ cc9457c7; fixture-based, no live state needed; `ruff check` and
+  `ruff format --check` clean on all four files). Live cross-check outside the
+  suite, on throwaway clones (deleted after the run): the real pinned helper
+  1.6.2 against a shipped-main checkout returned exactly the fixture's shape
+  (block `current branch main != STATE.branch gsd-path/M001`, completion
+  verified with the same proof fields), classified shipped-integrated through
+  the real shim+helper stack (governor pass `workflow-state-surface.shipped`,
+  preflight pass with the archive path), while a detached HEAD at the landing
+  commit (completion unverified) and a gsd-path-verify/* sidecar (not-shipped,
+  build/active) both stayed CONFLICTING_OWNERSHIP — matching the Context's
+  fail-closed claim for E3.
+- 2026-10-27 — orchestrator Verify (sidecar gsd-path-verify/task-t002-verify): pass, exit 0; output tail:
+  ```
+  ................................................                         [100%]
+  48 passed in 2.43s
+  Using CPython 3.13.12 interpreter at: /root/.local/bin/python3.13
+  Creating virtual environment at: .venv
+     Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t002-verify
+        Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t002-verify
+  Installed 32 packages in 342ms
+  ```
+- 2026-10-27 — orchestrator Verify (sidecar gsd-path-verify/task-t002-verify): pass, exit 0; output tail:
+  ```
+  ................................................                         [100%]
+  48 passed in 2.34s
+  Using CPython 3.13.12 interpreter at: /root/.local/bin/python3.13
+  Creating virtual environment at: .venv
+     Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t002-verify
+        Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t002-verify
+  Installed 32 packages in 354ms
+  ```
