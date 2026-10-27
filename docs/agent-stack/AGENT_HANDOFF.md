@@ -9,6 +9,12 @@
 Форк и границы published release: [ALLSPARK_NOTES.md](ALLSPARK_NOTES.md).
 Основной runbook: [MIGRATION.md](MIGRATION.md). Установка и pinned configuration: [INSTALL.md](INSTALL.md). Повседневная работа после cutover: [WORKFLOW.md](WORKFLOW.md).
 
+> Current delivery state (2026-10-27): the current-state document is
+> [POST-SHIP-STATE-2026-10-27.md](POST-SHIP-STATE-2026-10-27.md); it supersedes
+> `CUTOVER-READINESS-M001.md` (kept untouched as the dated pre-ship snapshot).
+> A fresh session bootstraps from disk alone via that report's
+> "Fresh-session bootstrap" section.
+
 ## Готовое поручение для первой сессии
 
 Следующий текст предназначен для передачи агенту владельцем при начале исполнения:

@@ -3,10 +3,10 @@ id: T004
 title: Make the post-ship pointers truthful and write the dated post-ship report
 wave: 2
 deps: []
-status: in-progress
+status: done
 agent: build_T004
-base: 2bf3eafe713a6818a458b4e119a440531bf3a765
-worktree: /root/law-nexus
+base: 3b0d8527a6a9eb4d14a469525fa8cce5d046a241
+worktree: null
 task_branch: null
 files:
   - prd/project-state/roadmap.md
@@ -124,4 +124,14 @@ Heavy: no
      Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t004-verify
         Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t004-verify
   Installed 32 packages in 261ms
+  ```
+- 2026-10-27 — orchestrator Verify (sidecar gsd-path-verify/task-t004-verify): pass, exit 0; output tail:
+  ```
+  sssss........                                                            [100%]
+  8 passed, 5 skipped in 6.53s
+  Using CPython 3.13.12 interpreter at: /root/.local/bin/python3.13
+  Creating virtual environment at: .venv
+     Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t004-verify
+        Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t004-verify
+  Installed 32 packages in 265ms
   ```

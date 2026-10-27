@@ -13,7 +13,7 @@ only through native Path planning with their own IDs; legacy IDs stay legacy.
 
 | Legacy identity | Observed state | Remaining work | Dependencies / approvals | New mapping |
 |---|---|---|---|---|
-| M225-qrwdfv (Reference knowledge layer in Rust: ADR-0031 port with byte parity) | 🔄 active, phase `blocked`; milestone validation returned `needs-attention` (journal 2026-10-18 11:10, orchestrator stop `pause`). **The code is NOT missing** — see the note below | Close the validation residual only: **fill `tested_source_revision`** in the battery (it still reads `pending-fill-by-validate-unit`), re-bind the source pin to the current HEAD, then re-run native validation and record the honest verdict. Do NOT re-implement S02 | Owner validation decision; no running Attempt at freeze | **unmapped** — carry as the first active obligation; re-plan natively in Path after bootstrap |
+| M225-qrwdfv (Reference knowledge layer in Rust: ADR-0031 port with byte parity) | 🔄 active, phase `blocked`; milestone validation returned `needs-attention` (journal 2026-10-18 11:10, orchestrator stop `pause`). **The code is NOT missing** — see the note below | ✅ residual CLOSED 2026-10-26 by native Path task T004 of milestone `001-native-workflow-acceptance`: `tested_source_revision` filled (full 40-hex `61effa6efe68df1efff2c71f4bd39c4b701e434c`), pin re-bound, honest re-run recorded in `prd/migration/rust-evidence/m225-validation-rerun-m001.json`, verdict `hermetic-pass-parity-unproven` — hermetic fixture-based pass only; **corpus parity remains unproven** (44-ФЗ corpus absent from the re-run environment; no byte-parity PASS claimed). Do NOT re-implement S02 | Closed residual; no outstanding validation demand from this row | **closed by T004 (M001)** — carried obligation discharged with corpus parity explicitly unproven |
 | M208-wrz6fg (Грамматика изменений и доказательная temporal вертикаль) | ⏸ paused (queue) | Full milestone; see DECISIONS.md D-records in the frozen snapshot | Unknown from projection — inspect snapshot before planning | **unmapped** |
 | M217-kbike0 (Материализация graph-vector с crash consistency и citation contract) | ⏸ paused (queue) | Full milestone | Depends on M216 lineage (completed); citation contract gates | **unmapped** |
 | M218-xnkwf0 (Типизированный KnowQL и безопасность генерируемого Cypher) | ⏸ paused (queue) | Full milestone | Depends on graph-vector materialization | **unmapped** |
@@ -38,11 +38,15 @@ And the projections that disagree with it:
 - ADR-0031 carries a similar stale claim;
 - the battery's own `tested_source_revision` is `pending-fill-by-validate-unit`.
 
-So the open work is **one narrow thing**: the battery was prepared before the
-validation unit ran, and the source revision it pins is a placeholder. The first
-product task after the migration fills that field, re-binds the pin to the
-actual HEAD, re-runs validation and records what comes out — including
-`needs-attention` if that is the honest answer.
+Update (2026-10-27): that one narrow thing is done. Native Path task T004 of
+milestone `001-native-workflow-acceptance` filled `tested_source_revision`
+(full 40-hex `61effa6efe68df1efff2c71f4bd39c4b701e434c`), re-bound the pin, and
+re-ran the validation surface; the receipt
+`prd/migration/rust-evidence/m225-validation-rerun-m001.json` records verdict
+`hermetic-pass-parity-unproven` — a hermetic, fixture-based pass at that HEAD.
+Corpus parity remains unproven: the 44-ФЗ corpus was absent from the re-run
+environment, corpus-bound checks are recorded `skipped-corpus-absent`, and no
+byte-parity PASS is claimed.
 
 Explicitly **not** the task: re-implementing the S02 port. A new agent handed
 this crosswalk without this note would rebuild 95 KB of working, parity-tested
