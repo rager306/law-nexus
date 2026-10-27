@@ -3,10 +3,10 @@ id: T003
 title: Make the governor and preflight suites context-independent with the five-scenario matrix
 wave: 1
 deps: [T002]
-status: pending    # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
+status: done
+agent: build_T003
+base: d3a071d324e07165454daf65dbd05825b98d96b5
+worktree: null
 task_branch: null
 files:
   - tests/test_harness_governor.py
@@ -267,3 +267,30 @@ Heavy: no
         Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t003-verify
   Installed 32 packages in 489ms
   ```
+- 2026-10-27 — build_T003 (r3, parallel retry) restored the preserved r1/r2
+  work onto the parallel base d3a071d3 with `git apply --include='tests/*'`
+  (/root/law-nexus-pre-milestone-fix/t003-m002-work.patch; clean apply) — the
+  patch's task-file hunks are stale and were skipped; this Log already carried
+  the r1/r2 history verbatim through the reset, so only these r3 entries are
+  appended. The four declared test files landed exactly as verified; `git
+  status` shows nothing else touched. One delta against the preserved patch,
+  applying this Log's recorded orchestrator disclosure: the preserved patch
+  predates the disclosed test-data co-update, so
+  TestRoadmapFreshnessAgainstNativePath::test_matching_native_milestone_passes
+  still pinned the previous milestone — first Verify run failed exactly as the
+  recorded orchestrator sidecar failure (1 failed, 281 passed, 2 skipped:
+  `roadmap-current-tracks-path` 'fail' != 'pass', tests/test_harness_governor.py:5694)
+  because the fixture's copied tracked roadmap.json now names
+  `post-ship-hardening` (T004) while the faked native milestone was
+  `001-native-workflow-acceptance`. Applied the disclosed two-literal co-update
+  in the declared file: `self._repo(tmp_path, "post-ship-hardening")` and faked
+  `native_milestone="post-ship-hardening"`; the diverging (M999-other) and both
+  None-native tests keep their contracts; no assertion weakened (matching still
+  pins pass + severity ok + `comparison=path`; diverging still pins fail).
+- 2026-10-27 — Verify (r3) `uv run --frozen pytest tests/test_branch_context.py
+  tests/test_harness_governor.py tests/test_harness_preflight.py -q` in this
+  worktree, branch `gsd-path-task/T003` (BOUND context) at base d3a071d3:
+  282 passed, 2 skipped (the pre-existing loud `no-pi-journal` skips, same as
+  the orchestrator's sidecar runs at this base), 0 failed, exit 0 (103s).
+  `ruff format --check` and `ruff check` clean on all four files. No git
+  stage/commit/stash performed; frontmatter untouched.

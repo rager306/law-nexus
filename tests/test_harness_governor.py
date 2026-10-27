@@ -5,12 +5,13 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import subprocess
+import re
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import pytest
 
+import branch_context
 from law_nexus_harness.cli import main
 from law_nexus_harness.governor import (
     _ACTIVE_REQUIREMENT_POLICY,
@@ -60,51 +61,50 @@ from law_nexus_harness.governor import (
     check_temporal_vocabulary_drift,
     check_temporal_vocabulary_presentation_drift,
     check_verify_test_coverage_drift,
+    check_workflow_state_surface,
     run_governor,
 )
 from law_nexus_harness.workflow_state import LEGACY_SURFACE_CHECKS
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# The live-surface assertions below are branch-environment-aware: the bound
-# branch is the one checkout where the governor is operational, so the full
-# assertions run only there; every other checkout (verify sidecars, detached
-# heads, foreign branches) pins the fail-closed contract instead — away from
-# the bound branch the branch lock firing IS the contract, not a defect.
-# Exactly one predicate decides: the bound branch or not.
-BOUND_BRANCH = "gsd-path/M001"
+# The live-surface assertions below are checkout-context-aware through the one
+# shared predicate (tests/branch_context.py, M002 SC2). On the operational
+# contexts — the bound branch and the authorized task worktrees, plus the
+# shipped integrated main via Contract A — the full substantive assertions run
+# verbatim. On the foreign-branch, detached, and verify-sidecar checkouts the
+# fail-closed branch-ownership contract IS the contract, and it is pinned
+# exactly: kind=conflicting-ownership with the runtime resolved and the
+# checkout's own mismatch reason — never the broad kind-prefix pin the
+# M001 patch accepted, which a runtime-unavailable failure also satisfied.
 
 
-def _current_branch(root: Path) -> str:
-    completed = subprocess.run(
-        ["git", "-C", str(root), "rev-parse", "--abbrev-ref", "HEAD"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    return completed.stdout.strip()
+def _assert_fail_closed_branch_contract(
+    report: GovernorReport, context: branch_context.BranchContext
+) -> None:
+    """Pin the fail-closed contract for one non-operational checkout context.
 
-
-def _on_bound_branch(root: Path = ROOT) -> bool:
-    """True only on the bound branch, where the governor is operational."""
-    return _current_branch(root) == BOUND_BRANCH
-
-
-def _assert_fail_closed_branch_contract(report: GovernorReport) -> None:
-    """Away from the bound branch, pin the fail-closed contract itself.
-
-    The workflow-state-surface check must report the blocking error honestly
-    (severity error, rule workflow-state-surface.blocking), the report must be
-    a failure, and the error count must be the real number of recorded error
-    findings — never 0 and never a guessed constant.
+    The workflow-state-surface check must report the blocking branch-ownership
+    error honestly (severity error, rule workflow-state-surface.blocking), the
+    report must be a failure, and the error count must be the real number of
+    recorded error findings — never 0 and never a guessed constant. The kind
+    is pinned exactly: a runtime-unavailable or invalid-schema failure must
+    never satisfy this pin. The observed fact must carry the scenario's own
+    discriminator: the pinned helper's verbatim branch-mismatch reason for
+    this checkout.
     """
+    binding = branch_context.state_binding(ROOT)
+    assert binding.bound_branch is not None  # an unreadable binding never pins
+    reason = branch_context.block_reason(branch_context.live_branch(ROOT), binding.bound_branch)
     surface = [item for item in report.findings if item.check_id == "workflow-state-surface"]
     assert len(surface) == 1
     blocking = surface[0]
     assert blocking.status == "fail"
     assert blocking.severity == "error"
     assert blocking.rule_id == "workflow-state-surface.blocking"
-    assert blocking.observed.startswith("kind=")
+    assert blocking.observed.startswith("kind=conflicting-ownership;")
+    assert re.search(branch_context.RESOLVED_RUNTIME_PATTERN, blocking.observed)
+    assert reason in blocking.observed
     assert blocking.remediation
     assert report.status == "failure"
     error_findings = [
@@ -112,6 +112,35 @@ def _assert_fail_closed_branch_contract(report: GovernorReport) -> None:
     ]
     assert report.error_count == len(error_findings)
     assert report.error_count >= 1
+
+
+def test_live_workflow_state_surface_matches_scenario_contract() -> None:
+    """Each checkout context pins its own workflow-state surface shape, live.
+
+    The routed live tests below carry the same routing for their substantive
+    assertions; this test pins the surface finding itself for all five
+    contexts, so the matrix cannot silently narrow to the routed checks.
+    """
+    context = branch_context.classify(ROOT)
+    finding = check_workflow_state_surface(ROOT)[0]
+    if branch_context.pins_fail_closed(context):
+        assert finding.status == "fail"
+        assert finding.severity == "error"
+        assert finding.rule_id == "workflow-state-surface.blocking"
+        assert finding.observed.startswith("kind=conflicting-ownership;")
+        assert re.search(branch_context.RESOLVED_RUNTIME_PATTERN, finding.observed)
+        return
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    if context is branch_context.BranchContext.SHIPPED_MAIN:
+        # Contract A, distinct from every fail-closed pin (E3): the verified
+        # shipped/done state passes with the archive proof.
+        assert finding.rule_id == "workflow-state-surface.shipped"
+        assert finding.observed.startswith("kind=shipped-integrated;")
+        assert ".project/archive/001-001-native-workflow-acceptance" in finding.observed
+        return
+    assert context is branch_context.BranchContext.BOUND
+    assert finding.rule_id == "workflow-state-surface.operational"
 
 
 def test_governor_report_schema_and_live_repo_pass() -> None:
@@ -1976,8 +2005,9 @@ def test_port_contract_coverage_missing_crates_tree_is_debt_warn(tmp_path: Path)
 def test_live_governor_includes_port_contract_coverage_finding() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "port-contract-coverage" in by_id
     assert by_id["port-contract-coverage"].status == "pass"
@@ -1988,8 +2018,9 @@ def test_live_governor_includes_port_contract_coverage_finding() -> None:
 def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "hostile-negative-suite-coverage" in by_id
     finding = by_id["hostile-negative-suite-coverage"]
@@ -2026,8 +2057,9 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
 def test_live_governor_passes_multi_adapter_port_coverage() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "multi-adapter-port-coverage" in by_id
     finding = by_id["multi-adapter-port-coverage"]
@@ -2041,8 +2073,9 @@ def test_live_governor_passes_multi_adapter_port_coverage() -> None:
 def test_live_governor_passes_live_adapter_readiness() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "live-adapter-readiness" in by_id
     finding = by_id["live-adapter-readiness"]
@@ -2082,8 +2115,9 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
 def test_live_governor_passes_ci_quality_gate_drift() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "ci-quality-gate-drift" in by_id
     finding = by_id["ci-quality-gate-drift"]
@@ -2099,8 +2133,9 @@ def test_live_governor_passes_ci_quality_gate_drift() -> None:
 def test_live_governor_passes_verify_test_coverage_drift() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "verify-test-coverage-drift" in by_id
     finding = by_id["verify-test-coverage-drift"]
@@ -2230,8 +2265,9 @@ def test_stale_open_milestone_behind_last_completed_is_debt(tmp_path: Path) -> N
 def test_live_governor_passes_semantic_stub_in_product_code() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "semantic-stub-in-product-code" in by_id
     finding = by_id["semantic-stub-in-product-code"]
@@ -2301,8 +2337,9 @@ def test_semantic_stub_in_product_code_ignores_tests_and_testkit(tmp_path: Path)
 def test_live_governor_passes_semantic_name_collision() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "semantic-name-collision" in by_id
     finding = by_id["semantic-name-collision"]
@@ -2600,8 +2637,9 @@ def test_companion_manifest_check_spec_is_docs_deterministic_warn() -> None:
 def test_live_governor_passes_companion_manifest() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "companion-manifest" in by_id
     finding = by_id["companion-manifest"]
@@ -2794,8 +2832,9 @@ def test_golden_corpus_catalog_check_spec_is_docs_deterministic_warn() -> None:
 def test_live_governor_passes_golden_corpus_catalog() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "golden-corpus-catalog" in by_id
     finding = by_id["golden-corpus-catalog"]
@@ -2818,8 +2857,9 @@ def test_live_governor_passes_golden_corpus_catalog() -> None:
 def test_live_governor_reports_historical_test_debt_visibility() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "historical-test-debt-visibility" in by_id
     finding = by_id["historical-test-debt-visibility"]
@@ -2950,8 +2990,9 @@ def test_live_npa_promotion_control_is_registered_with_debt_inputs() -> None:
 def test_live_governor_includes_adr_and_archive_checks() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    if not _on_bound_branch():
-        _assert_fail_closed_branch_contract(report)
+    context = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(context):
+        _assert_fail_closed_branch_contract(report, context)
         return
     assert "adr-truth-oracle-sync" in by_id
     assert "adr-index-completeness" in by_id
@@ -5635,14 +5676,14 @@ class TestRoadmapFreshnessAgainstNativePath:
 
         from law_nexus_harness import workflow_state as ws
 
-        self._repo(tmp_path, "001-native-workflow-acceptance")
+        self._repo(tmp_path, "post-ship-hardening")
         real = ws.read_workflow_state
 
         def operational(root):
             return replace(
                 real(root),
                 kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
-                native_milestone="001-native-workflow-acceptance",
+                native_milestone="post-ship-hardening",
                 native_phase="build",
             )
 
