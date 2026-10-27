@@ -1,0 +1,36 @@
+{
+  "active": true,
+  "history": [],
+  "identity": {
+    "assignment": "review_wave_4_cycle_1",
+    "project_dir": ".project",
+    "repo": "/root/law-nexus",
+    "role": "reviewer",
+    "scope": "001-native-workflow-acceptance"
+  },
+  "selection": {
+    "cli": {
+      "effort": [],
+      "model": []
+    },
+    "controls": {
+      "effort": [],
+      "model": []
+    },
+    "effective_model": null,
+    "host": "claude",
+    "identity_evidence": "requested controls; host execution is recorded by the dispatcher",
+    "native": {},
+    "policy_hash": "0eecdfeb02075c6a7cd09c421d3e3634c94de76ef9e47733008b6b306143a31f",
+    "role": "reviewer",
+    "schema": "gsd-path/model-selection/v1",
+    "selected": {
+      "effort": "inherit",
+      "model": "inherit"
+    },
+    "sources": {
+      "effort": "default",
+      "model": "default"
+    }
+  }
+}

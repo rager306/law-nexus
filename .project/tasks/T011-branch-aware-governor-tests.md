@@ -84,3 +84,28 @@ Heavy: no
   .......ss.....................................................           [100%]
   276 passed, 2 skipped in 144.11s (0:02:24)
   ```
+- 2026-10-27 — build_T011 implementation (coder, r1): made both declared suites branch-environment-aware on exactly one
+  predicate — the live branch of ROOT via read-only `git rev-parse --abbrev-ref HEAD` equals the bound branch
+  `gsd-path/M001` or not. On the bound branch every pre-change assertion of the twelve `test_live_governor_*`
+  live-surface tests and the two preflight live-surface tests is preserved verbatim below an inserted gate; on any
+  other branch the pinned-contract path asserts the fail-closed contract itself: the blocking `workflow-state-surface`
+  finding (status fail, severity error, rule `workflow-state-surface.blocking`, honest `kind=` admission, non-empty
+  remediation), failure status, and error totals derived from the report's own error findings — never 0, never a
+  guessed constant; the preflight CLI test pins exit 1 with the blocking check counted, and the injected cargo-fmt
+  failure stays asserted and counted alongside the environment error. Shared helpers (`BOUND_BRANCH`,
+  `_current_branch`, `_on_bound_branch`, and the governor-side `_assert_fail_closed_branch_contract`) live inside the
+  two declared files only. No test removed; no skip/xfail/suppression added (N3); the two journal-gated skips and
+  `_skip_without_pi_journal` untouched. `ruff format --check` and `ruff check` clean on both modules. Wiring smoke:
+  with the pinned path forced on the bound branch, sampled governor and preflight tests route into the pinned
+  assertions and fail exactly at the blocking-finding asserts — the expected shape against an operational report.
+  Coder Verify (operational context, gsd-path/M001 @ e85cf2b4, full-assertion path):
+  `uv run --frozen pytest tests/test_harness_governor.py tests/test_harness_preflight.py -q` → 267 passed, 0 failed
+  (260.05s); T001 file-overlap Verify → 278 passed, 0 failed (255.12s). Together with the orchestrator's sidecar run
+  above (265 passed, 2 skipped — the skips are the journal-gated tests, absent `.gsd` in the sidecar), both
+  environments of AC3 are exercised green. Correction to the r1 disposition note above: the coder Verify had returned
+  before the orchestrator's finish; it was in flight, not lost. The coder ran no git mutations; the landing commit is
+  the orchestrator's 069c2ba8.
+- 2026-10-27 — orchestrator: wave-4 review warning 1 discharged — the SC1 command was run once on the bound branch
+  gsd-path/M001 (operational context, full assertions) at the post-landing head: 267 passed / 0 failed (349 s),
+  recorded in the verify ledger.
+
