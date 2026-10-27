@@ -3,11 +3,11 @@ id: T001
 title: Vendor the pinned runtime and make CI restore it honestly with shipped-main governor proof and failure diagnostics
 wave: 1
 deps: [T002]
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+status: done
+agent: build_T001
+base: 3aa7af81ce1158d9f80cf2378fd4db7d72d941c3
+worktree: null
+task_branch: null
 files:
   - .ai/vendor/gsd-path-1.6.2.tgz
   - .github/workflows/repository-quality.yml
@@ -148,3 +148,34 @@ Heavy: no
 - 2026-10-27 — orchestrator answer + plan-defect repair (owner standing delegation; same class as the M001 gitignore anchoring): .gitignore joins `files`; Add the surgical negation `!/.ai/vendor/` immediately after the existing `vendor/` rule in `.gitignore`
   (nothing else in the file changes) so the declared archive is trackable; pack the archive into the tracked
   path; keep the restore step and its tests as implemented.
+
+- 2026-10-27 — r2 restore by build_T001 (serial, primary worktree, base 3aa7af81). The preserved patch
+  (`/root/law-nexus-pre-milestone-fix/t001-m002-work.patch`) carries only the workflow and task-file hunks
+  (text diff, no new-file content), so its workflow hunks were applied with `git apply --include` (clean) and
+  the three missing deliverables were reconstructed verbatim from the preserved r1 session transcript
+  (`sub-03205ab3/01a17c67-*.jsonl`): `scripts/install.py` from the recorded Add-File payload followed by the
+  same lockfile-pinned `uv run --frozen ruff format`; `tests/test_ci_runtime_restore.py` from the recorded
+  Add-File payload plus the recorded successful edit sequence (5 exact-match edits, then the two follow-up
+  edits, `ruff format` between them, all matched exactly once on replay); `.ai/vendor/gsd-path-1.6.2.tgz`
+  repacked with the recorded recipe (sorted members, uid/gid 0, mode 0644, fixed mtime 1793884800) from the
+  machine-local `.ai/local/vendor/gsd-path/` release tree with this task's tracked installer grafted at
+  `gsd-path/scripts/install.py` — 48 members, 427,317 bytes, single top-level `gsd-path/`. Sandboxed
+  rehearsal against the repacked archive reproduced the r1 contract: fresh restore exit 0 printing
+  `runtime: restore 1.6.2 (6f95a31e…)`, second run reuses the store (E2), `--dry-run` prints the pinned pair
+  with "(dry run)".
+- 2026-10-27 — `.gitignore`: added `!/.ai/vendor/` immediately after the `vendor/` rule (line 106); nothing
+  else in the file changed; `git check-ignore .ai/vendor/gsd-path-1.6.2.tgz` now exits 1 (not ignored).
+- 2026-10-27 — Verify: `uv run --frozen pytest tests/test_ci_runtime_restore.py -q` → `15 passed in 2.09s`
+  (exit 0). Also green: `ruff check` + `ruff format --check` on `scripts/install.py` and
+  `tests/test_ci_runtime_restore.py`; `tests/test_repository_quality_gate.py` 5 passed against the restored
+  workflow.
+- 2026-10-27 — orchestrator Verify (sidecar gsd-path-verify/task-t001-verify): pass, exit 0; output tail:
+  ```
+  ...............                                                          [100%]
+  15 passed in 2.66s
+  Using CPython 3.13.12 interpreter at: /root/.local/bin/python3.13
+  Creating virtual environment at: .venv
+     Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t001-verify
+        Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t001-verify
+  Installed 32 packages in 826ms
+  ```
