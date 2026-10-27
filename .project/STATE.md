@@ -2,7 +2,7 @@
 pipeline: gsd-path/v2
 project: law-nexus
 milestone: 001-native-workflow-acceptance
-phase: build
+phase: ship
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
 status: active
@@ -55,3 +55,4 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-27 — plan — patch plan reopened
 - 2026-10-27 — plan — patch plan approved
 - 2026-10-27 — build — build started
+- 2026-10-27 — ship — build done; final review pending

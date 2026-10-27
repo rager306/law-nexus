@@ -1,7 +1,7 @@
 {
   "canonical_project_dir": ".project",
   "command": "verify-landed",
-  "head": "65839e1ef4be7d185e96ed9d2946ee996bae11cf",
+  "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
   "project_dir": ".project",
   "tasks": [
     {
@@ -16,7 +16,7 @@
             "valid": true
           }
         ],
-        "head": "65839e1ef4be7d185e96ed9d2946ee996bae11cf",
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
         "subject": "T001: Land the five pre-milestone fixes on gsd-path/M001"
       },
       "landed_commit": "9cb5107af9182862b3e7f82578fe039b5da5a350",
@@ -40,7 +40,7 @@
             "valid": true
           }
         ],
-        "head": "65839e1ef4be7d185e96ed9d2946ee996bae11cf",
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
         "subject": "T002: Sync the workflow marker to the Path milestone"
       },
       "landed_commit": "99abed611afa2c4257085779730530d0729ddd3e",
@@ -64,7 +64,7 @@
             "valid": true
           }
         ],
-        "head": "65839e1ef4be7d185e96ed9d2946ee996bae11cf",
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
         "subject": "T003: Land the CI policy and payload type-check package"
       },
       "landed_commit": "2e1e3c58ad3dfda11b0723000bdf3c7777f77d41",
@@ -88,7 +88,7 @@
             "valid": true
           }
         ],
-        "head": "65839e1ef4be7d185e96ed9d2946ee996bae11cf",
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
         "subject": "T004: Close the M225 validation residual with an honest re-run"
       },
       "landed_commit": "e776fc5c0b41ab7295194627f80d2f8705d6c11d",
@@ -112,7 +112,7 @@
             "valid": true
           }
         ],
-        "head": "65839e1ef4be7d185e96ed9d2946ee996bae11cf",
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
         "subject": "T005: Create the minimal PDD product model"
       },
       "landed_commit": "ab0286e4c4094d089fb30bdf4ed2fdec80f4cfce",
@@ -136,7 +136,7 @@
             "valid": true
           }
         ],
-        "head": "65839e1ef4be7d185e96ed9d2946ee996bae11cf",
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
         "subject": "T006: Re-index GitNexus and regenerate the AGENTS.md tool block"
       },
       "landed_commit": "55ec0072fef24a6bb504552a63ca7e1df4bf4bbc",
@@ -160,7 +160,7 @@
             "valid": true
           }
         ],
-        "head": "65839e1ef4be7d185e96ed9d2946ee996bae11cf",
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
         "subject": "T007: Delete the junk files through the full native cycle"
       },
       "landed_commit": "105b3d6c1f46631a2ae2e6eb9e51e8b6f76fbd36",
@@ -184,7 +184,7 @@
             "valid": true
           }
         ],
-        "head": "65839e1ef4be7d185e96ed9d2946ee996bae11cf",
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
         "subject": "T008: Prove session resume from disk alone"
       },
       "landed_commit": "2ce3b6d762c4dd918e59d089b5d6bed49396ff02",
@@ -208,7 +208,7 @@
             "valid": true
           }
         ],
-        "head": "65839e1ef4be7d185e96ed9d2946ee996bae11cf",
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
         "subject": "T009: Write the cutover readiness assessment with publication and CI pending-ship"
       },
       "landed_commit": "d5c46c1bc83ed2c7790767d2a7d8f2585bf547f6",
@@ -232,7 +232,7 @@
             "valid": true
           }
         ],
-        "head": "65839e1ef4be7d185e96ed9d2946ee996bae11cf",
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
         "subject": "T010: Reword the corpus-glob-guard claim in law-source/consultant/README.md"
       },
       "landed_commit": "64a7d88f935ad9f67a17aa6bca7085cd33d25508",
@@ -242,6 +242,30 @@
         "id": "T010",
         "status": "done",
         "task_file": ".project/tasks/T010-reword-corpus-glob-guard-claim.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M001",
+        "candidates": [
+          {
+            "base": "e85cf2b49dc3686e72789ba97fc34dec892c1103",
+            "commit": "069c2ba80a22e9971ce045affd6382c60c3ee37b",
+            "valid": true
+          }
+        ],
+        "head": "552e5bb6eb1d790084844fbc253f5339550a6c23",
+        "subject": "T011: Make the governor and preflight suites branch-environment-aware"
+      },
+      "landed_commit": "069c2ba80a22e9971ce045affd6382c60c3ee37b",
+      "reasons": [],
+      "task": {
+        "base": "e85cf2b49dc3686e72789ba97fc34dec892c1103",
+        "id": "T011",
+        "status": "done",
+        "task_file": ".project/tasks/T011-branch-aware-governor-tests.md"
       }
     }
   ]
