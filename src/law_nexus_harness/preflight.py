@@ -317,7 +317,9 @@ def _workflow_state_surface_check(root: Path) -> PreflightCheck:
 
     Reads the read-only adapter instead of the legacy .gsd projection. In
     bootstrap mode a missing .project is an explicit not-cut-over warning,
-    never a silent PASS; in operational mode it is a blocking failure.
+    never a silent PASS; in operational mode it is a blocking failure; a
+    verified shipped/done state on integrated main passes as shipped-integrated
+    with the archive proof (Contract A).
     """
     command = ("internal", "workflow-state-adapter")
     report = read_workflow_state(root)
@@ -331,6 +333,25 @@ def _workflow_state_surface_check(root: Path) -> PreflightCheck:
         )
         observed = (
             f"backend=gsd-path; state=operational; runtime={runtime_note}; legacy_gsd={legacy}"
+        )
+        if report.detail:
+            observed += f"; {report.detail}"
+        return _pass_check(
+            check_id="workflow-state-surface",
+            phase="workflow-state",
+            command=command,
+            observed=observed,
+        )
+    if report.kind is WorkflowStateKind.SHIPPED_INTEGRATED:
+        runtime = report.runtime
+        runtime_note = (
+            f"{runtime.version}@{runtime.digest[:12]}"
+            if runtime.version is not None and runtime.digest is not None
+            else "unresolved"
+        )
+        observed = (
+            f"backend=gsd-path; state=shipped-integrated; runtime={runtime_note}; "
+            f"legacy_gsd={legacy}; {report.observed}"
         )
         if report.detail:
             observed += f"; {report.detail}"

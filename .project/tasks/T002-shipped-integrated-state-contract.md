@@ -3,10 +3,10 @@ id: T002
 title: Classify the shipped-integrated main state as an honest non-blocking workflow state
 wave: 1
 deps: []
-status: in-progress
+status: done
 agent: build_T002
-base: cc9457c71619cc62eae2bd4275d0e8367101965f
-worktree: /root/law-nexus
+base: 883030f20b2a3e735997dd44a9f760ea5d55a826
+worktree: null
 task_branch: null
 files:
   - src/law_nexus_harness/workflow_state.py
@@ -126,4 +126,14 @@ Heavy: no
      Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t002-verify
         Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t002-verify
   Installed 32 packages in 354ms
+  ```
+- 2026-10-27 — orchestrator Verify (sidecar gsd-path-verify/task-t002-verify): pass, exit 0; output tail:
+  ```
+  ................................................                         [100%]
+  48 passed in 2.19s
+  Using CPython 3.13.12 interpreter at: /root/.local/bin/python3.13
+  Creating virtual environment at: .venv
+     Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t002-verify
+        Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t002-verify
+  Installed 32 packages in 315ms
   ```
