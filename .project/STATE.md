@@ -1,18 +1,18 @@
 ---
 pipeline: gsd-path/v2
 project: law-nexus
-milestone: 001-native-workflow-acceptance
-phase: shipped
+milestone: post-ship-hardening
+phase: plan
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
-status: done
-branch: gsd-path/M001
+status: active
+branch: gsd-path/M002
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
-archive: .project/archive/001-001-native-workflow-acceptance
-integration_default: direct # direct | pull-request | external-landing; project setting
-integration: direct # current milestone; may override the default before build
-integration_source: default # default | milestone; preserves override provenance
+archive: null
+integration_default: direct
+integration: direct
+integration_source: default
 default_branch: main # origin default branch; initialization records it once, nothing changes it
 ---
 
@@ -58,3 +58,6 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-27 — ship — build done; final review pending
 - 2026-10-27 — ship — final gate passed; shipping approval pending
 - 2026-10-27 — shipped — archive preflight passed; shipment recorded
+- 2026-10-27 — define — router bound next milestone
+- 2026-10-27 — define — milestone intent approved
+- 2026-10-27 — plan — planning started

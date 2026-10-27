@@ -1,0 +1,85 @@
+{
+ "next": "$gsd-path-forensics",
+ "reason": "check_task_briefs.py",
+ "status": "blocked",
+ "steps": [
+  {
+   "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/root/.allspark-home/.gsd-path/runtimes/6f95a31e4b8a434672421a604bdce71e5179409eb19496097219cd6cdb5d9f6f/discussion_records.py",
+    "pending",
+    "--repo",
+    "/root/law-nexus"
+   ],
+   "exit_code": 0,
+   "result": {
+    "pending": []
+   },
+   "script": "discussion_records.py",
+   "stderr": "",
+   "stdout": "{\"pending\": []}\n"
+  },
+  {
+   "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/root/.allspark-home/.gsd-path/runtimes/6f95a31e4b8a434672421a604bdce71e5179409eb19496097219cd6cdb5d9f6f/check_handoffs.py",
+    "plan",
+    "--repo",
+    "/root/law-nexus",
+    "--project-dir",
+    ".project"
+   ],
+   "exit_code": 0,
+   "result": {
+    "criteria": [
+     "SC1",
+     "SC2",
+     "SC3",
+     "SC4",
+     "SC5"
+    ],
+    "held_out": {
+     "E1": "T001",
+     "E4": "T003",
+     "E6": "T004"
+    },
+    "phase": "plan",
+    "rows": 18,
+    "surfaces": {
+     "GitHub Actions (repository-quality run on main: job result, governor diagnostics)": "T001",
+     "terminal (native Path CLI: path-run.py status, governor, pytest, git)": "T005"
+    },
+    "tasks": 5,
+    "waves": [
+     1,
+     2
+    ]
+   },
+   "script": "check_handoffs.py",
+   "stderr": "",
+   "stdout": "{\"criteria\": [\"SC1\", \"SC2\", \"SC3\", \"SC4\", \"SC5\"], \"held_out\": {\"E1\": \"T001\", \"E4\": \"T003\", \"E6\": \"T004\"}, \"phase\": \"plan\", \"rows\": 18, \"surfaces\": {\"GitHub Actions (repository-quality run on main: job result, governor diagnostics)\": \"T001\", \"terminal (native Path CLI: path-run.py status, governor, pytest, git)\": \"T005\"}, \"tasks\": 5, \"waves\": [1, 2]}\n"
+  },
+  {
+   "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/root/.allspark-home/.gsd-path/runtimes/6f95a31e4b8a434672421a604bdce71e5179409eb19496097219cd6cdb5d9f6f/check_task_briefs.py",
+    "--repo",
+    "/root/law-nexus",
+    "--base",
+    "4e0cd4dba087b3a0dfaacb4cc6a443f1bc5d495f",
+    "--tasks-dir",
+    ".project/tasks",
+    "--project-dir",
+    ".project"
+   ],
+   "exit_code": 1,
+   "script": "check_task_briefs.py",
+   "stderr": "task brief validation failed: T001: ## Context names a path missing at the layer base: scripts/install.py\n",
+   "stdout": ""
+  }
+ ],
+ "note": "M002 plan gate evidence; final run after plan-m002 child"
+}
