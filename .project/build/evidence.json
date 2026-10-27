@@ -1,0 +1,128 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "93a60f1cba82fe1a4a35e9137a4939d3e649954f",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M002",
+        "candidates": [
+          {
+            "base": "3aa7af81ce1158d9f80cf2378fd4db7d72d941c3",
+            "commit": "0211f357f50412bf623c1fcff552830fcb4136a3",
+            "valid": true
+          }
+        ],
+        "head": "93a60f1cba82fe1a4a35e9137a4939d3e649954f",
+        "subject": "T001: Vendor the pinned runtime and make CI restore it honestly with shipped-main governor proof and failure diagnostics"
+      },
+      "landed_commit": "0211f357f50412bf623c1fcff552830fcb4136a3",
+      "reasons": [],
+      "task": {
+        "base": "3aa7af81ce1158d9f80cf2378fd4db7d72d941c3",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-ci-runtime-restore-and-diagnostics.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M002",
+        "candidates": [
+          {
+            "base": "883030f20b2a3e735997dd44a9f760ea5d55a826",
+            "commit": "50ff97b6c16fa0ca7078454acf65e3d989cf252c",
+            "valid": true
+          }
+        ],
+        "head": "93a60f1cba82fe1a4a35e9137a4939d3e649954f",
+        "subject": "T002: Classify the shipped-integrated main state as an honest non-blocking workflow state"
+      },
+      "landed_commit": "50ff97b6c16fa0ca7078454acf65e3d989cf252c",
+      "reasons": [],
+      "task": {
+        "base": "883030f20b2a3e735997dd44a9f760ea5d55a826",
+        "id": "T002",
+        "status": "done",
+        "task_file": ".project/tasks/T002-shipped-integrated-state-contract.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M002",
+        "candidates": [
+          {
+            "base": "d3a071d324e07165454daf65dbd05825b98d96b5",
+            "commit": "878518aa17725616996d7bd39ca9db2a457ab5b3",
+            "valid": true
+          }
+        ],
+        "head": "93a60f1cba82fe1a4a35e9137a4939d3e649954f",
+        "subject": "T003: Make the governor and preflight suites context-independent with the five-scenario matrix"
+      },
+      "landed_commit": "878518aa17725616996d7bd39ca9db2a457ab5b3",
+      "reasons": [],
+      "task": {
+        "base": "d3a071d324e07165454daf65dbd05825b98d96b5",
+        "id": "T003",
+        "status": "done",
+        "task_file": ".project/tasks/T003-context-independent-scenario-matrix.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M002",
+        "candidates": [
+          {
+            "base": "3b0d8527a6a9eb4d14a469525fa8cce5d046a241",
+            "commit": "c0694593cc8e2902a2a94e6acf2a734fc176e16e",
+            "valid": true
+          }
+        ],
+        "head": "93a60f1cba82fe1a4a35e9137a4939d3e649954f",
+        "subject": "T004: Make the post-ship pointers truthful and write the dated post-ship report"
+      },
+      "landed_commit": "c0694593cc8e2902a2a94e6acf2a734fc176e16e",
+      "reasons": [],
+      "task": {
+        "base": "3b0d8527a6a9eb4d14a469525fa8cce5d046a241",
+        "id": "T004",
+        "status": "done",
+        "task_file": ".project/tasks/T004-post-ship-pointers-and-report.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M002",
+        "candidates": [
+          {
+            "base": "4eb6d93128cbbaeb95c9221b94655eb18e501c68",
+            "commit": "4cf66ef92c3e97b336eef948ea87aa16778b4b0f",
+            "valid": true
+          }
+        ],
+        "head": "93a60f1cba82fe1a4a35e9137a4939d3e649954f",
+        "subject": "T005: Run the M002 acceptance walkthrough as a fresh session and record the proof on disk"
+      },
+      "landed_commit": "4cf66ef92c3e97b336eef948ea87aa16778b4b0f",
+      "reasons": [],
+      "task": {
+        "base": "4eb6d93128cbbaeb95c9221b94655eb18e501c68",
+        "id": "T005",
+        "status": "done",
+        "task_file": ".project/tasks/T005-fresh-session-acceptance-walkthrough.md"
+      }
+    }
+  ]
+}
