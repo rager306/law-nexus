@@ -50,7 +50,10 @@ _LEGACY_HEADER_SCAN_LIMIT = 100
 # `run-phase` and `wait` mean the workflow needs no native recovery: the router
 # either runs the current phase or waits for a promotion. The recovery actions
 # mean a native helper step must happen first, which is never an operational
-# verdict. An action outside both sets is contract drift and yields no verdict
+# verdict. The one honest exception is Contract A: a verified shipped/done
+# `block` is the integrated-main terminal state (branch ownership away from the
+# retired bound branch), classified SHIPPED_INTEGRATED, not a recovery demand.
+# An action outside both sets is contract drift and yields no verdict
 # at all rather than a guess.
 _NATIVE_ROUTE_ACTIONS_OPERATIONAL = frozenset({"run-phase", "wait"})
 _NATIVE_ROUTE_ACTIONS_RECOVERY = frozenset(
@@ -72,6 +75,10 @@ class WorkflowStateKind(Enum):
 
     BOOTSTRAP_NOT_CUT_OVER = "bootstrap-not-cut-over"
     OPERATIONAL_VALID = "operational-valid"
+    # Contract A: the verified shipped/done state on integrated main. Not a
+    # recovery demand and not a defect - the archive path in the payload is the
+    # proof that the milestone landed on the default branch.
+    SHIPPED_INTEGRATED = "shipped-integrated"
     STATE_UNVERIFIED = "state-unverified"
     MISSING_STATE = "missing-state"
     INVALID_SCHEMA = "invalid-schema"
@@ -221,8 +228,10 @@ class WorkflowStateReport:
 
     ``native_milestone`` and ``native_phase`` name WHICH milestone and phase the
     native helper validated, and are populated only for ``OPERATIONAL_VALID``:
-    a surface that is not operational has no current milestone to report. They
-    are identity, not proof - callers still gate on ``kind`` first.
+    only that verdict reports a current milestone and phase (the
+    shipped-integrated verdict's milestone is archived, so there is no current
+    milestone to name). They are identity, not proof - callers still gate on
+    ``kind`` first.
     """
 
     schema_version: str
@@ -582,12 +591,22 @@ class _NativeStatusVerdict:
     validated. They are identity, not proof: a payload that omits them still
     produces a verdict, with the missing half left None. A field present with
     a non-string value is rejected upstream and never read as None.
+
+    ``state_phase``, ``state_status``, ``state_archive``, and
+    ``completion_status`` are the strict payload facts (never a route
+    fallback) that feed the shipped-integrated predicate; every one of them is
+    validated eagerly, so a wrong-typed twin cannot hide behind a valid
+    sibling.
     """
 
     action: str
     reason: str
     milestone: str | None = None
     phase: str | None = None
+    state_phase: str | None = None
+    state_status: str | None = None
+    state_archive: str | None = None
+    completion_status: str | None = None
 
     @property
     def operational(self) -> bool:
@@ -604,14 +623,16 @@ def _native_status_verdict(
     The pinned helper (``pipeline_state.py status``, Path 1.6.2) prints exactly
     one JSON object with ``sort_keys=True`` and exits 1 with ``error: ...`` on
     stderr when it cannot prove the state, so a parsed payload is itself the
-    proof that STATE.md passed native validation. Three keys are read:
+    proof that STATE.md passed native validation. Four keys are read:
     ``schema`` (must be ``gsd-path/status/v1``), ``state`` (the parsed STATE.md
-    fields), and ``route`` (``action`` plus ``reason``). Anything else is
+    fields), ``route`` (``action`` plus ``reason``), and ``completion`` (the
+    shipped-integrated completion verdict). Anything else is
     refused rather than guessed at. ``state.milestone`` and ``state.phase`` are
     carried through as identity when present; a payload that omits either still
     yields a verdict, because identity is what the helper proved, not the proof.
     A field present with a non-string value is refused instead (fail-closed);
-    the same rule covers the ``route`` identity fields.
+    the same rule covers the ``route`` identity fields, the predicate-feeding
+    ``state`` fields, and the ``completion`` object.
     """
 
     try:
@@ -638,12 +659,24 @@ def _native_status_verdict(
     if action not in _NATIVE_ROUTE_ACTIONS_OPERATIONAL | _NATIVE_ROUTE_ACTIONS_RECOVERY:
         raise _NativeStatusError(f"native status route action is unknown: {action!r}")
     reason = route.get("reason")
-    # All four identity sites are validated before any fallback reads them, so
-    # a wrong-typed value in `route` cannot hide behind a valid `state` twin.
+    # All identity and predicate sites are validated before any fallback reads
+    # them, so a wrong-typed value in `route` or `completion` cannot hide
+    # behind a valid `state` twin.
     state_milestone = _identity_field(state, "milestone", "state")
     state_phase = _identity_field(state, "phase", "state")
+    state_status = _identity_field(state, "status", "state")
+    state_archive = _identity_field(state, "archive", "state")
     route_milestone = _identity_field(route, "milestone", "route")
     route_phase = _identity_field(route, "phase", "route")
+    completion = payload.get("completion")
+    completion_status: str | None = None
+    if completion is not None:
+        if not isinstance(completion, dict):
+            raise _NativeStatusError(
+                "native status payload completion must be an object when present, "
+                f"got {type(completion).__name__}"
+            )
+        completion_status = _identity_field(completion, "status", "completion")
     return _NativeStatusVerdict(
         action=action,
         reason=reason if isinstance(reason, str) and reason else "<missing>",
@@ -653,6 +686,12 @@ def _native_status_verdict(
         # fallback.
         milestone=state_milestone or route_milestone,
         phase=state_phase or route_phase,
+        # Strict predicate facts: never the route fallback, so the shipped
+        # classification reads exactly what the helper validated.
+        state_phase=state_phase,
+        state_status=state_status,
+        state_archive=state_archive,
+        completion_status=completion_status,
     )
 
 
@@ -850,6 +889,30 @@ def read_workflow_state(
             native_milestone=verdict.milestone,
             native_phase=verdict.phase,
         )
+    if (
+        verdict.action == "block"
+        and verdict.completion_status == "verified"
+        and verdict.state_phase == "shipped"
+        and verdict.state_status == "done"
+    ):
+        # Contract A: the helper validated the shipped/done STATE.md and its
+        # integration proof; the block is only branch ownership away from the
+        # retired bound branch on integrated main. The archive path is part of
+        # the observed fact, never a substitute for the completion proof.
+        archive = verdict.state_archive if verdict.state_archive else "absent"
+        return _report(
+            WorkflowStateKind.SHIPPED_INTEGRATED,
+            observed=(
+                "GSD Path workflow state is the shipped integrated main: native "
+                "status validated STATE.md and its integration proof; "
+                f"outcome shipped/done; archive {archive}."
+            ),
+            remediation="none",
+            detail=f"native status route={verdict.action}: {verdict.reason}",
+            evidence=(PROJECT_STATE_RELATIVE_PATH,),
+            runtime=runtime_info,
+            legacy_gsd_present=legacy_gsd_present,
+        )
     return _report(
         WorkflowStateKind.CONFLICTING_OWNERSHIP,
         observed=(
@@ -928,13 +991,15 @@ def read_legacy_gsd_snapshot(root: Path) -> WorkflowStateReport:
 def workflow_readiness(report: WorkflowStateReport) -> WorkflowReadiness:
     """Map one workflow-state report to the coarse harness readiness verdict.
 
-    Only a state the native helper actually validated is operational. Everything
+    Only a state the native helper actually validated is operational:
+    ``OPERATIONAL_VALID`` (an active milestone) and ``SHIPPED_INTEGRATED``
+    (the verified shipped/done terminal state on integrated main). Everything
     else blocks, including ``STATE_UNVERIFIED`` (present but never validated),
     ``MISSING_STATE``, ``INVALID_SCHEMA``, and ``CONFLICTING_OWNERSHIP``; the
     fallthrough keeps a future kind fail-closed by default.
     """
 
-    if report.kind is WorkflowStateKind.OPERATIONAL_VALID:
+    if report.kind in (WorkflowStateKind.OPERATIONAL_VALID, WorkflowStateKind.SHIPPED_INTEGRATED):
         return "operational"
     if report.kind is WorkflowStateKind.BOOTSTRAP_NOT_CUT_OVER:
         return "bootstrap-not-cut-over"

@@ -718,10 +718,12 @@ def check_forward_roadmap_sequence(root: Path) -> list[GovernorFinding]:
 def check_workflow_state_surface(root: Path) -> list[GovernorFinding]:
     """Typed workflow-state adapter check for the GSD Path backend.
 
-    Distinguishes bootstrap not-cut-over from operational Path state; missing
-    or invalid operational state is a blocking diagnostic, never a silent
-    PASS (docs/agent-stack/MIGRATION.md 4.1). Read-only: never repairs state,
-    never completes tasks, never emits Review Case events.
+    Distinguishes bootstrap not-cut-over from operational Path state, and the
+    verified shipped/done integrated main (an honest pass, Contract A) from a
+    blocking recovery route. Missing or invalid operational state is a blocking
+    diagnostic, never a silent PASS (docs/agent-stack/MIGRATION.md 4.1).
+    Read-only: never repairs state, never completes tasks, never emits Review
+    Case events.
     """
     report = read_workflow_state(root)
     evidence = tuple(GovernorEvidence(path=path) for path in report.evidence)
@@ -746,6 +748,27 @@ def check_workflow_state_surface(root: Path) -> list[GovernorFinding]:
                 remediation="none",
                 rule_id="workflow-state-surface.operational",
                 expected="The typed adapter resolves an operational Path state with a verified runtime.",
+                evidence=evidence,
+            )
+        ]
+    if report.kind is WorkflowStateKind.SHIPPED_INTEGRATED:
+        return [
+            GovernorFinding(
+                check_id="workflow-state-surface",
+                status="pass",
+                severity="ok",
+                message="workflow backend resolves to the shipped integrated main",
+                observed=(
+                    f"kind=shipped-integrated; runtime={runtime_note}; "
+                    f"legacy_gsd={legacy}; {report.observed}"
+                ),
+                remediation="none",
+                rule_id="workflow-state-surface.shipped",
+                expected=(
+                    "The typed adapter classifies a verified shipped/done state on "
+                    "integrated main as honest and non-blocking, with the archive "
+                    "proof in the observed fact."
+                ),
                 evidence=evidence,
             )
         ]

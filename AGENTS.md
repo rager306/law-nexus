@@ -220,6 +220,12 @@ that warning as a lost edit and re-apply it to the canonical path.
 > entry point, not a legal or product authority. Historical GSD-Pi workflow
 > notes live in `doc/gsd-headless-supervisor.md` and the frozen `.gsd`
 > snapshot (see `docs/agent-stack/`).
+>
+> Current delivery state: `docs/agent-stack/POST-SHIP-STATE-2026-10-27.md` is
+> the current-state document (it supersedes the dated pre-ship snapshot
+> `docs/agent-stack/CUTOVER-READINESS-M001.md`). Its "Fresh-session bootstrap"
+> section is the documented way to restore the pinned runtime and verify
+> status/governor/freshness on a fresh checkout.
 
 ## Language
 

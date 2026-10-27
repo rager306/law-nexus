@@ -96,6 +96,22 @@ jobs:
       - name: Install Python harness dependencies
         run: uv sync --frozen
 
+      - name: Restore pinned GSD Path runtime (vendored archive, digest-verified)
+        run: |
+          set -euo pipefail
+          if [ ! -f .ai/vendor/gsd-path-1.6.2.tgz ]; then
+            echo "error: pinned GSD Path runtime archive is missing: .ai/vendor/gsd-path-1.6.2.tgz" >&2
+            echo "recorded pinned runtime: $(cat .gsd-path/runtime.json)" >&2
+            exit 1
+          fi
+          restore_dir="$(mktemp -d)"
+          trap 'rm -rf "$restore_dir"' EXIT
+          tar -xzf .ai/vendor/gsd-path-1.6.2.tgz -C "$restore_dir"
+          python3 "$restore_dir/gsd-path/scripts/install.py" \
+            --runtime-restore \
+            --project "$GITHUB_WORKSPACE" \
+            --source-root "$restore_dir/gsd-path"
+
       - name: Fetch locked Rust dependencies
         run: cargo fetch --locked
 
@@ -159,6 +175,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.0
+        with:
+          # The shipped-main governor proof reads the integration landing from
+          # origin/main first-parent history; a shallow clone cannot verify it.
+          fetch-depth: 0
 
       - name: Create repo-local temp tree
         run: mkdir -p "${{ github.workspace }}/tmp/scripts" "${{ github.workspace }}/tmp/pytest"
@@ -175,6 +195,29 @@ jobs:
       - name: Install Python harness dependencies
         run: uv sync --frozen
 
+      - name: Restore pinned GSD Path runtime (vendored archive, digest-verified)
+        run: |
+          set -euo pipefail
+          if [ ! -f .ai/vendor/gsd-path-1.6.2.tgz ]; then
+            echo "error: pinned GSD Path runtime archive is missing: .ai/vendor/gsd-path-1.6.2.tgz" >&2
+            echo "recorded pinned runtime: $(cat .gsd-path/runtime.json)" >&2
+            exit 1
+          fi
+          restore_dir="$(mktemp -d)"
+          trap 'rm -rf "$restore_dir"' EXIT
+          tar -xzf .ai/vendor/gsd-path-1.6.2.tgz -C "$restore_dir"
+          python3 "$restore_dir/gsd-path/scripts/install.py" \
+            --runtime-restore \
+            --project "$GITHUB_WORKSPACE" \
+            --source-root "$restore_dir/gsd-path"
+
+      - name: Prepare shipped-main integration proof inputs
+        run: |
+          set -euo pipefail
+          # The pinned runtime proves the integration landing against the
+          # published default branch; the checkout must name it origin/HEAD.
+          git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
+
       - name: Migration-layer tests
         run: >-
           uv run pytest -q -rs
@@ -185,6 +228,7 @@ jobs:
           tests/test_harness_no_forbidden_imports.py
           tests/test_documentation_navigation.py
           tests/test_repository_quality_gate.py
+          tests/test_ci_runtime_restore.py
 
       - name: Pre-commit hook guard chain
         run: uv run pytest -q -rs tests/test_verify_repository_pre_commit_hook.py
@@ -197,15 +241,38 @@ jobs:
 
       - name: Governor report is honest about bootstrap mode
         run: |
-          uv run python -m law_nexus_harness.governor > governor.json
-          python - <<'PY'
-          import json, sys
+          set -o pipefail
+          uv run python -m law_nexus_harness.governor | tee governor.json
+          uv run python - <<'PY'
+          import json, os, sys
+
           report = json.load(open("governor.json"))
           print("governor:", report["status"], "pass", report["pass_count"],
                 "warn", report["warn_count"], "errors", report["tool_error_count"])
           if report["tool_error_count"]:
               sys.exit("governor reported tool errors: a check could not read its inputs")
+          if os.environ.get("GITHUB_REF") == "refs/heads/main":
+              observed = " ".join(
+                  finding.get("observed", "")
+                  for finding in report["findings"]
+                  if finding.get("check_id") == "workflow-state-surface"
+              )
+              for fact in ("kind=shipped-integrated;",
+                           ".project/archive/001-001-native-workflow-acceptance"):
+                  if fact not in observed:
+                      sys.exit(
+                          "governor on main must report the shipped integrated state; "
+                          f"workflow-state-surface observed: {observed!r} (missing {fact!r})"
+                      )
           PY
+
+      - name: Publish governor diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: governor-diagnostics
+          path: governor.json
+          if-no-files-found: error
 
   corpus-integration:
     # The portable Rust job skips corpus-dependent tests when the gitignored

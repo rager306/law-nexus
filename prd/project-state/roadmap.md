@@ -47,17 +47,29 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** 001-native-workflow-acceptance is the active
-  milestone (native GSD Path state in `.project/STATE.md`, phase build, branch
-  `gsd-path/M001`). The frozen GSD-Pi ledger keeps its historical record:
-  M225-qrwdfv was its active milestone (validation returned needs-attention);
-  M224-554vju (URI anchor, corpus pageindex and edition temporality over
-  JSONL) is the latest completed milestone in that registry, closing the
-  M210-M224 NPA/Rust reference-layer band (M210 admission checkpoint;
-  M211-M216 Rust contour; M217-M220 paused queue; M221-M224 XML/edition/anchor
-  closure). M208-wrz6fg stays parked with a recorded reason and is
-  deliberately **not** claimed complete. Requirements status: 15 active /
-  45 validated / 9 deferred / 6 out of scope.
+- **Local GSD workflow marker:** post-ship-hardening is the active milestone
+  (native GSD Path state in `.project/STATE.md`, phase build, branch
+  `gsd-path/M002`). Post-ship continuation after the M001 ship (external
+  review, 2026-10-27): make the integrated `main` honestly green — CI restores
+  the pinned GSD Path runtime from the vendored archive with digest
+  verification, the governor reports the shipped state on `main`, and failure
+  diagnostics are published without masking the exit — make the
+  governor/preflight suites context-independent, and refresh the post-ship
+  pointers. Current-state document:
+  `docs/agent-stack/POST-SHIP-STATE-2026-10-27.md`.
+- **Local GSD workflow marker (superseded 2026-10-27):** 001-native-workflow-acceptance
+  is shipped/archived/integrated (2026-10-27): ship commit `886a36a8`,
+  integration merge `4e0cd4db` into `main`, tag
+  `milestone/001-001-native-workflow-acceptance`, archive
+  `.project/archive/001-001-native-workflow-acceptance`. The frozen GSD-Pi
+  ledger keeps its historical record: M225-qrwdfv was its active milestone
+  (validation returned needs-attention); M224-554vju (URI anchor, corpus
+  pageindex and edition temporality over JSONL) is the latest completed
+  milestone in that registry, closing the M210-M224 NPA/Rust reference-layer
+  band (M210 admission checkpoint; M211-M216 Rust contour; M217-M220 paused
+  queue; M221-M224 XML/edition/anchor closure). M208-wrz6fg stays parked with
+  a recorded reason and is deliberately **not** claimed complete. Requirements
+  status: 15 active / 45 validated / 9 deferred / 6 out of scope.
 - **Local GSD workflow marker (superseded 2026-10-16):** M225-qrwdfv was **queued** — the
   reference knowledge layer (ADR-0031) as a Rust port with byte parity to the
   executed Python reference. The port reproduces all four committed artifacts

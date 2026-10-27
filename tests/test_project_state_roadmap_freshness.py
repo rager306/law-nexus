@@ -304,6 +304,46 @@ def test_native_marker_names_the_operational_milestone() -> None:
     )
 
 
+# The dated superseded bullet that records M001 shipped/archived/integrated
+# (post-ship pointers, M002 task T004). It must stay a historical record: one
+# bullet, dated, carrying both ship and integration commits.
+_SUPERSEDED_M001_BULLET_RE = re.compile(
+    r"^- \*\*Local GSD workflow marker \(superseded 2026-10-27\):\*\*"
+    r"(?P<body>.*?)^(?=^- |[^ ])",
+    re.MULTILINE | re.DOTALL,
+)
+
+
+def test_native_marker_has_one_dated_m001_superseded_bullet() -> None:
+    """Exactly one dated superseded bullet records the shipped M001 (T004, AC1).
+
+    The live marker moved to `post-ship-hardening`; the retired M001 marker
+    becomes a dated historical record carrying the ship and integration
+    commits, so a fresh agent reads the shipped state instead of re-planning
+    finished work. Runs under the same guard as the three-way identity test:
+    whenever a native STATE.md milestone exists.
+    """
+    if not NATIVE_STATE_PATH.exists():
+        pytest.skip("no .project/STATE.md on this checkout (native state absent)")
+    state_text = NATIVE_STATE_PATH.read_text(encoding="utf-8")
+    if _NATIVE_MILESTONE_RE.search(state_text) is None:
+        pytest.skip(".project/STATE.md carries no milestone (native state absent)")
+
+    roadmap_md = ROADMAP_MD_PATH.read_text(encoding="utf-8")
+    bullets = _SUPERSEDED_M001_BULLET_RE.findall(roadmap_md)
+    assert len(bullets) == 1, (
+        "expected exactly one dated M001 superseded marker bullet "
+        f"(superseded 2026-10-27) in prd/project-state/roadmap.md, found {len(bullets)}"
+    )
+    body = bullets[0]
+    assert "001-native-workflow-acceptance" in body
+    assert "shipped/archived/integrated" in body, (
+        "the dated superseded bullet must record M001 shipped/archived/integrated"
+    )
+    assert "886a36a8" in body, "the superseded bullet must record the ship commit"
+    assert "4e0cd4db" in body, "the superseded bullet must record the integration merge"
+
+
 if __name__ == "__main__":
     # Manual run: print a freshness summary instead of raising. "fresh" uses
     # the same semantics as the test: roadmap current should equal the latest

@@ -11,6 +11,8 @@ from typing import Any
 
 import pytest
 
+from law_nexus_harness.governor import check_workflow_state_surface
+from law_nexus_harness.preflight import _workflow_state_surface_check
 from law_nexus_harness.workflow_state import (
     CUTOVER_MARKER_RELATIVE_PATH,
     LEGACY_SURFACE_CHECKS,
@@ -191,6 +193,125 @@ def blocking_native_status(reason: str) -> Callable[[Path, Path], dict[str, Any]
     payload = copy.deepcopy(NATIVE_STATUS_VALID)
     payload["route"] = {"action": "block", "reason": reason}
     return native_status(payload)
+
+
+# Recorded proof of the shipped integrated M001 main (task T002 Context, probe
+# of 2026-10-27 on a fresh named-branch checkout of 4e0cd4db with the restored
+# runtime; the hashes are real objects in this repository's history):
+#     ship commit        886a36a8f9ed77ad315f4b16fee0cdbc68bf4d02
+#     integrate/landing  4e0cd4dba087b3a0dfaacb4cc6a443f1bc5d495f (= origin/main tip)
+#     tag                milestone/001-001-native-workflow-acceptance
+SHIP_COMMIT = "886a36a8f9ed77ad315f4b16fee0cdbc68bf4d02"
+INTEGRATE_COMMIT = "4e0cd4dba087b3a0dfaacb4cc6a443f1bc5d495f"
+M001_ARCHIVE = ".project/archive/001-001-native-workflow-acceptance"
+M001_BLOCK_REASON = "current branch main != STATE.branch gsd-path/M001"
+
+
+def shipped_main_status() -> dict[str, Any]:
+    return copy.deepcopy(NATIVE_STATUS_SHIPPED_MAIN)
+
+
+# Shape of the pinned helper on integrated M001 main, composed from the probe
+# facts above on the same verbatim key set as NATIVE_STATUS_VALID: the router
+# owns the retired bound branch away from main (block), while the completion
+# verdict proves the shipped/done state and its integration evidence.
+NATIVE_STATUS_SHIPPED_MAIN: dict[str, Any] = {
+    "advance": False,
+    "completion": {
+        "status": "verified",
+        "proof": {
+            "archive": M001_ARCHIVE,
+            "commit": SHIP_COMMIT,
+            "integrate": INTEGRATE_COMMIT,
+            "landing": INTEGRATE_COMMIT,
+            "base": INTEGRATE_COMMIT,
+            "mode": "direct",
+            "tag": "milestone/001-001-native-workflow-acceptance",
+        },
+    },
+    "default_branch": "main",
+    "git": {
+        "ancestor_of_origin_main": False,
+        "branch": "main",
+        "dirty": [],
+        "head": INTEGRATE_COMMIT,
+        "origin_branch": INTEGRATE_COMMIT,
+        "origin_main": INTEGRATE_COMMIT,
+        "published": True,
+        "subject": "integrate: M001 — merge gsd-path/M001 into main",
+    },
+    "handoff": {
+        "next": f"block: {M001_BLOCK_REASON}",
+        "outcome": "shipped/done",
+        "phase_next": f"block: {M001_BLOCK_REASON}",
+        "review": "/tmp/wf-probe3/.project/STATE.md",
+        "router_next": f"block: {M001_BLOCK_REASON}",
+    },
+    "journals": {
+        "abandon": None,
+        "bind_next": None,
+        "checkpoint": None,
+        "collect_artifact": None,
+        "promotion": None,
+        "shipment": None,
+        "undo": None,
+    },
+    "lookahead": False,
+    "next_skill": "gsd-path",
+    "path": "/tmp/wf-probe3/.project/STATE.md",
+    "pending_answers": [],
+    "pending_error": None,
+    "route": {"action": "block", "reason": M001_BLOCK_REASON},
+    "schema": "gsd-path/status/v1",
+    "state": {
+        "archive": M001_ARCHIVE,
+        "branch": "gsd-path/M001",
+        "integration": "direct",
+        "integration_default": "direct",
+        "integration_source": "default",
+        "milestone": "001-native-workflow-acceptance",
+        "phase": "shipped",
+        "pipeline": "gsd-path/v2",
+        "project": "probe",
+        "status": "done",
+    },
+}
+
+
+def write_operational_surface_files(root: Path) -> None:
+    """Marker, STATE.md, and declaration: the files every native-status test needs."""
+
+    write_cutover_marker(root, cutover=True)
+    write_project_state(root)
+    write_runtime_declaration(root)
+
+
+def write_shipped_main_real_stack(root: Path) -> None:
+    """Fixture that reaches the governor/preflight checks through the real stack.
+
+    The default runtime resolver runs the tracked shim, and the default native
+    runner executes ``pipeline_state.py`` from the resolved runtime directory,
+    so both are faked in the checkout the way
+    ``test_default_resolver_runs_real_shim_end_to_end`` fakes the shim: a
+    runtime cache directory whose helper prints one fixed status payload. No
+    network and no real runtime store are involved.
+    """
+
+    write_operational_surface_files(root)
+    runtime_dir = root / "runtime-cache" / PINNED_RUNTIME_DIGEST
+    runtime_dir.mkdir(parents=True)
+    (runtime_dir / "manifest.json").write_text(
+        json.dumps({"version": PINNED_RUNTIME_VERSION, "files": {"pipeline_state.py": "0" * 64}}),
+        encoding="utf-8",
+    )
+    payload_text = json.dumps(shipped_main_status(), sort_keys=True)
+    (runtime_dir / "pipeline_state.py").write_text(
+        f"import sys\nsys.stdout.write({payload_text!r})\n",
+        encoding="utf-8",
+    )
+    shim = root / STATUS_RUNTIME_SHIM_RELATIVE_PATH
+    shim.parent.mkdir(parents=True, exist_ok=True)
+    shim.write_text(f"print({runtime_dir.as_posix()!r})\n", encoding="utf-8")
 
 
 def test_bootstrap_mode_without_project_is_bootstrap_not_cut_over(tmp_path: Path) -> None:
@@ -434,6 +555,214 @@ def test_block_route_reason_is_reported_verbatim(tmp_path: Path) -> None:
     assert report.kind is WorkflowStateKind.CONFLICTING_OWNERSHIP
     assert report.detail == f"native status route=block: {reason}"
     assert "block" in report.observed
+
+
+def test_shipped_integrated_block_payload_classifies_honest_non_blocking(
+    tmp_path: Path,
+) -> None:
+    """Contract A: verified shipped/done + block is SHIPPED_INTEGRATED, not a defect.
+
+    The helper validated the shipped STATE.md and its integration proof; the
+    block is only branch ownership away from the retired bound branch on
+    integrated main. AGENTS.md's plain-prompt re-entry already treats that
+    state as normal operation - the typed adapter must classify it honestly.
+    """
+    write_operational_surface_files(tmp_path)
+
+    report = read_workflow_state(
+        tmp_path,
+        runtime_resolver=resolved_runtime_resolver(),
+        native_status_runner=native_status(shipped_main_status()),
+    )
+
+    assert report.kind is WorkflowStateKind.SHIPPED_INTEGRATED
+    assert report.kind.value == "shipped-integrated"
+    assert workflow_readiness(report) == "operational"
+    assert report.remediation == "none"
+    # Observed names the shipped/done outcome and the payload's archive path.
+    assert "outcome shipped/done" in report.observed
+    assert M001_ARCHIVE in report.observed
+    assert report.detail == f"native status route=block: {M001_BLOCK_REASON}"
+    assert report.runtime.version == PINNED_RUNTIME_VERSION
+    assert report.runtime.digest == PINNED_RUNTIME_DIGEST
+    assert report.runtime.path is not None
+    # The shipped milestone is archived, not current: no native identity.
+    payload = report.to_dict()
+    assert payload["kind"] == "shipped-integrated"
+    assert payload["native_milestone"] is None
+    assert payload["native_phase"] is None
+    assert json.loads(report.to_json())["kind"] == "shipped-integrated"
+    assert payload["schema_version"] == WORKFLOW_STATE_SCHEMA_VERSION
+
+
+def test_shipped_integrated_predicate_requires_every_condition(tmp_path: Path) -> None:
+    """Flipping any one predicate fact falls back to the fail-closed kind (N2, E3).
+
+    A foreign bound branch or an active state never reads as shipped proof:
+    the differing payloads carry an unverified/not-shipped completion or
+    active phases, so the narrow predicate cannot swallow them, and every
+    fallback keeps the conflicting-ownership observed/remediation unchanged.
+    """
+    write_operational_surface_files(tmp_path)
+
+    def flipped(label: str) -> dict[str, Any]:
+        payload = shipped_main_status()
+        if label == "route.resume-checkpoint":
+            payload["route"] = {
+                "action": "resume-checkpoint",
+                "reason": "a journaled plan or roadmap approval is incomplete",
+            }
+        elif label == "completion-unverified":
+            payload["completion"] = {
+                "status": "unverified",
+                "reason": "published refs differ from local integration evidence",
+            }
+        elif label == "completion-not-shipped":
+            payload["completion"] = {"status": "not-shipped"}
+        elif label == "state-phase-build":
+            payload["state"]["phase"] = "build"
+            payload["state"]["status"] = "active"
+        elif label == "state-status-active":
+            payload["state"]["status"] = "active"
+        return payload
+
+    for label in (
+        "route.resume-checkpoint",
+        "completion-unverified",
+        "completion-not-shipped",
+        "state-phase-build",
+        "state-status-active",
+    ):
+        report = read_workflow_state(
+            tmp_path,
+            runtime_resolver=resolved_runtime_resolver(),
+            native_status_runner=native_status(flipped(label)),
+        )
+        assert report.kind is WorkflowStateKind.CONFLICTING_OWNERSHIP, label
+        assert workflow_readiness(report) == "blocked", label
+        assert report.remediation != "none", label
+        assert "Follow the native Path recovery flow" in report.remediation, label
+        assert report.observed.startswith(
+            "Native status validated STATE.md but routes a native recovery step"
+        ), label
+
+
+def test_shipped_integrated_report_carries_no_current_identity(tmp_path: Path) -> None:
+    """Only OPERATIONAL_VALID names a current milestone and phase (kind rule).
+
+    The shipped payload DOES carry state.milestone and state.phase, so their
+    absence on the report proves the rule: the archived milestone is not a
+    current one.
+    """
+    write_operational_surface_files(tmp_path)
+
+    report = read_workflow_state(
+        tmp_path,
+        runtime_resolver=resolved_runtime_resolver(),
+        native_status_runner=native_status(shipped_main_status()),
+    )
+
+    assert report.kind is WorkflowStateKind.SHIPPED_INTEGRATED
+    assert report.native_milestone is None
+    assert report.native_phase is None
+
+
+def test_wrong_typed_completion_fails_closed(tmp_path: Path) -> None:
+    """A present-but-wrongly-typed completion is a broken payload, not a pass."""
+    write_operational_surface_files(tmp_path)
+
+    cases: list[tuple[Any, str]] = [
+        ("verified", "completion must be an object when present, got str"),
+        (7, "completion must be an object when present, got int"),
+        ({"status": 7}, "completion.status must be a string when present"),
+        ({"status": ["verified"]}, "completion.status must be a string when present"),
+    ]
+    for bad_completion, expected_detail in cases:
+        payload = shipped_main_status()
+        payload["completion"] = bad_completion
+        report = read_workflow_state(
+            tmp_path,
+            runtime_resolver=resolved_runtime_resolver(),
+            native_status_runner=native_status(payload),
+        )
+        assert report.kind is WorkflowStateKind.INVALID_SCHEMA, bad_completion
+        assert workflow_readiness(report) == "blocked", bad_completion
+        assert expected_detail in report.detail, bad_completion
+
+
+def test_completion_absent_or_null_is_never_shipped_proof(tmp_path: Path) -> None:
+    """No completion verdict means no integration proof: fail closed, not shipped."""
+    write_operational_surface_files(tmp_path)
+
+    without_completion = shipped_main_status()
+    del without_completion["completion"]
+    null_completion = shipped_main_status()
+    null_completion["completion"] = None
+
+    for payload in (without_completion, null_completion):
+        report = read_workflow_state(
+            tmp_path,
+            runtime_resolver=resolved_runtime_resolver(),
+            native_status_runner=native_status(payload),
+        )
+        assert report.kind is WorkflowStateKind.CONFLICTING_OWNERSHIP, payload["state"]
+        assert workflow_readiness(report) == "blocked"
+
+
+def test_wrong_typed_state_predicate_fields_fail_closed(tmp_path: Path) -> None:
+    """state.status and state.archive feed the shipped predicate: same E9 rule."""
+    write_operational_surface_files(tmp_path)
+
+    cases: list[tuple[str, Any]] = [
+        ("status", 7),
+        ("status", True),
+        ("archive", [M001_ARCHIVE]),
+        ("archive", {"path": M001_ARCHIVE}),
+    ]
+    for field, bad_value in cases:
+        payload = shipped_main_status()
+        payload["state"][field] = bad_value
+        report = read_workflow_state(
+            tmp_path,
+            runtime_resolver=resolved_runtime_resolver(),
+            native_status_runner=native_status(payload),
+        )
+        assert report.kind is WorkflowStateKind.INVALID_SCHEMA, (field, bad_value)
+        assert workflow_readiness(report) == "blocked", (field, bad_value)
+        assert f"state.{field}" in report.detail, (field, bad_value)
+        assert "must be a string when present" in report.detail, (field, bad_value)
+
+
+def test_shipped_integrated_governor_finding_pins_contract_a(tmp_path: Path) -> None:
+    """The governor surface check passes with rule workflow-state-surface.shipped."""
+    write_shipped_main_real_stack(tmp_path)
+
+    findings = check_workflow_state_surface(tmp_path)
+
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "workflow-state-surface"
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert finding.rule_id == "workflow-state-surface.shipped"
+    assert finding.remediation == "none"
+    assert finding.observed.startswith("kind=shipped-integrated;")
+    assert M001_ARCHIVE in finding.observed
+    assert [evidence.path for evidence in finding.evidence] == [".project/STATE.md"]
+
+
+def test_shipped_integrated_preflight_check_pins_contract_a(tmp_path: Path) -> None:
+    """The preflight surface check passes with state=shipped-integrated + archive."""
+    write_shipped_main_real_stack(tmp_path)
+
+    check = _workflow_state_surface_check(tmp_path)
+
+    assert check.check_id == "workflow-state-surface"
+    assert check.status == "pass"
+    assert check.severity == "ok"
+    assert check.remediation == "none"
+    assert "state=shipped-integrated" in check.observed
+    assert M001_ARCHIVE in check.observed
 
 
 def test_malformed_native_status_payloads_are_invalid_schema(tmp_path: Path) -> None:
@@ -731,7 +1060,11 @@ def test_state_without_native_validation_is_not_operational(tmp_path: Path) -> N
 
 
 def test_state_unverified_kind_maps_to_blocked_readiness() -> None:
-    """`workflow_readiness` is the single mapping authority for every kind."""
+    """`workflow_readiness` is the single mapping authority for every kind.
+
+    Contract A adds the verified shipped/done integrated main to the
+    operational set; every other kind stays fail-closed.
+    """
     readiness = {
         kind: workflow_readiness(
             WorkflowStateReport(
@@ -750,9 +1083,11 @@ def test_state_unverified_kind_maps_to_blocked_readiness() -> None:
 
     assert readiness[WorkflowStateKind.STATE_UNVERIFIED] == "blocked"
     assert readiness[WorkflowStateKind.OPERATIONAL_VALID] == "operational"
+    assert readiness[WorkflowStateKind.SHIPPED_INTEGRATED] == "operational"
     assert readiness[WorkflowStateKind.BOOTSTRAP_NOT_CUT_OVER] == "bootstrap-not-cut-over"
     assert {kind for kind, value in readiness.items() if value == "operational"} == {
-        WorkflowStateKind.OPERATIONAL_VALID
+        WorkflowStateKind.OPERATIONAL_VALID,
+        WorkflowStateKind.SHIPPED_INTEGRATED,
     }
 
 

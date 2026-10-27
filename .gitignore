@@ -103,6 +103,7 @@ __pycache__/
 venv/
 target/
 vendor/
+!/.ai/vendor/
 *.log
 .cache/
 tmp/
