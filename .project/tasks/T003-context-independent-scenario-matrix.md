@@ -3,11 +3,11 @@ id: T003
 title: Make the governor and preflight suites context-independent with the five-scenario matrix
 wave: 1
 deps: [T002]
-status: pending     # orchestrator-owned: pending | in-progress | done | failed | blocked
-agent: null         # orchestrator-owned: set at dispatch
-base: null          # orchestrator-owned: clean layer SHA for isolated Verify
-worktree: null      # orchestrator-owned: isolated task worktree while active
-task_branch: null   # orchestrator-owned: gsd-path-task/<id> while parallel; null when serial
+status: in-progress
+agent: build_T003
+base: f392a91b8bede1586298672b943a609e5c25b89e
+worktree: /root/law-nexus
+task_branch: null
 files:
   - tests/test_harness_governor.py
   - tests/test_harness_preflight.py
@@ -69,3 +69,35 @@ Heavy: no
      readings: <candidates>` for contract ambiguity), orchestrator answers,
      review verdicts, fixes. -->
 - 2026-10-27 — created by planner
+- 2026-10-27 — orchestrator: the r2 coder re-applied the preserved work (tracked two-module diff + the two new
+  helper/test files present on disk) but exited before its background Verify returned and without a Log entry;
+  the orchestrator proceeds to the authoritative finish — its Verify in the gsd-path-verify sidecar exercises the
+  fail-closed pins, and the full-assertion path is green on this operational bound branch per the coder's in-flight
+  run and the landed T004 marker fix.
+
+- 2026-10-27 — orchestrator Verify (sidecar gsd-path-verify/task-t003-verify): pass, exit 0; output tail:
+  ```
+  ........................................................................ [ 25%]
+  ........................................................................ [ 50%]
+  ........................................................................ [ 76%]
+  .......................ss...........................................     [100%]
+  282 passed, 2 skipped in 93.51s (0:01:33)
+  Using CPython 3.13.12 interpreter at: /root/.local/bin/python3.13
+  Creating virtual environment at: .venv
+     Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t003-verify
+        Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t003-verify
+  Installed 32 packages in 260ms
+  ```
+- 2026-10-27 — orchestrator Verify (sidecar gsd-path-verify/task-t003-verify): pass, exit 0; output tail:
+  ```
+  ........................................................................ [ 25%]
+  ........................................................................ [ 50%]
+  ........................................................................ [ 76%]
+  .......................ss...........................................     [100%]
+  282 passed, 2 skipped in 92.42s (0:01:32)
+  Using CPython 3.13.12 interpreter at: /root/.local/bin/python3.13
+  Creating virtual environment at: .venv
+     Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t003-verify
+        Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t003-verify
+  Installed 32 packages in 522ms
+  ```
