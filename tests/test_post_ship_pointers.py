@@ -16,6 +16,7 @@ it untouched as the dated record.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -59,11 +60,36 @@ def _user_rulings_rows() -> list[list[str]]:
     return rows
 
 
-def test_roadmap_json_current_milestone_is_the_exact_m002_projection() -> None:
+def _latest_archived_milestone_slug() -> str | None:
+    """Slug of the most recently archived milestone (highest NNN), or None."""
+    archive_dir = REPO / ".project" / "archive"
+    ranked: list[tuple[int, str]] = []
+    if archive_dir.is_dir():
+        for entry in archive_dir.iterdir():
+            match = re.fullmatch(r"(?P<seq>\d{3})-(?P<slug>.+)", entry.name)
+            if entry.is_dir() and match:
+                ranked.append((int(match.group("seq")), match.group("slug")))
+    return max(ranked)[1] if ranked else None
+
+
+def test_roadmap_json_current_milestone_tracks_the_latest_archive() -> None:
+    """The projection is exactly the latest archived milestone, status active.
+
+    Moved from the M002-era literal pin (which named the then-current
+    projection): the id must be the slug of the most recently archived
+    milestone under .project/archive/ — the same archive-keyed three-way
+    anchor the freshness suite uses while a milestone is in flight — and the
+    object must carry exactly that id with status "active". Keyed on the
+    archive directory, never on a milestone literal.
+    """
     roadmap = json.loads(ROADMAP_JSON.read_text(encoding="utf-8"))
-    assert roadmap["current_milestone"] == {"id": "post-ship-hardening", "status": "active"}, (
-        "roadmap.json current_milestone must be exactly the M002 projection "
-        '{"id": "post-ship-hardening", "status": "active"} (T004 AC1)'
+    assert roadmap["current_milestone"] == {
+        "id": _latest_archived_milestone_slug(),
+        "status": "active",
+    }, (
+        "roadmap.json current_milestone must be exactly the latest archived "
+        'milestone slug with status "active" — refresh it when the roadmap '
+        "marker moves to the next landed milestone"
     )
 
 
