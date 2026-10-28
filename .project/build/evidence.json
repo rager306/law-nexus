@@ -1,0 +1,32 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "12b13a618cb36a130611034d01f37705eed029c2",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M005",
+        "candidates": [
+          {
+            "base": "2acc22d339f24f4494a8726143c252d95761b55a",
+            "commit": "586a1e7fc1ca0c34790078e6bf4bab555b7ff3f6",
+            "valid": true
+          }
+        ],
+        "head": "12b13a618cb36a130611034d01f37705eed029c2",
+        "subject": "T001: Derive the roadmap fixture milestone and accept both bound-branch phases"
+      },
+      "landed_commit": "586a1e7fc1ca0c34790078e6bf4bab555b7ff3f6",
+      "reasons": [],
+      "task": {
+        "base": "2acc22d339f24f4494a8726143c252d95761b55a",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-ci-fixture-co-update.md"
+      }
+    }
+  ]
+}
