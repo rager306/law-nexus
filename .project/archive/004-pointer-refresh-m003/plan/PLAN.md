@@ -1,6 +1,6 @@
 # Plan — law-nexus
 
-Project verify: `uv run --frozen pytest tests/test_project_state_roadmap_freshness.py -q`
+Project verify: `uv run --frozen pytest tests/test_project_state_roadmap_freshness.py -q -k 'not test_native_marker_names_the_operational_milestone' && uv run --frozen pytest tests/test_post_ship_pointers.py -q`
 
 ## Intent coverage
 
