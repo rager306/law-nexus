@@ -1,0 +1,56 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "76f0abfac3139873695122b44c4bfbe2ff17113f",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M006",
+        "candidates": [
+          {
+            "base": "df8193125af126d9cb7d1b1b7102ad1b897f508e",
+            "commit": "d276fb3dad28872984b27a4862ac52f30dbeb21b",
+            "valid": true
+          }
+        ],
+        "head": "76f0abfac3139873695122b44c4bfbe2ff17113f",
+        "subject": "T001: Pin the shipped-surface shape in the governor honesty step"
+      },
+      "landed_commit": "d276fb3dad28872984b27a4862ac52f30dbeb21b",
+      "reasons": [],
+      "task": {
+        "base": "df8193125af126d9cb7d1b1b7102ad1b897f508e",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-ci-governor-shape.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M006",
+        "candidates": [
+          {
+            "base": "d276fb3dad28872984b27a4862ac52f30dbeb21b",
+            "commit": "f60bef3f97740f2402219bdd3626546818b0ac15",
+            "valid": true
+          }
+        ],
+        "head": "76f0abfac3139873695122b44c4bfbe2ff17113f",
+        "subject": "T002: Refresh the roadmap projection to the shipped milestone"
+      },
+      "landed_commit": "f60bef3f97740f2402219bdd3626546818b0ac15",
+      "reasons": [],
+      "task": {
+        "base": "d276fb3dad28872984b27a4862ac52f30dbeb21b",
+        "id": "T002",
+        "status": "done",
+        "task_file": ".project/tasks/T002-roadmap-pointer.md"
+      }
+    }
+  ]
+}
