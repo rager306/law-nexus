@@ -74,6 +74,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.0
+        with:
+          # The shipped-main governor proof reads the milestone tag and the
+          # integration landing from origin/main history; a shallow, tagless
+          # clone cannot prove either, so the native status helper reports the
+          # integration unverified and the live surface tests fail closed.
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Create repo-local temp tree
         run: mkdir -p "${{ github.workspace }}/tmp/scripts" "${{ github.workspace }}/tmp/pytest"
@@ -111,6 +118,13 @@ jobs:
             --runtime-restore \
             --project "$GITHUB_WORKSPACE" \
             --source-root "$restore_dir/gsd-path"
+
+      - name: Prepare shipped-main integration proof inputs
+        run: |
+          set -euo pipefail
+          # The pinned runtime proves the integration landing against the
+          # published default branch; the checkout must name it origin/HEAD.
+          git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
 
       - name: Fetch locked Rust dependencies
         run: cargo fetch --locked
