@@ -6,7 +6,7 @@ deps: [T001]
 status: pending
 agent: null
 base: null
-worktree: /root/law-nexus
+worktree: null
 task_branch: null
 files:
   - docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md
