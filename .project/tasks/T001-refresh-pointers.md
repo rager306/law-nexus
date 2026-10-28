@@ -14,6 +14,7 @@ files:
   - docs/agent-stack/history/LEGACY_CROSSWALK.md
   - .project/research/DOCS-AUDIT.md
   - tests/test_project_state_roadmap_freshness.py
+  - tests/test_post_ship_pointers.py
 ---
 
 # T001 — Refresh roadmap marker and audit queue to M003 shipped state
@@ -51,3 +52,4 @@ uv run --frozen pytest tests/test_project_state_roadmap_freshness.py::test_nativ
 ## Log
 
 - 2026-10-28 — created by plan (quick mode)
+- 2026-10-28 — plan-defect repair (orchestrator): `tests/test_post_ship_pointers.py` joins `files` — the M002-era pin on roadmap.json current_milestone must move with the marker refresh (same class as the M001 gitignore anchoring).
