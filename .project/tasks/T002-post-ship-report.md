@@ -3,10 +3,10 @@ id: T002
 title: Write dated post-ship report and update AGENTS.md pointer
 wave: 1
 deps: []
-status: pending
-agent: null
-base: null
-worktree: null
+status: in-progress
+agent: build_T002
+base: fab5fb0914393151f356d17436ad6fe4d811299c
+worktree: /root/law-nexus
 task_branch: null
 files:
   - docs/agent-stack/POST-SHIP-STATE-2026-10-28.md
