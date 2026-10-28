@@ -5,7 +5,7 @@ milestone: pointer-refresh-m003
 phase: plan
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
-status: active
+status: done
 branch: gsd-path/M004
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
@@ -77,3 +77,4 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-28 — define — router bound next milestone
 - 2026-10-28 — define — milestone intent approved
 - 2026-10-28 — plan — planning started
+- 2026-10-28 — plan — plan approved
