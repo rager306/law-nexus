@@ -15,18 +15,27 @@ scenarios, each with its own contract:
   with the checkout rendered as ``<detached>`` in the mismatch reason.
 - ``VERIFY_SIDECAR`` — a ``gsd-path-verify/*`` verify worktree: same
   fail-closed pin, with the sidecar branch named in the mismatch reason.
-- ``SHIPPED_MAIN`` — the integrated default branch: Contract A. The verified
+- ``SHIPPED_MAIN`` — the integrated default branch: Contract A. A verified
   shipped/done state passes honestly (``kind=shipped-integrated`` with the
   archive proof), so the suites run their full substantive assertions there.
+  A main checkout whose STATE.md still says ``build/active`` (a milestone in
+  flight) is not a shipped state: the branch-ownership contract governs it
+  like any other checkout away from the bound branch.
 
 The predicate reads only two identity fields — the live branch and the
 ``branch:``/``default_branch:`` binding recorded in the tracked
-``.project/STATE.md`` — to decide WHICH documented contract to assert. It
-makes no workflow-validity claim: the typed adapter
-(:mod:`law_nexus_harness.workflow_state`) stays the only validator of the
-workflow state, and every scenario assertion pins the adapter's real output.
-An unreadable binding can never yield ``BOUND``, so the predicate fails closed
-towards the pinned contracts instead of the full assertions.
+``.project/STATE.md`` — to decide WHICH documented contract to assert, plus
+the STATE.md ``phase:``/``status:`` pairing (``build``/``active`` or
+``shipped``/``done``, M003 SC1) to decide HOW the operational expectations
+are keyed: ``build/active`` asserts the honest single-error roadmap finding,
+``shipped/done`` asserts Contract A — keyed on the phase field, never on a
+milestone literal (E1). It makes no workflow-validity claim: the typed
+adapter (:mod:`law_nexus_harness.workflow_state`) stays the only validator
+of the workflow state, and every scenario assertion pins the adapter's real
+output. An unreadable binding can never yield ``BOUND``, and an unreadable
+pairing yields the fail-closed ``UNREADABLE`` phase no suite may key an
+expectation on, so the predicate fails closed towards the pinned contracts
+instead of the full assertions.
 """
 
 from __future__ import annotations
@@ -58,17 +67,43 @@ class BranchContext(enum.Enum):
     SHIPPED_MAIN = "shipped-main"
 
 
+class StatePhase(enum.Enum):
+    """The documented STATE.md phase pairings, plus the fail-closed slot.
+
+    ``BUILD_ACTIVE`` — ``phase: build`` + ``status: active``: a milestone is
+    in flight. ``SHIPPED_DONE`` — ``phase: shipped`` + ``status: done``: the
+    milestone landed and the shipped/done contracts govern. Every other
+    reading — a missing field, an unknown or half-readable pairing, or no
+    STATE.md at all — is ``UNREADABLE``: no suite may key an expectation on
+    it, so the suites refuse loudly instead of asserting an unproven pass.
+    """
+
+    BUILD_ACTIVE = "build-active"
+    SHIPPED_DONE = "shipped-done"
+    UNREADABLE = "unreadable"
+
+
+_STATE_PHASE_PAIRS = {
+    ("build", "active"): StatePhase.BUILD_ACTIVE,
+    ("shipped", "done"): StatePhase.SHIPPED_DONE,
+}
+
+
 @dataclass(frozen=True)
 class StateBinding:
     """The STATE.md identity fields the predicate reads; nothing more.
 
     ``bound_branch`` is None when STATE.md is absent or carries no readable
     ``branch:`` value: no branch can match it, so no checkout classifies as
-    ``BOUND`` and the suites stay on the pinned contracts.
+    ``BOUND`` and the suites stay on the pinned contracts. ``state_phase`` is
+    the ``phase:``/``status:`` pairing read from the same frontmatter
+    (M003 SC1); anything but the two documented pairings reads as
+    ``UNREADABLE``.
     """
 
     bound_branch: str | None
     default_branch: str = DEFAULT_BRANCH_FALLBACK
+    state_phase: StatePhase = StatePhase.UNREADABLE
 
 
 def live_branch(root: Path) -> str | None:
@@ -103,14 +138,19 @@ def state_binding(root: Path) -> StateBinding:
         return StateBinding(bound_branch=None)
     bound_branch: str | None = None
     default_branch: str | None = None
+    phase: str | None = None
+    status: str | None = None
     for line in lines[1:]:
         if line.strip() == "---":
             break
         bound_branch = _identity_value(line, "branch") or bound_branch
         default_branch = _identity_value(line, "default_branch") or default_branch
+        phase = _identity_value(line, "phase") or phase
+        status = _identity_value(line, "status") or status
     return StateBinding(
         bound_branch=bound_branch,
         default_branch=default_branch or DEFAULT_BRANCH_FALLBACK,
+        state_phase=_STATE_PHASE_PAIRS.get((phase or "", status or ""), StatePhase.UNREADABLE),
     )
 
 
@@ -142,9 +182,27 @@ def classify_branch(branch: str | None, binding: StateBinding) -> BranchContext:
     return BranchContext.FOREIGN
 
 
-def classify(root: Path) -> BranchContext:
+@dataclass(frozen=True)
+class Classification:
+    """The classified checkout: which contract applies and how it is keyed.
+
+    ``context`` names the documented scenario; ``phase`` keys the operational
+    expectations (M003 SC1). Together they are a pure function of the live
+    branch and the STATE.md identity fields (E2).
+    """
+
+    context: BranchContext
+    phase: StatePhase
+
+
+def classify_checkout(branch: str | None, binding: StateBinding) -> Classification:
+    """Classify one (live branch, binding) pair into context plus phase."""
+    return Classification(context=classify_branch(branch, binding), phase=binding.state_phase)
+
+
+def classify(root: Path) -> Classification:
     """Classify the live checkout; the single entry point both suites call."""
-    return classify_branch(live_branch(root), state_binding(root))
+    return classify_checkout(live_branch(root), state_binding(root))
 
 
 _FAIL_CLOSED_CONTEXTS = frozenset(
