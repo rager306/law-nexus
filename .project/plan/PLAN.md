@@ -7,7 +7,7 @@ Project verify: `uv run --frozen pytest tests/test_post_ship_pointers.py tests/t
 | Criterion | Task | Notes |
 |-----------|------|-------|
 | SC1 | T001 | AC1 |
-| SC2 | T002 | AC2 |
+| SC2 | T001 | AC2 |
 | SC3 | T001 | AC3 |
 
 ## Config
@@ -44,7 +44,7 @@ Review depth: full
 
 ### roadmap projection (prd/project-state) — T001
 
-Criteria: SC1, SC3
+Criteria: SC1, SC2, SC3
 Entry: a terminal on the bound branch gsd-path/M009; `uv run --frozen pytest tests/test_post_ship_pointers.py -q`.
 States: projection names the shipping milestone → 0 failures; a stale projection → named failure.
 Walkthrough:

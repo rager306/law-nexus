@@ -3,9 +3,9 @@ id: T002
 title: Fix wave 1 cycle 1 review findings in T001
 wave: 2
 deps: [T001]
-status: in-progress
-agent: build_T002
-base: 7594043e33ecb125b2dd399e8c0c9647772aab1a
+status: pending
+agent: null
+base: null
 worktree: /root/law-nexus
 task_branch: null
 files:
@@ -36,7 +36,7 @@ The source task contracts are unchanged; read them and .project/intent/INTENT.md
 
 ## Intent coverage
 
-- SC2
+- None
 
 ## Acceptance criteria
 
