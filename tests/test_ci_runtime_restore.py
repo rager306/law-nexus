@@ -253,6 +253,10 @@ def test_push_to_main_requires_the_shipped_integrated_governor_report() -> None:
     # The archive path moves every milestone: pin the shape, never a literal.
     assert '".project/archive/"' in text
     assert "001-001-native-workflow-acceptance" not in text
+    # The step must name the observed surface and the proof inputs, so a
+    # checkout-shape defect is diagnosable from the job log alone (M007 SC2).
+    assert 'print("workflow-state-surface:", json.dumps(surface))' in text
+    assert "proof inputs: branch=" in text
     assert 'finding.get("check_id") == "workflow-state-surface"' in text
 
 

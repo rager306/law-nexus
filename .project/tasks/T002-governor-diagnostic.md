@@ -3,9 +3,9 @@ id: T002
 title: Make the governor honesty step name the missing proof input
 wave: 2
 deps: [T001]
-status: pending
-agent: null
-base: null
+status: done
+agent: build_T002
+base: 3b2e1e4c49a7e08ab24c82f41adebdd2bbd8efac
 worktree: null
 task_branch: null
 files:
@@ -53,3 +53,18 @@ uv run --frozen pytest tests/test_ci_runtime_restore.py -q -k 'governor or hones
 ## Log
 
 - 2026-10-28 — created by plan (quick mode)
+- 2026-10-28 — orchestrator Verify (sidecar gsd-path-verify/task-t002-verify): pass, exit 0; output tail:
+  ```
+  ...                                                                      [100%]
+  3 passed, 13 deselected in 1.54s
+  Using CPython 3.13.12 interpreter at: /root/.local/bin/python3.13
+  Creating virtual environment at: .venv
+     Building law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t002-verify
+        Built law-nexus @ file:///root/.allspark-home/.gsd-path/projects/b5ec5063eb548c9b143d844782944712ed19c26fd411d5c13ea0b40918388103/af6be3685b34e6bb6b9e3059f81aea526927728903829da8c0909b6afa25f01a/verify/task-t002-verify
+  Installed 32 packages in 283ms
+  ```
+- 2026-10-28 — orchestrator regression Verify of T001 (sidecar gsd-path-verify/task-t002-verify): pass, exit 0; output tail:
+  ```
+  ..                                                                       [100%]
+  2 passed, 14 deselected in 0.37s
+  ```

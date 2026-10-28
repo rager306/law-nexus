@@ -260,6 +260,11 @@ jobs:
         if: always()
         run: |
           set -o pipefail
+          # Proof-input diagnosis: the pinned helper proves the integration
+          # against the published default branch and the milestone tag, so a
+          # checkout-shape defect must be readable here, not guessed from a
+          # generic block reason.
+          echo "proof inputs: branch=$(git branch --show-current) origin_head=$(git symbolic-ref --quiet refs/remotes/origin/HEAD || echo unset) tags=$(git tag --list 'milestone/*' | wc -l)"
           uv run python -m law_nexus_harness.governor | tee governor.json
           uv run python - <<'PY'
           import json, os, sys
@@ -267,6 +272,16 @@ jobs:
           report = json.load(open("governor.json"))
           print("governor:", report["status"], "pass", report["pass_count"],
                 "warn", report["warn_count"], "errors", report["tool_error_count"])
+          surface = [
+              finding for finding in report["findings"]
+              if finding.get("check_id") == "workflow-state-surface"
+          ]
+          # Diagnosis, not a substitute for the assertions below: when the
+          # surface is not shipped-integrated, name the observed surface and
+          # the proof inputs the pinned helper needs, so a checkout-shape
+          # defect is readable from the job log alone.
+          print("workflow-state-surface:", json.dumps(surface))
+          print("proof inputs: GITHUB_REF=", os.environ.get("GITHUB_REF"))
           if report["tool_error_count"]:
               sys.exit("governor reported tool errors: a check could not read its inputs")
           if os.environ.get("GITHUB_REF") == "refs/heads/main":
