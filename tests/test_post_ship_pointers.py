@@ -95,9 +95,6 @@ def test_roadmap_json_current_milestone_tracks_the_latest_archive() -> None:
 
 REFRESH_RULE = REPO / "docs" / "agent-stack" / "SHIP-TIME-PROJECTION-REFRESH.md"
 
-
-REFRESH_RULE = REPO / "docs" / "agent-stack" / "SHIP-TIME-PROJECTION-REFRESH.md"
-
 # Each numbered step of the rule, matched by the artifact it must name and the
 # action it must prescribe. A step that disappears takes its artifact with it,
 # so deleting a step fails the pin instead of passing on the survivors.
