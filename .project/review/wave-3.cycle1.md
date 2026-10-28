@@ -1,4 +1,4 @@
-# Review — wave 1, cycle 3
+# Review — wave 3, cycle 1
 
 <!-- Reviewer role, wave mode (full). PLAN.md Wave 1 Review depth is `full`, so no
      lens applies.
@@ -100,7 +100,7 @@
           directories, so the ship gate's active-root allowlist is not violated. -->
 
 Wave verdict: pass
-Cycle: 3
+Cycle: 1
 Depth: full
 Tasks reviewed: 1
 

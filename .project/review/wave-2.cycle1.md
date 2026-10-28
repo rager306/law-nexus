@@ -1,4 +1,4 @@
-# Review — wave 1, cycle 2
+# Review — wave 2, cycle 1
 
 <!-- Reviewer role, wave mode (full). PLAN.md Wave 1 Review depth is `full`, so no
      lens applies.
@@ -68,7 +68,7 @@
           adds no `skip`/`xfail` and removes no test line. -->
 
 Wave verdict: blocked
-Cycle: 2
+Cycle: 1
 Depth: full
 Tasks reviewed: 1
 
