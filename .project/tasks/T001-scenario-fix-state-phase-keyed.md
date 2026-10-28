@@ -54,3 +54,22 @@ uv run --frozen pytest tests/branch_context.py tests/test_branch_context.py test
 ## Log
 
 - 2026-10-27 — created by plan (quick mode)
+
+- 2026-10-28 — orchestrator Verify (isolate gsd-path-task/T001): fail, exit 1; output tail:
+  ```
+  ........................................................................ [ 24%]
+  ........................................................................ [ 49%]
+  ........................................................................ [ 73%]
+  ...............................ss..........................F............ [ 98%]
+  ....                                                                     [100%]
+  =================================== FAILURES ===================================
+  __________ test_cargo_formatter_failure_is_fail_closed_and_actionable __________
+  
+  >   ???
+  E   AssertionError: assert 'trajectory-governor' in {'cargo-fmt-workspace': {'check_id': 'cargo-fmt-workspace', 'command': ['cargo', 'fmt', '--all', '--', '--check'], 'duration_ms': 2, 'exit_code': 1, ...}}
+  
+  tests/test_harness_preflight.py:390: AssertionError
+  =========================== short test summary info ============================
+  FAILED tests/test_harness_preflight.py::test_cargo_formatter_failure_is_fail_closed_and_actionable
+  1 failed, 289 passed, 2 skipped in 114.22s (0:01:54)
+  ```
