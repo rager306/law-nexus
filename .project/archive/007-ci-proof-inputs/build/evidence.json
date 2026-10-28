@@ -1,0 +1,56 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "c46a48aaec47ac27bfadce4b0bd6f38b5fd8202b",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M007",
+        "candidates": [
+          {
+            "base": "ae5ed705145942f4af869f1a9950d369d9f9d5a0",
+            "commit": "3b2e1e4c49a7e08ab24c82f41adebdd2bbd8efac",
+            "valid": true
+          }
+        ],
+        "head": "c46a48aaec47ac27bfadce4b0bd6f38b5fd8202b",
+        "subject": "T001: Give the rust job the full history and tags the integration proof needs"
+      },
+      "landed_commit": "3b2e1e4c49a7e08ab24c82f41adebdd2bbd8efac",
+      "reasons": [],
+      "task": {
+        "base": "ae5ed705145942f4af869f1a9950d369d9f9d5a0",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-rust-proof-inputs.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M007",
+        "candidates": [
+          {
+            "base": "3b2e1e4c49a7e08ab24c82f41adebdd2bbd8efac",
+            "commit": "3fffeaba43862969a5f9867f09653bf717f0bd05",
+            "valid": true
+          }
+        ],
+        "head": "c46a48aaec47ac27bfadce4b0bd6f38b5fd8202b",
+        "subject": "T002: Make the governor honesty step name the missing proof input"
+      },
+      "landed_commit": "3fffeaba43862969a5f9867f09653bf717f0bd05",
+      "reasons": [],
+      "task": {
+        "base": "3b2e1e4c49a7e08ab24c82f41adebdd2bbd8efac",
+        "id": "T002",
+        "status": "done",
+        "task_file": ".project/tasks/T002-governor-diagnostic.md"
+      }
+    }
+  ]
+}

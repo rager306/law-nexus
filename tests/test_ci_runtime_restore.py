@@ -253,6 +253,10 @@ def test_push_to_main_requires_the_shipped_integrated_governor_report() -> None:
     # The archive path moves every milestone: pin the shape, never a literal.
     assert '".project/archive/"' in text
     assert "001-001-native-workflow-acceptance" not in text
+    # The step must name the observed surface and the proof inputs, so a
+    # checkout-shape defect is diagnosable from the job log alone (M007 SC2).
+    assert 'print("workflow-state-surface:", json.dumps(surface))' in text
+    assert "proof inputs: branch=" in text
     assert 'finding.get("check_id") == "workflow-state-surface"' in text
 
 
@@ -268,6 +272,24 @@ def test_migration_checkout_supplies_the_integration_proof_inputs() -> None:
     assert "git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main" in proof_text
     restore_index = steps.index(_named_step(steps, RESTORE_STEP_NAME))
     assert steps.index(proof) > restore_index
+
+
+def test_rust_checkout_supplies_the_same_integration_proof_inputs() -> None:
+    """The rust job runs the same live governor/preflight suites as migration.
+
+    A depth-1, tagless checkout cannot prove the shipped integration, so the
+    pinned native status helper reports it unverified and the live surface
+    tests fail closed. Both proof inputs — full history with tags, and the
+    origin/HEAD default-branch name — must stay pinned (M007 SC1).
+    """
+    steps = _job_steps("rust-harness-quality")
+    checkout = next(
+        step for step in steps if str(step.get("uses", "")).startswith("actions/checkout@")
+    )
+    assert checkout["with"]["fetch-depth"] == 0
+    assert checkout["with"]["fetch-tags"] is True
+    proof = _named_step(steps, "Prepare shipped-main integration proof inputs")
+    assert "git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main" in _run_text(proof)
 
 
 def test_pinned_declaration_is_track_level_input_for_the_restore() -> None:

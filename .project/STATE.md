@@ -1,15 +1,15 @@
 ---
 pipeline: gsd-path/v2
 project: law-nexus
-milestone: red-ci-clear
+milestone: ci-proof-inputs
 phase: shipped
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
 status: done
-branch: gsd-path/M006
+branch: gsd-path/M007
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
-archive: .project/archive/006-red-ci-clear
+archive: .project/archive/007-ci-proof-inputs
 integration_default: direct
 integration: direct
 integration_source: default
@@ -81,6 +81,13 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-28 — build — build started
 - 2026-10-28 — ship — build done; final review pending
 - 2026-10-28 — shipped — archive preflight passed; shipment recorded
+- 2026-10-28 — shipped — archive preflight passed; shipment recorded
+- 2026-10-28 — define — router bound next milestone
+- 2026-10-28 — define — milestone intent approved
+- 2026-10-28 — plan — planning started
+- 2026-10-28 — plan — plan approved
+- 2026-10-28 — build — build started
+- 2026-10-28 — ship — build done; final review pending
 - 2026-10-28 — shipped — archive preflight passed; shipment recorded
 - 2026-10-28 — define — router bound next milestone
 - 2026-10-28 — define — milestone intent approved
