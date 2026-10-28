@@ -195,7 +195,12 @@ def test_live_workflow_state_surface_matches_scenario_contract() -> None:
             )
         return
     assert routed.context is branch_context.BranchContext.BOUND
-    assert routed.phase is branch_context.StatePhase.BUILD_ACTIVE
+    # The bound branch is build/active during build and shipped/done after the
+    # ship commit (before the next bind); both are the bound branch.
+    assert routed.phase in {
+        branch_context.StatePhase.BUILD_ACTIVE,
+        branch_context.StatePhase.SHIPPED_DONE,
+    }
     assert finding.status == "pass"
     assert finding.severity == "ok"
     assert finding.rule_id == "workflow-state-surface.operational"
@@ -5767,6 +5772,11 @@ class TestScopedCheckRunnerIsDeclaredNotPatched:
         assert [item.severity for item in scoped] == [item.severity for item in plain]
 
 
+LIVE_MILESTONE = __import__("json").loads(
+    (ROOT / "prd/project-state/data/roadmap.json").read_text(encoding="utf-8")
+)["current_milestone"]["id"]
+
+
 class TestRoadmapFreshnessAgainstNativePath:
     """The Path successor: the live native milestone is the authority.
 
@@ -5796,14 +5806,14 @@ class TestRoadmapFreshnessAgainstNativePath:
 
         from law_nexus_harness import workflow_state as ws
 
-        self._repo(tmp_path, "post-ship-hardening")
+        self._repo(tmp_path, LIVE_MILESTONE)
         real = ws.read_workflow_state
 
         def operational(root):
             return replace(
                 real(root),
                 kind=ws.WorkflowStateKind.OPERATIONAL_VALID,
-                native_milestone="post-ship-hardening",
+                native_milestone=LIVE_MILESTONE,
                 native_phase="build",
             )
 

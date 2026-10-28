@@ -342,7 +342,10 @@ def test_live_preflight_surface_matches_scenario_contract() -> None:
             )
         return
     assert routed.context is branch_context.BranchContext.BOUND
-    assert routed.phase is branch_context.StatePhase.BUILD_ACTIVE
+    assert routed.phase in {
+        branch_context.StatePhase.BUILD_ACTIVE,
+        branch_context.StatePhase.SHIPPED_DONE,
+    }
     assert check.status == "pass"
     assert "state=operational" in check.observed
 
