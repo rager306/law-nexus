@@ -1,0 +1,46 @@
+# Final Review — law-nexus
+
+Reviewed HEAD: c134ea3d69732872741fd5567f5315029bcbd285
+Overall verdict: pass
+
+## Success criteria
+
+### SC1 — SC1 — On the integrated main CI context (checkout of main, STATE.md `build/active` naming gsd-path/M002), the harness status and preflight suites pass: the SHIPPED_MAIN-scenario expectations key on the checkout's STATE.md phase semantics — `build/active` asserts the honest single-error roadmap finding (roadmap-current-tracks-path naming the M002 continuation), `shipped/done` asserts Contract A pass; the fail-closed pins for foreign/detached/sidecar contexts are unchanged.
+
+- **Verdict**: met
+- **Surface**: terminal (native Path CLI: governor, pytest, git)
+- **Check**: `uv run --frozen pytest tests/branch_context.py tests/test_branch_context.py -q -rs` then `uv run --frozen pytest tests/test_harness_governor.py tests/test_harness_preflight.py -q -rs` in the supplied verify sidecar `gsd-path-verify/review-final` at the reviewed HEAD (PLAN.md terminal-surface Walkthrough steps 1–2); named checks `uv run --frozen pytest tests/test_branch_context.py -v -k "matrix or literal or milestone or shipped"`; recorded BOUND+BUILD_ACTIVE arm read from the ledger row commit `c5d0bfc6` (isolate `gsd-path-task/T001`, exit 0).
+- **Observed**: Step 1: `23 passed`, exit 0. `test_classification_matrix_all_contexts_both_phases` PASSED — it pins the classification for all five contexts × both STATE phases (E2 held-out; its recorded passing output is the T001 orchestrator Verify `290 passed, 2 skipped`, exit 0, commit `c5d0bfc6`). `TestStatePhaseReading` PASSED — the `build`/`active` and `shipped`/`done` pairings are the only documented phases, everything else fails closed to `UNREADABLE`, and keying reads the STATE.md `phase:`/`status:` fields, never a milestone literal (E1). Step 2: `267 passed, 2 skipped` (documented no-pi-journal skips), exit 0, 89.23s — on this sidecar checkout (`gsd-path-verify/review-final` classifies `VERIFY_SIDECAR`) the suites exercise the fail-closed pins, confirming N1 behaviorally; the wave diff and re-read show the fail-closed helpers (`tests/test_harness_governor.py:84`, `tests/test_harness_preflight.py:40`) and `_FAIL_CLOSED_CONTEXTS` (`tests/branch_context.py:208`) byte-identical to base (M001 ruling (a) preserved). The `build/active` honest single-error roadmap finding ran in the recorded orchestrator Verify on the BOUND isolate: exactly one `roadmap-current-tracks-path` finding (rule `roadmap-freshness.path-mismatch`, observed naming both sides, no milestone literal; `tests/test_harness_governor.py:119-148`) and preflight `code == 1` with the `trajectory-governor` check failing on `roadmap-current-tracks-path` (`tests/test_harness_preflight.py:277-291`) — 290 passed, exit 0 at `c5d0bfc6`; the live mismatch names the M002 continuation (`roadmap.json` current `post-ship-hardening`, re-read in the sidecar). `shipped/done` asserts Contract A: `test_shipped_main_surface_pins_contract_a` and `test_shipped_main_and_foreign_branch_stay_distinct` PASSED by name (`kind=shipped-integrated;` with the milestone-neutral `outcome shipped/done; archive .project/archive/` proof shape).
+- **Reference**: .project/build/verify-ledger.jsonl (rows `c5d0bfc6…`, `c134ea3d…`); .project/review/wave-1.cycle1.md; tests/branch_context.py:70-96,186-205; tests/test_branch_context.py:202-298,361-445; tests/test_harness_governor.py:119-148; tests/test_harness_preflight.py:277-291
+- **Finding**: none
+- **Fix direction**: none
+
+### SC2 — SC2 — No milestone-branch literals remain in the live-suite expectations: `tests/test_harness_governor.py` and `tests/test_harness_preflight.py` contain no `gsd-path/M0NN` literals outside scenario-fixture payloads, and a grep pin test enforces this.
+
+- **Verdict**: met
+- **Surface**: terminal (native Path CLI: governor, pytest, git)
+- **Check**: PLAN.md terminal-surface Walkthrough step 3: `grep -n 'gsd-path/M0' tests/test_harness_governor.py tests/test_harness_preflight.py`; named pin runs from step 1 (`-k "matrix or literal or milestone or shipped"`).
+- **Observed**: grep returns zero matches (exit 1) in both live suites at the reviewed HEAD — no `gsd-path/M0NN` literal outside scenario fixtures. `test_no_milestone_literals_in_expectations` PASSED by name (whitelist explicitly empty at `tests/test_branch_context.py:465`; scan at `:479-489`), and the canary `test_milestone_literal_scanner_flags_and_honors_whitelist` PASSED, proving the pin flags a violating line and honors a whitelisted fixture region (E3). N2 observed: the honest roadmap finding is pinned structurally (both comparison sides in `observed`) and the shipped-main proof shape is milestone-neutral — no literal was reintroduced to make an assertion pass.
+- **Reference**: tests/test_branch_context.py:465,479-500; .project/review/wave-1.cycle1.md (independent zero-match scan at `c5d0bfc6`)
+- **Finding**: none
+- **Fix direction**: none
+
+### SC3 — SC3 — The governor-diagnostics artifact publishes on any migration-job failure (including the pytest step that precedes the governor step), with the job exit preserved non-zero.
+
+- **Verdict**: met
+- **Surface**: GitHub Actions (repository-quality migration job on main: pytest result, diagnostics artifact)
+- **Check**: PLAN.md GitHub-Actions-surface Walkthrough steps 1–2: read `.github/workflows/repository-quality.yml` at the reviewed HEAD (governor-report step, diagnostics step, suppression scan over the whole file) and `uv run --frozen pytest tests/test_project_state_roadmap_freshness.py -q -rs` plus `-v -k "native_marker or diagnostics or governor_payload or masks"` in the sidecar.
+- **Observed**: The `migration-layer-quality` job (workflow `:167-283`) ends with `Publish governor diagnostics on failure` carrying `if: failure()` (`:277`) — evaluated against the job status, so it fires after any failed step (restore `:198`, the pytest steps `:221/:233/:236`), including the pytest steps that precede the governor step; the governor-report step runs `if: always()` (`:246`) so `governor.json` exists on any failure path; `if-no-files-found: error` (`:282`); a green run publishes nothing. N3: no suppression in the migration job — no `continue-on-error`, no `|| true`, `set -o pipefail` intact (`:248`); `if: always()`/`if: failure()` steps cannot flip the job conclusion; the file's only `continue-on-error: true` lines (`:386`, `:426`) sit in report-only steps of the separate `corpus-integration` job, outside this wave's diff. Step 2: `5 passed, 5 skipped`, exit 0, with `test_diagnostics_artifact_is_job_failure_scoped` (`:438`), `test_governor_payload_exists_on_any_failure_path` (`:458`), and `test_diagnostics_publication_never_masks_the_job_exit` (`:468`) PASSED by name — E4's any-step coverage is the pinned combination of `always()` payload + job-scoped `failure()` + last-step position. Same result as the recorded T002 ledger row (`378a0def`, exit 0).
+- **Reference**: .github/workflows/repository-quality.yml:167-283 (esp. :246,:248,:273-282),:386,:426; tests/test_project_state_roadmap_freshness.py:438-483; .project/build/verify-ledger.jsonl (row `378a0def…`)
+- **Finding**: none
+- **Fix direction**: none
+
+### SC4 — SC4 — The roadmap marker remains consistent after the fix: the three-way identity test (STATE ↔ roadmap.json ↔ live marker) passes and the live marker names the M002 continuation on gsd-path/M002.
+
+- **Verdict**: met
+- **Surface**: GitHub Actions (repository-quality migration job on main: pytest result, diagnostics artifact)
+- **Check**: Walkthrough step 2 run plus named tests (`-k "native_marker or diagnostics or governor_payload or masks"`); live STATE / roadmap.json / marker re-read in the sidecar at the reviewed HEAD.
+- **Observed**: `test_native_marker_names_the_operational_milestone` PASSED (total `5 passed, 5 skipped`, exit 0 — identical to the recorded T002 Verify at `378a0def`). Live three-way identity re-read in the sidecar: `.project/STATE.md` = `ci-honesty` / `phase: ship` / `status: active` / `branch: gsd-path/M003`; `prd/project-state/data/roadmap.json` `current_milestone.id` = `post-ship-hardening`; `prd/project-state/roadmap.md:50` carries exactly one `Local GSD workflow marker:` bullet naming `post-ship-hardening` — the M002 continuation — equal to the latest archive `002-post-ship-hardening`. The re-keyed test (`tests/test_project_state_roadmap_freshness.py:299-376`) demands latest-archived = roadmap.json = live marker with STATE honestly ahead in any in-flight phase and exact identity in shipped/done, asserting on a disagreeing marker, a duplicated bullet, or an unrelated projection — E5: a mismatch fails, never silently passes. N4: `test_native_marker_has_one_dated_m001_superseded_bullet` (`:386`) PASSED and the milestone diff touches no archived or dated snapshot file.
+- **Reference**: prd/project-state/roadmap.md:50; prd/project-state/data/roadmap.json (`current_milestone.id`); .project/STATE.md; tests/test_project_state_roadmap_freshness.py:299-410; .project/review/final-gap-1.md (Gap verdict: pass at this HEAD)
+- **Finding**: none
+- **Fix direction**: none

@@ -22,12 +22,14 @@ ROOT = Path(__file__).resolve().parents[1]
 # The live-surface assertions below are checkout-context-aware through the one
 # shared predicate (tests/branch_context.py, M002 SC2). On the operational
 # contexts — the bound branch and the authorized task worktrees, plus the
-# shipped integrated main via Contract A — the full assertions run. On the
-# foreign-branch, detached, and verify-sidecar checkouts the fail-closed
-# branch-ownership contract IS the contract, pinned exactly:
-# kind=conflicting-ownership with the checkout's own mismatch reason — never
-# the broad kind-prefix pin the M001 patch accepted, which a
-# runtime-unavailable failure also satisfied.
+# shipped integrated main via Contract A — the full assertions run, keyed on
+# the STATE.md phase pairing (M003 SC1): build/active asserts the honest
+# roadmap finding through the trajectory-governor check, shipped/done asserts
+# the clean Contract A pass. On the foreign-branch, detached, and
+# verify-sidecar checkouts the fail-closed branch-ownership contract IS the
+# contract, pinned exactly: kind=conflicting-ownership with the checkout's own
+# mismatch reason — never the broad kind-prefix pin the M001 patch accepted,
+# which a runtime-unavailable failure also satisfied.
 
 
 def _fail_closed_surface_finding(payload: dict[str, Any]) -> dict[str, Any]:
@@ -259,7 +261,8 @@ def test_cli_preflight_command_emits_stable_json(capsys) -> None:
 
     assert payload["schema_version"] == PREFLIGHT_SCHEMA_VERSION
     assert [item["check_id"] for item in payload["checks"]] == EXPECTED_CHECK_IDS
-    if branch_context.pins_fail_closed(branch_context.classify(ROOT)):
+    routed = branch_context.classify(ROOT)
+    if branch_context.pins_fail_closed(routed.context):
         # Away from the operational contexts the preflight workflow-state
         # surface check fails closed on branch ownership; pin that contract
         # instead of a green run.
@@ -271,6 +274,23 @@ def test_cli_preflight_command_emits_stable_json(capsys) -> None:
         assert payload["error_count"] == len(error_checks)
         assert payload["error_count"] >= 1
         return
+    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
+        # build/active (M003 SC1): the honest roadmap mismatch fails the run
+        # through the trajectory-governor check; the error accounting stays
+        # derived from the report, never a guessed constant.
+        assert code == 1
+        assert payload["status"] == "failure"
+        by_id = {item["check_id"]: item for item in payload["checks"]}
+        trajectory = by_id["trajectory-governor"]
+        assert trajectory["status"] == "fail"
+        assert trajectory["severity"] == "error"
+        assert "roadmap-current-tracks-path" in trajectory["observed"]
+        error_checks = [item for item in payload["checks"] if item["severity"] == "error"]
+        assert "trajectory-governor" in {item["check_id"] for item in error_checks}
+        assert payload["error_count"] == len(error_checks)
+        assert payload["error_count"] >= 1
+        return
+    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert code == 0
     assert payload["status"] == "ok"
 
@@ -280,11 +300,14 @@ def test_live_preflight_surface_matches_scenario_contract() -> None:
 
     The routed live tests carry the same routing for their full assertions;
     this test pins the surface check itself for all five contexts, so the
-    matrix cannot silently narrow to the routed checks.
+    matrix cannot silently narrow to the routed checks. On the shipped
+    integrated main the phase pairing decides the contract (M003 SC1):
+    shipped/done passes as Contract A, build/active blocks on branch
+    ownership like any checkout away from the bound branch.
     """
-    context = branch_context.classify(ROOT)
+    routed = branch_context.classify(ROOT)
     check = _workflow_state_surface_check(ROOT)
-    if branch_context.pins_fail_closed(context):
+    if branch_context.pins_fail_closed(routed.context):
         _assert_fail_closed_surface_finding(
             {
                 "status": check.status,
@@ -294,22 +317,42 @@ def test_live_preflight_surface_matches_scenario_contract() -> None:
             }
         )
         return
-    assert check.status == "pass"
-    if context is branch_context.BranchContext.SHIPPED_MAIN:
-        # Contract A, distinct from every fail-closed pin (E3): the verified
-        # shipped/done state passes with the archive proof.
-        assert "state=shipped-integrated" in check.observed
-        assert ".project/archive/001-001-native-workflow-acceptance" in check.observed
+    if routed.context is branch_context.BranchContext.SHIPPED_MAIN:
+        if routed.phase is branch_context.StatePhase.SHIPPED_DONE:
+            # Contract A, distinct from every fail-closed pin (E3): the
+            # verified shipped/done state passes with the archive proof. The
+            # archive path moves every milestone, so the pin names the shape,
+            # never a milestone literal (SC2).
+            assert check.status == "pass"
+            assert "state=shipped-integrated" in check.observed
+            assert "outcome shipped/done; archive .project/archive/" in check.observed
+        else:
+            # main with an in-flight build/active STATE: main is not the bound
+            # branch, so the honest surface is the same branch-ownership block
+            # the fail-closed contexts pin, with the checkout's own mismatch
+            # reason as the discriminator.
+            assert routed.phase is branch_context.StatePhase.BUILD_ACTIVE
+            _assert_fail_closed_surface_finding(
+                {
+                    "status": check.status,
+                    "severity": check.severity,
+                    "observed": check.observed,
+                    "remediation": check.remediation,
+                }
+            )
         return
-    assert context is branch_context.BranchContext.BOUND
+    assert routed.context is branch_context.BranchContext.BOUND
+    assert routed.phase is branch_context.StatePhase.BUILD_ACTIVE
+    assert check.status == "pass"
     assert "state=operational" in check.observed
 
 
 def test_cargo_formatter_failure_is_fail_closed_and_actionable() -> None:
     report = run_test_preflight(ROOT, runner=failing_cargo_runner)
+    routed = branch_context.classify(ROOT)
     payload = report.to_dict()
 
-    if branch_context.pins_fail_closed(branch_context.classify(ROOT)):
+    if branch_context.pins_fail_closed(routed.context):
         # Away from the operational contexts the injected cargo-fmt failure
         # and the workflow-state-surface blocking error are both present and
         # both counted; the total is derived from the report, never guessed.
@@ -336,11 +379,13 @@ def test_cargo_formatter_failure_is_fail_closed_and_actionable() -> None:
         assert payload["error_count"] >= 2
         return
     assert payload["status"] == "failure"
-    assert payload["error_count"] == 1
     failed = {item["check_id"]: item for item in payload["checks"] if item["status"] == "fail"}
     assert failed["cargo-fmt-workspace"]["command"] == ["cargo", "fmt", "--all", "--", "--check"]
     assert "cargo fmt --all" in failed["cargo-fmt-workspace"]["remediation"]
     assert "crates/example/src/lib.rs" in failed["cargo-fmt-workspace"]["stderr_tail"]
+    # The governor runner is faked ok here, so the injected cargo failure is
+    # the one error on every operational checkout, whatever the STATE phase.
+    assert payload["error_count"] == 1
 
 
 def test_ruff_format_check_includes_agent_skill_scripts_when_present() -> None:

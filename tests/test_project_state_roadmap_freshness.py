@@ -14,6 +14,11 @@ only structural/freshness facts — it does not validate product readiness.
 
 If this test fails, update `prd/project-state/data/roadmap.json` (and
 `prd/project-state/roadmap.md`) to match the current GSD state, then re-run.
+
+The suite also pins the migration job's CI diagnostics contract
+(`.github/workflows/repository-quality.yml`): the governor-diagnostics
+artifact must publish on any job failure without masking the non-zero exit
+(M003 SC3).
 """
 
 from __future__ import annotations
@@ -23,6 +28,7 @@ import re
 from pathlib import Path
 
 import pytest
+import yaml
 
 from law_nexus_harness.workflow_state import WorkflowStateKind, read_workflow_state
 
@@ -261,16 +267,54 @@ _NATIVE_MILESTONE_RE = re.compile(r"^milestone:\s*(?P<slug>\S+)\s*$", re.MULTILI
 ROADMAP_MD_PATH = ROOT / "prd/project-state/roadmap.md"
 NATIVE_STATE_PATH = ROOT / ".project/STATE.md"
 
+# STATE.md frontmatter phase fields. The phase/status pair decides which
+# documented roadmap contract applies: a milestone in flight leaves the
+# roadmap tracking the last landed milestone — the mismatch the governor
+# reports as the honest roadmap-current-tracks-path finding — while a
+# shipped/done state must agree with the projection exactly.
+_STATE_PHASE_RE = re.compile(r"^phase:\s*(?P<value>[^\s#]+)", re.MULTILINE)
+_STATE_STATUS_RE = re.compile(r"^status:\s*(?P<value>[^\s#]+)", re.MULTILINE)
+_LANDED_PHASE = ("shipped", "done")
+
+# Archive directories are named "<NNN>-<milestone-slug>"; the highest NNN is
+# the most recently landed milestone.
+_ARCHIVE_DIR_RE = re.compile(r"^(?P<seq>\d{3})-(?P<slug>.+)$")
+
+
+def _latest_archived_milestone_slug() -> str | None:
+    """Return the slug of the most recently archived milestone, or None."""
+    archive_dir = ROOT / ".project" / "archive"
+    if not archive_dir.is_dir():
+        return None
+    ranked: list[tuple[int, str]] = []
+    for entry in archive_dir.iterdir():
+        match = _ARCHIVE_DIR_RE.match(entry.name)
+        if entry.is_dir() and match:
+            ranked.append((int(match.group("seq")), match.group("slug")))
+    if not ranked:
+        return None
+    return max(ranked)[1]
+
 
 def test_native_marker_names_the_operational_milestone() -> None:
-    """Three-way identity: STATE.md milestone = roadmap.json id = roadmap.md bullet.
+    """Three-way roadmap identity, keyed on the native STATE phase (SC4/E5).
 
-    Under operational native Path state the roadmap freshness is owned by the
-    native milestone (MIGRATION.md §4.2): the tracked marker must name the
-    live native milestone slug exactly. A mismatched id, a missing marker
-    bullet, a prefix/suffix variant, or a duplicated live marker bullet is a
-    fail-closed drift signal (E2). Skips only when this checkout carries no
-    native STATE.md milestone at all.
+    The projection must name exactly one milestone, consistently across
+    roadmap.json and the live roadmap.md marker, and that milestone must be
+    the one the STATE phase semantics demand:
+
+    - shipped/done (nothing in flight): exact three-way identity — STATE.md
+      milestone = roadmap.json id = live marker slug.
+    - any in-flight phase (e.g. build/active): STATE.md is deliberately ahead
+      of the projection; the roadmap keeps tracking the last landed milestone
+      (the M002 continuation on this checkout), which is exactly the honest
+      roadmap-current-tracks-path mismatch the governor reports on integrated
+      main. The three-way anchor here is archive = roadmap.json = marker.
+
+    A marker that disagrees with roadmap.json, a duplicated live bullet, or a
+    projection pointing at an unrelated milestone fails closed in both
+    phases. Skips only when this checkout carries no native STATE.md
+    milestone at all.
     """
     if not NATIVE_STATE_PATH.exists():
         pytest.skip("no .project/STATE.md on this checkout (native state absent)")
@@ -278,14 +322,17 @@ def test_native_marker_names_the_operational_milestone() -> None:
     native_match = _NATIVE_MILESTONE_RE.search(state_text)
     if native_match is None:
         pytest.skip(".project/STATE.md carries no milestone (native state absent)")
+    phase_match = _STATE_PHASE_RE.search(state_text)
+    status_match = _STATE_STATUS_RE.search(state_text)
+    assert phase_match is not None and status_match is not None, (
+        "native STATE.md names a milestone but carries no phase/status pair — "
+        "the phase semantics that key the roadmap contract are unreadable"
+    )
     native_slug = native_match.group("slug")
+    landed = (phase_match.group("value"), status_match.group("value")) == _LANDED_PHASE
 
     roadmap = _load_roadmap()
     current = roadmap["current_milestone"]
-    assert current["id"] == native_slug, (
-        f"roadmap.json current_milestone.id {current['id']!r} != native STATE.md "
-        f"milestone {native_slug!r} — refresh prd/project-state/data/roadmap.json."
-    )
     assert current["status"] == "active", (
         "roadmap.json current_milestone.status must be 'active' while the "
         "native milestone is the operational one"
@@ -297,11 +344,33 @@ def test_native_marker_names_the_operational_milestone() -> None:
         "expected exactly one live 'Local GSD workflow marker:' bullet in "
         f"prd/project-state/roadmap.md, found {len(marker_slugs)}"
     )
-    assert marker_slugs[0] == native_slug, (
-        f"roadmap.md marker bullet names {marker_slugs[0]!r} != native STATE.md "
-        f"milestone {native_slug!r} — exact slug identity required (E2); a "
-        f"prefix/suffix variant or reworded slug is a blocking mismatch."
+    marker_slug = marker_slugs[0]
+    assert marker_slug == current["id"], (
+        f"roadmap.md live marker names {marker_slug!r} but roadmap.json "
+        f"current_milestone.id is {current['id']!r} — the projection must be "
+        "one consistent view (E5); a prefix/suffix variant or reworded slug "
+        "is a blocking mismatch."
     )
+
+    if landed:
+        assert current["id"] == native_slug, (
+            f"roadmap.json current_milestone.id {current['id']!r} != shipped "
+            f"STATE.md milestone {native_slug!r} — nothing is in flight, so "
+            "the projection must agree with STATE.md exactly; refresh "
+            "prd/project-state/data/roadmap.json (+ roadmap.md)."
+        )
+    else:
+        landed_slug = _latest_archived_milestone_slug()
+        assert landed_slug is not None, (
+            "no archived milestone under .project/archive/ while STATE.md is "
+            "in flight — the roadmap has no landed milestone to track"
+        )
+        assert current["id"] == landed_slug, (
+            f"roadmap.json current_milestone.id {current['id']!r} does not "
+            f"match the last landed (archived) milestone {landed_slug!r} "
+            f"while STATE.md is in flight on {native_slug!r} — the projection "
+            "must track the landed milestone, not an unrelated one."
+        )
 
 
 # The dated superseded bullet that records M001 shipped/archived/integrated
@@ -342,6 +411,75 @@ def test_native_marker_has_one_dated_m001_superseded_bullet() -> None:
     )
     assert "886a36a8" in body, "the superseded bullet must record the ship commit"
     assert "4e0cd4db" in body, "the superseded bullet must record the integration merge"
+
+
+# --- CI diagnostics publication (SC3) ---------------------------------------
+# The migration job's governor-diagnostics artifact must publish on ANY job
+# failure without masking the non-zero exit. Pins for
+# .github/workflows/repository-quality.yml.
+
+WORKFLOW_PATH = ROOT / ".github/workflows/repository-quality.yml"
+MIGRATION_JOB_NAME = "migration-layer-quality"
+GOVERNOR_STEP_NAME = "Governor report is honest about bootstrap mode"
+DIAGNOSTICS_STEP_NAME = "Publish governor diagnostics on failure"
+
+
+def _migration_job_steps() -> list[dict]:
+    workflow = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
+    return workflow["jobs"][MIGRATION_JOB_NAME]["steps"]
+
+
+def _named_job_step(steps: list[dict], name: str) -> dict:
+    matches = [step for step in steps if step.get("name") == name]
+    assert len(matches) == 1, name
+    return matches[0]
+
+
+def test_diagnostics_artifact_is_job_failure_scoped() -> None:
+    """SC3/E4: the artifact publishes when any step of the migration job fails.
+
+    The upload carries `if: failure()`, which GitHub evaluates against the
+    job's failure status — so any earlier failed step (pytest, governor,
+    restore) triggers it — and it stays the job's last step so no failure can
+    fall after it.
+    """
+    steps = _migration_job_steps()
+    diagnostics = _named_job_step(steps, DIAGNOSTICS_STEP_NAME)
+    assert diagnostics.get("if") == "failure()"
+    assert str(diagnostics.get("uses", "")).startswith("actions/upload-artifact@")
+    assert diagnostics["with"]["name"] == "governor-diagnostics"
+    assert diagnostics["with"]["path"] == "governor.json"
+    assert steps[-1] is diagnostics, (
+        "the diagnostics upload must be the migration job's last step so a "
+        "failure in any earlier step is covered"
+    )
+
+
+def test_governor_payload_exists_on_any_failure_path() -> None:
+    """The governor step runs `if: always()`, so governor.json exists even when
+    an earlier step (pytest, restore) failed — otherwise the upload would find
+    no file and publish nothing (the CI 40533158703 blind spot)."""
+    steps = _migration_job_steps()
+    governor = _named_job_step(steps, GOVERNOR_STEP_NAME)
+    assert governor.get("if") == "always()"
+    assert steps.index(governor) < steps.index(_named_job_step(steps, DIAGNOSTICS_STEP_NAME))
+
+
+def test_diagnostics_publication_never_masks_the_job_exit() -> None:
+    """N3: publishing diagnostics must not absorb the non-zero job exit."""
+    steps = _migration_job_steps()
+    workflow = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
+    job = workflow["jobs"][MIGRATION_JOB_NAME]
+    assert job.get("continue-on-error") is not True
+    diagnostics = _named_job_step(steps, DIAGNOSTICS_STEP_NAME)
+    governor = _named_job_step(steps, GOVERNOR_STEP_NAME)
+    assert "continue-on-error" not in diagnostics
+    assert "continue-on-error" not in governor
+    assert "run" not in diagnostics, (
+        "the diagnostics step must stay a pure upload action; it must not run "
+        "shell that could absorb a failure"
+    )
+    assert "|| true" not in str(governor.get("run", ""))
 
 
 if __name__ == "__main__":

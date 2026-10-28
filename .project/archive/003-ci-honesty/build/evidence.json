@@ -1,0 +1,56 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "b5809fe8fade48b59a0b6af48cf082881bb12b16",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M003",
+        "candidates": [
+          {
+            "base": "6286138fdda4a2e7a768a0c2bc6d1abd298a763a",
+            "commit": "c5d0bfc63107f5aa50a94d7c72e4b57f2d3e474f",
+            "valid": true
+          }
+        ],
+        "head": "b5809fe8fade48b59a0b6af48cf082881bb12b16",
+        "subject": "T001: Key the live-suite expectations on STATE-phase semantics and pin the classification matrix"
+      },
+      "landed_commit": "c5d0bfc63107f5aa50a94d7c72e4b57f2d3e474f",
+      "reasons": [],
+      "task": {
+        "base": "6286138fdda4a2e7a768a0c2bc6d1abd298a763a",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-scenario-fix-state-phase-keyed.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M003",
+        "candidates": [
+          {
+            "base": "5122b3138d87eec7affac0bd5ca23b94bdd7be7a",
+            "commit": "378a0defb0a62681af314ba29db1f11606c75c72",
+            "valid": true
+          }
+        ],
+        "head": "b5809fe8fade48b59a0b6af48cf082881bb12b16",
+        "subject": "T002: Publish governor diagnostics on any migration-job failure and verify roadmap consistency"
+      },
+      "landed_commit": "378a0defb0a62681af314ba29db1f11606c75c72",
+      "reasons": [],
+      "task": {
+        "base": "5122b3138d87eec7affac0bd5ca23b94bdd7be7a",
+        "id": "T002",
+        "status": "done",
+        "task_file": ".project/tasks/T002-diagnostics-scope-roadmap-consistency.md"
+      }
+    }
+  ]
+}
