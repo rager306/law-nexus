@@ -58,6 +58,10 @@ falkordb=historical-only
   M008 CI guard stays green. The red integrated-main CI runs recorded in the
   report stay unmasked (no suppression). Current-state document:
   `docs/agent-stack/POST-SHIP-STATE-2026-10-28.md`.
+- **Local GSD workflow marker (superseded 2026-10-28):** ci-proof-inputs —
+  shipped/archived/integrated (2026-10-28): ship commit `e311f0ed`, integration
+  merge `50386e26` into `main`, tag `milestone/007-ci-proof-inputs`, archive
+  `.project/archive/007-ci-proof-inputs`.
 - **Local GSD workflow marker (superseded 2026-10-28):** post-ship-hardening is
   shipped/archived/integrated (2026-10-27): ship commit `ba31ffb8`,
   integration merge `f9061889` into `main`, tag

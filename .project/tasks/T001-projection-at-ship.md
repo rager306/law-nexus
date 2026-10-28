@@ -40,7 +40,6 @@ milestone behind.
 ## Intent coverage
 
 - SC1
-- SC2
 - SC3
 
 ## Acceptance criteria

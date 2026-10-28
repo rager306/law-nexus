@@ -1,5 +1,9 @@
 # Ship-time projection refresh
 
+<!-- Owner rule, recorded 2026-10-28 (M009). Read this before shipping a
+     milestone whose build changed the roadmap projection. -->
+
+
 The roadmap projection in `prd/project-state/` must name the milestone being
 shipped. Refresh it in a `docs:` commit immediately before the
 `.project`-only ship commit:

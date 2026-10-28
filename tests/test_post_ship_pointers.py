@@ -93,7 +93,7 @@ def test_roadmap_json_current_milestone_tracks_the_latest_archive() -> None:
     )
 
 
-WORKFLOW_NOTES = REPO / ".project" / "WORKFLOW-NOTES.md"
+REFRESH_RULE = REPO / "docs" / "agent-stack" / "SHIP-TIME-PROJECTION-REFRESH.md"
 
 
 def test_ship_time_projection_refresh_rule_is_recorded() -> None:
@@ -102,17 +102,33 @@ def test_ship_time_projection_refresh_rule_is_recorded() -> None:
     The projection is refreshed during build while the milestone is still in
     flight, so the following ship always landed it one milestone behind — the
     drift M008's CI guard then caught on its own milestone (run 40715983380).
-    The rule must live in a tracked file the next ship reads, not only in a
-    chat message (N2).
+    The rule lives in a tracked document outside `.project/` (the ship gate
+    admits only its own active-root entries, so a rule there would block the
+    ship it describes), and this pin reads every step it prescribes, so
+    deleting one fails here (N2).
     """
-    assert WORKFLOW_NOTES.is_file(), (
-        ".project/WORKFLOW-NOTES.md must record the ship-time projection refresh rule"
+    assert REFRESH_RULE.is_file(), (
+        "docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md must record the "
+        "ship-time projection refresh rule"
     )
-    text = WORKFLOW_NOTES.read_text(encoding="utf-8")
-    assert "current_milestone" in text
-    assert "docs:" in text
-    assert "ship commit" in text
-    assert "tests/test_post_ship_pointers.py" in text
+    text = REFRESH_RULE.read_text(encoding="utf-8")
+    for step in (
+        "prd/project-state/data/roadmap.json",
+        '"active"',
+        "prd/project-state/roadmap.md",
+        "Local GSD workflow marker",
+        "superseded",
+        "docs:",
+        "ship commit",
+        "tests/test_post_ship_pointers.py",
+        "tests/test_project_state_roadmap_freshness.py",
+    ):
+        assert step in text, f"the refresh rule must name {step!r}"
+    # The rule must not live where the ship gate would reject it.
+    assert not (REPO / ".project" / "WORKFLOW-NOTES.md").exists(), (
+        "the refresh rule must not sit in .project/: the ship gate admits only "
+        "its own active-root entries, so the rule would block its own ship"
+    )
 
 
 def test_crosswalk_m225_row_records_the_t004_closure() -> None:
