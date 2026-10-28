@@ -2,14 +2,14 @@
 pipeline: gsd-path/v2
 project: law-nexus
 milestone: ci-honesty
-phase: ship
+phase: shipped
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
-status: active
+status: done
 branch: gsd-path/M003
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
-archive: null
+archive: .project/archive/003-ci-honesty
 integration_default: direct
 integration: direct
 integration_source: default
@@ -72,3 +72,5 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-28 — plan — plan approved
 - 2026-10-28 — build — build started
 - 2026-10-28 — ship — build done; final review pending
+- 2026-10-28 — ship — final gate passed; shipping approval pending
+- 2026-10-28 — shipped — archive preflight passed; shipment recorded
