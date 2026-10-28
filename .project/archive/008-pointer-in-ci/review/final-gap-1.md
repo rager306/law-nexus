@@ -1,6 +1,6 @@
 # Gap Review — 1: project Verify
 
-Reviewed HEAD: f988cd4a9c9c9f894ac3e5e1f8bdd7741009b180
+Reviewed HEAD: 828faf78ad6ed0fdd478e727faac0c4af7333f43
 Gap verdict: pass
 Risk: project Verify
 Waves checked: 1
