@@ -1,7 +1,7 @@
 ---
 id: T002
 title: Fix wave 1 cycle 1 review findings in T001
-wave: 2
+wave: 1
 deps: [T001]
 status: done
 agent: build_T002

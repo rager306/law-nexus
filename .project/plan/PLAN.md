@@ -19,28 +19,15 @@ Project verify: `uv run --frozen pytest tests/test_post_ship_pointers.py tests/t
 
 ## Wave 1 — refresh the projection at ship
 
-Goal: keep the M008 CI guard green by naming the shipping milestone.
-
-Review depth: full
-
-## Wave 2 — fix the wave 1 cycle 1 findings
-
-Goal: move the refresh rule out of the ship gate's path and make its pin read every step.
+Goal: keep the M008 CI guard green by naming the shipping milestone; T002 and
+T003 repair the review findings of cycles 1 and 2 inside the same wave.
 
 Review depth: full
 
 | Task | Title | Deps | Files |
 |------|-------|------|-------|
+| T001 | Record the ship-time projection refresh and name the shipping milestone | — | prd/project-state/data/roadmap.json, prd/project-state/roadmap.md, docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md, tests/test_post_ship_pointers.py, tests/test_project_state_roadmap_freshness.py |
 | T002 | Fix wave 1 cycle 1 review findings in T001 | T001 | docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md, prd/project-state/data/roadmap.json, prd/project-state/roadmap.md, tests/test_post_ship_pointers.py, tests/test_project_state_roadmap_freshness.py |
-
-## Wave 3 — fix the wave 1 cycle 2 findings
-
-Goal: read each numbered rule step in the pin and drop the dead notes path.
-
-Review depth: full
-
-| Task | Title | Deps | Files |
-|------|-------|------|-------|
 | T003 | Fix wave 1 cycle 2 review findings in T001 | T001, T002 | docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md, prd/project-state/data/roadmap.json, prd/project-state/roadmap.md, tests/test_post_ship_pointers.py, tests/test_project_state_roadmap_freshness.py |
 
 ## Held-out checks
