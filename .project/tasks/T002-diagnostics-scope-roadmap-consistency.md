@@ -4,9 +4,9 @@ title: Publish governor diagnostics on any migration-job failure and verify road
 wave: 1
 deps: []
 status: pending     # orchestrator-owned
-agent: null
-base: null
-worktree: null
+agent: null         # orchestrator-owned: set at dispatch
+base: null          # orchestrator-owned: clean layer SHA for isolated Verify
+worktree: null      # orchestrator-owned: isolated task worktree while active
 task_branch: null
 files:
   - .github/workflows/repository-quality.yml
