@@ -612,7 +612,7 @@
     ]
   },
   "current_milestone": {
-    "id": "ci-proof-inputs",
+    "id": "pointer-in-ci",
     "status": "active"
   },
   "recommended_next": {

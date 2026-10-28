@@ -93,6 +93,28 @@ def test_roadmap_json_current_milestone_tracks_the_latest_archive() -> None:
     )
 
 
+WORKFLOW_NOTES = REPO / ".project" / "WORKFLOW-NOTES.md"
+
+
+def test_ship_time_projection_refresh_rule_is_recorded() -> None:
+    """The refresh happens at ship, not during build (M009 SC2, E2).
+
+    The projection is refreshed during build while the milestone is still in
+    flight, so the following ship always landed it one milestone behind — the
+    drift M008's CI guard then caught on its own milestone (run 40715983380).
+    The rule must live in a tracked file the next ship reads, not only in a
+    chat message (N2).
+    """
+    assert WORKFLOW_NOTES.is_file(), (
+        ".project/WORKFLOW-NOTES.md must record the ship-time projection refresh rule"
+    )
+    text = WORKFLOW_NOTES.read_text(encoding="utf-8")
+    assert "current_milestone" in text
+    assert "docs:" in text
+    assert "ship commit" in text
+    assert "tests/test_post_ship_pointers.py" in text
+
+
 def test_crosswalk_m225_row_records_the_t004_closure() -> None:
     """E6: the M225 row is updated in place, never deleted, and links the receipt."""
     rows = [
