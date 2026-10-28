@@ -1,0 +1,40 @@
+{
+ "next": "$gsd-path-forensics",
+ "reason": "check_handoffs.py",
+ "status": "blocked",
+ "steps": [
+  {
+   "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/root/.allspark-home/.gsd-path/runtimes/6f95a31e4b8a434672421a604bdce71e5179409eb19496097219cd6cdb5d9f6f/discussion_records.py",
+    "pending",
+    "--repo",
+    "/root/law-nexus"
+   ],
+   "exit_code": 0,
+   "result": {
+    "pending": []
+   },
+   "script": "discussion_records.py",
+   "stderr": "",
+   "stdout": "{\"pending\": []}\n"
+  },
+  {
+   "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/root/.allspark-home/.gsd-path/runtimes/6f95a31e4b8a434672421a604bdce71e5179409eb19496097219cd6cdb5d9f6f/check_handoffs.py",
+    "plan",
+    "--repo",
+    "/root/law-nexus",
+    "--project-dir",
+    ".project"
+   ],
+   "exit_code": 1,
+   "script": "check_handoffs.py",
+   "stderr": "handoff validation failed: PLAN.md Intent coverage has no rows\n",
+   "stdout": ""
+  }
+ ]
+}
