@@ -10,8 +10,6 @@ Goal: honest CI expectations and diagnostics coverage
 
 Review depth: full
 
-Review depth: full
-
 Tasks: T001 (scenario-expectation fix, STATE-phase-keyed), T002 (diagnostics artifact scope + roadmap consistency).
 
 ## Intent coverage
