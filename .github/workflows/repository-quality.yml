@@ -261,13 +261,16 @@ jobs:
                   for finding in report["findings"]
                   if finding.get("check_id") == "workflow-state-surface"
               )
-              for fact in ("kind=shipped-integrated;",
-                           ".project/archive/001-001-native-workflow-acceptance"):
-                  if fact not in observed:
-                      sys.exit(
-                          "governor on main must report the shipped integrated state; "
-                          f"workflow-state-surface observed: {observed!r} (missing {fact!r})"
-                      )
+              if "kind=shipped-integrated;" not in observed:
+                  sys.exit(
+                      "governor on main must report the shipped integrated state; "
+                      f"workflow-state-surface observed: {observed!r}"
+                  )
+              if ".project/archive/" not in observed:
+                  sys.exit(
+                      "governor on main must name the shipped milestone archive; "
+                      f"workflow-state-surface observed: {observed!r}"
+                  )
           PY
 
       - name: Publish governor diagnostics on failure

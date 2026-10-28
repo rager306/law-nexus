@@ -250,7 +250,9 @@ def test_push_to_main_requires_the_shipped_integrated_governor_report() -> None:
     text = _run_text(_named_step(steps, GOVERNOR_STEP_NAME))
     assert 'os.environ.get("GITHUB_REF") == "refs/heads/main"' in text
     assert '"kind=shipped-integrated;"' in text
-    assert '".project/archive/001-001-native-workflow-acceptance"' in text
+    # The archive path moves every milestone: pin the shape, never a literal.
+    assert '".project/archive/"' in text
+    assert "001-001-native-workflow-acceptance" not in text
     assert 'finding.get("check_id") == "workflow-state-surface"' in text
 
 
