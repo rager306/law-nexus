@@ -274,6 +274,26 @@ def test_migration_checkout_supplies_the_integration_proof_inputs() -> None:
     assert steps.index(proof) > restore_index
 
 
+POINTER_SUITES = (
+    "tests/test_post_ship_pointers.py",
+    "tests/test_project_state_roadmap_freshness.py",
+)
+
+
+def test_ci_runs_the_post_ship_pointer_suites() -> None:
+    """A stale roadmap projection must fail CI, not reach main unnoticed.
+
+    The projection drifted after every ship since M003 and was rediscovered by
+    hand each time, most recently after the M007 integration. Both suites that
+    pin it must stay in the process suite list (M008 SC1): a list that omits
+    either fails here, and removing one to make a run pass is not a fix.
+    """
+    steps = _job_steps("rust-harness-quality")
+    text = _run_text(_named_step(steps, "Product and architecture harness tests"))
+    for suite in POINTER_SUITES:
+        assert suite in text, f"{suite} must run in CI"
+
+
 def test_rust_checkout_supplies_the_same_integration_proof_inputs() -> None:
     """The rust job runs the same live governor/preflight suites as migration.
 
