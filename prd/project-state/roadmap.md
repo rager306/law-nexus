@@ -54,7 +54,8 @@ falkordb=historical-only
   milestone while the next one is in flight: `projection-at-ship` is the active
   milestone in `.project/STATE.md` (phase build, branch `gsd-path/M009`) — the
   follow-up that makes the projection name the milestone being shipped and
-  records the ship-time refresh rule (`.project/WORKFLOW-NOTES.md`), so the
+  records the ship-time refresh rule
+  (`docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md`), so the
   M008 CI guard stays green. The red integrated-main CI runs recorded in the
   report stay unmasked (no suppression). Current-state document:
   `docs/agent-stack/POST-SHIP-STATE-2026-10-28.md`.

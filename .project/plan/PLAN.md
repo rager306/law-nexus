@@ -49,3 +49,12 @@ Entry: a terminal on the bound branch gsd-path/M009; `uv run --frozen pytest tes
 States: projection names the shipping milestone → 0 failures; a stale projection → named failure.
 Walkthrough:
 1. Run the command and confirm 0 failures.
+
+## Wave 3 — fix wave 1 cycle 2 review findings
+
+Goal: Repair the blocking findings of the wave 1 cycle 2 review without changing source task contracts.
+Review depth: full
+
+| Task | Title | Deps | Files |
+|------|-------|------|-------|
+| T003 | Fix wave 1 cycle 2 review findings in T001 | T001, T002 | .project/WORKFLOW-NOTES.md, prd/project-state/data/roadmap.json, prd/project-state/roadmap.md, tests/test_post_ship_pointers.py, tests/test_project_state_roadmap_freshness.py |
