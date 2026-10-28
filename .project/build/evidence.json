@@ -1,0 +1,56 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "04d84023f54a761bf68aadfd1bbe62362ddecfcd",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M004",
+        "candidates": [
+          {
+            "base": "a10c02b4823438acfc72da664e470e3413532bdd",
+            "commit": "5fc1be3d59bfef40a7046af227649e735f02fd71",
+            "valid": true
+          }
+        ],
+        "head": "04d84023f54a761bf68aadfd1bbe62362ddecfcd",
+        "subject": "T001: Refresh roadmap marker and audit queue to M003 shipped state"
+      },
+      "landed_commit": "5fc1be3d59bfef40a7046af227649e735f02fd71",
+      "reasons": [],
+      "task": {
+        "base": "a10c02b4823438acfc72da664e470e3413532bdd",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-refresh-pointers.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M004",
+        "candidates": [
+          {
+            "base": "dd4142100a87557dcaec223bfd035a432e518390",
+            "commit": "b8ccd9777b56178bd64d79bf75ba261d1b1bebfc",
+            "valid": true
+          }
+        ],
+        "head": "04d84023f54a761bf68aadfd1bbe62362ddecfcd",
+        "subject": "T002: Write dated post-ship report and update AGENTS.md pointer"
+      },
+      "landed_commit": "b8ccd9777b56178bd64d79bf75ba261d1b1bebfc",
+      "reasons": [],
+      "task": {
+        "base": "dd4142100a87557dcaec223bfd035a432e518390",
+        "id": "T002",
+        "status": "done",
+        "task_file": ".project/tasks/T002-post-ship-report.md"
+      }
+    }
+  ]
+}
