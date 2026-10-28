@@ -150,6 +150,8 @@ jobs:
       - name: Product and architecture harness tests
         run: >-
           uv run pytest -q -rs
+          tests/test_post_ship_pointers.py
+          tests/test_project_state_roadmap_freshness.py
           tests/test_harness_subprocess_failure_modes.py
           tests/test_harness_status_tracer.py
           tests/test_harness_governor.py

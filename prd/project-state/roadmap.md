@@ -47,17 +47,17 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** ci-fixture-fix is the current milestone —
-  shipped/archived/integrated (2026-10-28): ship commit `e890831e`, integration
-  merge `121a2006` into `main`, tag `milestone/005-ci-fixture-fix`, archive
-  `.project/archive/005-ci-fixture-fix`. The projection tracks the last landed
-  milestone while the next one is in flight: `red-ci-clear` is the active
-  milestone in `.project/STATE.md` (phase build, branch `gsd-path/M006`) — the
-  CI fixture co-update follow-up that pins the shipped-surface shape instead of
-  a milestone literal and refreshes this projection. The red integrated-`main`
-  CI runs recorded in the report are outside the milestone's approved scope and
-  stay unmasked (no suppression). Current-state document:
-  `docs/agent-stack/POST-SHIP-STATE-2026-10-28.md`.
+- **Local GSD workflow marker:** ci-proof-inputs is the current milestone —
+  shipped/archived/integrated (2026-10-28): ship commit `e311f0ed`, integration
+  merge `50386e26` into `main`, tag `milestone/007-ci-proof-inputs`, archive
+  `.project/archive/007-ci-proof-inputs`. The projection tracks the last landed
+  milestone while the next one is in flight: `pointer-in-ci` is the active
+  milestone in `.project/STATE.md` (phase build, branch `gsd-path/M008`) — the
+  follow-up that puts these pointer suites in CI so a stale projection fails a
+  job instead of reaching `main`. Superseded bullet (2026-10-28):
+  `ci-fixture-fix` (ship `e890831e`, merge `121a2006`). The red integrated-main
+  CI runs recorded in the report stay unmasked (no suppression). Current-state
+  document: `docs/agent-stack/POST-SHIP-STATE-2026-10-28.md`.
 - **Local GSD workflow marker (superseded 2026-10-28):** post-ship-hardening is
   shipped/archived/integrated (2026-10-27): ship commit `ba31ffb8`,
   integration merge `f9061889` into `main`, tag

@@ -1,0 +1,56 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "7c94a46de855ecb00f122a700039b0dd00f00cb2",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M008",
+        "candidates": [
+          {
+            "base": "eac6fd994565c0a39717a6bed2bfa2bd2dfb122f",
+            "commit": "bb7c5a011803fbfac0a3fb343ebe64d488b2cf2f",
+            "valid": true
+          }
+        ],
+        "head": "7c94a46de855ecb00f122a700039b0dd00f00cb2",
+        "subject": "T001: Run the pointer suites in CI"
+      },
+      "landed_commit": "bb7c5a011803fbfac0a3fb343ebe64d488b2cf2f",
+      "reasons": [],
+      "task": {
+        "base": "eac6fd994565c0a39717a6bed2bfa2bd2dfb122f",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-pointer-suites-in-ci.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M008",
+        "candidates": [
+          {
+            "base": "bb7c5a011803fbfac0a3fb343ebe64d488b2cf2f",
+            "commit": "c036d6b16c6db3904b3ccf7a577c49d3f0e40f95",
+            "valid": true
+          }
+        ],
+        "head": "7c94a46de855ecb00f122a700039b0dd00f00cb2",
+        "subject": "T002: Refresh the roadmap projection to the shipped milestone"
+      },
+      "landed_commit": "c036d6b16c6db3904b3ccf7a577c49d3f0e40f95",
+      "reasons": [],
+      "task": {
+        "base": "bb7c5a011803fbfac0a3fb343ebe64d488b2cf2f",
+        "id": "T002",
+        "status": "done",
+        "task_file": ".project/tasks/T002-refresh-projection.md"
+      }
+    }
+  ]
+}
