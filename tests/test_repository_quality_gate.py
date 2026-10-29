@@ -31,6 +31,8 @@ CI_PROCESS_SUITE = {
     "tests/test_harness_workflow_state.py",
     "tests/test_verify_source_snapshot_v2.py",
     "tests/test_phase_dispatch_adapter.py",
+    "tests/test_post_ship_pointers.py",
+    "tests/test_project_state_roadmap_freshness.py",
     "tests/test_harness_cli_entrypoints.py",
     "tests/test_harness_preflight.py",
     "tests/test_harness_review_case_cli.py",
