@@ -1,0 +1,56 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "ec766fff38ba5024e0ef2a43e7c789ea100aad2a",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M010",
+        "candidates": [
+          {
+            "base": "f65d886191e6449744f2422c93790ed90e694640",
+            "commit": "78203174a171c5bad034dc3561f8cf80edbcaa09",
+            "valid": true
+          }
+        ],
+        "head": "ec766fff38ba5024e0ef2a43e7c789ea100aad2a",
+        "subject": "T001: Name the pointer suites in the CI inventory and the refresh rule in AGENTS.md"
+      },
+      "landed_commit": "78203174a171c5bad034dc3561f8cf80edbcaa09",
+      "reasons": [],
+      "task": {
+        "base": "f65d886191e6449744f2422c93790ed90e694640",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-ci-inventory-and-agents.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M010",
+        "candidates": [
+          {
+            "base": "78203174a171c5bad034dc3561f8cf80edbcaa09",
+            "commit": "55c490ee9dfe429e40e9250187dd9f6ec6a73399",
+            "valid": true
+          }
+        ],
+        "head": "ec766fff38ba5024e0ef2a43e7c789ea100aad2a",
+        "subject": "T002: Complete the roadmap history and refresh the current-state pointer"
+      },
+      "landed_commit": "55c490ee9dfe429e40e9250187dd9f6ec6a73399",
+      "reasons": [],
+      "task": {
+        "base": "78203174a171c5bad034dc3561f8cf80edbcaa09",
+        "id": "T002",
+        "status": "done",
+        "task_file": ".project/tasks/T002-roadmap-history.md"
+      }
+    }
+  ]
+}

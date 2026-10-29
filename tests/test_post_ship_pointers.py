@@ -172,6 +172,22 @@ def test_ship_time_projection_refresh_rule_is_recorded() -> None:
     )
 
 
+def test_agent_entry_point_names_the_ship_time_refresh_rule() -> None:
+    """A fresh agent must reach the rule from the entry point, not by luck (M010 SC2).
+
+    M009 recorded the ship-time projection refresh in
+    `docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md`, but only a sentence in
+    `roadmap.md` pointed at it, so an agent reading the entry point never learned
+    it. The entry point must name both the rule and its tracked path (E2, N4).
+    """
+    text = AGENTS.read_text(encoding="utf-8")
+    assert "docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md" in text, (
+        "AGENTS.md must name the ship-time projection refresh rule path"
+    )
+    assert "ship commit" in text
+    assert "docs:" in text
+
+
 def test_crosswalk_m225_row_records_the_t004_closure() -> None:
     """E6: the M225 row is updated in place, never deleted, and links the receipt."""
     rows = [

@@ -267,6 +267,11 @@ are not product truth. Map: `prd/archive/README.md`. Temporal AST model L0:
 - Delivery workflow: GSD Path; native state in `.project/`, runtime selection
   in `.gsd-path/runtime.json`. Follow the generated root `WORKFLOW.md` and
   installed phase contracts. Use native helpers for state mutations.
+- Ship-time rule: the roadmap projection in `prd/project-state/` must name the
+  milestone being shipped, refreshed in a `docs:` commit immediately before the
+  `.project`-only ship commit. Procedure:
+  `docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md`; the pointer suites in CI
+  fail on the shipped tree when it is skipped.
 - Product behavior: PDD Kit in `product-model/`, orchestration off.
   `/skill:pdd-verify report only` for audits; Path owns implementation.
 - Read `docs/agent-stack/ALLSPARK_NOTES.md`, `AGENT_HANDOFF.md`, `MIGRATION.md`
