@@ -93,6 +93,85 @@ def test_roadmap_json_current_milestone_tracks_the_latest_archive() -> None:
     )
 
 
+REFRESH_RULE = REPO / "docs" / "agent-stack" / "SHIP-TIME-PROJECTION-REFRESH.md"
+
+# Each numbered step of the rule, matched by the artifact it must name and the
+# action it must prescribe. A step that disappears takes its artifact with it,
+# so deleting a step fails the pin instead of passing on the survivors.
+REFRESH_STEPS = (
+    (
+        "roadmap.json",
+        ("prd/project-state/data/roadmap.json", "current_milestone", '"active"'),
+    ),
+    (
+        "roadmap.md marker",
+        ("prd/project-state/roadmap.md", "Local GSD workflow marker", "superseded"),
+    ),
+    ("commit", ("docs:", "ship commit")),
+)
+
+
+def _refresh_rule_steps() -> list[str]:
+    """The rule's numbered steps, in order."""
+
+    text = REFRESH_RULE.read_text(encoding="utf-8")
+    steps: list[str] = []
+    current: list[str] = []
+    for line in text.splitlines():
+        if re.match(r"^\d+\.\s", line):
+            if current:
+                steps.append(" ".join(current))
+            current = [line]
+        elif current and line.strip():
+            current.append(line.strip())
+    if current:
+        steps.append(" ".join(current))
+    return steps
+
+
+def test_ship_time_projection_refresh_rule_is_recorded() -> None:
+    """The refresh happens at ship, not during build (M009 SC2, E2).
+
+    The projection is refreshed during build while the milestone is still in
+    flight, so the following ship always landed it one milestone behind — the
+    drift M008's CI guard then caught on its own milestone (run 40715983380).
+
+    The rule lives outside `.project/`: the ship gate's active-root check admits
+    only its own entries, so a rule there would block the ship it describes.
+    Every numbered step is read by artifact, so deleting one fails here — a pin
+    that only asserted the union of its words passed with the steps removed.
+    """
+    assert REFRESH_RULE.is_file(), (
+        "docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md must record the "
+        "ship-time projection refresh rule"
+    )
+    steps = _refresh_rule_steps()
+    assert len(steps) >= len(REFRESH_STEPS), (
+        f"the refresh rule must keep at least {len(REFRESH_STEPS)} numbered "
+        f"steps, found {len(steps)}"
+    )
+    for index, (label, required) in enumerate(REFRESH_STEPS):
+        step = steps[index]
+        for fact in required:
+            assert fact in step, f"refresh rule step {index + 1} ({label}) must name {fact!r}"
+    text = REFRESH_RULE.read_text(encoding="utf-8")
+    for fact in (
+        "tests/test_post_ship_pointers.py",
+        "tests/test_project_state_roadmap_freshness.py",
+    ):
+        assert fact in text, f"the refresh rule must name {fact!r}"
+    # The rule must not live where the ship gate would reject it, and no active
+    # document may still point at the deleted location.
+    assert not (REPO / ".project" / "WORKFLOW-NOTES.md").exists(), (
+        "the refresh rule must not sit in .project/: the ship gate admits only "
+        "its own active-root entries, so the rule would block its own ship"
+    )
+    roadmap_md = (REPO / "prd" / "project-state" / "roadmap.md").read_text(encoding="utf-8")
+    assert "WORKFLOW-NOTES" not in roadmap_md, (
+        "the roadmap must not point at the deleted .project/WORKFLOW-NOTES.md"
+    )
+
+
 def test_crosswalk_m225_row_records_the_t004_closure() -> None:
     """E6: the M225 row is updated in place, never deleted, and links the receipt."""
     rows = [

@@ -1,0 +1,80 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "a74057fdb1c74bad925a86673097879d7bd61c3f",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M009",
+        "candidates": [
+          {
+            "base": "4931a6157f847596742935f57508826a33622c83",
+            "commit": "7594043e33ecb125b2dd399e8c0c9647772aab1a",
+            "valid": true
+          }
+        ],
+        "head": "a74057fdb1c74bad925a86673097879d7bd61c3f",
+        "subject": "T001: Record the ship-time projection refresh and name the shipping milestone"
+      },
+      "landed_commit": "7594043e33ecb125b2dd399e8c0c9647772aab1a",
+      "reasons": [],
+      "task": {
+        "base": "4931a6157f847596742935f57508826a33622c83",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-projection-at-ship.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M009",
+        "candidates": [
+          {
+            "base": "d2c39348c787844d865e2c5ec8ed23939a597e45",
+            "commit": "e655fec7c065731062fab143af25f9580cf38efa",
+            "valid": true
+          }
+        ],
+        "head": "a74057fdb1c74bad925a86673097879d7bd61c3f",
+        "subject": "T002: Fix wave 1 cycle 1 review findings in T001"
+      },
+      "landed_commit": "e655fec7c065731062fab143af25f9580cf38efa",
+      "reasons": [],
+      "task": {
+        "base": "d2c39348c787844d865e2c5ec8ed23939a597e45",
+        "id": "T002",
+        "status": "done",
+        "task_file": ".project/tasks/T002-fix-wave-1-cycle-1.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M009",
+        "candidates": [
+          {
+            "base": "e655fec7c065731062fab143af25f9580cf38efa",
+            "commit": "141e8222ff11b0c49cf72addcde4339c711a654d",
+            "valid": true
+          }
+        ],
+        "head": "a74057fdb1c74bad925a86673097879d7bd61c3f",
+        "subject": "T003: Fix wave 1 cycle 2 review findings in T001"
+      },
+      "landed_commit": "141e8222ff11b0c49cf72addcde4339c711a654d",
+      "reasons": [],
+      "task": {
+        "base": "e655fec7c065731062fab143af25f9580cf38efa",
+        "id": "T003",
+        "status": "done",
+        "task_file": ".project/tasks/T003-fix-wave-1-cycle-2.md"
+      }
+    }
+  ]
+}
