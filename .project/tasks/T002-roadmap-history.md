@@ -11,7 +11,6 @@ task_branch: null
 files:
   - prd/project-state/roadmap.md
   - docs/agent-stack/POST-SHIP-STATE-2026-10-28.md
-  - tests/test_post_ship_pointers.py
   - tests/test_project_state_roadmap_freshness.py
 ---
 
@@ -50,7 +49,7 @@ while that report stops before M008.
 ## Verify
 
 ```bash
-uv run --frozen pytest tests/test_post_ship_pointers.py -q
+uv run --frozen pytest tests/test_project_state_roadmap_freshness.py -q
 ```
 
 ## Log

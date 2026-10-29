@@ -28,8 +28,8 @@ Review depth: full
 
 | Task | Title | Deps | Files |
 |------|-------|------|-------|
-| T001 | Name the pointer suites in the CI inventory and the refresh rule in AGENTS.md | — | prd/migration/decommission/repository-quality-gate.json, tests/test_repository_quality_gate.py, AGENTS.md, tests/test_ci_runtime_restore.py |
-| T002 | Complete the roadmap history and refresh the current-state pointer | T001 | prd/project-state/roadmap.md, docs/agent-stack/POST-SHIP-STATE-2026-10-28.md, tests/test_post_ship_pointers.py |
+| T001 | Name the pointer suites in the CI inventory and the refresh rule in AGENTS.md | — | prd/migration/decommission/repository-quality-gate.json, tests/test_repository_quality_gate.py, AGENTS.md, tests/test_ci_runtime_restore.py, tests/test_post_ship_pointers.py |
+| T002 | Complete the roadmap history and refresh the current-state pointer | T001 | prd/project-state/roadmap.md, docs/agent-stack/POST-SHIP-STATE-2026-10-28.md, tests/test_project_state_roadmap_freshness.py |
 
 ## Held-out checks
 
