@@ -3,9 +3,9 @@ id: T003
 title: Fix wave 1 cycle 2 review findings in T001
 wave: 1
 deps: [T001, T002]
-status: done
-agent: build_T003
-base: 825b509629bf579950164db720c5288021a2178f
+status: pending
+agent: null
+base: null
 worktree: null
 task_branch: null
 files:
