@@ -383,6 +383,49 @@ _SUPERSEDED_M001_BULLET_RE = re.compile(
 )
 
 
+def test_every_archived_milestone_has_a_dated_history_bullet() -> None:
+    """The superseded history must record every shipment (M010 SC3, E3, N2).
+
+    The live marker names the current milestone; the history below it records
+    the shipments a fresh reader cannot otherwise reconstruct. Bullets are
+    appended, never deleted (N2), and every archive under `.project/archive/`
+    must have one, with its ship commit, tag and archive path.
+    """
+    if not NATIVE_STATE_PATH.exists():
+        pytest.skip("no .project/STATE.md on this checkout (native state absent)")
+    roadmap_md = ROADMAP_MD_PATH.read_text(encoding="utf-8")
+    archive_dir = ROOT / ".project" / "archive"
+    archives = (
+        sorted(
+            entry.name
+            for entry in archive_dir.iterdir()
+            if entry.is_dir() and _ARCHIVE_DIR_RE.match(entry.name)
+        )
+        if archive_dir.is_dir()
+        else []
+    )
+    if not archives:
+        pytest.skip("no archived milestones on this checkout")
+    live_slugs = _MARKER_BULLET_RE.findall(roadmap_md)
+    assert len(live_slugs) == 1, "expected exactly one live marker bullet"
+    live_slug = live_slugs[0]
+    recorded = 0
+    for name in archives:
+        slug = _ARCHIVE_DIR_RE.match(name).group("slug")
+        if slug == live_slug:
+            # The current milestone's shipment is the live marker itself; it
+            # moves into the history when the next milestone ships.
+            continue
+        assert f".project/archive/{name}" in roadmap_md, (
+            f"the roadmap history must record archive {name}"
+        )
+        assert f"milestone/{name}" in roadmap_md, (
+            f"the roadmap history must name tag milestone/{name}"
+        )
+        recorded += 1
+    assert recorded >= 1, "no shipment is recorded in the roadmap history"
+
+
 def test_native_marker_has_one_dated_m001_superseded_bullet() -> None:
     """Exactly one dated superseded bullet records the shipped M001 (T004, AC1).
 

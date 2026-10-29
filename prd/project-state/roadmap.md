@@ -59,6 +59,31 @@ falkordb=historical-only
   shipped/archived/integrated (2026-10-28): ship commit `e311f0ed`, integration
   merge `50386e26` into `main`, tag `milestone/007-ci-proof-inputs`, archive
   `.project/archive/007-ci-proof-inputs`.
+- **Local GSD workflow marker (superseded 2026-10-28):** pointer-in-ci —
+  shipped/archived/integrated (2026-10-28): ship commit `63c7d07d`, integration
+  merge `4dd35d25` into `main`, tag `milestone/008-pointer-in-ci`, archive
+  `.project/archive/008-pointer-in-ci`. Scope: run the two post-ship pointer
+  suites in CI so a stale projection fails a job.
+- **Local GSD workflow marker (superseded 2026-10-28):** red-ci-clear —
+  shipped/archived/integrated (2026-10-28): ship commit `7d1c62c2`, integration
+  merge `3e047fe8` into `main`, tag `milestone/006-red-ci-clear`, archive
+  `.project/archive/006-red-ci-clear`. Scope: pin the shipped-surface shape in
+  the governor honesty step instead of a milestone literal, and refresh this
+  projection.
+- **Local GSD workflow marker (superseded 2026-10-28):** ci-fixture-fix —
+  shipped/archived/integrated (2026-10-28): ship commit `e890831e`, integration
+  merge `121a2006` into `main`, tag `milestone/005-ci-fixture-fix`, archive
+  `.project/archive/005-ci-fixture-fix`. Scope: the roadmap-freshness fixture
+  derives its milestone from the tracked roadmap.json, and the bound-branch
+  surface pins accept both `build/active` and `shipped/done`.
+- **Local GSD workflow marker (superseded 2026-10-28):** pointer-refresh-m003 —
+  shipped/archived/integrated (2026-10-28): ship commit `2503306f`, integration
+  merge `57bb2282` into `main`, tag `milestone/004-pointer-refresh-m003`,
+  archive `.project/archive/004-pointer-refresh-m003`.
+- **Local GSD workflow marker (superseded 2026-10-28):** ci-honesty —
+  shipped/archived/integrated (2026-10-28): ship commit `7786d5d3`, integration
+  merge `7e200294` into `main`, tag `milestone/003-ci-honesty`, archive
+  `.project/archive/003-ci-honesty`.
 - **Local GSD workflow marker (superseded 2026-10-28):** post-ship-hardening is
   shipped/archived/integrated (2026-10-27): ship commit `ba31ffb8`,
   integration merge `f9061889` into `main`, tag

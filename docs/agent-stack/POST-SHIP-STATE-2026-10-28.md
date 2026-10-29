@@ -111,6 +111,30 @@ refresh —
 Scope-out (standing): strict corpus run, PDD wrapper bootstrap, Allspark
 identity pilot, product feature work; cutover stays `false`.
 
+## M005–M009: red CI cleared (recorded facts)
+
+The CI section above records the pre-M005 world. Every cause it names was fixed,
+and the integrated `main` is green:
+
+| Run | Push | Conclusion |
+|---|---|---|
+| 40805352394 | `319a7b1a` (M009) | success — all four jobs; the corpus job is skipped without the corpus |
+
+What each milestone changed, in order:
+
+| Milestone | Ship | Integration | Change |
+|---|---|---|---|
+| M005 `ci-fixture-fix` | `e890831e` | `121a2006` | The roadmap-freshness fixture derives its milestone from the tracked `roadmap.json`; the bound-branch surface pins accept `build/active` and `shipped/done`. |
+| M006 `red-ci-clear` | `7d1c62c2` | `3e047fe8` | The governor honesty step asserts the `kind=shipped-integrated;` shape and a `.project/archive/` path instead of the M001 archive literal; the projection was refreshed. |
+| M007 `ci-proof-inputs` | `e311f0ed` | `50386e26` | The Rust job checks out the full history and tags and prepares `origin/HEAD`, so the pinned runtime proves the shipped integration; the governor step prints the observed surface and the proof inputs. |
+| M008 `pointer-in-ci` | `63c7d07d` | `4dd35d25` | Both post-ship pointer suites run in CI, so a stale projection fails a job instead of reaching `main`. |
+| M009 `projection-at-ship` | `5e5fdaee` | `319a7b1a` | The projection names the milestone being shipped, refreshed in a `docs:` commit before the `.project`-only ship commit; the rule is recorded in `docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md` and pinned. |
+
+What M005–M009 did not change: `prd/project-state/workflow-backend.json`
+`cutover` stays `false` — the owner's decision — and no failing run is
+suppressed, skipped, or reinterpreted. The M003-era red rows above stay as the
+dated record of what the failures were.
+
 ## Fresh-session bootstrap
 
 Given only this repository and this section, a fresh session bootstraps from
