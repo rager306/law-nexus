@@ -1,15 +1,15 @@
 ---
 pipeline: gsd-path/v2
 project: law-nexus
-milestone: projection-at-ship
-phase: shipped
+milestone: doc-consistency
+phase: plan
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
 status: done
-branch: gsd-path/M009
+branch: gsd-path/M010
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
-archive: .project/archive/009-projection-at-ship
+archive: null
 integration_default: direct
 integration: direct
 integration_source: default
@@ -117,3 +117,7 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-28 — build — build started
 - 2026-10-29 — ship — build done; final review pending
 - 2026-10-29 — shipped — archive preflight passed; shipment recorded
+- 2026-10-29 — define — router bound next milestone
+- 2026-10-29 — define — milestone intent approved
+- 2026-10-29 — plan — planning started
+- 2026-10-29 — plan — plan approved
