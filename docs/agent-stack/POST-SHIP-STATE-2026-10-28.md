@@ -9,6 +9,11 @@
 - Written by: build_T002 (coder, milestone `pointer-refresh-m003` — the fourth
   milestone, bound branch `gsd-path/M004`). Records delivery and workflow state
   only; it is not a legal or product authority.
+- Updated: 2026-10-31 by build_T001 (coder, milestone `projection-alignment`,
+  bound branch `gsd-path/M012`): appended the M011 delivered record below the
+  existing dated records and re-recorded the live CI state — the newest main
+  run 41198873586 at `ef17106b` is a FAILURE on the projection suites. The
+  delivered record now ends at M011 `reference-front-door`.
 
 ## Shipped milestones (recorded facts)
 
@@ -53,9 +58,12 @@ What each milestone proved and delivered (recorded facts):
 ## CI state on integrated main through M003 (dated history)
 
 This section is the dated pre-M005 record (2026-10-25 .. 2026-10-28). The
-live state is green: see "M005–M009: red CI cleared" below — run 40805352394
-at `319a7b1a` success, re-confirmed by the newest main run 40822037565 at
-`3a39fd70` success (recorded by the 2026-10-30 docs audit).
+live state is recorded in "M011 delivered — projection suites red on main"
+below: the newest main run 41198873586 at `ef17106b` (the M011 integration,
+2026-10-31) concluded **failure** on the projection suites — the M011 ship
+skipped the pinned ship-time projection refresh. Runs 40805352394 at
+`319a7b1a` and 40822037565 at `3a39fd70` (both success, recorded by the
+2026-10-30 docs audit) stay as dated history below.
 
 The last green `repository-quality` run on `main` then was run 40203533977
 (2026-10-25, on the bootstrap merge `54a495cd`). Every integration push in
@@ -146,6 +154,35 @@ What M005–M009 did not change: `prd/project-state/workflow-backend.json`
 suppressed, skipped, or reinterpreted. The M003-era red rows above stay as the
 dated record of what the failures were.
 
+## M011 delivered — projection suites red on main (recorded facts)
+
+M011 `reference-front-door` shipped/archived/integrated (2026-10-31): ship
+commit `38abe687` (touches only `.project/`), integration merge `ef17106b`
+into `main`, tag `milestone/011-reference-front-door`, archive
+`.project/archive/011-reference-front-door`. It shipped the reference-package
+surface in `law-nexus-inspect` (`reference-package build|check`, honest exit
+contract 0/2/3/6) and aligned the front-door docs and the PDD model with it.
+The preceding shipment was M010 `doc-consistency` (2026-10-29): ship
+`fd60893f`, integration `3a39fd70`, tag `milestone/010-doc-consistency`,
+archive `.project/archive/010-doc-consistency`. The M011 ship skipped the
+pinned ship-time projection refresh
+(`docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md`), so the projection still
+fronted M010 when `main` integrated — the skip this section records.
+
+Live CI state (recorded 2026-10-31; 41198873586 is the newest main run at
+edit time):
+
+| Run | Push | Conclusion |
+|---|---|---|
+| 41198873586 | `ef17106b` (M011) | failure — the projection suites fail: the roadmap projection still named M010 (freshness guard 2 failed; post-ship pointers 1 failed at the audited HEAD) |
+
+Prior green main runs stay as dated history: 40822037565 at `3a39fd70` and
+40805352394 at `319a7b1a` (both success). The M012 `projection-alignment`
+milestone applies the missed refresh per the pinned procedure; until it lands
+on `main`, the projection suites stay red there. The red run is not
+suppressed, skipped, or reinterpreted (standing prohibition: no masking of a
+non-zero exit).
+
 ## Fresh-session bootstrap
 
 Given only this repository and this section, a fresh session bootstraps from
@@ -185,10 +222,12 @@ Chat history is not proof.
    uv run --frozen python -m law_nexus_harness.governor
    ```
 
-4. Run the roadmap freshness guard — expect all tests to pass:
+4. Run the pointer suites — expect all tests to pass (the projection names
+   the latest archived milestone after the ship-time refresh):
 
    ```bash
    uv run --frozen pytest tests/test_project_state_roadmap_freshness.py -q
+   uv run --frozen pytest tests/test_post_ship_pointers.py -q
    ```
 
 If the pinned bootstrap is missing or ambiguous (archive absent, digest
@@ -204,10 +243,13 @@ path.
   `prd/project-state/data/roadmap.json`) is a non-authoritative cold-reader
   summary; durable authority stays with `prd/ARCHITECTURE.md` and
   `doc/adr/**`.
-- Integrated `main` is green on `repository-quality` since the M009
-  integration (run 40805352394 at `319a7b1a`; re-confirmed by main run
-  40822037565 at `3a39fd70`, recorded 2026-10-30) — the pre-M005 red rows in
-  the CI section above stay as dated history; a shipped milestone is a
-  delivery record, not itself a green-CI claim.
+- Integrated `main` was green on `repository-quality` through the runs the
+  2026-10-30 docs audit cited: 40805352394 at `319a7b1a` (M009 integration)
+  and 40822037565 at `3a39fd70`, both success — that dated claim ends at
+  `3a39fd70`. The newest main run 41198873586 at `ef17106b` (the M011
+  integration, 2026-10-31) is a FAILURE on the projection suites; see the
+  M011 section above. The pre-M005 red rows in the CI section stay as dated
+  history; a shipped milestone is a delivery record, not itself a green-CI
+  claim.
 - Workflow and delivery completion is not product readiness; product readiness
   remains unproven. Cutover stays `false`.

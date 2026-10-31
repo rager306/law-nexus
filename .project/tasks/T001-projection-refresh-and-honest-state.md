@@ -3,9 +3,9 @@ id: T001
 title: Refresh the M011 projection and make the current-state document honest
 wave: 1
 deps: []
-status: pending
-agent: null
-base: null
+status: done
+agent: build_T001
+base: d9cabf9177a7e310cd35d3ee5576590b259df05c
 worktree: null
 task_branch: null
 files:
@@ -51,3 +51,32 @@ Heavy: no
 ## Log
 
 - 2026-10-31 — created by orchestrator (quick mode, rows #39-#43)
+- 2026-10-31 — implemented (rows #39-#43): projection refresh per
+  `docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md` — `roadmap.json`
+  `current_milestone` → `reference-front-door`/`active` (single-line change,
+  M009-era precedent `e8b5696f` footprint); `roadmap.md` live marker
+  rewritten with the M011 recorded fields (ship `38abe687`, integration
+  `ef17106b`, tag `milestone/011-reference-front-door`, archive
+  `.project/archive/011-reference-front-door`) and the previous shipment
+  folded into a dated superseded record (`doc-consistency`, ship `fd60893f`,
+  integration `3a39fd70`; no existing history bullet touched).
+- 2026-10-31 — `POST-SHIP-STATE-2026-10-28.md`: appended the M011 delivered
+  record as a new dated section after the existing dated records (run
+  41198873586 at `ef17106b` FAILURE on the projection suites, newest main run
+  at edit time; 40805352394/40822037565 kept as dated history); header
+  Updated line so the delivered record ends at M011; CI-section intro and the
+  non-claims green bullet re-recorded honestly (green claim date-bound
+  through `3a39fd70` + newest failure named); bootstrap step 4 again expects
+  all tests to pass, now naming both pointer suites.
+- 2026-10-31 — Verify: `grep -q 'reference-front-door'
+  prd/project-state/roadmap.md prd/project-state/data/roadmap.json && uv run
+  --frozen pytest tests/test_project_state_roadmap_freshness.py
+  tests/test_post_ship_pointers.py -q` → pass (exit 0; 14 passed, 5 skipped —
+  the 5 skips are the pre-existing `.gsd`-ledger skips on operational native
+  state, identical to the pre-edit baseline of 3 failed / 11 passed / 5
+  skipped). No product code, no archives, no dated history rows touched.
+- 2026-10-31 — orchestrator Verify (isolate gsd-path-task/T001): pass, exit 0; output tail:
+  ```
+  sssss..............                                                      [100%]
+  14 passed, 5 skipped in 5.18s
+  ```

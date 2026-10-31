@@ -47,13 +47,22 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** doc-consistency is the current milestone —
-  shipped/archived/integrated (2026-10-29) on branch `gsd-path/M010`. It aligns
-  the CI inventory with the suites CI actually runs, names the ship-time
-  refresh rule in `AGENTS.md`, completes this history, and extends the
-  current-state report through the green run 40805352394. The previous shipment
-  stays recorded below. Current-state document:
+- **Local GSD workflow marker:** reference-front-door is the current milestone —
+  shipped/archived/integrated (2026-10-31): ship commit `38abe687`, integration
+  merge `ef17106b` into `main`, tag `milestone/011-reference-front-door`, archive
+  `.project/archive/011-reference-front-door`. It shipped the reference-package
+  surface in `law-nexus-inspect` (`reference-package build|check`, honest exit
+  contract 0/2/3/6) and aligned the front-door docs and the PDD model with it;
+  its skipped ship-time projection refresh is applied by this record. The
+  previous shipment stays recorded below. Current-state document:
   `docs/agent-stack/POST-SHIP-STATE-2026-10-28.md`.
+- **Local GSD workflow marker (superseded 2026-10-31):** doc-consistency —
+  shipped/archived/integrated (2026-10-29): ship commit `fd60893f`, integration
+  merge `3a39fd70` into `main`, tag `milestone/010-doc-consistency`, archive
+  `.project/archive/010-doc-consistency`. Scope: aligning the CI inventory with
+  the suites CI actually runs, naming the ship-time refresh rule in `AGENTS.md`,
+  and extending the current-state report through run 40805352394 (the
+  then-newest main run).
 - **Local GSD workflow marker (superseded 2026-10-28):** ci-proof-inputs —
   shipped/archived/integrated (2026-10-28): ship commit `e311f0ed`, integration
   merge `50386e26` into `main`, tag `milestone/007-ci-proof-inputs`, archive
