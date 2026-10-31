@@ -9,10 +9,11 @@ every checkable operation is deterministic and source-anchored.
 
 > **Status:** `[bounded]` product runtime foundation — twenty exclusive Rust
 > capability-owner crates with hostile contracts green, real Consultant/Garant
-> parser adapters, and a bounded retrieval pipeline. The workspace has 45
+> parser adapters, and a bounded retrieval pipeline. The workspace has 47
 > members in total: 20 capability owners, 20 hostile-case runners,
-> `ln-product-cli`, `ln-testkit`, `ln-storage`, `ln-status`, and proposed
-> `ln-applicability` (fail-closed abstention kernel only). **No**
+> `ln-product-cli`, `ln-testkit`, `ln-storage`, `ln-status`, `ln-kb-ontology`,
+> `ln-consultant-parser`, and proposed `ln-applicability` (fail-closed
+> abstention kernel only). **No**
 > `[validated]` product capability
 > exists yet: real-corpus retrieval, citation safety, and live RuVector/TEI
 > remain `[proposed]`. Truth over optimism (D098): every state claim is
@@ -213,7 +214,7 @@ source, tests, runtime, and real-document evidence appropriate to the claim.
 
 ## Repository map
 
-### Rust workspace: 45 members
+### Rust workspace: 47 members
 
 | Group | Members | Responsibility |
 |---|---|---|
@@ -223,6 +224,8 @@ source, tests, runtime, and real-document evidence appropriate to the claim.
 | Shared infrastructure | `ln-storage` | Graph, vector, and embedding port contracts plus bounded InMemory adapters; not a KOF-DA primary owner. |
 | Shared verification | `ln-testkit` | Reusable port-contract suites and hostile fixtures; test support, not product authority. |
 | Repository tracer | `ln-status` | Deterministic status/failure/sleep/output subprocess tracer for repository-harness verification; not a product capability owner. |
+| Knowledge-base ontology | `ln-kb-ontology` | Pure L1–L3 KB ontology write-set projection: typed graph ops with no I/O (KB ontology draft O1 `[proposed]`); not a KOF-DA primary owner. |
+| Consultant parser | `ln-consultant-parser` | Provider-specific Consultant extraction — hyperlinks, catalog, cross-act edges (ADR-0025/0027 `[bounded]`) — plus the ADR-0031 `reference_layer` (`[proposed]`); not a KOF-DA primary owner. |
 | Proposed protocol kernel | `ln-applicability` | ADR-0023 fail-closed abstention-only evaluator with NormRule IR + pure predicate algebra spines `[proposed]`; not a KOF-DA owner and not Applicable/NotApplicable product proof. |
 
 Most capability crates use `domain.rs`, `ports.rs`, `application.rs`, and
@@ -298,7 +301,7 @@ Continuity: review residual, GSD delivery, and TSG/ADR capability are three life
   [`prd/PRODUCT.md`](prd/PRODUCT.md) + [`prd/REQUIREMENTS.md`](prd/REQUIREMENTS.md).
   EA-10 D150 accepted the documentation/process assessment packet with findings; it did not promote these `[proposed]` documents or validate product/legal readiness.
 - **Rust workspace:** `crates/ln-*` — see the repository map for the executable
-  44-member inventory and the distinction between twenty ADR-0011 owners,
+  47-member inventory and the distinction between twenty ADR-0011 owners,
   runners, composition, shared infrastructure/verification, and the repository
   tracer. Hexagonal boundaries (ADR-0015): domain → ports → application →
   adapters.

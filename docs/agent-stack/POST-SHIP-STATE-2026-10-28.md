@@ -50,11 +50,16 @@ What each milestone proved and delivered (recorded facts):
   roadmap three-way identity (STATE.md ↔ roadmap.json ↔ live marker) stayed
   consistent at the reviewed HEAD.
 
-## CI state on integrated main (recorded, not masked)
+## CI state on integrated main through M003 (dated history)
 
-The last green `repository-quality` run on `main` is run 40203533977
-(2026-10-25, on the bootstrap merge `54a495cd`). Every integration push since
-ended red:
+This section is the dated pre-M005 record (2026-10-25 .. 2026-10-28). The
+live state is green: see "M005–M009: red CI cleared" below — run 40805352394
+at `319a7b1a` success, re-confirmed by the newest main run 40822037565 at
+`3a39fd70` success (recorded by the 2026-10-30 docs audit).
+
+The last green `repository-quality` run on `main` then was run 40203533977
+(2026-10-25, on the bootstrap merge `54a495cd`). Every integration push in
+that window ended red:
 
 | Run | Push | Conclusion | Failed step(s) |
 |---|---|---|---|
@@ -87,17 +92,23 @@ its two failures differ in kind:
   failing assertions and the asymmetry are recorded here as facts; a
   runtime-level reproduction is not part of this report.
 
-This red state is the live signal a next milestone starts from. Fixing it is
-outside M004's approved scope (a pointer refresh with no product or workflow
+This red state was the live signal the next milestone started from. Fixing it
+was outside M004's approved scope (a pointer refresh with no product or workflow
 changes); nothing in this milestone suppresses, skips, or reinterprets a
 failing run (standing prohibition: no masking of a non-zero exit).
 
-## M004 continuation (current)
+## M004 continuation (superseded)
+
+This section is dated history. M004–M010 shipped and integrated (see the
+M005–M009 section below and the roadmap marker; M010 shipped/archived/
+integrated 2026-10-29), and at the 2026-10-30 docs audit the workflow state
+is shipped/done M010 with M011 inspect active — workflow truth lives in
+`.project/STATE.md`. The M004 record below is kept verbatim.
 
 Milestone `pointer-refresh-m003` (the fourth milestone; branch
-`gsd-path/M004`, base `7e200294`) is active; workflow truth lives in
-`.project/STATE.md`. Owner-approved scope (2026-10-27): post-ship pointer
-refresh —
+`gsd-path/M004`, base `7e200294`) was active at the time; workflow truth
+lives in `.project/STATE.md`. Owner-approved scope (2026-10-27): post-ship
+pointer refresh —
 
 - task T001 refreshes the roadmap marker to the shipped `ci-honesty` state
   (`prd/project-state/roadmap.md` + `prd/project-state/data/roadmap.json`),
@@ -193,7 +204,10 @@ path.
   `prd/project-state/data/roadmap.json`) is a non-authoritative cold-reader
   summary; durable authority stays with `prd/ARCHITECTURE.md` and
   `doc/adr/**`.
-- Integrated `main` is red on `repository-quality` (see the CI section); a
-  shipped milestone is a delivery record, not a green-CI claim.
+- Integrated `main` is green on `repository-quality` since the M009
+  integration (run 40805352394 at `319a7b1a`; re-confirmed by main run
+  40822037565 at `3a39fd70`, recorded 2026-10-30) — the pre-M005 red rows in
+  the CI section above stay as dated history; a shipped milestone is a
+  delivery record, not itself a green-CI claim.
 - Workflow and delivery completion is not product readiness; product readiness
   remains unproven. Cutover stays `false`.

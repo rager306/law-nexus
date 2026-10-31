@@ -1,8 +1,14 @@
 use std::env;
 use std::fs;
+use std::path::{Path, PathBuf};
 use std::process;
 use std::time::Instant;
 
+use ln_consultant_parser::reference_layer::{
+    DeriveOptions, EXIT_ARGV, EXIT_INPUT, MEASUREMENT_EDITION, artifact_paths,
+    measurement_applicable, measurement_artifact_paths, pageindex_document, references_document,
+    run_check, try_derive,
+};
 use ln_decode::{
     adapters::{
         ConsultantWordMlBlockDecoder, garant_odt::GarantOdtBlockDecoder,
@@ -616,6 +622,124 @@ fn classify_inspect_assembly<E>(
     }
 }
 
+/// ADR-0031 reference-package composition (M011): derive the reference
+/// artifact set into `--out-dir` (`build`) or byte-check a built package
+/// against the derivation (`check`) through the proven
+/// `ln_consultant_parser::reference_layer` helpers — no derivation logic is
+/// duplicated here and no committed artifact byte-format is changed.
+///
+/// Exit codes are the ADR-0031 D6 contract: 0 ok, 2 argv, 3 unreadable
+/// inputs, 6 byte drift. Exit 5 (schema violation) stays reserved and is not
+/// emitted by the Rust side. `--corpus-dir`, `--catalog` and `--out-dir`
+/// mirror the Python reference flags; the flag set is closed with no
+/// defaults, so an unknown or missing flag is argv (2), never a silent
+/// fallback to repo paths.
+fn reference_package(args: &[String]) {
+    const USAGE: &str = "usage: law-nexus-inspect reference-package <build|check> --corpus-dir <dir> --catalog <path> --out-dir <dir>";
+    let mut rest = args.iter();
+    let mode = match rest.next().map(String::as_str) {
+        Some(mode @ ("build" | "check")) => mode,
+        _ => {
+            eprintln!("{USAGE}");
+            process::exit(EXIT_ARGV);
+        }
+    };
+    let mut corpus: Option<PathBuf> = None;
+    let mut catalog: Option<PathBuf> = None;
+    let mut out_dir: Option<PathBuf> = None;
+    while let Some(arg) = rest.next() {
+        match arg.as_str() {
+            "--corpus-dir" => corpus = Some(reference_package_value(&mut rest, "--corpus-dir")),
+            "--catalog" => catalog = Some(reference_package_value(&mut rest, "--catalog")),
+            "--out-dir" => out_dir = Some(reference_package_value(&mut rest, "--out-dir")),
+            other => {
+                eprintln!("unexpected argument: {other}");
+                process::exit(EXIT_ARGV);
+            }
+        }
+    }
+    let (Some(corpus), Some(catalog), Some(out_dir)) = (corpus, catalog, out_dir) else {
+        eprintln!("{USAGE}");
+        eprintln!("reference-package requires --corpus-dir, --catalog and --out-dir");
+        process::exit(EXIT_ARGV);
+    };
+
+    if mode == "check" {
+        // run_check notes every drift row on stderr before exiting: a changed
+        // byte, a truncated (including zero-byte) artifact and a missing
+        // artifact all exit 6 — there is no warn-and-pass path.
+        process::exit(run_check(&corpus, &catalog, &out_dir));
+    }
+
+    let opts = DeriveOptions {
+        limit_editions: None,
+        corpus_dir: corpus.clone(),
+        catalog: catalog.clone(),
+    };
+    let reference = match try_derive(&opts) {
+        Ok(reference) => reference,
+        Err(err) => {
+            eprintln!("unreadable inputs: {err}");
+            process::exit(err.exit_code());
+        }
+    };
+    for (path, body) in artifact_paths(&out_dir).iter().zip([
+        reference.timeline.as_bytes(),
+        reference.digests.as_bytes(),
+        reference.named_graphs.as_bytes(),
+        reference.amend.as_bytes(),
+    ]) {
+        write_reference_artifact(path, body);
+    }
+    // The ed-50 measurements are derived and written only where the corpus
+    // carries edition 50 (D782); elsewhere they are explicitly not
+    // applicable and never count as drift.
+    if measurement_applicable(&corpus) {
+        let bodies = [
+            references_document(&corpus, &catalog, MEASUREMENT_EDITION),
+            pageindex_document(&corpus, MEASUREMENT_EDITION),
+        ];
+        for (path, body) in measurement_artifact_paths(&out_dir).iter().zip(bodies) {
+            let body = match body {
+                Ok(body) => body,
+                Err(err) => {
+                    eprintln!("unreadable inputs: {err}");
+                    process::exit(err.exit_code());
+                }
+            };
+            write_reference_artifact(path, body.as_bytes());
+        }
+    } else {
+        println!("measurement not applicable: corpus has no edition {MEASUREMENT_EDITION}");
+    }
+}
+
+fn reference_package_value<'a>(rest: &mut impl Iterator<Item = &'a String>, flag: &str) -> PathBuf {
+    match rest.next() {
+        Some(value) => PathBuf::from(value),
+        None => {
+            eprintln!("{flag} requires a path");
+            process::exit(EXIT_ARGV);
+        }
+    }
+}
+
+/// Write one artifact inside `--out-dir`; an unwritable target is an
+/// unreadable-input exit (3), not a partial silent build.
+fn write_reference_artifact(path: &Path, body: &[u8]) {
+    if let Some(parent) = path.parent()
+        && let Err(err) = fs::create_dir_all(parent)
+    {
+        eprintln!("cannot create {}: {err}", parent.display());
+        process::exit(EXIT_INPUT);
+    }
+    if let Err(err) = fs::write(path, body) {
+        eprintln!("cannot write {}: {err}", path.display());
+        process::exit(EXIT_INPUT);
+    }
+    println!("wrote {} ({} bytes)", path.display(), body.len());
+}
+
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
     match args.first().map(String::as_str) {
@@ -646,9 +770,10 @@ fn main() {
             }
             subordinates(&kind, &path);
         }
+        Some("reference-package") => reference_package(&args[1..]),
         _ => {
             eprintln!(
-                "usage: law-nexus-inspect <health|inspect <path>|replay <seed> <target>|subordinates <resolution|order> <path>>"
+                "usage: law-nexus-inspect <health|inspect <path>|replay <seed> <target>|subordinates <resolution|order> <path>|reference-package <build|check> --corpus-dir <dir> --catalog <path> --out-dir <dir>>"
             );
             process::exit(2);
         }

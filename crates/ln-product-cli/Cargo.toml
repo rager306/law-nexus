@@ -3,6 +3,7 @@ name = "ln-product-cli"
 version = "0.1.0"
 edition = "2024"
 publish = false
+default-run = "law-nexus-inspect"
 
 [[bin]]
 name = "law-nexus-inspect"
@@ -23,4 +24,3 @@ ln-kb-ontology = { path = "../ln-kb-ontology" }
 ln-query = { path = "../ln-query" }
 ln-storage = { path = "../ln-storage" }
 ln-temporal = { path = "../ln-temporal" }
-

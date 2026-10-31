@@ -327,7 +327,8 @@ is `scripts/verify-source-snapshot-v2.py`.
 
 Authority: ADR-0015 +
 `.agents/skills/law-nexus-rust/references/verification-matrix.md`.
-How to write a slice: `workflows/implement-rust-slice.md`.
+How to write a slice: `.agents/skills/law-nexus-rust/` — the slice-writing
+and review guides live under that skill's `workflows/`.
 Do not invent a second matrix here.
 
 Overlapping contours, not a pyramid. Smallest contour that can lie, plus one
