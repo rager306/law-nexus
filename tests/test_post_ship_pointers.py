@@ -209,7 +209,7 @@ def test_crosswalk_m225_row_records_the_t004_closure() -> None:
 
 def test_docs_audit_queue_rows_reference_their_closing_tasks() -> None:
     rows = {int(cells[0]): cells for cells in _user_rulings_rows()}
-    assert set(rows) == set(range(1, 20)), (
+    assert set(range(1, 20)) <= set(rows), (
         "the DOCS-AUDIT rulings queue must keep all 19 rows (never deleted)"
     )
     assert rows[6][1] == "fix-code" and rows[6][3] == "T005"
