@@ -5,7 +5,7 @@ milestone: projection-alignment
 phase: build
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
-status: active
+status: blocked
 branch: gsd-path/M012
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
@@ -151,3 +151,4 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-31 — plan — planning started
 - 2026-10-31 — plan — plan approved
 - 2026-10-31 — build — build started
+- 2026-10-31 — build — build blocked: plan defect — T002 owns audit rows #30/#37 content but roadmap.md was declared to T001; file-scope repair required
