@@ -1,15 +1,15 @@
 ---
 pipeline: gsd-path/v2
 project: law-nexus
-milestone: doc-consistency
-phase: shipped
+milestone: null
+phase: plan
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
 status: done
-branch: gsd-path/M010
+branch: gsd-path/M011
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
-archive: .project/archive/010-doc-consistency
+archive: null
 integration_default: direct
 integration: direct
 integration_source: default
@@ -124,3 +124,13 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-29 — build — build started
 - 2026-10-29 — ship — build done; final review pending
 - 2026-10-29 — shipped — archive preflight passed; shipment recorded
+- 2026-10-30 — inspect — router bound next milestone; base=3a39fd70294c34d072b2aaa448ee226691dbaeae; landing=3a39fd70294c34d072b2aaa448ee226691dbaeae; previous branch gsd-path/M010 retired
+- 2026-10-30 — inspect — inspect blocked: docs-audit artifact gate failed after 3 redispatches (last: duplicate section ## Remediation queue at lines 771-772 of sidecar DOCS-AUDIT.md)
+- 2026-10-31 — inspect — inspect resumed: owner authorized one final targeted redispatch of inspect_docs (duplicate ## Remediation queue header removal only)
+- 2026-10-31 — inspect — inspect blocked: docs-audit gate failed after authorized final redispatch (queue binds 20 of 21 non-verified claims; one row claim text drifted from its Doc-section source)
+- 2026-10-31 — inspect — inspect resumed: owner authorized one surgical iteration of inspect_docs with mandatory validator-equivalent self-check before reply
+- 2026-10-31 — inspect — inspection artifacts passed
+- 2026-10-31 — define — definition started
+- 2026-10-31 — define — milestone intent approved
+- 2026-10-31 — plan — planning started
+- 2026-10-31 — plan — plan approved
