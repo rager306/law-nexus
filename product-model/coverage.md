@@ -2,7 +2,9 @@
 scope: The product CLI law-nexus-inspect and its storage ports and in-memory adapters.
 method: Static inspection of the CLI source, its contract tests, and the storage adapters.
 covered:
-  - description: The law-nexus-inspect binary, its four subcommands, reports, and failure records.
+  - description: The law-nexus-inspect binary, its five subcommands (health, inspect, replay, subordinates, reference-package), reports, and failure records.
+    paths: [crates/ln-product-cli/]
+  - description: The reference-package build and check subcommands composing the ln-consultant-parser reference_layer (ADR-0031) over a corpus directory and a catalog.
     paths: [crates/ln-product-cli/]
   - description: Storage and embedding ports, the in-memory vector and graph store adapters, and cosine retrieval.
     paths: [crates/ln-storage/]
