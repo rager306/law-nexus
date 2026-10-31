@@ -2,10 +2,10 @@
 pipeline: gsd-path/v2
 project: law-nexus
 milestone: null
-phase: ship
+phase: plan
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
-status: active
+status: done
 branch: gsd-path/M011
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
@@ -136,3 +136,6 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-31 — plan — plan approved
 - 2026-10-31 — build — build started
 - 2026-10-31 — ship — build done; final review pending
+- 2026-10-31 — ship — ship blocked: project verify failed - tests/test_post_ship_pointers.py pins DOCS-AUDIT rulings to exactly rows 1-19 while the approved M011 define flow appended owner rulings #20-#24; gap evidence .project/review/final-gap-1.md
+- 2026-10-31 — plan — patch plan reopened
+- 2026-10-31 — plan — patch plan approved

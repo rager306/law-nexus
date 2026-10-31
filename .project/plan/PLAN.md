@@ -56,3 +56,10 @@ Walkthrough:
 ## Dependency notes
 
 - T002 depends on T001's landed effect: SC9 links the fixture, the named test path `crates/ln-product-cli/tests/reference_package_cli.rs`, and a recorded check result that exists only after T001 lands. A reviewer sees the links resolve to the landed test and its recorded run in the task Log.
+
+## Wave 2 — patch: DOCS-AUDIT rulings pin (P001)
+
+Goal: clear the failed project verify by pinning the DOCS-AUDIT rulings table as a never-deleted superset so appended owner rulings (#20-#24) are legal and the original 19 rows stay protected.
+Review depth: verify-only
+
+- T003 (files: tests/test_post_ship_pointers.py): relax the DOCS-AUDIT rulings pin from exact 1-19 equality to a never-deleted superset; finding P001 in .project/review/PATCH-FINDINGS.md.
