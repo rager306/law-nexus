@@ -43,6 +43,16 @@ Fixture: the tracked measure-ed50 corpus and its two-row catalog (see
   (INTENT N1/SC2); a zero-byte artifact is drift (INTENT E2).
 - Re-running build into the same out-dir overwrites its artifacts cleanly and
   byte-identically; unrelated files in out-dir are left alone (INTENT E1).
+- ATTEMPT-2 RECOVERY NOTE (owner ruling A, 2026-10-31): attempt 1's retained
+  coder edits (the product source and the new test file in this crate, plus
+  `default-run` in Cargo.toml) stay in this worktree. Their undeclared
+  rusqlite dev-dependency and Cargo.lock change were ruled out of scope: the
+  declared `files` list is binding. Build the measure-ed50 fixture catalog
+  inside the test within the declared files only - e.g. shell out to the
+  repository's Python recipe (`scripts/test_m217_reference_parity.py`,
+  `build_catalog`) via `uv run --frozen python -c ...`, or use another
+  std-only approach that writes the catalog into a temp dir. Do not add
+  dependencies or touch undeclared files.
 - Build writes only inside `--out-dir`; the corpus and catalog stay
   byte-unchanged (INTENT N2/SC1) — pin with a hash test.
 - Corpora without edition 50: report measurements explicitly not applicable and
@@ -86,3 +96,4 @@ Heavy: no
 ## Log
 
 - 2026-10-31 — created by planner (quick mode)
+- 2026-10-31 — attempt 1 timed out at the configured 900s limit (owner raised it to 3600s and approved the retry); coder work retained in the primary worktree; task reset to pending for attempt 2
