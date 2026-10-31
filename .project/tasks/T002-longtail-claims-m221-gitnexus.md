@@ -2,13 +2,15 @@
 id: T002
 title: Clear the long-tail stale claims, re-pin m221, regenerate GitNexus
 wave: 1
-deps: []
+deps:
+  - T001
 status: pending
 agent: null
 base: null
 worktree: null
 task_branch: null
 files:
+  - prd/project-state/roadmap.md
   - README.md
   - AGENTS.md
   - prd/ARCHITECTURE.md
@@ -59,3 +61,7 @@ Heavy: no
 ## Log
 
 - 2026-10-31 — created by orchestrator (quick mode, rows #25-#31, #36-#37, #44-#50)
+- 2026-10-31 — attempt 1 (resumed after the prior coder session died mid-task): inherited doc edits for #25-#28, #31, #36, #44-#49 and the #29 re-pin were present in the worktree; reviewed every inherited diff against the acceptance criteria and DOCS-AUDIT rulings; verified against the live tree: #25 counts exact (31 src modules + 14 bins, 358 int / 54 unit), #26 321 <= 325 lines, #27 table header restored, #28 cross-matrix through ADR-0031 with referenced artifacts checked, #29 binding sha256 equals the tracked contract file, #31 82 fixtures / .deprecated absent, #36 header aligned with section 9 (dispatch archives 001/002/003 measured), #44 five subcommands, #45-#49 band/assessments/ADR range/DB count 3,074 of 8,355/fixtures; #50 fresh analyze via alias law-nexus-t002 (--index-only, registry collision forced the alias): nodes=43375 edges=102959 processes=584, block updated, markers byte-identical, alias deregistered. Verify: 22 passed, exit 0.
+- 2026-10-31 — NEEDS-ORCHESTRATOR logged: rows #30/#37 target prd/project-state/roadmap.md (sibling T001's declared file); readings (a) T001 absorbs, (b) authorize T002 after T001 lands, (c) defer out of SC3.
+- 2026-10-31 — Orchestrator answer: the approved artifacts conflict — PLAN coverage SC3 -> T002/AC1 pins rows #30/#37 to this task while its declared files omitted roadmap.md. That is a documented plan defect (content ownership without file scope), so reading (b) is taken through the sanctioned repair: this task's `files` gains prd/project-state/roadmap.md and `deps` gains T001 (same-wave file sharing through an explicit dependency per PLAN gate rules); rows #30/#37 stay here. — citation: PLAN.md Intent coverage SC3 row; INTENT.md SC3; PLAN gate file-sharing rule. Structural repair executed through build recovery (build plan repair requested).
+- 2026-10-31 — attempt-1 work preserved before isolate retirement: full diff sha256 c0bf5f06ac87636420935f1ac14b3568d9a6bbb2ec407e97be7355e33beb8aa9 at /tmp/t002-attempt1.patch (283 lines; paths: this task file, AGENTS.md, README.md, doc/adr/README.md, doc/adr-architecture-cross-matrix.md, docs/agent-stack/PHASE-ADAPTER.md, law-source/consultant/README.md, prd/ARCHITECTURE.md, prd/architecture/m221-s05-docs-reconciliation.yaml, product-model/interfaces/terminal/interface.md).
