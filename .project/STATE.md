@@ -1,15 +1,15 @@
 ---
 pipeline: gsd-path/v2
 project: law-nexus
-milestone: null
-phase: ship
+milestone: reference-front-door
+phase: shipped
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
-status: active
+status: done
 branch: gsd-path/M011
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
-archive: null
+archive: .project/archive/011-reference-front-door
 integration_default: direct
 integration: direct
 integration_source: default
@@ -141,3 +141,6 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-31 — plan — patch plan approved
 - 2026-10-31 — build — build started
 - 2026-10-31 — ship — build done; final review pending
+- 2026-10-31 — ship — final gate passed; shipping approval pending
+- 2026-10-31 — ship — milestone named reference-front-door (owner delegated the ruling: "похоже мы застряли - реши оптимально и элегантно в соотвествии с требованиями и задачами репозитория"; backfill of the milestone field skipped at the M011 define approval, verified against pipeline_state TRANSITIONS)
+- 2026-10-31 — shipped — archive preflight passed; shipment recorded
