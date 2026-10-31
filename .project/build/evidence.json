@@ -1,0 +1,56 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "e4a575f97fbf1a3e1a7d4bceb6b041d693c89e31",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M011",
+        "candidates": [
+          {
+            "base": "6c905a4d94d8454408b13f94f71bb032c76d748b",
+            "commit": "cb7e3f6a0f38929c5dace055323f7ac7c0b4a318",
+            "valid": true
+          }
+        ],
+        "head": "e4a575f97fbf1a3e1a7d4bceb6b041d693c89e31",
+        "subject": "T001: Add reference-package build/check to law-nexus-inspect, fixture-proven"
+      },
+      "landed_commit": "cb7e3f6a0f38929c5dace055323f7ac7c0b4a318",
+      "reasons": [],
+      "task": {
+        "base": "6c905a4d94d8454408b13f94f71bb032c76d748b",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-reference-package-cli.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M011",
+        "candidates": [
+          {
+            "base": "cb7e3f6a0f38929c5dace055323f7ac7c0b4a318",
+            "commit": "32837fe5c7e588058067af235125466602c5faf3",
+            "valid": true
+          }
+        ],
+        "head": "e4a575f97fbf1a3e1a7d4bceb6b041d693c89e31",
+        "subject": "T002: Align front-door docs and PDD model with the shipped reference-package surface"
+      },
+      "landed_commit": "32837fe5c7e588058067af235125466602c5faf3",
+      "reasons": [],
+      "task": {
+        "base": "cb7e3f6a0f38929c5dace055323f7ac7c0b4a318",
+        "id": "T002",
+        "status": "done",
+        "task_file": ".project/tasks/T002-docs-pdd-alignment.md"
+      }
+    }
+  ]
+}
