@@ -1,7 +1,7 @@
 {
   "canonical_project_dir": ".project",
   "command": "verify-landed",
-  "head": "e4a575f97fbf1a3e1a7d4bceb6b041d693c89e31",
+  "head": "2043613b183ccff1bef3f93adb6ff0c56fedb112",
   "project_dir": ".project",
   "tasks": [
     {
@@ -16,7 +16,7 @@
             "valid": true
           }
         ],
-        "head": "e4a575f97fbf1a3e1a7d4bceb6b041d693c89e31",
+        "head": "2043613b183ccff1bef3f93adb6ff0c56fedb112",
         "subject": "T001: Add reference-package build/check to law-nexus-inspect, fixture-proven"
       },
       "landed_commit": "cb7e3f6a0f38929c5dace055323f7ac7c0b4a318",
@@ -40,7 +40,7 @@
             "valid": true
           }
         ],
-        "head": "e4a575f97fbf1a3e1a7d4bceb6b041d693c89e31",
+        "head": "2043613b183ccff1bef3f93adb6ff0c56fedb112",
         "subject": "T002: Align front-door docs and PDD model with the shipped reference-package surface"
       },
       "landed_commit": "32837fe5c7e588058067af235125466602c5faf3",
@@ -50,6 +50,30 @@
         "id": "T002",
         "status": "done",
         "task_file": ".project/tasks/T002-docs-pdd-alignment.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M011",
+        "candidates": [
+          {
+            "base": "9115218232d072df81554905b83bbd22926dd4d9",
+            "commit": "6704ee9e623b24e2235db6d07502a606e01564d4",
+            "valid": true
+          }
+        ],
+        "head": "2043613b183ccff1bef3f93adb6ff0c56fedb112",
+        "subject": "T003: Fix the stale DOCS-AUDIT rulings pin in the pointer suite"
+      },
+      "landed_commit": "6704ee9e623b24e2235db6d07502a606e01564d4",
+      "reasons": [],
+      "task": {
+        "base": "9115218232d072df81554905b83bbd22926dd4d9",
+        "id": "T003",
+        "status": "done",
+        "task_file": ".project/tasks/T003-fix-docs-audit-rulings-pin.md"
       }
     }
   ]
