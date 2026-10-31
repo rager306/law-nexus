@@ -3,9 +3,9 @@ id: T001
 title: Add reference-package build/check to law-nexus-inspect, fixture-proven
 wave: 1
 deps: []
-status: pending
-agent: null
-base: null
+status: done
+agent: build_t001
+base: 6c905a4d94d8454408b13f94f71bb032c76d748b
 worktree: null
 task_branch: null
 files:
@@ -97,3 +97,5 @@ Heavy: no
 
 - 2026-10-31 — created by planner (quick mode)
 - 2026-10-31 — attempt 1 timed out at the configured 900s limit (owner raised it to 3600s and approved the retry); coder work retained in the primary worktree; task reset to pending for attempt 2
+- 2026-10-31 — attempt 2 finished the retained work: replaced attempt 1's out-of-scope rusqlite catalog builder with the owner-approved std-only shell-out to the repo recipe (`scripts/test_m217_reference_parity.py` `build_catalog` + `MEASURE_CATALOG_ROWS` via `uv run --frozen python -c`), dropped its stray Cargo.toml blank line, rustfmt'd the two declared Rust files (attempt 1 never ran fmt); Verify passed exit 0: fmt --all --check clean, `cargo test -p ln-product-cli --offline --test reference_package_cli` 8/8 ok, `health` exit 0; changed paths: the three declared files only
+- 2026-10-31 — authoritative Verify (orchestrator finish of attempt 2): exit 0 in sidecar gsd-path-verify/task-t001-verify — fmt clean, 8/8 acceptance tests (SC1-SC7 incl. E1 idempotency+input-safety, E2 zero-byte drift, byte-identical dirs, edition-50 applicability, argv 2/3/6 paths); evidence: .git/gsd-path/dispatch/gsd-path-M011/T001/attempt-2/verify.json
