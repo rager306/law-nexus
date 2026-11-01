@@ -21,6 +21,13 @@ Authority for live direction remains `prd/ARCHITECTURE.md` + `doc/adr/**`.
 | 0016–0022 | proposed each | complete | — | Temporal legal ontology L1–L7 |
 | 0023 | proposed | complete | — | Applicability protocol ownership; runtime absent |
 | 0024 | proposed | complete | — | Review Case intake/disposition; non-authoritative projection and runtime absent |
+| 0025 | bounded | complete | — | Consultant parser — separate crate for provider-specific extraction |
+| 0026 | proposed | complete | — | RuVector as agent memory layer for the meta-parser |
+| 0027 | bounded | complete | — | Multi-layer manifest classifier for document-specific link classification |
+| 0028 | proposed | complete | — | Typed lexer and legal-marker lexicon for the NPA document engine |
+| 0029 | proposed | complete | — | Requisites-anchored member-assembly FSM for NPA reference capture (bounded M211 runtime) |
+| 0030 | proposed | complete | ACP/git-lex historical note (R066 archive-only boundary) | Consultant URI anchor identity + JSON-LD knowledge layers over the XML→JSONL spine |
+| 0031 | proposed | complete | — | Reference knowledge-layer contract over the XML→JSONL spine |
 
 **Numbering gaps (intentional):** ADR-0001, 0002, 0003, 0006 are **not present**.
 They belonged to the Python-onion / MADR-gate / library-boundary / PyO3-bridge era
@@ -43,6 +50,13 @@ are narrative only.
 | 0016–0022 | yes + LC | yes | yes | yes, `[proposed]` | yes, `[proposed]`/`[deferred]` | O1–O7 design ceiling | historical R074/local weave |
 | 0023 | yes + LC | yes | yes | yes, ownership `[proposed]`/runtime `[deferred]` | yes, ownership `[proposed]`/runtime `[deferred]` | D148 + EA-04 decision boundary | local D148 workflow record only |
 | 0024 | yes + LC | yes | yes | no product trace; process contour only | no product trace; process contour only | D151/D152 authority and adapter boundary | local execution references only; no state mirror |
+| 0025 | yes + LC | yes | yes | no | no | assessment/19 process evidence | none recorded |
+| 0026 | yes + LC | yes | yes | no | no | none recorded | none recorded |
+| 0027 | yes + LC | yes | yes | no | no | none recorded | none recorded |
+| 0028 | yes + LC | yes | yes | no | no | assessments 24–26 and 28 | none recorded |
+| 0029 | yes + LC | yes | yes | no | no | assessment/34 + m221/S05 reconciliation pins | local PROJECT.md mention only |
+| 0030 | yes + LC | yes | yes | no | no | none recorded | none recorded |
+| 0031 | yes + LC | yes | yes | no | no | none recorded | none recorded |
 
 Governor enforcement:
 
@@ -65,8 +79,10 @@ Governor enforcement:
 ### P0 — logical / authority gaps
 
 No unresolved P0 lifecycle contradiction was found in the 2026-08-11 repeat
-review: all 20 present ADR Status lifecycles match the foundation map in
-`prd/ARCHITECTURE.md`.
+review: all 20 ADR Status lifecycles present then (0004–0024) matched the
+foundation map in `prd/ARCHITECTURE.md`. The present set has since grown to
+27 ADRs (0004–0031); the `adr-truth-oracle-sync` governor check keeps pairing
+every present Status lifecycle with the oracle map.
 
 1. **Retired IDs 0001/0002/0003/0006** remain absent by design. Living prose may
    name them only with an explicit retired/archive qualifier; no stub ADR should

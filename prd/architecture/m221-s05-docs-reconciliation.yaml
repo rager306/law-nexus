@@ -35,6 +35,6 @@ planned_artifacts:
   - {path: prd/migration/rust-evidence/m221-s05-horizon-reassessment.md, kind: reassessment, state: planned}
   - {path: doc/adr-architecture-cross-matrix.md, kind: cross_matrix_companion, state: planned}
 source_bindings:
-  - {path: prd/architecture/npa-analysis-jsonl-contract.md, sha256: c8b5afdd5b864e660b7cdd10e4e542d2cf97341960e3ff83cba5073b1a8209d4, kind: contract}
+  - {path: prd/architecture/npa-analysis-jsonl-contract.md, sha256: a3f51100679613a7f76c84a7282b50a5e31dc43abc4f652e221fd745136f00cb, kind: contract}
   - {path: prd/migration/rust-evidence/m221-s04-acceptance.json, sha256: c4188d1af4b754939af5df5b948fa875d42d3b752fc3eed2c48668a68f4c95c9, kind: receipt}
   - {path: prd/migration/rust-evidence/m214-s04-corpus-acceptance.json, sha256: cacad4472a1144bbbbc7f88eeeecc91cbf8f1ab86fad93f198ba2f60b794c65c, kind: frozen}

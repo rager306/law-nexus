@@ -36,8 +36,13 @@ Consultant/Garant parser, a temporal legal ontology, and citation-safe retrieval
 
 ## Current status (D098 lifecycle tags)
 
-Latest tracked product/design band: **M165** (`[proposed]` ontology design only).
-The current documentation/control baseline includes post-D150 assessments 13–18,
+Tracked delivery ledger:
+[`prd/project-state/data/roadmap.json`](prd/project-state/data/roadmap.json)
+groups the completed milestone bands through **M224** and names the live front
+milestone; it is refreshed at every ship
+(`docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md`). M011
+`reference-front-door` shipped on the GSD Path track (2026-10-31). The current
+documentation/control baseline includes the tracked assessment series 00–34,
 the parser G0–G3 acceptance protocol, controlled temporal vocabulary and
 presentation-drift checks, and a D7-quarantined historical readiness index.
 These are repository-control improvements, not product implementation.
@@ -47,9 +52,10 @@ documentation/process stages; EA-07 completed with `NO-BLOCK` at `430ebfd`;
 EA-08 completed with warnings and D149 at `962a4e7`; EA-09 independently assessed
 revision `120d44b`; EA-10 human disposition D150 accepted that exact packet
 **with findings**. D150 does not accept later revisions. The latest remediation
-assessment is [`assessment/18-post-semantic-control-remediation.md`](assessment/18-post-semantic-control-remediation.md),
-which records remaining human-owned semantic decisions and Rust/evidence work
-without successor acceptance, TSG closure, or lifecycle promotion.
+assessment is [`assessment/34-rust-npa-foundation-readiness-audit.md`](assessment/34-rust-npa-foundation-readiness-audit.md),
+whose `[bounded]` readiness audit keeps M208 and M215–M220 parked pending
+foundation remediation and a semantic acceptance gate — without successor
+acceptance, TSG closure, or lifecycle promotion.
 
 Repository-control snapshot at clean post-remediation revision `f09416f`: full
 Python suite `435 passed, 4 skipped`; Governor `54 PASS / 1 advisory WARN / 0
@@ -277,7 +283,7 @@ unchanged; this pointer is not human adoption or product/runtime proof.
 | `prd/ARCHITECTURE.md` | Living truth oracle — **read first** |
 | `prd/PRODUCT.md` + `prd/REQUIREMENTS.md` | `[proposed]` Product Contract + projection; EA-10 D150 accepted the assessment packet, not these documents as a validated product contract |
 | `prd/temporal-legal-model.md` | `[proposed]` D3/EA-03 crosswalk; human disposition `ACCEPT-AS-PROPOSED`, O1–O7 design only, no runtime |
-| `doc/adr/` | MADR ADRs 0004–0023 (0001/0002/0003/0006 retired, not present) |
+| `doc/adr/` | MADR ADRs 0004–0031 (0001/0002/0003/0006 retired, not present) |
 | `doc/adr-architecture-cross-matrix.md` | ADR × surface matrix + governor design |
 | `prd/architecture/documentation-semantic-control-plan.md` | `[proposed]` documentation correction/control plan (non-authoritative process design) |
 | `prd/migration/external-architecture-assessment-roadmap.md` | `[proposed]` independent architecture-assessment roadmap (not product validation) |
