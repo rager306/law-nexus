@@ -30,4 +30,5 @@ Review depth: full
 ## Dependency notes
 
 - T001 and T002 have disjoint file scopes and no shared landed effect; either may land first. A reviewer sees each row's doc claim re-verified at HEAD by the owning task's Verify and the wave review.
+- Repair (build recovery, base e8a684c4996f2f178ea509e9beb85eede330f51a): T002 gained `prd/project-state/roadmap.md` and `deps: [T001]` — its rows #30/#37 edit that file; same-wave sharing is legal through the explicit dependency, so T002 runs after T001's landing.
 
