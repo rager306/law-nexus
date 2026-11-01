@@ -2,10 +2,10 @@
 pipeline: gsd-path/v2
 project: law-nexus
 milestone: projection-alignment
-phase: plan
+phase: build
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
-status: done
+status: active
 branch: gsd-path/M012
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
@@ -155,3 +155,4 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-31 — plan — build plan repair requested
 - 2026-10-31 — plan — build recovery: {"base": "e8a684c4996f2f178ea509e9beb85eede330f51a", "branch": "gsd-path/M012", "kind": "plan", "source": "build"}
 - 2026-11-01 — plan — plan approved
+- 2026-11-01 — build — build started
