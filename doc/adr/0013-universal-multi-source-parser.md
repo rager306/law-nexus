@@ -266,7 +266,7 @@ tracked ODT tracer.
 
 ODT files are ZIP archives. The bounded adapter contract is:
 
-1. pinned `zip` 8.6.0 with defaults disabled and only Deflate support;
+1. pinned `zip` 9.8.2 with defaults disabled and only Deflate support;
    in-memory intake rejects packages above 16 MiB, more than 16 entries,
    unsafe/duplicate/missing members and `content.xml` above 8 MiB
 2. `quick-xml` `NsReader` on bounded in-memory `content.xml` bytes; no
@@ -293,8 +293,8 @@ style coverage, corpus completeness, legal correctness or citation mapping.
 ```toml
 # Cargo.toml additions for ODT support
 [dependencies]
-quick-xml = "0.36"
-zip = { version = "=8.6.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+quick-xml = "0.42"
+zip = { version = "=9.8.2", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 ```
 
 ## Consequences

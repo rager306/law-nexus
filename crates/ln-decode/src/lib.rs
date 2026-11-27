@@ -72,6 +72,7 @@ pub mod temporal;
 mod tokenizer;
 pub mod unknown_forms;
 pub mod wire_blocks;
+mod xml_ref;
 
 pub use identity_envelope::{
     EnvelopeRefusal, EnvelopeRefusalKind, IDENTITY_ENVELOPE_SCHEMA, IdentityEnvelope,

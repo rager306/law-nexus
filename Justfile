@@ -87,15 +87,12 @@ llvm-lines crate="ln-temporal":
     KACHE_DISABLED=1 RUSTC_WRAPPER="" cargo llvm-lines -p {{crate}} --lib | head -n 25
 
 # Tier 3: auditable release builds + binary audit + CycloneDX 1.5 SBOM (artifacts in target/sbom/)
-# Keep the 11 explicit --ignore IDs below in sync with deny.toml until the major-upgrade PR lands.
-AUDIT_BASELINE_IGNORES := "--ignore RUSTSEC-2026-0367 --ignore RUSTSEC-2026-0368 --ignore RUSTSEC-2026-0369 --ignore RUSTSEC-2026-0429 --ignore RUSTSEC-2026-0545 --ignore RUSTSEC-2026-0546 --ignore RUSTSEC-2026-0547 --ignore RUSTSEC-2026-0548 --ignore RUSTSEC-2026-0194 --ignore RUSTSEC-2026-0195 --ignore RUSTSEC-2026-0459"
-
 release:
     cargo deny --offline check -D unsound advisories licenses bans sources
     cargo auditable build --release -p ln-status --bin ln-status
     cargo auditable build --release -p ln-product-cli --bin law-nexus-inspect
     cargo audit --no-fetch bin target/release/ln-status
-    cargo audit --no-fetch {{AUDIT_BASELINE_IGNORES}} bin target/release/law-nexus-inspect
+    cargo audit --no-fetch bin target/release/law-nexus-inspect
     mkdir -p target/sbom
     cargo cyclonedx --manifest-path Cargo.toml --format json --spec-version 1.5 --describe binaries
     mv -f crates/ln-status/*.cdx.json crates/ln-product-cli/*.cdx.json target/sbom/

@@ -750,9 +750,22 @@ pub fn capture(xml: &[u8], limits: &Limits) -> Result<Package, SourcePackageErro
             }
             Event::Text(event) => {
                 started = true;
-                let value = event.unescape().map_err(|_| {
-                    SourcePackageError::new(ErrorKind::MalformedXml, "text unescape failed")
-                })?;
+                let value = event.xml10_content();
+                validate_xml_chars(value.as_ref())?;
+                handle_text(
+                    &mut nodes,
+                    &stack,
+                    value.as_ref(),
+                    &mut total_text_bytes,
+                    limits,
+                )?;
+            }
+            Event::GeneralRef(reference) => {
+                started = true;
+                let value =
+                    crate::xml_ref::resolve_xml_general_ref(&reference).ok_or_else(|| {
+                        SourcePackageError::new(ErrorKind::MalformedXml, "text unescape failed")
+                    })?;
                 validate_xml_chars(value.as_ref())?;
                 handle_text(
                     &mut nodes,
@@ -764,12 +777,15 @@ pub fn capture(xml: &[u8], limits: &Limits) -> Result<Package, SourcePackageErro
             }
             Event::CData(cdata) => {
                 started = true;
-                let bytes = cdata.into_inner().into_owned();
-                let value = std::str::from_utf8(&bytes).map_err(|_| {
-                    SourcePackageError::new(ErrorKind::MalformedXml, "cdata is not UTF-8")
-                })?;
-                validate_xml_chars(value)?;
-                handle_text(&mut nodes, &stack, value, &mut total_text_bytes, limits)?;
+                let value = cdata.into_inner();
+                validate_xml_chars(value.as_ref())?;
+                handle_text(
+                    &mut nodes,
+                    &stack,
+                    value.as_ref(),
+                    &mut total_text_bytes,
+                    limits,
+                )?;
             }
             Event::Comment(_) | Event::PI(_) => {
                 // Explicit policy: comments and processing instructions are
@@ -787,10 +803,9 @@ pub fn capture(xml: &[u8], limits: &Limits) -> Result<Package, SourcePackageErro
                 // Reject duplicate, unknown, and ill-formed declaration attributes.
                 // `BytesDecl` has no attribute iterator, so reconstruct the
                 // `BytesStart` view over its raw content (name length 3 = "xml").
-                let raw_decl: &[u8] = &decl;
-                let decl_start =
-                    BytesStart::from_content(String::from_utf8_lossy(raw_decl).into_owned(), 3);
-                let mut seen_attrs: HashSet<Vec<u8>> = HashSet::new();
+                let raw_decl: &str = &decl;
+                let decl_start = BytesStart::from_content(raw_decl, 3);
+                let mut seen_attrs: HashSet<String> = HashSet::new();
                 for attribute in decl_start.attributes() {
                     let attribute = attribute.map_err(|_| {
                         SourcePackageError::new(
@@ -798,14 +813,14 @@ pub fn capture(xml: &[u8], limits: &Limits) -> Result<Package, SourcePackageErro
                             "xml declaration attribute is malformed",
                         )
                     })?;
-                    let key = attribute.key.as_ref().to_vec();
-                    if !seen_attrs.insert(key.clone()) {
+                    let key = attribute.key.as_ref();
+                    if !seen_attrs.insert(key.to_owned()) {
                         return Err(SourcePackageError::new(
                             ErrorKind::MalformedXml,
                             "xml declaration has a duplicate attribute",
                         ));
                     }
-                    if key != b"version" && key != b"encoding" && key != b"standalone" {
+                    if key != "version" && key != "encoding" && key != "standalone" {
                         return Err(SourcePackageError::new(
                             ErrorKind::MalformedXml,
                             "xml declaration has an unknown attribute",
@@ -818,7 +833,7 @@ pub fn capture(xml: &[u8], limits: &Limits) -> Result<Package, SourcePackageErro
                         "xml declaration version is missing or malformed",
                     )
                 })?;
-                if version.as_ref() != b"1.0" {
+                if version.as_ref() != "1.0" {
                     return Err(SourcePackageError::new(
                         ErrorKind::VersionUnsupported,
                         "only xml version 1.0 is supported",
@@ -831,7 +846,7 @@ pub fn capture(xml: &[u8], limits: &Limits) -> Result<Package, SourcePackageErro
                             "xml declaration encoding is malformed",
                         )
                     })?;
-                    let name = String::from_utf8_lossy(&encoding).to_lowercase();
+                    let name = encoding.to_lowercase();
                     if name != "utf-8" && name != "utf8" {
                         return Err(SourcePackageError::new(
                             ErrorKind::UnsupportedEncoding,
@@ -1309,13 +1324,13 @@ fn begin_element(
         flush_content(nodes, parent_index);
     }
 
-    let (resolve, local) = reader.resolve_element(start.name());
+    let (resolve, local) = reader.resolver().resolve_element(start.name());
     validate_qname(start.name().as_ref(), "element")?;
     let clark_tag = clark_name(resolve, local.as_ref(), "element")?;
 
     let mut attrs: BTreeMap<String, String> = BTreeMap::new();
     let mut declarations: BTreeMap<String, String> = BTreeMap::new();
-    let mut raw_seen: HashSet<Vec<u8>> = HashSet::new();
+    let mut raw_seen: HashSet<String> = HashSet::new();
     let parent_space = parent
         .map(|index| nodes[index].xml_space_effective)
         .unwrap_or(false);
@@ -1337,10 +1352,10 @@ fn begin_element(
                 ));
             }
         };
-        let raw = attribute.key.as_ref().to_vec();
+        let raw = attribute.key.as_ref().to_owned();
         // XML 1.0 `AttValue` forbids a literal `<` before unescaping; an entity
         // reference such as `&lt;` remains valid and is checked after unescape.
-        if attribute.value.as_ref().contains(&b'<') {
+        if attribute.value.as_ref().contains('<') {
             return Err(SourcePackageError::new(
                 ErrorKind::MalformedXml,
                 "attribute value contains a literal '<'",
@@ -1357,12 +1372,12 @@ fn begin_element(
         }
         if let Some(prefix) = namespace_declaration_prefix(attribute.key.as_ref()) {
             // Bounded policy: namespace URIs are literal. quick-xml resolves
-            // namespace bindings from the raw (undecoded) attribute bytes, so a
+            // namespace bindings from the raw (undecoded) attribute string, so a
             // reference or a literal tab/LF/CR would desynchronize the resolved
             // Clark name from `namespace_declarations`.
             let raw_value = attribute.value.as_ref();
             if raw_value
-                .iter()
+                .bytes()
                 .any(|byte| matches!(byte, b'&' | b'\t' | b'\n' | b'\r'))
             {
                 return Err(SourcePackageError::new(
@@ -1370,14 +1385,8 @@ fn begin_element(
                     "namespace declaration uses a reference or literal whitespace",
                 ));
             }
-            let value = std::str::from_utf8(raw_value).map_err(|_| {
-                SourcePackageError::new(
-                    ErrorKind::MalformedXml,
-                    "namespace declaration is not valid UTF-8",
-                )
-            })?;
-            validate_xml_chars(value)?;
-            if declarations.insert(prefix, value.to_string()).is_some() {
+            validate_xml_chars(raw_value)?;
+            if declarations.insert(prefix, raw_value.to_string()).is_some() {
                 return Err(SourcePackageError::new(
                     ErrorKind::DuplicateAttribute,
                     "duplicate namespace declaration",
@@ -1391,7 +1400,7 @@ fn begin_element(
             }
             continue;
         }
-        let (resolve, local) = reader.resolve_attribute(attribute.key);
+        let (resolve, local) = reader.resolver().resolve_attribute(attribute.key);
         let name = clark_name(resolve, local.as_ref(), "attribute")?;
         if attrs.contains_key(&name) {
             return Err(SourcePackageError::new(
@@ -1401,10 +1410,7 @@ fn begin_element(
         }
         let raw_value = attribute.value.as_ref();
         let normalized_value = normalize_attr_whitespace(raw_value);
-        let decoded = std::str::from_utf8(&normalized_value).map_err(|_| {
-            SourcePackageError::new(ErrorKind::MalformedXml, "malformed attribute value")
-        })?;
-        let value = quick_xml::escape::unescape(decoded).map_err(|_| {
+        let value = quick_xml::escape::unescape(normalized_value.as_ref()).map_err(|_| {
             SourcePackageError::new(ErrorKind::MalformedXml, "malformed attribute value")
         })?;
         validate_xml_chars(value.as_ref())?;
@@ -1532,17 +1538,20 @@ fn normalize_eol(text: &str) -> String {
 }
 
 /// XML 1.0 section 3.3.3 literal attribute whitespace normalization: literal
-/// TAB/LF/CR become a space. Operates on the raw (pre-unescape) bytes so a
+/// TAB/LF/CR become a space. Operates on the raw (pre-unescape) string so a
 /// character reference such as `&#9;` keeps its tab.
-fn normalize_attr_whitespace(raw: &[u8]) -> Cow<'_, [u8]> {
-    if raw.iter().any(|byte| matches!(byte, b'\t' | b'\n' | b'\r')) {
+fn normalize_attr_whitespace(raw: &str) -> Cow<'_, str> {
+    if raw
+        .bytes()
+        .any(|byte| matches!(byte, b'\t' | b'\n' | b'\r'))
+    {
         Cow::Owned(
-            raw.iter()
-                .map(|&byte| {
-                    if matches!(byte, b'\t' | b'\n' | b'\r') {
-                        b' '
+            raw.chars()
+                .map(|ch| {
+                    if matches!(ch, '\t' | '\n' | '\r') {
+                        ' '
                     } else {
-                        byte
+                        ch
                     }
                 })
                 .collect(),
@@ -1619,16 +1628,9 @@ fn is_qname(name: &str) -> bool {
 }
 
 /// Validate a raw (undecoded) element/attribute/namespace-declaration name as an
-/// XML `QName`. The bytes are checked as UTF-8 first so validation never runs on
-/// a lossy replacement string; a name outside the XML 1.0 productions (including
-/// an embedded NUL or any non-`Char` code point) is rejected.
-fn validate_qname(raw: &[u8], scope: &'static str) -> Result<(), SourcePackageError> {
-    let name = std::str::from_utf8(raw).map_err(|_| {
-        SourcePackageError::new(
-            ErrorKind::MalformedXml,
-            format!("{scope} name is not valid UTF-8"),
-        )
-    })?;
+/// XML `QName`. A name outside the XML 1.0 productions (including an embedded
+/// NUL or any non-`Char` code point) is rejected.
+fn validate_qname(name: &str, scope: &'static str) -> Result<(), SourcePackageError> {
     if !is_qname(name) {
         return Err(SourcePackageError::new(
             ErrorKind::MalformedXml,
@@ -1638,31 +1640,26 @@ fn validate_qname(raw: &[u8], scope: &'static str) -> Result<(), SourcePackageEr
     Ok(())
 }
 
-fn namespace_declaration_prefix(raw: &[u8]) -> Option<String> {
-    if raw == b"xmlns" {
+fn namespace_declaration_prefix(raw: &str) -> Option<String> {
+    if raw == "xmlns" {
         Some(String::new())
     } else {
-        raw.strip_prefix(b"xmlns:")
-            .map(|prefix| String::from_utf8_lossy(prefix).into_owned())
+        raw.strip_prefix("xmlns:").map(str::to_owned)
     }
 }
 
 fn clark_name(
     resolve: ResolveResult<'_>,
-    local: &[u8],
+    local: &str,
     scope: &'static str,
 ) -> Result<String, SourcePackageError> {
     match resolve {
-        ResolveResult::Unbound => Ok(String::from_utf8_lossy(local).into_owned()),
+        ResolveResult::Unbound => Ok(local.to_owned()),
         ResolveResult::Bound(namespace) => {
             if namespace.as_ref().is_empty() {
-                Ok(String::from_utf8_lossy(local).into_owned())
+                Ok(local.to_owned())
             } else {
-                Ok(format!(
-                    "{{{}}}{}",
-                    String::from_utf8_lossy(namespace.as_ref()),
-                    String::from_utf8_lossy(local)
-                ))
+                Ok(format!("{{{}}}{}", namespace.as_ref(), local))
             }
         }
         ResolveResult::Unknown(_prefix) => Err(SourcePackageError::new(

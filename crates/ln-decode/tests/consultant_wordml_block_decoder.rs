@@ -79,3 +79,22 @@ fn malformed_entity_and_attribute_fail_closed() {
         assert_eq!(error.kind(), BlockDecodeErrorKind::MalformedInput);
     }
 }
+
+#[test]
+fn predefined_entities_and_style_attribute_entities_decode_fail_closed() {
+    let xml = r#"<w:wordDocument xmlns:w="urn:word"><w:p><w:pPr><w:pStyle w:val="&#x32;"/></w:pPr><w:r><w:t>&lt;A&gt; &amp; &quot;B&quot; &apos;C&apos;</w:t></w:r></w:p></w:wordDocument>"#;
+    let blocks = ConsultantWordMlBlockDecoder
+        .decode_blocks(&request(xml))
+        .expect("predefined entities and numeric style entity must decode");
+    assert_eq!(blocks.len(), 1);
+    assert_eq!(blocks[0].provider_style_id(), Some("2"));
+    assert_eq!(blocks[0].style(), ParagraphStyle::Title);
+    assert_eq!(blocks[0].text(), "<A> & \"B\" 'C'");
+
+    let bad_attr = r#"<w:wordDocument xmlns:w="urn:word"><w:p><w:pPr><w:pStyle w:val="&unknown;"/></w:pPr><w:r><w:t>Текст</w:t></w:r></w:p></w:wordDocument>"#;
+    let error = ConsultantWordMlBlockDecoder
+        .decode_blocks(&request(bad_attr))
+        .expect_err("unknown entity in style attribute must fail closed");
+    assert_eq!(error.phase(), DecodePhase::Parse);
+    assert_eq!(error.kind(), BlockDecodeErrorKind::MalformedInput);
+}

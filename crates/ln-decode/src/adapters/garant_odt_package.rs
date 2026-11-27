@@ -62,7 +62,10 @@ pub fn read_odt_content_xml(
         if entry.enclosed_name().is_none() {
             return Err(package_error(BlockDecodeErrorKind::UnsafePackageEntry));
         }
-        if entry.name() != "content.xml" {
+        let entry_name = entry
+            .name()
+            .map_err(|_| package_error(BlockDecodeErrorKind::InvalidPackage))?;
+        if entry_name != "content.xml" {
             continue;
         }
         if content.is_some() {

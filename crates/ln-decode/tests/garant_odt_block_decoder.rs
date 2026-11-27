@@ -172,4 +172,14 @@ fn rejects_doctype_and_custom_entity_input_without_resolution() {
     assert_parse_error(&xml);
 }
 
+#[test]
+fn decodes_predefined_and_numeric_entities_and_rejects_unknown_entity() {
+    let valid = document("<text:p>A &amp; B &lt;C&gt; &quot;D&quot; &#167; 1</text:p>");
+    let blocks = decode(&valid).expect("predefined and numeric XML 1.0 references must decode");
+    assert_eq!(blocks.len(), 1);
+    assert_eq!(blocks[0].text(), "A & B <C> \"D\" § 1");
+
+    assert_parse_error(&document("<text:p>CANARY &unknown; tail</text:p>"));
+}
+
 use ln_decode::ports::BlockDecoderPort;
