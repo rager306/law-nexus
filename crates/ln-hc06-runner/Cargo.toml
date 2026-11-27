@@ -10,3 +10,6 @@ path = "src/main.rs"
 
 [dependencies]
 ln-gate = { path = "../ln-gate" }
+
+[lints]
+workspace = true

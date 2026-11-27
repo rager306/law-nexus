@@ -6,3 +6,6 @@ publish = false
 
 [dependencies]
 ln-observe = { path = "../ln-observe" }
+
+[lints]
+workspace = true

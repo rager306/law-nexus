@@ -6,3 +6,6 @@ publish = false
 
 [dependencies]
 ln-inventory = { path = "../ln-inventory" }
+
+[lints]
+workspace = true

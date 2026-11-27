@@ -10,3 +10,6 @@ path = "src/main.rs"
 
 [dependencies]
 ln-closure = { path = "../ln-closure" }
+
+[lints]
+workspace = true

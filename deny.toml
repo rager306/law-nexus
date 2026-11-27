@@ -1,0 +1,70 @@
+# cargo-deny v2 baseline for law-nexus (vmi2929903 Rust Standard)
+[graph]
+targets = ["x86_64-unknown-linux-gnu"]
+all-features = false
+no-default-features = false
+
+[advisories]
+version = 2
+yanked = "warn"
+# Scope settings (v2): check unsound across the full graph (including dev deps);
+# pass `-D unsound` to `cargo deny check` so unsound advisories fail the gate.
+unsound = "all"
+unmaintained = "workspace"
+ignore = [
+    # Breaking major upgrades tracked for dedicated dependency-upgrade PR (ln-decode / ln-consultant-parser):
+    # 1) zip = "=8.6.0" -> >=9.0.5 (8 advisories, incl. CRITICAL 9.1 RUSTSEC-2026-0369)
+    { id = "RUSTSEC-2026-0367", reason = "zip =8.6.0 pinned in ln-decode/ln-testkit; tracked for zip 9.x major-upgrade PR" },
+    { id = "RUSTSEC-2026-0368", reason = "zip =8.6.0 pinned in ln-decode/ln-testkit; tracked for zip 9.x major-upgrade PR" },
+    { id = "RUSTSEC-2026-0369", reason = "zip =8.6.0 pinned in ln-decode/ln-testkit; tracked for zip 9.x major-upgrade PR" },
+    { id = "RUSTSEC-2026-0429", reason = "zip =8.6.0 pinned in ln-decode/ln-testkit; tracked for zip 9.x major-upgrade PR" },
+    { id = "RUSTSEC-2026-0545", reason = "zip =8.6.0 pinned in ln-decode/ln-testkit; tracked for zip 9.x major-upgrade PR" },
+    { id = "RUSTSEC-2026-0546", reason = "zip =8.6.0 pinned in ln-decode/ln-testkit; tracked for zip 9.x major-upgrade PR" },
+    { id = "RUSTSEC-2026-0547", reason = "zip =8.6.0 pinned in ln-decode/ln-testkit; tracked for zip 9.x major-upgrade PR" },
+    { id = "RUSTSEC-2026-0548", reason = "zip =8.6.0 pinned in ln-decode/ln-testkit; tracked for zip 9.x major-upgrade PR" },
+    # 2) quick-xml 0.36.2 -> >=0.41.0 (breaking API upgrade in ln-decode)
+    { id = "RUSTSEC-2026-0194", reason = "quick-xml 0.36.2 in ln-decode; tracked for quick-xml 0.41 major-upgrade PR" },
+    { id = "RUSTSEC-2026-0195", reason = "quick-xml 0.36.2 in ln-decode; tracked for quick-xml 0.41 major-upgrade PR" },
+    # 3) libsqlite3-sys 0.38.2 via rusqlite 0.40.2 -> >=0.39.0
+    { id = "RUSTSEC-2026-0459", reason = "libsqlite3-sys 0.38.2 via rusqlite 0.40.2; tracked for rusqlite upgrade PR" },
+]
+
+[licenses]
+version = 2
+confidence-threshold = 0.8
+unused-allowed-license = "allow"
+allow = [
+    "MIT",
+    "MIT-0",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "MPL-2.0",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "BSL-1.0",
+    "CC0-1.0",
+    "Unlicense",
+    "0BSD",
+    "CDLA-Permissive-2.0",
+    "OpenSSL",
+]
+
+[licenses.private]
+ignore = true
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+highlight = "all"
+deny = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "warn"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

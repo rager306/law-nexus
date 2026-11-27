@@ -51,3 +51,5 @@ path = "src/bin/reader-nav.rs"
 name = "consumer-run"
 path = "src/bin/consumer-run.rs"
 
+[lints]
+workspace = true

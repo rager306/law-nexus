@@ -10,3 +10,6 @@ path = "src/main.rs"
 
 [dependencies]
 ln-publish = { path = "../ln-publish" }
+
+[lints]
+workspace = true

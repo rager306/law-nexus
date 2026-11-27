@@ -7,3 +7,6 @@ publish = false
 [dependencies]
 ln-storage = { path = "../ln-storage" }
 ln-decode = { path = "../ln-decode" }
+
+[lints]
+workspace = true

@@ -1,0 +1,20 @@
+[profile.default]
+fail-fast = false
+slow-timeout = { period = "30s", terminate-after = 3 }
+final-status-level = "fail"
+
+[profile.ci]
+fail-fast = false
+failure-output = "immediate-final"
+slow-timeout = { period = "30s", terminate-after = 3 }
+final-status-level = "fail"
+
+# Corpus-bound 44-FZ tests in ln-consultant-parser legitimately take >90s on hosts
+# where the gitignored 43k-XML consru_export/ corpus is present.
+[[profile.ci.overrides]]
+filter = 'package(ln-consultant-parser)'
+slow-timeout = { period = "60s", terminate-after = 5 }
+
+[[profile.default.overrides]]
+filter = 'package(ln-consultant-parser)'
+slow-timeout = { period = "60s", terminate-after = 5 }

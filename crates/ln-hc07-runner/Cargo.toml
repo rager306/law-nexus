@@ -10,3 +10,6 @@ path = "src/main.rs"
 
 [dependencies]
 ln-identity = { path = "../ln-identity" }
+
+[lints]
+workspace = true

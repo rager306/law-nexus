@@ -10,3 +10,6 @@ path = "src/main.rs"
 
 [dependencies]
 ln-promote = { path = "../ln-promote" }
+
+[lints]
+workspace = true
