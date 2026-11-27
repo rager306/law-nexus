@@ -14,9 +14,10 @@ use crate::domain::{
     ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
 };
 use crate::ports::BlockDecoderPort;
+use crate::xml_ref::resolve_xml_general_ref;
 
-const OFFICE_NS: &[u8] = b"urn:oasis:names:tc:opendocument:xmlns:office:1.0";
-const TEXT_NS: &[u8] = b"urn:oasis:names:tc:opendocument:xmlns:text:1.0";
+const OFFICE_NS: &str = "urn:oasis:names:tc:opendocument:xmlns:office:1.0";
+const TEXT_NS: &str = "urn:oasis:names:tc:opendocument:xmlns:text:1.0";
 const MAX_ODF_SPACES: usize = 64;
 const MAX_DECODED_BLOCK_BYTES: usize = 1024 * 1024;
 
@@ -74,7 +75,6 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
     loop {
         buffer.clear();
         let event_start = usize::try_from(reader.buffer_position()).ok();
-        let decoder = reader.decoder();
         let (resolved, event) = match reader.read_resolved_event_into(&mut buffer) {
             Ok(pair) => pair,
             Err(_) => {
@@ -94,20 +94,20 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
                 let local = element.local_name();
                 let local = local.as_ref();
 
-                if local == b"document-content" {
+                if local == "document-content" {
                     require_namespace(namespace, NamespaceKind::Office, event_start)?;
                     if seen_root || open_elements != 0 {
                         return Err(parse_error(event_start));
                     }
                     seen_root = true;
                     in_root = true;
-                } else if local == b"body" {
+                } else if local == "body" {
                     require_namespace(namespace, NamespaceKind::Office, event_start)?;
                     if !in_root || in_body || in_document_text {
                         return Err(parse_error(event_start));
                     }
                     in_body = true;
-                } else if local == b"text" {
+                } else if local == "text" {
                     require_namespace(namespace, NamespaceKind::Office, event_start)?;
                     if !in_body || in_document_text || seen_document_text {
                         return Err(parse_error(event_start));
@@ -120,29 +120,29 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
                         return Err(parse_error(event_start));
                     }
                     let start = event_start.ok_or_else(|| parse_error(None))?;
-                    let kind = if local == b"h" {
+                    let kind = if local == "h" {
                         BlockKind::Heading
                     } else {
                         BlockKind::Paragraph
                     };
-                    let provider_style_id = style_name(&reader, decoder, &element, event_start)?;
+                    let provider_style_id = style_name(&reader, &element, event_start)?;
                     open_block = Some(OpenBlock {
                         kind,
                         start,
                         text: String::new(),
                         provider_style_id,
                     });
-                } else if matches!(local, b"a" | b"span") {
+                } else if matches!(local, "a" | "span") {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
                     if open_block.is_none() {
                         return Err(parse_error(event_start));
                     }
-                    inline_stack.push(if local == b"a" {
+                    inline_stack.push(if local == "a" {
                         InlineKind::Link
                     } else {
                         InlineKind::Span
                     });
-                } else if matches!(local, b"bookmark" | b"s") {
+                } else if matches!(local, "bookmark" | "s") {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
                     return Err(parse_error(event_start));
                 } else if open_block.is_some()
@@ -166,20 +166,20 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
                     if !in_document_text || open_block.is_some() {
                         return Err(parse_error(event_start));
                     }
-                } else if matches!(local, b"a" | b"span" | b"bookmark") {
+                } else if matches!(local, "a" | "span" | "bookmark") {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
                     if open_block.is_none() {
                         return Err(parse_error(event_start));
                     }
-                } else if local == b"s" {
+                } else if local == "s" {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
-                    let count = odf_space_count(&reader, decoder, &element, event_start)?;
+                    let count = odf_space_count(&reader, &element, event_start)?;
                     let block = open_block
                         .as_mut()
                         .ok_or_else(|| parse_error(event_start))?;
                     ensure_decoded_capacity(block.text.len(), count, event_start)?;
                     block.text.extend(std::iter::repeat_n(' ', count));
-                } else if matches!(local, b"document-content" | b"body" | b"text") {
+                } else if matches!(local, "document-content" | "body" | "text") {
                     require_namespace(namespace, NamespaceKind::Office, event_start)?;
                     return Err(parse_error(event_start));
                 } else if open_block.is_some()
@@ -189,15 +189,27 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
                 }
             }
             Event::Text(value) => {
-                let decoded = value.unescape().map_err(|_| parse_error(event_start))?;
-                if let Some(block) = open_block.as_mut() {
-                    ensure_decoded_capacity(block.text.len(), decoded.len(), event_start)?;
-                    block.text.push_str(&decoded);
-                } else if (in_document_text || (seen_root && !in_root))
-                    && !decoded.trim().is_empty()
-                {
-                    return Err(parse_error(event_start));
-                }
+                let decoded = value.xml10_content();
+                push_decoded_text(
+                    &mut open_block,
+                    in_document_text,
+                    seen_root,
+                    in_root,
+                    &decoded,
+                    event_start,
+                )?;
+            }
+            Event::GeneralRef(reference) => {
+                let decoded =
+                    resolve_xml_general_ref(&reference).ok_or_else(|| parse_error(event_start))?;
+                push_decoded_text(
+                    &mut open_block,
+                    in_document_text,
+                    seen_root,
+                    in_root,
+                    &decoded,
+                    event_start,
+                )?;
             }
             Event::CData(_) | Event::DocType(_) => return Err(parse_error(event_start)),
             Event::End(element) => {
@@ -212,7 +224,7 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
                     if !inline_stack.is_empty() {
                         return Err(parse_error(event_start));
                     }
-                    let expected = if local == b"h" {
+                    let expected = if local == "h" {
                         BlockKind::Heading
                     } else {
                         BlockKind::Paragraph
@@ -237,12 +249,12 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
                         .map_err(|_| validate_error(Some(block.start)))?;
                         blocks.push(parsed);
                     }
-                } else if matches!(local, b"a" | b"span") {
+                } else if matches!(local, "a" | "span") {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
                     if open_block.is_none() {
                         return Err(parse_error(event_start));
                     }
-                    let expected = if local == b"a" {
+                    let expected = if local == "a" {
                         InlineKind::Link
                     } else {
                         InlineKind::Span
@@ -250,28 +262,28 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
                     if inline_stack.pop() != Some(expected) {
                         return Err(parse_error(event_start));
                     }
-                } else if local == b"bookmark" {
+                } else if local == "bookmark" {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
                     return Err(parse_error(event_start));
-                } else if local == b"text" {
+                } else if local == "text" {
                     require_namespace(namespace, NamespaceKind::Office, event_start)?;
                     if !in_document_text || open_block.is_some() {
                         return Err(parse_error(event_start));
                     }
                     in_document_text = false;
-                } else if local == b"body" {
+                } else if local == "body" {
                     require_namespace(namespace, NamespaceKind::Office, event_start)?;
                     if !in_body || in_document_text {
                         return Err(parse_error(event_start));
                     }
                     in_body = false;
-                } else if local == b"document-content" {
+                } else if local == "document-content" {
                     require_namespace(namespace, NamespaceKind::Office, event_start)?;
                     if !in_root || in_body {
                         return Err(parse_error(event_start));
                     }
                     in_root = false;
-                } else if local == b"s" {
+                } else if local == "s" {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
                     return Err(parse_error(event_start));
                 }
@@ -326,24 +338,40 @@ fn validate_attributes(
     Ok(())
 }
 
+fn push_decoded_text(
+    open_block: &mut Option<OpenBlock>,
+    in_document_text: bool,
+    seen_root: bool,
+    in_root: bool,
+    decoded: &str,
+    event_start: Option<usize>,
+) -> Result<(), BlockDecodeError> {
+    if let Some(block) = open_block.as_mut() {
+        ensure_decoded_capacity(block.text.len(), decoded.len(), event_start)?;
+        block.text.push_str(decoded);
+    } else if (in_document_text || (seen_root && !in_root)) && !decoded.trim().is_empty() {
+        return Err(parse_error(event_start));
+    }
+    Ok(())
+}
+
 fn style_name<R: std::io::BufRead>(
     reader: &NsReader<R>,
-    decoder: quick_xml::encoding::Decoder,
     element: &BytesStart<'_>,
     byte_offset: Option<usize>,
 ) -> Result<Option<String>, BlockDecodeError> {
     let mut style = None;
     for attribute in element.attributes() {
         let attribute = attribute.map_err(|_| parse_error(byte_offset))?;
-        let (resolved, local) = reader.resolve_attribute(attribute.key);
-        if local.as_ref() != b"style-name" {
+        let (resolved, local) = reader.resolver().resolve_attribute(attribute.key);
+        if local.as_ref() != "style-name" {
             continue;
         }
         if namespace_kind(&resolved) != NamespaceKind::Text || style.is_some() {
             return Err(parse_error(byte_offset));
         }
         let value = attribute
-            .decode_and_unescape_value(decoder)
+            .normalized_value(quick_xml::XmlVersion::Explicit1_0)
             .map_err(|_| parse_error(byte_offset))?;
         if value.trim().is_empty() {
             return Err(parse_error(byte_offset));
@@ -355,22 +383,21 @@ fn style_name<R: std::io::BufRead>(
 
 fn odf_space_count<R: std::io::BufRead>(
     reader: &NsReader<R>,
-    decoder: quick_xml::encoding::Decoder,
     element: &BytesStart<'_>,
     byte_offset: Option<usize>,
 ) -> Result<usize, BlockDecodeError> {
     let mut count = None;
     for attribute in element.attributes() {
         let attribute = attribute.map_err(|_| parse_error(byte_offset))?;
-        let (resolved, local) = reader.resolve_attribute(attribute.key);
-        if local.as_ref() != b"c" {
+        let (resolved, local) = reader.resolver().resolve_attribute(attribute.key);
+        if local.as_ref() != "c" {
             continue;
         }
         if namespace_kind(&resolved) != NamespaceKind::Text || count.is_some() {
             return Err(parse_error(byte_offset));
         }
         let value = attribute
-            .decode_and_unescape_value(decoder)
+            .normalized_value(quick_xml::XmlVersion::Explicit1_0)
             .map_err(|_| parse_error(byte_offset))?;
         count = Some(
             value
@@ -385,8 +412,8 @@ fn odf_space_count<R: std::io::BufRead>(
     Ok(count)
 }
 
-const fn is_block_name(local: &[u8]) -> bool {
-    matches!(local, b"p" | b"h")
+fn is_block_name(local: &str) -> bool {
+    matches!(local, "p" | "h")
 }
 
 fn map_style(kind: BlockKind, provider_style_id: Option<&str>) -> ParagraphStyle {

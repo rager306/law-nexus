@@ -258,7 +258,7 @@ type discipline would be re-implemented, error-prone, and outside the "no privat
 JSON parser" rule); the existing `domain::fingerprint_bytes` is a documented FNV
 diagnostic explicitly "not integrity", so it cannot serve as an integrity seal.
 
-`quick-xml 0.36` was already an `ln-decode` dependency and is reused for the
+`quick-xml 0.42` is already an `ln-decode` dependency and is reused for the
 event stream; no existing decoder or lexer module was modified.
 
 ### Scoped revision of the D328 no-serde boundary

@@ -10,6 +10,7 @@ use crate::domain::{
     ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId, fingerprint_bytes,
 };
 use crate::ports::{BlockDecoderPort, DecoderPort};
+use crate::xml_ref::resolve_xml_general_ref;
 
 /// Streaming WordML parser for Consultant XML source documents.
 ///
@@ -63,8 +64,8 @@ impl ParagraphStyle {
     }
 }
 
-fn local_name_match(local: &[u8], expected: &str) -> bool {
-    local == expected.as_bytes()
+fn local_name_match(local: &str, expected: &str) -> bool {
+    local == expected
 }
 
 /// Fail-closed Consultant WordML adapter for provider-neutral parsed blocks.
@@ -96,7 +97,6 @@ impl BlockDecoderPort for ConsultantWordMlBlockDecoder {
         loop {
             buf.clear();
             let event_start = usize::try_from(reader.buffer_position()).ok();
-            let decoder = reader.decoder();
             let (_, event) = match reader.read_resolved_event_into(&mut buf) {
                 Ok(pair) => pair,
                 Err(_) => {
@@ -126,17 +126,20 @@ impl BlockDecoderPort for ConsultantWordMlBlockDecoder {
                     } else if local_name_match(local.as_ref(), "pStyle")
                         && paragraph_start.is_some()
                     {
-                        provider_style_id = style_id(decoder, &element, event_start)?;
+                        provider_style_id = style_id(&element, event_start)?;
                     }
                 }
                 Event::Empty(element)
                     if local_name_match(element.local_name().as_ref(), "pStyle")
                         && paragraph_start.is_some() =>
                 {
-                    provider_style_id = style_id(decoder, &element, event_start)?;
+                    provider_style_id = style_id(&element, event_start)?;
                 }
                 Event::Text(value) if in_text && !in_bindata => {
-                    let decoded = value.unescape().map_err(|_| {
+                    text.push_str(&value.xml10_content());
+                }
+                Event::GeneralRef(reference) if in_text && !in_bindata => {
+                    let decoded = resolve_xml_general_ref(&reference).ok_or_else(|| {
                         BlockDecodeError::new(
                             DecodePhase::Parse,
                             BlockDecodeErrorKind::MalformedInput,
@@ -212,7 +215,6 @@ impl BlockDecoderPort for ConsultantWordMlBlockDecoder {
 }
 
 fn style_id(
-    decoder: quick_xml::encoding::Decoder,
     element: &quick_xml::events::BytesStart<'_>,
     byte_offset: Option<usize>,
 ) -> Result<Option<String>, BlockDecodeError> {
@@ -225,14 +227,16 @@ fn style_id(
             )
         })?;
         let key = attribute.key.as_ref();
-        if key == b"val" || key.ends_with(b":val") {
-            let value = attribute.decode_and_unescape_value(decoder).map_err(|_| {
-                BlockDecodeError::new(
-                    DecodePhase::Parse,
-                    BlockDecodeErrorKind::MalformedInput,
-                    byte_offset,
-                )
-            })?;
+        if key == "val" || key.ends_with(":val") {
+            let value = attribute
+                .normalized_value(quick_xml::XmlVersion::Explicit1_0)
+                .map_err(|_| {
+                    BlockDecodeError::new(
+                        DecodePhase::Parse,
+                        BlockDecodeErrorKind::MalformedInput,
+                        byte_offset,
+                    )
+                })?;
             return Ok(Some(value.into_owned()));
         }
     }
@@ -254,10 +258,10 @@ impl DecoderPort for WordMLStreamingDecoder {
     fn decode(&self, request: &DecodeRequest) -> Vec<DecoderEmission> {
         let bytes = &request.bytes;
         let mut reader = NsReader::from_reader(bytes.as_slice());
-        reader.config_mut().trim_text(true);
 
         let mut buf = Vec::with_capacity(4096);
         let mut text_buf = String::new();
+        let mut run_buf = String::new();
         let mut current_style: Option<String> = None;
         let mut in_paragraph = false;
         let mut in_text = false;
@@ -279,16 +283,18 @@ impl DecoderPort for WordMLStreamingDecoder {
                         in_bindata = true;
                     } else if local_name_match(local.as_ref(), "p") {
                         in_paragraph = true;
+                        in_text = false;
                         current_style = None;
                         text_buf.clear();
+                        run_buf.clear();
                     } else if local_name_match(local.as_ref(), "t") && in_paragraph {
                         in_text = true;
+                        run_buf.clear();
                     } else if local_name_match(local.as_ref(), "pStyle") && in_paragraph {
                         for attr in e.attributes().flatten() {
                             let key = attr.key.as_ref();
-                            if key == b"val" || key.ends_with(b":val") {
-                                current_style =
-                                    Some(String::from_utf8_lossy(attr.value.as_ref()).into_owned());
+                            if key == "val" || key.ends_with(":val") {
+                                current_style = Some(attr.value.into_owned());
                             }
                         }
                     }
@@ -299,24 +305,34 @@ impl DecoderPort for WordMLStreamingDecoder {
                     if local_name_match(local.as_ref(), "pStyle") && in_paragraph {
                         for attr in e.attributes().flatten() {
                             let key = attr.key.as_ref();
-                            if key == b"val" || key.ends_with(b":val") {
-                                current_style =
-                                    Some(String::from_utf8_lossy(attr.value.as_ref()).into_owned());
+                            if key == "val" || key.ends_with(":val") {
+                                current_style = Some(attr.value.into_owned());
                             }
                         }
                     }
                 }
                 Event::Text(e) if in_text => {
-                    text_buf.push_str(&e.unescape().unwrap_or_default());
+                    run_buf.push_str(&e.xml10_content());
+                }
+                Event::GeneralRef(reference) if in_text => {
+                    if let Some(decoded) = resolve_xml_general_ref(&reference) {
+                        run_buf.push_str(&decoded);
+                    }
                 }
                 Event::End(e) => {
                     let local = e.local_name();
                     if local_name_match(local.as_ref(), "binData") {
                         in_bindata = false;
                     } else if local_name_match(local.as_ref(), "t") {
-                        in_text = false;
+                        if in_text {
+                            text_buf.push_str(run_buf.trim_matches([' ', '\t', '\r', '\n']));
+                            run_buf.clear();
+                            in_text = false;
+                        }
                     } else if local_name_match(local.as_ref(), "p") && in_paragraph && !in_bindata {
                         in_paragraph = false;
+                        in_text = false;
+                        run_buf.clear();
                         let style_id = current_style.as_deref().unwrap_or("0");
                         let style = ParagraphStyle::from_style_id(style_id);
 
@@ -528,5 +544,41 @@ mod tests {
             1,
             "multiple runs in one paragraph = one candidate"
         );
+    }
+
+    #[test]
+    fn preserves_spaces_around_entities_while_trimming_run_edges() {
+        let xml = br#"<w:body xmlns:w="urn:w">
+<w:p><w:pPr><w:pStyle w:val="0"/></w:pPr><w:r><w:t>  A &amp; B &#167; 1  </w:t></w:r></w:p>
+</w:body>"#;
+        let req = DecodeRequest::new(
+            PayloadRef::parse("p:1").unwrap(),
+            FamilyFormat::parse("f:1").unwrap(),
+            xml,
+        );
+        let emissions = WordMLStreamingDecoder.decode(&req);
+        assert_eq!(emissions.len(), 1);
+        let anchor = emissions[0].anchor.as_ref().expect("anchor");
+        let expected = "A & B § 1".as_bytes();
+        assert_eq!(anchor.end_offset, expected.len());
+        assert_eq!(anchor.fingerprint, fingerprint_bytes(expected));
+    }
+
+    #[test]
+    fn preserves_unicode_nbsp_at_run_edges_while_trimming_ascii_xml_whitespace() {
+        let xml = br#"<w:body xmlns:w="urn:w">
+<w:p><w:pPr><w:pStyle w:val="0"/></w:pPr><w:r><w:t> &#160;A&#160; </w:t></w:r><w:r><w:t>B</w:t></w:r></w:p>
+</w:body>"#;
+        let req = DecodeRequest::new(
+            PayloadRef::parse("p:1").unwrap(),
+            FamilyFormat::parse("f:1").unwrap(),
+            xml,
+        );
+        let emissions = WordMLStreamingDecoder.decode(&req);
+        assert_eq!(emissions.len(), 1);
+        let anchor = emissions[0].anchor.as_ref().expect("anchor");
+        let expected = "\u{00a0}A\u{00a0}B".as_bytes();
+        assert_eq!(anchor.end_offset, expected.len());
+        assert_eq!(anchor.fingerprint, fingerprint_bytes(expected));
     }
 }

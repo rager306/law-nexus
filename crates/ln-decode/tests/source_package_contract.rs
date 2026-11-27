@@ -182,6 +182,22 @@ fn nbsp_whitespace_cdata_entities_merge_and_preserve() {
 }
 
 #[test]
+fn predefined_entities_decode_and_unknown_entity_is_rejected() {
+    let pkg = capture(
+        b"<a>&lt;b&gt; &amp; &quot;c&quot; &apos;d&apos;</a>",
+        &limits(),
+    )
+    .expect("predefined XML 1.0 entities must decode");
+    let txt = texts(&pkg);
+    assert_eq!(txt.len(), 1);
+    assert_eq!(txt[0].value, "<b> & \"c\" 'd'");
+
+    let err = capture(b"<r>&unknown;</r>", &limits())
+        .expect_err("unknown entity without DTD must fail closed");
+    assert_eq!(err.kind(), ErrorKind::MalformedXml);
+}
+
+#[test]
 fn unknown_foreign_same_local_names_preserved() {
     let xml = br#"<r xmlns:a="urn:a" xmlns:b="urn:b"><a:x/><b:x/></r>"#;
     let pkg = capture(xml, &limits()).expect("capture");

@@ -30,8 +30,8 @@ ln-work = { path = "../ln-work" }
 
 [dev-dependencies]
 ln-consultant-parser = { path = "../ln-consultant-parser" }
-zip = { version = "=8.6.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
-rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"] }
+zip = { version = "=9.8.2", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+rusqlite = { version = "0.43", default-features = false, features = ["bundled"] }
 
 [lints]
 workspace = true
