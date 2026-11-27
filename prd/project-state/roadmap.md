@@ -6,19 +6,17 @@
 >
 > Initial front synchronization was frozen in EA-05 at `94d58ea`. EA-10 D150 remains revision-bound `accepted-with-findings` for packet `120d44b`; post-D150 repository-control remediation is recorded separately in `assessment/13-current-head-gap-audit.md` and `assessment/14-post-remediation-gap-disposition.md` and does not extend D150. Roadmap completion is not product readiness.
 
-## Workflow transition (2026-10-23; native Path state live since 2026-10-25)
+## Delivery workflow (Compound Engineering; legacy GSD Path archived 2026-11-28)
 
-The delivery workflow completed its migration from GSD-Pi to GSD Path
-(Allspark + GSD Path + PDD Kit; runbook: `docs/agent-stack/MIGRATION.md`).
-Bootstrap PR #1 merged at `54a495cd` on 2026-10-25: native Path state lives
-under `.project/`, and the native markers below record the Path-track
-shipments. The pre-bootstrap GSD-Pi M-ID entries in this projection are
-legacy-ledger history: legacy IDs are not renamed, and the migration itself
-raised no readiness. Active obligations and non-transferable human gates
-carried over from the legacy workflow are inventoried in
-`docs/agent-stack/history/LEGACY_CROSSWALK.md` only. Roadmap freshness
-follows the typed adapter in `src/law_nexus_harness/workflow_state.py`,
-not emoji markers.
+Active delivery runs on **Compound Engineering**
+(`.compound-engineering/config.yaml`, `prd/project-state/workflow-backend.json`).
+The prior GSD-Pi and GSD Path (Allspark + GSD Path + PDD Kit) delivery layers
+and their runbooks/archives (`.project/`, `docs/agent-stack/*`, milestones
+M001–M012) were retired from `main` on 2026-11-28 and are preserved read-only
+under the immutable Git tag `archive/gsd-path-final`. Pre-retirement GSD-Pi
+M-ID entries in this projection remain historical ledger records and do not
+raise product readiness. Workflow-surface verification runs through the typed
+adapter in `src/law_nexus_harness/workflow_state.py`.
 
 ## Active Direction Contract
 
@@ -51,15 +49,19 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** reference-front-door is the current milestone —
+- **Active delivery workflow (2026-11-28):** Compound Engineering
+  (`.compound-engineering/config.yaml`, `prd/project-state/workflow-backend.json`).
+  GSD-Pi, GSD-Path (milestones M001–M012 through `projection-alignment`,
+  integration merge `9afa2625`, tag `milestone/012-projection-alignment`), and
+  Allspark were retired from `main` behind the immutable Git tag
+  `archive/gsd-path-final`.
+- **Local GSD workflow marker (superseded 2026-11-28):** reference-front-door —
   shipped/archived/integrated (2026-10-31): ship commit `38abe687`, integration
   merge `ef17106b` into `main`, tag `milestone/011-reference-front-door`, archive
-  `.project/archive/011-reference-front-door`. It shipped the reference-package
-  surface in `law-nexus-inspect` (`reference-package build|check`, honest exit
-  contract 0/2/3/6) and aligned the front-door docs and the PDD model with it;
-  its skipped ship-time projection refresh is applied by this record. The
-  previous shipment stays recorded below. Current-state document:
-  `docs/agent-stack/POST-SHIP-STATE-2026-10-28.md`.
+  preserved under Git tag `archive/gsd-path-final`. It shipped the
+  reference-package surface in `law-nexus-inspect` (`reference-package
+  build|check`, honest exit contract 0/2/3/6) and aligned the front-door docs
+  and the PDD model with it.
 - **Local GSD workflow marker (superseded 2026-10-31):** doc-consistency —
   shipped/archived/integrated (2026-10-29): ship commit `fd60893f`, integration
   merge `3a39fd70` into `main`, tag `milestone/010-doc-consistency`, archive

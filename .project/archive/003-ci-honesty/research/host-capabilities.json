@@ -1,8 +1,0 @@
-{
- "host": "claude",
- "spawns_full_capability_children": true,
- "effort": {
-  "values": []
- },
- "effort_hints": {}
-}
