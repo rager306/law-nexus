@@ -44,11 +44,9 @@ gate:
         cargo nextest run --workspace --offline --profile ci
     cargo deny --offline check -D unsound advisories licenses bans sources
     cargo shear
-    # TODO(ci-hardening): remove `|| true` after pinning Actions in repository-quality.yml
-    # in lockstep with tests/test_repository_quality_gate.py:138.
     @if [ -d .github/workflows ]; then \
         if command -v actionlint >/dev/null 2>&1; then actionlint; fi; \
-        if command -v zizmor >/dev/null 2>&1; then zizmor .github/workflows || true; fi; \
+        if command -v zizmor >/dev/null 2>&1; then zizmor .github/workflows; fi; \
     fi
     uv run --frozen python scripts/verify-crate-dependency-allowlist.py
     uv run --frozen python scripts/verify-adr-conformance.py
