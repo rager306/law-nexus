@@ -30,9 +30,6 @@ CI_PROCESS_SUITE = {
     "tests/test_harness_governor.py",
     "tests/test_harness_workflow_state.py",
     "tests/test_verify_source_snapshot_v2.py",
-    "tests/test_phase_dispatch_adapter.py",
-    "tests/test_post_ship_pointers.py",
-    "tests/test_project_state_roadmap_freshness.py",
     "tests/test_harness_cli_entrypoints.py",
     "tests/test_harness_preflight.py",
     "tests/test_harness_review_case_cli.py",
@@ -179,3 +176,22 @@ def test_gate_inventory_matches_active_paths_and_boundary() -> None:
         for item in future
     )
     assert "cargo test --workspace --offline" in WORKFLOW.read_text(encoding="utf-8")
+
+
+def test_ci_workflow_governor_diagnostics_and_upload_contract() -> None:
+    payload = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    steps = payload["jobs"]["migration-layer-quality"]["steps"]
+    by_name = {step["name"]: step for step in steps}
+
+    gov_step = by_name["Governor report passes on Compound Engineering backend"]
+    assert gov_step["if"] == "always()"
+    run_script = gov_step["run"]
+    assert "gov_rc=0" in run_script
+    assert "|| gov_rc=$?" in run_script
+    assert "backend=compound-engineering;" in run_script
+    assert "if gov_rc != 0:" in run_script
+
+    upload_step = steps[-1]
+    assert upload_step["name"] == "Publish governor diagnostics on failure"
+    assert upload_step["if"] == "failure()"
+    assert upload_step["with"]["path"] == "governor.json"

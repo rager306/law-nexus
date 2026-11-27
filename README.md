@@ -38,10 +38,9 @@ Consultant/Garant parser, a temporal legal ontology, and citation-safe retrieval
 
 Tracked delivery ledger:
 [`prd/project-state/data/roadmap.json`](prd/project-state/data/roadmap.json)
-groups the completed milestone bands through **M224** and names the live front
-milestone; it is refreshed at every ship
-(`docs/agent-stack/SHIP-TIME-PROJECTION-REFRESH.md`). M011
-`reference-front-door` shipped on the GSD Path track (2026-10-31). The current
+groups the completed milestone bands through **M224**; legacy GSD-Path
+delivery through M012 `projection-alignment` is retired (preserved as a
+read-only Git tag), and active delivery runs on Compound Engineering. The current
 documentation/control baseline includes the tracked assessment series 00–34,
 the parser G0–G3 acceptance protocol, controlled temporal vocabulary and
 presentation-drift checks, and a D7-quarantined historical readiness index.

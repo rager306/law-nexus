@@ -27,18 +27,6 @@ PreflightStatus = Literal["ok", "failure"]
 CheckStatus = Literal["pass", "fail", "warn"]
 Severity = Literal["ok", "warn", "error"]
 DEFAULT_MAX_OUTPUT_BYTES = 8192
-AGENT_SKILL_SCRIPT_PATHS = (
-    ".agents/skills/pi-skill-creator/scripts/aggregate_pi_skill_benchmark.py",
-    ".agents/skills/pi-skill-creator/scripts/analyze_skill_triggers.py",
-    ".agents/skills/pi-skill-creator/scripts/execute_pi_skill_eval.py",
-    ".agents/skills/pi-skill-creator/scripts/generate_pi_skill_report.py",
-    ".agents/skills/pi-skill-creator/scripts/grade_pi_skill_eval.py",
-    ".agents/skills/pi-skill-creator/scripts/package_pi_skill.py",
-    ".agents/skills/pi-skill-creator/scripts/run_pi_skill_eval.py",
-    ".agents/skills/pi-skill-creator/scripts/run_pi_skill_loop.py",
-    ".agents/skills/pi-skill-creator/scripts/suggest_description.py",
-    ".agents/skills/pi-skill-creator/scripts/validate_pi_skill.py",
-)
 DOCS_FRESHNESS_PATHS = (
     "prd/ARCHITECTURE.md",
     "prd/project-state/roadmap.md",
@@ -313,17 +301,26 @@ def _gitnexus_freshness_check(root: Path, runner: Runner) -> PreflightCheck:
 
 
 def _workflow_state_surface_check(root: Path) -> PreflightCheck:
-    """Typed workflow-state surface (GSD Path backend, MIGRATION.md 4.1/4.2).
+    """Typed workflow-state surface check (Compound Engineering / legacy Path).
 
-    Reads the read-only adapter instead of the legacy .gsd projection. In
-    bootstrap mode a missing .project is an explicit not-cut-over warning,
-    never a silent PASS; in operational mode it is a blocking failure; a
-    verified shipped/done state on integrated main passes as shipped-integrated
-    with the archive proof (Contract A).
+    Reads the read-only workflow-state adapter instead of the legacy .gsd
+    projection. Passes when Compound Engineering is active and configured (or
+    legacy Path fixtures are operational/shipped-integrated) and fails closed
+    on missing config, invalid backend markers, or resurrected retired paths.
     """
     command = ("internal", "workflow-state-adapter")
     report = read_workflow_state(root)
     legacy = "present" if report.legacy_gsd_present else "absent"
+    if report.kind is WorkflowStateKind.COMPOUND_ENGINEERING:
+        return _pass_check(
+            check_id="workflow-state-surface",
+            phase="workflow-state",
+            command=command,
+            observed=(
+                "backend=compound-engineering; state=operational; "
+                f"config=.compound-engineering/config.yaml; legacy_gsd={legacy}"
+            ),
+        )
     if report.kind is WorkflowStateKind.OPERATIONAL_VALID:
         runtime = report.runtime
         runtime_note = (
@@ -371,9 +368,8 @@ def _workflow_state_surface_check(root: Path) -> PreflightCheck:
                 f"legacy_gsd_snapshot={legacy}; {report.observed}"
             ),
             remediation=(
-                "Follow docs/agent-stack/INSTALL.md §12: merge the bootstrap PR, then "
-                "run native Path initialization; flip "
-                "prd/project-state/workflow-backend.json cutover only at C7."
+                "Switch prd/project-state/workflow-backend.json to compound-engineering "
+                "(cutover=true) or complete legacy bootstrap initialization."
             ),
         )
     return PreflightCheck(
@@ -579,17 +575,6 @@ def _docs_freshness_surface_check(root: Path) -> PreflightCheck:
     )
 
 
-def _present_agent_skill_script_paths(root: Path) -> tuple[str, ...]:
-    """Return skill script paths that exist on disk.
-
-    `.agents/skills/` is local/gitignored agent tooling, not product source.
-    Fresh CI clones may omit the directory; preflight must not fail closed on
-    that absence.
-    """
-
-    return tuple(rel_path for rel_path in AGENT_SKILL_SCRIPT_PATHS if (root / rel_path).is_file())
-
-
 def run_preflight(
     root: Path,
     *,
@@ -600,33 +585,15 @@ def run_preflight(
 
     resolved_root = root.resolve()
     cargo_fmt = runner(("cargo", "fmt", "--all", "--", "--check"), resolved_root)
-    skill_script_paths = _present_agent_skill_script_paths(resolved_root)
-    if skill_script_paths:
-        ruff_format = runner(
-            ("uv", "run", "ruff", "format", "--check", *skill_script_paths),
-            resolved_root,
-        )
-        ruff_format_check = _check_from_result(
-            check_id="ruff-format-explicit-python-paths",
-            phase="formatter",
-            result=ruff_format,
-            observed_ok="Explicit local agent skill Python paths are Ruff-formatted.",
-            observed_fail="Explicit local agent skill Python path formatting drift detected.",
-            remediation=(
-                "Run `uv run ruff format .agents/skills/pi-skill-creator/scripts/*.py` "
-                "or format the listed local skill files explicitly."
-            ),
-        )
-    else:
-        ruff_format_check = _pass_check(
-            check_id="ruff-format-explicit-python-paths",
-            phase="formatter",
-            command=("uv", "run", "ruff", "format", "--check"),
-            observed=(
-                "Local agent skill scripts absent (`.agents/skills/` gitignored); "
-                "skipped Ruff format check for skill tooling."
-            ),
-        )
+    ruff_format_check = _pass_check(
+        check_id="ruff-format-explicit-python-paths",
+        phase="formatter",
+        command=("uv", "run", "ruff", "format", "--check"),
+        observed=(
+            "No explicit local agent skill Python scripts configured; "
+            "skipped Ruff format check for skill tooling."
+        ),
+    )
     crate_allowlist = runner(
         (
             "uv",

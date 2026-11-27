@@ -486,12 +486,12 @@ def test_parser_adrs_keep_lifecycle_and_non_claims_honest() -> None:
 
 
 def test_architecture_and_protocol_keep_g1_and_smoke_anchors_honest() -> None:
-    architecture = (ROOT / "prd/ARCHITECTURE.md").read_text(encoding="utf-8")
+    architecture = " ".join((ROOT / "prd/ARCHITECTURE.md").read_text(encoding="utf-8").split())
     protocol = (ROOT / "prd/parser/representative_golden_corpus_acceptance_protocol.md").read_text(
         encoding="utf-8"
     )
 
-    assert "64 integration test functions and 4 source-unit" in architecture
+    assert "358 integration test functions and 54 source-unit" in architecture
     assert "G1 Consultant protocol/tracer anchor is 119" in architecture
     assert "EXPECTED_HIERARCHY_COUNT" in architecture
     assert "Parser evidence ceiling stays G1." in architecture

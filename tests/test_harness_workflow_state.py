@@ -1082,10 +1082,12 @@ def test_state_unverified_kind_maps_to_blocked_readiness() -> None:
     }
 
     assert readiness[WorkflowStateKind.STATE_UNVERIFIED] == "blocked"
+    assert readiness[WorkflowStateKind.COMPOUND_ENGINEERING] == "operational"
     assert readiness[WorkflowStateKind.OPERATIONAL_VALID] == "operational"
     assert readiness[WorkflowStateKind.SHIPPED_INTEGRATED] == "operational"
     assert readiness[WorkflowStateKind.BOOTSTRAP_NOT_CUT_OVER] == "bootstrap-not-cut-over"
     assert {kind for kind, value in readiness.items() if value == "operational"} == {
+        WorkflowStateKind.COMPOUND_ENGINEERING,
         WorkflowStateKind.OPERATIONAL_VALID,
         WorkflowStateKind.SHIPPED_INTEGRATED,
     }
@@ -1261,3 +1263,88 @@ class TestLegacySurfaceDecision:
         assert observed == (
             "legacy_surface=frozen-historical; cutover=true; policy=historical-only"
         )
+
+
+def write_compound_engineering_surface(
+    root: Path, *, with_config: bool = True, cutover: bool = True
+) -> None:
+    write_cutover_marker(
+        root,
+        payload={"schema": 1, "backend": "compound-engineering", "cutover": cutover},
+    )
+    if with_config:
+        cfg = root / ".compound-engineering" / "config.yaml"
+        cfg.parent.mkdir(parents=True, exist_ok=True)
+        cfg.write_text("docs_root: .compound-engineering/artifacts\n", encoding="utf-8")
+
+
+class TestCompoundEngineeringBackend:
+    """Typed workflow-state contract for the active Compound Engineering backend."""
+
+    def test_valid_compound_engineering_state_is_operational(self, tmp_path: Path) -> None:
+        write_compound_engineering_surface(tmp_path)
+
+        report = read_workflow_state(tmp_path)
+
+        assert report.kind is WorkflowStateKind.COMPOUND_ENGINEERING
+        assert report.kind.value == "compound-engineering"
+        assert workflow_readiness(report) == "operational"
+        assert report.remediation == "none"
+        assert report.evidence == (
+            CUTOVER_MARKER_RELATIVE_PATH,
+            ".compound-engineering/config.yaml",
+        )
+        assert report.native_milestone is None
+        assert report.native_phase is None
+        assert json.loads(report.to_json())["kind"] == "compound-engineering"
+
+    def test_missing_compound_engineering_config_fails_closed(self, tmp_path: Path) -> None:
+        write_compound_engineering_surface(tmp_path, with_config=False)
+
+        report = read_workflow_state(tmp_path)
+
+        assert report.kind is WorkflowStateKind.MISSING_STATE
+        assert workflow_readiness(report) == "blocked"
+        assert ".compound-engineering/config.yaml" in report.observed
+        assert ".compound-engineering/config.yaml" in report.evidence
+
+    def test_compound_engineering_with_cutover_false_fails_closed(self, tmp_path: Path) -> None:
+        write_compound_engineering_surface(tmp_path, cutover=False)
+
+        report = read_workflow_state(tmp_path)
+
+        assert report.kind is WorkflowStateKind.INVALID_SCHEMA
+        assert workflow_readiness(report) == "blocked"
+        assert "cutover=true" in report.detail
+
+    @pytest.mark.parametrize("retired_dir", [".project", ".gsd-path"])
+    def test_resurrected_retired_gsd_path_surface_fails_closed(
+        self, tmp_path: Path, retired_dir: str
+    ) -> None:
+        write_compound_engineering_surface(tmp_path)
+        (tmp_path / retired_dir).mkdir()
+
+        report = read_workflow_state(tmp_path)
+
+        assert report.kind is WorkflowStateKind.CONFLICTING_OWNERSHIP
+        assert workflow_readiness(report) == "blocked"
+        assert retired_dir in report.observed
+        assert "archive/gsd-path-final" in report.remediation
+
+    def test_governor_and_preflight_surfaces_pass_for_compound_engineering(
+        self, tmp_path: Path
+    ) -> None:
+        write_compound_engineering_surface(tmp_path)
+
+        governor_findings = check_workflow_state_surface(tmp_path)
+        assert len(governor_findings) == 1
+        assert governor_findings[0].status == "pass"
+        assert governor_findings[0].severity == "ok"
+        assert governor_findings[0].rule_id == "workflow-state-surface.compound-engineering"
+        assert "backend=compound-engineering;" in governor_findings[0].observed
+
+        preflight_check = _workflow_state_surface_check(tmp_path)
+        assert preflight_check.status == "pass"
+        assert preflight_check.severity == "ok"
+        assert "backend=compound-engineering;" in preflight_check.observed
+        assert "state=operational;" in preflight_check.observed

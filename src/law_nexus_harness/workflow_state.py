@@ -1,9 +1,10 @@
-"""Typed read-only adapter between repository checks and GSD Path workflow state.
+"""Typed read-only adapter between repository checks and delivery workflow state.
 
 This module is ADR-0007 repository control-plane logic only. It classifies the
-delivery-workflow state surface (the GSD Path ``.project/`` state, the tracked
-cutover marker, and the pinned runtime declaration) into typed diagnostics for
-humans and auto-mode. Contract source: docs/agent-stack/MIGRATION.md section 4.1.
+active delivery-workflow state surface (Compound Engineering configuration via
+``.compound-engineering/config.yaml`` and ``prd/project-state/workflow-backend.json``,
+plus legacy GSD Path compatibility checks for fixture tests) into typed diagnostics
+for humans and automated checks.
 
 The adapter is strictly read-only: it never writes or repairs workflow state,
 never completes tasks, and never emits review events. The frozen GSD-Pi
@@ -32,6 +33,10 @@ WORKFLOW_STATE_SCHEMA_VERSION = "law-nexus-workflow-state-report/v1"
 CUTOVER_MARKER_RELATIVE_PATH = "prd/project-state/workflow-backend.json"
 CUTOVER_MARKER_SCHEMA = 1
 WORKFLOW_BACKEND = "gsd-path"
+COMPOUND_ENGINEERING_BACKEND = "compound-engineering"
+SUPPORTED_WORKFLOW_BACKENDS = frozenset({WORKFLOW_BACKEND, COMPOUND_ENGINEERING_BACKEND})
+COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH = ".compound-engineering/config.yaml"
+GSD_PATH_DIR_RELATIVE_PATH = ".gsd-path"
 RUNTIME_DECLARATION_RELATIVE_PATH = ".gsd-path/runtime.json"
 RUNTIME_DECLARATION_SCHEMA = "gsd-path/runtime/v1"
 STATUS_RUNTIME_SHIM_RELATIVE_PATH = ".gsd-path/status_runtime.py"
@@ -73,6 +78,7 @@ _NATIVE_ROUTE_ACTIONS_RECOVERY = frozenset(
 class WorkflowStateKind(Enum):
     """Typed classification of the delivery-workflow state surface."""
 
+    COMPOUND_ENGINEERING = "compound-engineering"
     BOOTSTRAP_NOT_CUT_OVER = "bootstrap-not-cut-over"
     OPERATIONAL_VALID = "operational-valid"
     # Contract A: the verified shipped/done state on integrated main. Not a
@@ -151,6 +157,7 @@ class CutoverMarker:
     """Parsed tracked cutover marker (prd/project-state/workflow-backend.json)."""
 
     cutover: bool
+    backend: str = WORKFLOW_BACKEND
 
 
 @dataclass(frozen=True)
@@ -247,6 +254,7 @@ class WorkflowStateReport:
     # older consumer that ignores them stays correct.
     native_milestone: str | None = None
     native_phase: str | None = None
+    backend: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Return the stable JSON-compatible result mapping."""
@@ -297,6 +305,7 @@ def _report(
     runtime: WorkflowRuntimeInfo = NO_RUNTIME_INFO,
     native_milestone: str | None = None,
     native_phase: str | None = None,
+    backend: str | None = None,
 ) -> WorkflowStateReport:
     """Build one report; only the operational branch passes native identity."""
 
@@ -311,6 +320,7 @@ def _report(
         legacy_gsd_present=legacy_gsd_present,
         native_milestone=native_milestone,
         native_phase=native_phase,
+        backend=backend,
     )
 
 
@@ -404,11 +414,12 @@ def _read_cutover_marker(root: Path) -> tuple[CutoverMarker | None, str]:
         return None, "cutover marker must be an object with exactly schema, backend, cutover"
     if payload["schema"] != CUTOVER_MARKER_SCHEMA or isinstance(payload["schema"], bool):
         return None, f"cutover marker schema must be the integer {CUTOVER_MARKER_SCHEMA}"
-    if payload["backend"] != WORKFLOW_BACKEND:
-        return None, f"cutover marker backend must be {WORKFLOW_BACKEND!r}"
+    if payload["backend"] not in SUPPORTED_WORKFLOW_BACKENDS:
+        allowed = ", ".join(sorted(SUPPORTED_WORKFLOW_BACKENDS))
+        return None, f"cutover marker backend must be one of ({allowed})"
     if not isinstance(payload["cutover"], bool):
         return None, "cutover marker cutover must be a boolean"
-    return CutoverMarker(cutover=payload["cutover"]), ""
+    return CutoverMarker(cutover=payload["cutover"], backend=payload["backend"]), ""
 
 
 def _read_runtime_declaration(root: Path) -> RuntimeDeclarationRead:
@@ -713,10 +724,17 @@ def read_workflow_state(
             observed="The workflow backend cutover marker is missing or invalid.",
             remediation=(
                 "Restore prd/project-state/workflow-backend.json to the tracked contract: "
-                "schema 1, backend gsd-path, and an explicit cutover boolean."
+                "schema 1, backend compound-engineering (or gsd-path), and an explicit cutover boolean."
             ),
             detail=marker_detail,
             evidence=(CUTOVER_MARKER_RELATIVE_PATH,),
+            legacy_gsd_present=legacy_gsd_present,
+        )
+
+    if marker.backend == COMPOUND_ENGINEERING_BACKEND:
+        return _read_compound_engineering_state(
+            resolved_root,
+            marker=marker,
             legacy_gsd_present=legacy_gsd_present,
         )
 
@@ -930,6 +948,92 @@ def read_workflow_state(
     )
 
 
+def _read_compound_engineering_state(
+    resolved_root: Path,
+    *,
+    marker: CutoverMarker,
+    legacy_gsd_present: bool,
+) -> WorkflowStateReport:
+    """Classify the Compound Engineering workflow backend state surface.
+
+    Branch-agnostic (works identically on main, feature branches, and detached
+    PR merge commits). Fails closed if cutover is false, if
+    .compound-engineering/config.yaml is missing, or if retired GSD Path state
+    (.project/ or .gsd-path/) is present alongside Compound Engineering.
+    """
+
+    if not marker.cutover:
+        return _report(
+            WorkflowStateKind.INVALID_SCHEMA,
+            observed="The Compound Engineering workflow backend marker declares cutover=false.",
+            remediation=(
+                "Set cutover=true in prd/project-state/workflow-backend.json when "
+                "backend is compound-engineering."
+            ),
+            detail="compound-engineering backend requires cutover=true",
+            evidence=(CUTOVER_MARKER_RELATIVE_PATH,),
+            legacy_gsd_present=legacy_gsd_present,
+            backend=marker.backend,
+        )
+
+    project = resolved_root / PROJECT_RELATIVE_PATH
+    gsd_path_dir = resolved_root / GSD_PATH_DIR_RELATIVE_PATH
+    retired_present: list[str] = []
+    if project.exists() or project.is_symlink():
+        retired_present.append(PROJECT_RELATIVE_PATH)
+    if gsd_path_dir.exists() or gsd_path_dir.is_symlink():
+        retired_present.append(GSD_PATH_DIR_RELATIVE_PATH)
+    if retired_present:
+        joined = ", ".join(retired_present)
+        return _report(
+            WorkflowStateKind.CONFLICTING_OWNERSHIP,
+            observed=(
+                f"Retired GSD Path workflow surface ({joined}) is present alongside "
+                "the Compound Engineering backend."
+            ),
+            remediation=(
+                "Remove retired GSD Path state (.project/, .gsd-path/) from the active "
+                "tree; historical GSD Path state is archived under tag archive/gsd-path-final."
+            ),
+            detail=f"retired GSD Path paths present: {joined}",
+            evidence=(CUTOVER_MARKER_RELATIVE_PATH, *retired_present),
+            legacy_gsd_present=legacy_gsd_present,
+            backend=marker.backend,
+        )
+
+    config_path = resolved_root / COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH
+    if not config_path.is_file():
+        return _report(
+            WorkflowStateKind.MISSING_STATE,
+            observed=(
+                "Compound Engineering workflow backend is configured, but "
+                f"{COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH} is missing."
+            ),
+            remediation=(
+                f"Restore {COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH} so the "
+                "Compound Engineering repository configuration is present."
+            ),
+            detail=f"missing {COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH}",
+            evidence=(CUTOVER_MARKER_RELATIVE_PATH, COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH),
+            legacy_gsd_present=legacy_gsd_present,
+            backend=marker.backend,
+        )
+
+    return _report(
+        WorkflowStateKind.COMPOUND_ENGINEERING,
+        observed=(
+            "Compound Engineering workflow backend is active; "
+            f"{COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH} is present and retired "
+            "GSD Path surfaces are absent."
+        ),
+        remediation="none",
+        detail="backend=compound-engineering",
+        evidence=(CUTOVER_MARKER_RELATIVE_PATH, COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH),
+        legacy_gsd_present=legacy_gsd_present,
+        backend=marker.backend,
+    )
+
+
 def read_legacy_gsd_snapshot(root: Path) -> WorkflowStateReport:
     """Read the frozen GSD-Pi snapshot header as historical, non-authoritative evidence.
 
@@ -991,15 +1095,20 @@ def read_legacy_gsd_snapshot(root: Path) -> WorkflowStateReport:
 def workflow_readiness(report: WorkflowStateReport) -> WorkflowReadiness:
     """Map one workflow-state report to the coarse harness readiness verdict.
 
-    Only a state the native helper actually validated is operational:
-    ``OPERATIONAL_VALID`` (an active milestone) and ``SHIPPED_INTEGRATED``
-    (the verified shipped/done terminal state on integrated main). Everything
-    else blocks, including ``STATE_UNVERIFIED`` (present but never validated),
-    ``MISSING_STATE``, ``INVALID_SCHEMA``, and ``CONFLICTING_OWNERSHIP``; the
-    fallthrough keeps a future kind fail-closed by default.
+    Operational states are ``COMPOUND_ENGINEERING`` (active Compound Engineering
+    backend with tracked config present and retired GSD Path surfaces absent),
+    ``OPERATIONAL_VALID`` (legacy GSD Path active milestone), and
+    ``SHIPPED_INTEGRATED`` (legacy GSD Path verified shipped/done terminal state).
+    Everything else blocks, including ``STATE_UNVERIFIED``, ``MISSING_STATE``,
+    ``INVALID_SCHEMA``, and ``CONFLICTING_OWNERSHIP``; the fallthrough keeps a
+    future kind fail-closed by default.
     """
 
-    if report.kind in (WorkflowStateKind.OPERATIONAL_VALID, WorkflowStateKind.SHIPPED_INTEGRATED):
+    if report.kind in (
+        WorkflowStateKind.COMPOUND_ENGINEERING,
+        WorkflowStateKind.OPERATIONAL_VALID,
+        WorkflowStateKind.SHIPPED_INTEGRATED,
+    ):
         return "operational"
     if report.kind is WorkflowStateKind.BOOTSTRAP_NOT_CUT_OVER:
         return "bootstrap-not-cut-over"
