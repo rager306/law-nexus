@@ -7,10 +7,13 @@ an explicit adapter before operational cutover (see also
 [PATH_SETUP.md](PATH_SETUP.md) §5).
 
 **Status: this is a prepared integration component, not a completed handoff.**
-The adapter is verified against deterministic stub children only. No real
-Allspark/model pilot has been run, no native phase gate has consumed its
-records, and the acceptance table in §8 below is **not yet satisfied**.
-Runtime/skills compatibility does not by itself prove phase dispatch readiness.
+Acceptance (§9 below) is **PARTIALLY satisfied**: three rows were proven by the
+real-model pilot of 2026-10-25 (§9.1), and native Path phases consumed the
+adapter's dispatch records (archived under
+`.project/archive/001-001-native-workflow-acceptance/`,
+`002-post-ship-hardening/` and `003-ci-honesty/` as
+`research/dispatch-record-*.json`). The remaining §9 rows are **not satisfied**,
+and runtime/skills compatibility does not by itself prove phase dispatch readiness.
 
 ## 1. Contract
 

@@ -130,27 +130,21 @@ at the group's YAML granularity (M172 wiring): on the real Garant PP_60
 corpus the class-matched punkt text-CTV step shows `ctv_resolved` > 0 with
 `membership_committed` = 0 — intra-S3 TSG-017 journal only, no S4 raise
 and ADR-0017 stays `[proposed]`.
-Consultant parser (ADR-0025/0027): `ln-consultant-parser` has 10 source
-modules including `lib.rs`, 64 integration test functions and 4 source-unit
-tests. The G1 Consultant protocol/tracer anchor is 119 structural hierarchy
-markers on the tracked 435-ФЗ fixture (`EXPECTED_HIERARCHY_COUNT` in
-`crates/ln-decode/tests/consultant_real_tracer.rs`); those markers are
-one-fixture `[bounded]` decode evidence, not legal hierarchy or corpus
-completeness. A non-skipping tracked 435-ФЗ system contract covers hyperlink →
-path-aware classification → edge candidate → unknown observation mechanics
-and an atomic malformed decode diagnostic. Tracked crate mechanics remain
-`[bounded]`: contains+bounded-morph
-AND/OR scoring, path-aware profile confidence composition, YAML
-sibling-section isolation, edge candidates, observations, edition helpers
-and read-only SQLite catalog lookup with typed miss/error separation. Temporary production-like schema and shared adapter
-contracts are bounded proof; the local catalog remains smoke. Values
-3772/3641/2619/502 and the
-118-edition temporal graph (44-ФЗ 6→1025 amends, 171×) come from
-gitignored `consru_export`; they are local `[smoke]`, skip-capable when
-the export is absent, and not durable promotion evidence. The 118-edition
-inventory must not be rewritten as the 119 G1 marker anchor. Not a
-`[validated]` parser, not corpus/legal/citation completeness, not G2/G3,
-not TSG S6, not Applicable. Parser evidence ceiling stays G1.
+Consultant parser (ADR-0025/0027): `ln-consultant-parser` has 31 source modules (including `lib.rs`) plus 14
+`src/bin/` entrypoints, 358 integration test functions and 54 source-unit tests (measured 2026-10-31). The
+G1 Consultant protocol/tracer anchor is 119 structural hierarchy markers on the tracked 435-ФЗ fixture
+(`EXPECTED_HIERARCHY_COUNT` in `crates/ln-decode/tests/consultant_real_tracer.rs`); those markers are
+one-fixture `[bounded]` decode evidence, not legal hierarchy or corpus completeness. A non-skipping tracked
+435-ФЗ system contract covers hyperlink → path-aware classification → edge candidate → unknown observation
+mechanics and an atomic malformed decode diagnostic. Tracked crate mechanics remain `[bounded]`:
+contains+bounded-morph AND/OR scoring, path-aware profile confidence composition, YAML sibling-section
+isolation, edge candidates, observations, edition helpers and read-only SQLite catalog lookup with typed
+miss/error separation. Temporary production-like schema and shared adapter contracts are bounded proof; the
+local catalog remains smoke. Values 3772/3641/2619/502 and the 118-edition temporal graph (44-ФЗ 6→1025
+amends, 171×) come from gitignored `consru_export`; they are local `[smoke]`, skip-capable when the export
+is absent, and not durable promotion evidence. The 118-edition inventory must not be rewritten as the 119 G1
+marker anchor. Not a `[validated]` parser, not corpus/legal/citation completeness, not G2/G3, not TSG S6,
+not Applicable. Parser evidence ceiling stays G1.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

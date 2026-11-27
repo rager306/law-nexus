@@ -1,0 +1,56 @@
+{
+  "canonical_project_dir": ".project",
+  "command": "verify-landed",
+  "head": "4d29d1e54ad3e89452c0dc8554ff5ee462418e2e",
+  "project_dir": ".project",
+  "tasks": [
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M012",
+        "candidates": [
+          {
+            "base": "d9cabf9177a7e310cd35d3ee5576590b259df05c",
+            "commit": "58374664995e98349113ac788f451b14771b9387",
+            "valid": true
+          }
+        ],
+        "head": "4d29d1e54ad3e89452c0dc8554ff5ee462418e2e",
+        "subject": "T001: Refresh the M011 projection and make the current-state document honest"
+      },
+      "landed_commit": "58374664995e98349113ac788f451b14771b9387",
+      "reasons": [],
+      "task": {
+        "base": "d9cabf9177a7e310cd35d3ee5576590b259df05c",
+        "id": "T001",
+        "status": "done",
+        "task_file": ".project/tasks/T001-projection-refresh-and-honest-state.md"
+      }
+    },
+    {
+      "classification": "proven-landed",
+      "command": "reconcile",
+      "history": {
+        "branch": "gsd-path/M012",
+        "candidates": [
+          {
+            "base": "0d30fd13c801d1f831b7c6ea139d3118d2dac406",
+            "commit": "e486adfe81ffe692850f23b399435f9d8ceed579",
+            "valid": true
+          }
+        ],
+        "head": "4d29d1e54ad3e89452c0dc8554ff5ee462418e2e",
+        "subject": "T002: Clear the long-tail stale claims, re-pin m221, regenerate GitNexus"
+      },
+      "landed_commit": "e486adfe81ffe692850f23b399435f9d8ceed579",
+      "reasons": [],
+      "task": {
+        "base": "0d30fd13c801d1f831b7c6ea139d3118d2dac406",
+        "id": "T002",
+        "status": "done",
+        "task_file": ".project/tasks/T002-longtail-claims-m221-gitnexus.md"
+      }
+    }
+  ]
+}

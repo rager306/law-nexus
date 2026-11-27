@@ -355,7 +355,7 @@ The auto-block below omits `repo` — still pass it.
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **law-nexus** (43047 symbols, 102234 relationships, 584 execution flows).
+This project is indexed by GitNexus as **law-nexus** (43376 symbols, 102960 relationships, 584 execution flows).
 
 > Index stale? Run `node .gitnexus/run.cjs analyze --index-only` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? Bootstrap with `npx`, `bunx`, or `pnpm dlx` — e.g. `bunx gitnexus@latest analyze` (npm 11 npx crash; #1939).
 
@@ -402,7 +402,7 @@ This project is indexed by GitNexus as **law-nexus** (43047 symbols, 102234 rela
 | Directory | What it is | Scale |
 |---|---|---|
 | `consru_export/consru_export/exports/` | **FULL consru corpus** — all parsed XML documents (43,785 files, 3.7 GB) | THE corpus |
-| `law-source/consultant/` | Fragment of the corpus (122 XML files) — NOT the full set | partial |
+| `law-source/consultant/` | Fragment of the corpus (82 tracked XML fixtures; 40 more `.deprecated/` files are gitignored and absent from current checkouts) — NOT the full set | partial |
 | `law-source/garant/` | Garant-format documents | separate format |
 | `.gsd/projects/*/gsd.db` | Frozen legacy GSD-Pi SQLite DB (read-only archive since 2026-10-23) | historical |
 
@@ -410,9 +410,11 @@ This project is indexed by GitNexus as **law-nexus** (43047 symbols, 102234 rela
 NOT `law-source/`. The latter is a subset. Also: `/root/law-nexus/.gsd`
 is a symlink to `/root/.gsd/projects/3495c0714df3` — always `realpathSync`
 both paths before `path.relative()` to avoid `../../../`-style poisoned
-paths (2,478 artifact rows in the DB contain such paths).
+paths (3,074 of 8,355 artifact rows contain such paths; frozen-DB read-only
+queries 2026-10-25/30/31).
 
-**Known issue:** 2,478 artifact rows in the DB contain `../`-style paths.
+**Known issue:** 3,074 of 8,355 artifact rows in the DB contain `../`-style
+paths (re-queried read-only 2026-10-25, 2026-10-30 and 2026-10-31).
 Compat-marker write-guard and heal-drop patches prevent them from
 poisoning the marker. Do NOT delete these DB rows without a sanctioned
 migration. The DB is frozen; new workflow state lives under `.project/`.

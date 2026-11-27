@@ -1,15 +1,15 @@
 ---
 pipeline: gsd-path/v2
 project: law-nexus
-milestone: reference-front-door
+milestone: projection-alignment
 phase: shipped
                     # inspect only for brownfield; greenfield starts at define
                     # roadmap only in program flow (CHARTER.md exists)
 status: done
-branch: gsd-path/M011
+branch: gsd-path/M012
                     # the router rebinds before any next-milestone file change
                     # the bound branch is never main; ship integrates it there
-archive: .project/archive/011-reference-front-door
+archive: .project/archive/012-projection-alignment
 integration_default: direct
 integration: direct
 integration_source: default
@@ -144,3 +144,18 @@ it on completion. If this file and the artifacts disagree, the artifacts win
 - 2026-10-31 — ship — final gate passed; shipping approval pending
 - 2026-10-31 — ship — milestone named reference-front-door (owner delegated the ruling: "похоже мы застряли - реши оптимально и элегантно в соотвествии с требованиями и задачами репозитория"; backfill of the milestone field skipped at the M011 define approval, verified against pipeline_state TRANSITIONS)
 - 2026-10-31 — shipped — archive preflight passed; shipment recorded
+- 2026-10-31 — inspect — router bound next milestone; base=ef17106b96e22b01719fc12a28576d226a36d1b8; landing=ef17106b96e22b01719fc12a28576d226a36d1b8; previous branch gsd-path/M011 retired
+- 2026-10-31 — inspect — inspection artifacts passed
+- 2026-10-31 — define — definition started
+- 2026-10-31 — define — milestone intent approved
+- 2026-10-31 — plan — planning started
+- 2026-10-31 — plan — plan approved
+- 2026-10-31 — build — build started
+- 2026-10-31 — build — build blocked: plan defect — T002 owns audit rows #30/#37 content but roadmap.md was declared to T001; file-scope repair required
+- 2026-10-31 — plan — build plan repair requested
+- 2026-10-31 — plan — build recovery: {"base": "e8a684c4996f2f178ea509e9beb85eede330f51a", "branch": "gsd-path/M012", "kind": "plan", "source": "build"}
+- 2026-11-01 — plan — plan approved
+- 2026-11-01 — build — build started
+- 2026-11-01 — ship — build done; final review pending
+- 2026-11-01 — ship — final gate passed; shipping approval pending
+- 2026-11-27 — shipped — archive preflight passed; shipment recorded
