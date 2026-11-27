@@ -15,8 +15,15 @@ DEFAULT_MAX_OUTPUT_BYTES = 8192
 
 
 def _display_path(path: Path, root: Path) -> str:
+    resolved_root = root.resolve()
     try:
-        return path.resolve().relative_to(root.resolve()).as_posix()
+        rel = path.relative_to(resolved_root)
+    except ValueError:
+        rel = None
+    if rel is not None and ".." not in rel.parts:
+        return rel.as_posix()
+    try:
+        return path.resolve().relative_to(resolved_root).as_posix()
     except ValueError:
         return path.as_posix()
 

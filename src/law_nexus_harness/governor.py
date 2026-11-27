@@ -31,6 +31,8 @@ from law_nexus_harness.adr_matrix import (
     check_adr_matrix_output,
 )
 from law_nexus_harness.workflow_state import (
+    COMPOUND_ENGINEERING_BACKEND,
+    COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH,
     LEGACY_GSD_STATE_RELATIVE_PATH,
     LegacySurfaceDecision,
     WorkflowStateKind,
@@ -716,14 +718,12 @@ def check_forward_roadmap_sequence(root: Path) -> list[GovernorFinding]:
 
 
 def check_workflow_state_surface(root: Path) -> list[GovernorFinding]:
-    """Typed workflow-state adapter check for the GSD Path backend.
+    """Typed workflow-state adapter check for the active delivery backend.
 
-    Distinguishes bootstrap not-cut-over from operational Path state, and the
-    verified shipped/done integrated main (an honest pass, Contract A) from a
-    blocking recovery route. Missing or invalid operational state is a blocking
-    diagnostic, never a silent PASS (docs/agent-stack/MIGRATION.md 4.1).
-    Read-only: never repairs state, never completes tasks, never emits Review
-    Case events.
+    Validates the active Compound Engineering surface (or legacy GSD Path
+    fixtures when configured). Missing configuration, invalid backend markers,
+    or resurrected retired GSD Path state fail closed instead of silently
+    passing. Read-only: never mutates workflow state.
     """
     report = read_workflow_state(root)
     evidence = tuple(GovernorEvidence(path=path) for path in report.evidence)
@@ -734,6 +734,27 @@ def check_workflow_state_surface(root: Path) -> list[GovernorFinding]:
         if runtime.version is not None and runtime.digest is not None
         else "unresolved"
     )
+    if report.kind is WorkflowStateKind.COMPOUND_ENGINEERING:
+        return [
+            GovernorFinding(
+                check_id="workflow-state-surface",
+                status="pass",
+                severity="ok",
+                message="workflow backend resolves to Compound Engineering",
+                observed=(
+                    f"backend=compound-engineering; "
+                    f"config={COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH}; "
+                    f"legacy_gsd={legacy}; {report.observed}"
+                ),
+                remediation="none",
+                rule_id="workflow-state-surface.compound-engineering",
+                expected=(
+                    "The typed adapter resolves Compound Engineering with its tracked "
+                    "config present and retired GSD Path surfaces absent."
+                ),
+                evidence=evidence,
+            )
+        ]
     if report.kind is WorkflowStateKind.OPERATIONAL_VALID:
         return [
             GovernorFinding(
@@ -781,8 +802,9 @@ def check_workflow_state_surface(root: Path) -> list[GovernorFinding]:
                 message="workflow backend is GSD Path but native state is not initialized (bootstrap)",
                 observed=f"mode=bootstrap; not-cut-over; legacy_gsd={legacy}; {report.observed}",
                 remediation=(
-                    "Complete the bootstrap PR, then run native Path initialization per "
-                    "docs/agent-stack/INSTALL.md 12; portable repository checks are unaffected."
+                    "Complete the bootstrap workflow setup or switch "
+                    "prd/project-state/workflow-backend.json to compound-engineering; "
+                    "portable repository checks are unaffected."
                 ),
                 rule_id="workflow-state-surface.bootstrap",
                 expected="Bootstrap preparation keeps workflow readiness explicit instead of silent PASS.",
@@ -899,12 +921,83 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                 remediation="Restore prd/project-state/data/roadmap.json",
             )
         ]
+    native = read_workflow_state(root)
+    if native.backend == COMPOUND_ENGINEERING_BACKEND:
+        if native.kind is not WorkflowStateKind.COMPOUND_ENGINEERING:
+            return [
+                GovernorFinding(
+                    check_id="roadmap-freshness-unverifiable",
+                    status="fail",
+                    severity="error",
+                    message=(
+                        "tracked roadmap freshness cannot be confirmed while the "
+                        "Compound Engineering workflow backend is not operational"
+                    ),
+                    observed=(
+                        "backend=compound-engineering; "
+                        f"workflow_state={native.kind.value}; comparison=unverifiable"
+                    ),
+                    remediation=native.remediation,
+                    rule_id="roadmap-freshness.compound-engineering-unverified",
+                    evidence=(
+                        GovernorEvidence(path="prd/project-state/workflow-backend.json"),
+                        GovernorEvidence(path="prd/project-state/data/roadmap.json"),
+                    ),
+                )
+            ]
+        try:
+            roadmap_payload = json.loads(roadmap_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            return [
+                GovernorFinding(
+                    check_id="roadmap-json-valid",
+                    status="fail",
+                    severity="error",
+                    message="roadmap.json could not be parsed as valid JSON",
+                    observed=f"backend=compound-engineering; error={error}",
+                    remediation="Repair prd/project-state/data/roadmap.json so it is valid JSON.",
+                    rule_id="roadmap-freshness.invalid-json",
+                    evidence=(GovernorEvidence(path="prd/project-state/data/roadmap.json"),),
+                )
+            ]
+        if not isinstance(roadmap_payload, dict):
+            return [
+                GovernorFinding(
+                    check_id="roadmap-json-valid",
+                    status="fail",
+                    severity="error",
+                    message="roadmap.json root payload must be a JSON object",
+                    observed=(
+                        f"backend=compound-engineering; root_type={type(roadmap_payload).__name__}"
+                    ),
+                    remediation="Restore prd/project-state/data/roadmap.json as a JSON object.",
+                    rule_id="roadmap-freshness.invalid-json",
+                    evidence=(GovernorEvidence(path="prd/project-state/data/roadmap.json"),),
+                )
+            ]
+        return [
+            GovernorFinding(
+                check_id="roadmap-freshness",
+                status="pass",
+                severity="ok",
+                message=(
+                    "tracked roadmap projection is valid JSON; legacy milestone-registry "
+                    "freshness comparison is not applicable under Compound Engineering"
+                ),
+                observed=(
+                    "backend=compound-engineering; roadmap_json=valid; comparison=not-applicable"
+                ),
+                remediation="none",
+                rule_id="roadmap-freshness.compound-engineering",
+                evidence=(GovernorEvidence(path="prd/project-state/data/roadmap.json"),),
+            )
+        ]
+
     decision = read_legacy_surface(root)
 
     # Path successor FIRST. An operational native state is the authority, and the
     # frozen registry is not consulted - so a machine WITH an archive and a
     # machine WITHOUT one reach the same verdict, which they did not before.
-    native = read_workflow_state(root)
     if native.kind is WorkflowStateKind.OPERATIONAL_VALID:
         if native.native_milestone is None:
             # A milestone does not exist yet in the pre-define phases: the STATE
@@ -8236,11 +8329,10 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "docs",
         "deterministic",
         check_workflow_state_surface,
-        "Keep the typed GSD Path workflow-state surface explicit instead of a silent legacy PASS.",
+        "Keep the typed Compound Engineering workflow-state surface explicit and fail closed if retired GSD Path state reappears.",
         (
             "prd/project-state/workflow-backend.json",
-            ".gsd-path/runtime.json",
-            ".project/STATE.md",
+            COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH,
         ),
         "error",
     ),
