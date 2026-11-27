@@ -120,13 +120,10 @@ pub fn parse_civil_day(
 }
 
 fn parse_iso_parts(value: &str) -> Option<(i32, u8, u8)> {
-    if value.len() != 10
-        || value.as_bytes().get(4) != Some(&b'-')
-        || value.as_bytes().get(7) != Some(&b'-')
-    {
+    let bytes = value.as_bytes();
+    if bytes.len() != 10 {
         return None;
     }
-    let bytes = value.as_bytes();
     if !bytes.iter().enumerate().all(|(index, byte)| match index {
         4 | 7 => *byte == b'-',
         _ => byte.is_ascii_digit(),
