@@ -5,13 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import re
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import pytest
 
-import branch_context
 from law_nexus_harness.cli import main
 from law_nexus_harness.governor import (
     _ACTIVE_REQUIREMENT_POLICY,
@@ -68,142 +66,97 @@ from law_nexus_harness.workflow_state import LEGACY_SURFACE_CHECKS
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# The live-surface assertions below are checkout-context-aware through the one
-# shared predicate (tests/branch_context.py, M002 SC2). On the operational
-# contexts — the bound branch and the authorized task worktrees, plus the
-# shipped integrated main via Contract A — the full substantive assertions run
-# verbatim, keyed on the STATE.md phase pairing (M003 SC1): build/active
-# asserts the honest single-error roadmap finding, shipped/done asserts the
-# clean Contract A pass. On the foreign-branch, detached, and verify-sidecar
-# checkouts the fail-closed branch-ownership contract IS the contract, and it
-# is pinned exactly: kind=conflicting-ownership with the runtime resolved and
-# the checkout's own mismatch reason — never the broad kind-prefix pin the
-# M001 patch accepted, which a runtime-unavailable failure also satisfied.
-
-
-def _assert_fail_closed_branch_contract(
-    report: GovernorReport, context: branch_context.BranchContext
-) -> None:
-    """Pin the fail-closed contract for one non-operational checkout context.
-
-    The workflow-state-surface check must report the blocking branch-ownership
-    error honestly (severity error, rule workflow-state-surface.blocking), the
-    report must be a failure, and the error count must be the real number of
-    recorded error findings — never 0 and never a guessed constant. The kind
-    is pinned exactly: a runtime-unavailable or invalid-schema failure must
-    never satisfy this pin. The observed fact must carry the scenario's own
-    discriminator: the pinned helper's verbatim branch-mismatch reason for
-    this checkout.
-    """
-    binding = branch_context.state_binding(ROOT)
-    assert binding.bound_branch is not None  # an unreadable binding never pins
-    reason = branch_context.block_reason(branch_context.live_branch(ROOT), binding.bound_branch)
-    surface = [item for item in report.findings if item.check_id == "workflow-state-surface"]
-    assert len(surface) == 1
-    blocking = surface[0]
-    assert blocking.status == "fail"
-    assert blocking.severity == "error"
-    assert blocking.rule_id == "workflow-state-surface.blocking"
-    assert blocking.observed.startswith("kind=conflicting-ownership;")
-    assert re.search(branch_context.RESOLVED_RUNTIME_PATTERN, blocking.observed)
-    assert reason in blocking.observed
-    assert blocking.remediation
-    assert report.status == "failure"
-    error_findings = [
-        item for item in report.findings if item.status == "fail" and item.severity == "error"
-    ]
-    assert report.error_count == len(error_findings)
-    assert report.error_count >= 1
-
-
-def _assert_honest_roadmap_mismatch(report: GovernorReport) -> None:
-    """Pin the build/active contract (M003 SC1): the honest roadmap mismatch.
-
-    While the checkout's STATE.md says build/active, the tracked roadmap
-    names the previous milestone by design, so the governor must FAIL with
-    the roadmap finding as a recorded error — never pass it silently. The
-    observed fact names both sides of the comparison without pinning either
-    milestone literal (SC2), and the error count stays the real number of
-    recorded error findings, so a second honest error keeps the report
-    honest instead of tripping a guessed constant.
-    """
-    roadmap = [item for item in report.findings if item.check_id == "roadmap-current-tracks-path"]
-    assert len(roadmap) == 1
-    finding = roadmap[0]
-    assert finding.status == "fail"
-    assert finding.severity == "error"
-    assert finding.rule_id == "roadmap-freshness.path-mismatch"
-    assert finding.observed.startswith("native_state=")
-    assert "native_milestone=" in finding.observed
-    assert "native_phase=" in finding.observed
-    assert "roadmap_current=" in finding.observed
-    assert finding.observed.endswith("comparison=path")
-    assert finding.remediation
-    assert report.status == "failure"
-    error_findings = [
-        item for item in report.findings if item.status == "fail" and item.severity == "error"
-    ]
-    assert report.error_count == len(error_findings)
-    assert report.error_count >= 1
-
 
 def test_live_workflow_state_surface_matches_scenario_contract() -> None:
-    """Each checkout context pins its own workflow-state surface shape, live.
-
-    The routed live tests below carry the same routing for their substantive
-    assertions; this test pins the surface finding itself for all five
-    contexts, so the matrix cannot silently narrow to the routed checks. On
-    the shipped integrated main the phase pairing decides the contract
-    (M003 SC1): shipped/done passes as Contract A, build/active blocks on
-    branch ownership like any checkout away from the bound branch.
-    """
-    routed = branch_context.classify(ROOT)
+    """The live repository resolves the Compound Engineering workflow backend cleanly."""
     finding = check_workflow_state_surface(ROOT)[0]
-    if branch_context.pins_fail_closed(routed.context):
-        assert finding.status == "fail"
-        assert finding.severity == "error"
-        assert finding.rule_id == "workflow-state-surface.blocking"
-        assert finding.observed.startswith("kind=conflicting-ownership;")
-        assert re.search(branch_context.RESOLVED_RUNTIME_PATTERN, finding.observed)
-        return
-    if routed.context is branch_context.BranchContext.SHIPPED_MAIN:
-        if routed.phase is branch_context.StatePhase.SHIPPED_DONE:
-            # Contract A, distinct from every fail-closed pin (E3): the
-            # verified shipped/done state passes with the archive proof. The
-            # archive path moves every milestone, so the pin names the shape,
-            # never a milestone literal (SC2).
-            assert finding.status == "pass"
-            assert finding.severity == "ok"
-            assert finding.rule_id == "workflow-state-surface.shipped"
-            assert finding.observed.startswith("kind=shipped-integrated;")
-            assert "outcome shipped/done; archive .project/archive/" in finding.observed
-        else:
-            # main with an in-flight build/active STATE: main is not the bound
-            # branch, so the honest surface is the same branch-ownership block,
-            # with the checkout's own mismatch reason as the discriminator.
-            assert routed.phase is branch_context.StatePhase.BUILD_ACTIVE
-            binding = branch_context.state_binding(ROOT)
-            assert binding.bound_branch is not None
-            assert finding.status == "fail"
-            assert finding.severity == "error"
-            assert finding.rule_id == "workflow-state-surface.blocking"
-            assert finding.observed.startswith("kind=conflicting-ownership;")
-            assert re.search(branch_context.RESOLVED_RUNTIME_PATTERN, finding.observed)
-            assert (
-                branch_context.block_reason(branch_context.live_branch(ROOT), binding.bound_branch)
-                in finding.observed
-            )
-        return
-    assert routed.context is branch_context.BranchContext.BOUND
-    # The bound branch is build/active during build and shipped/done after the
-    # ship commit (before the next bind); both are the bound branch.
-    assert routed.phase in {
-        branch_context.StatePhase.BUILD_ACTIVE,
-        branch_context.StatePhase.SHIPPED_DONE,
-    }
     assert finding.status == "pass"
     assert finding.severity == "ok"
-    assert finding.rule_id == "workflow-state-surface.operational"
+    assert finding.rule_id == "workflow-state-surface.compound-engineering"
+    assert finding.remediation == "none"
+    assert "backend=compound-engineering;" in finding.observed
+    assert "config=.compound-engineering/config.yaml;" in finding.observed
+
+    roadmap_finding = check_roadmap_freshness(ROOT)[0]
+    assert roadmap_finding.status == "pass"
+    assert roadmap_finding.severity == "ok"
+    assert roadmap_finding.rule_id == "roadmap-freshness.compound-engineering"
+
+
+def test_roadmap_freshness_compound_engineering_validates_json_and_skips_legacy(
+    tmp_path: Path,
+) -> None:
+    marker = tmp_path / "prd" / "project-state" / "workflow-backend.json"
+    marker.parent.mkdir(parents=True)
+    marker.write_text(
+        json.dumps({"schema": 1, "backend": "compound-engineering", "cutover": True}) + "\n",
+        encoding="utf-8",
+    )
+    cfg = tmp_path / ".compound-engineering" / "config.yaml"
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text("docs_root: .compound-engineering/artifacts\n", encoding="utf-8")
+    roadmap = tmp_path / "prd" / "project-state" / "data" / "roadmap.json"
+    roadmap.parent.mkdir(parents=True)
+    roadmap.write_text(
+        json.dumps({"current_milestone": {"id": "projection-alignment"}}), encoding="utf-8"
+    )
+
+    ok_findings = check_roadmap_freshness(tmp_path)
+    assert len(ok_findings) == 1
+    assert ok_findings[0].status == "pass"
+    assert ok_findings[0].severity == "ok"
+    assert ok_findings[0].rule_id == "roadmap-freshness.compound-engineering"
+
+    roadmap.write_text("{broken json", encoding="utf-8")
+    bad_findings = check_roadmap_freshness(tmp_path)
+    assert len(bad_findings) == 1
+    assert bad_findings[0].status == "fail"
+    assert bad_findings[0].severity == "error"
+    assert bad_findings[0].rule_id == "roadmap-freshness.invalid-json"
+
+    roadmap.write_text("[]", encoding="utf-8")
+    non_object_findings = check_roadmap_freshness(tmp_path)
+    assert len(non_object_findings) == 1
+    assert non_object_findings[0].check_id == "roadmap-json-valid"
+    assert non_object_findings[0].status == "fail"
+    assert non_object_findings[0].severity == "error"
+    assert non_object_findings[0].rule_id == "roadmap-freshness.invalid-json"
+    assert "root_type=list" in non_object_findings[0].observed
+
+
+def test_roadmap_freshness_broken_compound_engineering_does_not_fall_back_to_legacy(
+    tmp_path: Path,
+) -> None:
+    marker = tmp_path / "prd" / "project-state" / "workflow-backend.json"
+    marker.parent.mkdir(parents=True)
+    roadmap = tmp_path / "prd" / "project-state" / "data" / "roadmap.json"
+    roadmap.parent.mkdir(parents=True)
+    roadmap.write_text(json.dumps({"current_milestone": {"id": "m"}}), encoding="utf-8")
+
+    # Missing .compound-engineering/config.yaml
+    marker.write_text(
+        json.dumps({"schema": 1, "backend": "compound-engineering", "cutover": True}) + "\n",
+        encoding="utf-8",
+    )
+    missing_cfg = check_roadmap_freshness(tmp_path)
+    assert len(missing_cfg) == 1
+    assert missing_cfg[0].status == "fail"
+    assert missing_cfg[0].severity == "error"
+    assert missing_cfg[0].rule_id == "roadmap-freshness.compound-engineering-unverified"
+    assert "workflow_state=missing-state" in missing_cfg[0].observed
+    assert ".gsd/STATE.md" not in missing_cfg[0].observed
+
+    # cutover=false under compound-engineering
+    marker.write_text(
+        json.dumps({"schema": 1, "backend": "compound-engineering", "cutover": False}) + "\n",
+        encoding="utf-8",
+    )
+    cutover_false = check_roadmap_freshness(tmp_path)
+    assert len(cutover_false) == 1
+    assert cutover_false[0].status == "fail"
+    assert cutover_false[0].severity == "error"
+    assert cutover_false[0].rule_id == "roadmap-freshness.compound-engineering-unverified"
+    assert "workflow_state=invalid-schema" in cutover_false[0].observed
 
 
 def test_governor_report_schema_and_live_repo_pass() -> None:
@@ -2068,17 +2021,8 @@ def test_port_contract_coverage_missing_crates_tree_is_debt_warn(tmp_path: Path)
 def test_live_governor_includes_port_contract_coverage_finding() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "port-contract-coverage" in by_id
     assert by_id["port-contract-coverage"].status == "pass"
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1).
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.error_count == 0
     assert report.status == "ok"
 
@@ -2086,10 +2030,6 @@ def test_live_governor_includes_port_contract_coverage_finding() -> None:
 def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "hostile-negative-suite-coverage" in by_id
     finding = by_id["hostile-negative-suite-coverage"]
     # Residual hostiles closed: all discovered hostiles have shared-negative mentions.
@@ -2101,29 +2041,18 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
         "historical-test-debt-visibility",
         "archive-path-policy",
         "review-case-integrity.open-findings",
+        "active-requirement-contradictions",
+        "gsd-residual-debt",
         "gsd-planned-inventory-visibility",
         "gsd-code-complete-lag",
         "gsd-review-dual-truth",
-        # S01 process observability probes: warn is their designed signal
-        # (recent journal wedge inside the 3-day window / stale compat
-        # projection entries), not a repo regression.
         "journal-retry-loops",
         "compat-marker-hygiene",
-        # Workflow transition (2026-10-23): GSD-Pi is frozen and Path native
-        # state is intentionally absent until the bootstrap PR merges; the
-        # typed adapter reports the honest bootstrap not-cut-over warn.
-        "workflow-state-surface",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
     ]
     assert other_warns == []
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1);
-        # it is an error finding, so the advisory-warn filter stays honest.
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.error_count == 0
     assert report.status == "ok"
 
@@ -2131,31 +2060,18 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
 def test_live_governor_passes_multi_adapter_port_coverage() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "multi-adapter-port-coverage" in by_id
     finding = by_id["multi-adapter-port-coverage"]
     # After WordML shared suite, residual real multi-adapter gaps are closed.
     assert finding.status == "pass"
     assert finding.severity == "ok"
     assert "missing_shared_suite=0" in finding.observed
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1).
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.error_count == 0
 
 
 def test_live_governor_passes_live_adapter_readiness() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "live-adapter-readiness" in by_id
     finding = by_id["live-adapter-readiness"]
     # Repository-evidence ceiling: std-only HTTP surface present but unproven,
@@ -2170,29 +2086,18 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
         "historical-test-debt-visibility",
         "archive-path-policy",
         "review-case-integrity.open-findings",
+        "active-requirement-contradictions",
+        "gsd-residual-debt",
         "gsd-planned-inventory-visibility",
         "gsd-code-complete-lag",
         "gsd-review-dual-truth",
-        # S01 process observability probes: warn is their designed signal
-        # (recent journal wedge inside the 3-day window / stale compat
-        # projection entries), not a repo regression.
         "journal-retry-loops",
         "compat-marker-hygiene",
-        # Workflow transition (2026-10-23): GSD-Pi is frozen and Path native
-        # state is intentionally absent until the bootstrap PR merges; the
-        # typed adapter reports the honest bootstrap not-cut-over warn.
-        "workflow-state-surface",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
     ]
     assert other_warns == []
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1);
-        # it is an error finding, so the advisory-warn filter stays honest.
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.error_count == 0
     assert report.status == "ok"
 
@@ -2200,10 +2105,6 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
 def test_live_governor_passes_ci_quality_gate_drift() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "ci-quality-gate-drift" in by_id
     finding = by_id["ci-quality-gate-drift"]
     assert finding.status == "pass"
@@ -2211,11 +2112,6 @@ def test_live_governor_passes_ci_quality_gate_drift() -> None:
     assert "hooks=" in finding.observed
     assert "process_suite=" in finding.observed
     assert "inventory_scripts=" in finding.observed
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1).
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.error_count == 0
     assert report.status == "ok"
 
@@ -2223,20 +2119,11 @@ def test_live_governor_passes_ci_quality_gate_drift() -> None:
 def test_live_governor_passes_verify_test_coverage_drift() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "verify-test-coverage-drift" in by_id
     finding = by_id["verify-test-coverage-drift"]
     assert finding.status == "pass"
     assert finding.severity == "ok"
     assert "active_scripts=" in finding.observed
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1).
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.error_count == 0
     assert report.status == "ok"
 
@@ -2360,20 +2247,11 @@ def test_stale_open_milestone_behind_last_completed_is_debt(tmp_path: Path) -> N
 def test_live_governor_passes_semantic_stub_in_product_code() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "semantic-stub-in-product-code" in by_id
     finding = by_id["semantic-stub-in-product-code"]
     assert finding.status == "pass"
     assert finding.severity == "ok"
     assert "stub_count=0" in finding.observed
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1).
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.error_count == 0
     assert report.status == "ok"
 
@@ -2437,10 +2315,6 @@ def test_semantic_stub_in_product_code_ignores_tests_and_testkit(tmp_path: Path)
 def test_live_governor_passes_semantic_name_collision() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "semantic-name-collision" in by_id
     finding = by_id["semantic-name-collision"]
     # Live EvidenceAnchor YAML entity vs ln-decode::EvidenceAnchor is a
@@ -2449,11 +2323,6 @@ def test_live_governor_passes_semantic_name_collision() -> None:
     assert finding.severity == "ok"
     assert "collision_count=0" in finding.observed
     assert "documented_homonyms=EvidenceAnchor" in finding.observed
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1).
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.error_count == 0
     assert report.status == "ok"
 
@@ -2742,10 +2611,6 @@ def test_companion_manifest_check_spec_is_docs_deterministic_warn() -> None:
 def test_live_governor_passes_companion_manifest() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "companion-manifest" in by_id
     finding = by_id["companion-manifest"]
     # Review-26 11.5 process net: all eight crystal-mentioned companions carry
@@ -2764,11 +2629,6 @@ def test_live_governor_passes_companion_manifest() -> None:
         "prd/architecture/reference-binding-contract.yaml",
     ):
         assert rel in finding.observed
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1).
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.error_count == 0
     assert report.status == "ok"
 
@@ -2942,10 +2802,6 @@ def test_golden_corpus_catalog_check_spec_is_docs_deterministic_warn() -> None:
 def test_live_governor_passes_golden_corpus_catalog() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "golden-corpus-catalog" in by_id
     finding = by_id["golden-corpus-catalog"]
     # Review-26 section 10 canon: forty design-only cases, closed G0-G3 tiers,
@@ -2960,11 +2816,6 @@ def test_live_governor_passes_golden_corpus_catalog() -> None:
         "source-cst=5,references=9,procurement=6]" in finding.observed
     )
     assert "dep_paths=8" in finding.observed
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1).
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.error_count == 0
     assert report.status == "ok"
 
@@ -2972,21 +2823,12 @@ def test_live_governor_passes_golden_corpus_catalog() -> None:
 def test_live_governor_reports_historical_test_debt_visibility() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "historical-test-debt-visibility" in by_id
     finding = by_id["historical-test-debt-visibility"]
     # Advisory inventory: status may be 'fail' (debt present, warn) but the
     # governor overall stays ok. The observed field must carry a count.
     assert "historical_test_count=" in finding.observed
     assert finding.severity == "warn" or finding.severity == "ok"
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1).
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.status == "ok"
 
 
@@ -3110,10 +2952,6 @@ def test_live_npa_promotion_control_is_registered_with_debt_inputs() -> None:
 def test_live_governor_includes_adr_and_archive_checks() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_branch_contract(report, routed.context)
-        return
     assert "adr-truth-oracle-sync" in by_id
     assert "adr-index-completeness" in by_id
     assert "adr-doc-matrix-coverage" in by_id
@@ -3130,11 +2968,6 @@ def test_live_governor_includes_adr_and_archive_checks() -> None:
     assert by_id["adr-retired-id-ban"].status == "pass"
     assert by_id["active-surface-era-noise"].status == "pass"
     assert by_id["archive-path-policy"].status == "pass"
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active: the honest roadmap mismatch is the contract (M003 SC1).
-        _assert_honest_roadmap_mismatch(report)
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert report.error_count == 0
     assert report.status == "ok"
 

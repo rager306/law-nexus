@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
 
-from law_nexus_harness.subprocess_runner import run_rust_binary
+from law_nexus_harness.subprocess_runner import _display_path, run_rust_binary
 
 ROOT = Path(__file__).resolve().parents[1]
 BINARY = ROOT / "target" / "debug" / "ln-status"
@@ -65,3 +66,45 @@ def test_invalid_runner_limits_fail_before_process_start() -> None:
         run_rust_binary(BINARY, timeout_seconds=0)
     with pytest.raises(ValueError, match="max_output_bytes"):
         run_rust_binary(BINARY, max_output_bytes=-1)
+
+
+def test_display_path_preserves_workspace_relative_path_for_symlinked_target(
+    tmp_path: Path,
+) -> None:
+    workspace = tmp_path / "repo"
+    workspace.mkdir()
+    external_target = tmp_path / "shared-target"
+    binary_dir = external_target / "debug"
+    binary_dir.mkdir(parents=True)
+    real_binary = binary_dir / "fake-tool"
+    real_binary.write_text("#!/bin/sh\necho ok\n", encoding="utf-8")
+    real_binary.chmod(0o755)
+    os.symlink(external_target, workspace / "target")
+
+    logical_binary = workspace / "target" / "debug" / "fake-tool"
+    assert _display_path(logical_binary, workspace) == "target/debug/fake-tool"
+
+    result = run_rust_binary(logical_binary, cwd=workspace)
+    assert result.status == "ok"
+    assert result.binary_path == "target/debug/fake-tool"
+    assert result.command == ("target/debug/fake-tool",)
+
+
+def test_display_path_handles_non_normalized_and_external_paths(tmp_path: Path) -> None:
+    workspace = tmp_path / "repo"
+    nested = workspace / "bin"
+    nested.mkdir(parents=True)
+    inside = nested / "tool"
+    inside.write_text("", encoding="utf-8")
+
+    # Non-normalized path under workspace resolves through the second fallback.
+    non_normalized = workspace / "bin" / ".." / "bin" / "tool"
+    assert _display_path(non_normalized, workspace) == "bin/tool"
+
+    # Truly external path (including via `..` traversal) falls back to its POSIX string.
+    outside = tmp_path / "outside" / "tool"
+    outside.parent.mkdir(parents=True)
+    outside.write_text("", encoding="utf-8")
+    assert _display_path(outside, workspace) == outside.as_posix()
+    escaped = workspace / ".." / "outside" / "tool"
+    assert _display_path(escaped, workspace) == escaped.as_posix()

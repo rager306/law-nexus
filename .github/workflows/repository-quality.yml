@@ -74,13 +74,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.0
-        with:
-          # The shipped-main governor proof reads the milestone tag and the
-          # integration landing from origin/main history; a shallow, tagless
-          # clone cannot prove either, so the native status helper reports the
-          # integration unverified and the live surface tests fail closed.
-          fetch-depth: 0
-          fetch-tags: true
 
       - name: Create repo-local temp tree
         run: mkdir -p "${{ github.workspace }}/tmp/scripts" "${{ github.workspace }}/tmp/pytest"
@@ -102,29 +95,6 @@ jobs:
 
       - name: Install Python harness dependencies
         run: uv sync --frozen
-
-      - name: Restore pinned GSD Path runtime (vendored archive, digest-verified)
-        run: |
-          set -euo pipefail
-          if [ ! -f .ai/vendor/gsd-path-1.6.2.tgz ]; then
-            echo "error: pinned GSD Path runtime archive is missing: .ai/vendor/gsd-path-1.6.2.tgz" >&2
-            echo "recorded pinned runtime: $(cat .gsd-path/runtime.json)" >&2
-            exit 1
-          fi
-          restore_dir="$(mktemp -d)"
-          trap 'rm -rf "$restore_dir"' EXIT
-          tar -xzf .ai/vendor/gsd-path-1.6.2.tgz -C "$restore_dir"
-          python3 "$restore_dir/gsd-path/scripts/install.py" \
-            --runtime-restore \
-            --project "$GITHUB_WORKSPACE" \
-            --source-root "$restore_dir/gsd-path"
-
-      - name: Prepare shipped-main integration proof inputs
-        run: |
-          set -euo pipefail
-          # The pinned runtime proves the integration landing against the
-          # published default branch; the checkout must name it origin/HEAD.
-          git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
 
       - name: Fetch locked Rust dependencies
         run: cargo fetch --locked
@@ -150,8 +120,6 @@ jobs:
       - name: Product and architecture harness tests
         run: >-
           uv run pytest -q -rs
-          tests/test_post_ship_pointers.py
-          tests/test_project_state_roadmap_freshness.py
           tests/test_harness_subprocess_failure_modes.py
           tests/test_harness_status_tracer.py
           tests/test_harness_governor.py
@@ -181,20 +149,14 @@ jobs:
           && uv run python scripts/verify-live-adapter-readiness.py
 
   migration-layer-quality:
-    # The migration's own tests must never sit behind a product gate that is
-    # red for pre-existing debt: the default branch's Rust tests have failed
-    # since 2026-08-22, which silently skipped every harness check below them.
-    # This job depends on nothing but checkout + uv, so a red product job and a
-    # red migration job are two separate, visible signals.
-    name: Migration layer (workflow state, dispatch, source snapshot, hooks)
+    # Workflow-state, source-snapshot, and process-control checks run
+    # independently of the Rust build job so harness and product signals stay
+    # clearly separated.
+    name: Process control layer (workflow state, source snapshot, hooks)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.0
-        with:
-          # The shipped-main governor proof reads the integration landing from
-          # origin/main first-parent history; a shallow clone cannot verify it.
-          fetch-depth: 0
 
       - name: Create repo-local temp tree
         run: mkdir -p "${{ github.workspace }}/tmp/scripts" "${{ github.workspace }}/tmp/pytest"
@@ -211,40 +173,15 @@ jobs:
       - name: Install Python harness dependencies
         run: uv sync --frozen
 
-      - name: Restore pinned GSD Path runtime (vendored archive, digest-verified)
-        run: |
-          set -euo pipefail
-          if [ ! -f .ai/vendor/gsd-path-1.6.2.tgz ]; then
-            echo "error: pinned GSD Path runtime archive is missing: .ai/vendor/gsd-path-1.6.2.tgz" >&2
-            echo "recorded pinned runtime: $(cat .gsd-path/runtime.json)" >&2
-            exit 1
-          fi
-          restore_dir="$(mktemp -d)"
-          trap 'rm -rf "$restore_dir"' EXIT
-          tar -xzf .ai/vendor/gsd-path-1.6.2.tgz -C "$restore_dir"
-          python3 "$restore_dir/gsd-path/scripts/install.py" \
-            --runtime-restore \
-            --project "$GITHUB_WORKSPACE" \
-            --source-root "$restore_dir/gsd-path"
-
-      - name: Prepare shipped-main integration proof inputs
-        run: |
-          set -euo pipefail
-          # The pinned runtime proves the integration landing against the
-          # published default branch; the checkout must name it origin/HEAD.
-          git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
-
       - name: Migration-layer tests
         run: >-
           uv run pytest -q -rs
           tests/test_harness_workflow_state.py
-          tests/test_phase_dispatch_adapter.py
           tests/test_verify_source_snapshot_v2.py
           tests/test_harness_cli_entrypoints.py
           tests/test_harness_no_forbidden_imports.py
           tests/test_documentation_navigation.py
           tests/test_repository_quality_gate.py
-          tests/test_ci_runtime_restore.py
 
       - name: Pre-commit hook guard chain
         run: uv run pytest -q -rs tests/test_verify_repository_pre_commit_hook.py
@@ -255,53 +192,60 @@ jobs:
           tests/test_harness_preflight.py
           tests/test_harness_governor.py
 
-      - name: Governor report is honest about bootstrap mode
-        # always(): the report must exist for the diagnostics upload even when
-        # an earlier step (pytest, restore) failed. The step's own honesty
-        # assertions still fail the job, so nothing is masked (N3).
+      - name: Governor report passes on Compound Engineering backend
+        # always(): the report must exist for diagnostics upload even when an
+        # earlier step failed. The assertions below still fail the job on errors.
         if: always()
         run: |
           set -o pipefail
-          # Proof-input diagnosis: the pinned helper proves the integration
-          # against the published default branch and the milestone tag, so a
-          # checkout-shape defect must be readable here, not guessed from a
-          # generic block reason.
-          echo "proof inputs: branch=$(git branch --show-current) origin_head=$(git symbolic-ref --quiet refs/remotes/origin/HEAD || echo unset) tags=$(git tag --list 'milestone/*' | wc -l)"
-          uv run python -m law_nexus_harness.governor | tee governor.json
-          uv run python - <<'PY'
+          gov_rc=0
+          uv run python -m law_nexus_harness.governor | tee governor.json || gov_rc=$?
+          GOV_RC="$gov_rc" uv run python - <<'PY'
           import json, os, sys
 
-          report = json.load(open("governor.json"))
-          print("governor:", report["status"], "pass", report["pass_count"],
-                "warn", report["warn_count"], "errors", report["tool_error_count"])
+          gov_rc = int(os.environ.get("GOV_RC", "0"))
+          try:
+              report = json.load(open("governor.json"))
+          except (OSError, json.JSONDecodeError) as exc:
+              sys.exit(f"governor exited {gov_rc} without readable JSON report: {exc}")
+          print(
+              "governor:",
+              report["status"],
+              "pass",
+              report["pass_count"],
+              "warn",
+              report["warn_count"],
+              "errors",
+              report["error_count"],
+              "tool_errors",
+              report["tool_error_count"],
+              "exit_code",
+              gov_rc,
+          )
           surface = [
-              finding for finding in report["findings"]
+              finding
+              for finding in report["findings"]
               if finding.get("check_id") == "workflow-state-surface"
           ]
-          # Diagnosis, not a substitute for the assertions below: when the
-          # surface is not shipped-integrated, name the observed surface and
-          # the proof inputs the pinned helper needs, so a checkout-shape
-          # defect is readable from the job log alone.
           print("workflow-state-surface:", json.dumps(surface))
-          print("proof inputs: GITHUB_REF=", os.environ.get("GITHUB_REF"))
+          print("GITHUB_REF:", os.environ.get("GITHUB_REF"))
           if report["tool_error_count"]:
               sys.exit("governor reported tool errors: a check could not read its inputs")
-          if os.environ.get("GITHUB_REF") == "refs/heads/main":
-              observed = " ".join(
-                  finding.get("observed", "")
+          if report["error_count"]:
+              failed = [
+                  finding.get("check_id")
                   for finding in report["findings"]
-                  if finding.get("check_id") == "workflow-state-surface"
+                  if finding.get("severity") == "error"
+              ]
+              sys.exit(f"governor reported blocking errors: {failed}")
+          observed = " ".join(finding.get("observed", "") for finding in surface)
+          if "backend=compound-engineering;" not in observed:
+              sys.exit(
+                  "governor must report the Compound Engineering backend; "
+                  f"workflow-state-surface observed: {observed!r}"
               )
-              if "kind=shipped-integrated;" not in observed:
-                  sys.exit(
-                      "governor on main must report the shipped integrated state; "
-                      f"workflow-state-surface observed: {observed!r}"
-                  )
-              if ".project/archive/" not in observed:
-                  sys.exit(
-                      "governor on main must name the shipped milestone archive; "
-                      f"workflow-state-surface observed: {observed!r}"
-                  )
+          if gov_rc != 0:
+              sys.exit(f"governor exited non-zero: {gov_rc}")
           PY
 
       - name: Publish governor diagnostics on failure

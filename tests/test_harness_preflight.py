@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
 
-import branch_context
 from law_nexus_harness.cli import main
 from law_nexus_harness.governor import GovernorFinding, GovernorReport
 from law_nexus_harness.preflight import (
@@ -18,40 +16,6 @@ from law_nexus_harness.preflight import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-
-# The live-surface assertions below are checkout-context-aware through the one
-# shared predicate (tests/branch_context.py, M002 SC2). On the operational
-# contexts — the bound branch and the authorized task worktrees, plus the
-# shipped integrated main via Contract A — the full assertions run, keyed on
-# the STATE.md phase pairing (M003 SC1): build/active asserts the honest
-# roadmap finding through the trajectory-governor check, shipped/done asserts
-# the clean Contract A pass. On the foreign-branch, detached, and
-# verify-sidecar checkouts the fail-closed branch-ownership contract IS the
-# contract, pinned exactly: kind=conflicting-ownership with the checkout's own
-# mismatch reason — never the broad kind-prefix pin the M001 patch accepted,
-# which a runtime-unavailable failure also satisfied.
-
-
-def _fail_closed_surface_finding(payload: dict[str, Any]) -> dict[str, Any]:
-    checks = {item["check_id"]: item for item in payload["checks"]}
-    return checks["workflow-state-surface"]
-
-
-def _assert_fail_closed_surface_finding(finding: dict[str, Any]) -> None:
-    """Pin the fail-closed branch-ownership contract on the preflight surface.
-
-    Exactly kind=conflicting-ownership — a runtime-unavailable or invalid
-    state must never satisfy this pin — with the checkout's own mismatch
-    reason as the scenario's discriminator.
-    """
-    binding = branch_context.state_binding(ROOT)
-    assert binding.bound_branch is not None  # an unreadable binding never pins
-    reason = branch_context.block_reason(branch_context.live_branch(ROOT), binding.bound_branch)
-    assert finding["status"] == "fail"
-    assert finding["severity"] == "error"
-    assert finding["observed"].startswith("kind=conflicting-ownership;")
-    assert reason in finding["observed"]
-    assert finding["remediation"]
 
 
 def passing_runner(command: tuple[str, ...], root: Path) -> CommandResult:
@@ -261,169 +225,50 @@ def test_cli_preflight_command_emits_stable_json(capsys) -> None:
 
     assert payload["schema_version"] == PREFLIGHT_SCHEMA_VERSION
     assert [item["check_id"] for item in payload["checks"]] == EXPECTED_CHECK_IDS
-    routed = branch_context.classify(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        # Away from the operational contexts the preflight workflow-state
-        # surface check fails closed on branch ownership; pin that contract
-        # instead of a green run.
-        assert code == 1
-        assert payload["status"] == "failure"
-        _assert_fail_closed_surface_finding(_fail_closed_surface_finding(payload))
-        error_checks = [item for item in payload["checks"] if item["severity"] == "error"]
-        assert "workflow-state-surface" in {item["check_id"] for item in error_checks}
-        assert payload["error_count"] == len(error_checks)
-        assert payload["error_count"] >= 1
-        return
-    if routed.phase is branch_context.StatePhase.BUILD_ACTIVE:
-        # build/active (M003 SC1): the honest roadmap mismatch fails the run
-        # through the trajectory-governor check; the error accounting stays
-        # derived from the report, never a guessed constant.
-        assert code == 1
-        assert payload["status"] == "failure"
-        by_id = {item["check_id"]: item for item in payload["checks"]}
-        trajectory = by_id["trajectory-governor"]
-        assert trajectory["status"] == "fail"
-        assert trajectory["severity"] == "error"
-        assert "roadmap-current-tracks-path" in trajectory["observed"]
-        error_checks = [item for item in payload["checks"] if item["severity"] == "error"]
-        assert "trajectory-governor" in {item["check_id"] for item in error_checks}
-        assert payload["error_count"] == len(error_checks)
-        assert payload["error_count"] >= 1
-        return
-    assert routed.phase is branch_context.StatePhase.SHIPPED_DONE
     assert code == 0
     assert payload["status"] == "ok"
+    assert payload["error_count"] == 0
+    by_id = {item["check_id"]: item for item in payload["checks"]}
+    assert by_id["workflow-state-surface"]["status"] == "pass"
+    assert "backend=compound-engineering;" in by_id["workflow-state-surface"]["observed"]
 
 
 def test_live_preflight_surface_matches_scenario_contract() -> None:
-    """Each checkout context pins its own preflight surface shape, live.
-
-    The routed live tests carry the same routing for their full assertions;
-    this test pins the surface check itself for all five contexts, so the
-    matrix cannot silently narrow to the routed checks. On the shipped
-    integrated main the phase pairing decides the contract (M003 SC1):
-    shipped/done passes as Contract A, build/active blocks on branch
-    ownership like any checkout away from the bound branch.
-    """
-    routed = branch_context.classify(ROOT)
+    """The live repository resolves the Compound Engineering workflow surface cleanly."""
     check = _workflow_state_surface_check(ROOT)
-    if branch_context.pins_fail_closed(routed.context):
-        _assert_fail_closed_surface_finding(
-            {
-                "status": check.status,
-                "severity": check.severity,
-                "observed": check.observed,
-                "remediation": check.remediation,
-            }
-        )
-        return
-    if routed.context is branch_context.BranchContext.SHIPPED_MAIN:
-        if routed.phase is branch_context.StatePhase.SHIPPED_DONE:
-            # Contract A, distinct from every fail-closed pin (E3): the
-            # verified shipped/done state passes with the archive proof. The
-            # archive path moves every milestone, so the pin names the shape,
-            # never a milestone literal (SC2).
-            assert check.status == "pass"
-            assert "state=shipped-integrated" in check.observed
-            assert "outcome shipped/done; archive .project/archive/" in check.observed
-        else:
-            # main with an in-flight build/active STATE: main is not the bound
-            # branch, so the honest surface is the same branch-ownership block
-            # the fail-closed contexts pin, with the checkout's own mismatch
-            # reason as the discriminator.
-            assert routed.phase is branch_context.StatePhase.BUILD_ACTIVE
-            _assert_fail_closed_surface_finding(
-                {
-                    "status": check.status,
-                    "severity": check.severity,
-                    "observed": check.observed,
-                    "remediation": check.remediation,
-                }
-            )
-        return
-    assert routed.context is branch_context.BranchContext.BOUND
-    assert routed.phase in {
-        branch_context.StatePhase.BUILD_ACTIVE,
-        branch_context.StatePhase.SHIPPED_DONE,
-    }
     assert check.status == "pass"
-    assert "state=operational" in check.observed
+    assert check.severity == "ok"
+    assert check.remediation == "none"
+    assert "backend=compound-engineering;" in check.observed
+    assert "state=operational;" in check.observed
+    assert "config=.compound-engineering/config.yaml;" in check.observed
 
 
 def test_cargo_formatter_failure_is_fail_closed_and_actionable() -> None:
     report = run_test_preflight(ROOT, runner=failing_cargo_runner)
-    routed = branch_context.classify(ROOT)
     payload = report.to_dict()
 
-    if branch_context.pins_fail_closed(routed.context):
-        # Away from the operational contexts the injected cargo-fmt failure
-        # and the workflow-state-surface blocking error are both present and
-        # both counted; the total is derived from the report, never guessed.
-        assert payload["status"] == "failure"
-        error_failed = {
-            item["check_id"]: item
-            for item in payload["checks"]
-            if item["status"] == "fail" and item["severity"] == "error"
-        }
-        assert "cargo-fmt-workspace" in error_failed
-        assert error_failed["cargo-fmt-workspace"]["command"] == [
-            "cargo",
-            "fmt",
-            "--all",
-            "--",
-            "--check",
-        ]
-        assert "cargo fmt --all" in error_failed["cargo-fmt-workspace"]["remediation"]
-        assert "crates/example/src/lib.rs" in error_failed["cargo-fmt-workspace"]["stderr_tail"]
-        _assert_fail_closed_surface_finding(error_failed["workflow-state-surface"])
-        assert payload["error_count"] == sum(
-            1 for item in payload["checks"] if item["severity"] == "error"
-        )
-        assert payload["error_count"] >= 2
-        return
     assert payload["status"] == "failure"
     failed = {item["check_id"]: item for item in payload["checks"] if item["status"] == "fail"}
     assert failed["cargo-fmt-workspace"]["command"] == ["cargo", "fmt", "--all", "--", "--check"]
     assert "cargo fmt --all" in failed["cargo-fmt-workspace"]["remediation"]
     assert "crates/example/src/lib.rs" in failed["cargo-fmt-workspace"]["stderr_tail"]
-    # The governor runner is faked ok here, so the injected cargo failure is
-    # the one error on every operational checkout, whatever the STATE phase.
     assert payload["error_count"] == 1
 
 
-def test_ruff_format_check_includes_agent_skill_scripts_when_present() -> None:
+def test_ruff_format_check_skips_when_no_agent_skill_scripts_configured() -> None:
     commands: list[tuple[str, ...]] = []
 
     def recording_runner(command: tuple[str, ...], root: Path) -> CommandResult:
         commands.append(command)
         return coverage_clean_runner(command, root)
 
-    run_test_preflight(ROOT, runner=recording_runner)
+    payload = run_test_preflight(ROOT, runner=recording_runner).to_dict()
+    by_id = {item["check_id"]: item for item in payload["checks"]}
 
     ruff_commands = [command for command in commands if command[:3] == ("uv", "run", "ruff")]
-    # Local/gitignored skills may be present on this host; if present, preflight
-    # must format-check them. If absent (fresh clone), the check is skipped.
-    skill_prefix = ".agents/skills/pi-skill-creator/scripts/"
-    present = tuple(
-        rel
-        for rel in (
-            f"{skill_prefix}aggregate_pi_skill_benchmark.py",
-            f"{skill_prefix}analyze_skill_triggers.py",
-            f"{skill_prefix}execute_pi_skill_eval.py",
-            f"{skill_prefix}generate_pi_skill_report.py",
-            f"{skill_prefix}grade_pi_skill_eval.py",
-            f"{skill_prefix}package_pi_skill.py",
-            f"{skill_prefix}run_pi_skill_eval.py",
-            f"{skill_prefix}run_pi_skill_loop.py",
-            f"{skill_prefix}suggest_description.py",
-            f"{skill_prefix}validate_pi_skill.py",
-        )
-        if (ROOT / rel).is_file()
-    )
-    if present:
-        assert ruff_commands == [("uv", "run", "ruff", "format", "--check", *present)]
-    else:
-        assert ruff_commands == []
+    assert ruff_commands == []
+    assert by_id["ruff-format-explicit-python-paths"]["status"] == "pass"
     assert COVERAGE_COMMAND in commands
 
 
