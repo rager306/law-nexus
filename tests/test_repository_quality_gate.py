@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -132,7 +133,7 @@ def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() ->
     assert "python-onion-dependencies" not in text
     assert text.index("cargo fetch --locked") < text.index("cargo check --workspace --offline")
     assert "rust-harness-quality:" in text
-    assert "dtolnay/rust-toolchain@stable" in text
+    assert "dtolnay/rust-toolchain@" in text
     assert "clippy" in text
     assert "Process inventory scripts (report-only)" in text
 
@@ -195,3 +196,26 @@ def test_ci_workflow_governor_diagnostics_and_upload_contract() -> None:
     assert upload_step["name"] == "Publish governor diagnostics on failure"
     assert upload_step["if"] == "failure()"
     assert upload_step["with"]["path"] == "governor.json"
+
+
+def test_ci_workflow_pins_all_actions_to_full_commit_shas_and_disables_checkout_credentials() -> (
+    None
+):
+    payload = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    sha_ref_re = re.compile(r"^[^@]+@[0-9a-f]{40}$")
+    uses_count = 0
+    checkout_count = 0
+    for job in payload["jobs"].values():
+        for step in job.get("steps", []):
+            uses = step.get("uses")
+            if not uses:
+                continue
+            uses_count += 1
+            assert sha_ref_re.fullmatch(uses), f"Action not pinned to 40-char commit SHA: {uses!r}"
+            if uses.startswith("actions/checkout@"):
+                checkout_count += 1
+                assert step.get("with", {}).get("persist-credentials") is False, (
+                    f"actions/checkout step must set persist-credentials: false: {step!r}"
+                )
+    assert uses_count > 0
+    assert checkout_count > 0
