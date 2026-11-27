@@ -24,3 +24,6 @@ ln-kb-ontology = { path = "../ln-kb-ontology" }
 ln-query = { path = "../ln-query" }
 ln-storage = { path = "../ln-storage" }
 ln-temporal = { path = "../ln-temporal" }
+
+[lints]
+workspace = true

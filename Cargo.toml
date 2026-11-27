@@ -8,6 +8,18 @@ resolver = "3"
 #   The package."*" override does not apply to workspace members.
 # - incremental = false for deps is a no-op under kache (it strips the
 #   incremental dir anyway) but states intent.
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+dbg_macro = "warn"
+todo = "warn"
+wildcard_imports = "warn"
+# Phase-2 BeautifulRust ratchet backlog (calibrated on Wave 2 pass):
+# enable rc_buffer, string_add, clone_on_ref_ptr, allow_attributes_without_reason,
+# redundant_clone after dedicated cleanup PR.
+
 [profile.dev]
 # Measured in THIS workspace: target/debug/incremental held 1.7 GB for 513
 # workspace-member test targets, more than deps/ (1.2 GB), and it is cargo's
@@ -30,6 +42,7 @@ debug = "line-tables-only"
 strip = "debuginfo"
 
 [profile.dev.package."*"]
+opt-level = 2
 debug = false
 incremental = false
 

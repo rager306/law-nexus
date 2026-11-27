@@ -7,3 +7,6 @@ publish = false
 [dependencies]
 ln-identity = { path = "../ln-identity" }
 ln-temporal = { path = "../ln-temporal" }
+
+[lints]
+workspace = true

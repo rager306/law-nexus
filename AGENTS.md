@@ -301,6 +301,26 @@ are not product truth. Map: `prd/archive/README.md`. Temporal AST model L0:
   `python3 scripts/ai/allspark-settings.py apply`; do not change a shared
   profile from a task worker.
 
+## Compound Engineering
+
+- Repo config: `.compound-engineering/config.yaml` sets
+  `docs_root: .compound-engineering/artifacts`, keeping CE artifact folders
+  (`solutions/`, `plans/`, `ideation/`, `explainers/`, `pulse-reports/`,
+  `dogfood-reports/`, `feedback-sweep/`, `personas/`) under
+  `.compound-engineering/artifacts/` instead of `docs/`. Machine-local overrides
+  (`.compound-engineering/*.local.yaml`) and local skill scratch
+  (`.context/compound-engineering/`) are gitignored.
+- Knowledge store: `.compound-engineering/artifacts/solutions/` holds documented
+  solutions to past problems (bugs, best practices, workflow patterns),
+  organized by category with YAML frontmatter (`module`, `tags`,
+  `problem_type`), relevant when implementing or debugging in a documented area.
+- **Review reports:** save every final `ce-code-review` and `ce-doc-review`
+  report under `.compound-engineering/reviews/YYYY-MM-DD-<target-slug>.md`
+  (create the directory if absent) in addition to summarizing it in chat. Keep
+  ephemeral per-run intermediates in `/tmp/compound-engineering-<uid>/...`
+  untracked; if `CODING_STANDARDS.md` or `REVIEW.md` are created, they remain at
+  the repository root per CE discovery rules.
+
 ## Workflow-state boundary (harness)
 
 `src/law_nexus_harness/workflow_state.py` is the only sanctioned adapter
@@ -339,6 +359,30 @@ not this overlay.
 
 Typical: `cargo test -p <crate> --offline --test <suite>` then
 `cargo fmt --all --check && cargo check --workspace --offline`.
+
+### Rust Build & Verification Standard (host SSOT)
+
+Follow `/root/.config/rust-standard/STANDARD.md` (pinned versions in
+`/root/.config/rust-standard/versions.env`, compact checklist in
+`/root/.config/rust-standard/AGENTS-snippet.md`):
+- **Toolchains:** stable `1.99.1` (edition 2024, `rust-toolchain.toml` includes
+  `rustfmt`, `clippy`, `rust-analyzer`, `rust-src`, `llvm-tools`); verification
+  nightly `nightly-2026-08-21` (`miri`, `rust-src`, `llvm-tools`, `rust-analyzer`,
+  `rustc-codegen-cranelift`).
+- **Host vs repo boundary:** `kache 2.3.0`, `mold 3.0.0`, and `ulimit -n 65536`
+  are configured globally on the host (`/root/.cargo/config.toml`, `/etc/kache/config.toml`);
+  `target` is symlinked to `/srv/rust-build/targets/law-nexus` (zero-copy ZFS hardlinks).
+  **Never** set `rustc-wrapper` or `[build] rustflags` in in-repo `.cargo/config.toml`.
+  For parallel worktrees, run `/root/.config/rust-standard/scripts/worktree-target-init.sh <worktree>`.
+- **LSP & lints:** `.vscode/settings.json` sets `"rust-analyzer.cargo.targetDir": true`.
+  Root `Cargo.toml` defines `[workspace.lints]` (`unsafe_code = "forbid"` + Phase-1
+  zero-churn BeautifulRust subset; all 47 crates inherit `[lints] workspace = true`).
+- **Unified `Justfile` gates (`CARGO_BUILD_JOBS=4`, `NEXTEST_TEST_THREADS=4`, `COLUMNS=120`):**
+  - **WF-1 Turbo:** `just test-clif [crate] [filter]` (Cranelift + `mold`, isolated `target/clif` via `LN_CLIF_TARGET_DIR`, `KACHE_DISABLED=1`).
+  - **Tier 0 (`just gate-fast`, <10s):** `fmt`, `gitleaks`, `--no-deps` clippy, `verify-crate-dependency-allowlist.py`, `verify-adr-conformance.py`.
+  - **Tier 1 (`just gate`, 1–5m):** `fmt`, `clippy --workspace --offline --all-targets -D warnings`, `nextest --workspace --offline --profile ci`, `cargo deny --offline check -D unsound advisories licenses bans sources`, `cargo shear`, `actionlint`, `zizmor`, Python repo guards.
+  - **Tier 2 (`rust-heavy-run` — `flock` + cgroups v2):** `just arch-lint` (`deslop-please@0.1.4 --allow .deslop-please.allow` — **NEVER** run `--update-allow` to hide new debt; `just arch-lint-ratchet` enforces this), `just verify`, `just miri [crate]`, `just cov`, `just mutants [crate] [shard]` (`TMPDIR=/srv/rust-build/mutants-tmp`, reports in `target/mutants.out`), `just llvm-lines [crate]`.
+  - **Tier 3 (`just release`):** `cargo deny -D unsound`, `cargo auditable build --release` (`ln-status`, `law-nexus-inspect`), `cargo audit --no-fetch bin`, CycloneDX 1.5 SBOMs in `target/sbom/`.
 
 ## GitNexus
 

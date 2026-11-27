@@ -70,3 +70,6 @@ name = "reference_layer"
 path = "src/bin/reference_layer.rs"
 
 [dev-dependencies]
+
+[lints]
+workspace = true

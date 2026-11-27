@@ -10,3 +10,6 @@ path = "src/main.rs"
 
 [dependencies]
 ln-citation = { path = "../ln-citation" }
+
+[lints]
+workspace = true
