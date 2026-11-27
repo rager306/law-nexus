@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import re
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -160,9 +161,10 @@ def test_forbidden_source_terms_still_ban_product_domain_examples() -> None:
 
 
 def test_rust_status_tracer_has_zero_third_party_dependencies() -> None:
-    crate_manifest = CARGO_MANIFESTS[1].read_text(encoding="utf-8")
-    dependency_section = crate_manifest.split("[dependencies]", 1)[1].strip()
-    assert dependency_section == ""
+    manifest = tomllib.loads(CARGO_MANIFESTS[1].read_text(encoding="utf-8"))
+    assert manifest.get("dependencies", {}) == {}
+    assert manifest.get("dev-dependencies", {}) == {}
+    assert manifest.get("build-dependencies", {}) == {}
 
 
 def test_harness_package_is_separate_from_python_product_package() -> None:
