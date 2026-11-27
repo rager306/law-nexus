@@ -52,8 +52,41 @@ fn year_outside_yaml_bounds_is_rejected() {
 }
 
 #[test]
+fn max_year_boundary_is_accepted_and_roundtrips() {
+    let ordinal = legal_act_effect_day_to_ordinal("2100-12-31").expect("max year");
+    assert_eq!(
+        ordinal_to_legal_act_effect_day(ordinal).expect("roundtrip"),
+        "2100-12-31"
+    );
+}
+
+#[test]
+fn century_leap_year_rules_distinguish_divisible_by_100_and_400() {
+    assert_eq!(
+        legal_act_effect_day_to_ordinal("1900-02-29").expect_err("1900 not leap"),
+        CalendarError::InvalidIsoDay
+    );
+    assert_eq!(
+        legal_act_effect_day_to_ordinal("2100-02-29").expect_err("2100 not leap"),
+        CalendarError::InvalidIsoDay
+    );
+    let ordinal = legal_act_effect_day_to_ordinal("2000-02-29").expect("2000 is leap");
+    assert_eq!(
+        ordinal_to_legal_act_effect_day(ordinal).expect("roundtrip 2000"),
+        "2000-02-29"
+    );
+}
+
+#[test]
 fn malformed_iso_is_rejected() {
-    for day in ["2014", "2014/01/01", "2014-1-1", ""] {
+    for day in [
+        "2014",
+        "2014/01/01",
+        "2014/01-01",
+        "2014-01/01",
+        "2014-1-1",
+        "",
+    ] {
         let err = legal_act_effect_day_to_ordinal(day).expect_err(day);
         assert_eq!(err, CalendarError::InvalidIsoDay);
     }
@@ -78,5 +111,72 @@ fn clock_kind_remains_legal_act_effect() {
         calendar_non_claims()
             .iter()
             .any(|claim| claim.contains("InForce") || claim.contains("applicability"))
+    );
+}
+
+#[test]
+fn ordinal_to_day_rejects_out_of_bounds_and_roundtrips_december_and_non_leap_feb28() {
+    assert_eq!(
+        ordinal_to_legal_act_effect_day(-1).expect_err("below min_year"),
+        CalendarError::OutOfBounds
+    );
+    assert_eq!(
+        ordinal_to_legal_act_effect_day(0).expect("min_year epoch"),
+        "1800-01-01"
+    );
+    let max_ordinal = legal_act_effect_day_to_ordinal("2100-12-31").expect("max");
+    assert_eq!(
+        ordinal_to_legal_act_effect_day(max_ordinal + 1).expect_err("above max_year"),
+        CalendarError::OutOfBounds
+    );
+    for day in ["2014-02-28", "2024-12-31", "2024-03-01", "2024-01-01"] {
+        let ord = legal_act_effect_day_to_ordinal(day).expect(day);
+        assert_eq!(ordinal_to_legal_act_effect_day(ord).expect(day), day);
+    }
+}
+
+#[test]
+fn calendar_error_display_messages_are_non_empty() {
+    for err in [
+        CalendarError::CatalogMissing,
+        CalendarError::InvalidIsoDay,
+        CalendarError::OutOfBounds,
+        CalendarError::ClockMismatch,
+    ] {
+        assert!(!err.to_string().is_empty());
+    }
+}
+
+#[test]
+fn parse_calendar_bounds_validates_bounds_and_ignores_sibling_sections() {
+    use ln_temporal::calendar::parse_calendar_bounds;
+
+    let valid_equal = "calendar:\n  clock: legal_act_effect\n  epoch: \"2020-01-01\"\n  min_year: 2020\n  max_year: 2020\nother:\n  max_year: 1999\n";
+    let bounds = parse_calendar_bounds(valid_equal).expect("equal bounds");
+    assert_eq!(bounds.min_year, 2020);
+    assert_eq!(bounds.max_year, 2020);
+
+    let inverted = "calendar:\n  clock: legal_act_effect\n  epoch: \"2020-01-01\"\n  min_year: 2021\n  max_year: 2020\n";
+    assert_eq!(
+        parse_calendar_bounds(inverted).expect_err("min > max"),
+        CalendarError::CatalogMissing
+    );
+
+    let epoch_low = "calendar:\n  clock: legal_act_effect\n  epoch: \"2019-12-31\"\n  min_year: 2020\n  max_year: 2025\n";
+    assert_eq!(
+        parse_calendar_bounds(epoch_low).expect_err("epoch < min"),
+        CalendarError::CatalogMissing
+    );
+
+    let epoch_high = "calendar:\n  clock: legal_act_effect\n  epoch: \"2026-01-01\"\n  min_year: 2020\n  max_year: 2025\n";
+    assert_eq!(
+        parse_calendar_bounds(epoch_high).expect_err("epoch > max"),
+        CalendarError::CatalogMissing
+    );
+
+    let bad_epoch_day = "calendar:\n  clock: legal_act_effect\n  epoch: \"2021-02-29\"\n  min_year: 2020\n  max_year: 2025\n";
+    assert_eq!(
+        parse_calendar_bounds(bad_epoch_day).expect_err("invalid epoch day"),
+        CalendarError::CatalogMissing
     );
 }
