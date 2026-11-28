@@ -1,6 +1,9 @@
 use std::error::Error;
 use std::fmt;
 
+use ln_fsm::graph::{EdgeSpec, ForbiddenEdge, GraphSpec};
+use ln_fsm::{DeterministicFsm, StepError};
+
 const MAX_ID_LEN: usize = 64;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -68,12 +71,134 @@ pub struct PublicationAuthority {
     _sealed: (),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub const PROMOTION_ATTEMPT_POLICY_VERSION: &str = "hc04:promotion-attempt:v1";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PromotionAttemptState {
     InProgress,
     Cancelled,
     Committed,
 }
+
+impl PromotionAttemptState {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::InProgress => "in-progress",
+            Self::Cancelled => "cancelled",
+            Self::Committed => "committed",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PromotionAttemptEvent {
+    Cancel,
+    Commit,
+}
+
+impl PromotionAttemptEvent {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Cancel => "cancel",
+            Self::Commit => "commit",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PromotionTransitionRefusal {
+    AlreadyCommitted,
+    AlreadyCancelled,
+}
+
+/// Deterministic FSM for HC-04 / D116 curated promotion attempts.
+///
+/// `Committed` is terminal/absorbing (idempotent retry never creates a second
+/// commit and never reverts to `InProgress` or `Cancelled`); `Cancelled` admits
+/// an identical-digest retry via `Commit` (HC-04 `identical_retry_after_cancel`).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct PromotionAttemptFsm;
+
+impl DeterministicFsm for PromotionAttemptFsm {
+    type State = PromotionAttemptState;
+    type Event = PromotionAttemptEvent;
+    type RejectionReason = PromotionTransitionRefusal;
+
+    fn policy_version(&self) -> &'static str {
+        PROMOTION_ATTEMPT_POLICY_VERSION
+    }
+
+    fn is_terminal(&self, state: &Self::State) -> bool {
+        matches!(state, PromotionAttemptState::Committed)
+    }
+
+    fn terminal_rejection_reason(
+        &self,
+        _state: &Self::State,
+        _event: &Self::Event,
+    ) -> Self::RejectionReason {
+        PromotionTransitionRefusal::AlreadyCommitted
+    }
+
+    fn step(
+        &self,
+        state: &Self::State,
+        event: &Self::Event,
+    ) -> Result<Self::State, StepError<Self::RejectionReason>> {
+        match (state, event) {
+            (PromotionAttemptState::InProgress, PromotionAttemptEvent::Cancel) => {
+                Ok(PromotionAttemptState::Cancelled)
+            }
+            (
+                PromotionAttemptState::InProgress | PromotionAttemptState::Cancelled,
+                PromotionAttemptEvent::Commit,
+            ) => Ok(PromotionAttemptState::Committed),
+            (PromotionAttemptState::Cancelled, PromotionAttemptEvent::Cancel) => Err(
+                StepError::InvalidTransition(PromotionTransitionRefusal::AlreadyCancelled),
+            ),
+            (PromotionAttemptState::Committed, _) => Err(StepError::InvalidTransition(
+                PromotionTransitionRefusal::AlreadyCommitted,
+            )),
+        }
+    }
+}
+
+pub const PROMOTION_ATTEMPT_GRAPH_SPEC: GraphSpec = GraphSpec {
+    name: "ln-promote::PromotionAttemptFsm",
+    initial: "in-progress",
+    states: &["in-progress", "cancelled", "committed"],
+    terminals: &["committed"],
+    transitions: &[
+        EdgeSpec {
+            from: "in-progress",
+            event: "cancel",
+            to: "cancelled",
+        },
+        EdgeSpec {
+            from: "in-progress",
+            event: "commit",
+            to: "committed",
+        },
+        EdgeSpec {
+            from: "cancelled",
+            event: "commit",
+            to: "committed",
+        },
+    ],
+    forbidden_direct_edges: &[
+        ForbiddenEdge {
+            from: "committed",
+            to: "in-progress",
+            rationale: "Committed promotion attempt is immutable and cannot reopen",
+        },
+        ForbiddenEdge {
+            from: "committed",
+            to: "cancelled",
+            rationale: "Committed promotion attempt cannot be retroactively cancelled",
+        },
+    ],
+    allow_guarded_branching: false,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PromotionOutcome {

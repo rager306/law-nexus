@@ -239,6 +239,18 @@
     [
       "ln-temporal",
       "ln-fsm"
+    ],
+    [
+      "ln-promote",
+      "ln-fsm"
+    ],
+    [
+      "ln-gate",
+      "ln-fsm"
+    ],
+    [
+      "ln-dispose",
+      "ln-fsm"
     ]
   ],
   "non_claims": [

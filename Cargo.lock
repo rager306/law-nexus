@@ -260,6 +260,9 @@ version = "0.1.0"
 [[package]]
 name = "ln-dispose"
 version = "0.1.0"
+dependencies = [
+ "ln-fsm",
+]
 
 [[package]]
 name = "ln-fsm"
@@ -268,6 +271,9 @@ version = "0.1.0"
 [[package]]
 name = "ln-gate"
 version = "0.1.0"
+dependencies = [
+ "ln-fsm",
+]
 
 [[package]]
 name = "ln-hc01-runner"
@@ -448,6 +454,9 @@ version = "0.1.0"
 [[package]]
 name = "ln-promote"
 version = "0.1.0"
+dependencies = [
+ "ln-fsm",
+]
 
 [[package]]
 name = "ln-publish"

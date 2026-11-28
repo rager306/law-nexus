@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
+use ln_fsm::DeterministicFsm;
+
 use crate::domain::{
-    AcceptedSetId, CommitId, InputDigest, PromotionAttemptState, PromotionOpId, PromotionOutcome,
-    PromotionRecord, PromotionResult,
+    AcceptedSetId, CommitId, InputDigest, PromotionAttemptEvent, PromotionAttemptFsm,
+    PromotionAttemptState, PromotionOpId, PromotionOutcome, PromotionRecord, PromotionResult,
+    PromotionTransitionRefusal,
 };
 use crate::ports::PromotionStorePort;
 
@@ -80,19 +83,51 @@ where
                 publication_authority: None,
             },
             Some(mut existing) => {
-                existing.state = PromotionAttemptState::Cancelled;
-                existing.commit_id = None;
-                existing.commit_digest = None;
-                existing.publication_authority = None;
-                let op = existing.op_id.clone();
-                self.open.insert(op.as_str().to_owned(), existing.clone());
-                self.store.put(existing);
-                PromotionResult {
-                    outcome: PromotionOutcome::Cancelled,
-                    op_id: op,
-                    commit_id: None,
-                    commit_digest: None,
-                    publication_authority: None,
+                // Match PromotionAttemptFsm exhaustively so only AlreadyCancelled is
+                // idempotent and AlreadyCommitted fails closed without wiping state.
+                match PromotionAttemptFsm.apply(existing.state, PromotionAttemptEvent::Cancel) {
+                    Ok(receipt) => {
+                        existing.state = receipt.next;
+                        existing.commit_id = None;
+                        existing.commit_digest = None;
+                        existing.publication_authority = None;
+                        let op = existing.op_id.clone();
+                        self.open.insert(op.as_str().to_owned(), existing.clone());
+                        self.store.put(existing);
+                        PromotionResult {
+                            outcome: PromotionOutcome::Cancelled,
+                            op_id: op,
+                            commit_id: None,
+                            commit_digest: None,
+                            publication_authority: None,
+                        }
+                    }
+                    Err(rej) => match rej.reason {
+                        PromotionTransitionRefusal::AlreadyCancelled => {
+                            let op = existing.op_id.clone();
+                            self.open.insert(op.as_str().to_owned(), existing);
+                            PromotionResult {
+                                outcome: PromotionOutcome::Cancelled,
+                                op_id: op,
+                                commit_id: None,
+                                commit_digest: None,
+                                publication_authority: None,
+                            }
+                        }
+                        PromotionTransitionRefusal::AlreadyCommitted => {
+                            let op = existing.op_id.clone();
+                            let commit_id = existing.commit_id.clone();
+                            let commit_digest = existing.commit_digest.clone();
+                            self.committed.insert(op.as_str().to_owned(), existing);
+                            PromotionResult {
+                                outcome: PromotionOutcome::AlreadyCommitted,
+                                op_id: op,
+                                commit_id,
+                                commit_digest,
+                                publication_authority: None,
+                            }
+                        }
+                    },
                 }
             }
         }
@@ -104,26 +139,49 @@ where
         accepted_set_id: AcceptedSetId,
         input_digest: InputDigest,
     ) -> PromotionResult {
-        if let Some(existing) = self.lookup(&op_id) {
-            match existing.state {
-                PromotionAttemptState::Committed => {
-                    return self.handle_existing(existing, &accepted_set_id, &input_digest);
-                }
-                PromotionAttemptState::Cancelled | PromotionAttemptState::InProgress => {
-                    if existing.accepted_set_id != accepted_set_id
-                        || existing.input_digest != input_digest
-                    {
+        let next_state = if let Some(existing) = self.lookup(&op_id) {
+            if existing.accepted_set_id != accepted_set_id || existing.input_digest != input_digest
+            {
+                return PromotionResult {
+                    outcome: PromotionOutcome::RejectedMismatch,
+                    op_id,
+                    commit_id: None,
+                    commit_digest: None,
+                    publication_authority: None,
+                };
+            }
+            match PromotionAttemptFsm.apply(existing.state, PromotionAttemptEvent::Commit) {
+                Ok(receipt) => receipt.next,
+                Err(rej) => match rej.reason {
+                    PromotionTransitionRefusal::AlreadyCommitted => {
                         return PromotionResult {
-                            outcome: PromotionOutcome::RejectedMismatch,
-                            op_id,
+                            outcome: PromotionOutcome::AlreadyCommitted,
+                            op_id: existing.op_id,
+                            commit_id: existing.commit_id,
+                            commit_digest: existing.commit_digest,
+                            publication_authority: None,
+                        };
+                    }
+                    PromotionTransitionRefusal::AlreadyCancelled => {
+                        return PromotionResult {
+                            outcome: PromotionOutcome::Cancelled,
+                            op_id: existing.op_id,
                             commit_id: None,
                             commit_digest: None,
                             publication_authority: None,
                         };
                     }
-                }
+                },
             }
-        }
+        } else {
+            PromotionAttemptFsm
+                .apply(
+                    PromotionAttemptState::InProgress,
+                    PromotionAttemptEvent::Commit,
+                )
+                .expect("InProgress + Commit is always valid")
+                .next
+        };
 
         // Mint commit identity in the application, not the store.
         self.next_seq += 1;
@@ -133,7 +191,7 @@ where
             op_id: op_id.clone(),
             accepted_set_id,
             input_digest: input_digest.clone(),
-            state: PromotionAttemptState::Committed,
+            state: next_state,
             commit_id: Some(commit_id.clone()),
             commit_digest: Some(input_digest.clone()),
             publication_authority: None,

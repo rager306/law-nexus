@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
+use ln_fsm::DeterministicFsm;
+
 use crate::domain::{
-    C10_GATE_VERSION, CandidateId, CandidateRecord, GateOutcome, GateReason, GateRequest,
-    GateResult, GateVersion, LifecycleType, digest_chain,
+    C10_GATE_VERSION, CandidateId, CandidateRecord, GateLifecycleEvent, GateLifecycleFsm,
+    GateOutcome, GateReason, GateRequest, GateResult, GateTransitionRefusal, GateVersion,
+    LifecycleType, digest_chain,
 };
 use crate::ports::CandidateStorePort;
 
@@ -60,43 +63,46 @@ where
         let input_chain_digest = digest_chain(&request.candidate_id, &request.evidence_refs);
         let gate_version = GateVersion::parse(C10_GATE_VERSION).expect("static version");
 
-        // In-place mutation is always invalid under C10.
-        if request.in_place {
-            return GateResult {
-                gate_version,
-                outcome: GateOutcome::InvalidTransition,
-                reason: GateReason::InPlaceMutation,
-                original_id: original.candidate_id.clone(),
-                original_type: original.lifecycle_type,
-                resulting_id: original.candidate_id,
-                resulting_type: original.lifecycle_type,
-                predecessor: original.predecessor,
-                input_chain_digest,
-                confidence_used_as_authority: false,
-            };
-        }
+        // Route C10 lifecycle boundary checks through GateLifecycleFsm.
+        let event = match request.requested_type {
+            LifecycleType::VerifiedAssertion => GateLifecycleEvent::PromoteToVerified {
+                in_place: request.in_place,
+                has_evidence: !request.evidence_refs.is_empty(),
+                confidence: request.confidence,
+            },
+            LifecycleType::ExtractedCandidate => GateLifecycleEvent::DemoteToExtracted,
+        };
 
-        // Confidence may rank within a lifecycle but cannot cross the boundary.
-        let evidence_ok = !request.evidence_refs.is_empty();
-        if !evidence_ok {
-            let reason = if request.confidence >= 90 {
-                GateReason::ConfidenceOnly
-            } else {
-                GateReason::MissingEvidenceChain
-            };
-            return GateResult {
-                gate_version,
-                outcome: GateOutcome::InsufficientEvidence,
-                reason,
-                original_id: original.candidate_id.clone(),
-                original_type: original.lifecycle_type,
-                resulting_id: original.candidate_id,
-                resulting_type: original.lifecycle_type,
-                predecessor: original.predecessor,
-                input_chain_digest,
-                confidence_used_as_authority: request.confidence >= 90,
-            };
-        }
+        let next_type = match GateLifecycleFsm.apply(original.lifecycle_type, event) {
+            Ok(receipt) => receipt.next,
+            Err(rej) => {
+                let (outcome, confidence_used_as_authority) = match rej.reason {
+                    GateTransitionRefusal::InPlaceMutation
+                    | GateTransitionRefusal::TerminalLifecycleImmutable
+                    | GateTransitionRefusal::InvalidLifecycleTransition => {
+                        (GateOutcome::InvalidTransition, false)
+                    }
+                    GateTransitionRefusal::ConfidenceOnly => {
+                        (GateOutcome::InsufficientEvidence, true)
+                    }
+                    GateTransitionRefusal::MissingEvidenceChain => {
+                        (GateOutcome::InsufficientEvidence, false)
+                    }
+                };
+                return GateResult {
+                    gate_version,
+                    outcome,
+                    reason: rej.reason.to_gate_reason(),
+                    original_id: original.candidate_id.clone(),
+                    original_type: original.lifecycle_type,
+                    resulting_id: original.candidate_id,
+                    resulting_type: original.lifecycle_type,
+                    predecessor: original.predecessor,
+                    input_chain_digest,
+                    confidence_used_as_authority,
+                };
+            }
+        };
 
         // Required evidence present: mint a NEW immutable outcome identity.
         // Never mutate the original record's type in place.
@@ -109,7 +115,7 @@ where
         .expect("static candidate id");
         let new_record = CandidateRecord {
             candidate_id: new_id.clone(),
-            lifecycle_type: request.requested_type,
+            lifecycle_type: next_type,
             evidence_refs: request.evidence_refs,
             predecessor: Some(original.candidate_id.clone()),
         };
@@ -125,7 +131,7 @@ where
             original_id: original.candidate_id.clone(),
             original_type: original.lifecycle_type,
             resulting_id: new_id,
-            resulting_type: request.requested_type,
+            resulting_type: next_type,
             predecessor: Some(original.candidate_id),
             input_chain_digest,
             confidence_used_as_authority: false,
