@@ -227,6 +227,14 @@
     [
       "ln-product-cli",
       "ln-consultant-parser"
+    ],
+    [
+      "ln-decode",
+      "ln-fsm"
+    ],
+    [
+      "ln-work",
+      "ln-fsm"
     ]
   ],
   "non_claims": [

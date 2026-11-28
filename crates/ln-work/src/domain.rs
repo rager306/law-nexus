@@ -236,6 +236,154 @@ pub fn next_state(current: WorkState, event: WorkEvent) -> Option<WorkState> {
     }
 }
 
+/// Fail-closed FSM wrapper for [`WorkState`] backed by `ln-fsm`.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct WorkStateMachine;
+
+impl ln_fsm::DeterministicFsm for WorkStateMachine {
+    type State = WorkState;
+    type Event = WorkEvent;
+    type RejectionReason = TransitionOutcome;
+
+    fn policy_version(&self) -> &'static str {
+        WORK_POLICY_VERSION
+    }
+
+    fn is_terminal(&self, _state: &Self::State) -> bool {
+        // Committed intentionally allows MarkStale for observability.
+        false
+    }
+
+    fn terminal_rejection_reason(
+        &self,
+        _state: &Self::State,
+        _event: &Self::Event,
+    ) -> Self::RejectionReason {
+        TransitionOutcome::InvalidTransition
+    }
+
+    fn step(
+        &self,
+        state: &Self::State,
+        event: &Self::Event,
+    ) -> Result<Self::State, ln_fsm::StepError<Self::RejectionReason>> {
+        next_state(*state, *event).ok_or(ln_fsm::StepError::InvalidTransition(
+            TransitionOutcome::InvalidTransition,
+        ))
+    }
+}
+
+/// Declarative transition-graph contract for [`WorkStateMachine`].
+pub const WORK_STATE_GRAPH_SPEC: ln_fsm::graph::GraphSpec = ln_fsm::graph::GraphSpec {
+    name: "work_state",
+    initial: "requested",
+    states: &[
+        "requested",
+        "running",
+        "cancelling",
+        "cancelled",
+        "failed",
+        "committed",
+        "stale",
+    ],
+    terminals: &[],
+    transitions: &[
+        ln_fsm::graph::EdgeSpec {
+            from: "requested",
+            event: "start",
+            to: "running",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "requested",
+            event: "cancel",
+            to: "cancelling",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "requested",
+            event: "fail",
+            to: "failed",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "running",
+            event: "cancel",
+            to: "cancelling",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "running",
+            event: "fail",
+            to: "failed",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "running",
+            event: "commit",
+            to: "committed",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "running",
+            event: "mark_stale",
+            to: "stale",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "cancelling",
+            event: "cancel_ack",
+            to: "cancelled",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "cancelling",
+            event: "fail",
+            to: "failed",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "cancelled",
+            event: "resume",
+            to: "running",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "cancelled",
+            event: "mark_stale",
+            to: "stale",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "failed",
+            event: "resume",
+            to: "running",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "failed",
+            event: "mark_stale",
+            to: "stale",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "stale",
+            event: "resume",
+            to: "running",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "stale",
+            event: "cancel",
+            to: "cancelling",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "committed",
+            event: "mark_stale",
+            to: "stale",
+        },
+    ],
+    forbidden_direct_edges: &[
+        ln_fsm::graph::ForbiddenEdge {
+            from: "requested",
+            to: "committed",
+            rationale: "work must enter running before commit",
+        },
+        ln_fsm::graph::ForbiddenEdge {
+            from: "committed",
+            to: "running",
+            rationale: "committed work cannot silently resume without mark_stale",
+        },
+    ],
+    allow_guarded_branching: false,
+};
+
 #[cfg(test)]
 mod tests {
     use super::*;
