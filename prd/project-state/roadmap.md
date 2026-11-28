@@ -2,7 +2,10 @@
 
 > **Source of truth:** `prd/ARCHITECTURE.md` + `doc/adr/**`. This document is a
 > non-authoritative cold-reader projection of
-> `prd/project-state/data/roadmap.json`; local `.gsd/**` is workflow state only.
+> `prd/project-state/data/roadmap.json`; retired `.gsd/**` workflow records are
+> preserved read-only under Git tag `archive/gsd-path-final`.
+> Verified open core-architecture gaps on `HEAD` are consolidated in
+> `prd/architecture/core-gaps-reconciliation.md`.
 >
 > Initial front synchronization was frozen in EA-05 at `94d58ea`. EA-10 D150 remains revision-bound `accepted-with-findings` for packet `120d44b`; post-D150 repository-control remediation is recorded separately in `assessment/13-current-head-gap-audit.md` and `assessment/14-post-remediation-gap-disposition.md` and does not extend D150. Roadmap completion is not product readiness.
 

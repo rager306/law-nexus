@@ -6,7 +6,7 @@
 **EA-02 tested revision:** `37f82c4245642f7c1e9104f288db43df762178fe` (`assessment/02-product-contract.md`)
 **Derives from:** `prd/PRODUCT.md`
 **Architecture ceilings:** `prd/ARCHITECTURE.md` + `doc/adr/**`
-**Local workflow source:** `.gsd/REQUIREMENTS.md` is non-published seed/state and is not authority for cold readers
+**Historical workflow source:** retired `.gsd/REQUIREMENTS.md` (archived read-only under Git tag `archive/gsd-path-final`) is non-published historical seed/state and is not authority for cold readers
 **Ontology alias:** O1–O7 here is the ADR-0016–0022 design sequence labelled L1–L7 in `prd/ARCHITECTURE.md`
 
 ## 1. Projection contract
@@ -92,9 +92,9 @@ For multi-parent rows, the first listed Product clause is the `primary_owner`; l
 - A requirement lifecycle is recomputed from current governing ADR/evidence; it is never copied blindly from local workflow status.
 - Missing links, stronger lifecycle, local-only sole proof or derived evidence promotion block D2/EA-02 assessment readiness.
 
-## 5. Local-workflow publication boundary
+## 5. Historical local-workflow publication boundary
 
-Local `.gsd/REQUIREMENTS.md` may contain historical, milestone-specific, superseded or more granular workflow rows. This projection intentionally publishes only obligations linked to `prd/PRODUCT.md` plus explicit standing safety constraints.
+Retired `.gsd/REQUIREMENTS.md` (preserved under Git tag `archive/gsd-path-final`) contained historical, milestone-specific, superseded or more granular workflow rows. This projection intentionally publishes only obligations linked to `prd/PRODUCT.md` plus explicit standing safety constraints.
 
 ### Local-only omitted classes
 
@@ -102,7 +102,7 @@ Local `.gsd/REQUIREMENTS.md` may contain historical, milestone-specific, superse
 |-------|-----------------------------------------------------|
 | historical FalkorDB/ACP-era obligations | decommissioned or superseded; must not regain active authority |
 | milestone choreography and task-state rows | planning/execution detail, not durable product obligation |
-| requirements whose only proof is `.gsd/milestones/**` or `.gsd/exec/**` | local evidence is not portable published proof |
+| requirements whose only proof was retired `.gsd/milestones/**` or `.gsd/exec/**` | local historical evidence is not portable published proof |
 | duplicate clauses already represented by an RQ row | avoid dual canon and contradictory lifecycle |
 | archive/parser-dump/research-only candidates | prior art or candidate evidence, not accepted obligation |
 

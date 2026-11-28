@@ -8,7 +8,9 @@
 > `AGENTS.md` as durable authority (RC12-F18).
 >
 > Detailed decisions: [`doc/adr/**`](../doc/adr/README.md).
-> `.gsd/**` is local workflow state, not a cold-reader authority surface.
+> Active delivery workflow runs on Compound Engineering (`.compound-engineering/config.yaml`);
+> historical GSD-Pi / GSD-Path delivery records are archived read-only under Git tag
+> `archive/gsd-path-final` and are not a cold-reader authority surface.
 > [`PRODUCT.md`](PRODUCT.md) and [`REQUIREMENTS.md`](REQUIREMENTS.md) remain `[proposed]`;
 > EA-02 marked them `ready-for-assessment` (`37f82c4`) — not EA-10 acceptance.
 
@@ -240,29 +242,47 @@ DESIGN FRONT (no Rust, L0 reviews)
 ASSESSMENT FRONT (no Rust)
    EA-10 complete: D150 accepted-with-findings (EA-09 at 120d44b); retained
    process/staleness findings open; L2 CTV and TEI/RuVector remain evidence-gated
+   ▼
+M184-M225 NPA pipeline, XML->JSONL spine & reference layer  [bounded] / [proposed]
+   durable ThreeCanonEventLog + JsonlEffectLedger + CheckoutProjection (ln-temporal/ln-replay);
+   typed covering lexer + LocalGrammar + DocumentContext + M211 Rust NPA capture
+   (RC28-F06..F12 remediated; RC28-F13 ChangeGrammar / M208 remains open/parked);
+   full-corpus XML->JSONL substrate (43,783/43,785 accepted, 2 pinned residuals);
+   118-edition 44-ФЗ digest timeline + amend provenance + law-nexus-inspect
+   reference-package build|check (ADR-0031 [proposed]; D4/D5 unexecuted)
+   ▼
+POST-M012 HYGIENE & HARDENING (2026-11-28)
+   GSD-Pi/Path/Allspark retired behind Git tag archive/gsd-path-final; active delivery
+   switched to Compound Engineering; SHA-pinned CI + fail-closed zizmor; zip =9.8.2 /
+   quick-xml 0.42 / rusqlite 0.43 upgraded with 0 CVE ignores in deny.toml and Justfile.
+   Core next priority: prove the Temporal CST/AST + unified DocumentContext + ChangeGrammar
+   vertical before locking persistent storage (ADR-0014 RuVector vs ADR-0031 M217 bake-off).
 ```
 
 ## Current layer (where work happens now)
 
 **Rust product runtime** — `[bounded]` direction (ADR-0004/0005) with active
 hexagonal crates under `crates/` and the observable product CLI
-`law-nexus-inspect`. Rust owns decode, storage ports, KnowQL composition and
+`law-nexus-inspect` (`health`, `inspect`, `replay`, `subordinates`,
+`reference-package`). Rust owns decode, storage ports, KnowQL composition and
 product behavior. Direction is accepted and the runtime exists; this is not
-product readiness (blocked on RuVector/TEI infrastructure + real-corpus proof;
-no `[validated]` product capability claim).
+product readiness (blocked on core Temporal CST/AST + ChangeGrammar proof,
+persistent storage selection between ADR-0014 RuVector `[proposed]` and
+ADR-0031 M217 store bake-off `[proposed]`, and real-corpus proof; no
+`[validated]` product capability claim).
 One tracked real fixture per provider remains `[bounded]` evidence; no
 corpus/legal/citation completeness claims.
 
 **Python repository-control harness** — `[validated]` process boundary
 (ADR-0007) under `src/law_nexus_harness/`. Active Python is governor/preflight
-orchestration only: Cargo/ADR/document freshness/GSD glue. ADR-0024 `[proposed]`
+orchestration only: Cargo/ADR/document freshness/Compound Engineering control-plane checks. ADR-0024 `[proposed]`
 places Review Case intake, disposition, residual inventory and continuity
 bridges in this control plane as a non-authoritative, human-gated, hexagonal
 contour. Live packets/ledger/CLI/Governor integrity exist as process machinery;
 they do not accept findings or claim product readiness. Continuity keeps three
-lifecycles orthogonal — L_review (residual), L_delivery (GSD/work), L_capability
+lifecycles orthogonal — L_review (residual), L_delivery (Compound Engineering / legacy delivery), L_capability
 (TSG/ADR proof) — with closure ceilings and B1–B5 bridges
-(`prd/architecture/review-cases/continuity-contract.md`; GSD dual-truth bridge: `prd/architecture/review-cases/gsd-review-bridge.md`; L_capability promotion board: `prd/architecture/capability-promotion-board.md`). The harness must not
+(`prd/architecture/review-cases/continuity-contract.md`; historical dual-truth bridge: `prd/architecture/review-cases/gsd-review-bridge.md`; L_capability promotion board: `prd/architecture/capability-promotion-board.md`; verified open core gaps: `prd/architecture/core-gaps-reconciliation.md`). The harness must not
 import product domain packages, forbidden PyO3/FFI bridges, or historical-only
 graph-database adapters from retired eras.
 

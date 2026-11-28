@@ -80,6 +80,6 @@ this ADR is related_adr for the authority homonym only).
 
 ## References
 
-- D116, D120 in `.gsd/DECISIONS.md`
+- D116, D120 (historical `.gsd/DECISIONS.md`, archived under Git tag `archive/gsd-path-final`)
 - HC-04 (`ln-promote`), HC-15 (`ln-publish`), HC-16 (`ln-accelerate`)
 - `prd/architecture/m111-final-architecture-baseline.md`

@@ -173,7 +173,7 @@ latency incident is expensive.
 
 - **M107-7xtx1c** — this milestone: crystallize requirements/architecture/ADRs
   and write the Rust migration roadmap.
-- **D103 / D105 / D106** (`.gsd/DECISIONS.md`) — Rust-only product runtime,
+- **D103 / D105 / D106** (historical `.gsd/DECISIONS.md`, archived under Git tag `archive/gsd-path-final`) — Rust-only product runtime,
   no in-process bridge, and the narrow Python repository-harness exception.
 - **`prd/migration/rust-migration-roadmap.md`** — the phased plan.
 - **`prd/migration/rust-target-architecture.md`** — the component-by-component map.

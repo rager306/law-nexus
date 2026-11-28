@@ -121,10 +121,10 @@ harness may invoke Rust binaries across process boundaries only (ADR-0007).
 
 - **ACP/git-lex surfaces.** They are decommissioned from active law-nexus per
   D104 and archived separately; they are not ported to Rust.
-- **`.gsd/` tooling.** It remains external repository workflow infrastructure.
+- **Workflow orchestration tooling (Compound Engineering; retired `.gsd/` archived under Git tag `archive/gsd-path-final`).** Remains external repository workflow infrastructure.
 - **Python repository harness (ADR-0007).** It may orchestrate Rust binaries,
   Cargo checks, architecture/ADR conformance, document freshness, parity
-  artifacts, CI, and GSD. It must not implement product or domain behavior.
+  artifacts, CI, and Compound Engineering control-plane checks. It must not implement product or domain behavior.
 - **Historical and research documents.** They are evidence/history, not runtime
   implementation targets.
 
