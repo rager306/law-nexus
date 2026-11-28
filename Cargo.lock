@@ -480,6 +480,10 @@ version = "0.1.0"
 [[package]]
 name = "ln-temporal"
 version = "0.1.0"
+dependencies = [
+ "ln-fsm",
+ "sha2",
+]
 
 [[package]]
 name = "ln-testkit"
