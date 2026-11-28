@@ -26,11 +26,13 @@
 //! projection at effect_day t, not a stored document tree, not CTV text.
 
 pub mod adapters;
+pub mod amendment_compiler;
 pub mod application;
 pub mod calendar;
 pub mod document_context;
 pub mod domain;
 pub mod identity_binding;
+pub mod lifecycle_fsms;
 pub mod ports;
 pub mod provenance;
 pub mod semantic_annotation;

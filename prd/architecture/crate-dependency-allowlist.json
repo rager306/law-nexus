@@ -235,6 +235,10 @@
     [
       "ln-work",
       "ln-fsm"
+    ],
+    [
+      "ln-temporal",
+      "ln-fsm"
     ]
   ],
   "non_claims": [
