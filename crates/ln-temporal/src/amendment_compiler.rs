@@ -581,14 +581,158 @@ fn apply_one_operation(
     }
 }
 
+fn anchored_edit_span<'a>(
+    text: &str,
+    op: &'a CompilerMicroOperation,
+) -> Option<(usize, usize, Option<&'a str>)> {
+    let needle = op.loc_value.as_deref()?;
+    let valid_mode = matches!(
+        (op.kind, op.anchor_mode),
+        (MicroOperationKind::ReplaceText, TextAnchorMode::ExactAnchor)
+            | (
+                MicroOperationKind::InsertText,
+                TextAnchorMode::AfterAnchor | TextAnchorMode::BeforeAnchor
+            )
+            | (MicroOperationKind::DeleteText, TextAnchorMode::ExactAnchor)
+    );
+    if !valid_mode {
+        return None;
+    }
+    if matches!(
+        op.kind,
+        MicroOperationKind::ReplaceText | MicroOperationKind::InsertText
+    ) && op.value.is_none()
+    {
+        return None;
+    }
+    let start = find_unique_match(text, needle).ok()?;
+    Some((start, start + needle.len(), op.value.as_deref()))
+}
+
+/// Maximum number of operations in a same-day multi-act bucket for which
+/// exhaustive op-level permutation verification (`k! <= 24`) is performed.
+/// Larger same-day cross-act buckets fail closed with `OrderingConflict`.
+const MAX_COMMUTATIVE_BUCKET_OPS: usize = 4;
+
+fn all_permutations_yield_same_text(
+    base_comp: &CompiledComponent,
+    target_locator: &str,
+    bucket: &[&CompilerMicroOperation],
+) -> bool {
+    let simulate = |ordered: &[&CompilerMicroOperation]| -> Option<String> {
+        let mut scratch: BTreeMap<String, CompiledComponent> = BTreeMap::new();
+        scratch.insert(target_locator.to_owned(), base_comp.clone());
+        for op in ordered {
+            let (outcome, _) = apply_one_operation(&mut scratch, op);
+            if outcome != ApplyOutcome::Applied {
+                return None;
+            }
+        }
+        scratch.remove(target_locator).map(|c| c.text)
+    };
+
+    let Some(canonical_text) = simulate(bucket) else {
+        return false;
+    };
+
+    // Exhaustively check all `n!` op-level permutations (Heap's algorithm;
+    // `n <= MAX_COMMUTATIVE_BUCKET_OPS = 4`, so at most 24 simulations) so
+    // neither 3+ act cross-boundary anchor synthesis nor intra-act + cross-act
+    // interleavings can slip past `INV-03`.
+    let n = bucket.len();
+    let mut perm: Vec<&CompilerMicroOperation> = bucket.to_vec();
+    let mut c = vec![0usize; n];
+    let mut i = 0usize;
+    while i < n {
+        if c[i] < i {
+            if i.is_multiple_of(2) {
+                perm.swap(0, i);
+            } else {
+                perm.swap(c[i], i);
+            }
+            if simulate(&perm).as_deref() != Some(canonical_text.as_str()) {
+                return false;
+            }
+            c[i] += 1;
+            i = 0;
+        } else {
+            c[i] = 0;
+            i += 1;
+        }
+    }
+    true
+}
+
+/// Prove that a same-day multi-act bucket targeting the same active component
+/// consists exclusively of strictly disjoint, non-interfering anchored text
+/// edits whose final text is identical under EVERY op-level permutation
+/// (`INV-02` & `INV-03` / `MC-DAG`).
+///
+/// Any `WholeComponent`, `EndOfComponent`, `Attach`, `Repeal`, missing/ambiguous
+/// anchor, touching/overlapping byte span, bucket exceeding 4 operations, or
+/// permutation-sensitive interaction returns `false` so the caller fails closed
+/// with [`ApplyOutcome::OrderingConflict`].
+fn is_provably_commutative_same_day_bucket(
+    components: &BTreeMap<String, CompiledComponent>,
+    target_locator: &str,
+    bucket: &[&CompilerMicroOperation],
+) -> bool {
+    if bucket.len() > MAX_COMMUTATIVE_BUCKET_OPS {
+        return false;
+    }
+    let Some(base_comp) = components.get(target_locator) else {
+        return false;
+    };
+    if !base_comp.structural_membership
+        || base_comp.editorial_presence != EditorialPresence::Present
+    {
+        return false;
+    }
+
+    let mut spans: Vec<(usize, usize, &str, Option<&str>)> = Vec::with_capacity(bucket.len());
+    for op in bucket {
+        let Some((start, end, val)) = anchored_edit_span(&base_comp.text, op) else {
+            return false;
+        };
+        let needle = op.loc_value.as_deref().unwrap_or("");
+        spans.push((start, end, needle, val));
+    }
+
+    // Require strict byte separation (`prev.end < next.start`) between every
+    // pair of matched spans so edits never overlap or share an insertion edge.
+    let mut sorted_spans: Vec<(usize, usize)> = spans.iter().map(|&(s, e, _, _)| (s, e)).collect();
+    sorted_spans.sort_unstable();
+    for pair in sorted_spans.windows(2) {
+        if pair[0].1 >= pair[1].0 {
+            return false;
+        }
+    }
+
+    // Fast static reject if any op's replacement/insertion text contains another
+    // op's anchor.
+    for (i, &(_, _, _, maybe_val)) in spans.iter().enumerate() {
+        if let Some(val) = maybe_val {
+            for (j, &(_, _, other_needle, _)) in spans.iter().enumerate() {
+                if i != j && val.contains(other_needle) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    all_permutations_yield_same_text(base_comp, target_locator, bucket)
+}
+
 /// Deterministically fold `base_components` and `operations` at `(legal_as_of, known_as_of)`.
 ///
 /// Enforces:
 /// - `INV-01`: identical inputs yield identical length-prefixed SHA-256 `root_hash`;
 /// - `INV-02`: permuting independent operations yields identical snapshot & `root_hash`;
 /// - `INV-03`: same-day (`legal_effective_day`) operations targeting the same
-///   `target_locator` from distinct `amending_act_id`s fail closed with
-///   [`ApplyOutcome::OrderingConflict`] instead of silently ordering by `recorded_day`/`op_id`;
+///   `target_locator` from distinct `amending_act_id`s are applied only when
+///   provably commutative (strictly disjoint anchored text edits with verified
+///   order-independent post-text); otherwise every op in the conflicting bucket
+///   fails closed with [`ApplyOutcome::OrderingConflict`];
 /// - `INV-04`: `legal_effective_day > legal_as_of` excluded;
 /// - `INV-05`: `recorded_day > known_as_of` excluded first (before admission check).
 pub fn compile_at(
@@ -691,49 +835,66 @@ pub fn compile_at(
         *op_id_counts.entry(op.op_id.as_str()).or_insert(0) += 1;
     }
 
-    // Detect INV-03 / MC-DAG same-day cross-act contention on the same target_locator.
-    let mut same_day_acts: BTreeMap<(i64, &str), BTreeSet<&str>> = BTreeMap::new();
-    for op in &eligible {
-        if !op.target_locator.trim().is_empty() {
-            same_day_acts
-                .entry((op.legal_effective_day, op.target_locator.as_str()))
-                .or_default()
-                .insert(op.amending_act_id.as_str());
-        }
-    }
-
-    for op in eligible {
-        if op_id_counts.get(op.op_id.as_str()).copied().unwrap_or(0) > 1 {
-            audit.push(OperationAuditEntry {
-                op_id: op.op_id.clone(),
-                amending_act_id: op.amending_act_id.clone(),
-                target_locator: op.target_locator.clone(),
-                outcome: ApplyOutcome::PreconditionMismatch,
-                detail: "duplicate op_id rejected fail-closed".to_owned(),
-            });
-            continue;
-        }
-        if same_day_acts
-            .get(&(op.legal_effective_day, op.target_locator.as_str()))
-            .is_some_and(|acts| acts.len() > 1)
+    // Process eligible operations in contiguous `(legal_effective_day, target_locator)`
+    // buckets so same-day multi-act commutativity is evaluated against the exact
+    // component state accumulated from all strictly earlier effective days.
+    let mut idx = 0usize;
+    while idx < eligible.len() {
+        let day = eligible[idx].legal_effective_day;
+        let locator = eligible[idx].target_locator.as_str();
+        let mut end = idx + 1;
+        while end < eligible.len()
+            && eligible[end].legal_effective_day == day
+            && eligible[end].target_locator.as_str() == locator
         {
+            end += 1;
+        }
+
+        let slice = &eligible[idx..end];
+        let mut valid_bucket: Vec<&CompilerMicroOperation> = Vec::with_capacity(slice.len());
+        let mut acts: BTreeSet<&str> = BTreeSet::new();
+        for &op in slice {
+            if op_id_counts.get(op.op_id.as_str()).copied().unwrap_or(0) > 1 {
+                audit.push(OperationAuditEntry {
+                    op_id: op.op_id.clone(),
+                    amending_act_id: op.amending_act_id.clone(),
+                    target_locator: op.target_locator.clone(),
+                    outcome: ApplyOutcome::PreconditionMismatch,
+                    detail: "duplicate op_id rejected fail-closed".to_owned(),
+                });
+            } else {
+                if !locator.trim().is_empty() {
+                    acts.insert(op.amending_act_id.as_str());
+                }
+                valid_bucket.push(op);
+            }
+        }
+
+        let conflicting_same_day = acts.len() > 1
+            && !is_provably_commutative_same_day_bucket(&components, locator, &valid_bucket);
+
+        for op in valid_bucket {
+            if conflicting_same_day {
+                audit.push(OperationAuditEntry {
+                    op_id: op.op_id.clone(),
+                    amending_act_id: op.amending_act_id.clone(),
+                    target_locator: op.target_locator.clone(),
+                    outcome: ApplyOutcome::OrderingConflict,
+                    detail: "multiple distinct amending acts target the same component on the same legal_effective_day with non-commutative mutations".to_owned(),
+                });
+                continue;
+            }
+            let (outcome, detail) = apply_one_operation(&mut components, op);
             audit.push(OperationAuditEntry {
                 op_id: op.op_id.clone(),
                 amending_act_id: op.amending_act_id.clone(),
                 target_locator: op.target_locator.clone(),
-                outcome: ApplyOutcome::OrderingConflict,
-                detail: "multiple distinct amending acts target the same component on the same legal_effective_day without explicit causal order".to_owned(),
+                outcome,
+                detail,
             });
-            continue;
         }
-        let (outcome, detail) = apply_one_operation(&mut components, op);
-        audit.push(OperationAuditEntry {
-            op_id: op.op_id.clone(),
-            amending_act_id: op.amending_act_id.clone(),
-            target_locator: op.target_locator.clone(),
-            outcome,
-            detail,
-        });
+
+        idx = end;
     }
 
     let root_hash = compute_root_hash(

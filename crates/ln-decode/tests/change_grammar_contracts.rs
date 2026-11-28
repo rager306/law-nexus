@@ -394,4 +394,306 @@ fn smoke_real_consru_export_484_fz_and_138_fz_parse_deterministically() {
     );
     // INV-01 determinism: second parse is byte-for-byte identical.
     assert_eq!(r484, parse_amending_blocks(&p484_refs));
+
+    // Additional real amending statutes from consru_export:
+    // - 333-FZ (header-scoped `часть 1 статьи 95`: 4/4 operations, 0 refusals)
+    // - 432-FZ (header-scoped `статья 112`: 2/2 operations, 0 refusals)
+    // - 124-FZ (multi-op with WholeComponent, ExactAnchor, Attach, and 2 Repeals: 0 refusals)
+    // - 494-FZ (multi-act law amending Land Code, 29-FZ, Urban Planning Code, 44-FZ)
+    let p333 = root.join(
+        "consru_export/consru_export/exports/npa/law_2025-07-31_333-fz_rev-unknown_de3ad12f.xml",
+    );
+    let p432 = root.join(
+        "consru_export/consru_export/exports/npa/law_2024-11-30_432-fz_rev-unknown_67ced536.xml",
+    );
+    let p124 = root.join(
+        "consru_export/consru_export/exports/npa/law_2024-05-29_124-fz_rev-unknown_13541fea.xml",
+    );
+    let p494 = root.join(
+        "consru_export/consru_export/exports/npa/law_2024-12-26_494-fz_rev-unknown_5c5ff12e.xml",
+    );
+    if p333.exists() && p432.exists() && p124.exists() && p494.exists() {
+        let p333_lines = extract_paras(&p333);
+        let p333_refs: Vec<&str> = p333_lines.iter().map(String::as_str).collect();
+        let r333 = parse_amending_blocks(&p333_refs);
+        assert_eq!(r333.non_claims, CHANGE_GRAMMAR_NON_CLAIMS);
+        assert!(
+            r333.refusals.is_empty(),
+            "333-FZ refusals: {:?}",
+            r333.refusals
+        );
+        assert_eq!(r333.candidates.len(), 4);
+        assert_eq!(
+            r333.candidates
+                .iter()
+                .map(|c| c.target_locator.canonical_path())
+                .collect::<Vec<_>>(),
+            vec![
+                "statya-95/chast-1/punkt-1.2",
+                "statya-95/chast-1/punkt-1.3",
+                "statya-95/chast-1/punkt-10",
+                "statya-95/chast-1/punkt-14",
+            ]
+        );
+        assert_eq!(r333.candidates[3].kind, ChangeOpKind::Attach);
+
+        let p432_lines = extract_paras(&p432);
+        let p432_refs: Vec<&str> = p432_lines.iter().map(String::as_str).collect();
+        let r432 = parse_amending_blocks(&p432_refs);
+        assert_eq!(r432.non_claims, CHANGE_GRAMMAR_NON_CLAIMS);
+        assert!(
+            r432.refusals.is_empty(),
+            "432-FZ refusals: {:?}",
+            r432.refusals
+        );
+        assert_eq!(r432.candidates.len(), 2);
+        assert_eq!(
+            r432.candidates
+                .iter()
+                .map(|c| c.target_locator.canonical_path())
+                .collect::<Vec<_>>(),
+            vec!["statya-112/chast-66", "statya-112/chast-67"]
+        );
+
+        let p124_lines = extract_paras(&p124);
+        let p124_refs: Vec<&str> = p124_lines.iter().map(String::as_str).collect();
+        let r124 = parse_amending_blocks(&p124_refs);
+        assert_eq!(r124.non_claims, CHANGE_GRAMMAR_NON_CLAIMS);
+        assert!(
+            r124.refusals.is_empty(),
+            "124-FZ refusals: {:?}",
+            r124.refusals
+        );
+        assert_eq!(r124.candidates.len(), 9);
+        assert_eq!(
+            r124.candidates
+                .iter()
+                .filter(|c| c.kind == ChangeOpKind::Repeal)
+                .count(),
+            2
+        );
+
+        let p494_lines = extract_paras(&p494);
+        let p494_refs: Vec<&str> = p494_lines.iter().map(String::as_str).collect();
+        let r494 = parse_amending_blocks(&p494_refs);
+        assert_eq!(r494.non_claims, CHANGE_GRAMMAR_NON_CLAIMS);
+        eprintln!(
+            "[smoke multi-act] 333-FZ={}/{} 432-FZ={}/{} 124-FZ={}/{} 494-FZ={}/{}",
+            r333.candidates.len(),
+            r333.refusals.len(),
+            r432.candidates.len(),
+            r432.refusals.len(),
+            r124.candidates.len(),
+            r124.refusals.len(),
+            r494.candidates.len(),
+            r494.refusals.len()
+        );
+        assert!(r494.candidates.len() >= 20);
+        // Header-scoped 29-FZ Article 3 (`пункт 3 статьи 4` -> `абзац 2` & `абзац 3`)
+        assert!(r494.candidates.iter().any(|c| {
+            c.owner_act.number.as_deref() == Some("29-ФЗ")
+                && c.target_locator.canonical_path() == "statya-4/punkt-3/abzats-2"
+        }));
+        assert_eq!(r494, parse_amending_blocks(&p494_refs));
+    } else {
+        eprintln!("SKIP [smoke]: consru_export 333-FZ/432-FZ/124-FZ/494-FZ not all present");
+    }
+}
+
+#[test]
+fn parses_nested_ascii_quotes_code_parts_fkz_and_refuses_hostile_edges_fail_closed() {
+    // 1. Valid nested ASCII quotes in both `loc_value` and `value`, inline
+    //    `дополнить предложением следующего содержания: "..."`, and `, а ` conjunction.
+    let valid_blocks = [
+        "Статья 1",
+        "Внести изменения в статью 217 части второй Налогового кодекса Российской Федерации следующие изменения:",
+        "1) в пункте 1 слова \"пунктами 2, 3, 4,\" заменить словами \"подпунктами \"в\" - \"д\" пункта 5, пунктами\";",
+        "2) в пункте 2 слова \"подпунктом \"а\" части 1\" заменить словами \"подпунктами \"а\" и \"б\" пункта 5\", а слова \"устаревшее\" исключить;",
+        "3) пункт 3 дополнить предложением следующего содержания: \"Новое предложение.\";",
+        "Статья 2",
+        "1. Внести в часть первую Гражданского кодекса Российской Федерации следующие изменения:",
+        "1) в пункте 1 статьи 10 слово \"а\" заменить словом \"б\";",
+        "2) слово \"а\" заменить словом \"б\";",
+        "Статья 3",
+        "Внести в Федеральный конституционный закон от 31 декабря 1996 года N 1-ФКЗ \"О судебной системе\" (Собрание законодательства Российской Федерации, 1997, N 1, ст. 1; в редакции Указа Президента) следующие изменения:",
+        "1) в статье 4 слово \"суд\" заменить словом \"орган\";",
+        "2) слово \"указанных\" заменить словом \"иных\";",
+    ];
+    let r_valid = parse_amending_blocks(&valid_blocks);
+    assert_eq!(r_valid.candidates.len(), 6);
+    // Code Part `части второй` stripped -> `statya-217/punkt-1`, NOT `statya-217/chast-2/punkt-1`!
+    assert_eq!(
+        r_valid.candidates[0].target_locator.canonical_path(),
+        "statya-217/punkt-1"
+    );
+    assert_eq!(
+        r_valid.candidates[0].value.as_deref(),
+        Some("подпунктами \"в\" - \"д\" пункта 5, пунктами")
+    );
+    assert_eq!(
+        r_valid.candidates[1].loc_value.as_deref(),
+        Some("подпунктом \"а\" части 1")
+    );
+    assert_eq!(
+        r_valid.candidates[1].value.as_deref(),
+        Some("подпунктами \"а\" и \"б\" пункта 5")
+    );
+    assert_eq!(r_valid.candidates[2].kind, ChangeOpKind::DeleteText);
+    assert_eq!(
+        r_valid.candidates[3].param,
+        ChangePositionParam::EndOfComponent
+    );
+    assert_eq!(
+        r_valid.candidates[3].value.as_deref(),
+        Some("Новое предложение.")
+    );
+    // Code Part `часть первую ГК РФ` yields empty act_scope -> clause 1 targets statya-10/punkt-1,
+    // clause 2 without article fails closed as AmbiguousTarget (never bogus `chast-1`)!
+    assert_eq!(
+        r_valid.candidates[4].target_locator.canonical_path(),
+        "statya-10/punkt-1"
+    );
+    // FKZ header with `(СЗ РФ ... ст. 1; в редакции Указа ...)` never extracts `statya-1`!
+    assert_eq!(
+        r_valid.candidates[5].target_locator.canonical_path(),
+        "statya-4"
+    );
+    assert_eq!(r_valid.refusals.len(), 2);
+    assert!(
+        r_valid
+            .refusals
+            .iter()
+            .all(|r| matches!(r, ChangeParseRefusal::AmbiguousTarget { .. }))
+    );
+
+    // 2. Hostile fail-closed cases:
+    //    - Unclosed nested ASCII quotes in loc_value & value -> IncompleteSource (0 corrupted candidates)
+    //    - Refused container header under header-scoped act poisons children -> AmbiguousTarget
+    //    - Compound clause ending with next-line `дополнить предложением следующего содержания:` -> UnsupportedOperation
+    //    - Coordinated plurals: `подпункта "а", "б"`, `подпункта «а» и «б»`, `в абзаце первом и втором` -> AmbiguousTarget
+    let hostile = [
+        "Статья 1",
+        "Внести в статью 112 Федерального закона от 5 апреля 2013 года N 44-ФЗ следующие изменения:",
+        "1) в части 1 слова \"подпунктами \"а\" заменить словом \"в\";",
+        "2) в части 2 слово \"х\" заменить словами \"подпунктом \"а\";",
+        "3) в наименовании:",
+        "а) слово \"х\" заменить словом \"у\";",
+        "4) в части 3 слово \"а\" заменить словом \"б\" и дополнить предложением следующего содержания:",
+        "\"Дополнительное предложение.\";",
+        "5) в подпункте \"а\", \"б\" части 4 слово \"а\" заменить словом \"б\";",
+        "6) в подпункте «а» и «б» части 4 слово \"а\" заменить словом \"б\";",
+        "7) в абзаце первом и втором части 4 слово \"а\" заменить словом \"б\";",
+        "8) в части 5 слово \"да\" заменить словом \"нет\";",
+    ];
+    let r_hostile = parse_amending_blocks(&hostile);
+    // Only clause 8) is clean — all 7 hostile/poisoned clauses MUST fail closed!
+    assert_eq!(r_hostile.candidates.len(), 1);
+    assert_eq!(
+        r_hostile.candidates[0].target_locator.canonical_path(),
+        "statya-112/chast-5"
+    );
+    assert!(r_hostile.refusals.iter().any(|r| matches!(
+        r,
+        ChangeParseRefusal::IncompleteSource { block_index: 2, .. }
+    )));
+    assert!(r_hostile.refusals.iter().any(|r| matches!(
+        r,
+        ChangeParseRefusal::IncompleteSource { block_index: 3, .. }
+    )));
+    assert!(r_hostile.refusals.iter().any(|r| matches!(
+        r,
+        ChangeParseRefusal::AmbiguousTarget { block_index: 4, .. }
+    )));
+    assert!(r_hostile.refusals.iter().any(|r| matches!(
+        r,
+        ChangeParseRefusal::AmbiguousTarget { block_index: 5, .. }
+    )));
+    assert!(r_hostile.refusals.iter().any(|r| matches!(
+        r,
+        ChangeParseRefusal::UnsupportedOperation { block_index: 6, .. }
+    )));
+    assert!(r_hostile.refusals.iter().any(|r| matches!(
+        r,
+        ChangeParseRefusal::AmbiguousTarget { block_index: 8, .. }
+    )));
+    assert!(r_hostile.refusals.iter().any(|r| matches!(
+        r,
+        ChangeParseRefusal::AmbiguousTarget { block_index: 9, .. }
+    )));
+    assert!(r_hostile.refusals.iter().any(|r| matches!(
+        r,
+        ChangeParseRefusal::AmbiguousTarget {
+            block_index: 10,
+            ..
+        }
+    )));
+}
+
+#[test]
+fn parses_header_scoped_act_headers_next_line_sentence_append_and_conjunction_chains() {
+    let blocks = [
+        "Статья 1",
+        "Внести в часть 1 статьи 95 Федерального закона от 5 апреля 2013 года N 44-ФЗ следующие изменения:",
+        "1) пункт 1.2 после слова \"строительства,\" дополнить словами \"благоустройству территории,\";",
+        "2) дополнить пунктом 14 следующего содержания:",
+        "\"14) новый пункт.\";",
+        "3) в пункте 10 слово \"три\" заменить словом \"шесть\" и после цифры \"3,\" дополнить цифрой \"6,\";",
+        "4) пункт 11 дополнить предложением следующего содержания:",
+        "\"Дополнительное предложение в конце пункта.\";",
+        "Статья 2",
+        "Внести в статьи 31 и 43 Федерального закона от 5 апреля 2013 года N 44-ФЗ следующие изменения:",
+        "1) слово \"а\" заменить словом \"б\";",
+        "2) в части 1 статьи 31 слово \"а\" заменить словом \"б\";",
+    ];
+
+    let report = parse_amending_blocks(&blocks);
+    assert_eq!(report.candidates.len(), 6);
+    assert_eq!(
+        report.candidates[0].target_locator.canonical_path(),
+        "statya-95/chast-1/punkt-1.2"
+    );
+    assert_eq!(
+        report.candidates[1].target_locator.canonical_path(),
+        "statya-95/chast-1/punkt-14"
+    );
+    assert_eq!(report.candidates[1].kind, ChangeOpKind::Attach);
+    // Chained `и` conjunction emits two candidates on the same locator.
+    assert_eq!(
+        report.candidates[2].target_locator.canonical_path(),
+        "statya-95/chast-1/punkt-10"
+    );
+    assert_eq!(report.candidates[2].kind, ChangeOpKind::ReplaceText);
+    assert_eq!(
+        report.candidates[3].target_locator.canonical_path(),
+        "statya-95/chast-1/punkt-10"
+    );
+    assert_eq!(report.candidates[3].kind, ChangeOpKind::InsertText);
+    // Next-line `дополнить предложением следующего содержания:` emits EndOfComponent.
+    assert_eq!(
+        report.candidates[4].target_locator.canonical_path(),
+        "statya-95/chast-1/punkt-11"
+    );
+    assert_eq!(report.candidates[4].kind, ChangeOpKind::InsertText);
+    assert_eq!(
+        report.candidates[4].param,
+        ChangePositionParam::EndOfComponent
+    );
+    assert_eq!(
+        report.candidates[4].value.as_deref(),
+        Some("Дополнительное предложение в конце пункта.")
+    );
+    // Plural header `Внести в статьи 31 и 43 ...:` refuses targetless clause 1) fail-closed
+    // while allowing explicit target in clause 2).
+    assert_eq!(
+        report.candidates[5].target_locator.canonical_path(),
+        "statya-31/chast-1"
+    );
+    assert_eq!(report.refusals.len(), 1);
+    assert!(matches!(
+        report.refusals[0],
+        ChangeParseRefusal::AmbiguousTarget {
+            block_index: 10,
+            ..
+        }
+    ));
 }

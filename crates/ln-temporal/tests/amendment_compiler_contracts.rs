@@ -421,3 +421,349 @@ fn covers_all_oracle_discrepancy_kinds_and_tombstone_absent_verification() {
             .any(|d| d.kind == DiscrepancyKind::TextMismatch)
     );
 }
+
+#[test]
+fn same_day_multi_act_commutativity_applies_disjoint_edits_and_refuses_interfering_ones() {
+    // 1. Strictly disjoint anchors from two distinct acts on the same legal_effective_day
+    //    commute and produce identical text and SHA-256 root_hash in either input order.
+    let seed = vec![base(
+        "st-3/p-8.1",
+        "8.1) контракт - гражданско-правовой договор, указанными в частях 4, 4.1, 4.3 и 5 статьи 15;",
+    )];
+    let op_484 = op(
+        "484-fz:op-1",
+        "484-fz",
+        "st-3/p-8.1",
+        MicroOperationKind::InsertText,
+        TextAnchorMode::AfterAnchor,
+        Some("гражданско-правовой договор,"),
+        Some("который заключен в письменной форме и"),
+    );
+    let op_124 = op(
+        "124-fz:op-1",
+        "124-fz",
+        "st-3/p-8.1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("4, 4.1, 4.3 и 5 статьи 15"),
+        Some("4, 4.3 и 4.4 статьи 15"),
+    );
+    let s_ab = compile_at(&seed, &[op_484.clone(), op_124.clone()], 20250101, 20250101);
+    let s_ba = compile_at(&seed, &[op_124, op_484], 20250101, 20250101);
+    assert_eq!(s_ab.root_hash, s_ba.root_hash);
+    assert!(
+        s_ab.audit
+            .iter()
+            .all(|a| a.outcome == ApplyOutcome::Applied)
+    );
+    assert_eq!(
+        s_ab.components["st-3/p-8.1"].text,
+        "8.1) контракт - гражданско-правовой договор, который заключен в письменной форме и указанными в частях 4, 4.3 и 4.4 статьи 15;"
+    );
+
+    // 2. Touching spans (`prev.end == next.start`) MUST fail closed with OrderingConflict.
+    let touching_seed = vec![base("st-1", "абвг")];
+    let touch_a = op(
+        "t-a",
+        "act-A",
+        "st-1",
+        MicroOperationKind::InsertText,
+        TextAnchorMode::AfterAnchor,
+        Some("аб"),
+        Some("X"),
+    );
+    let touch_b = op(
+        "t-b",
+        "act-B",
+        "st-1",
+        MicroOperationKind::InsertText,
+        TextAnchorMode::BeforeAnchor,
+        Some("вг"),
+        Some("Y"),
+    );
+    let s_touch = compile_at(&touching_seed, &[touch_a, touch_b], 20250101, 20250101);
+    assert!(
+        s_touch
+            .audit
+            .iter()
+            .all(|a| a.outcome == ApplyOutcome::OrderingConflict)
+    );
+    assert_eq!(s_touch.components["st-1"].text, "абвг");
+
+    // 3. Cross-anchor interference (act-A inserts text containing act-B's anchor) MUST fail closed!
+    let cross_seed = vec![base("st-1", "альфа — бета.")];
+    let cross_a = op(
+        "c-a",
+        "act-A",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("альфа"),
+        Some("бета"),
+    );
+    let cross_b = op(
+        "c-b",
+        "act-B",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("бета"),
+        Some("гамма"),
+    );
+    let s_cross = compile_at(&cross_seed, &[cross_a, cross_b], 20250101, 20250101);
+    assert!(
+        s_cross
+            .audit
+            .iter()
+            .all(|a| a.outcome == ApplyOutcome::OrderingConflict)
+    );
+    assert_eq!(s_cross.components["st-1"].text, "альфа — бета.");
+
+    // 4. WholeComponent + ExactAnchor on the same day across distinct acts MUST fail closed!
+    let mixed_a = op(
+        "m-a",
+        "act-A",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::WholeComponent,
+        None,
+        Some("Новая редакция."),
+    );
+    let mixed_b = op(
+        "m-b",
+        "act-B",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("альфа"),
+        Some("дельта"),
+    );
+    let s_mixed = compile_at(&cross_seed, &[mixed_a, mixed_b], 20250101, 20250101);
+    assert!(
+        s_mixed
+            .audit
+            .iter()
+            .all(|a| a.outcome == ApplyOutcome::OrderingConflict)
+    );
+    assert_eq!(s_mixed.components["st-1"].text, "альфа — бета.");
+
+    // 5. Three commuting distinct acts on the same day produce identical text & root_hash
+    //    across permutations.
+    let tri_seed = vec![base("st-1", "раз — два — три.")];
+    let t1 = op(
+        "tri-1",
+        "act-1",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("раз"),
+        Some("один"),
+    );
+    let t2 = op(
+        "tri-2",
+        "act-2",
+        "st-1",
+        MicroOperationKind::DeleteText,
+        TextAnchorMode::ExactAnchor,
+        Some("два"),
+        None,
+    );
+    let t3 = op(
+        "tri-3",
+        "act-3",
+        "st-1",
+        MicroOperationKind::InsertText,
+        TextAnchorMode::AfterAnchor,
+        Some("три"),
+        Some("четыре"),
+    );
+    let tri_a = compile_at(
+        &tri_seed,
+        &[t1.clone(), t2.clone(), t3.clone()],
+        20250101,
+        20250101,
+    );
+    let tri_b = compile_at(&tri_seed, &[t3, t1, t2], 20250101, 20250101);
+    assert_eq!(tri_a.root_hash, tri_b.root_hash);
+    assert!(
+        tri_a
+            .audit
+            .iter()
+            .all(|a| a.outcome == ApplyOutcome::Applied)
+    );
+
+    // 6. 3-act non-commutative trap (`ABC == CBA`, but `ACB` fails AmbiguousTarget!)
+    //    MUST fail closed with OrderingConflict via exhaustive permutation check.
+    let trap_seed = vec![base("st-1", "p X Z q | t u")];
+    let trap_a = op(
+        "trap-a",
+        "act-A",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("X"),
+        Some("t"),
+    );
+    let trap_b = op(
+        "trap-b",
+        "act-B",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("t u"),
+        Some("V"),
+    );
+    let trap_c = op(
+        "trap-c",
+        "act-C",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("Z"),
+        Some("u"),
+    );
+    let s_trap = compile_at(&trap_seed, &[trap_a, trap_b, trap_c], 20250101, 20250101);
+    assert!(
+        s_trap
+            .audit
+            .iter()
+            .all(|a| a.outcome == ApplyOutcome::OrderingConflict)
+    );
+    assert_eq!(s_trap.components["st-1"].text, "p X Z q | t u");
+
+    // 7. 1-act multi-op + 1-act interleaving trap MUST fail closed with OrderingConflict.
+    let inter_a1 = op(
+        "i-a1",
+        "act-A",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("t u"),
+        Some("V"),
+    );
+    let inter_a2 = op(
+        "i-a2",
+        "act-A",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("X"),
+        Some("t"),
+    );
+    let inter_b1 = op(
+        "i-b1",
+        "act-B",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("Z"),
+        Some("u"),
+    );
+    let s_inter = compile_at(
+        &trap_seed,
+        &[inter_a1, inter_a2, inter_b1],
+        20250101,
+        20250101,
+    );
+    assert!(
+        s_inter
+            .audit
+            .iter()
+            .all(|a| a.outcome == ApplyOutcome::OrderingConflict)
+    );
+    assert_eq!(s_inter.components["st-1"].text, "p X Z q | t u");
+
+    // 8. Pure DeleteText cross-boundary anchor synthesis trap MUST fail closed!
+    let del_trap_seed = vec![base("st-1", "t X m Y u | t m u")];
+    let del_a = op(
+        "del-a",
+        "act-A",
+        "st-1",
+        MicroOperationKind::DeleteText,
+        TextAnchorMode::ExactAnchor,
+        Some("X"),
+        None,
+    );
+    let del_b = op(
+        "del-b",
+        "act-B",
+        "st-1",
+        MicroOperationKind::ReplaceText,
+        TextAnchorMode::ExactAnchor,
+        Some("t m u"),
+        Some("V"),
+    );
+    let del_c = op(
+        "del-c",
+        "act-C",
+        "st-1",
+        MicroOperationKind::DeleteText,
+        TextAnchorMode::ExactAnchor,
+        Some("Y"),
+        None,
+    );
+    let s_del_trap = compile_at(&del_trap_seed, &[del_a, del_b, del_c], 20250101, 20250101);
+    assert!(
+        s_del_trap
+            .audit
+            .iter()
+            .all(|a| a.outcome == ApplyOutcome::OrderingConflict)
+    );
+
+    // 9. Multi-act bucket exceeding MAX_COMMUTATIVE_BUCKET_OPS (5 ops) MUST fail closed!
+    let five_seed = vec![base("st-1", "a | b | c | d | e")];
+    let five_ops = vec![
+        op(
+            "f-1",
+            "act-1",
+            "st-1",
+            MicroOperationKind::ReplaceText,
+            TextAnchorMode::ExactAnchor,
+            Some("a"),
+            Some("A"),
+        ),
+        op(
+            "f-2",
+            "act-2",
+            "st-1",
+            MicroOperationKind::ReplaceText,
+            TextAnchorMode::ExactAnchor,
+            Some("b"),
+            Some("B"),
+        ),
+        op(
+            "f-3",
+            "act-3",
+            "st-1",
+            MicroOperationKind::ReplaceText,
+            TextAnchorMode::ExactAnchor,
+            Some("c"),
+            Some("C"),
+        ),
+        op(
+            "f-4",
+            "act-4",
+            "st-1",
+            MicroOperationKind::ReplaceText,
+            TextAnchorMode::ExactAnchor,
+            Some("d"),
+            Some("D"),
+        ),
+        op(
+            "f-5",
+            "act-5",
+            "st-1",
+            MicroOperationKind::ReplaceText,
+            TextAnchorMode::ExactAnchor,
+            Some("e"),
+            Some("E"),
+        ),
+    ];
+    let s_five = compile_at(&five_seed, &five_ops, 20250101, 20250101);
+    assert!(
+        s_five
+            .audit
+            .iter()
+            .all(|a| a.outcome == ApplyOutcome::OrderingConflict)
+    );
+}

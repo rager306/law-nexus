@@ -9,9 +9,13 @@
 //! 2. Offline synthetic non-44-ФЗ control act (`402-ФЗ О бухгалтерском учете` shape)
 //!    proving zero 44-ФЗ hardcoding, `MC-SEED` (`NotYetInForce` on `Attach`), and
 //!    four-axis `MC-REPEAL` (a bounded offline control, not yet a real multi-edition corpus pair);
-//! 3. Skip-capable `[smoke]` real-corpus verification over `consru_export`
-//!    (`edition-0112` + `484-ФЗ` -> `1 matched (drift = 0 on ст. 3 ч. 1 п. 8)` +
-//!    `1 honest TextMismatch on п. 8.1` surfacing a parallel same-day amending act).
+//! 3. Skip-capable `[smoke]` real-corpus verification over `consru_export`:
+//!    - `edition-0112` + `484-ФЗ` alone -> `1 matched (drift = 0 on ст. 3 ч. 1 п. 8)` +
+//!      `1 honest TextMismatch on п. 8.1` surfacing the parallel same-day `124-ФЗ` amendment;
+//!    - `edition-0112` + `484-ФЗ` + `124-ФЗ` -> `7/7 matched (drift = 0)` across `st3 p7/p8/p8.1`
+//!      (including commutative same-day 2-act composition on `p8.1`) and `st15 ch4/ch4.1/ch4.4/ch5`
+//!      (real `ReplaceText`, `InsertText`, `Attach` `MC-SEED`, and 4-axis `MC-REPEAL` tombstones),
+//!      plus `INV-02` permutation invariance across both real Federal Laws.
 
 use ln_decode::change_grammar::{
     ChangeClauseCandidate, ChangeOpKind, ChangePositionParam, parse_amending_blocks,
@@ -488,4 +492,269 @@ fn smoke_real_consru_export_ed112_plus_484fz_proves_p8_zero_drift_and_p81_discre
         "statya-3/chast-1/punkt-8.1"
     );
     assert_eq!(report.discrepancies[0].kind, DiscrepancyKind::TextMismatch);
+}
+
+#[test]
+fn smoke_real_consru_export_ed112_plus_484fz_and_124fz_proves_seven_components_zero_drift() {
+    use ln_decode::adapters::ConsultantWordMlBlockDecoder;
+    use ln_decode::domain::{DecodeRequest, FamilyFormat, PayloadRef};
+    use ln_decode::ports::BlockDecoderPort;
+
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let p_ed112 = root.join(
+        "consru_export/consru_export/exports/npa/law_2013-04-05_44-fz/edition-0112_rev-2024-11-30_from-unknown_28bc016d.xml",
+    );
+    let p_ed113 = root.join(
+        "consru_export/consru_export/exports/npa/law_2013-04-05_44-fz/edition-0113_rev-2024-12-26_from-unknown_03bd934e.xml",
+    );
+    let p_484 = root.join(
+        "consru_export/consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_1a599b98.xml",
+    );
+    let p_124 = root.join(
+        "consru_export/consru_export/exports/npa/law_2024-05-29_124-fz_rev-unknown_13541fea.xml",
+    );
+    if !p_ed112.exists() || !p_ed113.exists() || !p_484.exists() || !p_124.exists() {
+        eprintln!("SKIP [smoke]: consru_export ed112/ed113/484-FZ/124-FZ not present");
+        return;
+    }
+
+    let decode_lines = |path: &std::path::Path| -> Vec<String> {
+        let bytes = std::fs::read(path).expect("read xml");
+        let req = DecodeRequest::new(
+            PayloadRef::parse("payload:adr0032-spike-two-act-smoke").expect("payload"),
+            FamilyFormat::parse("family:consultant-wordml").expect("format"),
+            &bytes,
+        );
+        ConsultantWordMlBlockDecoder
+            .decode_blocks(&req)
+            .expect("decode")
+            .into_iter()
+            .map(|b| b.text().to_owned())
+            .collect()
+    };
+
+    let ed112_lines = decode_lines(&p_ed112);
+    let ed113_lines = decode_lines(&p_ed113);
+    let fz484_lines = decode_lines(&p_484);
+    let fz124_lines = decode_lines(&p_124);
+
+    let find_in_article = |lines: &[String], article_heading: &str, prefix: &str| -> String {
+        let start = lines
+            .iter()
+            .position(|l| l.trim_start().starts_with(article_heading))
+            .unwrap_or_else(|| panic!("expected article '{article_heading}'"));
+        lines[start + 1..]
+            .iter()
+            .take_while(|l| !l.trim_start().starts_with("Статья "))
+            .find(|l| l.trim_start().starts_with(prefix))
+            .unwrap_or_else(|| panic!("expected '{prefix}' inside '{article_heading}'"))
+            .clone()
+    };
+
+    let strip_editorial_tag = |s: &str| -> String {
+        let trimmed = s.trim();
+        for marker in ["(в ред. Федерального закона", "(часть ", "(пункт "]
+        {
+            if let Some(pos) = trimmed.find(marker) {
+                return trimmed[..pos].trim().to_owned();
+            }
+        }
+        trimmed.to_owned()
+    };
+
+    let base = vec![
+        BaseComponent {
+            locator: "statya-3/chast-1/punkt-7".to_owned(),
+            text: find_in_article(&ed112_lines, "Статья 3.", "7) заказчик"),
+            force_status: NormativeState::InForce,
+            preserved_mentions: vec!["mention:ed112-st3-p7".to_owned()],
+        },
+        BaseComponent {
+            locator: "statya-3/chast-1/punkt-8".to_owned(),
+            text: find_in_article(&ed112_lines, "Статья 3.", "8) государственный контракт"),
+            force_status: NormativeState::InForce,
+            preserved_mentions: vec!["mention:ed112-st3-p8".to_owned()],
+        },
+        BaseComponent {
+            locator: "statya-3/chast-1/punkt-8.1".to_owned(),
+            text: find_in_article(&ed112_lines, "Статья 3.", "8.1) контракт -"),
+            force_status: NormativeState::InForce,
+            preserved_mentions: vec!["mention:ed112-st3-p8.1".to_owned()],
+        },
+        BaseComponent {
+            locator: "statya-15/chast-4".to_owned(),
+            text: find_in_article(&ed112_lines, "Статья 15.", "4. При "),
+            force_status: NormativeState::InForce,
+            preserved_mentions: vec!["mention:ed112-st15-ch4".to_owned()],
+        },
+        BaseComponent {
+            locator: "statya-15/chast-4.1".to_owned(),
+            text: find_in_article(&ed112_lines, "Статья 15.", "4.1. При "),
+            force_status: NormativeState::InForce,
+            preserved_mentions: vec!["mention:ed112-st15-ch4.1".to_owned()],
+        },
+        BaseComponent {
+            locator: "statya-15/chast-5".to_owned(),
+            text: find_in_article(&ed112_lines, "Статья 15.", "5. При "),
+            force_status: NormativeState::InForce,
+            preserved_mentions: vec!["mention:ed112-st15-ch5".to_owned()],
+        },
+    ];
+
+    let fz484_refs: Vec<&str> = fz484_lines.iter().map(String::as_str).collect();
+    let fz124_refs: Vec<&str> = fz124_lines.iter().map(String::as_str).collect();
+    let r484 = parse_amending_blocks(&fz484_refs);
+    let r124 = parse_amending_blocks(&fz124_refs);
+    assert!(
+        r124.refusals.is_empty(),
+        "124-FZ refusals: {:?}",
+        r124.refusals
+    );
+
+    let scoped_locators = [
+        "statya-3/chast-1/punkt-7",
+        "statya-3/chast-1/punkt-8",
+        "statya-3/chast-1/punkt-8.1",
+        "statya-15/chast-4",
+        "statya-15/chast-4.1",
+        "statya-15/chast-4.4",
+        "statya-15/chast-5",
+    ];
+
+    let mut ops_484_first: Vec<CompilerMicroOperation> = r484
+        .candidates
+        .iter()
+        .enumerate()
+        .filter(|(_, c)| scoped_locators.contains(&c.target_locator.canonical_path().as_str()))
+        .map(|(i, c)| {
+            map_candidate_to_op(
+                i,
+                "484-fz-real",
+                c,
+                20250101,
+                20241226,
+                AssertionFoldStatus::AuthoritativeInternal,
+            )
+        })
+        .collect();
+    let ops_124: Vec<CompilerMicroOperation> = r124
+        .candidates
+        .iter()
+        .enumerate()
+        .filter(|(_, c)| scoped_locators.contains(&c.target_locator.canonical_path().as_str()))
+        .map(|(i, c)| {
+            map_candidate_to_op(
+                i,
+                "124-fz-real",
+                c,
+                20250101,
+                20240529,
+                AssertionFoldStatus::AuthoritativeInternal,
+            )
+        })
+        .collect();
+
+    assert_eq!(ops_484_first.len(), 2, "484-FZ contributes p.8 and p.8.1");
+    assert_eq!(
+        ops_124.len(),
+        6,
+        "124-FZ contributes p.7, p.8.1, st15 ch.4, ch.4.1 repeal, ch.4.4 attach, ch.5 repeal"
+    );
+
+    let mut ops_124_first = ops_124.clone();
+    ops_124_first.extend(ops_484_first.clone());
+    ops_484_first.extend(ops_124);
+
+    let compiled_a = compile_at(&base, &ops_484_first, 20250101, 20250101);
+    let compiled_b = compile_at(&base, &ops_124_first, 20250101, 20250101);
+
+    // INV-01 & INV-02 across two real Russian Federal Laws taking effect on the same day!
+    assert_eq!(compiled_a.non_claims, COMPILER_FOLD_NON_CLAIMS);
+    assert_eq!(compiled_a.root_hash, compiled_b.root_hash);
+    assert_eq!(compiled_a.audit.len(), 8);
+    assert!(
+        compiled_a
+            .audit
+            .iter()
+            .all(|a| a.outcome == ApplyOutcome::Applied),
+        "unexpected non-applied outcomes: {:?}",
+        compiled_a.audit
+    );
+
+    // MC-SEED: newly attached ch. 4.4 never auto-seeds InForce.
+    assert_eq!(
+        compiled_a.components["statya-15/chast-4.4"].force_status,
+        NormativeState::NotYetInForce
+    );
+
+    let oracle = vec![
+        OracleComponentExpectation {
+            locator: "statya-3/chast-1/punkt-7".to_owned(),
+            expected_presence: EditorialPresence::Present,
+            expected_text: Some(strip_editorial_tag(&find_in_article(
+                &ed113_lines,
+                "Статья 3.",
+                "7) заказчик",
+            ))),
+        },
+        OracleComponentExpectation {
+            locator: "statya-3/chast-1/punkt-8".to_owned(),
+            expected_presence: EditorialPresence::Present,
+            expected_text: Some(strip_editorial_tag(&find_in_article(
+                &ed113_lines,
+                "Статья 3.",
+                "8) государственный контракт",
+            ))),
+        },
+        OracleComponentExpectation {
+            locator: "statya-3/chast-1/punkt-8.1".to_owned(),
+            expected_presence: EditorialPresence::Present,
+            expected_text: Some(strip_editorial_tag(&find_in_article(
+                &ed113_lines,
+                "Статья 3.",
+                "8.1) контракт -",
+            ))),
+        },
+        OracleComponentExpectation {
+            locator: "statya-15/chast-4".to_owned(),
+            expected_presence: EditorialPresence::Present,
+            expected_text: Some(strip_editorial_tag(&find_in_article(
+                &ed113_lines,
+                "Статья 15.",
+                "4. При ",
+            ))),
+        },
+        OracleComponentExpectation {
+            locator: "statya-15/chast-4.1".to_owned(),
+            expected_presence: EditorialPresence::Tombstone,
+            expected_text: None,
+        },
+        OracleComponentExpectation {
+            locator: "statya-15/chast-4.4".to_owned(),
+            expected_presence: EditorialPresence::Present,
+            expected_text: Some(strip_editorial_tag(&find_in_article(
+                &ed113_lines,
+                "Статья 15.",
+                "4.4. При ",
+            ))),
+        },
+        OracleComponentExpectation {
+            locator: "statya-15/chast-5".to_owned(),
+            expected_presence: EditorialPresence::Tombstone,
+            expected_text: None,
+        },
+    ];
+
+    let report = verify_against_edition_oracle(&compiled_a, &oracle);
+    assert_eq!(report.non_claims, COMPILER_FOLD_NON_CLAIMS);
+    eprintln!(
+        "[smoke real 44-FZ ed112 + 484-FZ + 124-FZ -> ed113] matched={}/{} drift={} root_hash={}",
+        report.matched_count, report.checked_count, report.drift_count, compiled_a.root_hash
+    );
+    assert_eq!(
+        report.drift_count, 0,
+        "expected ZERO drift across all 7 real ed-0113 components, got: {:?}",
+        report.discrepancies
+    );
+    assert_eq!(report.matched_count, 7);
 }
