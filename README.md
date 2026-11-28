@@ -98,6 +98,7 @@ completion and green repository checks are not product readiness.
   ADR-0029 [proposed] requisites-anchored member-assembly FSM for NPA reference capture (M207 model); bounded Rust reference-capture runtime landed (M211); downstream stays blocked
   ADR-0030 [proposed] consultant URI anchor as cross-system legal identity + JSON-LD knowledge layers over the XML→JSONL spine; practice/control banks stay single-version; the temporal model consumes materialized JSONL layers, never raw XML at runtime (R066 stands)
   ADR-0031 [proposed] reference knowledge-layer contract over the XML→JSONL spine (executed Python reference + Rust port contract): digest timeline per (edition, article), m217-norm/v1 profile, corpus-wide amend provenance, 7-level pageindex ladder, qualified references with byte-checked artifacts; the Rust port is accepted only on byte parity against the committed reference artifacts
+  ADR-0032 [proposed] core-first Temporal CST/AST, unified DocumentContext, and clean-room ChangeGrammar vertical proving spike (decoupling persistent storage selection behind existing ports until core proof lands)
 
 [DOWNSTREAM — BLOCKED until parser data + RuVector/TEI ready]
   graph materialization → citation-safe retrieval → R035/R038 validation
@@ -282,7 +283,7 @@ unchanged; this pointer is not human adoption or product/runtime proof.
 | `prd/ARCHITECTURE.md` | Living truth oracle — **read first** |
 | `prd/PRODUCT.md` + `prd/REQUIREMENTS.md` | `[proposed]` Product Contract + projection; EA-10 D150 accepted the assessment packet, not these documents as a validated product contract |
 | `prd/temporal-legal-model.md` | `[proposed]` D3/EA-03 crosswalk; human disposition `ACCEPT-AS-PROPOSED`, O1–O7 design only, no runtime |
-| `doc/adr/` | MADR ADRs 0004–0031 (0001/0002/0003/0006 retired, not present) |
+| `doc/adr/` | MADR ADRs 0004–0032 (0001/0002/0003/0006 retired, not present) |
 | `doc/adr-architecture-cross-matrix.md` | ADR × surface matrix + governor design |
 | `prd/architecture/documentation-semantic-control-plan.md` | `[proposed]` documentation correction/control plan (non-authoritative process design) |
 | `prd/migration/external-architecture-assessment-roadmap.md` | `[proposed]` independent architecture-assessment roadmap (not product validation) |

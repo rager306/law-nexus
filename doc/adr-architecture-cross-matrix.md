@@ -28,6 +28,7 @@ Authority for live direction remains `prd/ARCHITECTURE.md` + `doc/adr/**`.
 | 0029 | proposed | complete | — | Requisites-anchored member-assembly FSM for NPA reference capture (bounded M211 runtime) |
 | 0030 | proposed | complete | ACP/git-lex historical note (R066 archive-only boundary) | Consultant URI anchor identity + JSON-LD knowledge layers over the XML→JSONL spine |
 | 0031 | proposed | complete | — | Reference knowledge-layer contract over the XML→JSONL spine |
+| 0032 | proposed | complete | — | Temporal CST/AST core, unified DocumentContext, and ChangeGrammar vertical proving spike |
 
 **Numbering gaps (intentional):** ADR-0001, 0002, 0003, 0006 are **not present**.
 They belonged to the Python-onion / MADR-gate / library-boundary / PyO3-bridge era
@@ -57,6 +58,7 @@ are narrative only.
 | 0029 | yes + LC | yes | yes | no | no | assessment/34 + m221/S05 reconciliation pins | local PROJECT.md mention only |
 | 0030 | yes + LC | yes | yes | no | no | none recorded | none recorded |
 | 0031 | yes + LC | yes | yes | no | no | none recorded | none recorded |
+| 0032 | yes + LC | yes | yes | no | no | none recorded | none recorded |
 
 Governor enforcement:
 
@@ -81,7 +83,7 @@ Governor enforcement:
 No unresolved P0 lifecycle contradiction was found in the 2026-08-11 repeat
 review: all 20 ADR Status lifecycles present then (0004–0024) matched the
 foundation map in `prd/ARCHITECTURE.md`. The present set has since grown to
-27 ADRs (0004–0031); the `adr-truth-oracle-sync` governor check keeps pairing
+28 ADRs (0004–0032); the `adr-truth-oracle-sync` governor check keeps pairing
 every present Status lifecycle with the oracle map.
 
 1. **Retired IDs 0001/0002/0003/0006** remain absent by design. Living prose may
