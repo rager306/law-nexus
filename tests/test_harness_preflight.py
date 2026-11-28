@@ -330,7 +330,7 @@ def test_stale_gitnexus_metadata_is_warn_with_reindex_remediation(tmp_path: Path
     by_id = {item["check_id"]: item for item in payload["checks"]}
     assert by_id["gitnexus-index-freshness"]["status"] == "warn"
     assert (
-        "gitnexus analyze --force --name law-nexus"
+        "node .gitnexus/run.cjs analyze --force --name law-nexus"
         in by_id["gitnexus-index-freshness"]["remediation"]
     )
 

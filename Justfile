@@ -16,6 +16,13 @@ CORE_PURE_CRATES := "-p ln-status -p ln-temporal -p ln-identity -p ln-relation -
 default:
     @just --list
 
+# Control-plane: Compound Engineering / AGY trajectory governor and preflight
+governor *args="":
+    uv run --frozen python -m law_nexus_harness.governor --format text {{args}}
+
+preflight:
+    uv run --frozen python -m law_nexus_harness preflight
+
 # Opt-in WF-1 turbo test loop: Cranelift + parallel frontend + embed-metadata=no (-32% edit-rebuild, -24% RAM)
 # Runs real rustc frontend/borrowck; isolated target/clif + KACHE_DISABLED=1 so 1.99.1 kache stays clean.
 test-clif crate="ln-temporal" filter="":

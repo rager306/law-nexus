@@ -9,7 +9,7 @@ metadata: upstream-rust-skills-fd2a861
 ## law-nexus Rust contract
 
 1. Rust owns all product, domain, parser, retrieval, graph, and runtime behavior.
-2. Python product code is archived prior art under `python_archive/product/`. A thin Python harness may orchestrate processes, Cargo, parity, docs, CI, and GSD only.
+2. Python product code is archived prior art under `python_archive/product/`. A thin Python harness may orchestrate processes, Cargo, parity, docs, CI, and Compound Engineering repository checks only.
 3. The Python/Rust boundary is subprocess-only. Reject PyO3, FFI, `ctypes`, `cffi`, shared libraries, embedded interpreters, and duplicated cross-language domain logic.
 4. Preserve deterministic-first, temporal-first, citation-safe behavior. An LLM is never legal authority.
 5. Add crates, async runtimes, abstractions, unsafe code, and release optimizations only for a concrete requirement with verification evidence.

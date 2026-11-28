@@ -5733,3 +5733,67 @@ class TestRoadmapFreshnessAgainstNativePath:
         assert by_id["roadmap-freshness-unverifiable"].status == "fail"
         assert by_id["roadmap-freshness-unverifiable"].severity == "error"
         assert "native_milestone=absent" in by_id["roadmap-freshness-unverifiable"].observed
+
+
+class TestCeAgySurfaceCheck:
+    """Positive and fail-closed contracts for the Compound Engineering + AGY check."""
+
+    @staticmethod
+    def _ce_repo(root: Path, docs_root: str = ".compound-engineering/artifacts") -> None:
+        wf = root / "prd" / "project-state" / "workflow-backend.json"
+        wf.parent.mkdir(parents=True, exist_ok=True)
+        wf.write_text(
+            json.dumps({"schema": 1, "backend": "compound-engineering", "cutover": True}),
+            encoding="utf-8",
+        )
+        cfg = root / ".compound-engineering" / "config.yaml"
+        cfg.parent.mkdir(parents=True, exist_ok=True)
+        cfg.write_text(f"docs_root: {docs_root}\n", encoding="utf-8")
+
+    def test_passes_on_live_repository(self) -> None:
+        from law_nexus_harness.governor import check_ce_agy_surface
+
+        findings = check_ce_agy_surface(Path("."))
+        assert len(findings) == 1
+        assert findings[0].check_id == "ce-agy-surface"
+        assert findings[0].status == "pass"
+        assert findings[0].severity == "ok"
+        assert findings[0].rule_id == "ce-agy-surface.contract"
+        assert isinstance(findings[0].evidence, tuple)
+
+    def test_rejects_escaping_docs_root_and_git_docs_root(self, tmp_path: Path) -> None:
+        from law_nexus_harness.governor import check_ce_agy_surface
+
+        for bad in ("../outside", ".git/ce", "/tmp/abs"):
+            self._ce_repo(tmp_path, docs_root=bad)
+            findings = check_ce_agy_surface(tmp_path)
+            assert len(findings) == 1
+            assert findings[0].status == "fail"
+            assert findings[0].severity == "error"
+            assert findings[0].rule_id == "ce-agy-surface.violation"
+
+    def test_rejects_malformed_review_filename(self, tmp_path: Path) -> None:
+        from law_nexus_harness.governor import check_ce_agy_surface
+
+        self._ce_repo(tmp_path)
+        bad_review = tmp_path / ".compound-engineering" / "reviews" / "bad-name.md"
+        bad_review.parent.mkdir(parents=True, exist_ok=True)
+        bad_review.write_text("# review\n", encoding="utf-8")
+
+        findings = check_ce_agy_surface(tmp_path)
+        assert len(findings) == 1
+        assert findings[0].status == "fail"
+        assert "bad-name.md" in findings[0].observed
+
+    def test_rejects_retired_gsd_agent_path_in_repo_skills(self, tmp_path: Path) -> None:
+        from law_nexus_harness.governor import check_ce_agy_surface
+
+        self._ce_repo(tmp_path)
+        skill = tmp_path / ".agents" / "skills" / "demo" / "SKILL.md"
+        skill.parent.mkdir(parents=True, exist_ok=True)
+        skill.write_text("Load prompts from ~/.gsd/agent/agents/worker.md\n", encoding="utf-8")
+
+        findings = check_ce_agy_surface(tmp_path)
+        assert len(findings) == 1
+        assert findings[0].status == "fail"
+        assert "~/.gsd/agent/agents" in findings[0].observed
