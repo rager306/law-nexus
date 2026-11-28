@@ -60,8 +60,8 @@ def build_parser() -> argparse.ArgumentParser:
     governor = subcommands.add_parser(
         "governor",
         help=(
-            "Run trajectory anti-drift checks for roadmap freshness, hostile proof "
-            "chain coherence, and residual GSD debt."
+            "Run trajectory anti-drift checks for architecture truth, ADR conformance, "
+            "hostile proof chains, and Compound Engineering / AGY workspace surfaces."
         ),
     )
     governor.add_argument(
@@ -139,7 +139,7 @@ def build_parser() -> argparse.ArgumentParser:
         "review-case",
         help=(
             "Non-authoritative Review Case register/validate/status/inventory "
-            "operations. Does not promote authority or create GSD work."
+            "operations. Does not promote authority or mint product claims."
         ),
     )
     review_case.add_argument(
@@ -195,7 +195,7 @@ def build_parser() -> argparse.ArgumentParser:
         "inventory",
         help=(
             "Project multi-axis FSM residual inventory (read-only stage continuity). "
-            "Does not record dispositions or create GSD work."
+            "Does not record human dispositions or promote authority."
         ),
     )
     inventory_cmd.add_argument("--packet-id", default=None)

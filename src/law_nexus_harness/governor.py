@@ -826,6 +826,175 @@ def check_workflow_state_surface(root: Path) -> list[GovernorFinding]:
     ]
 
 
+_CE_REVIEW_FILENAME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*\.md$")
+_CE_DOCS_ROOT_LINE_RE = re.compile(r"^docs_root\s*:\s*([^#\n]+?)\s*(?:#.*)?$")
+_RETIRED_GSD_AGENT_PATH = "~/.gsd/agent/agents"
+
+
+def _parse_ce_docs_root(config_text: str) -> str | None:
+    """Extract active top-level ``docs_root`` scalar from CE config.yaml without external YAML libs."""
+    for raw_line in config_text.splitlines():
+        stripped = raw_line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        match = _CE_DOCS_ROOT_LINE_RE.match(raw_line)
+        if match:
+            value = match.group(1).strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+                value = value[1:-1].strip()
+            return value
+    return None
+
+
+def _validate_ce_docs_root(root: Path, docs_root: str) -> str | None:
+    """Validate that CE ``docs_root`` resolves strictly inside ``root`` and outside ``.git``."""
+    if not docs_root:
+        return "docs_root is empty"
+    candidate = Path(docs_root)
+    if candidate.is_absolute():
+        return f"docs_root must be repo-relative, got absolute path {docs_root!r}"
+    if ".." in candidate.parts:
+        return f"docs_root must not traverse upward: {docs_root!r}"
+    try:
+        repo_real = root.resolve()
+        resolved = (root / candidate).resolve()
+        rel = resolved.relative_to(repo_real)
+    except (OSError, ValueError):
+        return f"docs_root escapes repository root: {docs_root!r}"
+    if not rel.parts:
+        return f"docs_root must not be the repository root: {docs_root!r}"
+    if rel.parts[0] == ".git":
+        return f"docs_root must not point under .git/: {docs_root!r}"
+    return None
+
+
+def check_ce_agy_surface(root: Path) -> list[GovernorFinding]:
+    """Validate Compound Engineering + Antigravity (AGY) repository surfaces.
+
+    Checks tracked CE config ``docs_root`` safety, review archive filename
+    conventions under ``.compound-engineering/reviews/``, and active repo
+    skills under ``.agents/skills/`` for retired ``~/.gsd/agent/agents`` paths.
+    """
+    config_path = root / COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH
+    wf_report = read_workflow_state(root)
+    ce_active = wf_report.kind is WorkflowStateKind.COMPOUND_ENGINEERING
+    if not ce_active and not config_path.is_file():
+        return [
+            GovernorFinding(
+                check_id="ce-agy-surface",
+                status="pass",
+                severity="ok",
+                message="Compound Engineering / AGY surface check is not applicable on non-CE fixture",
+                observed=f"workflow_kind={wf_report.kind.value}; config=absent",
+                remediation="none",
+                rule_id="ce-agy-surface.not-applicable",
+                expected=(
+                    "When Compound Engineering is active, config docs_root, review archive "
+                    "filenames, and repo skills stay clean and valid."
+                ),
+                evidence=(GovernorEvidence(path=COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH),),
+            )
+        ]
+
+    issues: list[str] = []
+    evidence_paths: list[str] = [COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH]
+    docs_root_label = "default(docs)"
+
+    if not config_path.is_file():
+        issues.append(f"missing {COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH}")
+    else:
+        try:
+            config_text = config_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            issues.append(f"unreadable {COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH}: {exc}")
+        else:
+            docs_root = _parse_ce_docs_root(config_text)
+            if docs_root is not None:
+                docs_root_label = docs_root
+                err = _validate_ce_docs_root(root, docs_root)
+                if err is not None:
+                    issues.append(err)
+
+    reviews_dir = root / ".compound-engineering" / "reviews"
+    review_count = 0
+    if reviews_dir.is_dir():
+        evidence_paths.append(".compound-engineering/reviews")
+        for entry in sorted(reviews_dir.iterdir()):
+            if not entry.is_file() or entry.name.startswith(".") or entry.name == "README.md":
+                continue
+            review_count += 1
+            if not _CE_REVIEW_FILENAME_RE.match(entry.name):
+                rel_path = f".compound-engineering/reviews/{entry.name}"
+                issues.append(f"review filename violates YYYY-MM-DD-<slug>.md: {rel_path}")
+                evidence_paths.append(rel_path)
+
+    skills_dir = root / ".agents" / "skills"
+    skill_files_checked = 0
+    if skills_dir.is_dir():
+        evidence_paths.append(".agents/skills")
+        for skill_md in sorted(skills_dir.rglob("*.md")):
+            if not skill_md.is_file():
+                continue
+            skill_files_checked += 1
+            try:
+                content = skill_md.read_text(encoding="utf-8")
+            except OSError as exc:
+                rel_skill = skill_md.relative_to(root).as_posix()
+                issues.append(f"unreadable skill file {rel_skill}: {exc}")
+                evidence_paths.append(rel_skill)
+                continue
+            if _RETIRED_GSD_AGENT_PATH in content:
+                rel_skill = skill_md.relative_to(root).as_posix()
+                issues.append(f"retired {_RETIRED_GSD_AGENT_PATH} reference in {rel_skill}")
+                evidence_paths.append(rel_skill)
+
+    evidence = tuple(GovernorEvidence(path=p) for p in dict.fromkeys(evidence_paths))
+    if issues:
+        return [
+            GovernorFinding(
+                check_id="ce-agy-surface",
+                status="fail",
+                severity="error",
+                message="Compound Engineering / AGY surface hygiene check failed",
+                observed=(
+                    f"docs_root={docs_root_label}; reviews={review_count}; "
+                    f"skills_scanned={skill_files_checked}; issues={'; '.join(issues)}"
+                ),
+                remediation=(
+                    "Fix invalid docs_root in .compound-engineering/config.yaml, rename review "
+                    "reports under .compound-engineering/reviews/ to YYYY-MM-DD-<slug>.md, and "
+                    "remove retired ~/.gsd/agent/agents references from .agents/skills/."
+                ),
+                rule_id="ce-agy-surface.violation",
+                expected=(
+                    "Tracked CE config docs_root stays inside the repository outside .git/, "
+                    "reviews follow YYYY-MM-DD-<slug>.md, and active repo skills target AGY/CE."
+                ),
+                evidence=evidence,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id="ce-agy-surface",
+            status="pass",
+            severity="ok",
+            message="Compound Engineering and AGY workspace surfaces are coherent",
+            observed=(
+                f"docs_root={docs_root_label}; reviews={review_count}; "
+                f"skills_scanned={skill_files_checked}"
+            ),
+            remediation="none",
+            rule_id="ce-agy-surface.contract",
+            expected=(
+                "Tracked CE config docs_root stays inside the repository outside .git/, "
+                "reviews follow YYYY-MM-DD-<slug>.md, and active repo skills target AGY/CE."
+            ),
+            evidence=evidence,
+        )
+    ]
+
+
 def _legacy_surface_skip(
     decision: LegacySurfaceDecision,
     check_id: str,
@@ -8333,6 +8502,19 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         (
             "prd/project-state/workflow-backend.json",
             COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH,
+        ),
+        "error",
+    ),
+    _check_spec(
+        "ce-agy-surface",
+        "docs",
+        "deterministic",
+        check_ce_agy_surface,
+        "Validate Compound Engineering config docs_root, review archive filenames, and AGY skill hygiene.",
+        (
+            COMPOUND_ENGINEERING_CONFIG_RELATIVE_PATH,
+            ".compound-engineering/reviews",
+            ".agents/skills",
         ),
         "error",
     ),

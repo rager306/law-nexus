@@ -225,7 +225,9 @@ def _gitnexus_freshness_check(root: Path, runner: Runner) -> PreflightCheck:
     status = runner(("git", "status", "--porcelain"), root)
     meta_path = root / ".gitnexus" / "meta.json"
     command = ("read", ".gitnexus/meta.json")
-    remediation = "Run `gitnexus analyze --force --name law-nexus` after local code changes."
+    remediation = (
+        "Run `node .gitnexus/run.cjs analyze --force --name law-nexus` after local code changes."
+    )
     if head.exit_code != 0:
         return _warning_check(
             check_id="gitnexus-index-freshness",
