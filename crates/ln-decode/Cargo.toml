@@ -5,6 +5,7 @@ edition = "2024"
 publish = false
 
 [dependencies]
+ln-fsm = { path = "../ln-fsm" }
 quick-xml = "0.42"
 zip = { version = "=9.8.2", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 serde = { version = "1", features = ["derive"] }

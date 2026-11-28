@@ -80,7 +80,111 @@ impl EnumerationState {
             Self::Compatible | Self::Conflicting | Self::Incomplete | Self::Rejected
         )
     }
+
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::NotEvaluated => "not_evaluated",
+            Self::Candidate => "candidate",
+            Self::Compatible => "compatible",
+            Self::Conflicting => "conflicting",
+            Self::Incomplete => "incomplete",
+            Self::Rejected => "rejected",
+        }
+    }
 }
+
+/// Typed refusal for [`EnumerationFsm`] transitions (INV-10).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum EnumerationRefusal {
+    TerminalState,
+    InvalidTransition,
+}
+
+/// Fail-closed FSM wrapper for D384 [`EnumerationState`] backed by `ln-fsm`.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct EnumerationFsm;
+
+impl ln_fsm::DeterministicFsm for EnumerationFsm {
+    type State = EnumerationState;
+    type Event = EnumerationTransition;
+    type RejectionReason = EnumerationRefusal;
+
+    fn policy_version(&self) -> &'static str {
+        "npa:d384-enumeration:v1"
+    }
+
+    fn is_terminal(&self, state: &Self::State) -> bool {
+        state.is_terminal()
+    }
+
+    fn terminal_rejection_reason(
+        &self,
+        _state: &Self::State,
+        _event: &Self::Event,
+    ) -> Self::RejectionReason {
+        EnumerationRefusal::TerminalState
+    }
+
+    fn step(
+        &self,
+        state: &Self::State,
+        event: &Self::Event,
+    ) -> Result<Self::State, ln_fsm::StepError<Self::RejectionReason>> {
+        state
+            .transition(*event)
+            .ok_or(ln_fsm::StepError::InvalidTransition(
+                EnumerationRefusal::InvalidTransition,
+            ))
+    }
+}
+
+/// Declarative transition-graph contract for [`EnumerationFsm`].
+pub const ENUMERATION_GRAPH_SPEC: ln_fsm::graph::GraphSpec = ln_fsm::graph::GraphSpec {
+    name: "d384_enumeration",
+    initial: "not_evaluated",
+    states: &[
+        "not_evaluated",
+        "candidate",
+        "compatible",
+        "conflicting",
+        "incomplete",
+        "rejected",
+    ],
+    terminals: &["compatible", "conflicting", "incomplete", "rejected"],
+    transitions: &[
+        ln_fsm::graph::EdgeSpec {
+            from: "not_evaluated",
+            event: "LocalRolesAndValuesCaptured",
+            to: "candidate",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "candidate",
+            event: "AuthorizedFieldClaimsAgree",
+            to: "compatible",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "candidate",
+            event: "ExplicitOrInheritedClaimsDisagree",
+            to: "conflicting",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "candidate",
+            event: "RequiredOwnerOrValueMissing",
+            to: "incomplete",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "candidate",
+            event: "GrammarOrBoundContractRefused",
+            to: "rejected",
+        },
+    ],
+    forbidden_direct_edges: &[ln_fsm::graph::ForbiddenEdge {
+        from: "not_evaluated",
+        to: "compatible",
+        rationale: "enumeration cannot jump straight to compatible without candidate capture",
+    }],
+    allow_guarded_branching: false,
+};
 
 /// Lifecycle status of a proposed frame, separate from enumeration state.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

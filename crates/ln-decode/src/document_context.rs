@@ -521,7 +521,153 @@ impl ContextPhase {
                 | Self::Limit
         )
     }
+
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::NotEvaluated => "not_evaluated",
+            Self::Requested => "requested",
+            Self::Queued => "queued",
+            Self::Resolving => "resolving",
+            Self::Resolved => "resolved",
+            Self::Partial => "partial",
+            Self::Conflicting => "conflicting",
+            Self::Unavailable => "unavailable",
+            Self::Cycle => "cycle",
+            Self::Limit => "limit",
+        }
+    }
 }
+
+/// Typed refusal for [`ContextPhaseFsm`] transitions (INV-10).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ContextPhaseRefusal {
+    TerminalState,
+    InvalidTransition,
+}
+
+/// Fail-closed FSM wrapper for [`ContextPhase`] backed by `ln-fsm`.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ContextPhaseFsm;
+
+impl ln_fsm::DeterministicFsm for ContextPhaseFsm {
+    type State = ContextPhase;
+    type Event = ContextTransition;
+    type RejectionReason = ContextPhaseRefusal;
+
+    fn policy_version(&self) -> &'static str {
+        "npa:context-phase:v1"
+    }
+
+    fn is_terminal(&self, state: &Self::State) -> bool {
+        state.is_terminal()
+    }
+
+    fn terminal_rejection_reason(
+        &self,
+        _state: &Self::State,
+        _event: &Self::Event,
+    ) -> Self::RejectionReason {
+        ContextPhaseRefusal::TerminalState
+    }
+
+    fn step(
+        &self,
+        state: &Self::State,
+        event: &Self::Event,
+    ) -> Result<Self::State, ln_fsm::StepError<Self::RejectionReason>> {
+        state
+            .transition(*event)
+            .ok_or(ln_fsm::StepError::InvalidTransition(
+                ContextPhaseRefusal::InvalidTransition,
+            ))
+    }
+}
+
+/// Declarative transition-graph contract for [`ContextPhaseFsm`].
+pub const CONTEXT_PHASE_GRAPH_SPEC: ln_fsm::graph::GraphSpec = ln_fsm::graph::GraphSpec {
+    name: "context_phase",
+    initial: "not_evaluated",
+    states: &[
+        "not_evaluated",
+        "requested",
+        "queued",
+        "resolving",
+        "resolved",
+        "partial",
+        "conflicting",
+        "unavailable",
+        "cycle",
+        "limit",
+    ],
+    terminals: &[
+        "resolved",
+        "partial",
+        "conflicting",
+        "unavailable",
+        "cycle",
+        "limit",
+    ],
+    transitions: &[
+        ln_fsm::graph::EdgeSpec {
+            from: "not_evaluated",
+            event: "TypedContextRequestEmitted",
+            to: "requested",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "requested",
+            event: "RequestSchemaAndBudgetPass",
+            to: "queued",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "queued",
+            event: "DeterministicWorklistDispatch",
+            to: "resolving",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "resolving",
+            event: "UniqueAuthorizedClaimSet",
+            to: "resolved",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "resolving",
+            event: "MissingNoncriticalContext",
+            to: "partial",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "resolving",
+            event: "IncompatibleAuthorizedClaims",
+            to: "conflicting",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "resolving",
+            event: "IndexOrSidecarUnavailable",
+            to: "unavailable",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "resolving",
+            event: "RepeatedDerivationPath",
+            to: "cycle",
+        },
+        ln_fsm::graph::EdgeSpec {
+            from: "resolving",
+            event: "DeclaredBudgetReached",
+            to: "limit",
+        },
+    ],
+    forbidden_direct_edges: &[
+        ln_fsm::graph::ForbiddenEdge {
+            from: "not_evaluated",
+            to: "resolved",
+            rationale: "context cannot resolve without request, budget gate, and worklist dispatch",
+        },
+        ln_fsm::graph::ForbiddenEdge {
+            from: "requested",
+            to: "resolved",
+            rationale: "requested context cannot skip queued/resolving budget gate",
+        },
+    ],
+    allow_guarded_branching: false,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ContextRequestKind {
