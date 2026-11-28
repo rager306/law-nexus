@@ -5,6 +5,7 @@ edition = "2024"
 publish = false
 
 [dependencies]
+ln-fsm = { path = "../ln-fsm" }
 
 [lints]
 workspace = true

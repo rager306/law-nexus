@@ -1,6 +1,9 @@
 use std::error::Error;
 use std::fmt;
 
+use ln_fsm::graph::{EdgeSpec, ForbiddenEdge, GraphSpec};
+use ln_fsm::{DeterministicFsm, StepError};
+
 const MAX_ID_LEN: usize = 64;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -64,20 +67,160 @@ id_type!(InputChainDigest, "input chain digest");
 
 pub const C10_GATE_VERSION: &str = "c10:v1";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum LifecycleType {
     ExtractedCandidate,
     VerifiedAssertion,
 }
 
 impl LifecycleType {
-    pub fn as_str(self) -> &'static str {
+    pub const fn as_str(self) -> &'static str {
         match self {
             Self::ExtractedCandidate => "extracted-candidate",
             Self::VerifiedAssertion => "verified-assertion",
         }
     }
 }
+
+/// C10 gate lifecycle transition event checked by [`GateLifecycleFsm`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum GateLifecycleEvent {
+    PromoteToVerified {
+        in_place: bool,
+        has_evidence: bool,
+        confidence: u8,
+    },
+    DemoteToExtracted,
+}
+
+impl GateLifecycleEvent {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::PromoteToVerified { .. } => "promote-to-verified",
+            Self::DemoteToExtracted => "demote-to-extracted",
+        }
+    }
+}
+
+/// Typed FSM refusal emitted by [`GateLifecycleFsm`].
+///
+/// Distinct from [`GateReason`] so `EvidenceChainSatisfied` is unrepresentable
+/// as an FSM rejection and non-in-place terminal/demotion refusals never
+/// misreport `"in-place-mutation"`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum GateTransitionRefusal {
+    InPlaceMutation,
+    ConfidenceOnly,
+    MissingEvidenceChain,
+    TerminalLifecycleImmutable,
+    InvalidLifecycleTransition,
+}
+
+impl GateTransitionRefusal {
+    pub const fn to_gate_reason(self) -> GateReason {
+        match self {
+            Self::InPlaceMutation => GateReason::InPlaceMutation,
+            Self::ConfidenceOnly => GateReason::ConfidenceOnly,
+            Self::MissingEvidenceChain => GateReason::MissingEvidenceChain,
+            Self::TerminalLifecycleImmutable => GateReason::TerminalLifecycleImmutable,
+            Self::InvalidLifecycleTransition => GateReason::InvalidLifecycleTransition,
+        }
+    }
+}
+
+/// Deterministic C10 evidence-kernel gate FSM (`HC-06`).
+///
+/// Enforces:
+/// - `VerifiedAssertion` is terminal/absorbing (immutable outcome never demotes
+///   and never re-mints);
+/// - `in_place == true` is always refused (`GateTransitionRefusal::InPlaceMutation`);
+/// - empty evidence chain is always refused (`GateTransitionRefusal::ConfidenceOnly`
+///   when `confidence >= 90`, else `GateTransitionRefusal::MissingEvidenceChain`).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct GateLifecycleFsm;
+
+impl DeterministicFsm for GateLifecycleFsm {
+    type State = LifecycleType;
+    type Event = GateLifecycleEvent;
+    type RejectionReason = GateTransitionRefusal;
+
+    fn policy_version(&self) -> &'static str {
+        C10_GATE_VERSION
+    }
+
+    fn is_terminal(&self, state: &Self::State) -> bool {
+        matches!(state, LifecycleType::VerifiedAssertion)
+    }
+
+    fn terminal_rejection_reason(
+        &self,
+        _state: &Self::State,
+        event: &Self::Event,
+    ) -> Self::RejectionReason {
+        match event {
+            GateLifecycleEvent::PromoteToVerified { in_place: true, .. } => {
+                GateTransitionRefusal::InPlaceMutation
+            }
+            _ => GateTransitionRefusal::TerminalLifecycleImmutable,
+        }
+    }
+
+    fn step(
+        &self,
+        state: &Self::State,
+        event: &Self::Event,
+    ) -> Result<Self::State, StepError<Self::RejectionReason>> {
+        match (state, *event) {
+            (
+                LifecycleType::ExtractedCandidate,
+                GateLifecycleEvent::PromoteToVerified {
+                    in_place,
+                    has_evidence,
+                    confidence,
+                },
+            ) => {
+                if in_place {
+                    return Err(StepError::GuardRejected(
+                        GateTransitionRefusal::InPlaceMutation,
+                    ));
+                }
+                if !has_evidence {
+                    let reason = if confidence >= 90 {
+                        GateTransitionRefusal::ConfidenceOnly
+                    } else {
+                        GateTransitionRefusal::MissingEvidenceChain
+                    };
+                    return Err(StepError::GuardRejected(reason));
+                }
+                Ok(LifecycleType::VerifiedAssertion)
+            }
+            (LifecycleType::ExtractedCandidate, GateLifecycleEvent::DemoteToExtracted) => Err(
+                StepError::InvalidTransition(GateTransitionRefusal::InvalidLifecycleTransition),
+            ),
+            (LifecycleType::VerifiedAssertion, _) => Err(StepError::InvalidTransition(
+                GateTransitionRefusal::TerminalLifecycleImmutable,
+            )),
+        }
+    }
+}
+
+pub const GATE_LIFECYCLE_GRAPH_SPEC: GraphSpec = GraphSpec {
+    name: "ln-gate::GateLifecycleFsm",
+    initial: "extracted-candidate",
+    states: &["extracted-candidate", "verified-assertion"],
+    terminals: &["verified-assertion"],
+    transitions: &[EdgeSpec {
+        from: "extracted-candidate",
+        event: "promote-to-verified",
+        to: "verified-assertion",
+    }],
+    forbidden_direct_edges: &[ForbiddenEdge {
+        from: "verified-assertion",
+        to: "extracted-candidate",
+        rationale: "VerifiedAssertion is an immutable C10 outcome and must never demote",
+    }],
+    allow_guarded_branching: false,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GateOutcome {
@@ -102,6 +245,8 @@ pub enum GateReason {
     InPlaceMutation,
     MissingEvidenceChain,
     EvidenceChainSatisfied,
+    TerminalLifecycleImmutable,
+    InvalidLifecycleTransition,
 }
 
 impl GateReason {
@@ -111,6 +256,8 @@ impl GateReason {
             Self::InPlaceMutation => "in-place-mutation",
             Self::MissingEvidenceChain => "missing-evidence-chain",
             Self::EvidenceChainSatisfied => "evidence-chain-satisfied",
+            Self::TerminalLifecycleImmutable => "terminal-lifecycle-immutable",
+            Self::InvalidLifecycleTransition => "invalid-lifecycle-transition",
         }
     }
 }
