@@ -86,7 +86,7 @@ shared mutable state.
 
 ## References
 
-- D123 in `.gsd/DECISIONS.md`
+- D123 (historical `.gsd/DECISIONS.md`, archived under Git tag `archive/gsd-path-final`)
 - HC-01 through HC-20 (all hostile-case runtime proofs)
 - `prd/architecture/m111-system-skeleton-contract.md`
 - Archive-only prior art (not active product authority):

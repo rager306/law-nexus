@@ -4,6 +4,18 @@
 > Disposition baseline: `bfe2ee6` · As-of: 2026-08-11 · Schema: `legalgraph-architecture-registry/v1`
 > Canonical truth: `prd/ARCHITECTURE.md` + `doc/adr/**` + `prd/PRODUCT.md`. Registry rows cannot promote lifecycle, satisfy requirements, or prove product/legal/runtime/parser/retrieval claims. Historical FalkorDB/ACP/git-lex/PyO3/pre-Rust rows are superseded archaeology; missing-anchor rows are blocked diagnostics. Extractor/builder are currently absent, so generated views remain stale/quarantined until safe regeneration.
 
+## Agent Entry Map: Living Canon vs Historical Snapshots
+
+`prd/architecture/` contains over 130 files accumulated across milestones M001–M225. Cold readers and coding agents should read only the **Living Surface** files below unless investigating a specific historical milestone receipt.
+
+| Surface | Files | Role |
+|---|---|---|
+| **Living entrypoints** | `../ARCHITECTURE.md`, `../../doc/adr/README.md`, `../temporal-legal-model.md` §3, `model-crystal.md` | Authoritative state, active ADRs (0004–0031), controlled vocabulary, and Layer 0/1 temporal AST projection |
+| **Open gaps & promotion** | `core-gaps-reconciliation.md`, `capability-promotion-board.md`, `temporal-semantic-gap-register.md`, `review-cases/continuity-contract.md` | Verified open findings on `HEAD`, L_capability ladder (S0–S6), and TSG closure triggers |
+| **Active YAML-as-data contracts** | `kb-ontology.yaml`, `crate-dependency-allowlist.json`, `operation-registry.yaml`, `force-interval-set-contract.yaml`, `pending-effects-contract.yaml`, `assertion-lifecycle-contract.yaml`, `evidence-anchor-contract.yaml`, `scope-aware-completeness-contract.yaml`, `merkle-roots-contract.yaml`, `reference-binding-contract.yaml`, `golden-corpus-catalog.yaml` | Machine-checked ontology vocabulary, crate allowlist, and E.2.1–E.2.7 design-only contracts |
+| **Active parser/wire contracts** | `source-jsonl-contract.md`, `cleaned-projection-contract.md`, `npa-analysis-jsonl-contract.md`, `npa-classification-axes.yaml`, `npa-identifying-cycle.yaml`, `npa-document-context.yaml`, `npa-semantic-process.yaml` | XML→JSONL substrate, cleaned projection, and NPA reference/context contracts |
+| **Historical snapshots (read on demand only)** | `architecture_items.jsonl`, `architecture_edges.jsonl`, `architecture_health.md`, `product_readiness_blockers.md`, `claims_ledger.md`, `closure_roadmap.*`, `remediation_matrix.*`, `major_track_split.*`, `m205-*`, `m210-*`, `m221-*`, `review_findings*` | D7-quarantined derived views and frozen milestone-specific audit/reconciliation records |
+
 This directory defines the law-nexus architecture registry contract (historical M004-era name: LegalGraph Nexus). The registry is a git-tracked, machine-readable projection of architecture knowledge; it is not itself the architecture source of truth.
 
 The `[proposed]` documentation correction and semantic-control sequence is defined in [`documentation-semantic-control-plan.md`](documentation-semantic-control-plan.md). Its independent documentation-assessment track is [`../migration/external-architecture-assessment-roadmap.md`](../migration/external-architecture-assessment-roadmap.md), with the D0/EA-00 packet entrypoint at [`../../assessment/00-charter.md`](../../assessment/00-charter.md). The residual temporal/design inventory is tracked in [`temporal-semantic-gap-register.md`](temporal-semantic-gap-register.md) as a non-authoritative gap projection; [`temporal-vocabulary-contract.json`](temporal-vocabulary-contract.json) catalogues bounded presence checks without defining semantics. These artifacts do not change ADR lifecycle, grant authority to this registry, satisfy requirements, or constitute product/legal validation.
@@ -18,7 +30,7 @@ Three human-readable views are generated from the registry and graph:
 | `product_readiness_blockers.md` | Historical D7 registry archaeology index: legacy gates, evidence rows and non-claims; not current readiness or next-work authority | `python scripts/generate-architecture-views.py` |
 | `claims_ledger.md` | Claim safety classifications: safe-to-say, bounded, blocked, unsafe-to-assert | `python scripts/generate-architecture-views.py` |
 
-All three views are derived, non-authoritative and currently D7-quarantined planning artifacts. Source-of-truth remains with `prd/ARCHITECTURE.md`, `doc/adr/**`, `prd/PRODUCT.md` and tracked source/runtime evidence. Local `.gsd/**` is workflow state only.
+All three views are derived, non-authoritative and currently D7-quarantined planning artifacts. Source-of-truth remains with `prd/ARCHITECTURE.md`, `doc/adr/**`, `prd/PRODUCT.md` and tracked source/runtime evidence. Historical `.gsd/**` records are archived read-only under Git tag `archive/gsd-path-final`.
 
 ## Source-of-truth boundary
 

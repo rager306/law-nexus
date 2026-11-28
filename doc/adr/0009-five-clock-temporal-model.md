@@ -111,6 +111,6 @@ not-a-sixth-clock note only).
 
 ## References
 
-- D118 in `.gsd/DECISIONS.md`
+- D118 (historical `.gsd/DECISIONS.md`, archived under Git tag `archive/gsd-path-final`)
 - HC-09 (`ln-temporal`, `S10-HC-09-RT`)
 - `prd/architecture/m111-temporal-contract.md`

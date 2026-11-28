@@ -213,4 +213,4 @@ law-nexus does not currently claim:
 - executable O1–O7 temporal ontology or applicability runtime;
 - cross-store atomicity, production concurrency, recovery or scale;
 - a validated product capability or production release;
-- that LLM, similarity, roadmap completion, assessment acceptance, `.gsd` state or derived registry output is product proof.
+- that LLM, similarity, roadmap completion, assessment acceptance, retired `.gsd` state or derived registry output is product proof.

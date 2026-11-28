@@ -92,6 +92,6 @@ this contract. No Rust type is minted from the YAML (D216/D098).
 
 ## References
 
-- D119 in `.gsd/DECISIONS.md`
+- D119 (historical `.gsd/DECISIONS.md`, archived under Git tag `archive/gsd-path-final`)
 - HC-04, HC-05, HC-07, HC-08, HC-10, HC-14
 - `prd/architecture/m111-system-skeleton-contract.md`

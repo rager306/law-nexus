@@ -206,6 +206,6 @@ single synthetic check can promote the lifecycle.
 ## References
 
 - ADR-0004, ADR-0005, ADR-0007, ADR-0009, ADR-0010, ADR-0012, ADR-0013
-- D130–D133 in `.gsd/DECISIONS.md`
+- D130–D133 (historical `.gsd/DECISIONS.md`, archived under Git tag `archive/gsd-path-final`)
 - `prd/ARCHITECTURE.md` living truth oracle (RuVector `[proposed]`)
 - `scripts/verify-live-adapter-readiness.py` (process inventory only)
