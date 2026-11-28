@@ -245,7 +245,61 @@ struct QuotedSegment {
     end: usize,
 }
 
-fn find_next_quote(src: &str, from: usize) -> Option<QuotedSegment> {
+fn starts_with_inline_op_keyword(s: &str) -> bool {
+    let lower = s.trim_start().to_lowercase();
+    lower.starts_with("после слов")
+        || lower.starts_with("после цифр")
+        || lower.starts_with("перед слов")
+        || lower.starts_with("перед цифр")
+        || lower.starts_with("слово ")
+        || lower.starts_with("слова ")
+        || lower.starts_with("цифру ")
+        || lower.starts_with("цифры ")
+        || lower.starts_with("предложение ")
+        || lower.starts_with("дополнить ")
+        || lower.starts_with("признать утративш")
+}
+
+fn is_valid_inline_quote_close(after: &str, expect_verb_after: bool) -> bool {
+    let trimmed = after.trim_start();
+    if expect_verb_after {
+        let lower = trimmed.to_lowercase();
+        return lower.starts_with("заменить ")
+            || lower.starts_with("исключить")
+            || lower.starts_with("дополнить ");
+    }
+    if trimmed.is_empty() {
+        return true;
+    }
+    if let Some(rest) = trimmed.strip_prefix([',', ';', '.']) {
+        let rest_trimmed = rest.trim_start();
+        if rest_trimmed.is_empty() || starts_with_inline_op_keyword(rest_trimmed) {
+            return true;
+        }
+        let lower = rest_trimmed.to_lowercase();
+        if let Some(after_conj) = lower
+            .strip_prefix("и ")
+            .or_else(|| lower.strip_prefix("а "))
+        {
+            return starts_with_inline_op_keyword(after_conj);
+        }
+        return false;
+    }
+    let lower = trimmed.to_lowercase();
+    if let Some(after_conj) = lower
+        .strip_prefix("и ")
+        .or_else(|| lower.strip_prefix("а "))
+    {
+        return starts_with_inline_op_keyword(after_conj);
+    }
+    false
+}
+
+/// Extract the next quoted payload in an inline clause (`"..."` or `«...»`),
+/// tolerating Russian drafting's nested ASCII quotes around subpoint letters
+/// (e.g. `"подпунктами "а" и "б" пункта 5".`) by requiring BOTH balanced even
+/// quote parity AND a valid clause boundary after the closing `"`.
+fn find_next_quote(src: &str, from: usize, expect_verb_after: bool) -> Option<QuotedSegment> {
     let slice = src.get(from..)?;
     let mut chars = slice.char_indices();
     while let Some((rel_idx, ch)) = chars.next() {
@@ -270,14 +324,37 @@ fn find_next_quote(src: &str, from: usize) -> Option<QuotedSegment> {
                 }
                 return None;
             } else {
+                let mut seen_quotes = 1usize;
+                let mut first_close: Option<usize> = None;
                 for (end_rel, end_ch) in chars.by_ref() {
                     if end_ch == '"' {
+                        seen_quotes += 1;
                         let abs_end = from + end_rel;
-                        return Some(QuotedSegment {
-                            content: src[content_start..abs_end].to_owned(),
-                            end: abs_end + 1,
-                        });
+                        if first_close.is_none() {
+                            first_close = Some(abs_end);
+                        }
+                        if seen_quotes.is_multiple_of(2)
+                            && is_valid_inline_quote_close(&src[abs_end + 1..], expect_verb_after)
+                        {
+                            return Some(QuotedSegment {
+                                content: src[content_start..abs_end].to_owned(),
+                                end: abs_end + 1,
+                            });
+                        }
                     }
+                }
+                // Fall back ONLY for a plain unnested quote pair (`seen_quotes == 2`)
+                // followed by an unsupported tail (so the leading op still parses and
+                // the unsupported tail fails closed); nested quotes with non-boundary
+                // tails or odd/unclosed quote counts fail closed cleanly (`INV-10`).
+                if !expect_verb_after
+                    && seen_quotes == 2
+                    && let Some(abs_end) = first_close
+                {
+                    return Some(QuotedSegment {
+                        content: src[content_start..abs_end].to_owned(),
+                        end: abs_end + 1,
+                    });
                 }
                 return None;
             }
@@ -539,6 +616,47 @@ fn extract_structural_steps_checked(src: &str) -> ExtractedSteps {
                 ambiguous_multi_target = true;
             }
             steps.push(StructuralStep::new(level, value));
+
+            // Detect coordinated plural targets sharing a singular/homographic level noun
+            // (e.g. `статьи 31 и 43`, `части 1 - 3`, `пункта 1, 2`, `подпункта "а", "б"`,
+            // `подпункта «а» и «б»`, `в абзаце первом и втором`).
+            let mut look = cursor + 1;
+            while look < tokens.len()
+                && (tokens[look].kind == TokenKind::Space
+                    || matches!(tokens[look].lexeme(src), "\"" | "»"))
+            {
+                look += 1;
+            }
+            if look < tokens.len() {
+                let sep_raw = tokens[look].lexeme(src).to_lowercase();
+                let sep = sep_raw.trim_matches(|c: char| matches!(c, '"' | '«' | '»'));
+                if matches!(sep, "и" | "-" | "–" | "—" | ",") {
+                    let mut after_sep = look + 1;
+                    while after_sep < tokens.len()
+                        && (tokens[after_sep].kind == TokenKind::Space
+                            || matches!(tokens[after_sep].lexeme(src), "\"" | "«"))
+                    {
+                        after_sep += 1;
+                    }
+                    if after_sep < tokens.len() {
+                        let next_tok = tokens[after_sep];
+                        let next_lex = next_tok.lexeme(src);
+                        let next_lower = next_lex.to_lowercase();
+                        let is_second_id =
+                            matches!(next_tok.kind, TokenKind::HierNum | TokenKind::EnumMarker)
+                                || (next_tok.kind == TokenKind::Word
+                                    && (next_lex.bytes().all(|b| b.is_ascii_digit())
+                                        || normalize_russian_ordinal(&next_lower).is_some()
+                                        || (level == StructuralLevel::Podpunkt
+                                            && next_lex.chars().count() == 1
+                                            && next_lex.chars().all(char::is_alphabetic))));
+                        if is_second_id {
+                            ambiguous_multi_target = true;
+                        }
+                    }
+                }
+            }
+
             idx = cursor + 1;
         } else {
             idx += 1;
@@ -554,8 +672,157 @@ fn extract_structural_steps_checked(src: &str) -> ExtractedSteps {
 #[derive(Debug)]
 enum ActHeaderParse {
     NotAnActHeader,
-    HeaderScope(TargetActRequisites),
+    HeaderScope {
+        act: TargetActRequisites,
+        initial_scope: StructuralLocator,
+    },
     InlineAmendmentInHeader(TargetActRequisites),
+}
+
+fn is_word_boundary_match(haystack: &str, start: usize, end: usize) -> bool {
+    let before_ok = haystack
+        .get(..start)
+        .and_then(|s| s.chars().next_back())
+        .is_none_or(|c| !c.is_alphanumeric());
+    let after_ok = haystack
+        .get(end..)
+        .and_then(|s| s.chars().next())
+        .is_none_or(|c| !c.is_alphanumeric());
+    before_ok && after_ok
+}
+
+fn find_word_bounded_ci_span(haystack: &str, needle_lower: &str) -> Option<(usize, usize)> {
+    let mut offset = 0usize;
+    while offset < haystack.len() {
+        let (rel_start, rel_end) = find_ci_span(&haystack[offset..], needle_lower)?;
+        let abs_start = offset + rel_start;
+        let abs_end = offset + rel_end;
+        if is_word_boundary_match(haystack, abs_start, abs_end) {
+            return Some((abs_start, abs_end));
+        }
+        // Advance by one UTF-8 character past `abs_start`.
+        let step = haystack[abs_start..]
+            .chars()
+            .next()
+            .map_or(1, char::len_utf8);
+        offset = abs_start + step;
+    }
+    None
+}
+
+/// Strip Russian Code-Part suffixes (`части первой`, `часть вторую`, etc.) that
+/// precede `*кодекс*` markers (e.g. `Внести в статью 217 части второй Налогового кодекса`)
+/// so a Code Part is never misclassified as a sub-article `StructuralLevel::Chast`.
+fn strip_trailing_code_part_suffix(scope_slice: &str) -> &str {
+    let code_parts = [
+        "части первой",
+        "часть первую",
+        "части второй",
+        "часть вторую",
+        "части третьей",
+        "часть третью",
+        "части четвертой",
+        "части четвёртой",
+        "часть четвертую",
+        "часть четвёртую",
+    ];
+    let trimmed = scope_slice.trim_end();
+    for suffix in code_parts {
+        if let Some((start, end)) = find_word_bounded_ci_span(trimmed, suffix)
+            && end == trimmed.len()
+        {
+            return trimmed[..start].trim_end();
+        }
+    }
+    trimmed
+}
+
+/// Extract unambiguous singular structural scope carried by an amending act header
+/// between `Внести [изменение|изменения] в ` and the act-kind noun
+/// (e.g. `Внести в часть 1 статьи 95 Федерального закона ...:` -> `statya-95/chast-1`,
+/// `Внести в статью 112 Федерального закона ...:` -> `statya-112`).
+///
+/// Fails closed (returns an empty scope) when the header prefix is plural/ambiguous
+/// or refers only to a Code Part (`часть первую Гражданского кодекса`), so child
+/// clauses must still supply an unambiguous target locator (`INV-10`).
+fn extract_header_initial_scope(stripped: &str) -> StructuralLocator {
+    let prefixes = ["внести изменения в ", "внести изменение в ", "внести в "];
+    let Some((_, prefix_end)) = prefixes
+        .iter()
+        .find_map(|p| find_ci_span(stripped, p).filter(|(start, _)| *start == 0))
+    else {
+        return StructuralLocator::default();
+    };
+    let tail = &stripped[prefix_end..];
+
+    // Never scan past `" от "`, `'('`, `'"'`, or `'«'` so publication citations
+    // (e.g. СЗ РФ `ст. 1`) or act titles can never be misread as `act_scope`.
+    let mut hard_cap = tail.len();
+    for barrier in [" от ", "(", "\"", "«"] {
+        if let Some((pos, _)) = find_ci_span(tail, barrier)
+            && pos < hard_cap
+        {
+            hard_cap = pos;
+        }
+    }
+    let search_window = &tail[..hard_cap];
+
+    let act_kind_markers: &[(&str, bool)] = &[
+        ("федерального конституционного закона", false),
+        ("федеральный конституционный закон", false),
+        ("федерального закона", false),
+        ("федеральный закон", false),
+        ("закона российской федерации", false),
+        ("закон российской федерации", false),
+        ("закона рсфср", false),
+        ("закон рсфср", false),
+        ("гражданского кодекса", true),
+        ("гражданский кодекс", true),
+        ("градостроительного кодекса", true),
+        ("градостроительный кодекс", true),
+        ("земельного кодекса", true),
+        ("земельный кодекс", true),
+        ("бюджетного кодекса", true),
+        ("бюджетный кодекс", true),
+        ("налогового кодекса", true),
+        ("налоговый кодекс", true),
+        ("трудового кодекса", true),
+        ("трудовой кодекс", true),
+        ("кодекса", true),
+        ("кодекс", true),
+        ("указа", false),
+        ("указ", false),
+        ("постановления", false),
+        ("постановление", false),
+        ("распоряжения", false),
+        ("распоряжение", false),
+        ("приказа", false),
+        ("приказ", false),
+        ("основ законодательства", false),
+        ("основы законодательства", false),
+    ];
+    let Some((scope_end, is_code)) = act_kind_markers
+        .iter()
+        .filter_map(|&(kw, is_code)| {
+            find_word_bounded_ci_span(search_window, kw).map(|(pos, _)| (pos, is_code))
+        })
+        .min_by_key(|&(pos, _)| pos)
+    else {
+        return StructuralLocator::default();
+    };
+    let mut scope_slice = search_window[..scope_end].trim();
+    if is_code {
+        scope_slice = strip_trailing_code_part_suffix(scope_slice);
+    }
+    if scope_slice.is_empty() {
+        return StructuralLocator::default();
+    }
+    let extracted = extract_structural_steps_checked(scope_slice);
+    if extracted.ambiguous_multi_target || extracted.steps.is_empty() {
+        StructuralLocator::default()
+    } else {
+        StructuralLocator::new(extracted.steps)
+    }
 }
 
 fn parse_target_act_header(block_index: usize, trimmed: &str) -> ActHeaderParse {
@@ -567,6 +834,7 @@ fn parse_target_act_header(block_index: usize, trimmed: &str) -> ActHeaderParse 
     {
         return ActHeaderParse::NotAnActHeader;
     }
+    let initial_scope = extract_header_initial_scope(stripped);
     let tokens = lex(stripped);
     let mut date: Option<String> = None;
     let mut number: Option<String> = None;
@@ -621,7 +889,10 @@ fn parse_target_act_header(block_index: usize, trimmed: &str) -> ActHeaderParse 
     };
 
     if trimmed.ends_with(':') {
-        ActHeaderParse::HeaderScope(req)
+        ActHeaderParse::HeaderScope {
+            act: req,
+            initial_scope,
+        }
     } else {
         // Single-sentence inline amendment (`Внести в статью X ... изменение, заменив ...`)
         ActHeaderParse::InlineAmendmentInHeader(req)
@@ -843,10 +1114,10 @@ fn parse_one_inline_op(body: &str, cursor: usize) -> Option<ParsedInlineOp> {
 
     // 1. `после слова/слов/цифры/цифр "<LOC>" дополнить словом/словами/цифрой/цифрами "<VAL>"`
     if lower.starts_with("после слов") || lower.starts_with("после цифр") {
-        let q1 = find_next_quote(body, offset)?;
+        let q1 = find_next_quote(body, offset, true)?;
         let after_q1 = body.get(q1.end..)?.trim_start();
         if after_q1.to_lowercase().starts_with("дополнить ") {
-            let q2 = find_next_quote(body, q1.end)?;
+            let q2 = find_next_quote(body, q1.end, false)?;
             return Some(ParsedInlineOp {
                 kind: ChangeOpKind::InsertText,
                 param: ChangePositionParam::AfterAnchor,
@@ -860,10 +1131,10 @@ fn parse_one_inline_op(body: &str, cursor: usize) -> Option<ParsedInlineOp> {
 
     // 2. `перед словом/словами/цифрой/цифрами "<LOC>" дополнить словом/словами/цифрой/цифрами "<VAL>"`
     if lower.starts_with("перед слов") || lower.starts_with("перед цифр") {
-        let q1 = find_next_quote(body, offset)?;
+        let q1 = find_next_quote(body, offset, true)?;
         let after_q1 = body.get(q1.end..)?.trim_start();
         if after_q1.to_lowercase().starts_with("дополнить ") {
-            let q2 = find_next_quote(body, q1.end)?;
+            let q2 = find_next_quote(body, q1.end, false)?;
             return Some(ParsedInlineOp {
                 kind: ChangeOpKind::InsertText,
                 param: ChangePositionParam::BeforeAnchor,
@@ -882,11 +1153,11 @@ fn parse_one_inline_op(body: &str, cursor: usize) -> Option<ParsedInlineOp> {
         || lower.starts_with("цифры ")
         || lower.starts_with("предложение ")
     {
-        let q1 = find_next_quote(body, offset)?;
+        let q1 = find_next_quote(body, offset, true)?;
         let after_q1 = body.get(q1.end..)?.trim_start();
         let after_q1_lower = after_q1.to_lowercase();
         if after_q1_lower.starts_with("заменить ") {
-            let q2 = find_next_quote(body, q1.end)?;
+            let q2 = find_next_quote(body, q1.end, false)?;
             return Some(ParsedInlineOp {
                 kind: ChangeOpKind::ReplaceText,
                 param: ChangePositionParam::ExactAnchor,
@@ -917,7 +1188,7 @@ fn parse_one_inline_op(body: &str, cursor: usize) -> Option<ParsedInlineOp> {
         || lower.starts_with("дополнить цифрами ")
         || lower.starts_with("дополнить предложением ")
     {
-        let q = find_next_quote(body, offset)?;
+        let q = find_next_quote(body, offset, false)?;
         return Some(ParsedInlineOp {
             kind: ChangeOpKind::InsertText,
             param: ChangePositionParam::EndOfComponent,
@@ -967,8 +1238,12 @@ pub fn parse_amending_blocks(blocks: &[&str]) -> ChangeGrammarReport {
     let mut editorial_notes_skipped = 0usize;
 
     let mut current_act: Option<TargetActRequisites> = None;
-    let mut numbered_scope = StructuralLocator::default();
-    let mut lettered_scope = StructuralLocator::default();
+    let mut act_scope = StructuralLocator::default();
+    // `None` means the active container header failed closed (poisoned scope):
+    // child clauses inheriting a poisoned scope MUST fail closed as `AmbiguousTarget`
+    // instead of silently falling back onto `act_scope` or `numbered_scope` (`INV-10`).
+    let mut numbered_scope: Option<StructuralLocator> = Some(StructuralLocator::default());
+    let mut lettered_scope: Option<StructuralLocator> = Some(StructuralLocator::default());
 
     let mut idx = 0usize;
     while idx < blocks.len() {
@@ -997,8 +1272,9 @@ pub fn parse_amending_blocks(blocks: &[&str]) -> ChangeGrammarReport {
         // so transitional/commencement articles cannot inherit prior act context.
         if is_top_level_article_heading(trimmed) {
             current_act = None;
-            numbered_scope = StructuralLocator::default();
-            lettered_scope = StructuralLocator::default();
+            act_scope = StructuralLocator::default();
+            numbered_scope = Some(StructuralLocator::default());
+            lettered_scope = Some(StructuralLocator::default());
             idx += 1;
             continue;
         }
@@ -1015,17 +1291,19 @@ pub fn parse_amending_blocks(blocks: &[&str]) -> ChangeGrammarReport {
         }
 
         match parse_target_act_header(idx, trimmed) {
-            ActHeaderParse::HeaderScope(act) => {
+            ActHeaderParse::HeaderScope { act, initial_scope } => {
                 current_act = Some(act);
-                numbered_scope = StructuralLocator::default();
-                lettered_scope = StructuralLocator::default();
+                act_scope = initial_scope.clone();
+                numbered_scope = Some(initial_scope.clone());
+                lettered_scope = Some(initial_scope);
                 idx += 1;
                 continue;
             }
             ActHeaderParse::InlineAmendmentInHeader(act) => {
                 current_act = Some(act.clone());
-                numbered_scope = StructuralLocator::default();
-                lettered_scope = StructuralLocator::default();
+                act_scope = StructuralLocator::default();
+                numbered_scope = Some(StructuralLocator::default());
+                lettered_scope = Some(StructuralLocator::default());
                 refusals.push(ChangeParseRefusal::UnsupportedOperation {
                     block_index: idx,
                     span: act.span,
@@ -1055,13 +1333,12 @@ pub fn parse_amending_blocks(blocks: &[&str]) -> ChangeGrammarReport {
             if extracted.ambiguous_multi_target || extracted.steps.is_empty() {
                 match prefix_kind {
                     ListPrefixKind::NumberedItem => {
-                        numbered_scope = StructuralLocator::default();
-                        lettered_scope = StructuralLocator::default();
+                        numbered_scope = None;
+                        lettered_scope = None;
                     }
-                    ListPrefixKind::LetteredItem => {
-                        lettered_scope = numbered_scope.clone();
+                    ListPrefixKind::LetteredItem | ListPrefixKind::UnmarkedClause => {
+                        lettered_scope = None;
                     }
-                    ListPrefixKind::UnmarkedClause => {}
                 }
                 refusals.push(ChangeParseRefusal::AmbiguousTarget {
                     block_index: idx,
@@ -1075,18 +1352,45 @@ pub fn parse_amending_blocks(blocks: &[&str]) -> ChangeGrammarReport {
             } else {
                 match prefix_kind {
                     ListPrefixKind::NumberedItem => {
-                        numbered_scope = StructuralLocator::new(extracted.steps);
-                        lettered_scope = numbered_scope.clone();
+                        let scope = act_scope.with_overlay(&extracted.steps);
+                        numbered_scope = Some(scope.clone());
+                        lettered_scope = Some(scope);
                     }
                     ListPrefixKind::LetteredItem => {
-                        lettered_scope = numbered_scope.with_overlay(&extracted.steps);
+                        if let Some(parent) = numbered_scope.as_ref() {
+                            lettered_scope = Some(parent.with_overlay(&extracted.steps));
+                        } else {
+                            lettered_scope = None;
+                            refusals.push(ChangeParseRefusal::AmbiguousTarget {
+                                block_index: idx,
+                                span: block_span,
+                                reason: "container header inherits a failed parent container scope",
+                            });
+                        }
                     }
                     ListPrefixKind::UnmarkedClause => {
-                        if numbered_scope.is_empty() {
-                            numbered_scope = StructuralLocator::new(extracted.steps);
-                            lettered_scope = numbered_scope.clone();
+                        if let Some(parent) = numbered_scope.as_ref() {
+                            if parent == &act_scope {
+                                let scope = act_scope.with_overlay(&extracted.steps);
+                                numbered_scope = Some(scope.clone());
+                                lettered_scope = Some(scope);
+                            } else if let Some(l_parent) = lettered_scope.as_ref() {
+                                lettered_scope = Some(l_parent.with_overlay(&extracted.steps));
+                            } else {
+                                lettered_scope = None;
+                                refusals.push(ChangeParseRefusal::AmbiguousTarget {
+                                    block_index: idx,
+                                    span: block_span,
+                                    reason: "container header inherits a failed parent container scope",
+                                });
+                            }
                         } else {
-                            lettered_scope = lettered_scope.with_overlay(&extracted.steps);
+                            lettered_scope = None;
+                            refusals.push(ChangeParseRefusal::AmbiguousTarget {
+                                block_index: idx,
+                                span: block_span,
+                                reason: "container header inherits a failed parent container scope",
+                            });
                         }
                     }
                 }
@@ -1095,18 +1399,35 @@ pub fn parse_amending_blocks(blocks: &[&str]) -> ChangeGrammarReport {
             continue;
         }
 
-        // Determine inherited base scope for this clause.
-        let base_scope = match prefix_kind {
+        // Determine inherited base scope for this clause (`None` => poisoned parent).
+        let maybe_base_scope = match prefix_kind {
             ListPrefixKind::NumberedItem => {
-                numbered_scope = StructuralLocator::default();
-                lettered_scope = StructuralLocator::default();
-                StructuralLocator::default()
+                numbered_scope = Some(act_scope.clone());
+                lettered_scope = Some(act_scope.clone());
+                Some(act_scope.clone())
             }
             ListPrefixKind::LetteredItem => {
                 lettered_scope = numbered_scope.clone();
                 numbered_scope.clone()
             }
             ListPrefixKind::UnmarkedClause => lettered_scope.clone(),
+        };
+
+        let Some(base_scope) = maybe_base_scope else {
+            refusals.push(ChangeParseRefusal::AmbiguousTarget {
+                block_index: idx,
+                span: block_span,
+                reason: "clause inherits a failed parent container scope",
+            });
+            if body.ends_with(':')
+                && let Some((_, last_idx)) =
+                    collect_quoted_blocks(blocks, idx + 1, &mut editorial_notes_skipped)
+            {
+                idx = last_idx + 1;
+            } else {
+                idx += 1;
+            }
+            continue;
         };
 
         let prefix_end = action_prefix_end(body);
@@ -1192,14 +1513,77 @@ pub fn parse_amending_blocks(blocks: &[&str]) -> ChangeGrammarReport {
             continue;
         }
 
-        // Case 3: Structural attach (`дополнить статьей/частью/пунктом/подпунктом/абзацем ... следующего содержания:`).
-        // Guard with `body.ends_with(':')` so compound inline clauses carrying a trailing
-        // `дополнить новым ... предложением следующего содержания: "..."` still parse their
-        // leading inline operations in Case 4 and refuse only the unsupported tail.
+        // Case 3: Structural attach (`дополнить статьей/частью/пунктом/подпунктом/абзацем ... следующего содержания:`)
+        // or next-line end-of-component sentence append (`дополнить предложением следующего содержания:`).
+        // Guard with `body.ends_with(':')` AND require `body[prefix_end..]` to start with
+        // `дополнить ` so a compound colon-terminated clause carrying an earlier inline op
+        // never silently drops that leading op (`INV-10`).
         if body.ends_with(':')
             && body_lower.contains("дополнить ")
             && body_lower.contains("следующего содержания")
         {
+            if !body[prefix_end..]
+                .trim_start()
+                .to_lowercase()
+                .starts_with("дополнить ")
+            {
+                refusals.push(ChangeParseRefusal::UnsupportedOperation {
+                    block_index: idx,
+                    span: block_span,
+                    excerpt: trimmed.chars().take(120).collect(),
+                });
+                if let Some((_, last_idx)) =
+                    collect_quoted_blocks(blocks, idx + 1, &mut editorial_notes_skipped)
+                {
+                    idx = last_idx + 1;
+                } else {
+                    idx += 1;
+                }
+                continue;
+            }
+            if body_lower.contains("дополнить предложением следующего содержания")
+            {
+                if target_locator.is_empty() {
+                    refusals.push(ChangeParseRefusal::AmbiguousTarget {
+                        block_index: idx,
+                        span: block_span,
+                        reason: "missing structural locator for InsertText(EndOfComponent)",
+                    });
+                    if let Some((_, last_idx)) =
+                        collect_quoted_blocks(blocks, idx + 1, &mut editorial_notes_skipped)
+                    {
+                        idx = last_idx + 1;
+                    } else {
+                        idx += 1;
+                    }
+                    continue;
+                }
+                match collect_quoted_blocks(blocks, idx + 1, &mut editorial_notes_skipped) {
+                    Some((quoted, last_idx)) => {
+                        candidates.push(ChangeClauseCandidate {
+                            block_index: idx,
+                            evidence_span: block_span,
+                            owner_act,
+                            target_locator,
+                            child_spec: None,
+                            kind: ChangeOpKind::InsertText,
+                            param: ChangePositionParam::EndOfComponent,
+                            loc_value: None,
+                            value: Some(quoted),
+                        });
+                        idx = last_idx + 1;
+                    }
+                    None => {
+                        refusals.push(ChangeParseRefusal::IncompleteSource {
+                            block_index: idx,
+                            span: block_span,
+                            reason: "expected quoted sentence block after 'дополнить предложением следующего содержания'",
+                        });
+                        idx += 1;
+                    }
+                }
+                continue;
+            }
             match extract_attach_child(body) {
                 Ok(Some(child)) => {
                     let target_with_child =
@@ -1261,13 +1645,33 @@ pub fn parse_amending_blocks(blocks: &[&str]) -> ChangeGrammarReport {
             }
 
             let mut cursor = prefix_end;
+            let mut parsed_any_in_clause = false;
             while let Some(slice) = body.get(cursor..) {
                 let rem = slice.trim_start_matches([',', ';', '.', ' ', '\u{00a0}']);
                 if rem.is_empty() {
                     break;
                 }
                 let next_offset = body.len() - rem.len();
-                if let Some(op) = parse_one_inline_op(body, next_offset) {
+                let maybe_op = parse_one_inline_op(body, next_offset).or_else(|| {
+                    if !parsed_any_in_clause {
+                        return None;
+                    }
+                    // Allow Russian coordinating conjunction (`и `, `а `) between
+                    // chained inline operations only when the tail parses cleanly.
+                    let conj_len = if let Some((_, end)) = find_ci_span(rem, "и ")
+                        && rem.to_lowercase().starts_with("и ")
+                    {
+                        end
+                    } else if let Some((_, end)) = find_ci_span(rem, "а ")
+                        && rem.to_lowercase().starts_with("а ")
+                    {
+                        end
+                    } else {
+                        return None;
+                    };
+                    parse_one_inline_op(body, next_offset + conj_len)
+                });
+                if let Some(op) = maybe_op {
                     candidates.push(ChangeClauseCandidate {
                         block_index: idx,
                         evidence_span: block_span,
@@ -1280,6 +1684,7 @@ pub fn parse_amending_blocks(blocks: &[&str]) -> ChangeGrammarReport {
                         value: op.value,
                     });
                     cursor = op.next_cursor;
+                    parsed_any_in_clause = true;
                 } else {
                     // Fail closed on ANY unparsed non-empty remainder (`INV-10`).
                     let has_unclosed_quote = (rem.matches('"').count() % 2 == 1)
